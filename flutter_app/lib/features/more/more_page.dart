@@ -211,6 +211,23 @@ https://class.genziitian.in/download''';
                   onTap: () => context.push('/support'),
                 ),
               _ActionRow(
+                icon: Icons.lightbulb_outline_rounded,
+                iconColor: const Color(0xFF8B5CF6),
+                iconBg: const Color(0xFF8B5CF6).withOpacity(0.12),
+                title: 'Request a Feature',
+                textColor: textPrimary,
+                onTap: () => context.push('/support/feature-requests'),
+              ),
+              if (role == 'MANAGER' || role == 'ADMIN')
+                _ActionRow(
+                  icon: Icons.flag_outlined,
+                  iconColor: const Color(0xFFEF4444),
+                  iconBg: const Color(0xFFEF4444).withOpacity(0.12),
+                  title: 'User Reports',
+                  textColor: textPrimary,
+                  onTap: () => context.push('/support/user-reports'),
+                ),
+              _ActionRow(
                 icon: Icons.star_outline_rounded,
                 iconColor: tokens.warning,
                 iconBg: tokens.warning.withOpacity(0.12),

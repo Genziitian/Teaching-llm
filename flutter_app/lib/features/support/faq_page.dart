@@ -13,95 +13,104 @@ import '../../shared/widgets/sub_page_header.dart';
 /// see useful guidance instead of an empty state.
 const _fallbackFaqs = <Map<String, String>>[
   {
-    'question': 'What is the difference between PLUS and PRO?',
+    'question': 'What is the difference between PLUS and PRO Batch?',
     'answer':
-        'PLUS includes full access to recorded lectures and course materials. PRO includes everything in PLUS, plus direct entry to Live Classes, priority 1:1 doubt support, and interactive Q&A sessions with teachers.',
+        'PLUS Batch includes full access to recorded lectures, course materials, and practice resources. PRO Batch includes everything in PLUS, plus direct entry to Live Classes, interactive Q&A sessions with teachers, and priority 1:1 doubt support.',
   },
   {
     'question': 'Can I upgrade from PLUS to PRO later?',
     'answer':
-        'Yes, you can upgrade your plan at any time through our web portal at class.genziitian.in. Your new batch access will immediately sync with this app.',
+        "Yes, you can upgrade at any time! Simply visit the course store, find your course, and choose the 'Upgrade to PRO' option which only charges the price difference.",
   },
   {
     'question': 'How long do I have access to the course?',
     'answer':
-        'Most courses provide access until the end of the academic term (e.g., End Term 1 or Term 2). You can find details and active enrollments under My Courses.',
+        'Most courses provide access until the end of the academic term (e.g., End Term 1 or Term 2). You can view the exact validity and expiry date on your course card or details page.',
   },
   {
     'question': 'Is there a mobile app available?',
     'answer':
-        "Yes — you're using it! The Gen-Z IITian Android app is live, and an iOS build is on the roadmap.",
+        'Yes! The official Gen-Z IITian Android app is live and available for download. You can also access the full learning platform on any web browser at app.genziitian.in. An iOS app is currently in our roadmap.',
+  },
+  {
+    'question': 'What payment methods do you accept?',
+    'answer':
+        'We accept all major Credit/Debit cards, UPI (Google Pay, PhonePe, Paytm, BHIM), Net Banking, and popular Wallets through our secure Razorpay payment gateway.',
+  },
+  {
+    'question': 'What should I do if my payment fails but money is deducted?',
+    'answer':
+        "Don't worry! Usually, failed bank transactions are automatically refunded within 24 to 48 hours by your bank. If your enrolled course does not appear in your dashboard within 2 hours, please raise a support ticket with your transaction reference ID.",
   },
   {
     'question': 'Can I get a refund?',
     'answer':
-        'Refund policies vary by course. Generally, we offer a 2-day "no questions asked" refund if you haven\'t consumed more than 10% of the content. Check the specific course terms for details.',
+        "Refund policies vary by course. Generally, we offer a 2-day 'no questions asked' refund if you have not consumed more than 10% of the content. Please refer to our Return & Refund Policy for full terms.",
   },
   {
     'question': 'How do I access the Live Classes?',
     'answer':
-        'If you have a PRO enrollment, go to the "Live" tab in your dashboard. You will see upcoming sessions and a "Join Now" button when a class is live.',
+        "If you are enrolled in a PRO Batch, navigate to the 'Live' tab in your dashboard or mobile app. You will see upcoming class schedules and a 'Join Now' button whenever a session is live.",
   },
   {
     'question': 'Where can I find my course certificates?',
     'answer':
-        'Once you complete 100% of the course content and pass the final assessment, your certificate will be available for download in the "Profile" or "Course Details" section.',
+        'Once you achieve 100% course completion and clear the final evaluation, your certificate will be automatically generated and available for download under your Profile or Course Details section.',
   },
   {
     'question': 'I forgot my password, how do I reset it?',
     'answer':
-        'We use Google Sign-In, so password resets are managed through your Google account. Visit your Google account settings to recover or change your password.',
+        "We use Google Sign-In for streamlined and secure authentication. You don't need to remember a separate password—simply log in with your registered Google account. If needed, password recovery is managed directly through your Google account.",
   },
   {
     'question': 'Can I share my account with a friend?',
     'answer':
-        'Account sharing is strictly prohibited. Our system monitors concurrent logins and IP changes. Multiple simultaneous logins may lead to permanent account suspension.',
+        'No. Account sharing is strictly against our terms of service. Our security system monitors concurrent logins and abnormal device activity. Simultaneous unauthorized access may result in immediate and permanent account suspension.',
   },
   {
     'question': 'What are "Free Resources"?',
     'answer':
-        'Free Resources include guest lectures, demo notes, and sample papers available to all registered users without any purchase.',
+        'Free Resources include curated demo lectures, formula sheets, revision notes, and previous year question papers (PYQs) accessible to all registered students at zero cost.',
   },
   {
     'question': 'How can I contact my instructor?',
     'answer':
-        'PRO users can use the "Doubt" section inside each lesson or the dedicated Q&A feature during Live Classes to interact directly with instructors.',
+        "PRO Batch students can ask questions directly during interactive Live Classes or use the dedicated 'Doubt Support' feature inside each lesson. Our academic team reviews and responds to queries promptly.",
   },
   {
-    'question': 'Do you provide offline access to videos?',
+    'question': 'Do you provide offline access to videos and materials?',
     'answer':
-        'Currently, videos require an active internet connection to prevent piracy. However, you can download course PDFs and materials for offline viewing.',
+        'Due to copyright protection, lecture videos stream online. However, course PDFs, formula sheets, notes, and study materials can be downloaded for offline viewing directly inside the app and web.',
   },
   {
     'question': 'What is the "Community" tab?',
     'answer':
-        'The Community tab is a discussion forum where you can interact with fellow students, share insights, and participate in subject-specific groups.',
+        'The Community tab is a student collaboration forum where you can discuss concepts, share problem-solving strategies, solve PYQs together, and stay connected with fellow IITM BS peers.',
   },
   {
-    'question': 'How do I track my progress?',
+    'question': 'How do I track my study progress?',
     'answer':
-        'Your progress is tracked automatically. You can see your completion percentage on the dashboard and inside each individual course module.',
+        'Your learning progress updates automatically across both web and mobile app. You can monitor your overall completion percentage on your main dashboard and view module-by-module progress inside each course.',
   },
   {
-    'question':
-        'Are the recordings available immediately after a Live Class?',
+    'question': 'Are recordings available after a Live Class concludes?',
     'answer':
-        'Yes, recordings are usually processed and made available in the "Recorded" section within 4-6 hours after the Live Class ends.',
+        "Yes! High-definition recordings of every Live Class are processed and added to the 'Recorded' section of your course within 4 to 6 hours after the live session concludes.",
   },
   {
     'question': 'Can I change my registered email address?',
     'answer':
-        'For security reasons, email changes require manual verification. Please raise a support ticket from your current account to request a change.',
+        'Because course enrollments and academic records are tied to your student account, email updates require manual verification. Please raise a support ticket requesting an email change, and our team will assist you.',
   },
   {
-    'question': 'What browsers are recommended?',
+    'question': 'What devices and browsers are recommended?',
     'answer':
-        'We recommend using the latest versions of Google Chrome, Mozilla Firefox, or Microsoft Edge for the best web experience.',
+        'You can use our official Android app on mobile devices, or any modern web browser (Google Chrome, Microsoft Edge, Brave, Mozilla Firefox, or Safari) on desktop, laptop, or tablet.',
   },
   {
-    'question': 'How do I report a technical bug?',
+    'question': 'How do I report a technical bug or app issue?',
     'answer':
-        'Please raise a "Technical Support" ticket with a screenshot of the error and your device details. Our team will investigate it promptly.',
+        "Please raise a 'Technical Support' ticket under the Support section with a description and screenshot of the issue. Our technical team will investigate and resolve it as quickly as possible.",
   },
 ];
 

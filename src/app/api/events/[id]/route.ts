@@ -97,7 +97,11 @@ export async function PUT(
     if (status !== undefined) data.status = status
     if (recurrence !== undefined) data.recurrence = recurrence
     if (interval !== undefined) data.interval = interval ? parseInt(interval as string) : null
-    if (originalStartTime !== undefined) data.originalStartTime = originalStartTime ? new Date(originalStartTime) : null
+    if (originalStartTime !== undefined) {
+      data.originalStartTime = originalStartTime ? new Date(originalStartTime) : null
+    } else if (status === 'RESCHEDULED' && !existingEvent.originalStartTime) {
+      data.originalStartTime = existingEvent.startTime
+    }
     if (normalizedProvider !== undefined) {
       data.streamProvider = normalizedProvider
       if (normalizedProvider === 'AGORA') {

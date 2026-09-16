@@ -81,3 +81,28 @@ String ticketStatusLabel(dynamic status) => switch (status) {
       'CLOSED' => 'Closed',
       _ => 'Unknown',
     };
+
+final featureRequestsProvider =
+    FutureProvider.autoDispose<List<Map<String, dynamic>>>((ref) async {
+  final res = await ref
+      .watch(apiClientProvider)
+      .get<dynamic>('/api/support/feature-requests');
+  final data = res.data;
+  if (data is List) {
+    return data.cast<Map<String, dynamic>>();
+  }
+  return [];
+});
+
+final userReportsProvider =
+    FutureProvider.autoDispose<List<Map<String, dynamic>>>((ref) async {
+  final res = await ref
+      .watch(apiClientProvider)
+      .get<dynamic>('/api/support/user-reports');
+  final data = res.data;
+  if (data is List) {
+    return data.cast<Map<String, dynamic>>();
+  }
+  return [];
+});
+

@@ -18,7 +18,7 @@ import {
   IITM_ALL_SUBJECTS,
 } from '@/lib/iitm-taxonomy'
 
-export type Tab = 'courses' | 'offerings' | 'bundles' | 'lectures' | 'events' | 'materials' | 'announcements' | 'content-bank' | 'notifications' | 'home-slides'
+export type Tab = 'courses' | 'offerings' | 'bundles' | 'lectures' | 'events' | 'materials' | 'announcements' | 'content-bank' | 'notifications' | 'home-slides' | 'faqs'
 
 interface ManagePageInnerProps {
   forcedTab?: Tab
@@ -92,6 +92,9 @@ export function ManagePageInner({ forcedTab }: ManagePageInnerProps = {}) {
   const { data: homeContentSettings, error: homeContentSettingsError, mutate: mutateHomeContentSettings } = useSWR(
     tab === 'home-slides' ? '/api/admin/home-content-settings' : null, fetcher
   )
+  const { data: faqsData, error: faqsError, isLoading: loadingFaqs, mutate: mutateFaqs } = useSWR(
+    tab === 'faqs' ? '/api/support/faq' : null, fetcher
+  )
 
   const courses = Array.isArray(coursesData) ? coursesData : Array.isArray(coursesData?.courses) ? coursesData.courses : []
   const offerings = Array.isArray(offeringsData) ? offeringsData : []
@@ -104,6 +107,7 @@ export function ManagePageInner({ forcedTab }: ManagePageInnerProps = {}) {
   const instructors = Array.isArray(instructorsData) ? instructorsData : []
   const campaigns = Array.isArray(campaignsData) ? campaignsData : []
   const slides = Array.isArray(homeSlidesData) ? homeSlidesData : []
+  const faqs = Array.isArray(faqsData) ? faqsData : []
 
   // Loading = only the active tab's loader
   const loading = loadingCourses ||
@@ -115,7 +119,8 @@ export function ManagePageInner({ forcedTab }: ManagePageInnerProps = {}) {
     (tab === 'announcements' && loadingAnnouncements) ||
     (tab === 'content-bank' && loadingBank) ||
     (tab === 'notifications' && loadingCampaigns) ||
-    (tab === 'home-slides' && loadingSlides)
+    (tab === 'home-slides' && loadingSlides) ||
+    (tab === 'faqs' && loadingFaqs)
   const loadError =
     authError ||
     coursesError ||
@@ -129,7 +134,8 @@ export function ManagePageInner({ forcedTab }: ManagePageInnerProps = {}) {
     instructorsError ||
     campaignsError ||
     slidesError ||
-    homeContentSettingsError
+    homeContentSettingsError ||
+    faqsError
 
 
 
@@ -178,6 +184,10 @@ export function ManagePageInner({ forcedTab }: ManagePageInnerProps = {}) {
       mutate('/api/admin/home-slides?manage=1')
       mutate('/api/admin/home-slides')
       mutate('/api/admin/home-content-settings')
+    }
+    if (tab === 'faqs') {
+      if (typeof mutateFaqs === 'function') await mutateFaqs()
+      mutate('/api/support/faq')
     }
     try {
       router.refresh()
@@ -375,7 +385,11 @@ export function ManagePageInner({ forcedTab }: ManagePageInnerProps = {}) {
 
   function openCreate() {
     setEditId(null)
-    setFormData(tab === 'courses' ? { isDisabled: false, googleGroupEmail: '', courseIconType: 'book_open', icon: 'BookOpen' } : {})
+    setFormData(
+      tab === 'courses' ? { isDisabled: false, googleGroupEmail: '', courseIconType: 'book_open', icon: 'BookOpen' } :
+      tab === 'faqs' ? { question: '', answer: '', order: faqs.length } :
+      {}
+    )
     setCourseIconPickerOpen(false)
     setTopicsForCourse([])
     setMaterialSourceType('FILE')
@@ -532,6 +546,7 @@ export function ManagePageInner({ forcedTab }: ManagePageInnerProps = {}) {
           'content-bank': '/api/content-bank',
           notifications: '/api/notifications/campaigns',
           'home-slides': '/api/admin/home-slides',
+          faqs:          '/api/support/faq',
         }
         const base = endpoints[tab]
         const url  = editId ? `${base}/${editId}` : base
@@ -662,6 +677,7 @@ export function ManagePageInner({ forcedTab }: ManagePageInnerProps = {}) {
     else if (tab === 'announcements') entityType = 'Announcement'
     else if (tab === 'content-bank') entityType = 'Question'
     else if (tab === 'home-slides') entityType = 'Home Slide'
+    else if (tab === 'faqs') entityType = 'FAQ'
 
     const allowed = await confirm({
       title: `Delete ${entityType}`,
@@ -695,6 +711,7 @@ export function ManagePageInner({ forcedTab }: ManagePageInnerProps = {}) {
         'content-bank': '/api/content-bank',
         notifications: '',
         'home-slides': '',
+        faqs:          '/api/support/faq',
       }
       await fetch(`${endpoints[tab]}/${id}`, { method: 'DELETE' })
     }
@@ -710,6 +727,7 @@ export function ManagePageInner({ forcedTab }: ManagePageInnerProps = {}) {
     ...(userRole === 'MANAGER' ? [{ key: 'materials' as Tab, label: 'Materials', count: materials.length }] : []),
     { key: 'announcements', label: 'Announcements', count: announcements.length },
     { key: 'content-bank',  label: 'Content Bank',  count: bankQuestions.length },
+    ...(userRole === 'MANAGER' ? [{ key: 'faqs' as Tab, label: 'FAQs', count: faqs.length }] : []),
   ]
 
   const ALL_COLORS = [...SOLID_COLORS, ...GRADIENT_COLORS]
@@ -1636,6 +1654,44 @@ export function ManagePageInner({ forcedTab }: ManagePageInnerProps = {}) {
             )}
           </>
         )
+      case 'faqs':
+        return (
+          <>
+            <div className="form-group">
+              <label className="form-label">Question *</label>
+              <input
+                type="text"
+                className="form-input"
+                value={f.question || ''}
+                onChange={e => set('question', e.target.value)}
+                placeholder="e.g. What is the difference between PLUS and PRO?"
+                required
+              />
+            </div>
+            <div className="form-group">
+              <label className="form-label">Answer *</label>
+              <textarea
+                className="form-input"
+                rows={5}
+                value={f.answer || ''}
+                onChange={e => set('answer', e.target.value)}
+                placeholder="Provide a clear, helpful answer for students..."
+                required
+                style={{ resize: 'vertical' }}
+              />
+            </div>
+            <div className="form-group">
+              <label className="form-label">Display Order</label>
+              <input
+                type="number"
+                className="form-input"
+                value={f.order ?? 0}
+                onChange={e => set('order', parseInt(e.target.value, 10) || 0)}
+                min={0}
+              />
+            </div>
+          </>
+        )
     }
   }
 
@@ -1651,6 +1707,7 @@ export function ManagePageInner({ forcedTab }: ManagePageInnerProps = {}) {
       case 'content-bank':  return bankQuestions
       case 'notifications': return campaigns
       case 'home-slides':   return slides
+      case 'faqs':          return faqs
     }
   }
 
@@ -1732,24 +1789,49 @@ export function ManagePageInner({ forcedTab }: ManagePageInnerProps = {}) {
             </>
           )}
         </div>
-        {tab !== 'notifications' && ((tab === 'events' || tab === 'announcements' || tab === 'content-bank' || tab === 'home-slides') || userRole === 'MANAGER' || userRole === 'ADMIN') && (
-          <button
-            onClick={() => {
-              if (tab === 'home-slides' && slides.length >= 10) {
-                alert('Maximum limit of 10 slides reached. Delete an existing slide first.')
-                return
-              }
-              openCreate()
-            }}
-            className="btn btn-primary"
-            style={{ ...(tab === 'home-slides' && slides.length >= 10 ? { opacity: 0.5, cursor: 'not-allowed' } : {}) }}
-          >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
-            </svg>
-            {tab === 'events' ? 'Add Event' : tab === 'home-slides' ? 'Add Banner Slide' : 'Create New'}
-          </button>
-        )}
+        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+          {tab === 'faqs' && (
+            <button
+              onClick={async () => {
+                const ok = await confirm({
+                  title: 'Reset to Master FAQs?',
+                  message: 'This will replace all FAQ questions with the official master list of 20 questions.',
+                  confirmLabel: 'Reset FAQs',
+                  tone: 'danger',
+                })
+                if (!ok) return
+                await fetch('/api/support/faq', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ action: 'RESET_DEFAULTS' }),
+                })
+                loadData()
+              }}
+              className="btn btn-secondary"
+              style={{ borderRadius: '50px', fontSize: '12px', padding: '8px 16px' }}
+            >
+              Reset to Defaults
+            </button>
+          )}
+          {tab !== 'notifications' && ((tab === 'events' || tab === 'announcements' || tab === 'content-bank' || tab === 'home-slides' || tab === 'faqs') || userRole === 'MANAGER' || userRole === 'ADMIN') && (
+            <button
+              onClick={() => {
+                if (tab === 'home-slides' && slides.length >= 10) {
+                  alert('Maximum limit of 10 slides reached. Delete an existing slide first.')
+                  return
+                }
+                openCreate()
+              }}
+              className="btn btn-primary"
+              style={{ ...(tab === 'home-slides' && slides.length >= 10 ? { opacity: 0.5, cursor: 'not-allowed' } : {}) }}
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+              </svg>
+              {tab === 'events' ? 'Add Event' : tab === 'home-slides' ? 'Add Banner Slide' : tab === 'faqs' ? 'Add FAQ' : 'Create New'}
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Tabs */}
@@ -2974,13 +3056,13 @@ export function ManagePageInner({ forcedTab }: ManagePageInnerProps = {}) {
                   </div>
                 )}
                 {getItems().map((item, idx) => {
-              const rawDetail = item.description || item.content || item.duration || ''
+              const rawDetail = item.description || item.content || item.duration || item.answer || ''
               const itemDetail = rawDetail.length > 72 ? rawDetail.slice(0, 69) + '…' : rawDetail
 
               // For content items course lives in item.topic.course
               const isContent = tab === 'lectures' || tab === 'materials'
               const itemCourseName = isContent ? item.topic?.course?.name : item.course?.name
-              const showCourseName = tab !== 'announcements' && tab !== 'courses' && itemCourseName
+              const showCourseName = tab !== 'announcements' && tab !== 'courses' && tab !== 'faqs' && itemCourseName
 
               // Build subtitle: CourseName › TopicName · description
               const subtitleParts: string[] = []
@@ -2996,6 +3078,7 @@ export function ManagePageInner({ forcedTab }: ManagePageInnerProps = {}) {
                 tab === 'bundles'       ? 'BG' :
                 tab === 'events'        ? '▶' :
                 tab === 'announcements' ? '!' :
+                tab === 'faqs'          ? '?' :
                 tab === 'materials'     ? (item.fileType || 'DOC').slice(0, 3).toUpperCase() :
                 String(idx + 1).padStart(2, '0')
 
@@ -3028,7 +3111,7 @@ export function ManagePageInner({ forcedTab }: ManagePageInnerProps = {}) {
                   {/* Main info */}
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ fontSize: '13px', fontWeight: '600', color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                      {item.name || item.title}
+                      {item.name || item.title || item.question}
                     </div>
                     {tab === 'courses' && (
                       <div style={{ fontSize: '9px', fontFamily: 'monospace', color: 'var(--accent)', marginTop: '0px', fontWeight: '700', opacity: 0.7 }}>
@@ -3094,6 +3177,11 @@ export function ManagePageInner({ forcedTab }: ManagePageInnerProps = {}) {
                     {tab === 'announcements' && (
                       <span className={`badge badge-${item.type === 'warning' ? 'warning' : item.type === 'success' ? 'success' : 'info'}`}>
                         {item.type}
+                      </span>
+                    )}
+                    {tab === 'faqs' && (
+                      <span style={{ fontSize: '11px', padding: '2px 8px', borderRadius: '10px', background: 'var(--primary-light)', color: 'var(--accent)', fontWeight: '700' }}>
+                        #{item.order ?? 0}
                       </span>
                     )}
                   </div>
@@ -3351,7 +3439,7 @@ export function ManagePageInner({ forcedTab }: ManagePageInnerProps = {}) {
           <div className="modal" style={{ ...(tab === 'notifications' ? { maxWidth: '780px', width: '92%' } : {}) }} onClick={e => e.stopPropagation()}>
             <div className="modal-header">
               <h3 style={{ fontSize: '16px', fontWeight: '600' }}>
-                {editId ? 'Edit' : 'Create'} {tab.slice(0, -1).charAt(0).toUpperCase() + tab.slice(1, -1)}
+                {editId ? 'Edit' : 'Create'} {tab === 'faqs' ? 'FAQ' : tab.slice(0, -1).charAt(0).toUpperCase() + tab.slice(1, -1)}
               </h3>
               <button onClick={() => setShowModal(false)} style={{ color: 'var(--text-muted)', cursor: 'pointer', background: 'none', border: 'none' }}>
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">

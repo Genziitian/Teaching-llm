@@ -78,9 +78,11 @@ const EVENT_STATUS_OPTIONS = [
 
 const RECURRENCE_OPTIONS = [
   { value: 'ONETIME', label: 'One Time' },
-  { value: 'DAILY', label: 'Daily' },
+  { value: 'WEEKDAYS', label: 'Weekdays (Mon - Fri)' },
+  { value: 'DAILY', label: 'Daily (Every Day)' },
   { value: 'WEEKLY', label: 'Weekly' },
-  { value: 'CUSTOM', label: 'Custom Interval' },
+  { value: 'CUSTOM_DATES', label: 'Specific Custom Dates' },
+  { value: 'CUSTOM', label: 'Custom Day Interval' },
 ]
 
 function CalendarPageContent() {
@@ -106,6 +108,26 @@ function CalendarPageContent() {
   const [editId, setEditId] = useState<string | null>(null)
   const [formData, setFormData] = useState<Record<string, string>>({})
   const [saving, setSaving] = useState(false)
+
+  // Multi-course selection state
+  const [selectedCourseIds, setSelectedCourseIds] = useState<string[]>([])
+  const [isGlobalCourse, setIsGlobalCourse] = useState<boolean>(false)
+  const [courseSearchQuery, setCourseSearchQuery] = useState<string>('')
+
+  // Custom specific dates selection state
+  const [customDates, setCustomDates] = useState<string[]>([])
+  const [customDateInput, setCustomDateInput] = useState<string>('')
+
+  // Bulk Manager state
+  const [showBulkManager, setShowBulkManager] = useState(false)
+  const [bulkFromDate, setBulkFromDate] = useState('')
+  const [bulkToDate, setBulkToDate] = useState('')
+  const [bulkCourseFilter, setBulkCourseFilter] = useState('')
+  const [bulkTypeFilter, setBulkTypeFilter] = useState('')
+  const [bulkSearch, setBulkSearch] = useState('')
+  const [selectedBulkEventIds, setSelectedBulkEventIds] = useState<Set<string>>(new Set())
+  const [bulkDeleting, setBulkDeleting] = useState(false)
+  const [bulkNotifyStudents, setBulkNotifyStudents] = useState(false)
 
   // Detail popover for clicking event pills on calendar
   const [selectedEvent, setSelectedEvent] = useState<CalEvent | null>(null)
@@ -172,14 +194,15 @@ function CalendarPageContent() {
 
   function openCreate(prefilledDate?: string) {
     setEditId(null)
+    const defaultDate = prefilledDate || (todayState ? `${todayState.getFullYear()}-${String(todayState.getMonth() + 1).padStart(2, '0')}-${String(todayState.getDate()).padStart(2, '0')}` : '')
     setFormData({
       title: '',
       description: '',
-      date: prefilledDate || '',
+      date: defaultDate,
       time: '',
       endTime: '',
       type: 'class',
-      courseId: "",
+      courseId: '',
       instructorId: '',
       meetLink: '',
       status: 'SCHEDULED',
@@ -187,12 +210,22 @@ function CalendarPageContent() {
       interval: '1',
       parentId: '',
       streamProvider: 'MEET',
+      repeatUntil: '',
+      rescheduledDate: defaultDate,
+      rescheduledTime: '',
+      rescheduledEndTime: '',
     })
+    setSelectedCourseIds([])
+    setIsGlobalCourse(false)
+    setCourseSearchQuery('')
+    setCustomDates([])
+    setCustomDateInput('')
     setShowModal(true)
   }
 
-  function openEdit(ev: CalEvent) {
+  function openEdit(ev: CalEvent, presetReschedule?: boolean) {
     setEditId(ev.id)
+    const isResched = presetReschedule || ev.internalStatus === 'RESCHEDULED'
     setFormData({
       title: ev.title || '',
       description: ev.description || '',
@@ -203,59 +236,97 @@ function CalendarPageContent() {
       courseId: ev.isGlobal ? 'GLOBAL' : (ev.courseId || ''),
       instructorId: ev.instructorId || '',
       meetLink: ev.meetLink || '',
-      status: ev.internalStatus || 'SCHEDULED',
+      status: isResched ? 'RESCHEDULED' : (ev.internalStatus || 'SCHEDULED'),
       recurrence: ev.recurrence || 'ONETIME',
       interval: ev.interval ? String(ev.interval) : '1',
       parentId: ev.parentId || '',
       streamProvider: ev.streamProvider || 'MEET',
+      repeatUntil: '',
+      rescheduledDate: ev.date || '',
+      rescheduledTime: ev.time || '',
+      rescheduledEndTime: ev.endTime || '',
     })
+    if (ev.isGlobal) {
+      setIsGlobalCourse(true)
+      setSelectedCourseIds([])
+    } else {
+      setIsGlobalCourse(false)
+      setSelectedCourseIds(ev.courseId ? [ev.courseId] : [])
+    }
+    setCourseSearchQuery('')
+    setCustomDates([])
+    setCustomDateInput('')
     setSelectedEvent(null)
     setShowModal(true)
   }
 
   async function handleSave() {
-    if (!formData.title || !formData.date || !formData.time || !formData.endTime) return
-    
-    // Ensure course is selected (not accidentally global)
-    if (!formData.courseId || formData.courseId === '') {
-      alert("Please select a course for this event.\n\nTo make it visible to all users, select 'Global (visible to all users)'.")
+    if (!formData.title) {
+      alert('Please enter an event title')
       return
     }
-    
+
+    // Determine target dates and times (considering RESCHEDULED workflow)
+    const isRescheduled = formData.status === 'RESCHEDULED'
+    const targetDate = isRescheduled ? (formData.rescheduledDate || formData.date) : formData.date
+    const targetTime = isRescheduled ? (formData.rescheduledTime || formData.time) : formData.time
+    const targetEndTime = isRescheduled ? (formData.rescheduledEndTime || formData.endTime) : formData.endTime
+
+    if (!targetDate || !targetTime || !targetEndTime) {
+      alert('Please specify the date, start time, and end time.')
+      return
+    }
+
+    // Validate course selection
+    if (!isGlobalCourse && selectedCourseIds.length === 0) {
+      alert("Please select at least one course for this event.\n\nTo make it visible to all users, select 'Global (visible to all users)'.")
+      return
+    }
+
     setSaving(true)
     try {
-      const { startTime, endTime } = buildEventDateTime(formData.date, formData.time, formData.endTime)
+      const { startTime, endTime } = buildEventDateTime(targetDate, targetTime, targetEndTime)
       if (new Date(endTime) <= new Date(startTime)) {
         alert('End time must be later than start time')
         setSaving(false)
         return
       }
-      const isGlobal = formData.courseId === 'GLOBAL'
+
       const recurrence = formData.recurrence || 'ONETIME'
       const isSeriesEvent = !!formData.parentId || recurrence !== 'ONETIME'
       const streamProvider = (formData.streamProvider || 'MEET').toUpperCase()
-      const payload = {
+
+      const payload: Record<string, any> = {
         title: formData.title,
         description: formData.description || null,
-        date: formData.date,
-        time: formData.time,
+        date: targetDate,
+        time: targetTime,
         startTime,
         endTime,
-        // Meet/YouTube/Drive all use the meetLink column; Agora ignores it (server clears it anyway).
         meetLink: streamProvider === 'AGORA' ? null : (formData.meetLink || null),
         status: formData.status || 'SCHEDULED',
         recurrence,
         interval: recurrence === 'CUSTOM' ? (formData.interval || '1') : null,
+        repeatUntil: formData.repeatUntil || null,
+        customDates: recurrence === 'CUSTOM_DATES' ? customDates : [],
         type: formData.type || 'class',
-        courseId: isGlobal ? null : (formData.courseId || null),
-        isGlobal,
+        isGlobal: isGlobalCourse,
+        courseId: isGlobalCourse ? null : (selectedCourseIds[0] || null),
+        courseIds: isGlobalCourse ? [] : selectedCourseIds,
         instructorId: formData.instructorId || null,
         parentId: formData.parentId || null,
         streamProvider,
-        relatedCourse: !isGlobal && formData.courseId
-          ? classes.find(c => c.id === formData.courseId)?.name || null
+        relatedCourse: !isGlobalCourse && selectedCourseIds.length > 0
+          ? classes.find(c => c.id === selectedCourseIds[0])?.name || null
           : null,
       }
+
+      if (isRescheduled) {
+        payload.originalStartTime = formData.date && formData.time
+          ? `${formData.date}T${formData.time}:00`
+          : null
+      }
+
       const url = editId ? `/api/events/${editId}` : '/api/events'
       const method = editId ? 'PUT' : 'POST'
       let applyToFuture = false
@@ -283,7 +354,9 @@ function CalendarPageContent() {
         setShowModal(false)
         loadEvents()
       }
-    } catch (e) { console.error(e) }
+    } catch (e) {
+      console.error(e)
+    }
     setSaving(false)
   }
 
@@ -299,8 +372,107 @@ function CalendarPageContent() {
       await fetch(`/api/events/${id}`, { method: 'DELETE' })
       setSelectedEvent(null)
       loadEvents()
-    } catch (e) { console.error(e) }
+    } catch (e) {
+      console.error(e)
+    }
   }
+
+  function openBulkManager(initialFromDate?: string) {
+    let from = initialFromDate
+    if (!from) {
+      if (todayState) {
+        const d = new Date(todayState)
+        d.setDate(d.getDate() + 1)
+        from = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+      } else {
+        from = `${year}-${String(month + 1).padStart(2, '0')}-17`
+      }
+    }
+    setBulkFromDate(from)
+    const lastDayOfMonth = new Date(year, month + 1, 0).getDate()
+    setBulkToDate(`${year}-${String(month + 1).padStart(2, '0')}-${String(lastDayOfMonth).padStart(2, '0')}`)
+    setBulkCourseFilter('')
+    setBulkTypeFilter('')
+    setBulkSearch('')
+    setBulkNotifyStudents(false)
+
+    // Pre-select all events that match this starting date range
+    const matchingIds = events
+      .filter(e => e.date >= from && (!lastDayOfMonth || e.date <= `${year}-${String(month + 1).padStart(2, '0')}-${String(lastDayOfMonth).padStart(2, '0')}`))
+      .map(e => e.id)
+    setSelectedBulkEventIds(new Set(matchingIds))
+    setShowBulkManager(true)
+  }
+
+  async function handleBulkDelete() {
+    if (selectedBulkEventIds.size === 0) return
+    const count = selectedBulkEventIds.size
+    const allowed = await confirm({
+      title: `Delete ${count} Event${count > 1 ? 's' : ''}?`,
+      message: `You are about to permanently delete ${count} event${count > 1 ? 's' : ''} from the calendar. This action cannot be undone.`,
+      confirmLabel: `Delete ${count} Event${count > 1 ? 's' : ''}`,
+      tone: 'danger',
+    })
+    if (!allowed) return
+
+    setBulkDeleting(true)
+    try {
+      const res = await fetch('/api/events', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          eventIds: Array.from(selectedBulkEventIds),
+          notifyStudents: bulkNotifyStudents,
+        }),
+      })
+      if (!res.ok) {
+        const err = await res.json()
+        alert(err.error || 'Failed to delete events')
+      } else {
+        setShowBulkManager(false)
+        setSelectedBulkEventIds(new Set())
+        loadEvents()
+      }
+    } catch (e) {
+      console.error(e)
+    } finally {
+      setBulkDeleting(false)
+    }
+  }
+
+  // Filtered events for Bulk Manager
+  const bulkFilteredEvents = events.filter(e => {
+    if (bulkFromDate && e.date < bulkFromDate) return false
+    if (bulkToDate && e.date > bulkToDate) return false
+    if (bulkCourseFilter) {
+      if (bulkCourseFilter === 'GLOBAL') {
+        if (!e.isGlobal && e.courseId) return false
+      } else {
+        if (e.courseId !== bulkCourseFilter) return false
+      }
+    }
+    if (bulkTypeFilter && e.type !== bulkTypeFilter) return false
+    if (bulkSearch) {
+      const q = bulkSearch.toLowerCase()
+      const titleMatch = e.title.toLowerCase().includes(q)
+      const courseMatch = e.course?.name?.toLowerCase().includes(q)
+      if (!titleMatch && !courseMatch) return false
+    }
+    return true
+  }).sort((a, b) => {
+    const dComp = a.date.localeCompare(b.date)
+    if (dComp !== 0) return dComp
+    return (a.time || '').localeCompare(b.time || '')
+  })
+
+  // Group bulk filtered events by date
+  const bulkEventsByDate = bulkFilteredEvents.reduce<Record<string, CalEvent[]>>((acc, ev) => {
+    if (!acc[ev.date]) acc[ev.date] = []
+    acc[ev.date].push(ev)
+    return acc
+  }, {})
+
+
 
   // Snap mobileSelectedDay to a valid range whenever month changes
   useEffect(() => {
@@ -488,14 +660,35 @@ function CalendarPageContent() {
             <div style={{ fontSize: '15px', fontWeight: 800, color: 'var(--text-primary)' }}>{mobileSelectedDateLabel}</div>
           </div>
           {isManager && (
-            <button onClick={() => openCreate(`${year}-${String(month + 1).padStart(2, '0')}-${String(mobileSelectedDay).padStart(2, '0')}`)} style={{
-              background: 'var(--primary)', color: '#fff', border: 'none', cursor: 'pointer',
-              borderRadius: '50%', width: '40px', height: '40px',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              boxShadow: '0 6px 14px rgba(54,54,232,0.4)',
-            }} aria-label="Add event">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-            </button>
+            <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+              <button
+                onClick={() => {
+                  const dayDateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(mobileSelectedDay).padStart(2, '0')}`
+                  openBulkManager(dayDateStr)
+                }}
+                style={{
+                  background: 'var(--surface-2)', color: 'var(--text-primary)', border: '1px solid var(--border)', cursor: 'pointer',
+                  borderRadius: '50%', width: '40px', height: '40px',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  boxShadow: '4px 4px 10px var(--neu-dark), -4px -4px 10px var(--neu-light)',
+                }}
+                title="Manage and clean up events"
+                aria-label="Manage events"
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="3 6 5 6 21 6" />
+                  <path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2" />
+                </svg>
+              </button>
+              <button onClick={() => openCreate(`${year}-${String(month + 1).padStart(2, '0')}-${String(mobileSelectedDay).padStart(2, '0')}`)} style={{
+                background: 'var(--primary)', color: '#fff', border: 'none', cursor: 'pointer',
+                borderRadius: '50%', width: '40px', height: '40px',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                boxShadow: '0 6px 14px rgba(54,54,232,0.4)',
+              }} aria-label="Add event">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              </button>
+            </div>
           )}
         </div>
 
@@ -607,12 +800,38 @@ function CalendarPageContent() {
         </h2>
 
         {isManager && (
-          <button onClick={() => openCreate()} className="btn btn-primary" style={{ padding: '10px 24px', fontWeight: '700' }}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
-              <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
-            </svg>
-            Add Event
-          </button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <button
+              onClick={() => openBulkManager()}
+              className="btn"
+              style={{
+                padding: '10px 20px',
+                fontWeight: '700',
+                background: 'var(--surface-2)',
+                color: 'var(--text-primary)',
+                border: '1px solid var(--border)',
+                borderRadius: '50px',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '8px',
+                cursor: 'pointer',
+                boxShadow: '4px 4px 10px var(--neu-dark), -4px -4px 10px var(--neu-light)',
+              }}
+              title="Manage, select and bulk delete events after any date"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="3 6 5 6 21 6" />
+                <path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2" />
+              </svg>
+              Manage &amp; Clean Up
+            </button>
+            <button onClick={() => openCreate()} className="btn btn-primary" style={{ padding: '10px 24px', fontWeight: '700' }}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+                <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+              </svg>
+              Add Event
+            </button>
+          </div>
         )}
       </div>
 
@@ -974,11 +1193,14 @@ function CalendarPageContent() {
               )}
             </div>
             {isManager && (
-              <div className="modal-footer">
+              <div className="modal-footer" style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
                 <button onClick={() => handleDelete(selectedEvent.id)} className="btn btn-sm" style={{ color: 'var(--danger)', border: '1px solid #fee2e2' }}>
                   Delete
                 </button>
-                <button onClick={() => openEdit(selectedEvent)} className="btn btn-primary">
+                <button onClick={() => openEdit(selectedEvent, true)} className="btn btn-sm" style={{ color: '#d97706', border: '1px solid #fde68a', background: 'rgba(245, 158, 11, 0.1)', fontWeight: '600' }}>
+                  Reschedule
+                </button>
+                <button onClick={() => openEdit(selectedEvent)} className="btn btn-primary btn-sm">
                   Edit Event
                 </button>
               </div>
@@ -1023,25 +1245,135 @@ function CalendarPageContent() {
                 />
               </div>
               <div className="form-group">
-                <label className="form-label">Subject / Course</label>
-                <select
-                  className="form-input"
-                  value={formData.courseId || ''}
-                  onChange={e => set('courseId', e.target.value)}
-                  required
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                  <label className="form-label" style={{ margin: 0 }}>Subject / Courses *</label>
+                  {!isGlobalCourse && classes.length > 0 && (
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                      <button
+                        type="button"
+                        onClick={() => setSelectedCourseIds(classes.map(c => c.id))}
+                        style={{ fontSize: '11px', color: 'var(--primary)', background: 'none', border: 'none', cursor: 'pointer', fontWeight: '700' }}
+                      >
+                        Select All
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setSelectedCourseIds([])}
+                        style={{ fontSize: '11px', color: 'var(--text-muted)', background: 'none', border: 'none', cursor: 'pointer', fontWeight: '600' }}
+                      >
+                        Clear
+                      </button>
+                    </div>
+                  )}
+                </div>
+
+                {/* Global Toggle option */}
+                <div
+                  onClick={() => {
+                    setIsGlobalCourse(!isGlobalCourse)
+                    if (!isGlobalCourse) setSelectedCourseIds([])
+                  }}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '10px',
+                    padding: '10px 12px',
+                    borderRadius: '12px',
+                    background: isGlobalCourse ? 'rgba(59, 130, 246, 0.12)' : 'var(--surface-2)',
+                    border: `1.5px solid ${isGlobalCourse ? 'var(--info)' : 'var(--border)'}`,
+                    cursor: 'pointer',
+                    marginBottom: '10px',
+                    transition: 'all 0.15s ease'
+                  }}
                 >
-                  <option value="">-- Select a Course --</option>
-                  <option value="GLOBAL">Global (visible to all users)</option>
-                  {classes.map(c => (
-                    <option key={c.id} value={c.id}>{c.name}</option>
-                  ))}
-                </select>
-                <p style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '4px' }}>
-                  {formData.courseId && formData.courseId !== 'GLOBAL'
-                    ? 'Only members enrolled in this subject will see this event.'
-                    : 'This event will be visible to all users.'}
+                  <input
+                    type="checkbox"
+                    checked={isGlobalCourse}
+                    onChange={() => {}}
+                    style={{ width: '16px', height: '16px', cursor: 'pointer', accentColor: 'var(--info)' }}
+                  />
+                  <div>
+                    <div style={{ fontSize: '13px', fontWeight: '700', color: isGlobalCourse ? 'var(--info)' : 'var(--text-primary)' }}>
+                      Global (visible to all users across the platform)
+                    </div>
+                    <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
+                      Uncheck to select one or multiple specific courses below.
+                    </div>
+                  </div>
+                </div>
+
+                {/* Course List with Multi-Select Checkboxes */}
+                {!isGlobalCourse && (
+                  <div style={{
+                    borderRadius: '16px',
+                    border: '1px solid var(--border)',
+                    background: 'var(--surface-2)',
+                    padding: '10px 12px',
+                  }}>
+                    {classes.length > 5 && (
+                      <input
+                        type="text"
+                        className="form-input"
+                        placeholder="Search courses..."
+                        value={courseSearchQuery}
+                        onChange={e => setCourseSearchQuery(e.target.value)}
+                        style={{ fontSize: '12px', padding: '6px 10px', marginBottom: '8px' }}
+                      />
+                    )}
+                    <div style={{ maxHeight: '160px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                      {classes
+                        .filter(c => !courseSearchQuery || c.name.toLowerCase().includes(courseSearchQuery.toLowerCase()))
+                        .map(c => {
+                          const isChecked = selectedCourseIds.includes(c.id)
+                          return (
+                            <label
+                              key={c.id}
+                              style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '10px',
+                                padding: '6px 8px',
+                                borderRadius: '8px',
+                                background: isChecked ? 'rgba(54, 54, 232, 0.08)' : 'transparent',
+                                cursor: 'pointer',
+                                transition: 'background 0.15s ease'
+                              }}
+                            >
+                              <input
+                                type="checkbox"
+                                checked={isChecked}
+                                onChange={() => {
+                                  if (isChecked) {
+                                    setSelectedCourseIds(selectedCourseIds.filter(id => id !== c.id))
+                                  } else {
+                                    setSelectedCourseIds([...selectedCourseIds, c.id])
+                                  }
+                                }}
+                                style={{ width: '15px', height: '15px', accentColor: 'var(--primary)', cursor: 'pointer' }}
+                              />
+                              <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: c.color || 'var(--primary)', flexShrink: 0 }} />
+                              <span style={{ fontSize: '13px', fontWeight: isChecked ? '700' : '500', color: 'var(--text-primary)', flex: 1 }}>
+                                {c.name}
+                              </span>
+                            </label>
+                          )
+                        })}
+                    </div>
+                    <div style={{ marginTop: '8px', paddingTop: '6px', borderTop: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span style={{ fontSize: '11px', fontWeight: '700', color: 'var(--primary)' }}>
+                        {selectedCourseIds.length} course{selectedCourseIds.length !== 1 ? 's' : ''} selected
+                      </span>
+                    </div>
+                  </div>
+                )}
+
+                <p style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '6px', lineHeight: '1.4' }}>
+                  {isGlobalCourse
+                    ? 'This event will be visible to everyone on the platform.'
+                    : '✨ Privacy: Each enrolled student will only see their own course name. They will not see that other courses were also scheduled.'}
                 </p>
               </div>
+
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px' }}>
                 <div className="form-group">
                   <label className="form-label">Date *</label>
@@ -1073,6 +1405,60 @@ function CalendarPageContent() {
                   />
                 </div>
               </div>
+
+              {/* Reschedule Detail Box */}
+              {formData.status === 'RESCHEDULED' && (
+                <div style={{
+                  background: 'rgba(217, 119, 6, 0.08)',
+                  border: '1.5px solid var(--warning, #f59e0b)',
+                  borderRadius: '16px',
+                  padding: '14px 16px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '8px',
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span style={{ fontSize: '16px' }}>📅</span>
+                    <strong style={{ fontSize: '13px', color: 'var(--text-primary)' }}>Set Rescheduled Date &amp; Time</strong>
+                  </div>
+                  <p style={{ fontSize: '12px', color: 'var(--text-secondary)', margin: 0 }}>
+                    Originally scheduled: <strong>{formData.date || '—'}</strong> at <strong>{formData.time ? formatTimeString12Hour(formData.time) : '—'}</strong>. Enrolled students will receive a rescheduling notification with the new date and time.
+                  </p>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px', marginTop: '4px' }}>
+                    <div>
+                      <label style={{ fontSize: '11px', fontWeight: '700', color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>New Date *</label>
+                      <input
+                        type="date"
+                        className="form-input"
+                        value={formData.rescheduledDate || formData.date || ''}
+                        onChange={e => set('rescheduledDate', e.target.value)}
+                        required
+                      />
+                    </div>
+                    <div>
+                      <label style={{ fontSize: '11px', fontWeight: '700', color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>New Start Time *</label>
+                      <input
+                        type="time"
+                        className="form-input"
+                        value={formData.rescheduledTime || formData.time || ''}
+                        onChange={e => set('rescheduledTime', e.target.value)}
+                        required
+                      />
+                    </div>
+                    <div>
+                      <label style={{ fontSize: '11px', fontWeight: '700', color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>New End Time *</label>
+                      <input
+                        type="time"
+                        className="form-input"
+                        value={formData.rescheduledEndTime || formData.endTime || ''}
+                        onChange={e => set('rescheduledEndTime', e.target.value)}
+                        required
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
+
               <div className="form-group">
                 <label className="form-label">Stream Provider</label>
                 <select
@@ -1151,6 +1537,89 @@ function CalendarPageContent() {
                   </select>
                 </div>
               </div>
+
+              {/* Weekdays Notice */}
+              {formData.recurrence === 'WEEKDAYS' && (
+                <div style={{ padding: '8px 12px', borderRadius: '12px', background: 'rgba(54, 54, 232, 0.08)', fontSize: '12px', color: 'var(--primary)', fontWeight: '600' }}>
+                  🗓️ Classes will only be scheduled Monday through Friday (weekends automatically skipped).
+                </div>
+              )}
+
+              {/* Repeat Until End Date for series */}
+              {(formData.recurrence === 'WEEKDAYS' || formData.recurrence === 'DAILY' || formData.recurrence === 'WEEKLY' || formData.recurrence === 'CUSTOM') && (
+                <div className="form-group">
+                  <label className="form-label">Repeat Until (Optional End Date)</label>
+                  <input
+                    type="date"
+                    className="form-input"
+                    value={formData.repeatUntil || ''}
+                    onChange={e => set('repeatUntil', e.target.value)}
+                    min={formData.date || undefined}
+                    placeholder="YYYY-MM-DD"
+                  />
+                  <p style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '4px' }}>
+                    {formData.repeatUntil
+                      ? `Events will automatically stop repeating after ${formData.repeatUntil}.`
+                      : 'Leave empty to repeat for the standard 30-day window.'}
+                  </p>
+                </div>
+              )}
+
+              {/* Custom Specific Dates Picker */}
+              {formData.recurrence === 'CUSTOM_DATES' && (
+                <div style={{ background: 'var(--surface-2)', padding: '14px', borderRadius: '16px', border: '1px solid var(--border)' }}>
+                  <label className="form-label" style={{ marginBottom: '6px' }}>Choose Specific Additional Dates</label>
+                  <div style={{ display: 'flex', gap: '8px', marginBottom: '10px' }}>
+                    <input
+                      type="date"
+                      className="form-input"
+                      value={customDateInput}
+                      onChange={e => setCustomDateInput(e.target.value)}
+                    />
+                    <button
+                      type="button"
+                      className="btn btn-primary btn-sm"
+                      onClick={() => {
+                        if (customDateInput && !customDates.includes(customDateInput)) {
+                          setCustomDates([...customDates, customDateInput].sort())
+                          setCustomDateInput('')
+                        }
+                      }}
+                      disabled={!customDateInput}
+                      style={{ whiteSpace: 'nowrap' }}
+                    >
+                      Add Date
+                    </button>
+                  </div>
+                  {customDates.length > 0 ? (
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                      {customDates.map(d => (
+                        <span key={d} style={{
+                          display: 'inline-flex', alignItems: 'center', gap: '6px',
+                          padding: '4px 10px', borderRadius: '50px',
+                          background: 'var(--surface)', border: '1px solid var(--border)',
+                          fontSize: '12px', fontWeight: '600'
+                        }}>
+                          {d}
+                          <button
+                            type="button"
+                            onClick={() => setCustomDates(customDates.filter(x => x !== d))}
+                            style={{ border: 'none', background: 'transparent', cursor: 'pointer', color: 'var(--danger)', fontWeight: 'bold' }}
+                          >
+                            ✕
+                          </button>
+                        </span>
+                      ))}
+                    </div>
+                  ) : (
+                    <p style={{ fontSize: '11px', color: 'var(--text-muted)', margin: 0 }}>
+                      Pick dates above to schedule this class on specific chosen days at the same time.
+                    </p>
+                  )}
+                </div>
+              )}
+
+              {/* Custom Interval */}
               {formData.recurrence === 'CUSTOM' && (
                 <div className="form-group">
                   <label className="form-label">Repeat Every (Days)</label>
@@ -1163,6 +1632,7 @@ function CalendarPageContent() {
                   />
                 </div>
               )}
+
               {instructors.length > 0 && (
                 <div className="form-group">
                   <label className="form-label">Instructor</label>
@@ -1184,7 +1654,18 @@ function CalendarPageContent() {
             </div>
             <div className="modal-footer">
               <button onClick={() => setShowModal(false)} className="btn btn-ghost">Cancel</button>
-              <button onClick={handleSave} disabled={saving || !formData.title || !formData.date || !formData.time || !formData.endTime} className="btn btn-primary">
+              <button
+                onClick={handleSave}
+                disabled={
+                  saving ||
+                  !formData.title ||
+                  (!isGlobalCourse && selectedCourseIds.length === 0) ||
+                  (formData.status === 'RESCHEDULED'
+                    ? (!formData.rescheduledDate && !formData.date) || (!formData.rescheduledTime && !formData.time)
+                    : !formData.date || !formData.time || !formData.endTime)
+                }
+                className="btn btn-primary"
+              >
                 {saving ? 'Saving…' : (editId ? 'Update Event' : 'Create Event')}
               </button>
             </div>
@@ -1195,13 +1676,46 @@ function CalendarPageContent() {
       {/* Daily Schedule Modal */}
       {selectedDailyDay !== null && (
         <div className="modal-overlay" onClick={() => setSelectedDailyDay(null)}>
-          <div className="modal" onClick={e => e.stopPropagation()} style={{ maxWidth: 'min(600px, calc(100vw - 32px))', maxHeight: '90vh', display: 'flex', flexDirection: 'column' }}>
+          <div className="modal" onClick={e => e.stopPropagation()} style={{ maxWidth: 'min(620px, calc(100vw - 32px))', maxHeight: '90vh', display: 'flex', flexDirection: 'column' }}>
             <div className="modal-header">
               <div>
                 <h3 style={{ fontSize: '18px', fontWeight: '800' }}>Schedule for the Day</h3>
                 <p style={{ fontSize: '13px', color: 'var(--text-secondary)', marginTop: '2px' }}>
                   {new Date(year, month, selectedDailyDay).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
                 </p>
+                {isManager && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const nextDayDate = new Date(year, month, selectedDailyDay + 1)
+                      const nextDayStr = `${nextDayDate.getFullYear()}-${String(nextDayDate.getMonth() + 1).padStart(2, '0')}-${String(nextDayDate.getDate()).padStart(2, '0')}`
+                      setSelectedDailyDay(null)
+                      openBulkManager(nextDayStr)
+                    }}
+                    style={{
+                      marginTop: '8px',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      fontSize: '12px',
+                      fontWeight: '700',
+                      padding: '5px 12px',
+                      borderRadius: '50px',
+                      border: '1px solid var(--border)',
+                      background: 'var(--surface-2)',
+                      color: 'var(--text-primary)',
+                      cursor: 'pointer',
+                      boxShadow: '2px 2px 5px var(--neu-dark), -2px -2px 5px var(--neu-light)'
+                    }}
+                    title="Clean up and manage events occurring after this date"
+                  >
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                      <polyline points="3 6 5 6 21 6" />
+                      <path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2" />
+                    </svg>
+                    Clean up events after this date
+                  </button>
+                )}
               </div>
               <button onClick={() => setSelectedDailyDay(null)} style={{ color: 'var(--text-muted)', cursor: 'pointer', background: 'none', border: 'none' }}>
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
@@ -1240,7 +1754,7 @@ function CalendarPageContent() {
                         }}>
                           <div style={{ position: 'absolute', top: 0, left: 0, bottom: 0, width: '4px', background: tc.color }} />
                           
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px', gap: '10px' }}>
                             <div>
                               <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginBottom: '4px' }}>
                                 <span className={`badge badge-${ev.type === 'exam' ? 'danger' : ev.type === 'assignment' ? 'warning' : 'primary'}`}>
@@ -1254,6 +1768,43 @@ function CalendarPageContent() {
                                 {ev.title}
                               </h4>
                             </div>
+
+                            {isManager && (
+                              <div style={{ display: 'flex', gap: '6px', alignItems: 'center', flexShrink: 0 }}>
+                                <button
+                                  onClick={() => { setSelectedDailyDay(null); openEdit(ev, true); }}
+                                  className="btn btn-sm"
+                                  style={{ padding: '4px 8px', fontSize: '11px', color: '#d97706', background: 'rgba(245, 158, 11, 0.1)', border: '1px solid #fde68a', fontWeight: '700' }}
+                                  title="Reschedule event"
+                                >
+                                  Reschedule
+                                </button>
+                                <button
+                                  onClick={() => { setSelectedDailyDay(null); openEdit(ev); }}
+                                  className="btn btn-sm btn-ghost"
+                                  style={{ padding: '6px 8px' }}
+                                  title="Edit event"
+                                >
+                                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                                    <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/>
+                                    <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                                  </svg>
+                                </button>
+                                <button
+                                  onClick={async () => {
+                                    await handleDelete(ev.id)
+                                  }}
+                                  className="btn btn-sm"
+                                  style={{ padding: '6px 8px', color: 'var(--danger)', background: 'var(--danger-light)' }}
+                                  title="Delete event"
+                                >
+                                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                                    <polyline points="3 6 5 6 21 6"/>
+                                    <path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/>
+                                  </svg>
+                                </button>
+                              </div>
+                            )}
                           </div>
                           
                           <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', gap: '12px', marginTop: '12px', paddingTop: '12px', borderTop: '1px solid #f0f1f5' }}>
@@ -1300,6 +1851,399 @@ function CalendarPageContent() {
                 style={{ width: '100%' }}
               >
                 Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Bulk Event Manager & Cleanup Modal */}
+      {showBulkManager && (
+        <div className="modal-overlay" onClick={() => setShowBulkManager(false)}>
+          <div className="modal" onClick={e => e.stopPropagation()} style={{ maxWidth: 'min(780px, calc(100vw - 32px))', maxHeight: '90vh', display: 'flex', flexDirection: 'column' }}>
+            <div className="modal-header" style={{ borderBottom: '1px solid var(--border)', padding: '20px 24px' }}>
+              <div>
+                <h3 style={{ fontSize: '18px', fontWeight: '800', margin: 0 }}>Manage &amp; Clean Up Events</h3>
+                <p style={{ fontSize: '12px', color: 'var(--text-secondary)', margin: '3px 0 0' }}>
+                  Filter events by date range, review matching events, uncheck any you want to keep, and delete unwanted events in bulk.
+                </p>
+              </div>
+              <button onClick={() => setShowBulkManager(false)} style={{ color: 'var(--text-muted)', cursor: 'pointer', background: 'none', border: 'none' }}>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                  <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+              </button>
+            </div>
+
+            <div className="modal-body" style={{ flex: 1, overflowY: 'auto', padding: '20px 24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              {/* Quick Date Presets */}
+              <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '8px' }}>
+                <span style={{ fontSize: '11px', fontWeight: '700', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                  Quick Range:
+                </span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setBulkFromDate(`${year}-${String(month + 1).padStart(2, '0')}-17`)
+                    const lastDay = new Date(year, month + 1, 0).getDate()
+                    setBulkToDate(`${year}-${String(month + 1).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`)
+                  }}
+                  className="btn btn-sm"
+                  style={{ fontSize: '11px', padding: '4px 10px', background: 'var(--surface-2)', border: '1px solid var(--border)', cursor: 'pointer' }}
+                >
+                  After 16th (Rest of Month)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (todayState) {
+                      const nextD = new Date(todayState)
+                      nextD.setDate(nextD.getDate() + 1)
+                      setBulkFromDate(`${nextD.getFullYear()}-${String(nextD.getMonth() + 1).padStart(2, '0')}-${String(nextD.getDate()).padStart(2, '0')}`)
+                    }
+                    const lastDay = new Date(year, month + 1, 0).getDate()
+                    setBulkToDate(`${year}-${String(month + 1).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`)
+                  }}
+                  className="btn btn-sm"
+                  style={{ fontSize: '11px', padding: '4px 10px', background: 'var(--surface-2)', border: '1px solid var(--border)', cursor: 'pointer' }}
+                >
+                  After Today
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setBulkFromDate(`${year}-${String(month + 1).padStart(2, '0')}-01`)
+                    const lastDay = new Date(year, month + 1, 0).getDate()
+                    setBulkToDate(`${year}-${String(month + 1).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`)
+                  }}
+                  className="btn btn-sm"
+                  style={{ fontSize: '11px', padding: '4px 10px', background: 'var(--surface-2)', border: '1px solid var(--border)', cursor: 'pointer' }}
+                >
+                  Entire Month
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setBulkFromDate('')
+                    setBulkToDate('')
+                  }}
+                  className="btn btn-sm"
+                  style={{ fontSize: '11px', padding: '4px 10px', background: 'var(--surface-2)', border: '1px solid var(--border)', cursor: 'pointer' }}
+                >
+                  All Dates
+                </button>
+              </div>
+
+              {/* Filters Row */}
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))',
+                gap: '10px',
+                padding: '12px',
+                borderRadius: '16px',
+                background: 'var(--surface-2)',
+                border: '1px solid var(--border)'
+              }}>
+                <div>
+                  <label style={{ fontSize: '11px', fontWeight: '700', color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>From Date</label>
+                  <input
+                    type="date"
+                    className="form-input"
+                    value={bulkFromDate}
+                    onChange={e => setBulkFromDate(e.target.value)}
+                    style={{ fontSize: '12px', padding: '6px 8px' }}
+                  />
+                </div>
+                <div>
+                  <label style={{ fontSize: '11px', fontWeight: '700', color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>To Date</label>
+                  <input
+                    type="date"
+                    className="form-input"
+                    value={bulkToDate}
+                    onChange={e => setBulkToDate(e.target.value)}
+                    style={{ fontSize: '12px', padding: '6px 8px' }}
+                  />
+                </div>
+                <div>
+                  <label style={{ fontSize: '11px', fontWeight: '700', color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>Course</label>
+                  <select
+                    className="form-input"
+                    value={bulkCourseFilter}
+                    onChange={e => setBulkCourseFilter(e.target.value)}
+                    style={{ fontSize: '12px', padding: '6px 8px' }}
+                  >
+                    <option value="">All Courses</option>
+                    <option value="GLOBAL">Global Events Only</option>
+                    {classes.map(c => (
+                      <option key={c.id} value={c.id}>{c.name}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label style={{ fontSize: '11px', fontWeight: '700', color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>Type</label>
+                  <select
+                    className="form-input"
+                    value={bulkTypeFilter}
+                    onChange={e => setBulkTypeFilter(e.target.value)}
+                    style={{ fontSize: '12px', padding: '6px 8px' }}
+                  >
+                    <option value="">All Types</option>
+                    {EVENT_TYPES.map(t => (
+                      <option key={t.value} value={t.value}>{t.label}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label style={{ fontSize: '11px', fontWeight: '700', color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>Search Title</label>
+                  <input
+                    type="text"
+                    className="form-input"
+                    placeholder="Keyword..."
+                    value={bulkSearch}
+                    onChange={e => setBulkSearch(e.target.value)}
+                    style={{ fontSize: '12px', padding: '6px 8px' }}
+                  />
+                </div>
+              </div>
+
+              {/* Selection Bar */}
+              <div style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                padding: '10px 14px',
+                borderRadius: '12px',
+                background: selectedBulkEventIds.size > 0 ? 'rgba(239, 68, 68, 0.08)' : 'var(--surface)',
+                border: `1px solid ${selectedBulkEventIds.size > 0 ? 'rgba(239, 68, 68, 0.3)' : 'var(--border)'}`,
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '13px', fontWeight: '700' }}>
+                    <input
+                      type="checkbox"
+                      checked={bulkFilteredEvents.length > 0 && selectedBulkEventIds.size === bulkFilteredEvents.length}
+                      onChange={() => {
+                        if (selectedBulkEventIds.size === bulkFilteredEvents.length) {
+                          setSelectedBulkEventIds(new Set())
+                        } else {
+                          setSelectedBulkEventIds(new Set(bulkFilteredEvents.map(e => e.id)))
+                        }
+                      }}
+                      style={{ width: '16px', height: '16px', accentColor: 'var(--danger)', cursor: 'pointer' }}
+                    />
+                    Select All ({bulkFilteredEvents.length})
+                  </label>
+                  {selectedBulkEventIds.size > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => setSelectedBulkEventIds(new Set())}
+                      style={{ fontSize: '11px', color: 'var(--text-muted)', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}
+                    >
+                      Clear Selection
+                    </button>
+                  )}
+                </div>
+                <div style={{ fontSize: '13px', fontWeight: '800', color: selectedBulkEventIds.size > 0 ? 'var(--danger)' : 'var(--text-secondary)' }}>
+                  {selectedBulkEventIds.size} of {bulkFilteredEvents.length} selected for deletion
+                </div>
+              </div>
+
+              {/* Events List Grouped by Date */}
+              <div style={{
+                maxHeight: '340px',
+                overflowY: 'auto',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '12px',
+                paddingRight: '4px'
+              }}>
+                {bulkFilteredEvents.length === 0 ? (
+                  <div style={{ textAlign: 'center', padding: '40px 20px', color: 'var(--text-muted)' }}>
+                    <p style={{ fontSize: '14px', fontWeight: '600' }}>No events found matching your filter criteria.</p>
+                    <p style={{ fontSize: '12px', marginTop: '4px' }}>Try adjusting your date range or search keyword.</p>
+                  </div>
+                ) : (
+                  Object.entries(bulkEventsByDate).map(([dateStr, dateEvs]) => {
+                    const allDateSelected = dateEvs.every(e => selectedBulkEventIds.has(e.id))
+                    const formattedDateHeader = new Date(dateStr + 'T00:00:00').toLocaleDateString('en-US', {
+                      weekday: 'short',
+                      month: 'short',
+                      day: 'numeric',
+                    })
+
+                    return (
+                      <div key={dateStr} style={{ borderRadius: '16px', border: '1px solid var(--border)', background: 'var(--surface)', overflow: 'hidden' }}>
+                        {/* Date Subheader with Group Select */}
+                        <div style={{
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'center',
+                          padding: '8px 14px',
+                          background: 'var(--surface-2)',
+                          borderBottom: '1px solid var(--border)',
+                        }}>
+                          <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '12px', fontWeight: '800', color: 'var(--text-primary)' }}>
+                            <input
+                              type="checkbox"
+                              checked={allDateSelected}
+                              onChange={() => {
+                                const nextSet = new Set(selectedBulkEventIds)
+                                if (allDateSelected) {
+                                  dateEvs.forEach(e => nextSet.delete(e.id))
+                                } else {
+                                  dateEvs.forEach(e => nextSet.add(e.id))
+                                }
+                                setSelectedBulkEventIds(nextSet)
+                              }}
+                              style={{ width: '14px', height: '14px', accentColor: 'var(--danger)', cursor: 'pointer' }}
+                            />
+                            {formattedDateHeader} ({dateEvs.length} event{dateEvs.length !== 1 ? 's' : ''})
+                          </label>
+                        </div>
+
+                        {/* Event Rows */}
+                        <div style={{ display: 'flex', flexDirection: 'column' }}>
+                          {dateEvs.map((ev, idx) => {
+                            const isSelected = selectedBulkEventIds.has(ev.id)
+                            const tc = TYPE_COLORS[ev.type] || TYPE_COLORS.class
+
+                            return (
+                              <div
+                                key={ev.id}
+                                style={{
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  gap: '12px',
+                                  padding: '10px 14px',
+                                  borderBottom: idx < dateEvs.length - 1 ? '1px solid rgba(0,0,0,0.03)' : 'none',
+                                  background: isSelected ? 'rgba(239, 68, 68, 0.04)' : 'transparent',
+                                  transition: 'background 0.15s ease',
+                                }}
+                              >
+                                <input
+                                  type="checkbox"
+                                  checked={isSelected}
+                                  onChange={() => {
+                                    const nextSet = new Set(selectedBulkEventIds)
+                                    if (isSelected) {
+                                      nextSet.delete(ev.id)
+                                    } else {
+                                      nextSet.add(ev.id)
+                                    }
+                                    setSelectedBulkEventIds(nextSet)
+                                  }}
+                                  style={{ width: '15px', height: '15px', accentColor: 'var(--danger)', cursor: 'pointer' }}
+                                />
+                                <span style={{
+                                  fontSize: '11px',
+                                  fontWeight: '700',
+                                  padding: '2px 6px',
+                                  borderRadius: '6px',
+                                  background: 'var(--surface-2)',
+                                  color: 'var(--text-secondary)',
+                                  minWidth: '65px',
+                                  textAlign: 'center'
+                                }}>
+                                  {ev.time ? formatTimeString12Hour(ev.time) : '—'}
+                                </span>
+                                <div style={{ flex: 1, minWidth: 0 }}>
+                                  <div style={{ fontSize: '13px', fontWeight: '700', color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                    {ev.title}
+                                  </div>
+                                </div>
+                                <span style={{
+                                  fontSize: '10px',
+                                  padding: '2px 8px',
+                                  borderRadius: '50px',
+                                  fontWeight: '700',
+                                  background: tc.bg + '20',
+                                  color: tc.bg === '#FFC107' ? '#b48a04' : tc.bg,
+                                  flexShrink: 0
+                                }}>
+                                  {tc.label}
+                                </span>
+                                <span style={{
+                                  fontSize: '11px',
+                                  fontWeight: '600',
+                                  color: 'var(--text-muted)',
+                                  maxWidth: '120px',
+                                  overflow: 'hidden',
+                                  textOverflow: 'ellipsis',
+                                  whiteSpace: 'nowrap',
+                                  flexShrink: 0
+                                }}>
+                                  {ev.course?.name || (ev.isGlobal ? 'Global' : '—')}
+                                </span>
+                                <button
+                                  type="button"
+                                  onClick={async () => {
+                                    await handleDelete(ev.id)
+                                  }}
+                                  style={{
+                                    border: 'none',
+                                    background: 'transparent',
+                                    cursor: 'pointer',
+                                    color: 'var(--text-muted)',
+                                    padding: '4px',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    flexShrink: 0
+                                  }}
+                                  title="Delete only this event"
+                                  onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = 'var(--danger)' }}
+                                  onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = 'var(--text-muted)' }}
+                                >
+                                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                                    <polyline points="3 6 5 6 21 6"/>
+                                    <path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/>
+                                  </svg>
+                                </button>
+                              </div>
+                            )
+                          })}
+                        </div>
+                      </div>
+                    )
+                  })
+                )}
+              </div>
+
+              {/* Notification toggle */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '6px 4px' }}>
+                <input
+                  type="checkbox"
+                  id="bulkNotify"
+                  checked={bulkNotifyStudents}
+                  onChange={e => setBulkNotifyStudents(e.target.checked)}
+                  style={{ width: '15px', height: '15px', cursor: 'pointer', accentColor: 'var(--primary)' }}
+                />
+                <label htmlFor="bulkNotify" style={{ fontSize: '12px', color: 'var(--text-secondary)', cursor: 'pointer' }}>
+                  Send cancellation notifications to enrolled students (recommended off when cleaning test or duplicate series)
+                </label>
+              </div>
+            </div>
+
+            <div className="modal-footer" style={{ borderTop: '1px solid var(--border)', padding: '16px 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <button onClick={() => setShowBulkManager(false)} className="btn btn-ghost">
+                Cancel
+              </button>
+              <button
+                onClick={handleBulkDelete}
+                disabled={bulkDeleting || selectedBulkEventIds.size === 0}
+                className="btn"
+                style={{
+                  background: 'var(--danger)',
+                  color: '#ffffff',
+                  fontWeight: '700',
+                  padding: '10px 24px',
+                  borderRadius: '50px',
+                  opacity: (bulkDeleting || selectedBulkEventIds.size === 0) ? 0.5 : 1,
+                  cursor: (bulkDeleting || selectedBulkEventIds.size === 0) ? 'not-allowed' : 'pointer',
+                  border: 'none',
+                  boxShadow: '0 4px 14px rgba(239, 68, 68, 0.4)'
+                }}
+              >
+                {bulkDeleting ? 'Deleting…' : `Delete ${selectedBulkEventIds.size} Selected Event${selectedBulkEventIds.size !== 1 ? 's' : ''}`}
               </button>
             </div>
           </div>

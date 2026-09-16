@@ -62,8 +62,54 @@ class _SupportPageState extends ConsumerState<SupportPage> {
                     foregroundColor: Colors.white,
                     minimumSize: const Size.fromHeight(54)),
               ),
-              const SizedBox(height: 18),
+              const SizedBox(height: 12),
             ],
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: () => context.push('/support/feature-requests'),
+                    icon: const Icon(Icons.lightbulb_outline_rounded,
+                        size: 18, color: Color(0xFF8B5CF6)),
+                    label: const Text(
+                      'Request a Feature',
+                      style: TextStyle(
+                          fontSize: 13.5, fontWeight: FontWeight.w700),
+                    ),
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      side: BorderSide(color: tokens.border),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                  ),
+                ),
+                if (manager) ...[
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: () => context.push('/support/user-reports'),
+                      icon: const Icon(Icons.flag_outlined,
+                          size: 18, color: Color(0xFFEF4444)),
+                      label: const Text(
+                        'User Reports',
+                        style: TextStyle(
+                            fontSize: 13.5, fontWeight: FontWeight.w700),
+                      ),
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        side: BorderSide(color: tokens.border),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ],
+            ),
+            const SizedBox(height: 18),
             Text(manager ? 'All tickets' : 'My tickets',
                 style: TextStyle(
                     fontSize: 20,

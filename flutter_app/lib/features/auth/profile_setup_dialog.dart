@@ -135,6 +135,228 @@ class _ProfileSetupDialogState extends ConsumerState<ProfileSetupDialog> {
       return;
     }
 
+    // Show confirmation review popup before submitting, matching Web
+    final confirmed = await _showConfirmationDialog(
+      first: first,
+      last: last,
+      mobile: mobile,
+      gender: _selectedGender!,
+      age: ageInt,
+      state: _selectedState!,
+    );
+
+    if (confirmed == true && mounted) {
+      await _doSubmit(
+        first: first,
+        last: last,
+        mobile: mobile,
+        gender: _selectedGender!,
+        age: ageInt,
+        state: _selectedState!,
+      );
+    }
+  }
+
+  Future<bool?> _showConfirmationDialog({
+    required String first,
+    required String last,
+    required String mobile,
+    required String gender,
+    required int age,
+    required String state,
+  }) {
+    final tokens = context.tokens;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final genderDisplay = gender.isNotEmpty
+        ? '${gender[0].toUpperCase()}${gender.substring(1).toLowerCase()}'
+        : gender;
+
+    return showDialog<bool>(
+      context: context,
+      useRootNavigator: true,
+      barrierDismissible: false,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: tokens.cardBg,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        contentPadding: const EdgeInsets.fromLTRB(22, 24, 22, 20),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Warning Icon
+            Container(
+              width: 56,
+              height: 56,
+              decoration: BoxDecoration(
+                color: isDark ? const Color(0x33F59E0B) : const Color(0xFFFEF3C7),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.warning_amber_rounded,
+                color: Color(0xFFF59E0B),
+                size: 32,
+              ),
+            ),
+            const SizedBox(height: 16),
+
+            // Title
+            Text(
+              'Please check all details carefully',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 17.5,
+                fontWeight: FontWeight.w900,
+                color: tokens.textPrimary,
+                letterSpacing: -0.3,
+              ),
+            ),
+            const SizedBox(height: 8),
+
+            // Subtitle with highlighted warning
+            RichText(
+              textAlign: TextAlign.center,
+              text: TextSpan(
+                style: TextStyle(
+                  fontSize: 13,
+                  color: tokens.textSecondary,
+                  height: 1.5,
+                ),
+                children: [
+                  const TextSpan(text: 'These details '),
+                  TextSpan(
+                    text: 'cannot be changed',
+                    style: TextStyle(
+                      color: tokens.danger,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                  const TextSpan(
+                    text: ' once submitted. Make sure everything is correct before continuing.',
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 18),
+
+            // Summary Box
+            Container(
+              decoration: BoxDecoration(
+                color: tokens.surfaceSecondary,
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: tokens.border.withOpacity(0.6)),
+              ),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+              child: Column(
+                children: [
+                  _summaryRow('Name', '$first $last', tokens),
+                  _summaryDivider(tokens),
+                  _summaryRow('Mobile', '+91 $mobile', tokens),
+                  _summaryDivider(tokens),
+                  _summaryRow('Age', '$age', tokens),
+                  _summaryDivider(tokens),
+                  _summaryRow('Gender', genderDisplay, tokens),
+                  _summaryDivider(tokens),
+                  _summaryRow('State', state, tokens),
+                ],
+              ),
+            ),
+            const SizedBox(height: 20),
+
+            // Buttons
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: () => Navigator.of(ctx).pop(false),
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      side: BorderSide(color: tokens.border),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    child: Text(
+                      'Go Back',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                        color: tokens.textSecondary,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: () => Navigator.of(ctx).pop(true),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF2563EB),
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      elevation: 0,
+                    ),
+                    child: const Text(
+                      'Yes, Submit',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _summaryRow(String label, String value, AppThemeTokens tokens) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 12.5,
+              fontWeight: FontWeight.w600,
+              color: tokens.textSecondary,
+            ),
+          ),
+          Flexible(
+            child: Text(
+              value,
+              textAlign: TextAlign.end,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w800,
+                color: tokens.textPrimary,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _summaryDivider(AppThemeTokens tokens) {
+    return Divider(height: 1, thickness: 1, color: tokens.border.withOpacity(0.4));
+  }
+
+  Future<void> _doSubmit({
+    required String first,
+    required String last,
+    required String mobile,
+    required String gender,
+    required int age,
+    required String state,
+  }) async {
     setState(() => _saving = true);
 
     try {
@@ -143,9 +365,9 @@ class _ProfileSetupDialogState extends ConsumerState<ProfileSetupDialog> {
         'firstName': first,
         'lastName': last,
         'mobileNumber': mobile,
-        'gender': _selectedGender,
-        'age': ageInt,
-        'state': _selectedState,
+        'gender': gender,
+        'age': age,
+        'state': state,
       });
 
       // Update in-memory user and persistent storage
@@ -156,7 +378,7 @@ class _ProfileSetupDialogState extends ConsumerState<ProfileSetupDialog> {
           firstName: first,
           lastName: last,
           mobileNumber: mobile,
-          gender: _selectedGender,
+          gender: gender,
           isProfileComplete: true,
         );
         await const TokenStorage().saveUser(updated);

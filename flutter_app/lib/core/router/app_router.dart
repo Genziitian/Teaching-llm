@@ -30,9 +30,11 @@ import '../../features/profile/profile_page.dart';
 import '../../features/settings/notification_settings_page.dart';
 import '../../features/settings/settings_page.dart';
 import '../../features/support/faq_page.dart';
+import '../../features/support/feature_requests_page.dart';
 import '../../features/support/support_page.dart';
 import '../../features/support/support_providers.dart';
 import '../../features/support/ticket_detail_page.dart';
+import '../../features/support/user_reports_page.dart';
 import '../../features/transactions/transactions_page.dart';
 import '../../shared/widgets/app_scaffold.dart';
 import '../auth/auth_providers.dart';
@@ -462,6 +464,20 @@ final routerProvider = Provider<GoRouter>((ref) {
         pageBuilder: (context, state) => _buildSmoothPage(
           key: state.pageKey,
           child: TicketDetailPage(ticketId: state.pathParameters['id']!),
+        ),
+      ),
+      GoRoute(
+        path: '/support/feature-requests',
+        pageBuilder: (context, state) => _buildSmoothPage(
+          key: state.pageKey,
+          child: const FeatureRequestsPage(),
+        ),
+      ),
+      GoRoute(
+        path: '/support/user-reports',
+        pageBuilder: (context, state) => _buildSmoothPage(
+          key: state.pageKey,
+          child: const UserReportsPage(),
         ),
       ),
       GoRoute(
