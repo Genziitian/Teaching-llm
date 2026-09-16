@@ -1,13 +1,16 @@
 import 'dart:convert';
-
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../core/auth/auth_providers.dart';
 import '../../shared/widgets/sub_page_header.dart';
 import '../../theme/app_theme_tokens.dart';
 import '../../shared/widgets/app_refresh.dart';
 import '../../shared/utils/cta_navigation.dart';
+
+const _kCachedAnnouncementsKey = 'cached_announcements_payload';
 
 /// GET /api/announcements → list of announcements.
 final announcementsProvider =
@@ -16,8 +19,32 @@ final announcementsProvider =
   try {
     final res = await api.get<dynamic>('/api/announcements');
     final list = res.data is List ? res.data as List : const [];
+    if (list.isNotEmpty) {
+      SharedPreferences.getInstance().then((prefs) {
+        prefs.setString(_kCachedAnnouncementsKey, jsonEncode(list));
+      }).catchError((_) {});
+    }
     return [for (final j in list) j as Map<String, dynamic>];
-  } catch (_) {
+  } catch (err) {
+    if (err is DioException) {
+      final statusCode = err.response?.statusCode;
+      final errMsg = (err.message ?? '').toLowerCase();
+      if (statusCode == 401 ||
+          statusCode == 403 ||
+          errMsg.contains('not authenticated') ||
+          errMsg.contains('unauthorized')) {
+        Future.microtask(() => ref.read(authStateProvider.notifier).signOut());
+        return const [];
+      }
+    }
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final cachedStr = prefs.getString(_kCachedAnnouncementsKey);
+      if (cachedStr != null && cachedStr.isNotEmpty) {
+        final list = jsonDecode(cachedStr) as List;
+        return [for (final j in list) j as Map<String, dynamic>];
+      }
+    } catch (_) {}
     return const [];
   }
 });

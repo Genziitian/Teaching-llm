@@ -45,7 +45,7 @@ export interface FullSession extends JWTPayload {
 }
 
 export function signToken(payload: JWTPayload): string {
-  return jwt.sign(payload, getJwtSecret(), { expiresIn: '7d' })
+  return jwt.sign(payload, getJwtSecret(), { expiresIn: '30d' })
 }
 
 export function verifyToken(token: string): JWTPayload | null {

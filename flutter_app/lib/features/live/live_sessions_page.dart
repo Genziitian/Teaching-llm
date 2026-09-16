@@ -1,6 +1,9 @@
+import 'dart:convert';
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../core/auth/auth_providers.dart';
@@ -57,15 +60,43 @@ Future<void> _joinSession(BuildContext context, CourseEvent event) async {
   }
 }
 
+const _kCachedLiveSessionsKey = 'cached_live_sessions_payload';
+
 final liveSessionsProvider = FutureProvider<List<CourseEvent>>((ref) async {
   final api = ref.watch(apiClientProvider);
   try {
     final res = await api.get<dynamic>('/api/live-sessions');
     final list = res.data is List ? res.data as List : <dynamic>[];
+    if (list.isNotEmpty) {
+      SharedPreferences.getInstance().then((prefs) {
+        prefs.setString(_kCachedLiveSessionsKey, jsonEncode(list));
+      }).catchError((_) {});
+    }
     return [
       for (final j in list) CourseEvent.fromJson(j as Map<String, dynamic>)
     ];
-  } catch (_) {
+  } catch (err) {
+    if (err is DioException) {
+      final statusCode = err.response?.statusCode;
+      final errMsg = (err.message ?? '').toLowerCase();
+      if (statusCode == 401 ||
+          statusCode == 403 ||
+          errMsg.contains('not authenticated') ||
+          errMsg.contains('unauthorized')) {
+        Future.microtask(() => ref.read(authStateProvider.notifier).signOut());
+        return const [];
+      }
+    }
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final cachedStr = prefs.getString(_kCachedLiveSessionsKey);
+      if (cachedStr != null && cachedStr.isNotEmpty) {
+        final list = jsonDecode(cachedStr) as List;
+        return [
+          for (final j in list) CourseEvent.fromJson(j as Map<String, dynamic>)
+        ];
+      }
+    } catch (_) {}
     return const [];
   }
 });

@@ -107,7 +107,15 @@ export async function POST(request: NextRequest) {
       },
     })
 
-
+    if (courseId) {
+      await sendClassScheduledNotification(
+        courseId,
+        courseEvent.title,
+        courseEvent.startTime,
+        courseEvent.meetLink,
+        courseEvent.id
+      )
+    }
 
     logActivity({
       userId: session.userId,

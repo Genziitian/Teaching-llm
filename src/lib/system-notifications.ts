@@ -77,10 +77,24 @@ export async function sendLiveClassNotification(
       url: ctaLink,
       ctaText: 'Join now',
       ctaLink: ctaLink,
-      tag: `live_event_${courseId}`,
+      tag: `live_event_${courseId}_${Date.now()}`,
       importance: 'high' as const,
       sound: 'default' as const,
+      channelId: 'class_updates',
     }
+
+    // 1. Create database notification for enrolled students and managers
+    await prisma.notification.createMany({
+      data: recipientIds.map((userId) => ({
+        userId,
+        title: liveTitle,
+        content: liveBody,
+        type: 'INFO',
+      })),
+    })
+
+    // 2. Notify connected clients via SSE
+    recipientIds.forEach((userId) => sseEmitter.emit(`user:${userId}:notify`))
 
     await Promise.allSettled([
       sendPushToUsers(recipientIds, pushPayload),
@@ -630,15 +644,30 @@ export async function sendClassScheduledNotification(
     const schedTitle = `New Class Scheduled`
     const schedBody = `"${eventTitle}" has been scheduled for ${formattedTime} in ${course?.name || 'your class'}.`
 
+    // 1. Create database notification for enrolled students and managers
+    await prisma.notification.createMany({
+      data: recipientIds.map((userId) => ({
+        userId,
+        title: schedTitle,
+        content: schedBody,
+        type: 'INFO',
+      })),
+    })
+
+    // 2. Notify connected clients via SSE
+    recipientIds.forEach((userId) => sseEmitter.emit(`user:${userId}:notify`))
+
+    const uniqueTag = `class_sched_${eventId || courseId}_${Date.now()}_${Math.floor(Math.random() * 10000)}`
     const pushPayload = {
       title: schedTitle,
       body: schedBody,
       url: ctaLink,
       ctaText: 'View Details',
       ctaLink: ctaLink,
-      tag: `scheduled_event_${eventId || courseId}`,
-      importance: 'default' as const,
+      tag: uniqueTag,
+      importance: 'high' as const,
       sound: 'default' as const,
+      channelId: 'class_updates',
     }
 
     await Promise.allSettled([
@@ -654,6 +683,7 @@ export async function sendClassScheduledNotification(
       courseName: course?.name,
       recipientCount: recipientIds.length,
       channel: 'FCM',
+      metadata: { eventId, startTime: startTime.toISOString() },
     })
   } catch (err) {
     console.error('[system-notifications] Error sending class scheduled notification:', err)
@@ -704,15 +734,30 @@ export async function sendClassRescheduledNotification(
     const reschedTitle = `Class Rescheduled`
     const reschedBody = `"${eventTitle}" in ${course?.name || 'your class'} has been rescheduled to ${formattedTime}.`
 
+    // 1. Create database notification for enrolled students and managers
+    await prisma.notification.createMany({
+      data: recipientIds.map((userId) => ({
+        userId,
+        title: reschedTitle,
+        content: reschedBody,
+        type: 'INFO',
+      })),
+    })
+
+    // 2. Notify connected clients via SSE
+    recipientIds.forEach((userId) => sseEmitter.emit(`user:${userId}:notify`))
+
+    const uniqueTag = `class_resched_${eventId || courseId}_${Date.now()}_${Math.floor(Math.random() * 10000)}`
     const pushPayload = {
       title: reschedTitle,
       body: reschedBody,
       url: ctaLink,
       ctaText: 'View Details',
       ctaLink: ctaLink,
-      tag: `rescheduled_event_${eventId || courseId}`,
-      importance: 'default' as const,
+      tag: uniqueTag,
+      importance: 'high' as const,
       sound: 'default' as const,
+      channelId: 'class_updates',
     }
 
     await Promise.allSettled([
@@ -728,6 +773,7 @@ export async function sendClassRescheduledNotification(
       courseName: course?.name,
       recipientCount: recipientIds.length,
       channel: 'FCM',
+      metadata: { eventId, startTime: startTime.toISOString() },
     })
   } catch (err) {
     console.error('[system-notifications] Error sending class rescheduled notification:', err)
@@ -775,13 +821,28 @@ export async function sendClassCanceledNotification(
     const cancelTitle = `Class Canceled`
     const cancelBody = `The class "${eventTitle}" in ${course?.name || 'your class'} scheduled for ${formattedTime} has been canceled.`
 
+    // 1. Create database notification for enrolled students and managers
+    await prisma.notification.createMany({
+      data: recipientIds.map((userId) => ({
+        userId,
+        title: cancelTitle,
+        content: cancelBody,
+        type: 'INFO',
+      })),
+    })
+
+    // 2. Notify connected clients via SSE
+    recipientIds.forEach((userId) => sseEmitter.emit(`user:${userId}:notify`))
+
+    const uniqueTag = `class_cancel_${eventId || courseId}_${Date.now()}_${Math.floor(Math.random() * 10000)}`
     const pushPayload = {
       title: cancelTitle,
       body: cancelBody,
       url: '/calendar',
-      tag: `canceled_event_${eventId || courseId}`,
+      tag: uniqueTag,
       importance: 'high' as const,
       sound: 'default' as const,
+      channelId: 'class_updates',
     }
 
     await Promise.allSettled([
@@ -797,6 +858,7 @@ export async function sendClassCanceledNotification(
       courseName: course?.name,
       recipientCount: recipientIds.length,
       channel: 'FCM',
+      metadata: { eventId, startTime: startTime.toISOString() },
     })
   } catch (err) {
     console.error('[system-notifications] Error sending class canceled notification:', err)

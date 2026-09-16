@@ -58,6 +58,8 @@ export async function syncTodaySessions(createdById: string) {
   const oldMap = new Map((oldSnapshots as any[]).map(s => [s.sourceEventId, s]))
   const currentMap = new Map(events.map(e => [e.id, e]))
 
+  const notificationTasks: Promise<any>[] = []
+
   // 1. Identify Cancelled or Deleted
   for (const oldSnapshot of (oldSnapshots as any[])) {
     if (!oldSnapshot.courseId) continue
@@ -65,12 +67,14 @@ export async function syncTodaySessions(createdById: string) {
     const currentEvent = currentMap.get(oldSnapshot.sourceEventId) as any
     // If it was deleted, or its status changed to CANCELLED but was not CANCELLED before
     if (!currentEvent || (currentEvent.status === 'CANCELLED' && oldSnapshot.status !== 'CANCELLED')) {
-      sendClassCanceledNotification(
-        oldSnapshot.courseId,
-        oldSnapshot.title,
-        oldSnapshot.startTime,
-        oldSnapshot.sourceEventId
-      ).catch(console.error)
+      notificationTasks.push(
+        sendClassCanceledNotification(
+          oldSnapshot.courseId,
+          oldSnapshot.title,
+          oldSnapshot.startTime,
+          oldSnapshot.sourceEventId
+        )
+      )
     }
   }
 
@@ -81,27 +85,36 @@ export async function syncTodaySessions(createdById: string) {
     const oldSnapshot = oldMap.get(event.id) as any
     if (!oldSnapshot) {
       // New class scheduled for today
-      sendClassScheduledNotification(
-        event.courseId,
-        event.title,
-        event.startTime,
-        event.meetLink,
-        event.id
-      ).catch(console.error)
-    } else {
-      // Was already scheduled. Check if start time changed, or if it transitioned to RESCHEDULED
-      const timeChanged = event.startTime.getTime() !== oldSnapshot.startTime.getTime()
-      const statusChangedToRescheduled = event.status === 'RESCHEDULED' && oldSnapshot.status !== 'RESCHEDULED'
-      if (timeChanged || statusChangedToRescheduled) {
-        sendClassRescheduledNotification(
+      notificationTasks.push(
+        sendClassScheduledNotification(
           event.courseId,
           event.title,
           event.startTime,
           event.meetLink,
           event.id
-        ).catch(console.error)
+        )
+      )
+    } else {
+      // Was already scheduled. Check if start time changed, or if it transitioned to RESCHEDULED
+      const timeChanged = event.startTime.getTime() !== oldSnapshot.startTime.getTime()
+      const statusChangedToRescheduled = event.status === 'RESCHEDULED' && oldSnapshot.status !== 'RESCHEDULED'
+      if (timeChanged || statusChangedToRescheduled) {
+        notificationTasks.push(
+          sendClassRescheduledNotification(
+            event.courseId,
+            event.title,
+            event.startTime,
+            event.meetLink,
+            event.id
+          )
+        )
       }
     }
+  }
+
+  // Await all notifications so runtime doesn't cut them off mid-flight
+  if (notificationTasks.length > 0) {
+    await Promise.allSettled(notificationTasks)
   }
 
   return { snapshotDate: startOfDay, count: events.length }

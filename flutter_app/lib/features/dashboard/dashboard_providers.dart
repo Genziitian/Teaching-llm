@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -26,20 +27,45 @@ final dashboardProvider = FutureProvider<Map<String, dynamic>>((ref) async {
       ref.read(isOfflineModeProvider.notifier).state = false;
       return data;
     }
-  } catch (_) {
+  } catch (err) {
+    if (err is DioException) {
+      final statusCode = err.response?.statusCode;
+      final errMsg = (err.message ?? '').toLowerCase();
+      if (statusCode == 401 ||
+          statusCode == 403 ||
+          errMsg.contains('not authenticated') ||
+          errMsg.contains('unauthorized')) {
+        // Token expired/revoked: trigger clean sign-out instead of falsely showing offline mode
+        Future.microtask(() => ref.read(authStateProvider.notifier).signOut());
+        return {
+          'liveSessions': const <dynamic>[],
+          'recentViewedLecture': null,
+          'upcomingExams': const <dynamic>[],
+          'announcements': const <dynamic>[],
+        };
+      }
+
+      final isNetwork = err.type == DioExceptionType.connectionTimeout ||
+          err.type == DioExceptionType.sendTimeout ||
+          err.type == DioExceptionType.receiveTimeout ||
+          err.type == DioExceptionType.connectionError;
+
+      if (isNetwork) {
+        ref.read(isOfflineModeProvider.notifier).state = true;
+      }
+    }
+
     // Read from disk cache on network error or offline launch
     try {
       final prefs = await SharedPreferences.getInstance();
       final cachedStr = prefs.getString(_kCachedDashboardKey);
       if (cachedStr != null && cachedStr.isNotEmpty) {
         final decoded = jsonDecode(cachedStr) as Map<String, dynamic>;
-        ref.read(isOfflineModeProvider.notifier).state = true;
         return decoded;
       }
     } catch (_) {}
   }
 
-  ref.read(isOfflineModeProvider.notifier).state = true;
   return {
     'liveSessions': const <dynamic>[],
     'recentViewedLecture': null,

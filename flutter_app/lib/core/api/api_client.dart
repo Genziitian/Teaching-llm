@@ -33,7 +33,17 @@ class ApiClient {
         }
         handler.next(options);
       },
-      onError: (err, handler) {
+      onError: (err, handler) async {
+        final statusCode = err.response?.statusCode;
+        if (statusCode == 401) {
+          final path = err.requestOptions.path;
+          if (!path.contains('/api/auth/google') &&
+              !path.contains('/api/auth/dev-login') &&
+              !path.contains('/api/auth/student-quick-login')) {
+            await _tokens.clear();
+          }
+        }
+
         // Surface the server's `{ "error": "..." }` payload as the exception
         // message so UI snackbars don't have to dig into err.response.data.
         final data = err.response?.data;

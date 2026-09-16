@@ -179,12 +179,14 @@ export async function PUT(
       })
     }
     
-    // Check if class status was transitioned to LIVE (non-blocking)
+    // Check if class status was transitioned to LIVE
     if (updatedEvent && updatedEvent.status === 'LIVE' && existingEvent.status !== 'LIVE' && updatedEvent.courseId) {
-      sendLiveClassNotification(updatedEvent.courseId, updatedEvent.title, updatedEvent.meetLink, updatedEvent.id).catch(console.error)
+      await sendLiveClassNotification(updatedEvent.courseId, updatedEvent.title, updatedEvent.meetLink, updatedEvent.id)
+    } else if (updatedEvent && isStatusChangedToCancelled && updatedEvent.courseId) {
+      await sendClassCanceledNotification(updatedEvent.courseId, updatedEvent.title, updatedEvent.startTime, updatedEvent.id)
+    } else if (updatedEvent && (isStartTimeChanged || isStatusChangedToRescheduled) && updatedEvent.courseId) {
+      await sendClassRescheduledNotification(updatedEvent.courseId, updatedEvent.title, updatedEvent.startTime, updatedEvent.meetLink, updatedEvent.id)
     }
-
-
 
     logActivity({
       userId: session.userId,
@@ -228,7 +230,9 @@ export async function DELETE(
       return NextResponse.json({ error: 'Event not found' }, { status: 404 })
     }
 
-
+    if (existingEvent.courseId) {
+      await sendClassCanceledNotification(existingEvent.courseId, existingEvent.title, existingEvent.startTime, id)
+    }
 
     await prisma.courseEvent.delete({ where: { id } })
 

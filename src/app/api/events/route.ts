@@ -275,6 +275,16 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    if (event.courseId && event.type === 'class' && event.status !== 'CANCELLED') {
+      await sendClassScheduledNotification(
+        event.courseId,
+        event.title,
+        event.startTime,
+        event.meetLink,
+        event.id
+      )
+    }
+
     logActivity({
       userId: session.userId,
       userName: session.name,

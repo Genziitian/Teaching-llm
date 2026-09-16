@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
 import '../../config/api_config.dart';
@@ -181,10 +182,19 @@ class AuthService {
         return freshUser;
       }
     } catch (err) {
-      // Check for explicit 401 Unauthorized or 403 Forbidden
+      // Check for explicit 401 Unauthorized or 403 Forbidden or "Not authenticated"
+      bool isAuthExpired = false;
+      if (err is DioException) {
+        final code = err.response?.statusCode;
+        if (code == 401 || code == 403) {
+          isAuthExpired = true;
+        }
+      }
       final errStr = err.toString().toLowerCase();
-      if (errStr.contains('401') ||
+      if (isAuthExpired ||
+          errStr.contains('401') ||
           errStr.contains('unauthorized') ||
+          errStr.contains('not authenticated') ||
           errStr.contains('403')) {
         await _tokens.clear();
         return null;

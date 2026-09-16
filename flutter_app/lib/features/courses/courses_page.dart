@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -74,7 +75,19 @@ final coursesProvider = FutureProvider<List<Course>>((ref) async {
         for (final j in list) Course.fromJson(j as Map<String, dynamic>)
       ];
     }
-  } catch (_) {
+    return const <Course>[];
+  } catch (err) {
+    if (err is DioException) {
+      final statusCode = err.response?.statusCode;
+      final errMsg = (err.message ?? '').toLowerCase();
+      if (statusCode == 401 ||
+          statusCode == 403 ||
+          errMsg.contains('not authenticated') ||
+          errMsg.contains('unauthorized')) {
+        Future.microtask(() => ref.read(authStateProvider.notifier).signOut());
+        return const <Course>[];
+      }
+    }
     try {
       final prefs = await SharedPreferences.getInstance();
       final cachedStr = prefs.getString(_kCachedCoursesKey);
