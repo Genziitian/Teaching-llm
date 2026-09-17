@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -15,11 +16,53 @@ class SupportPage extends ConsumerStatefulWidget {
   ConsumerState<SupportPage> createState() => _SupportPageState();
 }
 
-class _SupportPageState extends ConsumerState<SupportPage> {
+class _SupportPageState extends ConsumerState<SupportPage> with WidgetsBindingObserver {
   String _filter = 'All';
   String _search = '';
+  Timer? _pollTimer;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    _pollTimer = Timer.periodic(const Duration(seconds: 10), (_) {
+      if (mounted && ModalRoute.of(context)?.isCurrent == true) {
+        ref.invalidate(supportTicketsProvider);
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _pollTimer?.cancel();
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed && mounted) {
+      ref.invalidate(supportTicketsProvider);
+    }
+  }
 
   Future<void> _newTicket() async {
+    final activeCount = ref.read(supportTicketsProvider).asData?.value
+            .where((t) => t['status'] != 'RESOLVED' && t['status'] != 'CLOSED')
+            .length ??
+        0;
+    if (activeCount >= 3) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+                'You already have 3 active tickets. Please wait until an existing ticket is resolved or closed.'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+      return;
+    }
     final id = await NewTicketSheet.show(context);
     if (id != null && mounted) {
       context.push('/support/tickets/${Uri.encodeComponent(id)}');
@@ -32,6 +75,12 @@ class _SupportPageState extends ConsumerState<SupportPage> {
     final role = ref.watch(supportSessionProvider).role;
     final manager = role == 'MANAGER';
     final tickets = ref.watch(supportTicketsProvider);
+    final activeCount = tickets.asData?.value
+            .where((t) => t['status'] != 'RESOLVED' && t['status'] != 'CLOSED')
+            .length ??
+        0;
+    final hasReachedActiveLimit = role == 'STUDENT' && activeCount >= 3;
+
     return AppPageScaffold(
       title: manager ? 'Support queue' : 'Support',
       subtitle: manager
@@ -51,14 +100,45 @@ class _SupportPageState extends ConsumerState<SupportPage> {
           padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
           children: [
             if (role == 'STUDENT') ...[
+              if (hasReachedActiveLimit)
+                Container(
+                  margin: const EdgeInsets.only(bottom: 12),
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFEF4444).withOpacity(0.12),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: const Color(0xFFEF4444).withOpacity(0.3)),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.info_outline, color: Color(0xFFEF4444), size: 20),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          'You have 3 active tickets. You cannot create a new ticket until a manager resolves or closes an existing ticket.',
+                          style: TextStyle(
+                            fontSize: 12.5,
+                            fontWeight: FontWeight.w600,
+                            color: tokens.textPrimary,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               FilledButton.icon(
-                onPressed: _newTicket,
+                onPressed: hasReachedActiveLimit ? null : _newTicket,
                 icon: const Icon(Icons.add_comment_rounded),
-                label: const Text('New Ticket',
+                label: Text(
+                    hasReachedActiveLimit
+                        ? 'Limit Reached (3/3 Active)'
+                        : 'New Ticket',
                     style:
-                        TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
+                        const TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
                 style: FilledButton.styleFrom(
-                    backgroundColor: tokens.primaryAccent,
+                    backgroundColor: hasReachedActiveLimit
+                        ? tokens.border
+                        : tokens.primaryAccent,
                     foregroundColor: Colors.white,
                     minimumSize: const Size.fromHeight(54)),
               ),

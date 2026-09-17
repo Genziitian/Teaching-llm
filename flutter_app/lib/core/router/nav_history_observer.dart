@@ -53,7 +53,8 @@ class AppNavHistoryObserver extends NavigatorObserver
       } else {
         _history.add(location);
       }
-      _saveLastLocation(location);
+      // Routes are kept in-memory for the active session and not persisted
+      // to disk so that fresh launches always start at Home (/dashboard).
     }
   }
 
@@ -63,13 +64,6 @@ class AppNavHistoryObserver extends NavigatorObserver
     return cleanPath == '/login' ||
         cleanPath == '/welcome' ||
         cleanPath == '/offline';
-  }
-
-  Future<void> _saveLastLocation(String location) async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setString(_lastLocationKey, location);
-    } catch (_) {}
   }
 
   static Future<String?> getSavedLastLocation() async {
@@ -208,6 +202,16 @@ class AppNavHistoryObserver extends NavigatorObserver
         currentPath == '/copyright-policy' ||
         currentPath == '/contact-us') {
       router.go('/more');
+      return true;
+    }
+
+    if (currentPath.startsWith('/free-resources/')) {
+      router.go('/free-resources');
+      return true;
+    }
+
+    if (currentPath == '/free-resources') {
+      router.go('/academics');
       return true;
     }
 

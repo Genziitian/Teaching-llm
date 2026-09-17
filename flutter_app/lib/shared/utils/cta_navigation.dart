@@ -19,7 +19,7 @@ String? nativeCtaRoute(String rawLink) {
   if (path == '/') path = '/dashboard';
   if (path == '/menu') path = '/more';
   if (path == '/courses/explore') path = '/courses';
-  if (path == '/materials' || path == '/content-bank') {
+  if (path == '/materials') {
     path = '/free-resources';
   }
   const roots = {

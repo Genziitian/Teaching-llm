@@ -67,13 +67,11 @@ export default function SupportFloatingButton() {
   const hiddenPaths = [
     '/profile',
     '/settings',
-    '/exams',
     '/materials/recordings',
     '/support',
     '/community',
     '/calendar',
     '/materials',
-    '/study/content-bank',
     '/courses',
     '/live'
   ]

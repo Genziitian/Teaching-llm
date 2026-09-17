@@ -18,7 +18,13 @@ final supportTicketsProvider =
   final res = await ref
       .watch(apiClientProvider)
       .get<List<dynamic>>('/api/support/tickets');
-  return (res.data ?? []).cast<Map<String, dynamic>>();
+  final list = (res.data ?? []).cast<Map<String, dynamic>>();
+  list.sort((a, b) {
+    final aTime = DateTime.tryParse('${a['updatedAt'] ?? ''}') ?? DateTime(0);
+    final bTime = DateTime.tryParse('${b['updatedAt'] ?? ''}') ?? DateTime(0);
+    return bTime.compareTo(aTime);
+  });
+  return list;
 });
 
 final supportTicketProvider = FutureProvider.autoDispose
@@ -70,9 +76,16 @@ final supportManagersProvider =
       .toList();
 });
 
-String supportError(Object error) => error is DioException
-    ? error.message ?? 'Unable to connect. Please try again.'
-    : 'Unable to load support. Please try again.';
+String supportError(Object error) {
+  if (error is DioException) {
+    final data = error.response?.data;
+    if (data is Map && data['error'] is String) {
+      return data['error'] as String;
+    }
+    return error.message ?? 'Unable to connect. Please try again.';
+  }
+  return 'Unable to load support. Please try again.';
+}
 
 String ticketStatusLabel(dynamic status) => switch (status) {
       'OPEN' => 'Open',

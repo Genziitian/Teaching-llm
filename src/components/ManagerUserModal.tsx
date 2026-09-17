@@ -52,11 +52,12 @@ interface User {
 
 interface ManagerUserModalProps {
   userId: string | null
-  onClose: () => void
-  onUpdate: () => void
+  onClose?: () => void
+  onUpdate?: () => void
+  mode?: 'modal' | 'page'
 }
 
-export default function ManagerUserModal({ userId, onClose, onUpdate }: ManagerUserModalProps) {
+export default function ManagerUserModal({ userId, onClose, onUpdate, mode = 'modal' }: ManagerUserModalProps) {
   const { confirm, confirmDialog } = useConfirmDialog()
   const router = useRouter()
   const [user, setUser] = useState<User|null>(null)
@@ -65,6 +66,7 @@ export default function ManagerUserModal({ userId, onClose, onUpdate }: ManagerU
   const [loading, setLoading] = useState(false)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
+  const [isMaximized, setIsMaximized] = useState(false)
   const [formData, setFormData] = useState({
     name: '',
     firstName: '',
@@ -198,6 +200,14 @@ export default function ManagerUserModal({ userId, onClose, onUpdate }: ManagerU
     }
   }
 
+  const handleClose = () => {
+    if (onClose) {
+      onClose()
+    } else {
+      router.push('/admin')
+    }
+  }
+
   async function handleUpdate() {
     if (!userId) return
     setSaving(true)
@@ -233,8 +243,8 @@ export default function ManagerUserModal({ userId, onClose, onUpdate }: ManagerU
         mutate('/api/auth/me')
         mutate('/api/dashboard')
         router.refresh()
-        onUpdate()
-        onClose()
+        onUpdate?.()
+        handleClose()
       } else {
         const d = await res.json()
         setError(d.error || 'Failed to update')
@@ -248,7 +258,16 @@ export default function ManagerUserModal({ userId, onClose, onUpdate }: ManagerU
 
 
 
-  if (!userId) return null
+  if (!userId) {
+    if (mode === 'page') {
+      return (
+        <div style={{ padding: '60px 20px', textAlign: 'center', color: 'var(--text-muted)' }}>
+          User ID not provided.
+        </div>
+      )
+    }
+    return null
+  }
 
   const displayName = getSafeDisplayName({ name: formData.name, firstName: formData.firstName, lastName: formData.lastName }) || getSafeDisplayName(user)
   const createdAtDate = parseDate(user?.createdAt)
@@ -283,38 +302,9 @@ export default function ManagerUserModal({ userId, onClose, onUpdate }: ManagerU
     transition: 'all 0.2s ease',
   }
 
-  return (
-    <div className="manager-profile-overlay" style={{
-      position: 'fixed', inset: 0, zIndex: 1000,
-      background: 'rgba(15, 23, 42, 0.45)', backdropFilter: 'blur(8px)',
-      display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px'
-    }} onClick={onClose}>
-      {confirmDialog}
-      
-      <div className="modal manager-user-modal" style={{
-        width: '100%', maxWidth: '1000px', maxHeight: '95vh', overflowY: 'auto',
-        position: 'relative', padding: '32px'
-      }} onClick={e => e.stopPropagation()}>
-        
-        {loading ? (
-          <div style={{ textAlign: 'center', padding: '24px' }}>Loading...</div>
-        ) : !user ? (
-          <div style={{ textAlign: 'center', padding: '24px' }}>User not found</div>
-        ) : (
-          <>
-            <button className="manager-profile-close" onClick={onClose} style={{
-              position: 'absolute', top: '24px', right: '24px',
-              width: '36px', height: '36px', borderRadius: '50%', border: 'none',
-              background: 'var(--surface)', 
-              cursor: 'pointer', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', justifyContent: 'center',
-              zIndex: 10
-            }}>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
-              </svg>
-            </button>
-
-            <div className="manager-profile-layout">
+  const renderInnerContent = () => (
+    <>
+      <div className="manager-profile-layout">
               {/* Left Column: Profile & Personal Details */}
               <div className="manager-profile-left">
                 <div className="manager-profile-header" style={{ display: 'flex', alignItems: 'center', gap: '20px', marginBottom: '32px' }}>
@@ -905,7 +895,7 @@ export default function ManagerUserModal({ userId, onClose, onUpdate }: ManagerU
             </div>
 
             <div className="manager-profile-footer" style={{ display: 'flex', gap: '20px', marginTop: '40px', borderTop: '1px solid rgba(0,0,0,0.05)', paddingTop: '32px' }}>
-              <button onClick={onClose} style={{ flex: 1, padding: '16px', borderRadius: '20px', border: 'none', background: 'transparent', fontWeight: '700', color: 'var(--text-secondary)', cursor: 'pointer', fontSize: '15px' }}>Cancel</button>
+              <button onClick={handleClose} style={{ flex: 1, padding: '16px', borderRadius: '20px', border: 'none', background: 'transparent', fontWeight: '700', color: 'var(--text-secondary)', cursor: 'pointer', fontSize: '15px' }}>Cancel</button>
               <button 
                 onClick={handleUpdate}
                 disabled={saving}
@@ -937,14 +927,26 @@ export default function ManagerUserModal({ userId, onClose, onUpdate }: ManagerU
                   max(20px, env(safe-area-inset-left, 0px)) !important;
               }
 
-              .manager-user-modal {
+              .manager-user-modal,
+              .manager-user-page-card {
                 box-sizing: border-box;
                 overflow-x: hidden;
+              }
+
+              .manager-user-modal {
                 overscroll-behavior: contain;
               }
 
-              .manager-user-modal :global(*) {
+              .manager-user-modal :global(*),
+              .manager-user-page-card :global(*) {
                 min-width: 0;
+              }
+
+              .manager-profile-action-btn:hover,
+              .manager-profile-close:hover {
+                background: var(--surface-2) !important;
+                color: var(--text-primary) !important;
+                transform: translateY(-1px);
               }
 
               .manager-profile-layout {
@@ -1238,6 +1240,241 @@ export default function ManagerUserModal({ userId, onClose, onUpdate }: ManagerU
                 }
               }
             `}</style>
+    </>
+  )
+
+  if (mode === 'page') {
+    return (
+      <div className="manager-user-page-container" style={{
+        maxWidth: '1240px',
+        margin: '0 auto',
+        padding: '24px 20px 60px',
+        minHeight: '100%',
+        boxSizing: 'border-box'
+      }}>
+        {confirmDialog}
+
+        {/* Page Navigation & Actions */}
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          marginBottom: '24px',
+          gap: '16px',
+          flexWrap: 'wrap'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flexWrap: 'wrap' }}>
+            <button
+              type="button"
+              onClick={handleClose}
+              className="btn btn-ghost"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '8px',
+                padding: '8px 16px',
+                borderRadius: '12px',
+                background: 'var(--surface)',
+                border: '1px solid var(--border)',
+                color: 'var(--text-secondary)',
+                fontWeight: '700',
+                fontSize: '13px',
+                cursor: 'pointer',
+                boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
+              }}
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="19" y1="12" x2="5" y2="12" />
+                <polyline points="12 19 5 12 12 5" />
+              </svg>
+              Back to Users
+            </button>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: 'var(--text-muted)', fontWeight: '600' }}>
+              <span onClick={() => router.push('/admin')} style={{ cursor: 'pointer', textDecoration: 'underline' }}>Admin</span>
+              <span>/</span>
+              <span>Users</span>
+              <span>/</span>
+              <span style={{ color: 'var(--text-primary)', fontWeight: '700' }}>{displayName}</span>
+            </div>
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <button
+              type="button"
+              onClick={handleClose}
+              className="btn btn-ghost"
+              style={{
+                padding: '10px 20px',
+                borderRadius: '12px',
+                fontWeight: '700',
+                fontSize: '13px',
+                color: 'var(--text-secondary)'
+              }}
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={handleUpdate}
+              disabled={saving}
+              className="btn btn-primary"
+              style={{
+                padding: '10px 24px',
+                borderRadius: '12px',
+                fontWeight: '700',
+                fontSize: '13px',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '8px',
+                background: 'linear-gradient(135deg, #6366f1, #3636e8)',
+                color: '#fff',
+                boxShadow: '0 4px 14px rgba(99, 102, 241, 0.3)'
+              }}
+            >
+              {saving ? 'Updating...' : <>Update Profile <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></>}
+            </button>
+          </div>
+        </div>
+
+        {/* Content Card */}
+        <div className="card manager-user-page-card" style={{
+          background: 'var(--surface)',
+          border: '1px solid var(--border)',
+          borderRadius: '24px',
+          padding: '36px',
+          boxShadow: '0 10px 30px rgba(0,0,0,0.06)',
+          position: 'relative'
+        }}>
+          {loading ? (
+            <div style={{ textAlign: 'center', padding: '60px 24px', color: 'var(--text-secondary)' }}>Loading user data...</div>
+          ) : !user ? (
+            <div style={{ textAlign: 'center', padding: '60px 24px', color: 'var(--text-muted)' }}>User not found</div>
+          ) : (
+            renderInnerContent()
+          )}
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div
+      className="manager-profile-overlay"
+      style={{
+        position: 'fixed',
+        inset: 0,
+        zIndex: 1000,
+        background: isMaximized ? 'var(--bg, #0f172a)' : 'rgba(15, 23, 42, 0.45)',
+        backdropFilter: isMaximized ? 'none' : 'blur(8px)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: isMaximized ? 0 : '20px',
+        overflow: isMaximized ? 'hidden' : 'auto'
+      }}
+      onClick={isMaximized ? undefined : handleClose}
+    >
+      {confirmDialog}
+
+      <div
+        className="modal manager-user-modal"
+        style={{
+          width: isMaximized ? '100vw' : '100%',
+          maxWidth: isMaximized ? '100vw' : '1000px',
+          height: isMaximized ? '100vh' : 'auto',
+          maxHeight: isMaximized ? '100vh' : '95vh',
+          borderRadius: isMaximized ? 0 : '24px',
+          overflowY: 'auto',
+          position: 'relative',
+          padding: isMaximized ? '40px 48px' : '32px',
+          boxSizing: 'border-box'
+        }}
+        onClick={e => e.stopPropagation()}
+      >
+        {loading ? (
+          <div style={{ textAlign: 'center', padding: '24px' }}>Loading...</div>
+        ) : !user ? (
+          <div style={{ textAlign: 'center', padding: '24px' }}>User not found</div>
+        ) : (
+          <>
+            <div style={{
+              position: 'absolute',
+              top: isMaximized ? '24px' : '20px',
+              right: isMaximized ? '32px' : '20px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              zIndex: 10
+            }}>
+              <button
+                type="button"
+                className="manager-profile-action-btn"
+                onClick={() => router.push(`/admin/users/${userId}`)}
+                title="Open in Dedicated Full Page"
+                style={{
+                  width: '36px', height: '36px', borderRadius: '50%', border: 'none',
+                  background: 'var(--surface)', cursor: 'pointer',
+                  color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  boxShadow: '0 2px 6px rgba(0,0,0,0.1)',
+                  transition: 'all 0.2s'
+                }}
+              >
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+                  <polyline points="15 3 21 3 21 9" />
+                  <line x1="10" y1="14" x2="21" y2="3" />
+                </svg>
+              </button>
+
+              <button
+                type="button"
+                className="manager-profile-action-btn"
+                onClick={() => setIsMaximized(!isMaximized)}
+                title={isMaximized ? "Restore Size" : "Maximize to Full Screen"}
+                style={{
+                  width: '36px', height: '36px', borderRadius: '50%', border: 'none',
+                  background: 'var(--surface)', cursor: 'pointer',
+                  color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  boxShadow: '0 2px 6px rgba(0,0,0,0.1)',
+                  transition: 'all 0.2s'
+                }}
+              >
+                {isMaximized ? (
+                  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="4 14 10 14 10 20" />
+                    <polyline points="20 10 14 10 14 4" />
+                    <line x1="14" y1="10" x2="21" y2="3" />
+                    <line x1="3" y1="21" x2="10" y2="14" />
+                  </svg>
+                ) : (
+                  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="15 3 21 3 21 9" />
+                    <polyline points="9 21 3 21 3 15" />
+                    <line x1="21" y1="3" x2="14" y2="10" />
+                    <line x1="3" y1="21" x2="10" y2="14" />
+                  </svg>
+                )}
+              </button>
+
+              <button
+                type="button"
+                className="manager-profile-close"
+                onClick={handleClose}
+                title="Close"
+                style={{
+                  width: '36px', height: '36px', borderRadius: '50%', border: 'none',
+                  background: 'var(--surface)', cursor: 'pointer',
+                  color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  boxShadow: '0 2px 6px rgba(0,0,0,0.1)'
+                }}
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                  <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+              </button>
+            </div>
+
+            {renderInnerContent()}
           </>
         )}
       </div>

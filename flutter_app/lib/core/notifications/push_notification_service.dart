@@ -237,8 +237,7 @@ class PushNotificationService {
     if (normalized == '/') return '/dashboard';
 
     // Map web-only destinations to their closest native Flutter surface.
-    if (normalized.startsWith('/materials') ||
-        normalized.startsWith('/content-bank')) {
+    if (normalized.startsWith('/materials')) {
       return '/free-resources';
     }
     if (normalized.startsWith('/courses/explore')) return '/courses';

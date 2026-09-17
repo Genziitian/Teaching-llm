@@ -38,7 +38,7 @@ const TABS: Tab[] = [
   {
     href: '/academics',
     label: 'Academics',
-    match: p => p.startsWith('/academics') || p.startsWith('/exams') || p.startsWith('/calendar') || p.startsWith('/live') || p.startsWith('/free-resources') || p.startsWith('/feedback') || p.startsWith('/announcements'),
+    match: p => p.startsWith('/academics') || p.startsWith('/calendar') || p.startsWith('/live') || p.startsWith('/free-resources') || p.startsWith('/feedback') || p.startsWith('/announcements'),
     icon: (
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <path d="M22 10v6M2 10l10-5 10 5-10 5z" />

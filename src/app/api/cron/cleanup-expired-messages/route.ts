@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSession } from '@/lib/auth'
 import { prisma } from '@/lib/db'
+import { autoCloseInactiveTickets } from '@/lib/support-ticket-access'
 
 export const dynamic = 'force-dynamic'
 
@@ -20,6 +21,8 @@ export async function GET(request: NextRequest) {
     if (!isAuthorizedCron && !isManager) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
+
+    const closedTickets = await autoCloseInactiveTickets()
 
     const cutoff = new Date(
       Date.now() - RETENTION_DAYS * 24 * 60 * 60 * 1000
@@ -45,6 +48,7 @@ export async function GET(request: NextRequest) {
       success: true,
       retentionDays: RETENTION_DAYS,
       cutoff: cutoff.toISOString(),
+      autoClosedTickets: closedTickets?.count ?? 0,
       ...result,
     })
   } catch (error) {

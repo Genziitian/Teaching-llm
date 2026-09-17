@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/router/nav_history_observer.dart';
 import '../../theme/app_theme_tokens.dart';
 import 'bouncy_pressable.dart';
 
@@ -53,7 +54,7 @@ class SubPageHeader extends StatelessWidget {
               children: [
                 if (showBack) ...[
                   BouncyPressable(
-                    onTap: () {
+                    onTap: () async {
                       HapticFeedback.lightImpact();
                       if (onBack != null) {
                         onBack!();
@@ -62,7 +63,11 @@ class SubPageHeader extends StatelessWidget {
                       } else if (context.canPop()) {
                         context.pop();
                       } else {
-                        Navigator.of(context).maybePop();
+                        final handled =
+                            await AppNavHistoryObserver.instance.didPopRoute();
+                        if (!handled && context.mounted) {
+                          context.go('/dashboard');
+                        }
                       }
                     },
                     scaleDown: 0.92,

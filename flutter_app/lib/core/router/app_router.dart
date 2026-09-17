@@ -1,4 +1,5 @@
 import 'package:firebase_analytics/firebase_analytics.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -133,18 +134,15 @@ final routerProvider = Provider<GoRouter>((ref) {
   final refresh = _RouterRefreshListenable(ref);
   ref.onDispose(refresh.dispose);
 
-  final savedLoc = ref.read(savedLocationProvider);
-  final initialLoc =
-      (savedLoc != null && savedLoc.isNotEmpty) ? savedLoc : '/dashboard';
-
   return GoRouter(
     navigatorKey: rootNavigatorKey,
     observers: [
       rootModalObserver,
       AppNavHistoryObserver.instance,
-      FirebaseAnalyticsObserver(analytics: FirebaseAnalytics.instance),
+      if (Firebase.apps.isNotEmpty)
+        FirebaseAnalyticsObserver(analytics: FirebaseAnalytics.instance),
     ],
-    initialLocation: initialLoc,
+    initialLocation: '/dashboard',
     refreshListenable: refresh,
     redirect: (context, state) {
       final auth = ref.read(authStateProvider);
@@ -171,16 +169,8 @@ final routerProvider = Provider<GoRouter>((ref) {
       if (isSignedIn) {
         if ((loc == '/support' || loc.startsWith('/support/')) &&
             !canAccessSupport(auth.value?.role)) return '/dashboard';
-        // Signed in but landed on a sign-in surface → push to saved location or dashboard.
+        // Signed in but landed on a sign-in surface → push to dashboard.
         if (loc == '/login' || loc == '/welcome') {
-          final saved = ref.read(savedLocationProvider);
-          if (saved != null &&
-              saved.isNotEmpty &&
-              saved != '/dashboard' &&
-              saved != '/login' &&
-              saved != '/welcome') {
-            return saved;
-          }
           return '/dashboard';
         }
         return null;

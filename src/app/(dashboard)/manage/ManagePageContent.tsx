@@ -17,8 +17,9 @@ import {
   IITM_SUBJECTS_BY_LEVEL,
   IITM_ALL_SUBJECTS,
 } from '@/lib/iitm-taxonomy'
+import { type PlatformQuery, QUERY_CATEGORIES } from '@/lib/queries-master'
 
-export type Tab = 'courses' | 'offerings' | 'bundles' | 'lectures' | 'events' | 'materials' | 'announcements' | 'content-bank' | 'notifications' | 'home-slides' | 'faqs'
+export type Tab = 'courses' | 'offerings' | 'bundles' | 'lectures' | 'events' | 'materials' | 'announcements' | 'notifications' | 'home-slides' | 'faqs' | 'queries'
 
 interface ManagePageInnerProps {
   forcedTab?: Tab
@@ -77,9 +78,6 @@ export function ManagePageInner({ forcedTab }: ManagePageInnerProps = {}) {
   const { data: announcementsData, error: announcementsError, isLoading: loadingAnnouncements, mutate: mutateAnnouncements } = useSWR(
     tab === 'announcements' ? '/api/announcements' : null, fetcher
   )
-  const { data: contentBankData, error: bankError, isLoading: loadingBank, mutate: mutateBank } = useSWR(
-    tab === 'content-bank' ? '/api/content-bank' : null, fetcher
-  )
   const { data: offeringsData, error: offeringsError, isLoading: loadingOfferings, mutate: mutateOfferings } = useSWR(
     tab === 'offerings' ? '/api/course-offerings' : null, fetcher
   )
@@ -95,6 +93,9 @@ export function ManagePageInner({ forcedTab }: ManagePageInnerProps = {}) {
   const { data: faqsData, error: faqsError, isLoading: loadingFaqs, mutate: mutateFaqs } = useSWR(
     tab === 'faqs' ? '/api/support/faq' : null, fetcher
   )
+  const { data: queriesData, error: queriesError, isLoading: loadingQueries, mutate: mutateQueries } = useSWR(
+    tab === 'queries' ? '/api/manage/queries' : null, fetcher
+  )
 
   const courses = Array.isArray(coursesData) ? coursesData : Array.isArray(coursesData?.courses) ? coursesData.courses : []
   const offerings = Array.isArray(offeringsData) ? offeringsData : []
@@ -103,11 +104,11 @@ export function ManagePageInner({ forcedTab }: ManagePageInnerProps = {}) {
   const events = Array.isArray(eventsData) ? eventsData : []
   const materials = Array.isArray(materialsData) ? materialsData : Array.isArray(materialsData?.materials) ? materialsData.materials : []
   const announcements = Array.isArray(announcementsData) ? announcementsData : Array.isArray(announcementsData?.announcements) ? announcementsData.announcements : []
-  const bankQuestions = Array.isArray(contentBankData) ? contentBankData : []
   const instructors = Array.isArray(instructorsData) ? instructorsData : []
   const campaigns = Array.isArray(campaignsData) ? campaignsData : []
   const slides = Array.isArray(homeSlidesData) ? homeSlidesData : []
   const faqs = Array.isArray(faqsData) ? faqsData : []
+  const queries: PlatformQuery[] = Array.isArray(queriesData) ? queriesData : []
 
   // Loading = only the active tab's loader
   const loading = loadingCourses ||
@@ -117,10 +118,10 @@ export function ManagePageInner({ forcedTab }: ManagePageInnerProps = {}) {
     (tab === 'events' && loadingEvents) ||
     (tab === 'materials' && loadingMaterials) ||
     (tab === 'announcements' && loadingAnnouncements) ||
-    (tab === 'content-bank' && loadingBank) ||
     (tab === 'notifications' && loadingCampaigns) ||
     (tab === 'home-slides' && loadingSlides) ||
-    (tab === 'faqs' && loadingFaqs)
+    (tab === 'faqs' && loadingFaqs) ||
+    (tab === 'queries' && loadingQueries)
   const loadError =
     authError ||
     coursesError ||
@@ -130,12 +131,12 @@ export function ManagePageInner({ forcedTab }: ManagePageInnerProps = {}) {
     eventsError ||
     materialsError ||
     announcementsError ||
-    bankError ||
     instructorsError ||
     campaignsError ||
     slidesError ||
     homeContentSettingsError ||
-    faqsError
+    faqsError ||
+    queriesError
 
 
 
@@ -166,10 +167,6 @@ export function ManagePageInner({ forcedTab }: ManagePageInnerProps = {}) {
       if (typeof mutateAnnouncements === 'function') await mutateAnnouncements()
       mutate('/api/announcements')
     }
-    if (tab === 'content-bank') {
-      if (typeof mutateBank === 'function') await mutateBank()
-      mutate('/api/content-bank')
-    }
     if (tab === 'offerings') {
       if (typeof mutateOfferings === 'function') await mutateOfferings()
       mutate('/api/course-offerings')
@@ -188,6 +185,10 @@ export function ManagePageInner({ forcedTab }: ManagePageInnerProps = {}) {
     if (tab === 'faqs') {
       if (typeof mutateFaqs === 'function') await mutateFaqs()
       mutate('/api/support/faq')
+    }
+    if (tab === 'queries') {
+      if (typeof mutateQueries === 'function') await mutateQueries()
+      mutate('/api/manage/queries')
     }
     try {
       router.refresh()
@@ -273,6 +274,112 @@ export function ManagePageInner({ forcedTab }: ManagePageInnerProps = {}) {
       console.error('Error fetching recent photos:', e)
     }
     setRecentPhotosLoading(false)
+  }
+
+  // ── Dedicated State & Handlers for Queries Tab ───────────────────────────
+  const [querySearch, setQuerySearch] = useState('')
+  const [queryCategoryFilter, setQueryCategoryFilter] = useState<string>('ALL')
+  const [queryPlatformFilter, setQueryPlatformFilter] = useState<string>('ALL')
+  const [expandedQueryId, setExpandedQueryId] = useState<string | null>(null)
+  const [queryModalOpen, setQueryModalOpen] = useState(false)
+  const [editingQuery, setEditingQuery] = useState<PlatformQuery | null>(null)
+  const [queryFormData, setQueryFormData] = useState<{
+    question: string
+    answer: string
+    category: PlatformQuery['category']
+    appliesTo: PlatformQuery['appliesTo']
+    order: number
+  }>({
+    question: '',
+    answer: '',
+    category: 'COURSE_EXPIRY',
+    appliesTo: 'BOTH',
+    order: 0,
+  })
+  const [querySaving, setQuerySaving] = useState(false)
+  const [copiedQueryId, setCopiedQueryId] = useState<string | null>(null)
+
+  function openCreateQuery() {
+    setEditingQuery(null)
+    setQueryFormData({
+      question: '',
+      answer: '',
+      category: 'COURSE_EXPIRY',
+      appliesTo: 'BOTH',
+      order: queries.length + 1,
+    })
+    setQueryModalOpen(true)
+  }
+
+  function openEditQuery(q: PlatformQuery) {
+    setEditingQuery(q)
+    setQueryFormData({
+      question: q.question,
+      answer: q.answer,
+      category: q.category,
+      appliesTo: q.appliesTo,
+      order: q.order ?? 0,
+    })
+    setQueryModalOpen(true)
+  }
+
+  async function handleSaveQuery() {
+    if (!queryFormData.question.trim() || !queryFormData.answer.trim()) {
+      alert('Question and answer are required.')
+      return
+    }
+    setQuerySaving(true)
+    try {
+      if (editingQuery) {
+        const res = await fetch(`/api/manage/queries/${editingQuery.id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(queryFormData),
+        })
+        const data = await res.json()
+        if (!res.ok) throw new Error(data.error || 'Failed to update query')
+      } else {
+        const res = await fetch('/api/manage/queries', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(queryFormData),
+        })
+        const data = await res.json()
+        if (!res.ok) throw new Error(data.error || 'Failed to create query')
+      }
+      setQueryModalOpen(false)
+      loadData()
+    } catch (err: any) {
+      alert(err.message || 'Error saving query')
+    } finally {
+      setQuerySaving(false)
+    }
+  }
+
+  async function handleDeleteQuery(id: string, qTitle: string) {
+    const ok = await confirm({
+      title: 'Delete Query?',
+      message: `Are you sure you want to delete "${qTitle}"?`,
+      confirmLabel: 'Delete Query',
+      tone: 'danger',
+    })
+    if (!ok) return
+    try {
+      const res = await fetch(`/api/manage/queries/${id}`, { method: 'DELETE' })
+      if (!res.ok) {
+        const data = await res.json()
+        throw new Error(data.error || 'Failed to delete query')
+      }
+      loadData()
+    } catch (err: any) {
+      alert(err.message || 'Error deleting query')
+    }
+  }
+
+  function copyQueryAnswer(id: string, answerText: string) {
+    navigator.clipboard.writeText(answerText)
+    setCopiedQueryId(id)
+    setTimeout(() => setCopiedQueryId(null), 2000)
   }
 
   async function handleNotificationImageUpload(file: File) {
@@ -543,10 +650,10 @@ export function ManagePageInner({ forcedTab }: ManagePageInnerProps = {}) {
           events:        '/api/events',
           materials:     '/api/materials',
           announcements: '/api/announcements',
-          'content-bank': '/api/content-bank',
           notifications: '/api/notifications/campaigns',
           'home-slides': '/api/admin/home-slides',
           faqs:          '/api/support/faq',
+          queries:       '/api/manage/queries',
         }
         const base = endpoints[tab]
         const url  = editId ? `${base}/${editId}` : base
@@ -675,7 +782,6 @@ export function ManagePageInner({ forcedTab }: ManagePageInnerProps = {}) {
     else if (tab === 'materials') entityType = 'Material'
     else if (tab === 'events') entityType = 'Event'
     else if (tab === 'announcements') entityType = 'Announcement'
-    else if (tab === 'content-bank') entityType = 'Question'
     else if (tab === 'home-slides') entityType = 'Home Slide'
     else if (tab === 'faqs') entityType = 'FAQ'
 
@@ -708,10 +814,10 @@ export function ManagePageInner({ forcedTab }: ManagePageInnerProps = {}) {
         events:        '/api/events',
         materials:     '',
         announcements: '/api/announcements',
-        'content-bank': '/api/content-bank',
         notifications: '',
         'home-slides': '',
         faqs:          '/api/support/faq',
+        queries:       '/api/manage/queries',
       }
       await fetch(`${endpoints[tab]}/${id}`, { method: 'DELETE' })
     }
@@ -726,8 +832,8 @@ export function ManagePageInner({ forcedTab }: ManagePageInnerProps = {}) {
     { key: 'events',        label: 'Events',        count: events.length },
     ...(userRole === 'MANAGER' ? [{ key: 'materials' as Tab, label: 'Materials', count: materials.length }] : []),
     { key: 'announcements', label: 'Announcements', count: announcements.length },
-    { key: 'content-bank',  label: 'Content Bank',  count: bankQuestions.length },
     ...(userRole === 'MANAGER' ? [{ key: 'faqs' as Tab, label: 'FAQs', count: faqs.length }] : []),
+    ...(userRole === 'MANAGER' ? [{ key: 'queries' as Tab, label: 'Queries', count: queries.length }] : []),
   ]
 
   const ALL_COLORS = [...SOLID_COLORS, ...GRADIENT_COLORS]
@@ -1704,7 +1810,6 @@ export function ManagePageInner({ forcedTab }: ManagePageInnerProps = {}) {
       case 'events':        return events
       case 'materials':     return materials
       case 'announcements': return announcements
-      case 'content-bank':  return bankQuestions
       case 'notifications': return campaigns
       case 'home-slides':   return slides
       case 'faqs':          return faqs
@@ -1813,11 +1918,38 @@ export function ManagePageInner({ forcedTab }: ManagePageInnerProps = {}) {
               Reset to Defaults
             </button>
           )}
-          {tab !== 'notifications' && ((tab === 'events' || tab === 'announcements' || tab === 'content-bank' || tab === 'home-slides' || tab === 'faqs') || userRole === 'MANAGER' || userRole === 'ADMIN') && (
+          {tab === 'queries' && (
+            <button
+              onClick={async () => {
+                const ok = await confirm({
+                  title: 'Reset to Master Queries?',
+                  message: 'This will restore all default platform queries and SOPs to the official master list.',
+                  confirmLabel: 'Reset Queries',
+                  tone: 'danger',
+                })
+                if (!ok) return
+                await fetch('/api/manage/queries', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ action: 'RESET_DEFAULTS' }),
+                })
+                loadData()
+              }}
+              className="btn btn-secondary"
+              style={{ borderRadius: '50px', fontSize: '12px', padding: '8px 16px' }}
+            >
+              Reset to Defaults
+            </button>
+          )}
+          {tab !== 'notifications' && ((tab === 'events' || tab === 'announcements' || tab === 'home-slides' || tab === 'faqs' || tab === 'queries') || userRole === 'MANAGER' || userRole === 'ADMIN') && (
             <button
               onClick={() => {
                 if (tab === 'home-slides' && slides.length >= 10) {
                   alert('Maximum limit of 10 slides reached. Delete an existing slide first.')
+                  return
+                }
+                if (tab === 'queries') {
+                  openCreateQuery()
                   return
                 }
                 openCreate()
@@ -1828,7 +1960,7 @@ export function ManagePageInner({ forcedTab }: ManagePageInnerProps = {}) {
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
               </svg>
-              {tab === 'events' ? 'Add Event' : tab === 'home-slides' ? 'Add Banner Slide' : tab === 'faqs' ? 'Add FAQ' : 'Create New'}
+              {tab === 'events' ? 'Add Event' : tab === 'home-slides' ? 'Add Banner Slide' : tab === 'faqs' ? 'Add FAQ' : tab === 'queries' ? 'Add Query' : 'Create New'}
             </button>
           )}
         </div>
@@ -2390,16 +2522,6 @@ export function ManagePageInner({ forcedTab }: ManagePageInnerProps = {}) {
                         ctaLink: '/announcements',
                         category: 'ALERT',
                       }))
-                    } else if (val === 'QUIZ') {
-                      setInlineNotif(p => ({
-                        ...p,
-                        presetStyle: val,
-                        title: '🧠 Daily Brain Tickler: Can you solve this IITian PYQ?',
-                        body: 'A brand new mock question is now live in the Content Bank. Take 60 seconds to answer and see where you rank among peers today! 🚀',
-                        ctaText: 'Solve Now ⚡',
-                        ctaLink: '/content-bank',
-                        category: 'GENERAL',
-                      }))
                     } else {
                       setInlineNotif(p => ({ ...p, presetStyle: '' }))
                     }
@@ -2411,7 +2533,6 @@ export function ManagePageInner({ forcedTab }: ManagePageInnerProps = {}) {
                   <option value="LIVE_NOW">🚨 Live Class Alert (Instant Swiggy Style)</option>
                   <option value="NEW_MATERIAL">📚 Study Notes & PDF Release Alert</option>
                   <option value="ALERT">📢 High-Alert Syllabus Reschedule</option>
-                  <option value="QUIZ">🏆 Exam prep Daily Engagement Quiz</option>
                 </select>
               </div>
 
@@ -2866,6 +2987,425 @@ export function ManagePageInner({ forcedTab }: ManagePageInnerProps = {}) {
               </div>
             </div>
           </div>
+        </div>
+      ) : tab === 'queries' ? (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+          {/* Top Banner / Card */}
+          <div style={{
+            background: 'var(--surface)',
+            borderRadius: '24px',
+            padding: '24px',
+            border: '1px solid var(--border)',
+            boxShadow: '4px 4px 12px var(--neu-dark), -4px -4px 12px var(--neu-light)',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '18px',
+          }}>
+            <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: '14px' }}>
+              <div>
+                <h2 style={{ fontSize: '20px', fontWeight: 900, color: 'var(--text-primary)', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span style={{
+                    width: '32px', height: '32px', borderRadius: '10px',
+                    background: 'var(--primary-light)', color: 'var(--accent)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    fontSize: '16px'
+                  }}>
+                    💡
+                  </span>
+                  Platform Queries & System Knowledge Base
+                </h2>
+                <p style={{ fontSize: '13px', color: 'var(--text-secondary)', margin: '4px 0 0 0' }}>
+                  Internal single-source-of-truth for managers: course expiry behavior, app vs web functionality, batches, exams, and platform rules.
+                </p>
+              </div>
+
+              <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
+                <button
+                  onClick={async () => {
+                    const ok = await confirm({
+                      title: 'Reset to Master Queries?',
+                      message: 'This will restore all default platform queries and SOPs to the official master list.',
+                      confirmLabel: 'Reset Queries',
+                      tone: 'danger',
+                    })
+                    if (!ok) return
+                    await fetch('/api/manage/queries', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ action: 'RESET_DEFAULTS' }),
+                    })
+                    loadData()
+                  }}
+                  className="btn btn-secondary"
+                  style={{ borderRadius: '50px', fontSize: '12.5px', padding: '8px 16px', fontWeight: '700' }}
+                >
+                  🔄 Reset Defaults
+                </button>
+                <button
+                  onClick={openCreateQuery}
+                  className="btn btn-primary"
+                  style={{ borderRadius: '50px', fontSize: '12.5px', padding: '8px 18px', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '6px' }}
+                >
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                    <line x1="12" y1="5" x2="12" y2="19" />
+                    <line x1="5" y1="12" x2="19" y2="12" />
+                  </svg>
+                  Add Query
+                </button>
+              </div>
+            </div>
+
+            {/* Search Input Bar */}
+            <div style={{ position: 'relative', width: '100%' }}>
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="var(--text-muted)"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }}
+              >
+                <circle cx="11" cy="11" r="8" />
+                <line x1="21" y1="21" x2="16.65" y2="16.65" />
+              </svg>
+              <input
+                type="text"
+                value={querySearch}
+                onChange={e => setQuerySearch(e.target.value)}
+                placeholder="Search queries by keyword, topic, expiry, app, web, exam, tokens..."
+                style={{
+                  width: '100%',
+                  padding: '12px 42px 12px 46px',
+                  borderRadius: '16px',
+                  background: 'var(--surface-2)',
+                  border: '1px solid var(--border)',
+                  color: 'var(--text-primary)',
+                  fontSize: '14px',
+                  fontWeight: '600',
+                  outline: 'none',
+                  boxShadow: 'inset 2px 2px 5px var(--neu-dark), inset -2px -2px 5px var(--neu-light)',
+                }}
+              />
+              {querySearch && (
+                <button
+                  onClick={() => setQuerySearch('')}
+                  style={{
+                    position: 'absolute', right: '14px', top: '50%', transform: 'translateY(-50%)',
+                    background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer',
+                    fontSize: '16px', fontWeight: 'bold', padding: '4px'
+                  }}
+                  title="Clear search"
+                >
+                  ✕
+                </button>
+              )}
+            </div>
+
+            {/* Platform Filter Pills & Stats */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
+              <div style={{ display: 'flex', gap: '6px', alignItems: 'center', flexWrap: 'wrap' }}>
+                <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-muted)', marginRight: '4px' }}>Platform:</span>
+                {[
+                  { id: 'ALL', label: 'All Platforms' },
+                  { id: 'BOTH', label: '📱+💻 Both (App & Web)' },
+                  { id: 'APP_ONLY', label: '📱 App Only' },
+                  { id: 'WEB_ONLY', label: '💻 Web Only' },
+                ].map(p => (
+                  <button
+                    key={p.id}
+                    onClick={() => setQueryPlatformFilter(p.id)}
+                    style={{
+                      padding: '5px 12px',
+                      borderRadius: '20px',
+                      fontSize: '12px',
+                      fontWeight: '700',
+                      cursor: 'pointer',
+                      border: 'none',
+                      background: queryPlatformFilter === p.id ? 'var(--primary)' : 'var(--surface-2)',
+                      color: queryPlatformFilter === p.id ? '#ffffff' : 'var(--text-secondary)',
+                      boxShadow: queryPlatformFilter === p.id
+                        ? '0 2px 8px rgba(99, 102, 241, 0.3)'
+                        : '2px 2px 5px var(--neu-dark), -2px -2px 5px var(--neu-light)',
+                      transition: 'all 0.15s ease',
+                    }}
+                  >
+                    {p.label}
+                  </button>
+                ))}
+              </div>
+
+              <div style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-muted)' }}>
+                Showing {queries.filter(q => {
+                  const s = querySearch.trim().toLowerCase()
+                  const matchesSearch = !s || q.question.toLowerCase().includes(s) || q.answer.toLowerCase().includes(s) || q.category.toLowerCase().includes(s) || (q.appliesTo && q.appliesTo.toLowerCase().includes(s))
+                  const matchesCat = queryCategoryFilter === 'ALL' || q.category === queryCategoryFilter
+                  const matchesPlatform = queryPlatformFilter === 'ALL' || q.appliesTo === queryPlatformFilter
+                  return matchesSearch && matchesCat && matchesPlatform
+                }).length} of {queries.length} queries
+              </div>
+            </div>
+
+            {/* Category Filter Pills */}
+            <div style={{ display: 'flex', gap: '6px', overflowX: 'auto', paddingBottom: '4px', scrollbarWidth: 'none' }}>
+              <button
+                onClick={() => setQueryCategoryFilter('ALL')}
+                style={{
+                  padding: '6px 14px',
+                  borderRadius: '12px',
+                  fontSize: '12px',
+                  fontWeight: '700',
+                  whiteSpace: 'nowrap',
+                  cursor: 'pointer',
+                  border: 'none',
+                  background: queryCategoryFilter === 'ALL' ? 'var(--accent)' : 'var(--surface-2)',
+                  color: queryCategoryFilter === 'ALL' ? '#ffffff' : 'var(--text-secondary)',
+                  boxShadow: queryCategoryFilter === 'ALL'
+                    ? '0 2px 8px rgba(99, 102, 241, 0.3)'
+                    : '2px 2px 4px var(--neu-dark), -2px -2px 4px var(--neu-light)',
+                  transition: 'all 0.15s ease',
+                }}
+              >
+                All Categories ({queries.length})
+              </button>
+              {QUERY_CATEGORIES.map(cat => {
+                const count = queries.filter(q => q.category === cat.id).length
+                const active = queryCategoryFilter === cat.id
+                return (
+                  <button
+                    key={cat.id}
+                    onClick={() => setQueryCategoryFilter(cat.id)}
+                    style={{
+                      padding: '6px 14px',
+                      borderRadius: '12px',
+                      fontSize: '12px',
+                      fontWeight: '700',
+                      whiteSpace: 'nowrap',
+                      cursor: 'pointer',
+                      border: 'none',
+                      background: active ? 'var(--accent)' : 'var(--surface-2)',
+                      color: active ? '#ffffff' : 'var(--text-secondary)',
+                      boxShadow: active
+                        ? '0 2px 8px rgba(99, 102, 241, 0.3)'
+                        : '2px 2px 4px var(--neu-dark), -2px -2px 4px var(--neu-light)',
+                      transition: 'all 0.15s ease',
+                    }}
+                  >
+                    {cat.label} ({count})
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+
+          {/* Queries List */}
+          {loadingQueries ? (
+            <div style={{ padding: '60px 20px', textAlign: 'center', color: 'var(--text-muted)' }}>
+              Loading platform queries…
+            </div>
+          ) : (() => {
+            const filteredQueries = queries.filter(q => {
+              const s = querySearch.trim().toLowerCase()
+              const matchesSearch = !s || q.question.toLowerCase().includes(s) || q.answer.toLowerCase().includes(s) || q.category.toLowerCase().includes(s) || (q.appliesTo && q.appliesTo.toLowerCase().includes(s))
+              const matchesCat = queryCategoryFilter === 'ALL' || q.category === queryCategoryFilter
+              const matchesPlatform = queryPlatformFilter === 'ALL' || q.appliesTo === queryPlatformFilter
+              return matchesSearch && matchesCat && matchesPlatform
+            })
+
+            if (filteredQueries.length === 0) {
+              return (
+                <div style={{
+                  background: 'var(--surface)',
+                  borderRadius: '24px',
+                  padding: '50px 20px',
+                  textAlign: 'center',
+                  border: '1px solid var(--border)',
+                }}>
+                  <div style={{ fontSize: '32px', marginBottom: '10px' }}>🔍</div>
+                  <h3 style={{ fontSize: '17px', fontWeight: 800, color: 'var(--text-primary)', margin: '0 0 6px 0' }}>
+                    No matching platform queries found
+                  </h3>
+                  <p style={{ fontSize: '13px', color: 'var(--text-muted)', margin: '0 0 18px 0' }}>
+                    Try searching for something else or reset your active filters.
+                  </p>
+                  <button
+                    onClick={() => { setQuerySearch(''); setQueryCategoryFilter('ALL'); setQueryPlatformFilter('ALL') }}
+                    className="btn btn-secondary"
+                    style={{ borderRadius: '50px', fontSize: '12px', padding: '8px 20px' }}
+                  >
+                    Clear Filters
+                  </button>
+                </div>
+              )
+            }
+
+            return (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                {filteredQueries.map((q, index) => {
+                  const isExpanded = expandedQueryId === q.id || (querySearch.trim().length > 0)
+                  const categoryObj = QUERY_CATEGORIES.find(c => c.id === q.category)
+                  const catLabel = categoryObj?.label || q.category
+                  const platformBadge =
+                    q.appliesTo === 'APP_ONLY' ? { label: '📱 App Only', bg: '#f59e0b18', color: '#d97706', border: '#f59e0b40' } :
+                    q.appliesTo === 'WEB_ONLY' ? { label: '💻 Web Only', bg: '#0ea5e918', color: '#0284c7', border: '#0ea5e940' } :
+                    { label: '📱+💻 Both', bg: '#10b98118', color: '#059669', border: '#10b98140' }
+
+                  return (
+                    <div
+                      key={q.id}
+                      style={{
+                        background: 'var(--surface-2)',
+                        borderRadius: '18px',
+                        border: '1px solid var(--border)',
+                        boxShadow: '4px 4px 10px var(--neu-dark), -4px -4px 10px var(--neu-light)',
+                        overflow: 'hidden',
+                        transition: 'all 0.2s ease',
+                      }}
+                    >
+                      {/* Header Row */}
+                      <div
+                        onClick={() => setExpandedQueryId(expandedQueryId === q.id ? null : q.id)}
+                        style={{
+                          padding: '16px 20px',
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          gap: '14px',
+                          userSelect: 'none',
+                        }}
+                      >
+                        <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', flex: 1, minWidth: 0 }}>
+                          <span style={{
+                            width: '28px', height: '28px', borderRadius: '8px',
+                            background: 'var(--surface)', color: 'var(--accent)',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            fontSize: '12px', fontWeight: '800', flexShrink: 0,
+                            boxShadow: '2px 2px 5px var(--neu-dark), -2px -2px 5px var(--neu-light)'
+                          }}>
+                            Q{index + 1}
+                          </span>
+
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', marginBottom: '6px' }}>
+                              <span style={{
+                                fontSize: '11px', fontWeight: 800, padding: '2px 8px', borderRadius: '6px',
+                                background: 'var(--primary-light)', color: 'var(--accent)',
+                              }}>
+                                {catLabel}
+                              </span>
+                              <span style={{
+                                fontSize: '11px', fontWeight: 800, padding: '2px 8px', borderRadius: '6px',
+                                background: platformBadge.bg, color: platformBadge.color, border: `1px solid ${platformBadge.border}`
+                              }}>
+                                {platformBadge.label}
+                              </span>
+                            </div>
+                            <div style={{ fontSize: '15px', fontWeight: 700, color: 'var(--text-primary)', lineHeight: 1.4 }}>
+                              {q.question}
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Controls on right */}
+                        <div
+                          onClick={e => e.stopPropagation()}
+                          style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}
+                        >
+                          <button
+                            onClick={() => copyQueryAnswer(q.id, q.answer)}
+                            className="btn btn-ghost btn-sm"
+                            style={{
+                              padding: '6px 12px', borderRadius: '8px', fontSize: '11.5px', fontWeight: '700',
+                              color: copiedQueryId === q.id ? 'var(--success)' : 'var(--text-secondary)',
+                              background: copiedQueryId === q.id ? 'var(--success-light)' : 'var(--surface)',
+                              border: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: '4px'
+                            }}
+                            title="Copy answer to clipboard"
+                          >
+                            {copiedQueryId === q.id ? (
+                              <>
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12" /></svg>
+                                Copied!
+                              </>
+                            ) : (
+                              <>
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2" /><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" /></svg>
+                                Copy
+                              </>
+                            )}
+                          </button>
+
+                          <button
+                            onClick={() => openEditQuery(q)}
+                            className="btn btn-ghost btn-sm"
+                            style={{ padding: '6px 8px', borderRadius: '8px', background: 'var(--surface)', border: '1px solid var(--border)', color: 'var(--accent)' }}
+                            title="Edit query"
+                          >
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                              <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" />
+                              <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" />
+                            </svg>
+                          </button>
+
+                          <button
+                            onClick={() => handleDeleteQuery(q.id, q.question)}
+                            className="btn btn-ghost btn-sm"
+                            style={{ padding: '6px 8px', borderRadius: '8px', background: 'var(--surface)', border: '1px solid var(--border)', color: 'var(--danger)' }}
+                            title="Delete query"
+                          >
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                              <polyline points="3 6 5 6 21 6" /><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2" />
+                            </svg>
+                          </button>
+
+                          <button
+                            onClick={() => setExpandedQueryId(expandedQueryId === q.id ? null : q.id)}
+                            style={{
+                              background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer',
+                              padding: '4px', display: 'flex', alignItems: 'center'
+                            }}
+                          >
+                            <svg
+                              width="16"
+                              height="16"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="2.5"
+                              style={{
+                                transform: isExpanded ? 'rotate(180deg)' : 'rotate(0deg)',
+                                transition: 'transform 0.2s ease'
+                              }}
+                            >
+                              <polyline points="6 9 12 15 18 9" />
+                            </svg>
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Answer Accordion Body */}
+                      {isExpanded && (
+                        <div style={{
+                          padding: '18px 22px 22px 22px',
+                          borderTop: '1px solid var(--border)',
+                          background: 'var(--surface)',
+                          color: 'var(--text-primary)',
+                          fontSize: '13.5px',
+                          lineHeight: '1.75',
+                          whiteSpace: 'pre-line',
+                        }}>
+                          {q.answer}
+                        </div>
+                      )}
+                    </div>
+                  )
+                })}
+              </div>
+            )
+          })()}
         </div>
       ) : (
         <div className="card" style={{ overflowX: 'auto', maxWidth: '100%', WebkitOverflowScrolling: 'touch' }}>
@@ -3468,6 +4008,114 @@ export function ManagePageInner({ forcedTab }: ManagePageInnerProps = {}) {
             setCourseIconPickerOpen(false)
           }}
         />
+      )}
+
+      {/* Dedicated Query Modal */}
+      {queryModalOpen && (
+        <div className="modal-overlay" onClick={() => setQueryModalOpen(false)}>
+          <div
+            className="modal"
+            style={{ maxWidth: '640px', width: '92%', borderRadius: '24px' }}
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="modal-header">
+              <h3 style={{ fontSize: '18px', fontWeight: 800, color: 'var(--text-primary)', margin: 0 }}>
+                {editingQuery ? 'Edit Platform Query' : 'Add Platform Query'}
+              </h3>
+              <button
+                onClick={() => setQueryModalOpen(false)}
+                style={{ color: 'var(--text-muted)', cursor: 'pointer', background: 'none', border: 'none' }}
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+              </button>
+            </div>
+
+            <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <div className="form-group">
+                <label className="form-label">Question *</label>
+                <input
+                  type="text"
+                  className="form-input"
+                  value={queryFormData.question}
+                  onChange={e => setQueryFormData(p => ({ ...p, question: e.target.value }))}
+                  placeholder="e.g., What happens after a course expires?"
+                />
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '14px' }}>
+                <div className="form-group">
+                  <label className="form-label">Category *</label>
+                  <select
+                    className="form-input"
+                    value={queryFormData.category}
+                    onChange={e => setQueryFormData(p => ({ ...p, category: e.target.value as any }))}
+                  >
+                    {QUERY_CATEGORIES.map(c => (
+                      <option key={c.id} value={c.id}>{c.label}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label">Applies To *</label>
+                  <select
+                    className="form-input"
+                    value={queryFormData.appliesTo}
+                    onChange={e => setQueryFormData(p => ({ ...p, appliesTo: e.target.value as any }))}
+                  >
+                    <option value="BOTH">📱+💻 Both (App & Web)</option>
+                    <option value="APP_ONLY">📱 App Only</option>
+                    <option value="WEB_ONLY">💻 Web Only</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Detailed Answer *</label>
+                <textarea
+                  className="form-input"
+                  rows={8}
+                  value={queryFormData.answer}
+                  onChange={e => setQueryFormData(p => ({ ...p, answer: e.target.value }))}
+                  placeholder="Explain step-by-step how the system behaves, student visibility, limitations, etc..."
+                  style={{ resize: 'vertical', lineHeight: '1.6' }}
+                />
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Display Order</label>
+                <input
+                  type="number"
+                  className="form-input"
+                  value={queryFormData.order}
+                  onChange={e => setQueryFormData(p => ({ ...p, order: Number(e.target.value) || 0 }))}
+                  style={{ maxWidth: '140px' }}
+                />
+              </div>
+            </div>
+
+            <div className="modal-footer">
+              <button
+                type="button"
+                onClick={() => setQueryModalOpen(false)}
+                className="btn btn-ghost"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleSaveQuery}
+                disabled={querySaving}
+                className="btn btn-primary"
+                style={{ borderRadius: '50px', padding: '10px 24px', fontWeight: '800' }}
+              >
+                {querySaving ? 'Saving...' : editingQuery ? 'Update Query' : 'Create Query'}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
 
 

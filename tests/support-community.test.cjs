@@ -21,10 +21,28 @@ function harness(role = 'STUDENT', userId = 'student-a') {
       findMany: async ({ where }) => tickets.filter(t => visible(t, where)),
       create: async ({ data }) => { state.writes++; state.created = data; return { id: 'new-ticket', ...data } },
       update: async ({ where, data }) => { state.writes++; return Object.assign(tickets.find(t => t.id === where.id), data) },
+      count: async ({ where } = {}) => {
+        if (!where) return tickets.length
+        return tickets.filter(t => {
+          if (where.studentId && t.studentId !== where.studentId) return false
+          if (where.status?.notIn && where.status.notIn.includes(t.status)) return false
+          if (where.status?.in && !where.status.in.includes(t.status)) return false
+          if (where.status && typeof where.status === 'string' && t.status !== where.status) return false
+          return true
+        }).length
+      },
       updateMany: async ({ where, data }) => {
-        const ticket = tickets.find(t => t.id === where.id && t.status !== where.status.not)
-        if (!ticket) return { count: 0 }
-        Object.assign(ticket, data); state.writes++; return { count: 1 }
+        let count = 0
+        for (const t of tickets) {
+          if (where.id && t.id !== where.id) continue
+          if (where.status?.not && t.status === where.status.not) continue
+          if (where.status?.notIn && where.status.notIn.includes(t.status)) continue
+          if (where.updatedAt?.lt && !(t.updatedAt < where.updatedAt.lt)) continue
+          Object.assign(t, data)
+          state.writes++
+          count++
+        }
+        return { count }
       },
       delete: async () => { state.writes++ },
     },
@@ -189,3 +207,77 @@ test('discussion feed returns ten parent posts with all comments and a working n
   h.state.session = null
   assert.equal((await route.GET(request({}, 'https://example.test/messages?view=feed'), p)).status, 401)
 })
+
+test('student cannot create a new ticket if they have 3 active tickets, but can once resolved/closed', async () => {
+  const h = harness('STUDENT', 'student-limit-test')
+  h.tickets.length = 0
+  h.tickets.push(
+    { id: 't-1', studentId: 'student-limit-test', title: 'T1', status: 'OPEN', updatedAt: new Date(), replies: [] },
+    { id: 't-2', studentId: 'student-limit-test', title: 'T2', status: 'IN_PROGRESS', updatedAt: new Date(), replies: [] }
+  )
+
+  // 2 active tickets -> allowed to create a 3rd ticket
+  const res1 = await h.load(collection).POST(request({ description: 'Third ticket' }))
+  assert.equal(res1.status, 201)
+
+  // Add the 3rd active ticket to h.tickets
+  h.tickets.push({ id: 't-3', studentId: 'student-limit-test', title: 'T3', status: 'OPEN', updatedAt: new Date(), replies: [] })
+
+  // 3 active tickets -> blocked from creating a 4th ticket
+  const res2 = await h.load(collection).POST(request({ description: 'Fourth ticket spam' }))
+  assert.equal(res2.status, 400)
+  assert.match(res2.body.error, /3 active tickets/i)
+
+  // If manager marks one ticket as RESOLVED
+  h.tickets[0].status = 'RESOLVED'
+  // Now 2 active tickets -> allowed again
+  const res3 = await h.load(collection).POST(request({ description: 'New ticket after resolve' }))
+  assert.equal(res3.status, 201)
+
+  // If one ticket is CLOSED
+  h.tickets[1].status = 'CLOSED'
+  const res4 = await h.load(collection).POST(request({ description: 'New ticket after close' }))
+  assert.equal(res4.status, 201)
+})
+
+test('replies bump ticket updatedAt and student reply reopens resolved ticket to OPEN', async () => {
+  const h = harness('STUDENT', 'student-a')
+  const oldDate = new Date(Date.now() - 5 * 86400000)
+  h.tickets[0].updatedAt = oldDate
+  h.tickets[0].status = 'RESOLVED'
+
+  // Student replies to the resolved ticket
+  const res = await h.load(replyRoute).POST(request({ content: 'Still having issues with this' }), params)
+  assert.equal(res.status, 201)
+  // Status should reopen to OPEN and updatedAt should be bumped
+  assert.equal(h.tickets[0].status, 'OPEN')
+  assert.ok(h.tickets[0].updatedAt.getTime() > oldDate.getTime(), 'Ticket timestamp must be updated')
+
+  // Manager replies to an open ticket -> status becomes IN_PROGRESS and updatedAt bumped
+  h.state.session.role = 'MANAGER'
+  h.state.session.userId = 'manager-a'
+  const beforeManagerReply = h.tickets[0].updatedAt
+  const resManager = await h.load(replyRoute).POST(request({ content: 'Looking into this now' }), params)
+  assert.equal(resManager.status, 201)
+  assert.equal(h.tickets[0].status, 'IN_PROGRESS')
+  assert.ok(h.tickets[0].updatedAt.getTime() >= beforeManagerReply.getTime())
+})
+
+test('tickets older than 10 days are auto-closed', async () => {
+  const h = harness('STUDENT', 'student-a')
+  const elevenDaysAgo = new Date(Date.now() - 11 * 86400000)
+  h.tickets.push({
+    id: 'old-ticket',
+    studentId: 'student-a',
+    title: 'Old query',
+    status: 'OPEN',
+    updatedAt: elevenDaysAgo,
+    replies: [],
+  })
+
+  // Calling GET /api/support/tickets triggers autoCloseInactiveTickets
+  await h.load(collection).GET(request())
+  const oldTicket = h.tickets.find(t => t.id === 'old-ticket')
+  assert.equal(oldTicket.status, 'CLOSED')
+})
+

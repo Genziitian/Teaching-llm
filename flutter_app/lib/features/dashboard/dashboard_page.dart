@@ -157,7 +157,6 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
     final hasRecentLecture = recentLecture != null &&
         recentLecture.isNotEmpty &&
         (recentLecture['content'] != null || recentLecture['id'] != null);
-    final upcomingExams = (dash['upcomingExams'] as List?) ?? const [];
     final announcements = (dash['announcements'] as List?) ?? const [];
 
     return SafeArea(
@@ -352,35 +351,13 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
 
             const SizedBox(height: 22),
 
-            // ── 3. Quick Action Grid (Community, Calendar, Store, Settings) ──
+            // ── 3. Quick Action Grid (Free Resources, Support, Downloads, Settings) ──
             const Padding(
               padding: EdgeInsets.symmetric(horizontal: 20),
               child: _QuickActionGridCard(),
             ),
 
-            // ── 4. Upcoming Assessments (Only if any exist) ─────
-            if (upcomingExams.isNotEmpty) ...[
-              const SizedBox(height: 22),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: SectionHead(
-                  title: 'Upcoming Assessments',
-                  right: 'View All →',
-                  onRightTap: () => context.go('/calendar'),
-                ),
-              ),
-              const SizedBox(height: 12),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: InkWell(
-                  onTap: () => context.go('/calendar'),
-                  borderRadius: BorderRadius.circular(16),
-                  child: _UpcomingAssessmentsCard(exams: upcomingExams),
-                ),
-              ),
-            ],
-
-            // ── 5. Announcements ────────────────────────────────
+            // ── 4. Announcements ────────────────────────────────
             const SizedBox(height: 22),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -585,9 +562,9 @@ class _BellButton extends StatelessWidget {
 }
 
 /// 4 Circular Action Buttons Card placed directly below Upcoming Session:
-/// - Community, Calendar, Store, Settings
-class _QuickActionGridCard extends StatelessWidget {
-  const _QuickActionGridCard();
+/// - Free Resources, Support, Downloads, Settings
+class QuickActionGridCard extends StatelessWidget {
+  const QuickActionGridCard({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -600,16 +577,16 @@ class _QuickActionGridCard extends StatelessWidget {
 
     final actions = [
       (
-        label: 'Community',
-        gradient: const [Color(0xFFEC4899), Color(0xFFF43F5E)],
-        icon: Icons.groups_rounded,
-        onTap: () => context.push('/community'),
+        label: 'Free Resources',
+        gradient: const [Color(0xFF8B5CF6), Color(0xFF6366F1)],
+        icon: Icons.bookmark_rounded,
+        onTap: () => context.push('/free-resources'),
       ),
       (
-        label: 'Calendar',
-        gradient: const [Color(0xFF8B5CF6), Color(0xFF6366F1)],
-        icon: Icons.calendar_month_rounded,
-        onTap: () => context.push('/calendar'),
+        label: 'Support',
+        gradient: const [Color(0xFF0EA5E9), Color(0xFF0284C7)],
+        icon: Icons.headset_mic_rounded,
+        onTap: () => context.push('/support'),
       ),
       (
         label: 'Downloads',
@@ -661,8 +638,11 @@ class _QuickActionGridCard extends StatelessWidget {
                 const SizedBox(height: 8),
                 Text(
                   item.label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  textAlign: TextAlign.center,
                   style: TextStyle(
-                    fontSize: 12,
+                    fontSize: 11.5,
                     fontWeight: FontWeight.w700,
                     color: textSecondary,
                   ),
@@ -675,6 +655,8 @@ class _QuickActionGridCard extends StatelessWidget {
     );
   }
 }
+
+typedef _QuickActionGridCard = QuickActionGridCard;
 
 class _UpcomingSessionCard extends StatelessWidget {
   const _UpcomingSessionCard({required this.sessions});
@@ -1103,78 +1085,6 @@ class _RecentLectureCard extends StatelessWidget {
               ),
             ),
           ),
-        ],
-      ),
-    );
-  }
-}
-
-class _UpcomingAssessmentsCard extends StatelessWidget {
-  const _UpcomingAssessmentsCard({required this.exams});
-  final List exams;
-
-  @override
-  Widget build(BuildContext context) {
-    if (exams.isEmpty) return const SizedBox.shrink();
-
-    final exam = exams.first as Map<String, dynamic>;
-    final title = (exam['title'] as String?) ?? 'Assessment';
-    final dateStr = (exam['date'] as String?) ?? '';
-    final tokens = context.tokens;
-
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: tokens.cardBg,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: tokens.border),
-        boxShadow: AppShadows.sm,
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 44,
-            height: 44,
-            decoration: BoxDecoration(
-              color: const Color(0xFF10B981).withOpacity(0.12),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: const Icon(
-              Icons.quiz_outlined,
-              color: Color(0xFF10B981),
-              size: 22,
-            ),
-          ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    fontSize: 14.5,
-                    fontWeight: FontWeight.w700,
-                    color: tokens.textPrimary,
-                  ),
-                ),
-                if (dateStr.isNotEmpty) ...[
-                  const SizedBox(height: 2),
-                  Text(
-                    dateStr,
-                    style: TextStyle(
-                      fontSize: 12.5,
-                      fontWeight: FontWeight.w500,
-                      color: tokens.textSecondary,
-                    ),
-                  ),
-                ],
-              ],
-            ),
-          ),
-          Icon(Icons.chevron_right_rounded, color: tokens.textMuted),
         ],
       ),
     );

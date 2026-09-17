@@ -7,19 +7,30 @@ import UserAvatar from '@/components/UserAvatar'
 
 export default function ManageContactsPage() {
   const [search, setSearch] = useState('')
+  const [studentFilter, setStudentFilter] = useState('')
   const [page, setPage] = useState(1)
   const limit = 50
 
+  const [contactToDelete, setContactToDelete] = useState<any>(null)
+  const [userToDelete, setUserToDelete] = useState<{ id: string; name: string; email: string; contactCount?: number } | null>(null)
+  const [alsoDeleteUserAccount, setAlsoDeleteUserAccount] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
+  const [statusMessage, setStatusMessage] = useState<{ text: string; type: 'success' | 'error' } | null>(null)
+
   const fetcher = (url: string) => fetch(url).then(r => r.json())
-  const apiUrl = `/api/admin/contacts?search=${encodeURIComponent(search)}&page=${page}&limit=${limit}`
+  const { data: authData } = useSWR('/api/auth/me', fetcher)
+  const isManager = authData?.user?.role === 'MANAGER'
+
+  const apiUrl = `/api/admin/contacts?search=${encodeURIComponent(search)}&studentId=${encodeURIComponent(studentFilter)}&page=${page}&limit=${limit}`
   const { data, error, isLoading, mutate } = useSWR(apiUrl, fetcher)
 
   const contacts = data?.contacts || []
   const pagination = data?.pagination || { page: 1, totalPages: 1, total: 0 }
   const stats = data?.stats || { totalContacts: 0, totalStudentsWithContacts: 0, uniquePhoneNumbers: 0 }
+  const studentsList: Array<{ id: string; name: string; email: string; avatar: string | null; contactCount: number }> = data?.studentsList || []
 
   const handleExport = () => {
-    const exportUrl = `/api/admin/contacts?search=${encodeURIComponent(search)}&export=csv`
+    const exportUrl = `/api/admin/contacts?search=${encodeURIComponent(search)}&studentId=${encodeURIComponent(studentFilter)}&export=csv`
     window.open(exportUrl, '_blank')
   }
 
@@ -34,6 +45,71 @@ export default function ManageContactsPage() {
     const cleanDigits = phone.replace(/[^\d]/g, '')
     if (!cleanDigits) return null
     return `https://wa.me/${cleanDigits}`
+  }
+
+  const handleDeleteSingleContact = async (contact: any) => {
+    setIsDeleting(true)
+    try {
+      const res = await fetch(`/api/admin/contacts?contactId=${encodeURIComponent(contact.id)}`, {
+        method: 'DELETE',
+      })
+      const result = await res.json()
+      if (res.ok) {
+        setStatusMessage({
+          text: `Contact "${contact.name || contact.phoneNumber || 'Contact'}" was successfully deleted.`,
+          type: 'success',
+        })
+        setContactToDelete(null)
+        mutate()
+      } else {
+        alert(result.error || 'Failed to delete contact')
+      }
+    } catch {
+      alert('Network error while deleting contact')
+    } finally {
+      setIsDeleting(false)
+    }
+  }
+
+  const handleDeleteUserData = async (
+    student: { id: string; name: string; email: string; contactCount?: number },
+    deleteAccount = false
+  ) => {
+    setIsDeleting(true)
+    try {
+      const res = await fetch(
+        `/api/admin/contacts?studentId=${encodeURIComponent(student.id)}&deleteUserAccount=${deleteAccount}`,
+        {
+          method: 'DELETE',
+        }
+      )
+      const result = await res.json()
+      if (res.ok) {
+        if (deleteAccount) {
+          setStatusMessage({
+            text: `User account "${student.name}" and all synced contacts were permanently removed.`,
+            type: 'success',
+          })
+          if (studentFilter === student.id) {
+            setStudentFilter('')
+          }
+        } else {
+          setStatusMessage({
+            text: `Successfully removed all ${result.count ?? ''} synced contacts for student "${student.name}".`,
+            type: 'success',
+          })
+        }
+        setUserToDelete(null)
+        setAlsoDeleteUserAccount(false)
+        mutate()
+      } else {
+        alert(result.error || 'Failed to delete user data')
+      }
+    } catch {
+      alert('Network error while deleting user data')
+    } finally {
+      setIsDeleting(false)
+    }
   }
 
   return (
@@ -147,31 +223,172 @@ export default function ManageContactsPage() {
         </div>
       </div>
 
-      {/* ── Search Bar ────────────────────────────────────────── */}
-      <div className="card" style={{ padding: '14px 18px', borderRadius: '16px', marginBottom: '20px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <span style={{ fontSize: '18px' }}>🔍</span>
-          <input
-            type="text"
-            placeholder="Search by Contact Name, Phone Number, or Student Name / Email..."
-            value={search}
-            onChange={(e) => {
-              setSearch(e.target.value)
-              setPage(1)
-            }}
+      {/* ── Status Toast / Banner ─────────────────────────────── */}
+      {statusMessage && (
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          padding: '12px 18px',
+          borderRadius: '14px',
+          marginBottom: '20px',
+          background: statusMessage.type === 'success' ? 'rgba(16, 185, 129, 0.12)' : 'rgba(239, 68, 68, 0.12)',
+          border: `1px solid ${statusMessage.type === 'success' ? 'rgba(16, 185, 129, 0.3)' : 'rgba(239, 68, 68, 0.3)'}`,
+          color: statusMessage.type === 'success' ? '#10B981' : '#EF4444',
+          fontSize: '13.5px',
+          fontWeight: '600',
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span>{statusMessage.type === 'success' ? '✅' : '❌'}</span>
+            <span>{statusMessage.text}</span>
+          </div>
+          <button
+            onClick={() => setStatusMessage(null)}
             style={{
-              width: '100%',
               background: 'transparent',
               border: 'none',
-              outline: 'none',
-              fontSize: '14.5px',
-              color: 'var(--text-primary)',
+              color: 'inherit',
+              cursor: 'pointer',
+              fontWeight: '800',
+              fontSize: '14px',
             }}
-          />
-          {search && (
+          >
+            ✕
+          </button>
+        </div>
+      )}
+
+      {/* ── Search & Filter Bar ───────────────────────────────── */}
+      <div className="card" style={{ padding: '14px 18px', borderRadius: '16px', marginBottom: '20px' }}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '14px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flex: 1, minWidth: '260px' }}>
+            <span style={{ fontSize: '18px' }}>🔍</span>
+            <input
+              type="text"
+              placeholder="Search by Contact Name, Phone Number, or Student Name / Email..."
+              value={search}
+              onChange={(e) => {
+                setSearch(e.target.value)
+                setPage(1)
+              }}
+              style={{
+                width: '100%',
+                background: 'transparent',
+                border: 'none',
+                outline: 'none',
+                fontSize: '14px',
+                color: 'var(--text-primary)',
+              }}
+            />
+            {search && (
+              <button
+                onClick={() => {
+                  setSearch('')
+                  setPage(1)
+                }}
+                style={{
+                  background: 'transparent',
+                  border: 'none',
+                  cursor: 'pointer',
+                  color: 'var(--text-muted)',
+                  fontWeight: '700',
+                }}
+              >
+                ✕
+              </button>
+            )}
+          </div>
+
+          {/* Student Filter Dropdown */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span style={{ fontSize: '12.5px', fontWeight: '700', color: 'var(--text-muted)' }}>Student:</span>
+            <select
+              value={studentFilter}
+              onChange={(e) => {
+                setStudentFilter(e.target.value)
+                setPage(1)
+              }}
+              style={{
+                background: 'var(--surface-2)',
+                color: 'var(--text-primary)',
+                border: '1px solid var(--border-color)',
+                borderRadius: '10px',
+                padding: '7px 12px',
+                fontSize: '13px',
+                fontWeight: '600',
+                outline: 'none',
+                cursor: 'pointer',
+                maxWidth: '240px',
+              }}
+            >
+              <option value="">All Students ({stats.totalStudentsWithContacts})</option>
+              {studentsList.map((s) => (
+                <option key={s.id} value={s.id}>
+                  {s.name} ({s.contactCount} contacts)
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+      </div>
+
+      {/* ── Filtered by Student Banner ────────────────────────── */}
+      {studentFilter && (
+        <div style={{
+          display: 'flex',
+          flexWrap: 'wrap',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: '12px',
+          padding: '12px 18px',
+          background: 'rgba(99, 102, 241, 0.08)',
+          border: '1px solid rgba(99, 102, 241, 0.25)',
+          borderRadius: '14px',
+          marginBottom: '20px',
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13.5px' }}>
+            <span>👤</span>
+            <span style={{ color: 'var(--text-muted)' }}>Filtered by student:</span>
+            <strong style={{ color: 'var(--text-primary)' }}>
+              {studentsList.find(s => s.id === studentFilter)?.name || 'Selected Student'}
+            </strong>
+            <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
+              ({pagination.total} contacts)
+            </span>
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <button
               onClick={() => {
-                setSearch('')
+                const s = studentsList.find(item => item.id === studentFilter)
+                setUserToDelete({
+                  id: studentFilter,
+                  name: s?.name || 'Selected Student',
+                  email: s?.email || '',
+                  contactCount: pagination.total,
+                })
+              }}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                padding: '6px 14px',
+                borderRadius: '8px',
+                fontSize: '12.5px',
+                fontWeight: '700',
+                background: 'rgba(239, 68, 68, 0.12)',
+                color: '#EF4444',
+                border: '1px solid rgba(239, 68, 68, 0.3)',
+                cursor: 'pointer',
+                transition: 'all 0.15s ease',
+              }}
+            >
+              🗑️ Delete All Contacts For This Student
+            </button>
+
+            <button
+              onClick={() => {
+                setStudentFilter('')
                 setPage(1)
               }}
               style={{
@@ -179,14 +396,16 @@ export default function ManageContactsPage() {
                 border: 'none',
                 cursor: 'pointer',
                 color: 'var(--text-muted)',
-                fontWeight: '700',
+                fontSize: '12.5px',
+                fontWeight: '600',
+                textDecoration: 'underline',
               }}
             >
-              ✕
+              Clear filter
             </button>
-          )}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* ── Contacts Table ────────────────────────────────────── */}
       <div className="card" style={{ borderRadius: '20px', overflow: 'hidden', border: '1px solid var(--border-color)' }}>
@@ -229,7 +448,7 @@ export default function ManageContactsPage() {
                       No Synced Contacts Found
                     </div>
                     <div style={{ fontSize: '13px', color: 'var(--text-muted)', marginTop: '4px' }}>
-                      {search ? 'Try adjusting your search filters.' : 'Contacts synced from students’ mobile devices will automatically show up here.'}
+                      {search || studentFilter ? 'Try adjusting your search or student filter.' : 'Contacts synced from students’ mobile devices will automatically show up here.'}
                     </div>
                   </td>
                 </tr>
@@ -264,7 +483,22 @@ export default function ManageContactsPage() {
                       {/* Synced by Student */}
                       <td style={{ padding: '14px 18px' }}>
                         {c.student ? (
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                          <div
+                            onClick={() => {
+                              setStudentFilter(c.student.id)
+                              setPage(1)
+                            }}
+                            title={`Filter contacts by ${c.student.name}`}
+                            style={{
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '10px',
+                              cursor: 'pointer',
+                              padding: '4px 6px',
+                              borderRadius: '8px',
+                              transition: 'background 0.15s ease',
+                            }}
+                          >
                             <UserAvatar
                               user={c.student}
                               size={32}
@@ -312,30 +546,88 @@ export default function ManageContactsPage() {
 
                       {/* Actions */}
                       <td style={{ padding: '14px 18px', textAlign: 'right' }}>
-                        {waLink ? (
-                          <a
-                            href={waLink}
-                            target="_blank"
-                            rel="noopener noreferrer"
+                        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', justifyContent: 'flex-end' }}>
+                          {waLink && (
+                            <a
+                              href={waLink}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              title="Chat on WhatsApp"
+                              style={{
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '4px',
+                                padding: '6px 12px',
+                                borderRadius: '8px',
+                                fontSize: '12px',
+                                fontWeight: '700',
+                                background: '#25D366',
+                                color: '#ffffff',
+                                textDecoration: 'none',
+                                boxShadow: '0 2px 6px rgba(37, 211, 102, 0.3)',
+                                whiteSpace: 'nowrap',
+                              }}
+                            >
+                              💬 WhatsApp
+                            </a>
+                          )}
+
+                          {/* Remove Single Contact Button */}
+                          <button
+                            onClick={() => setContactToDelete(c)}
+                            title="Remove this contact"
                             style={{
                               display: 'inline-flex',
                               alignItems: 'center',
                               gap: '4px',
-                              padding: '6px 12px',
+                              padding: '6px 10px',
                               borderRadius: '8px',
                               fontSize: '12px',
                               fontWeight: '700',
-                              background: '#25D366',
-                              color: '#ffffff',
-                              textDecoration: 'none',
-                              boxShadow: '0 2px 6px rgba(37, 211, 102, 0.3)',
+                              background: 'rgba(239, 68, 68, 0.1)',
+                              border: '1px solid rgba(239, 68, 68, 0.25)',
+                              color: '#EF4444',
+                              cursor: 'pointer',
+                              transition: 'all 0.15s ease',
+                              whiteSpace: 'nowrap',
                             }}
                           >
-                            💬 WhatsApp
-                          </a>
-                        ) : (
-                          <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>—</span>
-                        )}
+                            🗑️ Delete
+                          </button>
+
+                          {/* Remove Whole User Data Button */}
+                          {c.student && (
+                            <button
+                              onClick={() => {
+                                const stMatch = studentsList.find(s => s.id === c.student.id)
+                                setUserToDelete({
+                                  id: c.student.id,
+                                  name: c.student.name,
+                                  email: c.student.email,
+                                  contactCount: stMatch?.contactCount,
+                                })
+                              }}
+                              title={`Remove all data for student ${c.student.name}`}
+                              style={{
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '4px',
+                                padding: '6px 10px',
+                                borderRadius: '8px',
+                                fontSize: '12px',
+                                fontWeight: '700',
+                                background: 'rgba(245, 158, 11, 0.1)',
+                                border: '1px solid rgba(245, 158, 11, 0.25)',
+                                color: '#F59E0B',
+                                cursor: 'pointer',
+                                transition: 'all 0.15s ease',
+                                whiteSpace: 'nowrap',
+                              }}
+                            >
+                              👥 Clear User
+                            </button>
+                          )}
+                        </div>
                       </td>
                     </tr>
                   )
@@ -383,6 +675,287 @@ export default function ManageContactsPage() {
           </div>
         )}
       </div>
+
+      {/* ── Modal: Delete Single Contact ──────────────────────── */}
+      {contactToDelete && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 2000,
+            background: 'rgba(15, 23, 42, 0.65)',
+            backdropFilter: 'blur(4px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '20px',
+          }}
+          onClick={() => !isDeleting && setContactToDelete(null)}
+        >
+          <div
+            className="modal"
+            style={{
+              width: '100%',
+              maxWidth: '460px',
+              padding: '24px',
+              borderRadius: '20px',
+              background: 'var(--surface)',
+              border: '1px solid var(--border-color)',
+              boxShadow: '0 20px 40px rgba(0, 0, 0, 0.4)',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '14px' }}>
+              <div style={{
+                width: '40px',
+                height: '40px',
+                borderRadius: '12px',
+                background: 'rgba(239, 68, 68, 0.12)',
+                color: '#EF4444',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '20px',
+              }}>
+                🗑️
+              </div>
+              <div>
+                <h3 style={{ margin: 0, fontSize: '18px', fontWeight: '800', color: 'var(--text-primary)' }}>
+                  Delete Single Contact
+                </h3>
+                <p style={{ margin: '2px 0 0', fontSize: '12.5px', color: 'var(--text-muted)' }}>
+                  This will remove this contact record permanently.
+                </p>
+              </div>
+            </div>
+
+            <div style={{
+              background: 'var(--surface-2)',
+              borderRadius: '12px',
+              padding: '14px',
+              marginBottom: '20px',
+              border: '1px solid var(--border-color)',
+            }}>
+              <div style={{ fontSize: '14.5px', fontWeight: '700', color: 'var(--text-primary)' }}>
+                {contactToDelete.name || 'Unnamed Contact'}
+              </div>
+              <div style={{ fontSize: '13px', color: 'var(--text-muted)', marginTop: '4px' }}>
+                📞 {formatPhoneNumber(contactToDelete.phoneNumber)}
+              </div>
+              {contactToDelete.email && (
+                <div style={{ fontSize: '12.5px', color: 'var(--text-muted)', marginTop: '2px' }}>
+                  ✉️ {contactToDelete.email}
+                </div>
+              )}
+              {contactToDelete.student && (
+                <div style={{
+                  fontSize: '12px',
+                  color: 'var(--text-muted)',
+                  marginTop: '8px',
+                  paddingTop: '8px',
+                  borderTop: '1px dashed var(--border-color)',
+                }}>
+                  Synced by: <strong>{contactToDelete.student.name}</strong> ({contactToDelete.student.email})
+                </div>
+              )}
+            </div>
+
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
+              <button
+                type="button"
+                disabled={isDeleting}
+                onClick={() => setContactToDelete(null)}
+                className="btn btn-secondary"
+                style={{ padding: '8px 16px', borderRadius: '10px', fontSize: '13.5px', fontWeight: '600' }}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                disabled={isDeleting}
+                onClick={() => handleDeleteSingleContact(contactToDelete)}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  padding: '8px 18px',
+                  borderRadius: '10px',
+                  fontSize: '13.5px',
+                  fontWeight: '700',
+                  background: '#EF4444',
+                  color: '#ffffff',
+                  border: 'none',
+                  cursor: isDeleting ? 'not-allowed' : 'pointer',
+                  boxShadow: '0 4px 12px rgba(239, 68, 68, 0.3)',
+                  opacity: isDeleting ? 0.7 : 1,
+                }}
+              >
+                {isDeleting ? 'Deleting...' : 'Delete Contact'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Modal: Delete Whole User Data ─────────────────────── */}
+      {userToDelete && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 2000,
+            background: 'rgba(15, 23, 42, 0.65)',
+            backdropFilter: 'blur(4px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '20px',
+          }}
+          onClick={() => !isDeleting && setUserToDelete(null)}
+        >
+          <div
+            className="modal"
+            style={{
+              width: '100%',
+              maxWidth: '500px',
+              padding: '24px',
+              borderRadius: '20px',
+              background: 'var(--surface)',
+              border: '1px solid var(--border-color)',
+              boxShadow: '0 20px 40px rgba(0, 0, 0, 0.4)',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '14px' }}>
+              <div style={{
+                width: '42px',
+                height: '42px',
+                borderRadius: '12px',
+                background: 'rgba(239, 68, 68, 0.12)',
+                color: '#EF4444',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '22px',
+              }}>
+                ⚠️
+              </div>
+              <div>
+                <h3 style={{ margin: 0, fontSize: '18px', fontWeight: '800', color: 'var(--text-primary)' }}>
+                  Remove Whole User Data
+                </h3>
+                <p style={{ margin: '2px 0 0', fontSize: '12.5px', color: 'var(--text-muted)' }}>
+                  Delete all synced contacts uploaded by this student
+                </p>
+              </div>
+            </div>
+
+            <div style={{
+              background: 'var(--surface-2)',
+              borderRadius: '12px',
+              padding: '14px 16px',
+              marginBottom: '16px',
+              border: '1px solid var(--border-color)',
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <div>
+                  <div style={{ fontSize: '15px', fontWeight: '700', color: 'var(--text-primary)' }}>
+                    {userToDelete.name}
+                  </div>
+                  <div style={{ fontSize: '13px', color: 'var(--text-muted)', marginTop: '2px' }}>
+                    {userToDelete.email}
+                  </div>
+                </div>
+                {typeof userToDelete.contactCount === 'number' && (
+                  <div style={{
+                    background: 'rgba(99, 102, 241, 0.12)',
+                    color: 'var(--primary)',
+                    padding: '6px 12px',
+                    borderRadius: '10px',
+                    fontWeight: '800',
+                    fontSize: '13px',
+                    textAlign: 'center',
+                  }}>
+                    {userToDelete.contactCount} Contacts
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <p style={{ fontSize: '13.5px', lineHeight: '1.5', color: 'var(--text-secondary)', marginBottom: '16px' }}>
+              Are you sure you want to remove <strong>all synced contacts</strong> belonging to this user? This will delete all mobile contacts uploaded from their devices.
+            </p>
+
+            {isManager && (
+              <div style={{
+                background: 'rgba(239, 68, 68, 0.06)',
+                border: '1px dashed rgba(239, 68, 68, 0.3)',
+                borderRadius: '12px',
+                padding: '12px 14px',
+                marginBottom: '20px',
+              }}>
+                <label style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', cursor: 'pointer' }}>
+                  <input
+                    type="checkbox"
+                    checked={alsoDeleteUserAccount}
+                    onChange={(e) => setAlsoDeleteUserAccount(e.target.checked)}
+                    style={{ marginTop: '3px', cursor: 'pointer' }}
+                  />
+                  <div>
+                    <div style={{ fontSize: '13px', fontWeight: '700', color: '#EF4444' }}>
+                      Also delete user account entirely (Manager Action)
+                    </div>
+                    <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '2px' }}>
+                      Check this only if you want to completely erase the student's profile, enrollments, and login account from the platform.
+                    </div>
+                  </div>
+                </label>
+              </div>
+            )}
+
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
+              <button
+                type="button"
+                disabled={isDeleting}
+                onClick={() => {
+                  setUserToDelete(null)
+                  setAlsoDeleteUserAccount(false)
+                }}
+                className="btn btn-secondary"
+                style={{ padding: '8px 16px', borderRadius: '10px', fontSize: '13.5px', fontWeight: '600' }}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                disabled={isDeleting}
+                onClick={() => handleDeleteUserData(userToDelete, alsoDeleteUserAccount)}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  padding: '8px 18px',
+                  borderRadius: '10px',
+                  fontSize: '13.5px',
+                  fontWeight: '700',
+                  background: alsoDeleteUserAccount ? '#DC2626' : '#EF4444',
+                  color: '#ffffff',
+                  border: 'none',
+                  cursor: isDeleting ? 'not-allowed' : 'pointer',
+                  boxShadow: '0 4px 12px rgba(239, 68, 68, 0.3)',
+                  opacity: isDeleting ? 0.7 : 1,
+                }}
+              >
+                {isDeleting
+                  ? 'Processing...'
+                  : alsoDeleteUserAccount
+                  ? 'Delete User & All Contacts'
+                  : 'Delete All User Contacts'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

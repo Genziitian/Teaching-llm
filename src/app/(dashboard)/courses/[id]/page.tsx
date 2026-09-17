@@ -72,15 +72,6 @@ interface CourseDetail {
   }[]
 }
 
-interface Exam {
-  id: string
-  title: string
-  description: string | null
-  expiresAt: string
-  startDate: string | null
-  isPublished: boolean
-}
-
 function isCardActionElement(target: EventTarget | null) {
   return target instanceof HTMLElement && !!target.closest('a, button, input, select, textarea, [role="button"], [role="menu"], [role="menuitem"]')
 }
@@ -96,7 +87,6 @@ export default function CourseDetailPage() {
   const [role, setRole] = useState<string>('')
   const [userId, setUserId] = useState<string>('')
   const [expandedTopics, setExpandedTopics] = useState<Set<string>>(new Set())
-  const [activeExam, setActiveExam] = useState<Exam | null>(null)
   const [progressMap, setProgressMap] = useState<Record<string, string>>({})
   const [infoModalCourse, setInfoModalCourse] = useState<CourseDetail | null>(null)
   const [upgradeModalCourse, setUpgradeModalCourse] = useState<CourseDetail | null>(null)
@@ -185,22 +175,6 @@ export default function CourseDetailPage() {
           .filter(topic => topic.content?.some((item: any) => item.videoUrl || item.youtubeUrl))
           .map(topic => topic.id)
         setExpandedTopics(new Set(demoTopics))
-      }
-      
-      // Fetch exams for this course
-      const examsRes = await fetch(`/api/exams?courseId=${params.id}`)
-      const examsData = await examsRes.json()
-      if (Array.isArray(examsData)) {
-        const now = new Date()
-        const active = examsData
-          .filter(e => {
-            if (!e.isPublished) return false
-            const start = e.startDate ? new Date(e.startDate) : null
-            const end = new Date(e.expiresAt)
-            return (!start || start <= now) && end > now
-          })
-          .sort((a, b) => new Date(a.expiresAt).getTime() - new Date(b.expiresAt).getTime())[0]
-        setActiveExam(active || null)
       }
 
       // Topics start collapsed — user expands on click
@@ -914,58 +888,6 @@ export default function CourseDetailPage() {
         </div>
       </div>
 
-
-      {/* Active Exam Alert */}
-      {activeExam && (
-        <div 
-          className="fade-in"
-          style={{ 
-            background: 'linear-gradient(135deg, #fff9e6, #fff4d1)',
-            borderLeft: `4px solid #f59e0b`,
-            borderRadius: '16px',
-            padding: '20px 24px',
-            marginBottom: '20px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            flexWrap: 'wrap',
-            gap: '20px',
-            boxShadow: '0 4px 15px rgba(245, 158, 11, 0.1)',
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-            <div style={{ 
-              width: '48px', height: '48px', borderRadius: '12px', 
-              background: 'var(--warning-light)', color: 'var(--warning)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              flexShrink: 0
-            }}>
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                <path d="M12 2v20M2 12h20M4.93 4.93l14.14 14.14M4.93 19.07L19.07 4.93"/>
-              </svg>
-            </div>
-            <div>
-              <h3 style={{ fontSize: '16px', fontWeight: '700', color: 'var(--warning)', marginBottom: '2px' }}>Exam is Live</h3>
-              <p style={{ fontSize: '13px', color: 'var(--warning)', opacity: 0.9 }}>
-                You have an active exam for this course: <strong>{activeExam.title}</strong>
-              </p>
-            </div>
-          </div>
-          <Link 
-            href={`/exams/${activeExam.id}`}
-            style={{ 
-              background: 'var(--warning)', color: 'white', padding: '10px 24px', 
-              borderRadius: '12px', fontSize: '14px', fontWeight: '600',
-              border: 'none', cursor: 'pointer', whiteSpace: 'nowrap',
-              boxShadow: '0 4px 12px rgba(245, 158, 11, 0.25)',
-              transition: 'all 0.2s',
-              textDecoration: 'none'
-            }}
-          >
-            Attend Exam
-          </Link>
-        </div>
-      )}
       {/* Dynamic inline styles for desktop interactions */}
       <style dangerouslySetInnerHTML={{ __html: `
         .lecture-card {

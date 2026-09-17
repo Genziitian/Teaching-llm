@@ -143,9 +143,10 @@ function BackButton({ onClick }: { onClick: () => void }) {
 // ── Refactored Modals Moved Outside to prevent focus loss during typing ────
 
 function CreateTicketModal({ 
-  onClose, form, setForm, classes, userRole, submitTicket 
+  onClose, form, setForm, classes, userRole, submitTicket, hasReachedActiveLimit, ticketError, submittingTicket
 }: { 
-  onClose: () => void, form: any, setForm: (f: any) => void, classes: ClassItem[], userRole: string, submitTicket: () => void 
+  onClose: () => void, form: any, setForm: (f: any) => void, classes: ClassItem[], userRole: string, submitTicket: () => void,
+  hasReachedActiveLimit?: boolean, ticketError?: string | null, submittingTicket?: boolean
 }) {
   return (
     <div className="modal-overlay" onClick={onClose}>
@@ -157,6 +158,17 @@ function CreateTicketModal({
           </button>
         </div>
         <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+          {hasReachedActiveLimit && (
+            <div style={{ padding: '12px 14px', borderRadius: '12px', background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.25)', color: '#ef4444', fontSize: '12.5px', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+              <span>You already have 3 active tickets. You cannot submit a new ticket until a manager resolves or closes an existing ticket.</span>
+            </div>
+          )}
+          {ticketError && (
+            <div style={{ padding: '10px 14px', borderRadius: '12px', background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.25)', color: '#ef4444', fontSize: '12px', fontWeight: '600' }}>
+              {ticketError}
+            </div>
+          )}
           <div className="form-group">
             <label className="form-label">Issue Type</label>
             <div style={{ display: 'flex', gap: '8px' }}>
@@ -199,7 +211,14 @@ function CreateTicketModal({
         </div>
         <div className="modal-footer">
           <button onClick={onClose} className="btn btn-ghost">Cancel</button>
-          <button onClick={submitTicket} className="btn btn-primary">Submit Ticket</button>
+          <button 
+            onClick={submitTicket} 
+            disabled={hasReachedActiveLimit || submittingTicket} 
+            className="btn btn-primary"
+            style={(hasReachedActiveLimit || submittingTicket) ? { opacity: 0.6, cursor: 'not-allowed' } : {}}
+          >
+            {submittingTicket ? 'Submitting...' : 'Submit Ticket'}
+          </button>
         </div>
       </div>
     </div>
@@ -309,6 +328,11 @@ export default function SupportPage() {
   const [editingReplyId, setEditingReplyId] = useState<string | null>(null)
   const [editReplyText, setEditReplyText] = useState('')
   const [savingReply, setSavingReply] = useState(false)
+  const [ticketError, setTicketError] = useState<string | null>(null)
+  const [submittingTicket, setSubmittingTicket] = useState(false)
+
+  const activeTicketsCount = tickets.filter(t => t.status !== 'RESOLVED' && t.status !== 'CLOSED').length
+  const hasReachedActiveLimit = userRole === 'STUDENT' && activeTicketsCount >= 3
 
   // FAQ
   const [faqs, setFaqs] = useState<Faq[]>([])
@@ -365,7 +389,8 @@ export default function SupportPage() {
       fetch('/api/classes').then(r => r.json()),
       fetch('/api/support/user-reports').then(r => r.json()).catch(() => []),
     ])
-    setTickets(Array.isArray(tr) ? tr : [])
+    const sorted = Array.isArray(tr) ? [...tr].sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()) : []
+    setTickets(sorted)
     setUserReports(Array.isArray(rr) ? rr : [])
     setClasses((cr.classes || cr || []).map((c: ClassItem) => ({ id: c.id, name: c.name, color: c.color })))
     // Also load feature requests
@@ -415,6 +440,28 @@ export default function SupportPage() {
     }
   }, [])
 
+  // Poll tickets so replies immediately move tickets to the top and refresh statuses
+  useEffect(() => {
+    const poll = async () => {
+      try {
+        const res = await fetch('/api/support/tickets')
+        if (res.ok) {
+          const fresh = await res.json()
+          if (Array.isArray(fresh)) {
+            const sorted = [...fresh].sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
+            setTickets(sorted)
+            setSelected(prev => {
+              if (!prev) return null
+              return sorted.find(t => t.id === prev.id) || prev
+            })
+          }
+        }
+      } catch (_) {}
+    }
+    const timer = setInterval(poll, 5000)
+    return () => clearInterval(timer)
+  }, [])
+
   // Poll chat messages
   useEffect(() => {
     if (!activeChatId) return
@@ -440,10 +487,31 @@ export default function SupportPage() {
   // ── ticket actions ──────────────────────────────────────────────────────
   async function submitTicket() {
     if ((userRole === 'MANAGER' && !form.title.trim()) || !form.description.trim()) return
-    await fetch('/api/support/tickets', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(form) })
-    setShowCreate(false)
-    setForm({ title: '', description: '', type: 'GENERAL', classId: '', priority: 'MEDIUM' })
-    loadTickets()
+    if (hasReachedActiveLimit) {
+      setTicketError('You have reached the maximum of 3 active tickets. Please wait until an existing ticket is resolved or closed.')
+      return
+    }
+    setSubmittingTicket(true)
+    setTicketError(null)
+    try {
+      const res = await fetch('/api/support/tickets', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(form),
+      })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) {
+        setTicketError(data.error || 'Failed to create ticket')
+        return
+      }
+      setShowCreate(false)
+      setForm({ title: '', description: '', type: 'GENERAL', classId: '', priority: 'MEDIUM' })
+      loadTickets()
+    } catch (err) {
+      setTicketError('Failed to create ticket. Please try again.')
+    } finally {
+      setSubmittingTicket(false)
+    }
   }
 
   async function sendReply() {
@@ -456,8 +524,9 @@ export default function SupportPage() {
       setReplyText('')
       clearReplyImage()
       const fresh = await fetch('/api/support/tickets').then(r => r.json())
-      setTickets(Array.isArray(fresh) ? fresh : [])
-      setSelected((Array.isArray(fresh) ? fresh : []).find((t: Ticket) => t.id === selected.id) || null)
+      const sorted = Array.isArray(fresh) ? [...fresh].sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()) : []
+      setTickets(sorted)
+      setSelected(sorted.find((t: Ticket) => t.id === selected.id) || null)
     } catch (err) {
       alert(err instanceof Error ? err.message : 'Failed to send reply')
     }
@@ -1022,11 +1091,29 @@ export default function SupportPage() {
                   </div>
                 </div>
                 {(userRole === 'STUDENT' || userRole === 'ADMIN') ? (
-                  <button onClick={() => setShowCreate(true)} className="btn btn-primary" style={{ borderRadius: '50px', padding: '10px 20px' }}>+ New Ticket</button>
+                  hasReachedActiveLimit ? (
+                    <button 
+                      disabled 
+                      title="You already have 3 active tickets. Please wait until your existing tickets are resolved or closed."
+                      className="btn" 
+                      style={{ borderRadius: '50px', padding: '10px 18px', background: 'var(--surface)', color: 'var(--text-muted)', border: '1px solid var(--border)', cursor: 'not-allowed', opacity: 0.8, fontSize: '12px', fontWeight: '700' }}
+                    >
+                      Limit Reached (3/3 Active)
+                    </button>
+                  ) : (
+                    <button onClick={() => { setTicketError(null); setShowCreate(true) }} className="btn btn-primary" style={{ borderRadius: '50px', padding: '10px 20px' }}>+ New Ticket</button>
+                  )
                 ) : (
                   <div style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: '600' }}>Review tickets below</div>
                 )}
               </div>
+
+              {hasReachedActiveLimit && (
+                <div style={{ marginTop: '10px', padding: '10px 14px', borderRadius: '12px', background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.25)', color: '#ef4444', fontSize: '12px', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                  <span>You have 3 active tickets. You cannot create a new ticket until a manager resolves or closes an existing ticket.</span>
+                </div>
+              )}
 
               {/* History Section inside the box */}
               <div style={{ marginTop: '20px', borderTop: '1px solid #d9dcff', paddingTop: '20px' }}>
@@ -1129,6 +1216,9 @@ export default function SupportPage() {
             classes={classes} 
             userRole={userRole} 
             submitTicket={submitTicket} 
+            hasReachedActiveLimit={hasReachedActiveLimit}
+            ticketError={ticketError}
+            submittingTicket={submittingTicket}
           />
         )}
         {showFaqForm && (
@@ -1517,7 +1607,17 @@ export default function SupportPage() {
           <BackButton onClick={() => { if (isMobile && selected) { setSelected(null) } else { setView('home'); setSelected(null) } }} />
           <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
             <span style={{ fontSize: '13px', color: 'var(--text-muted)', fontWeight: '600' }}>{tickets.length} ticket{tickets.length !== 1 ? 's' : ''}</span>
-            {(userRole === 'STUDENT' || userRole === 'ADMIN') && <button onClick={() => setShowCreate(true)} className="btn btn-primary btn-sm">+ New Ticket</button>}
+            {(userRole === 'STUDENT' || userRole === 'ADMIN') && (
+              <button 
+                onClick={() => { if (!hasReachedActiveLimit) { setTicketError(null); setShowCreate(true) } }} 
+                disabled={hasReachedActiveLimit}
+                className="btn btn-primary btn-sm"
+                style={hasReachedActiveLimit ? { opacity: 0.6, cursor: 'not-allowed' } : {}}
+                title={hasReachedActiveLimit ? 'Active ticket limit reached (3/3). Wait for resolution or closure.' : undefined}
+              >
+                {hasReachedActiveLimit ? 'Limit Reached (3/3)' : '+ New Ticket'}
+              </button>
+            )}
           </div>
         </div>
 
@@ -1872,7 +1972,19 @@ export default function SupportPage() {
           )}
         </div>
 
-        {showCreate && <CreateTicketModal onClose={() => setShowCreate(false)} form={form} setForm={setForm} classes={classes} userRole={userRole} submitTicket={submitTicket} />}
+        {showCreate && (
+          <CreateTicketModal 
+            onClose={() => setShowCreate(false)} 
+            form={form} 
+            setForm={setForm} 
+            classes={classes} 
+            userRole={userRole} 
+            submitTicket={submitTicket} 
+            hasReachedActiveLimit={hasReachedActiveLimit}
+            ticketError={ticketError}
+            submittingTicket={submittingTicket}
+          />
+        )}
         {/* StartChatModal — REMOVED (live chat disabled) */}
         {selectedUserDetailsId && (
           <ManagerUserModal 

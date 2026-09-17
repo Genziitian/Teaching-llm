@@ -78,10 +78,7 @@ const PAGE_TITLES: Record<string, { title: string; subtitle: string }> = {
   '/settings':   { title: 'Settings',          subtitle: 'Manage passwords, appearance, and notifications' },
   '/chat-transcripts': { title: 'Chat Transcripts', subtitle: 'View community chat transcripts' },
   '/activity-logs': { title: 'Activity Log',     subtitle: 'Monitor all platform activity and user actions' },
-  '/reports':    { title: 'Analytics & Performance', subtitle: 'Comprehensive platform-wide metrics and student audits' },
   '/data-analysis': { title: 'Data Analysis',      subtitle: 'Production-level insights and student behavior metrics' },
-  '/exams':      { title: 'Exams',             subtitle: 'Manage and participate in assessments' },
-  '/study/content-bank': { title: 'Content Bank', subtitle: 'Global repository of exam questions and resources' },
   '/feedback':   { title: 'Feedback',           subtitle: 'Average ratings and student reviews.' },
   '/free-resources/courses': { title: 'Free Courses', subtitle: 'Browse and self-enroll in free courses' },
   '/free-resources/materials': { title: 'Free Materials', subtitle: 'Download study materials available for free' },
@@ -169,7 +166,6 @@ export default function Header({ userName, userRole }: HeaderProps) {
       events: { title: 'Events & Live Sessions', subtitle: 'Create and manage online classes, exams and holidays' },
       materials: { title: 'Study Materials', subtitle: 'Manage downloadable notes and PDFs for subjects' },
       announcements: { title: 'Announcements Fan-Out', subtitle: 'Publish platform-wide announcements and update notifications' },
-      'content-bank': { title: 'Content Bank', subtitle: 'Global repository of exam questions and solutions' },
       notifications: { title: 'Push Notifications', subtitle: 'Broadcast notifications and marketing campaigns to students' },
       'home-slides': { title: 'Home Carousel Banners', subtitle: 'Manage promotional slides shown on student dashboard' },
     }
@@ -299,8 +295,6 @@ export default function Header({ userName, userRole }: HeaderProps) {
       router.push('/community')
     } else if (titleLower.includes('support ticket') || titleLower.includes('chat') || titleLower.includes('agent joined')) {
       router.push('/support')
-    } else if (titleLower.includes('exam')) {
-      router.push('/exams')
     } else if (titleLower.includes('lecture')) {
       router.push('/courses')
     } else if (titleLower.includes('course purchased') || titleLower.includes('new course purchase')) {

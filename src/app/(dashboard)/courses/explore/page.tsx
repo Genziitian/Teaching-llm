@@ -17,7 +17,7 @@ const CATEGORY_LABELS: Record<string, string> = {
   diploma: 'Diploma Courses',
   notes: 'Notes & PYQs',
 }
-const CATEGORY_TO_VIEW: Record<string, 'courses' | 'notes' | 'mentorship' | 'testSeries'> = {
+const CATEGORY_TO_VIEW: Record<string, 'courses' | 'notes' | 'mentorship'> = {
   qualifier: 'courses',
   foundation: 'courses',
   diploma: 'courses',
@@ -36,7 +36,6 @@ export default function ExploreCoursesPage() {
   const { data: bundleOfferings } = useSWR('/api/bundle-offerings', fetcher, { revalidateOnFocus: false })
   const { data: storeNotesData } = useSWR('/api/store/notes', fetcher, { revalidateOnFocus: false })
   const { data: mentorshipsData } = useSWR('/api/store/mentorships', fetcher, { revalidateOnFocus: false })
-  const { data: testSeriesData } = useSWR('/api/test-series', fetcher, { revalidateOnFocus: false })
   const { data: myMentorshipsData } = useSWR('/api/store/mentorships/my-bookings', fetcher, { revalidateOnFocus: true })
   const { data: staffData } = useSWR('/api/users/staff', fetcher, { revalidateOnFocus: false })
   const { data: courses } = useSWR('/api/courses', fetcher, { revalidateOnFocus: false })
@@ -109,14 +108,13 @@ export default function ExploreCoursesPage() {
   const [couponError, setCouponError] = useState('')
   const [couponLoading, setCouponLoading] = useState(false)
 
-  const [storeView, setStoreView] = useState<null | 'courses' | 'notes' | 'mentorship' | 'testSeries'>(null)
+  const [storeView, setStoreView] = useState<null | 'courses' | 'notes' | 'mentorship'>(null)
   const [activeCategory, setActiveCategory] = useState<string>('')
 
   // New store tabs and modals category select state variables
   const [selectedStoreTab, setSelectedStoreTab] = useState<string>('')
   const [selectedNotesTab, setSelectedNotesTab] = useState<string>('')
   const [selectedNotesSubjectTab, setSelectedNotesSubjectTab] = useState<string>('')
-  const [selectedTestSeriesTab, setSelectedTestSeriesTab] = useState<string>('')
 
   const [offeringCategory, setOfferingCategory] = useState<string>('')
   const [bundleCategory, setBundleCategory] = useState<string>('')
@@ -605,17 +603,6 @@ export default function ExploreCoursesPage() {
     return true
   })
 
-  // Dynamic Level Tabs for Test Series
-  const activeTestSeries = testSeriesData?.testSeries || []
-  const visibleTestSeriesCategories = ['Re-attempt', 'Foundation', 'Diploma', 'General'].filter(cat => {
-    return activeTestSeries.some((ts: any) => (ts.category || 'General') === cat)
-  })
-  const currentTestSeriesTab = visibleTestSeriesCategories.includes(selectedTestSeriesTab)
-    ? selectedTestSeriesTab
-    : (visibleTestSeriesCategories[0] || 'General')
-
-  const filteredTestSeries = activeTestSeries.filter((ts: any) => (ts.category || 'General') === currentTestSeriesTab)
-
   const getMobileHeaderConfig = () => {
     switch (storeView) {
       case 'courses':
@@ -634,12 +621,6 @@ export default function ExploreCoursesPage() {
         return {
           title: '1:1 Mentorship',
           subtitle: 'Book a live call with expert mentors',
-          backAction: () => setStoreView(null)
-        }
-      case 'testSeries':
-        return {
-          title: 'Test Series',
-          subtitle: 'Evaluate your knowledge with mock exams',
           backAction: () => setStoreView(null)
         }
       default:
@@ -907,7 +888,6 @@ export default function ExploreCoursesPage() {
             { key: 'courses' as const, title: 'Courses', subtitle: `${(offerings || []).length + (bundleOfferings || []).length} available`, icon: <BookOpen size={28} color="#fff" />, gradient: 'linear-gradient(135deg, #4f46e5, #0ea5e9)', shadow: 'rgba(79, 70, 229, 0.25)' },
             { key: 'notes' as const, title: 'Premium Notes', subtitle: `${storeNotesData?.notes?.length || 0} notes`, icon: <FileText size={28} color="#fff" />, gradient: 'linear-gradient(135deg, #0d9488, #10b981)', shadow: 'rgba(13, 148, 136, 0.25)' },
             { key: 'mentorship' as const, title: 'Book a Call with Mentor', subtitle: `${mentorshipsData?.mentorships?.length || 0} mentors`, icon: <Users size={28} color="#fff" />, gradient: 'linear-gradient(135deg, #f97316, #f59e0b)', shadow: 'rgba(249, 115, 22, 0.25)' },
-            { key: 'testSeries' as const, title: 'Test Series', subtitle: `${testSeriesData?.testSeries?.length || 0} available`, icon: <ClipboardList size={28} color="#fff" />, gradient: 'linear-gradient(135deg, #db2777, #9333ea)', shadow: 'rgba(219, 39, 119, 0.25)' },
           ].map(card => (
             <div key={card.key} className="store-cat-card" onClick={() => setStoreView(card.key)} style={{ background: 'var(--surface)', borderRadius: '24px', padding: 'clamp(20px, 5vw, 32px)', cursor: 'pointer', boxShadow: '0 10px 30px rgba(15,23,42,0.06)', border: '1.5px solid var(--border)', transition: 'all 0.3s ease', position: 'relative', overflow: 'hidden', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}
               onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-6px)'; e.currentTarget.style.borderColor = 'var(--accent)'; e.currentTarget.style.boxShadow = `0 20px 40px ${card.shadow}` }}
@@ -931,7 +911,6 @@ export default function ExploreCoursesPage() {
           setSelectedStoreTab('')
           setSelectedNotesTab('')
           setSelectedNotesSubjectTab('')
-          setSelectedTestSeriesTab('')
         }} style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: 'transparent', border: 'none', color: 'var(--text-secondary)', fontSize: '14px', fontWeight: '700', cursor: 'pointer', marginBottom: '20px', padding: '8px 0' }}>
           <ArrowLeft size={20} />
           Back to Store
@@ -1590,177 +1569,6 @@ export default function ExploreCoursesPage() {
                Completed sessions are displayed above in grey.
              </div>
           )}
-        </div>
-      )}
-
-      {/* Category options selection screen for Test Series */}
-      {storeView === 'testSeries' && !selectedTestSeriesTab && visibleTestSeriesCategories.length > 0 && (
-        <div style={{ padding: '20px 0' }}>
-          <h2 style={{ fontSize: '24px', fontWeight: '950', textAlign: 'center', marginBottom: '8px' }}>Select Level</h2>
-          <p style={{ fontSize: '15px', color: 'var(--text-secondary)', textAlign: 'center', marginBottom: '32px' }}>Choose a level to explore available test series</p>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '20px' }}>
-            {visibleTestSeriesCategories.map(cat => {
-              const tsCount = activeTestSeries.filter((ts: any) => (ts.category || 'General') === cat).length;
-              return (
-                <div
-                  key={cat}
-                  onClick={() => setSelectedTestSeriesTab(cat)}
-                  style={{
-                    background: 'var(--surface)',
-                    borderRadius: '24px',
-                    padding: '32px 24px',
-                    textAlign: 'center',
-                    cursor: 'pointer',
-                    boxShadow: '0 10px 30px rgba(15,23,42,0.06)',
-                    border: '1.5px solid var(--border)',
-                    transition: 'all 0.3s ease',
-                  }}
-                  onMouseEnter={e => {
-                    e.currentTarget.style.transform = 'translateY(-4px)';
-                    e.currentTarget.style.borderColor = '#eab308';
-                    e.currentTarget.style.boxShadow = '0 20px 40px rgba(234, 179, 8, 0.1)';
-                  }}
-                  onMouseLeave={e => {
-                    e.currentTarget.style.transform = 'translateY(0)';
-                    e.currentTarget.style.borderColor = 'var(--border)';
-                    e.currentTarget.style.boxShadow = '0 10px 30px rgba(15,23,42,0.06)';
-                  }}
-                >
-                  <div style={{ fontSize: '40px', marginBottom: '16px' }}>
-                    {cat === 'Re-attempt' ? '🔄' : cat === 'Foundation' ? '🌱' : cat === 'Diploma' ? '🎓' : '📝'}
-                  </div>
-                  <h3 style={{ fontSize: '20px', fontWeight: '900', color: 'var(--text-primary)', marginBottom: '8px' }}>{cat}</h3>
-                  <p style={{ fontSize: '13px', color: 'var(--text-secondary)', fontWeight: '600' }}>
-                    {tsCount > 0 ? `${tsCount} Series` : 'No series'}
-                  </p>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
-
-      {/* Selected category header with Change Category button for Test Series */}
-      {storeView === 'testSeries' && selectedTestSeriesTab && (
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px', flexWrap: 'wrap', gap: '12px' }}>
-          <h2 style={{ fontSize: '22px', fontWeight: '900', color: 'var(--text-primary)' }}>{selectedTestSeriesTab} Level Test Series</h2>
-          <button
-            onClick={() => setSelectedTestSeriesTab('')}
-            style={{
-              padding: '8px 16px',
-              borderRadius: '12px',
-              border: '1.5px solid var(--border)',
-              background: 'var(--surface)',
-              color: 'var(--text-secondary)',
-              fontSize: '13.5px',
-              fontWeight: '700',
-              cursor: 'pointer',
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '6px',
-              transition: 'all 0.2s'
-            }}
-            onMouseEnter={e => e.currentTarget.style.background = 'var(--surface-hover)'}
-            onMouseLeave={e => e.currentTarget.style.background = 'var(--surface)'}
-          >
-            🔄 Change Category
-          </button>
-        </div>
-      )}
-
-      {/* Test Series empty state */}
-      {storeView === 'testSeries' && activeTestSeries.length === 0 && (
-        <div className="empty-state" style={{ padding: '60px 20px' }}>
-          <p style={{ fontSize: '16px', fontWeight: '700', marginBottom: '4px' }}>No test series available yet</p>
-          <p style={{ fontSize: '13px' }}>Check back soon for new test series!</p>
-        </div>
-      )}
-
-      {/* TEST SERIES STORE SECTION */}
-      {storeView === 'testSeries' && selectedTestSeriesTab && filteredTestSeries.length > 0 && (
-        <div style={{ marginBottom: '18px' }}>
-          <h2 style={{ fontSize: '20px', fontWeight: '900', color: 'var(--text-primary)', margin: '6px 0 12px' }}>Test Series</h2>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(320px, 100%), 1fr))', gap: '16px' }}>
-            {filteredTestSeries.map((ts: any) => {
-              const hasAccess = ts.myAccess != null
-              const isExpiredAccess = hasAccess && new Date(ts.myAccess.expiresAt) < new Date()
-              const canAccess = hasAccess && !isExpiredAccess
-              return (
-                <div key={ts.id} style={{ background: 'var(--surface)', borderRadius: '16px', padding: '20px', boxShadow: '0 8px 20px rgba(15,23,42,0.06)', border: canAccess ? '2px solid #10b981' : '1px solid var(--border)' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '10px' }}>
-                    <div>
-                      <div style={{ fontSize: '17px', fontWeight: '900', marginBottom: '4px' }}>{ts.title}</div>
-                      <div style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>{ts.description || `${ts._count?.exams || 0} exams`}</div>
-                    </div>
-                    {canAccess && <span style={{ padding: '4px 10px', borderRadius: '50px', background: 'var(--success-light)', color: 'var(--success)', fontSize: '10px', fontWeight: 800 }}>OWNED</span>}
-                    {isExpiredAccess && <span style={{ padding: '4px 10px', borderRadius: '50px', background: 'var(--danger-light)', color: 'var(--danger)', fontSize: '10px', fontWeight: 800 }}>EXPIRED</span>}
-                  </div>
-                  <div style={{ display: 'flex', gap: '16px', marginBottom: '14px' }}>
-                    <div><span style={{ fontSize: '10px', color: 'var(--text-muted)', fontWeight: 700 }}>EXAMS</span><div style={{ fontSize: '15px', fontWeight: 800 }}>{ts._count?.exams || 0}</div></div>
-                    <div><span style={{ fontSize: '10px', color: 'var(--text-muted)', fontWeight: 700 }}>VALIDITY</span><div style={{ fontSize: '15px', fontWeight: 800 }}>{ts.validityDays} days</div></div>
-                  </div>
-                  {canAccess ? (
-                    <button onClick={() => { window.location.href = '/exams' }} style={{ width: '100%', padding: '12px', borderRadius: '12px', background: 'var(--success)', color: '#fff', fontWeight: 800, border: 'none', cursor: 'pointer', fontSize: '14px' }}>Go to Exams →</button>
-                  ) : (
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                      <div style={{ flex: 1 }}>
-                        {ts.originalPrice && ts.originalPrice > ts.price && <div style={{ fontSize: '12px', color: 'var(--text-muted)', textDecoration: 'line-through' }}>₹{ts.originalPrice}</div>}
-                        <div style={{ fontSize: '22px', fontWeight: 900, color: 'var(--text-primary)' }}>{ts.price > 0 ? `₹${ts.price}` : 'FREE'}</div>
-                      </div>
-                      <button
-                        disabled={purchasing === `ts-${ts.id}`}
-                        onClick={async () => {
-                          setPurchasing(`ts-${ts.id}`)
-                          try {
-                            const res = await fetch(`/api/test-series/${ts.id}/create-order`, { method: 'POST' })
-                            const data = await res.json()
-                            if (!res.ok) { alert(data.error || 'Failed'); setPurchasing(null); return }
-                            if (data.isFree) {
-                              setSuccessOrderId('TS-FREE');
-                              setPurchasedCourse({ courseName: ts.title, courseTier: 'Test Series Package', type: 'test-series' });
-                              setPurchasing(null);
-                              return;
-                            }
-                            const options = {
-                              key: data.key, amount: data.amount, currency: data.currency,
-                              name: 'GenZ IItian', description: `Purchase: ${data.testSeriesName}`,
-                              order_id: data.razorpayOrderId,
-                              prefill: { name: data.userName || '', email: data.userEmail || '' },
-                              theme: { color: '#ec4899' },
-                              handler: async (response: any) => {
-                                setIsProcessing(true)
-                                setVerifyingPayment(true)
-                                try {
-                                  const vRes = await fetch(`/api/test-series/${ts.id}/verify-payment`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ razorpay_payment_id: response.razorpay_payment_id, razorpay_order_id: response.razorpay_order_id, razorpay_signature: response.razorpay_signature, accessId: data.accessId }) })
-                                  if (vRes.ok) {
-                                    setSuccessOrderId('TS-SUCCESS');
-                                    setPurchasedCourse({ courseName: data.testSeriesName, courseTier: 'Test Series Package', type: 'test-series' });
-                                  }
-                                  else alert('Verification failed')
-                                } catch { alert('Payment verification failed') }
-                                finally { 
-                                  setPurchasing(null)
-                                  setIsProcessing(false)
-                                  setVerifyingPayment(false)
-                                }
-                              },
-                              modal: { ondismiss: () => setPurchasing(null) }
-                            }
-                            const rzp = new (window as any).Razorpay(options)
-                            rzp.open()
-                            setPurchasing(null)
-                          } catch { alert('Error'); setPurchasing(null) }
-                        }}
-                        style={{ padding: '12px 24px', borderRadius: '12px', background: 'linear-gradient(135deg, #ec4899, #be185d)', color: '#fff', fontWeight: 800, border: 'none', cursor: 'pointer', fontSize: '14px' }}
-                      >
-                        {purchasing === `ts-${ts.id}` ? 'Processing...' : (ts.price > 0 ? 'Buy Now' : 'Get Free Access')}
-                      </button>
-                    </div>
-                  )}
-                </div>
-              )
-            })}
-          </div>
         </div>
       )}
 
@@ -3554,7 +3362,7 @@ export default function ExploreCoursesPage() {
           background: 'rgba(15, 23, 42, 0.8)', backdropFilter: 'blur(8px)',
           display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1001,
           padding: '20px'
-        }} onClick={() => { setSuccessOrderId(null); router.push(purchasedCourse?.type === 'test-series' ? '/exams' : '/courses') }}>
+          }} onClick={() => { setSuccessOrderId(null); router.push('/courses') }}>
           <div style={{
             background: 'var(--surface)', borderRadius: '32px', width: '100%', maxWidth: '480px',
             boxShadow: '0 0 100px var(--neu-glow), 0 25px 50px -12px rgba(0, 0, 0, 0.5)',
@@ -3563,7 +3371,7 @@ export default function ExploreCoursesPage() {
             position: 'relative'
           }} onClick={e => e.stopPropagation()}>
             <button 
-              onClick={() => { setSuccessOrderId(null); router.push(purchasedCourse?.type === 'test-series' ? '/exams' : '/courses') }}
+              onClick={() => { setSuccessOrderId(null); router.push('/courses') }}
               style={{ position: 'absolute', top: '24px', right: '24px', background: 'var(--surface)', border: 'none', width: '36px', height: '36px', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'var(--text-secondary)', transition: 'all 0.2s', zIndex: 10 }}
             >
               <X size={20} />
@@ -3587,10 +3395,10 @@ export default function ExploreCoursesPage() {
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               <button 
-                onClick={() => { setSuccessOrderId(null); router.push(purchasedCourse?.type === 'mentorship' ? '/courses?view=mentorship' : (purchasedCourse?.type === 'test-series' ? '/exams' : '/courses')) }}
+                onClick={() => { setSuccessOrderId(null); router.push(purchasedCourse?.type === 'mentorship' ? '/courses?view=mentorship' : '/courses') }}
                 style={{ width: '100%', padding: '16px', borderRadius: '16px', background: 'var(--text-primary)', color: '#fff', fontWeight: '800', border: 'none', cursor: 'pointer', transition: 'all 0.2s', fontSize: '16px' }}
               >
-                {purchasedCourse?.type === 'mentorship' ? 'View My Bookings' : (purchasedCourse?.type === 'test-series' ? 'Go to Exams' : 'Start Learning Now')}
+                {purchasedCourse?.type === 'mentorship' ? 'View My Bookings' : 'Start Learning Now'}
               </button>
               <button 
                 onClick={() => { setSuccessOrderId(null); router.push('/dashboard?view=free') }}

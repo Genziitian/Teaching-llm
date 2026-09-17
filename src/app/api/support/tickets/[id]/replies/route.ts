@@ -43,9 +43,22 @@ export async function POST(
     // Lock/update the parent in the same transaction as the reply so a closed
     // ticket cannot be reopened by a simultaneous send.
     const reply = await prisma.$transaction(async tx => {
+      const ticket = await tx.supportTicket.findUnique({
+        where: { id: params.id },
+        select: { id: true, status: true },
+      })
+      if (!ticket || ticket.status === 'CLOSED') return null
+
+      const nextStatus = session.role === 'MANAGER'
+        ? 'IN_PROGRESS'
+        : (ticket.status === 'RESOLVED' ? 'OPEN' : undefined)
+
       const updated = await tx.supportTicket.updateMany({
         where: { id: params.id, status: { not: 'CLOSED' } },
-        data: { updatedAt: new Date(), ...(session.role === 'MANAGER' ? { status: 'IN_PROGRESS' } : {}) },
+        data: {
+          updatedAt: new Date(),
+          ...(nextStatus ? { status: nextStatus } : {}),
+        },
       })
       if (!updated.count) return null
       return tx.ticketReply.create({
@@ -116,6 +129,11 @@ export async function PUT(
       include: { sender: { select: { id: true, name: true, role: true, avatar: true, gender: true } } },
     })
 
+    await prisma.supportTicket.update({
+      where: { id: params.id },
+      data: { updatedAt: new Date() },
+    })
+
     logActivity({
       userId: session.userId,
       userName: session.name,
@@ -163,6 +181,11 @@ export async function DELETE(
 
     await prisma.ticketReply.delete({
       where: { id: replyId }
+    })
+
+    await prisma.supportTicket.update({
+      where: { id: params.id },
+      data: { updatedAt: new Date() },
     })
 
     logActivity({

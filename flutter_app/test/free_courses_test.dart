@@ -181,4 +181,27 @@ void main() {
     expect(find.text('Enroll for Free'), findsOneWidget);
     expect(find.text('Open Course'), findsNothing);
   });
+
+  testWidgets(
+      'Back button on FreeResourcesPage navigates to /dashboard when stack is empty',
+      (tester) async {
+    final container = ProviderContainer(overrides: [
+      apiClientProvider.overrideWithValue(_FreeCoursesApi()),
+      authStateProvider.overrideWith(_SignedIn.new),
+    ]);
+    addTearDown(container.dispose);
+    await container.read(authStateProvider.future);
+    final router = container.read(routerProvider);
+    addTearDown(router.dispose);
+    router.go('/free-resources');
+    await tester.pumpWidget(UncontrolledProviderScope(
+      container: container,
+      child: MaterialApp.router(routerConfig: router),
+    ));
+    await tester.pumpAndSettle();
+    expect(find.byType(FreeResourcesPage), findsOneWidget);
+    await tester.tap(find.byIcon(Icons.chevron_left));
+    await tester.pumpAndSettle();
+    expect(router.routeInformationProvider.value.uri.path, '/dashboard');
+  });
 }

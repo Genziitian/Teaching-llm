@@ -210,7 +210,7 @@ export async function processPendingLectureAlerts() {
           const pushPayload = {
             title,
             body,
-            url: `/study/content-bank?course=${courseId}`,
+            url: `/courses/${courseId}`,
             tag: `new_lecture_${courseId}`,
             importance: 'high' as const,
             sound: 'default' as const,
@@ -411,7 +411,7 @@ export async function sendCourseEnrollmentNotification(
     const studentPushPayload = {
       title: studentTitle,
       body: studentBody,
-      url: `/study/content-bank?course=${courseId}`,
+      url: `/courses/${courseId}`,
       tag: `purchase_${courseId}`,
       importance: 'high' as const,
       sound: 'default' as const,

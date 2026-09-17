@@ -53,6 +53,15 @@ class FreeResourcesPage extends ConsumerWidget {
       title: 'Free Resources',
       subtitle: 'Access free courses and study materials',
       showBack: true,
+      onBack: () {
+        if (Navigator.of(context).canPop()) {
+          Navigator.of(context).pop();
+        } else if (context.canPop()) {
+          context.pop();
+        } else {
+          context.go('/dashboard');
+        }
+      },
       right: anyLoading
           ? SizedBox(
               width: 20,

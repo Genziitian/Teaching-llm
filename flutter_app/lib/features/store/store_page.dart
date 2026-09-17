@@ -52,13 +52,6 @@ class StorePage extends ConsumerWidget {
         icon: Icons.headset_mic_outlined,
         gradient: [Color(0xFFFB923C), Color(0xFFF97316)],
       ),
-      const _Product(
-        id: 'test',
-        title: 'Test Series',
-        count: '1 available',
-        icon: Icons.checklist_outlined,
-        gradient: [Color(0xFFE879F9), Color(0xFFD946EF)],
-      ),
     ];
 
     return AppPageScaffold(

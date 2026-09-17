@@ -43,3 +43,24 @@ export async function requireTicketAccess(id: string) {
   if (!ticket) return { error: NextResponse.json({ error: 'Ticket not found' }, { status: 404 }) }
   return { session: auth.session!, ticket }
 }
+
+export const TICKET_AUTO_CLOSE_DAYS = 10
+
+export async function autoCloseInactiveTickets() {
+  try {
+    const cutoff = new Date(Date.now() - TICKET_AUTO_CLOSE_DAYS * 86400000)
+    return await prisma.supportTicket.updateMany({
+      where: {
+        status: { not: 'CLOSED' },
+        updatedAt: { lt: cutoff },
+      },
+      data: {
+        status: 'CLOSED',
+      },
+    })
+  } catch (error) {
+    console.error('Failed to auto-close inactive tickets:', error)
+    return { count: 0 }
+  }
+}
+

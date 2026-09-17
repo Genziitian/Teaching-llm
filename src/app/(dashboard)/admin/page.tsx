@@ -665,8 +665,8 @@ export default function AdminPage() {
                     style={{ boxShadow: '3px 3px 6px var(--neu-dark), -3px -3px 6px var(--neu-light)' }}
                   />
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div 
-                      onClick={() => setSelectedUserId(user.id)}
+                    <Link 
+                      href={`/admin/users/${user.id}`}
                       style={{ fontSize: '13.5px', fontWeight: '600', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', textDecoration: 'underline' }}
                     >
                       {displayName}
@@ -699,7 +699,7 @@ export default function AdminPage() {
                           ⚠️ DELETION REQUESTED ({new Date(user.deletionRequestedAt).toLocaleDateString()})
                         </span>
                       )}
-                    </div>
+                    </Link>
                     <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '2px', display: 'flex', alignItems: 'center', gap: '8px', overflow: 'hidden' }}>
                       <span style={{ textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>{user.email}</span>
                       {user.securityNumber && (
@@ -824,13 +824,13 @@ export default function AdminPage() {
                           Dismiss Request
                         </button>
                       )}
-                      <button onClick={() => setSelectedUserId(user.id)} className="btn btn-ghost btn-sm">
+                      <Link href={`/admin/users/${user.id}`} className="btn btn-ghost btn-sm" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
                         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                           <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/>
                           <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
                         </svg>
                         Edit
-                      </button>
+                      </Link>
                       {!user.isSuperManager && user.role === 'STUDENT' && userRole === 'MANAGER' && (
                         <button
                           onClick={() => handleToggleTerminate(user)}

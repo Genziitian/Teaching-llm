@@ -40,6 +40,7 @@ class _TicketDetailPageState extends ConsumerState<TicketDetailPage>
         WidgetsBinding.instance.lifecycleState == AppLifecycleState.resumed &&
         !ref.read(supportTicketProvider(widget.ticketId)).isLoading) {
       ref.invalidate(supportTicketProvider(widget.ticketId));
+      ref.invalidate(supportTicketsProvider);
     }
   }
 

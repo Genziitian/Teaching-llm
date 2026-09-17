@@ -148,8 +148,6 @@ class _NotificationTile extends StatelessWidget {
         return Icons.live_tv_outlined;
       case 'ANNOUNCEMENT':
         return Icons.campaign_outlined;
-      case 'EXAM':
-        return Icons.quiz_outlined;
       case 'PAYMENT':
         return Icons.payments_outlined;
       default:

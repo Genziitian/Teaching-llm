@@ -31,6 +31,15 @@ class _NewTicketSheetState extends ConsumerState<NewTicketSheet> {
   }
 
   Future<void> _submit() async {
+    final activeCount = ref.read(supportTicketsProvider).asData?.value
+            .where((t) => t['status'] != 'RESOLVED' && t['status'] != 'CLOSED')
+            .length ??
+        0;
+    if (activeCount >= 3) {
+      setState(() => _error =
+          'You already have 3 active tickets. Please wait until your existing tickets are resolved or closed before submitting a new one.');
+      return;
+    }
     if (_description.text.trim().isEmpty ||
         (_type == 'SUBJECT' && _courseId == null)) {
       setState(() =>
@@ -61,6 +70,11 @@ class _NewTicketSheetState extends ConsumerState<NewTicketSheet> {
   @override
   Widget build(BuildContext context) {
     final tokens = context.tokens;
+    final activeCount = ref.watch(supportTicketsProvider).asData?.value
+            .where((t) => t['status'] != 'RESOLVED' && t['status'] != 'CLOSED')
+            .length ??
+        0;
+    final hasReachedActiveLimit = activeCount >= 3;
     return PopScope(
       canPop: !_submitting,
       child: Padding(
@@ -154,6 +168,32 @@ class _NewTicketSheetState extends ConsumerState<NewTicketSheet> {
                             border: OutlineInputBorder())),
                     const Text(
                         'After creating your ticket, you can read replies and add more details in the conversation.'),
+                    if (hasReachedActiveLimit)
+                      Container(
+                        margin: const EdgeInsets.only(top: 12),
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFEF4444).withOpacity(0.12),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: const Color(0xFFEF4444).withOpacity(0.3)),
+                        ),
+                        child: Row(
+                          children: [
+                            const Icon(Icons.info_outline, color: Color(0xFFEF4444), size: 20),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Text(
+                                'You already have 3 active tickets. You cannot create a new ticket until a manager resolves or closes an existing ticket.',
+                                style: TextStyle(
+                                  fontSize: 12.5,
+                                  fontWeight: FontWeight.w600,
+                                  color: tokens.textPrimary,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                     if (_error != null)
                       Padding(
                           padding: const EdgeInsets.only(top: 12),
@@ -161,7 +201,7 @@ class _NewTicketSheetState extends ConsumerState<NewTicketSheet> {
                               style: TextStyle(color: tokens.danger))),
                     const SizedBox(height: 20),
                     FilledButton.icon(
-                        onPressed: _submitting ? null : _submit,
+                        onPressed: (_submitting || hasReachedActiveLimit) ? null : _submit,
                         icon: _submitting
                             ? const SizedBox(
                                 width: 18,
@@ -172,7 +212,9 @@ class _NewTicketSheetState extends ConsumerState<NewTicketSheet> {
                         label: Text(
                             _submitting ? 'Creating ticket…' : 'Create Ticket'),
                         style: FilledButton.styleFrom(
-                            backgroundColor: tokens.primaryAccent,
+                            backgroundColor: hasReachedActiveLimit
+                                ? tokens.border
+                                : tokens.primaryAccent,
                             foregroundColor: Colors.white,
                             minimumSize: const Size.fromHeight(52))),
                   ])),

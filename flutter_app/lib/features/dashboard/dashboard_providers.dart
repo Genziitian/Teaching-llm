@@ -40,7 +40,6 @@ final dashboardProvider = FutureProvider<Map<String, dynamic>>((ref) async {
         return {
           'liveSessions': const <dynamic>[],
           'recentViewedLecture': null,
-          'upcomingExams': const <dynamic>[],
           'announcements': const <dynamic>[],
         };
       }
@@ -69,7 +68,6 @@ final dashboardProvider = FutureProvider<Map<String, dynamic>>((ref) async {
   return {
     'liveSessions': const <dynamic>[],
     'recentViewedLecture': null,
-    'upcomingExams': const <dynamic>[],
     'announcements': const <dynamic>[],
   };
 });

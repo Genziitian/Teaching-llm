@@ -640,32 +640,6 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Row 3: Upcoming Assessments */}
-        <div className={isMobile ? '' : 'card'} style={isMobile ? { marginBottom: '24px' } : { padding: '22px 20px', borderRadius: '22px', marginBottom: '20px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: isMobile ? '14px' : '18px' }}>
-            <div className="skeleton" style={{ height: '20px', width: '180px', borderRadius: '4px' }} />
-            <div className="skeleton" style={{ height: '14px', width: '60px', borderRadius: '4px' }} />
-          </div>
-          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)', gap: isMobile ? '12px' : '14px' }}>
-            {[1, 2, 3].map(i => (
-              <div key={i} style={{ padding: '18px', borderRadius: isMobile ? '20px' : '18px', background: isMobile ? 'var(--surface)' : 'var(--surface-2)', display: 'flex', flexDirection: 'column', gap: '12px', borderTop: '4px solid var(--skeleton-shine)' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <div className="skeleton" style={{ width: '36px', height: '36px', borderRadius: '10px' }} />
-                  <div className="skeleton" style={{ height: '14px', width: '60px', borderRadius: '6px' }} />
-                </div>
-                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                  <div className="skeleton" style={{ height: '16px', width: '90%', borderRadius: '4px' }} />
-                  <div className="skeleton" style={{ height: '12px', width: '60%', borderRadius: '4px' }} />
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '4px' }}>
-                  <div className="skeleton" style={{ height: '12px', width: '60px', borderRadius: '4px' }} />
-                  <div className="skeleton" style={{ height: '12px', width: '80px', borderRadius: '4px' }} />
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
         {/* Row 4: Announcements Skeleton */}
         <div className="card" style={{ padding: '20px 24px', borderRadius: '16px', background: 'var(--surface)', border: '1px solid var(--border)', boxShadow: 'none' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: '16px', borderBottom: '1px solid var(--border)', marginBottom: '4px' }}>
@@ -1712,8 +1686,8 @@ export default function DashboardPage() {
             </div>
           )}
 
-          {/* ── Row 3: Action Buttons (Mobile) or Upcoming Assessments (Desktop) ── */}
-          {isMobile ? (
+          {/* ── Row 3: Action Buttons (Mobile) ── */}
+          {isMobile && (
             <div style={{ marginBottom: '24px', padding: '0 4px' }}>
               <style dangerouslySetInnerHTML={{__html: `
                 .quick-actions-bar {
@@ -1833,89 +1807,6 @@ export default function DashboardPage() {
                   <span className="quick-action-name">Settings</span>
                 </Link>
               </div>
-            </div>
-          ) : (
-            <div className="card" style={{ padding: '22px 20px', borderRadius: '22px', marginBottom: '20px' }}>
-              <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: '18px', gap: '12px' }}>
-                <div style={{ minWidth: 0 }}>
-                  <h3 style={{ fontSize: '16px', fontWeight: 700, color: 'var(--text-primary)', margin: 0 }}>
-                    Upcoming Assessments
-                  </h3>
-                </div>
-                <Link href="/exams" style={{ fontSize: '12px', color: 'var(--accent)', fontWeight: 800, textDecoration: 'none', whiteSpace: 'nowrap', flexShrink: 0 }}>
-                  View All →
-                </Link>
-              </div>
-              {!dashboardData?.upcomingExams?.length ? (
-                <div style={{
-                  padding: '32px 16px', textAlign: 'center', color: 'var(--text-muted)', fontSize: '13px',
-                  background: 'transparent', borderRadius: '20px',
-                  border: 'none',
-                }}>
-                  No upcoming exams or tests
-                </div>
-              ) : (
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '14px' }}>
-                  {dashboardData.upcomingExams.map((exam: any) => {
-                    const accent = exam.course?.color || 'var(--accent)'
-                    return (
-                      <div
-                        key={exam.id}
-                        style={{
-                          padding: '18px',
-                          borderRadius: '18px',
-                          background: 'var(--surface-2)',
-                          boxShadow: '5px 5px 10px var(--neu-dark), -5px -5px 10px var(--neu-light)',
-                          display: 'flex',
-                          flexDirection: 'column',
-                          gap: '12px',
-                          transition: 'all 0.2s',
-                          borderTop: `4px solid ${accent}`,
-                          position: 'relative', overflow: 'hidden',
-                        }}
-                      >
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                          <div style={{
-                            width: '36px', height: '36px', borderRadius: '10px',
-                            background: accent + '15',
-                            display: 'flex', alignItems: 'center', justifyContent: 'center',
-                          }}>
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={accent} strokeWidth="2.5">
-                              <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/>
-                            </svg>
-                          </div>
-                          <span style={{ fontSize: '10px', fontWeight: '800', color: accent, background: accent + '10', padding: '2px 8px', borderRadius: '6px' }}>
-                            {exam.examType === 'FINAL_TEST' ? 'FINAL' : 'PRACTICE'}
-                          </span>
-                        </div>
-                        <div style={{ flex: 1 }}>
-                          <div style={{
-                            fontSize: '14px', fontWeight: '800', color: 'var(--text-primary)',
-                            lineHeight: '1.3', marginBottom: '4px',
-                            display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden',
-                          }}>
-                            {exam.title}
-                          </div>
-                          <div style={{ fontSize: '11px', color: 'var(--text-secondary)', fontWeight: '600' }}>
-                            {exam.course?.name}
-                          </div>
-                        </div>
-                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '4px' }}>
-                           <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#9999b0" strokeWidth="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                             <span style={{ fontSize: '10px', color: 'var(--text-muted)', fontWeight: '600' }}>
-                               {new Date(exam.startDate || exam.createdAt).toLocaleDateString('en-GB', { month: 'short', day: 'numeric' })}
-                             </span>
-                           </div>
-                          <Link href={`/exams`} style={{ fontSize: '11px', fontWeight: '700', color: 'var(--primary)', textDecoration: 'none' }}>
-                            View Details
-                          </Link>
-                        </div>
-                      </div>
-                    )
-                  })}
-                </div>
-              )}
             </div>
           )}
         </>

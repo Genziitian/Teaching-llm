@@ -36,7 +36,6 @@ export async function GET() {
       recentViewedLecture,
       announcements,
       examCountdown,
-      upcomingExams,
       openTicketsCount,
       activeChatSessionsCount,
       activeAgentsCount
@@ -97,16 +96,6 @@ export async function GET() {
         take: 3
       }),
       (prisma as any).examCountdown.findFirst(),
-      prisma.exam.findMany({
-        where: {
-          ...courseFilter,
-          isPublished: true,
-          expiresAt: { gt: now },
-        },
-        include: { course: { select: { name: true, color: true } } },
-        orderBy: { startDate: 'asc' },
-        take: 3
-      }),
       prisma.supportTicket.count({
         where: { status: 'OPEN' }
       }),
@@ -146,7 +135,7 @@ export async function GET() {
       liveSessions: filteredSessions,
       recentViewedLecture,
       announcements,
-      upcomingExams,
+      upcomingExams: [],
       examCountdown: examCountdownWithDays,
       supportSummary: {
         openTickets: openTicketsCount,

@@ -584,11 +584,11 @@ export default function ManageUpdatesPage() {
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                 <div className="form-group">
                   <label className="form-label">CTA Button Text (Optional)</label>
-                  <input type="text" className="form-input" value={ctaText} onChange={e => setCtaText(e.target.value)} placeholder="e.g. View Exam" />
+                  <input type="text" className="form-input" value={ctaText} onChange={e => setCtaText(e.target.value)} placeholder="e.g. View Course" />
                 </div>
                 <div className="form-group">
                   <label className="form-label">CTA Button Link</label>
-                  <input type="text" className="form-input" value={ctaLink} onChange={e => setCtaLink(e.target.value)} placeholder="e.g. /exams/123" />
+                  <input type="text" className="form-input" value={ctaLink} onChange={e => setCtaLink(e.target.value)} placeholder="e.g. /courses/123" />
                 </div>
               </div>
 

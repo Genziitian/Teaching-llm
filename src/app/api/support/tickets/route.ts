@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
-import { requireSupportSession, ticketInclude, ticketVisibilityWhere } from '@/lib/support-ticket-access'
+import { requireSupportSession, ticketInclude, ticketVisibilityWhere, autoCloseInactiveTickets } from '@/lib/support-ticket-access'
 import { logActivity, ACTION, MODULE } from '@/lib/activity-log'
 import { sendNewTicketNotificationToManagers } from '@/lib/system-notifications'
 
@@ -9,6 +9,8 @@ export async function GET(request: NextRequest) {
     const auth = await requireSupportSession()
     if (auth.error) return auth.error
     const session = auth.session!
+
+    await autoCloseInactiveTickets()
 
     const { searchParams } = new URL(request.url)
     const status = searchParams.get('status')
@@ -48,6 +50,21 @@ export async function POST(request: NextRequest) {
     }
     if (type === 'SUBJECT' && (typeof courseId !== 'string' || !session.accessibleCourseIds?.includes(courseId))) {
       return NextResponse.json({ error: 'Choose a course you have access to' }, { status: 403 })
+    }
+
+    await autoCloseInactiveTickets()
+
+    const activeTicketCount = await prisma.supportTicket.count({
+      where: {
+        studentId: session.userId,
+        status: { notIn: ['RESOLVED', 'CLOSED'] },
+      },
+    })
+    if (activeTicketCount >= 3) {
+      return NextResponse.json(
+        { error: 'You already have 3 active tickets. Please wait until your existing tickets are resolved or closed before submitting a new one.' },
+        { status: 400 }
+      )
     }
 
     const ticket = await prisma.supportTicket.create({
