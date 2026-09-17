@@ -492,7 +492,7 @@ class _CourseCard extends ConsumerWidget {
           border: Border.all(
             color: isPinned
                 ? tokens.primaryAccent.withOpacity(0.5)
-                : (isExpired ? const Color(0x40EF4444) : tokens.border),
+                : tokens.border,
             width: isPinned ? 1.5 : 1.0,
           ),
           boxShadow: AppShadows.sm,
@@ -550,41 +550,6 @@ class _CourseCard extends ConsumerWidget {
                                 ),
                               ),
                             ),
-                            if (isExpired) ...[
-                              const SizedBox(width: 6),
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 8, vertical: 4),
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFFEF4444),
-                                  borderRadius: BorderRadius.circular(6),
-                                  boxShadow: const [
-                                    BoxShadow(
-                                      color: Color(0x4DEF4444),
-                                      blurRadius: 6,
-                                      offset: Offset(0, 1.5),
-                                    ),
-                                  ],
-                                ),
-                                child: const Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Icon(Icons.lock_clock_rounded,
-                                        size: 11, color: Colors.white),
-                                    SizedBox(width: 3.5),
-                                    Text(
-                                      'EXPIRED',
-                                      style: TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 9.5,
-                                        fontWeight: FontWeight.w900,
-                                        letterSpacing: 0.6,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
                             if (isPinned) ...[
                               const SizedBox(width: 6),
                               Container(
@@ -675,43 +640,6 @@ class _CourseCard extends ConsumerWidget {
                         ],
                       ],
                     ),
-                    if (isExpired)
-                      Positioned.fill(
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: const Color(0x99000000),
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          alignment: Alignment.center,
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 14, vertical: 6),
-                            decoration: BoxDecoration(
-                              color: const Color(0x33EF4444),
-                              borderRadius: BorderRadius.circular(8),
-                              border: Border.all(
-                                  color: const Color(0x80EF4444), width: 1.5),
-                            ),
-                            child: const Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(Icons.lock_clock_rounded,
-                                    color: Colors.white, size: 16),
-                                SizedBox(width: 6),
-                                Text(
-                                  'EXPIRED',
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w900,
-                                    letterSpacing: 1.8,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
                   ],
                 ),
               ),
@@ -776,26 +704,8 @@ class _CourseCard extends ConsumerWidget {
                         ),
                       ],
                       const Spacer(),
-                      if (isExpired)
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 8, vertical: 3),
-                          decoration: BoxDecoration(
-                            color: const Color(0x1FEF4444),
-                            borderRadius: BorderRadius.circular(6),
-                            border: Border.all(
-                                color: const Color(0x40EF4444)),
-                          ),
-                          child: const Text(
-                            'Access expired',
-                            style: TextStyle(
-                              fontSize: 11,
-                              fontWeight: FontWeight.w700,
-                              color: Color(0xFFDC2626),
-                            ),
-                          ),
-                        )
-                      else if (course.accessDays != null &&
+                      if (!isExpired &&
+                          course.accessDays != null &&
                           course.accessDays! <= 7)
                         Container(
                           padding: const EdgeInsets.symmetric(
@@ -869,12 +779,11 @@ class _CourseCard extends ConsumerWidget {
                           height: 42,
                           decoration: BoxDecoration(
                             color: isExpired
-                                ? const Color(0x1AEF4444)
+                                ? tokens.surfaceSecondary
                                 : tokens.textPrimary,
                             borderRadius: BorderRadius.circular(12),
                             border: isExpired
-                                ? Border.all(
-                                    color: const Color(0x33EF4444))
+                                ? Border.all(color: tokens.border)
                                 : null,
                           ),
                           alignment: Alignment.center,
@@ -882,13 +791,13 @@ class _CourseCard extends ConsumerWidget {
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               Text(
-                                isExpired ? 'Access Expired' : 'Continue',
+                                isExpired ? 'Expired' : 'Continue',
                                 style: TextStyle(
                                   color: isExpired
-                                      ? const Color(0xFFDC2626)
+                                      ? tokens.textSecondary
                                       : tokens.bg,
                                   fontSize: 13,
-                                  fontWeight: FontWeight.w700,
+                                  fontWeight: FontWeight.w800,
                                 ),
                               ),
                               const SizedBox(width: 6),
@@ -897,7 +806,7 @@ class _CourseCard extends ConsumerWidget {
                                     ? Icons.lock_outline_rounded
                                     : Icons.arrow_forward,
                                 color: isExpired
-                                    ? const Color(0xFFDC2626)
+                                    ? tokens.textSecondary
                                     : tokens.bg,
                                 size: isExpired ? 14 : 12,
                               ),
