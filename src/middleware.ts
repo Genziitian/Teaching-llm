@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { jwtVerify } from 'jose'
-import { checkRateLimit } from '@/lib/ratelimit'
+import { checkRateLimit, isMaintenanceModeActive } from '@/lib/ratelimit'
 import { canBypassMaintenance } from '@/lib/maintenance-access'
 
 const PUBLIC_PATHS = ['/login', '/api/auth/login', '/terminated', '/api/maintenance-status', '/api/external-enroll', '/api/analytics/compute', '/api/app-version', '/download']
@@ -54,7 +54,13 @@ function getLoginRedirectResponse(request: NextRequest): NextResponse {
 
 async function getMaintenanceModeState(request: NextRequest): Promise<{ active: boolean }> {
   try {
-    const statusUrl = new URL('/api/maintenance-status', request.url)
+    // 1. Check Redis directly (super-fast, zero loopback HTTP calls)
+    const redisActive = await isMaintenanceModeActive()
+    if (redisActive) return { active: true }
+
+    // 2. Loopback to local port via HTTP to avoid ERR_SSL_WRONG_VERSION_NUMBER on Render
+    const port = process.env.PORT || '10000'
+    const statusUrl = `http://127.0.0.1:${port}/api/maintenance-status`
     const response = await fetch(statusUrl, {
       cache: 'no-store',
       headers: { Accept: 'application/json' },
@@ -65,7 +71,6 @@ async function getMaintenanceModeState(request: NextRequest): Promise<{ active: 
     const data = await response.json()
     return { active: data?.active === true }
   } catch (error) {
-    console.error('Failed to resolve maintenance mode in middleware:', error)
     return { active: false }
   }
 }
