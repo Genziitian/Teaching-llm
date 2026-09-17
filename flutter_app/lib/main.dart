@@ -24,11 +24,13 @@ void main() async {
     DeviceOrientation.portraitUp,
   ]);
 
-  // Light status bar (matches the cream/lavender theme on the web app).
+  // Enable edge-to-edge display mode for Android 15+ and backward compatibility.
+  await SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+
+  // Light status bar and nav bar icons (matches the cream/lavender theme on the web app).
+  // Colors are omitted so Flutter does not invoke deprecated Window color APIs.
   SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
-    statusBarColor: Colors.transparent,
     statusBarIconBrightness: Brightness.dark,
-    systemNavigationBarColor: Color(0xFFF3F4F6),
     systemNavigationBarIconBrightness: Brightness.dark,
   ));
 

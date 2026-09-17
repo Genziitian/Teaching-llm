@@ -141,6 +141,16 @@ class _CourseDetailPageState extends ConsumerState<CourseDetailPage> {
           error: (e, _) => _ErrorView(message: e.toString()),
           data: (raw) {
             final course = (raw['course'] as Map<String, dynamic>?) ?? raw;
+            final isExpired = (raw['isExpired'] == true) ||
+                ((raw['course'] as Map?)?['isExpired'] == true) ||
+                (course['isExpired'] == true) ||
+                (() {
+                  final expStr = (course['expiresAt'] as String?) ??
+                      (raw['expiresAt'] as String?);
+                  if (expStr == null) return false;
+                  final exp = DateTime.tryParse(expStr);
+                  return exp != null && exp.isBefore(DateTime.now());
+                })();
             final accent = _accentOf(course);
             final count = (course['_count'] as Map<String, dynamic>?) ?? {};
             final topics = topicsAsync.valueOrNull ?? const [];
@@ -197,6 +207,7 @@ class _CourseDetailPageState extends ConsumerState<CourseDetailPage> {
                   _CourseHero(
                     course: course,
                     accent: accent,
+                    isExpired: isExpired,
                   ),
 
                   // 2. Tabs: Curriculum, Downloaded Notes, Overview, Feedback
@@ -218,6 +229,7 @@ class _CourseDetailPageState extends ConsumerState<CourseDetailPage> {
                       topicsCount: topicsCount,
                       lecturesCount: lecturesCount,
                       hasFeedback: hasFeedback,
+                      isExpired: isExpired,
                     ),
                   ),
                 ],
@@ -236,12 +248,16 @@ class _CourseDetailPageState extends ConsumerState<CourseDetailPage> {
     required int topicsCount,
     required int lecturesCount,
     required bool hasFeedback,
+    required bool isExpired,
   }) {
     final courseId = (course['id'] as String?) ?? widget.courseId;
     final courseName = (course['name'] as String?) ?? '';
 
     if (_activeTabIndex == 0) {
       // Curriculum Tab
+      if (isExpired) {
+        return _ExpiredCurriculumView(courseName: courseName);
+      }
       if (topics.isEmpty) {
         return _EmptyCurriculum();
       }
@@ -274,6 +290,7 @@ class _CourseDetailPageState extends ConsumerState<CourseDetailPage> {
         course: course,
         topicsCount: topicsCount,
         lecturesCount: lecturesCount,
+        isExpired: isExpired,
       );
     } else {
       // Feedback Tab
@@ -398,10 +415,12 @@ class _CourseHero extends StatelessWidget {
   const _CourseHero({
     required this.course,
     required this.accent,
+    this.isExpired = false,
   });
 
   final Map<String, dynamic> course;
   final Color accent;
+  final bool isExpired;
 
   String _badgeText() {
     final enrollmentType = (course['enrollmentType'] as String?)?.toUpperCase();
@@ -441,13 +460,15 @@ class _CourseHero extends StatelessWidget {
             enrollmentType != 'FREE' &&
             enrollmentType != 'DEMO');
 
-    // Vibrant gradient background matching reference screenshot
-    final gradientColors = [
-      accent,
-      isRecorded
-          ? const Color(0xFF6B7280)
-          : Color.lerp(accent, const Color(0xFF047857), 0.3) ?? accent,
-    ];
+    // Vibrant gradient background or muted slate for expired courses
+    final gradientColors = isExpired
+        ? const [Color(0xFF374151), Color(0xFF1F2937)]
+        : [
+            accent,
+            isRecorded
+                ? const Color(0xFF6B7280)
+                : Color.lerp(accent, const Color(0xFF047857), 0.3) ?? accent,
+          ];
 
     return Container(
       margin: const EdgeInsets.fromLTRB(16, 12, 16, 8),
@@ -460,7 +481,9 @@ class _CourseHero extends StatelessWidget {
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: accent.withOpacity(0.24),
+            color: isExpired
+                ? Colors.black.withOpacity(0.20)
+                : accent.withOpacity(0.24),
             offset: const Offset(0, 6),
             blurRadius: 16,
           ),
@@ -515,6 +538,41 @@ class _CourseHero extends StatelessWidget {
                       ),
                     ),
                     const Spacer(),
+                    if (isExpired) ...[
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 10, vertical: 5),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFDC2626),
+                          borderRadius: BorderRadius.circular(50),
+                          boxShadow: [
+                            BoxShadow(
+                              color: const Color(0xFFDC2626).withOpacity(0.4),
+                              blurRadius: 8,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: const Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.lock_rounded,
+                                size: 10.5, color: Colors.white),
+                            SizedBox(width: 4),
+                            Text(
+                              'EXPIRED',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 9.5,
+                                fontWeight: FontWeight.w900,
+                                letterSpacing: 0.6,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                    ],
                     // Badge Pill
                     Container(
                       padding: const EdgeInsets.symmetric(
@@ -1407,15 +1465,18 @@ class _OverviewTabContent extends StatelessWidget {
     required this.course,
     required this.topicsCount,
     required this.lecturesCount,
+    this.isExpired = false,
   });
 
   final Map<String, dynamic> course;
   final int topicsCount;
   final int lecturesCount;
+  final bool isExpired;
 
   @override
   Widget build(BuildContext context) {
     final tokens = context.tokens;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final description = (course['description'] as String?)?.trim() ?? '';
     final subject = (course['subject'] as String?)?.trim() ?? '—';
     final mentor = (course['teacherName'] as String?)?.trim() ?? 'Mentor';
@@ -1423,6 +1484,71 @@ class _OverviewTabContent extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
+        if (isExpired) ...[
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: isDark
+                  ? const Color(0xFF450A0A).withOpacity(0.5)
+                  : const Color(0xFFFEF2F2),
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(
+                color: isDark
+                    ? const Color(0xFF7F1D1D)
+                    : const Color(0xFFFCA5A5),
+              ),
+            ),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: isDark
+                        ? const Color(0xFF7F1D1D).withOpacity(0.6)
+                        : const Color(0xFFFEE2E2),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.lock_outline_rounded,
+                    color: Color(0xFFDC2626),
+                    size: 20,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Course Access Expired',
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w800,
+                          color: isDark
+                              ? const Color(0xFFFCA5A5)
+                              : const Color(0xFF991B1B),
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        'Your enrollment period has ended. Lectures and curriculum materials can no longer be accessed.',
+                        style: TextStyle(
+                          fontSize: 11.5,
+                          color: isDark
+                              ? const Color(0xFFF87171)
+                              : const Color(0xFFB91C1C),
+                          height: 1.35,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 14),
+        ],
+
         // Card 1: ABOUT THIS COURSE
         Container(
           padding: const EdgeInsets.all(18),
@@ -1717,6 +1843,92 @@ class _EmptyCurriculum extends StatelessWidget {
             style: TextStyle(
               fontSize: 12.5,
               color: tokens.textSecondary,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ExpiredCurriculumView extends StatelessWidget {
+  const _ExpiredCurriculumView({required this.courseName});
+  final String courseName;
+
+  @override
+  Widget build(BuildContext context) {
+    final tokens = context.tokens;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 36),
+      decoration: BoxDecoration(
+        color: tokens.cardBg,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: isDark ? const Color(0xFF7F1D1D) : const Color(0xFFFECACA),
+        ),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 68,
+            height: 68,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: isDark
+                  ? const Color(0xFF450A0A)
+                  : const Color(0xFFFEE2E2),
+            ),
+            child: const Icon(
+              Icons.lock_clock_rounded,
+              color: Color(0xFFDC2626),
+              size: 34,
+            ),
+          ),
+          const SizedBox(height: 18),
+          Text(
+            'Access Expired',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w900,
+              color: tokens.textPrimary,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            courseName.isNotEmpty
+                ? 'Your access to $courseName has expired. You can no longer view the course lectures or curriculum materials.'
+                : 'Your access to this course has expired. You can no longer view the course lectures or curriculum materials.',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 13,
+              color: tokens.textSecondary,
+              height: 1.45,
+            ),
+          ),
+          const SizedBox(height: 24),
+          OutlinedButton.icon(
+            onPressed: () {
+              if (context.canPop()) {
+                context.pop();
+              } else {
+                context.go('/courses');
+              }
+            },
+            icon: const Icon(Icons.arrow_back_rounded, size: 16),
+            label: const Text(
+              'Back to Courses',
+              style: TextStyle(fontWeight: FontWeight.w700),
+            ),
+            style: OutlinedButton.styleFrom(
+              foregroundColor: tokens.textPrimary,
+              side: BorderSide(color: tokens.border),
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
             ),
           ),
         ],

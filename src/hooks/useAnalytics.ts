@@ -24,12 +24,23 @@ export function useAnalytics() {
     if (posthog) {
       posthog.identify(userId, properties)
     }
+    if (typeof window !== 'undefined' && (window as any).gtag) {
+      if (properties) {
+        (window as any).gtag('set', 'user_properties', properties)
+      }
+      (window as any).gtag('config', process.env.NEXT_PUBLIC_GA_ID, {
+        user_id: userId,
+      })
+    }
   }, [posthog])
 
   // Track any event
   const track = useCallback((event: string, properties?: Record<string, unknown>) => {
     if (posthog) {
       posthog.capture(event, properties)
+    }
+    if (typeof window !== 'undefined' && (window as any).gtag) {
+      (window as any).gtag('event', event, properties)
     }
   }, [posthog])
 

@@ -11,6 +11,7 @@ class Course {
     this.tag,
     this.packageName,
     this.expiresAt,
+    this.isExpiredField = false,
     this.topicsCount = 0,
     this.lecturesCount = 0,
     this.materialsCount = 0,
@@ -26,11 +27,13 @@ class Course {
   final String? tag; // PLUS | PRO | GENERAL | etc.
   final String? packageName;
   final DateTime? expiresAt;
+  final bool isExpiredField;
   final int topicsCount;
   final int lecturesCount;
   final int materialsCount;
 
   int? get accessDays {
+    if (isExpired) return 0;
     final exp = expiresAt;
     if (exp == null) return null;
     final diff = exp.difference(DateTime.now()).inDays;
@@ -38,7 +41,8 @@ class Course {
   }
 
   bool get isExpired =>
-      expiresAt != null && expiresAt!.isBefore(DateTime.now());
+      isExpiredField ||
+      (expiresAt != null && expiresAt!.isBefore(DateTime.now()));
 
   factory Course.fromJson(Map<String, dynamic> j) {
     final count = j['_count'] as Map<String, dynamic>?;
@@ -58,6 +62,7 @@ class Course {
       expiresAt: j['expiresAt'] != null
           ? DateTime.tryParse(j['expiresAt'] as String)
           : null,
+      isExpiredField: (j['isExpired'] as bool?) ?? false,
       topicsCount: (count?['topics'] as int?) ?? 0,
       lecturesCount: (count?['lectures'] as int?) ?? 0,
       materialsCount: (count?['materials'] as int?) ?? 0,

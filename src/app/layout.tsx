@@ -73,6 +73,8 @@ export const viewport: Viewport = {
 
 import SWRProvider from '@/components/SWRProvider'
 import ServiceWorkerRegister from '@/components/ServiceWorkerRegister'
+import GoogleAnalytics from '@/components/GoogleAnalytics'
+import MicrosoftClarity from '@/components/MicrosoftClarity'
 
 export default function RootLayout({
   children,
@@ -88,6 +90,8 @@ export default function RootLayout({
         )}
       </head>
       <body>
+        <GoogleAnalytics />
+        <MicrosoftClarity />
         <PostHogProvider>
           <SWRProvider>
             <ThemeProvider>

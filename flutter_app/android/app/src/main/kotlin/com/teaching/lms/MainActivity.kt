@@ -4,20 +4,20 @@ import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.database.Cursor
-import android.os.Build
 import android.os.Bundle
 import android.provider.ContactsContract
 import android.view.WindowManager
+import androidx.activity.enableEdgeToEdge
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import io.flutter.embedding.android.FlutterActivity
+import io.flutter.embedding.android.FlutterFragmentActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
 
 /**
  * Hosts MethodChannels for window security settings and native contact access.
  */
-class MainActivity : FlutterActivity() {
+class MainActivity : FlutterFragmentActivity() {
     private var communityFiles: CommunityFilePicker? = null
     private val SECURE_CHANNEL = "com.teaching.lms/secure_window"
     private val CONTACTS_CHANNEL = "com.teaching.lms/contacts"
@@ -25,13 +25,8 @@ class MainActivity : FlutterActivity() {
     private var pendingPermissionResult: MethodChannel.Result? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        enableEdgeToEdge()
         super.onCreate(savedInstanceState)
-        // Enable edge-to-edge: make status bar and nav bar transparent
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            window.setDecorFitsSystemWindows(false)
-        }
-        window.statusBarColor = android.graphics.Color.TRANSPARENT
-        window.navigationBarColor = android.graphics.Color.TRANSPARENT
     }
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {

@@ -44,6 +44,7 @@
     "@capgo/capacitor-social-login": "^8.3.22",
     "@hello-pangea/dnd": "^18.0.1",
     "@prisma/client": "5.22.0",
+    "@sentry/nextjs": "^10.75.0",
     "@supabase/supabase-js": "^2.103.0",
     "@types/bcryptjs": "^2.4.6",
     "@types/jsonwebtoken": "^9.0.10",

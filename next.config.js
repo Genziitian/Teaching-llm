@@ -116,4 +116,19 @@ const nextConfig = {
   },
 }
 
-module.exports = withPWA(nextConfig)
+const { withSentryConfig } = require('@sentry/nextjs')
+
+module.exports = withSentryConfig(
+  withPWA(nextConfig),
+  {
+    // Silent in dev and non-CI
+    silent: true,
+    org: 'teaching-lms',
+    project: 'teaching-llm',
+  },
+  {
+    widenClientFileUpload: true,
+    disableLogger: true,
+    hideSourceMaps: true,
+  }
+)
