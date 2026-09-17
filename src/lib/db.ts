@@ -1,4 +1,5 @@
 import { PrismaClient } from '@prisma/client'
+import { logger } from '@/lib/logger'
 
 const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined
@@ -24,13 +25,40 @@ function getDatabaseUrl() {
   }
 }
 
+const isDev = process.env.NODE_ENV === 'development'
+
 export const prisma =
   globalForPrisma.prisma ??
   new PrismaClient({
     datasources: databaseUrl
       ? { db: { url: databaseUrl } }
       : undefined,
-    log: process.env.NODE_ENV === 'development' ? ['error', 'warn'] : ['error'],
+    log: [
+      { emit: 'event', level: 'query' },
+      { emit: 'stdout', level: 'error' },
+      { emit: 'stdout', level: 'warn' },
+    ],
   })
 
+// Attach query performance listener once per process
+if (!globalForPrisma.prisma) {
+  // Flag any database query taking longer than 200ms
+  const SLOW_QUERY_THRESHOLD_MS = 200
+
+  // @ts-ignore Prisma query event typing
+  prisma.$on('query', (e: { query: string; params: string; duration: number; timestamp: Date }) => {
+    if (e.duration >= SLOW_QUERY_THRESHOLD_MS) {
+      logger.warn(
+        {
+          module: 'PrismaDB',
+          durationMs: e.duration,
+          query: e.query.slice(0, 300),
+        },
+        `Slow database query detected (${e.duration}ms)`
+      )
+    }
+  })
+}
+
 globalForPrisma.prisma = prisma
+
