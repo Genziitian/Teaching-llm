@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 
 import '../../core/auth/auth_providers.dart';
+import '../../core/models/course.dart';
 import '../../shared/widgets/section_head.dart';
 import '../../shared/widgets/sub_page_header.dart';
 import '../../theme/app_theme_tokens.dart';
 import '../../shared/widgets/app_refresh.dart';
+import '../courses/courses_page.dart' show coursesProvider;
 
 String _formatAmPm(String? value) {
   if (value == null || value.trim().isEmpty) return '';
@@ -47,6 +50,90 @@ class _CalendarPageState extends ConsumerState<CalendarPage> {
   late DateTime _focused = DateTime.now();
   late DateTime _selected = DateTime.now();
   _CalendarView _view = _CalendarView.week;
+  bool _syncing = false;
+
+  Future<void> _syncLiveSessions() async {
+    if (_syncing) return;
+    setState(() => _syncing = true);
+    try {
+      final api = ref.read(apiClientProvider);
+      await api.post<dynamic>('/api/live-sessions/sync');
+      if (mounted) {
+        ref.invalidate(calendarEventsProvider(
+          (year: _focused.year, month: _focused.month),
+        ));
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Live sessions synced successfully')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Sync failed: $e')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _syncing = false);
+    }
+  }
+
+  Future<void> _showEventEditSheet({Map<String, dynamic>? existing}) async {
+    final result = await showModalBottomSheet<bool>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => _EventEditSheet(
+        ref: ref,
+        existing: existing,
+        selectedDate: _selected,
+      ),
+    );
+    if (result == true && mounted) {
+      ref.invalidate(calendarEventsProvider(
+        (year: _focused.year, month: _focused.month),
+      ));
+    }
+  }
+
+  Future<void> _deleteEvent(String id) async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Delete Event'),
+        content: const Text('Are you sure you want to delete this event?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+    if (confirm != true) return;
+    try {
+      final api = ref.read(apiClientProvider);
+      await api.delete<dynamic>('/api/events/$id');
+      if (mounted) {
+        ref.invalidate(calendarEventsProvider(
+          (year: _focused.year, month: _focused.month),
+        ));
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Event deleted')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Delete failed: $e')),
+        );
+      }
+    }
+  }
 
   void _prev() {
     setState(() {
@@ -135,6 +222,8 @@ class _CalendarPageState extends ConsumerState<CalendarPage> {
   @override
   Widget build(BuildContext context) {
     final tokens = context.tokens;
+    final user = ref.watch(authStateProvider).value;
+    final isManagerOrAdmin = user?.isManager == true || user?.isAdmin == true;
     final eventsAsync = ref.watch(calendarEventsProvider(
       (year: _focused.year, month: _focused.month),
     ));
@@ -164,21 +253,49 @@ class _CalendarPageState extends ConsumerState<CalendarPage> {
       title: 'Calendar',
       subtitle: _monthLabel,
       showBack: true,
-      right: eventsAsync.isLoading
-          ? SizedBox(
-              width: 20,
-              height: 20,
-              child: CircularProgressIndicator(
-                strokeWidth: 2,
-                color: tokens.primaryAccent,
-              ),
+      right: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (isManagerOrAdmin) ...[
+            _syncing
+                ? SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: tokens.primaryAccent,
+                    ),
+                  )
+                : CircleIconBtn(
+                    icon: Icons.sync,
+                    onTap: _syncLiveSessions,
+                  ),
+            const SizedBox(width: 6),
+          ],
+          eventsAsync.isLoading
+              ? SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: tokens.primaryAccent,
+                  ),
+                )
+              : CircleIconBtn(
+                  icon: Icons.refresh,
+                  onTap: () => ref.invalidate(calendarEventsProvider(
+                    (year: _focused.year, month: _focused.month),
+                  )),
+                ),
+        ],
+      ),
+      floatingActionButton: isManagerOrAdmin
+          ? FloatingActionButton(
+              onPressed: () => _showEventEditSheet(),
+              backgroundColor: tokens.primaryAccent,
+              child: const Icon(Icons.add, color: Colors.white),
             )
-          : CircleIconBtn(
-              icon: Icons.refresh,
-              onTap: () => ref.invalidate(calendarEventsProvider(
-                (year: _focused.year, month: _focused.month),
-              )),
-            ),
+          : null,
       body: AppRefresh(
         onRefresh: () async => ref.invalidate(calendarEventsProvider(
           (year: _focused.year, month: _focused.month),
@@ -264,7 +381,16 @@ class _CalendarPageState extends ConsumerState<CalendarPage> {
                   else
                     ...eventsForSelected.map((e) => Padding(
                           padding: const EdgeInsets.only(bottom: 10),
-                          child: _EventRow(event: e),
+                          child: isManagerOrAdmin
+                              ? GestureDetector(
+                                  onTap: () => _showEventEditSheet(existing: e),
+                                  onLongPress: () {
+                                    final id = e['id'] as String?;
+                                    if (id != null) _deleteEvent(id);
+                                  },
+                                  child: _EventRow(event: e),
+                                )
+                              : _EventRow(event: e),
                         )),
                   const SectionHead(
                     title: 'Upcoming (next 14 days)',
@@ -870,6 +996,400 @@ class _EmptyDay extends StatelessWidget {
         style: TextStyle(
           fontSize: 13,
           color: tokens.textMuted,
+        ),
+      ),
+    );
+  }
+}
+
+/// Bottom sheet form for creating / editing a calendar event.
+class _EventEditSheet extends ConsumerStatefulWidget {
+  const _EventEditSheet({
+    required this.ref,
+    this.existing,
+    required this.selectedDate,
+  });
+
+  // ignore: unused_field — kept for ConsumerStatefulWidget pattern clarity
+  final WidgetRef ref;
+  final Map<String, dynamic>? existing;
+  final DateTime selectedDate;
+
+  @override
+  ConsumerState<_EventEditSheet> createState() => _EventEditSheetState();
+}
+
+class _EventEditSheetState extends ConsumerState<_EventEditSheet> {
+  final _formKey = GlobalKey<FormState>();
+  late final TextEditingController _titleCtrl;
+  late final TextEditingController _meetLinkCtrl;
+  late final TextEditingController _descCtrl;
+
+  String _type = 'class';
+  String? _courseId;
+  late DateTime _date;
+  TimeOfDay _startTime = const TimeOfDay(hour: 10, minute: 0);
+  TimeOfDay _endTime = const TimeOfDay(hour: 11, minute: 0);
+  String _streamProvider = 'MEET';
+  bool _saving = false;
+
+  static const _types = ['class', 'live', 'test', 'exam', 'doubt', 'event', 'deadline'];
+  static const _streamProviders = ['MEET', 'YOUTUBE', 'DRIVE', 'AGORA'];
+
+  bool get _isEditing => widget.existing != null;
+
+  @override
+  void initState() {
+    super.initState();
+    final e = widget.existing;
+    _titleCtrl = TextEditingController(text: (e?['title'] as String?) ?? '');
+    _meetLinkCtrl = TextEditingController(text: (e?['meetLink'] as String?) ?? '');
+    _descCtrl = TextEditingController(text: (e?['description'] as String?) ?? '');
+    _type = (e?['type'] as String?) ?? 'class';
+    _courseId = e?['courseId'] as String?;
+    _streamProvider = (e?['streamProvider'] as String?) ?? 'MEET';
+
+    if (e != null) {
+      final startIso = e['startTime'] as String?;
+      if (startIso != null) {
+        final dt = DateTime.tryParse(startIso)?.toLocal();
+        if (dt != null) {
+          _date = dt;
+          _startTime = TimeOfDay(hour: dt.hour, minute: dt.minute);
+        } else {
+          _date = widget.selectedDate;
+        }
+      } else {
+        _date = widget.selectedDate;
+      }
+      final endIso = e['endTime'] as String?;
+      if (endIso != null) {
+        final dt = DateTime.tryParse(endIso)?.toLocal();
+        if (dt != null) {
+          _endTime = TimeOfDay(hour: dt.hour, minute: dt.minute);
+        }
+      }
+    } else {
+      _date = widget.selectedDate;
+    }
+  }
+
+  @override
+  void dispose() {
+    _titleCtrl.dispose();
+    _meetLinkCtrl.dispose();
+    _descCtrl.dispose();
+    super.dispose();
+  }
+
+  Future<void> _pickDate() async {
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: _date,
+      firstDate: DateTime(2024),
+      lastDate: DateTime(2030),
+    );
+    if (picked != null) setState(() => _date = picked);
+  }
+
+  Future<void> _pickTime({required bool isStart}) async {
+    final picked = await showTimePicker(
+      context: context,
+      initialTime: isStart ? _startTime : _endTime,
+    );
+    if (picked != null) {
+      setState(() {
+        if (isStart) {
+          _startTime = picked;
+        } else {
+          _endTime = picked;
+        }
+      });
+    }
+  }
+
+  Future<void> _submit() async {
+    if (!_formKey.currentState!.validate()) return;
+    setState(() => _saving = true);
+    try {
+      final api = ref.read(apiClientProvider);
+      final startDt = DateTime(
+        _date.year, _date.month, _date.day,
+        _startTime.hour, _startTime.minute,
+      );
+      final endDt = DateTime(
+        _date.year, _date.month, _date.day,
+        _endTime.hour, _endTime.minute,
+      );
+      final body = <String, dynamic>{
+        'title': _titleCtrl.text.trim(),
+        'type': _type,
+        'startTime': startDt.toUtc().toIso8601String(),
+        'endTime': endDt.toUtc().toIso8601String(),
+        'date': DateFormat('yyyy-MM-dd').format(_date),
+        'time': '${_startTime.hour.toString().padLeft(2, '0')}:${_startTime.minute.toString().padLeft(2, '0')}',
+        'endTimeStr': '${_endTime.hour.toString().padLeft(2, '0')}:${_endTime.minute.toString().padLeft(2, '0')}',
+        'streamProvider': _streamProvider,
+      };
+      if (_courseId != null) body['courseId'] = _courseId;
+      if (_meetLinkCtrl.text.trim().isNotEmpty) {
+        body['meetLink'] = _meetLinkCtrl.text.trim();
+      }
+      if (_descCtrl.text.trim().isNotEmpty) {
+        body['description'] = _descCtrl.text.trim();
+      }
+
+      if (_isEditing) {
+        final id = widget.existing!['id'] as String;
+        await api.put<dynamic>('/api/events/$id', body: body);
+      } else {
+        await api.post<dynamic>('/api/events', body: body);
+      }
+
+      if (mounted) Navigator.pop(context, true);
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed: $e')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _saving = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final tokens = context.tokens;
+    final courses = ref.watch(coursesProvider).valueOrNull ?? const <Course>[];
+
+    return Container(
+      decoration: BoxDecoration(
+        color: tokens.bg,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      padding: EdgeInsets.only(
+        bottom: MediaQuery.of(context).viewInsets.bottom,
+      ),
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Center(
+                child: Container(
+                  width: 40, height: 4,
+                  decoration: BoxDecoration(
+                    color: tokens.border,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                _isEditing ? 'Edit Event' : 'Add Event',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w800,
+                  color: tokens.textPrimary,
+                ),
+              ),
+              const SizedBox(height: 20),
+
+              // Title
+              TextFormField(
+                controller: _titleCtrl,
+                decoration: InputDecoration(
+                  labelText: 'Title',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                validator: (v) =>
+                    (v == null || v.trim().isEmpty) ? 'Title is required' : null,
+              ),
+              const SizedBox(height: 14),
+
+              // Type dropdown
+              DropdownButtonFormField<String>(
+                value: _type,
+                decoration: InputDecoration(
+                  labelText: 'Type',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                items: _types
+                    .map((t) => DropdownMenuItem(
+                          value: t,
+                          child: Text(t[0].toUpperCase() + t.substring(1)),
+                        ))
+                    .toList(),
+                onChanged: (v) {
+                  if (v != null) setState(() => _type = v);
+                },
+              ),
+              const SizedBox(height: 14),
+
+              // Course dropdown
+              DropdownButtonFormField<String?>(
+                value: _courseId,
+                decoration: InputDecoration(
+                  labelText: 'Course (optional)',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                items: [
+                  const DropdownMenuItem<String?>(
+                    value: null,
+                    child: Text('None / Global'),
+                  ),
+                  ...courses.map((c) => DropdownMenuItem<String?>(
+                        value: c.id,
+                        child: Text(c.name, overflow: TextOverflow.ellipsis),
+                      )),
+                ],
+                onChanged: (v) => setState(() => _courseId = v),
+              ),
+              const SizedBox(height: 14),
+
+              // Date picker
+              InkWell(
+                onTap: _pickDate,
+                borderRadius: BorderRadius.circular(12),
+                child: InputDecorator(
+                  decoration: InputDecoration(
+                    labelText: 'Date',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    suffixIcon: const Icon(Icons.calendar_today, size: 18),
+                  ),
+                  child: Text(DateFormat('EEE, MMM d yyyy').format(_date)),
+                ),
+              ),
+              const SizedBox(height: 14),
+
+              // Start / End time
+              Row(
+                children: [
+                  Expanded(
+                    child: InkWell(
+                      onTap: () => _pickTime(isStart: true),
+                      borderRadius: BorderRadius.circular(12),
+                      child: InputDecorator(
+                        decoration: InputDecoration(
+                          labelText: 'Start Time',
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          suffixIcon: const Icon(Icons.access_time, size: 18),
+                        ),
+                        child: Text(_startTime.format(context)),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: InkWell(
+                      onTap: () => _pickTime(isStart: false),
+                      borderRadius: BorderRadius.circular(12),
+                      child: InputDecorator(
+                        decoration: InputDecoration(
+                          labelText: 'End Time',
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          suffixIcon: const Icon(Icons.access_time, size: 18),
+                        ),
+                        child: Text(_endTime.format(context)),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 14),
+
+              // Meet link
+              TextFormField(
+                controller: _meetLinkCtrl,
+                decoration: InputDecoration(
+                  labelText: 'Meeting Link (optional)',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                keyboardType: TextInputType.url,
+              ),
+              const SizedBox(height: 14),
+
+              // Stream provider
+              DropdownButtonFormField<String>(
+                value: _streamProvider,
+                decoration: InputDecoration(
+                  labelText: 'Stream Provider',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                items: _streamProviders
+                    .map((s) => DropdownMenuItem(value: s, child: Text(s)))
+                    .toList(),
+                onChanged: (v) {
+                  if (v != null) setState(() => _streamProvider = v);
+                },
+              ),
+              const SizedBox(height: 14),
+
+              // Description
+              TextFormField(
+                controller: _descCtrl,
+                decoration: InputDecoration(
+                  labelText: 'Description (optional)',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                maxLines: 3,
+              ),
+              const SizedBox(height: 20),
+
+              // Submit button
+              SizedBox(
+                height: 48,
+                child: ElevatedButton(
+                  onPressed: _saving ? null : _submit,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: tokens.primaryAccent,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: _saving
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
+                        )
+                      : Text(
+                          _isEditing ? 'Update Event' : 'Create Event',
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w700,
+                            fontSize: 15,
+                          ),
+                        ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

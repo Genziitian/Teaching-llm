@@ -24,6 +24,9 @@ interface CourseEvent {
 interface Props {
   sessions: CourseEvent[]
   onUpgradeClick?: (courseId: string, courseName: string, price: number) => void
+  isManager?: boolean
+  onSync?: () => Promise<void> | void
+  syncing?: boolean
 }
 
 const TIME_SLOT_COLORS: { bg: string; fg: string }[] = [
@@ -34,7 +37,7 @@ const TIME_SLOT_COLORS: { bg: string; fg: string }[] = [
   { bg: 'var(--info-light)', fg: 'var(--info)' }, // blue
 ]
 
-export default function LiveSessionsMobile({ sessions, onUpgradeClick }: Props) {
+export default function LiveSessionsMobile({ sessions, onUpgradeClick, isManager, onSync, syncing }: Props) {
   const router = useRouter()
   const [search, setSearch] = useState('')
   const [showSearch, setShowSearch] = useState(false)
@@ -142,6 +145,30 @@ export default function LiveSessionsMobile({ sessions, onUpgradeClick }: Props) 
             Join classes &amp; rewatch recordings
           </p>
         </div>
+
+        {isManager && onSync && (
+          <button
+            onClick={() => onSync()}
+            disabled={syncing}
+            aria-label="Sync Live Sessions"
+            title="Sync Live Sessions from Calendar"
+            style={{
+              width: '40px', height: '40px', borderRadius: '50%',
+              background: 'var(--surface)',
+              boxShadow: '0 8px 20px -6px rgba(15, 23, 42, 0.12), 0 2px 6px -2px rgba(15, 23, 42, 0.04)',
+              border: '1px solid rgba(15, 23, 42, 0.06)',
+              cursor: syncing ? 'wait' : 'pointer',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+              color: 'var(--primary)',
+              opacity: syncing ? 0.6 : 1,
+              transition: 'all 0.2s',
+            }}
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ animation: syncing ? 'spin 1s linear infinite' : 'none' }}>
+              <path d="M21.5 2v6h-6M2 22v-6h6M21.34 15.57a10 10 0 1 1-.92-10.45l3.08 2.88L2 22l-3.08-2.88a10 10 0 1 1 .92 10.45"/>
+            </svg>
+          </button>
+        )}
 
         <button
           onClick={() => setShowSearch(s => !s)}

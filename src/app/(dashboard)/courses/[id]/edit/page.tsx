@@ -35,8 +35,6 @@ interface CourseDetail {
   description: string
   subject: string
   color: string
-  isDemoPaid?: boolean
-  demoPrice?: number
 }
 
 interface ContentForm {

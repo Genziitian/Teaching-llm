@@ -15,8 +15,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
       hasRecorded, recordedOriginalPrice, recordedDiscountPrice,
       hasLive, liveOriginalPrice, liveDiscountPrice,
       championOriginalPrice, championDiscountPrice, championSubtitle,
-      detailsLink, isDemoPaid, demoPrice, isDemoEnabled, demoExpiryDays,
-      category
+      detailsLink, category
     } = data
 
     const offering = await prisma.courseOffering.update({
@@ -38,28 +37,6 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
         category: category || undefined,
       }
     })
-
-    if (courseId) {
-      const updatedCourse = await prisma.course.update({
-        where: { id: courseId },
-        data: {
-          isDemoPaid: isDemoPaid !== undefined ? !!isDemoPaid : false,
-          demoPrice: (demoPrice !== undefined && demoPrice !== null && demoPrice !== '') ? Number(demoPrice) : 0,
-          isDemoEnabled: isDemoEnabled !== undefined ? !!isDemoEnabled : false,
-          demoExpiryDays: (demoExpiryDays !== undefined && demoExpiryDays !== null && demoExpiryDays !== '') ? Number(demoExpiryDays) : 0,
-        }
-      })
-
-      // If demo access was disabled, clean up all demo/trial enrollments for this course
-      if (!updatedCourse.isDemoEnabled) {
-        await prisma.enrollment.deleteMany({
-          where: {
-            courseId,
-            type: 'DEMO',
-          },
-        })
-      }
-    }
 
     return NextResponse.json(offering)
   } catch (error) {

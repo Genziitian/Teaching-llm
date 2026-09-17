@@ -53,17 +53,6 @@ export const MASTER_QUERIES: Omit<PlatformQuery, 'id'>[] = [
     order: 2,
   },
   {
-    question: 'How does Trial or Demo Course Expiry work?',
-    answer:
-      `For courses marked with Demo access (isDemoEnabled: true and demoExpiryDays > 0):\n\n` +
-      `• Expiry is calculated dynamically per student: now - enrollmentDate > demoExpiryDays.\n` +
-      `• Once expired, the student sees a specialized "Demo Access Expired" blocking screen: "Your demo access to [Course Name] has expired. Unlock the full course to continue learning."\n` +
-      `• A direct "Unlock Full Course" purchase button is presented, allowing the student to pay and upgrade to full enrollment immediately.`,
-    category: 'COURSE_EXPIRY',
-    appliesTo: 'BOTH',
-    order: 3,
-  },
-  {
     question: 'Is there a course grace period in our code?',
     answer:
       `Yes, the platform contains a built-in grace period logic:\n\n` +
@@ -72,7 +61,7 @@ export const MASTER_QUERIES: Omit<PlatformQuery, 'id'>[] = [
       `• However, student-facing UI and APIs enforce content blocking as soon as expiresAt has passed to maintain strict academic integrity.`,
     category: 'COURSE_EXPIRY',
     appliesTo: 'BOTH',
-    order: 4,
+    order: 3,
   },
 
   // ── 2. App vs Web Features ────────────────────────────────────────────────
@@ -92,7 +81,7 @@ export const MASTER_QUERIES: Omit<PlatformQuery, 'id'>[] = [
       `   • Downloaded study materials and notes are stored into native device filesystem storage for rapid offline viewing.`,
     category: 'APP_VS_WEB',
     appliesTo: 'APP_ONLY',
-    order: 5,
+    order: 4,
   },
   {
     question: 'Which platform features apply to Web ONLY (Browser)?',
@@ -106,7 +95,7 @@ export const MASTER_QUERIES: Omit<PlatformQuery, 'id'>[] = [
       `   • Desktop browsers bypass Step 2 (mascot graphic) of the splash overlay so desktop users jump directly to their dashboard.`,
     category: 'APP_VS_WEB',
     appliesTo: 'WEB_ONLY',
-    order: 6,
+    order: 5,
   },
   {
     question: 'Which platform features work on BOTH Mobile App and Web?',
@@ -122,7 +111,7 @@ export const MASTER_QUERIES: Omit<PlatformQuery, 'id'>[] = [
       `• Dark Mode & Neumorphic UI theme persistence.`,
     category: 'APP_VS_WEB',
     appliesTo: 'BOTH',
-    order: 7,
+    order: 6,
   },
 
   // ── 3. Batches & Enrollments ──────────────────────────────────────────────
@@ -141,7 +130,7 @@ export const MASTER_QUERIES: Omit<PlatformQuery, 'id'>[] = [
       `  - Recorded archives of live sessions automatically added after class concludes.`,
     category: 'BATCHES_ENROLLMENT',
     appliesTo: 'BOTH',
-    order: 8,
+    order: 7,
   },
   {
     question: 'How does upgrading from PLUS to PRO work?',
@@ -152,7 +141,7 @@ export const MASTER_QUERIES: Omit<PlatformQuery, 'id'>[] = [
       `3. Upon payment success, the backend updates the enrollment type to PRO immediately without losing any course progress or lecture history.`,
     category: 'BATCHES_ENROLLMENT',
     appliesTo: 'BOTH',
-    order: 9,
+    order: 8,
   },
   {
     question: 'What is a Course Bundle vs an Individual Course?',
@@ -162,7 +151,7 @@ export const MASTER_QUERIES: Omit<PlatformQuery, 'id'>[] = [
       `• When a student purchases or is assigned to a bundle via UserCourseBundleAssignment, the system automatically grants them active enrollments in all linked courses (CourseBundleCourse).`,
     category: 'BATCHES_ENROLLMENT',
     appliesTo: 'BOTH',
-    order: 10,
+    order: 9,
   },
 
   // ── 4. Exams & Evaluations ────────────────────────────────────────────────
@@ -178,7 +167,7 @@ export const MASTER_QUERIES: Omit<PlatformQuery, 'id'>[] = [
       `4. Grading: MCQs and MSQs are auto-evaluated instantly. Subjective questions are marked for teacher review.`,
     category: 'EXAMS_TESTS',
     appliesTo: 'BOTH',
-    order: 11,
+    order: 10,
   },
   {
     question: 'Can students retake an exam or see solutions immediately?',
@@ -187,7 +176,7 @@ export const MASTER_QUERIES: Omit<PlatformQuery, 'id'>[] = [
       `• Solution Visibility: Exam questions and answers remain hidden while an exam is active to prevent answer leaks. Managers can choose to publish solutions and scorecards after the global exam deadline has passed.`,
     category: 'EXAMS_TESTS',
     appliesTo: 'BOTH',
-    order: 12,
+    order: 11,
   },
 
   // ── 5. Live Classes & Community ───────────────────────────────────────────
@@ -200,7 +189,7 @@ export const MASTER_QUERIES: Omit<PlatformQuery, 'id'>[] = [
       `• Upcoming classes appear on the student dashboard in Indian Standard Time (IST). Live sessions trigger live pulse badges when active.`,
     category: 'LIVE_CLASSES',
     appliesTo: 'BOTH',
-    order: 13,
+    order: 12,
   },
   {
     question: 'How does real-time Community Chat work?',
@@ -211,7 +200,7 @@ export const MASTER_QUERIES: Omit<PlatformQuery, 'id'>[] = [
       `• Image attachments are supported with secure thumbnail previews and image modal zoom.`,
     category: 'LIVE_CLASSES',
     appliesTo: 'BOTH',
-    order: 14,
+    order: 13,
   },
 
   // ── 6. Security & Device Limits ───────────────────────────────────────────
@@ -224,7 +213,7 @@ export const MASTER_QUERIES: Omit<PlatformQuery, 'id'>[] = [
       `3. Account Termination: If a user is flagged for abuse or sharing, a Manager can terminate the account (isTerminated: true). Edge Middleware instantly drops all requests from terminated users and routes them to /terminated.`,
     category: 'SECURITY_ACCOUNTS',
     appliesTo: 'BOTH',
-    order: 15,
+    order: 14,
   },
   {
     question: 'What is Maintenance Mode and how does it affect users?',
@@ -234,7 +223,7 @@ export const MASTER_QUERIES: Omit<PlatformQuery, 'id'>[] = [
       `• Critical Exception: Users with the MANAGER or ADMIN role completely bypass the maintenance wall, allowing administrators to inspect issues, run migrations, and test fixes without any downtime disruption to staff.`,
     category: 'SECURITY_ACCOUNTS',
     appliesTo: 'BOTH',
-    order: 16,
+    order: 15,
   },
 
   // ── 7. Platform & Operations ──────────────────────────────────────────────
@@ -246,7 +235,7 @@ export const MASTER_QUERIES: Omit<PlatformQuery, 'id'>[] = [
       `• While PostgreSQL stores timestamps in UTC, all business logic and frontend UI displays convert to IST automatically.`,
     category: 'PLATFORM_SYSTEM',
     appliesTo: 'BOTH',
-    order: 17,
+    order: 16,
   },
   {
     question: 'How do Support Tickets work?',
@@ -256,6 +245,6 @@ export const MASTER_QUERIES: Omit<PlatformQuery, 'id'>[] = [
       `• Managers can reply, attach screenshots, reassign priority (LOW, MEDIUM, HIGH), and update ticket status (OPEN, IN_PROGRESS, RESOLVED, CLOSED).`,
     category: 'PLATFORM_SYSTEM',
     appliesTo: 'BOTH',
-    order: 18,
+    order: 17,
   },
 ]

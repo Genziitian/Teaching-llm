@@ -68,7 +68,7 @@ export async function GET(request: NextRequest) {
       })
     }
 
-    let totalPurgedEnrollments = 0
+    let totalArchivedEnrollments = 0
     let totalQueuedSyncJobs = 0
     const processedCourses = []
 
@@ -76,7 +76,7 @@ export async function GET(request: NextRequest) {
       const courseId = course.id
       const enrollments = course.enrollments
 
-      // 1. Queue Google Group REMOVE jobs for all enrolled users
+      // 1. Queue Google Group REMOVE jobs for all enrolled users (external group access revoked)
       for (const enrollment of enrollments) {
         if (enrollment.user?.email) {
           try {
@@ -92,18 +92,7 @@ export async function GET(request: NextRequest) {
         }
       }
 
-      // 2. Delete all student enrollments for this course
-      if (enrollments.length > 0) {
-        const enrollmentIds = enrollments.map(e => e.id)
-        await prisma.enrollment.deleteMany({
-          where: {
-            id: { in: enrollmentIds },
-          },
-        })
-        totalPurgedEnrollments += enrollments.length
-      }
-
-      // 3. Auto-disable the course
+      // 2. Auto-disable the course (hides from student dashboards while preserving 100% historical data)
       await prisma.course.update({
         where: { id: courseId },
         data: {
@@ -111,21 +100,23 @@ export async function GET(request: NextRequest) {
         },
       })
 
+      totalArchivedEnrollments += enrollments.length
+
       processedCourses.push({
         id: course.id,
         name: course.name,
         expiresAt: course.expiresAt,
-        purgedEnrollmentsCount: enrollments.length,
+        archivedEnrollmentsCount: enrollments.length,
       })
     }
 
     return NextResponse.json({
       success: true,
       processedCoursesCount: expiredCourses.length,
-      totalPurgedEnrollments,
+      totalArchivedEnrollments,
       totalQueuedSyncJobs,
       processedCourses,
-      message: `Successfully purged data & auto-disabled ${expiredCourses.length} course(s) past 3-day grace period.`,
+      message: `Successfully archived & auto-disabled ${expiredCourses.length} course(s) past 3-day grace period. Historical enrollment data preserved.`,
     })
   } catch (error: any) {
     console.error('[expired-courses-cron] Processing failed:', error)

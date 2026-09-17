@@ -46,7 +46,6 @@ export default function ExploreCoursesPage() {
   const [upgrading, setUpgrading] = useState(false)
   const [upgradeSuccessOrderId, setUpgradeSuccessOrderId] = useState<string | null>(null)
   const [showInfoHint, setShowInfoHint] = useState<string | null>(null)
-  const [demoSuccessModal, setDemoSuccessModal] = useState<{ courseId: string; courseName: string; message: string } | null>(null)
   const [isProcessing, setIsProcessing] = useState(false)
   const [editingOffering, setEditingOffering] = useState<any | null>(null)
   const [editFormData, setEditFormData] = useState<any>({})
@@ -333,107 +332,6 @@ export default function ExploreCoursesPage() {
     } catch (err: any) {
       alert(err.message)
       setIsProcessing(false)
-      setPurchasing(null)
-    }
-  }
-
-  const handleGetDemo = async (offering: any) => {
-    const courseId = offering.courseId
-    const course = offering.course
-
-    if (!course?.hasDemoLectures) {
-      alert('Manager has not assigned any demo lectures for this course yet.')
-      return
-    }
-
-    const hasPrice = (offering.recordedDiscountPrice && offering.recordedDiscountPrice > 0) ||
-                     (offering.recordedOriginalPrice && offering.recordedOriginalPrice > 0) ||
-                     (offering.liveDiscountPrice && offering.liveDiscountPrice > 0) ||
-                     (offering.liveOriginalPrice && offering.liveOriginalPrice > 0)
-    if (!hasPrice) {
-      alert('Store price is not set for this course yet. Please tell manager first to set the price in store.')
-      return
-    }
-
-    setPurchasing(`demo-${courseId}`)
-    try {
-      const res = await fetch(`/api/courses/${courseId}/demo-enroll`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-      })
-      const data = await res.json()
-
-      if (!res.ok) {
-        alert(data.error || 'Failed to enroll in demo')
-        setPurchasing(null)
-        return
-      }
-
-      if (data.isEnrolled) {
-        setDemoSuccessModal({
-          courseId,
-          courseName: course.name,
-          message: data.message || 'You are already enrolled in this demo.'
-        })
-        setPurchasing(null)
-        return
-      }
-
-      if (data.requiresPayment) {
-        const options = {
-          key: data.keyId,
-          amount: data.amount,
-          currency: data.currency,
-          name: 'GenZ IItian',
-          description: `Demo Access: ${data.courseName}`,
-          order_id: data.razorpayOrderId,
-          prefill: {
-            name: userData?.user?.name || userData?.name || '',
-            email: userData?.user?.email || userData?.email || '',
-          },
-          theme: { color: '#6366f1' },
-          handler: async (response: any) => {
-            try {
-              const vRes = await fetch(`/api/courses/${courseId}/verify-demo-payment`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                  razorpayPaymentId: response.razorpay_payment_id,
-                  razorpayOrderId: response.razorpay_order_id,
-                  razorpaySignature: response.razorpay_signature,
-                }),
-              })
-              const vData = await vRes.json()
-              if (vRes.ok) {
-                setDemoSuccessModal({
-                  courseId,
-                  courseName: course.name,
-                  message: 'Paid demo access unlocked!'
-                })
-              } else {
-                alert(vData.error || 'Demo payment verification failed')
-              }
-            } catch {
-              alert('Payment verification failed')
-            } finally {
-              setPurchasing(null)
-            }
-          },
-          modal: { ondismiss: () => setPurchasing(null) },
-        }
-        const rzp = new (window as any).Razorpay(options)
-        rzp.open()
-        return
-      }
-
-      setDemoSuccessModal({
-        courseId,
-        courseName: course.name,
-        message: 'Successfully enrolled in Demo!'
-      })
-    } catch (e: any) {
-      alert(e.message || 'Error enrolling in demo')
-    } finally {
       setPurchasing(null)
     }
   }
@@ -1667,7 +1565,7 @@ export default function ExploreCoursesPage() {
                   {/* Edit button for managers */}
                   {(userData?.user?.role === 'MANAGER' || userData?.role === 'MANAGER') && (
                     <button
-                      onClick={(e) => { e.preventDefault(); e.stopPropagation(); setEditingOffering(offering); setEditFormData({ recordedOriginalPrice: offering.recordedOriginalPrice ?? '', recordedDiscountPrice: offering.recordedDiscountPrice ?? '', liveOriginalPrice: offering.liveOriginalPrice ?? '', liveDiscountPrice: offering.liveDiscountPrice ?? '', championOriginalPrice: offering.championOriginalPrice ?? '', championDiscountPrice: offering.championDiscountPrice ?? '', championSubtitle: offering.championSubtitle ?? '', detailsLink: offering.detailsLink ?? '', isDemoPaid: offering.course?.isDemoPaid || false, demoPrice: offering.course?.demoPrice || '', isDemoEnabled: offering.course?.isDemoEnabled || false, demoExpiryDays: offering.course?.demoExpiryDays || '', category: offering.category || 'General' }) }}
+                      onClick={(e) => { e.preventDefault(); e.stopPropagation(); setEditingOffering(offering); setEditFormData({ recordedOriginalPrice: offering.recordedOriginalPrice ?? '', recordedDiscountPrice: offering.recordedDiscountPrice ?? '', liveOriginalPrice: offering.liveOriginalPrice ?? '', liveDiscountPrice: offering.liveDiscountPrice ?? '', championOriginalPrice: offering.championOriginalPrice ?? '', championDiscountPrice: offering.championDiscountPrice ?? '', championSubtitle: offering.championSubtitle ?? '', detailsLink: offering.detailsLink ?? '', category: offering.category || 'General' }) }}
                       style={{
                         width: '28px', height: '28px', borderRadius: '50%',
                         background: 'rgba(255,255,255,0.3)', backdropFilter: 'blur(8px)',
@@ -2146,48 +2044,6 @@ export default function ExploreCoursesPage() {
                         }}
                       >
                         {purchasing === `${offering.id}-CHAMPION` ? 'Processing...' : '💎 Buy Champion Batch'}
-                      </button>
-                    </div>
-                  )}
-                  {/* Get Demo Option - Show for non-enrolled users */}
-                  {!isLiveEnrolled && !isRecordedEnrolled && offering.course?.isDemoEnabled && (
-                    <div style={{ marginTop: '6px' }}>
-                      <button
-                        onClick={() => handleGetDemo(offering)}
-                        disabled={!offering.course?.hasDemoLectures || purchasing === `demo-${offering.courseId}`}
-                        title={
-                          !offering.course?.hasDemoLectures
-                            ? 'Demo is not set by manager yet'
-                            : offering.course?.isDemoPaid
-                            ? `Get demo access for ₹${offering.course?.demoPrice}`
-                            : 'Get free demo access'
-                        }
-                        style={{
-                          width: '100%',
-                          padding: '11px',
-                          borderRadius: '50px',
-                          border: '1.5px dashed var(--accent)',
-                          background: 'rgba(99, 102, 241, 0.06)',
-                          color: 'var(--accent)',
-                          fontSize: '13px',
-                          fontWeight: '800',
-                          cursor: (!offering.course?.hasDemoLectures || purchasing) ? 'not-allowed' : 'pointer',
-                          opacity: (!offering.course?.hasDemoLectures) ? 0.5 : 1,
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          gap: '6px',
-                          transition: 'all 0.2s',
-                        }}
-                      >
-                        <Sparkles size={14} />
-                        {purchasing === `demo-${offering.courseId}`
-                          ? 'Enrolling in Demo...'
-                          : !offering.course?.hasDemoLectures
-                          ? 'Demo Unavailable'
-                          : offering.course?.isDemoPaid && offering.course?.demoPrice
-                          ? `Get Demo (₹${offering.course.demoPrice})`
-                          : 'Get Demo (Free)'}
                       </button>
                     </div>
                   )}
@@ -3493,65 +3349,7 @@ export default function ExploreCoursesPage() {
         </div>
       )}
 
-      {/* Demo Enrollment Success Modal */}
-      {demoSuccessModal && (
-        <div style={{
-          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-          background: 'rgba(15, 23, 42, 0.8)', backdropFilter: 'blur(8px)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1001,
-          padding: '20px'
-        }} onClick={() => { setDemoSuccessModal(null); router.push(`/courses/${demoSuccessModal.courseId}`) }}>
-          <div style={{
-            background: 'var(--surface)', borderRadius: '32px', width: '100%', maxWidth: '480px',
-            boxShadow: '0 0 100px var(--neu-glow), 0 25px 50px -12px rgba(0, 0, 0, 0.5)',
-            padding: '40px', textAlign: 'center',
-            animation: 'modalSlideUp 0.3s ease-out',
-            position: 'relative'
-          }} onClick={e => e.stopPropagation()}>
-            <button 
-              onClick={() => { setDemoSuccessModal(null); router.push(`/courses/${demoSuccessModal.courseId}`) }}
-              style={{ position: 'absolute', top: '24px', right: '24px', background: 'var(--surface)', border: 'none', width: '36px', height: '36px', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'var(--text-secondary)', transition: 'all 0.2s', zIndex: 10 }}
-            >
-              <X size={20} />
-            </button>
-            <div style={{ fontSize: '64px', marginBottom: '24px' }}>🎓</div>
-            <h2 style={{ fontSize: '26px', fontWeight: '900', color: 'var(--text-primary)', marginBottom: '16px' }}>
-              Thank You!
-            </h2>
-            <p style={{ fontSize: '16px', color: 'var(--text-secondary)', lineHeight: '1.6', marginBottom: '24px' }}>
-              Thank you for enrolling in the demo of <strong>{demoSuccessModal.courseName}</strong>. Welcome to the course! We hope you enjoy the lectures and have a great learning experience.
-            </p>
 
-            <div style={{ background: 'var(--bg)', borderRadius: '20px', padding: '20px', marginBottom: '24px', border: '1.5px solid var(--border)' }}>
-              <div style={{ fontSize: '12px', color: 'var(--accent)', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '8px' }}>Status</div>
-              <p style={{ fontSize: '15px', color: 'var(--text-secondary)', fontWeight: '600', lineHeight: '1.5', margin: 0 }}>
-                {demoSuccessModal.message}
-              </p>
-            </div>
-
-            <button 
-              onClick={() => { setDemoSuccessModal(null); router.push(`/courses/${demoSuccessModal.courseId}`) }}
-              style={{
-                width: '100%', padding: '16px', borderRadius: '18px', border: 'none',
-                background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
-                color: 'white', fontWeight: '700', fontSize: '15px', cursor: 'pointer',
-                boxShadow: '0 4px 12px rgba(99, 102, 241, 0.3)',
-                transition: 'all 0.2s'
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.transform = 'translateY(-2px)'
-                e.currentTarget.style.boxShadow = '0 8px 16px rgba(99, 102, 241, 0.4)'
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.transform = 'translateY(0)'
-                e.currentTarget.style.boxShadow = '0 4px 12px rgba(99, 102, 241, 0.3)'
-              }}
-            >
-              Continue to Course Page 🚀
-            </button>
-          </div>
-        </div>
-      )}
 
       {/* Edit Offering Modal */}
       {editingOffering && (
@@ -3663,77 +3461,6 @@ export default function ExploreCoursesPage() {
                   <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '4px' }}>If set, a "More Details" button will appear on the course card for students.</div>
                 </div>
 
-                <div style={{ padding: '16px', borderRadius: '16px', background: 'var(--surface-2, rgba(99,102,241,0.04))', border: '2px solid var(--border)', marginBottom: '20px' }}>
-                  <div style={{ fontSize: '13px', fontWeight: '800', color: 'var(--accent)', marginBottom: '12px' }}>Demo Batch Configuration</div>
-                  
-                  {/* First ask: Enable Demo Access */}
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px' }}>
-                    <input
-                      type="checkbox"
-                      id="isDemoEnabledEditInput"
-                      checked={editFormData.isDemoEnabled || false}
-                      onChange={e => setEditFormData({...editFormData, isDemoEnabled: e.target.checked})}
-                      style={{ width: '18px', height: '18px', cursor: 'pointer' }}
-                    />
-                    <label htmlFor="isDemoEnabledEditInput" style={{ fontSize: '14px', fontWeight: '800', color: 'var(--text-primary)', cursor: 'pointer' }}>
-                      Enable Demo Access (Offer demo batch for this course)
-                    </label>
-                  </div>
-
-                  {editFormData.isDemoEnabled && (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', borderTop: '1.5px solid var(--border)', paddingTop: '14px' }}>
-                      <p style={{ fontSize: '12px', color: 'var(--text-secondary)', marginBottom: '4px' }}>
-                        Configure demo access for non-enrolled students. Mark specific lectures as demo from the course edit page.
-                      </p>
-                      
-                      {/* Paid demo settings */}
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <input
-                          type="checkbox"
-                          id="isDemoPaidEditInput"
-                          checked={editFormData.isDemoPaid || false}
-                          onChange={e => setEditFormData({...editFormData, isDemoPaid: e.target.checked})}
-                          style={{ width: '18px', height: '18px', cursor: 'pointer' }}
-                        />
-                        <label htmlFor="isDemoPaidEditInput" style={{ fontSize: '13px', fontWeight: '700', color: 'var(--text-primary)', cursor: 'pointer' }}>
-                          Paid Demo Batch (Require payment for demo)
-                        </label>
-                      </div>
-                      
-                      {editFormData.isDemoPaid && (
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', paddingLeft: '26px' }}>
-                          <span style={{ fontSize: '13px', fontWeight: '700', color: 'var(--text-secondary)' }}>Demo Price (₹):</span>
-                          <input
-                            type="number"
-                            min={1}
-                            value={editFormData.demoPrice ?? ''}
-                            onChange={e => setEditFormData({...editFormData, demoPrice: e.target.value})}
-                            style={{ width: '120px', padding: '10px', borderRadius: '8px', border: '1.5px solid var(--border)', fontSize: '14px', boxSizing: 'border-box' }}
-                            placeholder="e.g. 99"
-                          />
-                        </div>
-                      )}
-
-                      {/* Expiry Settings */}
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                        <label style={{ display: 'block', fontSize: '13px', fontWeight: '700', color: 'var(--text-secondary)' }}>
-                          Demo Expiry Duration (Days, if any)
-                        </label>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                          <input
-                            type="number"
-                            min={0}
-                            value={editFormData.demoExpiryDays ?? ''}
-                            onChange={e => setEditFormData({...editFormData, demoExpiryDays: e.target.value})}
-                            style={{ width: '120px', padding: '10px', borderRadius: '8px', border: '1.5px solid var(--border)', fontSize: '14px', boxSizing: 'border-box' }}
-                            placeholder="e.g. 3"
-                          />
-                          <span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>days after enrollment (0 or blank for no expiry)</span>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                </div>
               </div>
             </div>
 
@@ -3792,10 +3519,6 @@ export default function ExploreCoursesPage() {
                         detailsLink: editFormData.detailsLink || null,
                         hasRecorded: (editFormData.recordedOriginalPrice > 0 || editFormData.recordedDiscountPrice > 0),
                         hasLive: (editFormData.liveOriginalPrice > 0 || editFormData.liveDiscountPrice > 0),
-                        isDemoPaid: !!editFormData.isDemoPaid,
-                        demoPrice: editFormData.isDemoPaid ? (editFormData.demoPrice || 0) : 0,
-                        isDemoEnabled: !!editFormData.isDemoEnabled,
-                        demoExpiryDays: editFormData.isDemoEnabled ? (editFormData.demoExpiryDays || 0) : 0,
                         category: editFormData.category || 'General',
                       })
                     })

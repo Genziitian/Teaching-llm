@@ -213,12 +213,14 @@ class _CommunityChatPageState extends ConsumerState<CommunityChatPage> {
       final attachment = await pickCommunityAttachment(
           ref.read(apiClientProvider),
           images: images);
-      if (mounted && attachment != null)
+      if (mounted && attachment != null) {
         setState(() => _stagedAttachment = attachment);
+      }
     } catch (error) {
-      if (mounted)
+      if (mounted) {
         ScaffoldMessenger.of(context)
             .showSnackBar(SnackBar(content: Text(communityUploadError(error))));
+      }
     } finally {
       if (mounted) setState(() => _uploadingAttachment = false);
     }
@@ -419,17 +421,26 @@ class _CommunityChatPageState extends ConsumerState<CommunityChatPage> {
                           ),
                         );
                       }
+
+                      final myRole = (ref.watch(authStateProvider).value?.role ?? 'STUDENT').toUpperCase();
+                      final isModerator = myRole == 'MANAGER' || myRole == 'ADMIN';
+                      final visibleMsgs = msgs.where((m) {
+                        final isDel = m['isDeleted'] == true || m['isSystemDeleted'] == true;
+                        if (isDel && !isModerator) return false;
+                        return true;
+                      }).toList();
+
                       return AppRefresh(
                         onRefresh: () async => ref.invalidate(
                             communityMessagesProvider(widget.courseId)),
                         child: ListView.builder(
                           controller: _scroll,
                           padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
-                          itemCount: msgs.length + 1,
+                          itemCount: visibleMsgs.length + 1,
                           itemBuilder: (_, i) {
                             if (i == 0) return const _DayMark(label: 'TODAY');
-                            final m = msgs[i - 1];
-                            final prev = i >= 2 ? msgs[i - 2] : null;
+                            final m = visibleMsgs[i - 1];
+                            final prev = i >= 2 ? visibleMsgs[i - 2] : null;
                             final sender =
                                 (m['sender'] as Map<String, dynamic>?) ?? const {};
                             final senderId = sender['id'] as String?;
@@ -437,8 +448,8 @@ class _CommunityChatPageState extends ConsumerState<CommunityChatPage> {
                             final continuation = prev != null &&
                                 ((prev['sender'] as Map?)?['id'] ?? '') ==
                                     senderId;
-                            final myRole = (ref.watch(authStateProvider).value?.role ?? 'STUDENT').toUpperCase();
-                            final canDelete = isMine || myRole == 'MANAGER' || myRole == 'ADMIN';
+                            final isDel = m['isDeleted'] == true || m['isSystemDeleted'] == true;
+                            final canDelete = !isDel && (isMine || isModerator);
 
                             return _Bubble(
                               message: m,
@@ -1153,6 +1164,8 @@ class _Bubble extends StatelessWidget {
 
     final lectureLink = _parseLectureLink(rawContent);
     final cleanedText = _cleanMessageContent(rawContent);
+    final isDeleted =
+        message['isDeleted'] == true || message['isSystemDeleted'] == true;
 
     final senderId =
         (sender['id'] as String?) ?? (message['senderId'] as String?);
@@ -1165,7 +1178,7 @@ class _Bubble extends StatelessWidget {
 
     return Dismissible(
       key: ValueKey('msg_${message['id']}_${message['createdAt']}'),
-      direction: DismissDirection.startToEnd,
+      direction: isDeleted ? DismissDirection.none : DismissDirection.startToEnd,
       confirmDismiss: (_) async {
         HapticFeedback.lightImpact();
         onReply(message);
@@ -1263,23 +1276,32 @@ class _Bubble extends StatelessWidget {
                         ),
                       ),
                     GestureDetector(
-                      onLongPress: () {
-                        HapticFeedback.mediumImpact();
-                        _showActionSheet(
-                          context,
-                          rawContent: rawContent,
-                          cleanedText: cleanedText,
-                          lectureLink: lectureLink,
-                        );
-                      },
+                      onLongPress: isDeleted
+                          ? null
+                          : () {
+                              HapticFeedback.mediumImpact();
+                              _showActionSheet(
+                                context,
+                                rawContent: rawContent,
+                                cleanedText: cleanedText,
+                                lectureLink: lectureLink,
+                              );
+                            },
                       child: Container(
                         padding: const EdgeInsets.symmetric(
                             horizontal: 13, vertical: 9),
                         decoration: BoxDecoration(
-                          color: isMine ? tokens.primaryAccent : tokens.cardBg,
+                          color: isDeleted
+                              ? (isMine
+                                  ? const Color(0xFFEF4444).withOpacity(0.85)
+                                  : const Color(0xFFEF4444).withOpacity(0.08))
+                              : (isMine ? tokens.primaryAccent : tokens.cardBg),
                           border: isMine
                               ? null
-                              : Border.all(color: tokens.border),
+                              : Border.all(
+                                  color: isDeleted
+                                      ? const Color(0xFFEF4444).withOpacity(0.3)
+                                      : tokens.border),
                           borderRadius: BorderRadius.only(
                             topLeft: const Radius.circular(16),
                             topRight: const Radius.circular(16),
@@ -1290,163 +1312,213 @@ class _Bubble extends StatelessWidget {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            // Reply banner inside bubble
-                            if (replyTo != null) ...[
-                              Container(
-                                margin: const EdgeInsets.only(bottom: 7),
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 10, vertical: 6),
-                                decoration: BoxDecoration(
-                                  color: isMine
-                                      ? Colors.white.withOpacity(0.18)
-                                      : tokens.surfaceSecondary,
-                                  borderRadius: BorderRadius.circular(8),
-                                  border: Border(
-                                    left: BorderSide(
+                            if (isDeleted) ...[
+                              Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(Icons.block_rounded,
+                                      size: 14,
                                       color: isMine
-                                          ? Colors.white
-                                          : tokens.primaryAccent,
-                                      width: 3,
+                                          ? Colors.white.withOpacity(0.9)
+                                          : const Color(0xFFEF4444)),
+                                  const SizedBox(width: 5),
+                                  Text(
+                                    'This message was deleted',
+                                    style: TextStyle(
+                                      fontSize: 12.5,
+                                      fontStyle: FontStyle.italic,
+                                      fontWeight: FontWeight.w600,
+                                      color: isMine
+                                          ? Colors.white.withOpacity(0.9)
+                                          : const Color(0xFFEF4444),
                                     ),
                                   ),
+                                ],
+                              ),
+                              if (cleanedText.isNotEmpty) ...[
+                                const SizedBox(height: 4),
+                                Text(
+                                  cleanedText,
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontStyle: FontStyle.italic,
+                                    color: isMine
+                                        ? Colors.white.withOpacity(0.7)
+                                        : tokens.textMuted,
+                                    decoration: TextDecoration.lineThrough,
+                                  ),
                                 ),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      replySenderName,
-                                      style: TextStyle(
-                                        fontSize: 11,
-                                        fontWeight: FontWeight.w800,
+                              ],
+                            ] else ...[
+                              // Reply banner inside bubble
+                              if (replyTo != null) ...[
+                                Container(
+                                  margin: const EdgeInsets.only(bottom: 7),
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 10, vertical: 6),
+                                  decoration: BoxDecoration(
+                                    color: isMine
+                                        ? Colors.white.withOpacity(0.18)
+                                        : tokens.surfaceSecondary,
+                                    borderRadius: BorderRadius.circular(8),
+                                    border: Border(
+                                      left: BorderSide(
                                         color: isMine
                                             ? Colors.white
                                             : tokens.primaryAccent,
+                                        width: 3,
                                       ),
                                     ),
-                                    const SizedBox(height: 2),
-                                    Text(
-                                      _cleanMessageContent(replyContent),
-                                      maxLines: 2,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: TextStyle(
-                                        fontSize: 11.5,
-                                        color: isMine
-                                            ? Colors.white.withOpacity(0.85)
-                                            : tokens.textSecondary,
+                                  ),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        replySenderName,
+                                        style: TextStyle(
+                                          fontSize: 11,
+                                          fontWeight: FontWeight.w800,
+                                          color: isMine
+                                              ? Colors.white
+                                              : tokens.primaryAccent,
+                                        ),
                                       ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-
-                            if (imageUrl != null && imageUrl.isNotEmpty) ...[
-                              CommunityAttachment(url: imageUrl),
-                              const SizedBox(height: 6),
-                            ],
-
-                            // Lecture comment link banner
-                            if (lectureLink != null) ...[
-                              Container(
-                                margin: const EdgeInsets.only(bottom: 8),
-                                padding: const EdgeInsets.all(10),
-                                decoration: BoxDecoration(
-                                  color: isMine
-                                      ? Colors.white.withOpacity(0.15)
-                                      : const Color(0xFF6366F1).withOpacity(0.08),
-                                  borderRadius: BorderRadius.circular(10),
-                                  border: Border.all(
-                                    color: isMine
-                                        ? Colors.white.withOpacity(0.3)
-                                        : const Color(0xFF6366F1).withOpacity(0.3),
+                                      const SizedBox(height: 2),
+                                      Text(
+                                        _cleanMessageContent(replyContent),
+                                        maxLines: 2,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: TextStyle(
+                                          fontSize: 11.5,
+                                          color: isMine
+                                              ? Colors.white.withOpacity(0.85)
+                                              : tokens.textSecondary,
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Row(
-                                      children: [
-                                        Icon(
-                                          Icons.menu_book_rounded,
-                                          size: 14,
-                                          color: isMine
-                                              ? Colors.white
-                                              : const Color(0xFF6366F1),
-                                        ),
-                                        const SizedBox(width: 5),
-                                        Expanded(
-                                          child: Text(
-                                            'Commented on: ${lectureLink.lectureTitle}',
-                                            style: TextStyle(
-                                              fontSize: 11.5,
-                                              fontWeight: FontWeight.w800,
-                                              color: isMine
-                                                  ? Colors.white
-                                                  : const Color(0xFF6366F1),
-                                            ),
-                                            maxLines: 1,
-                                            overflow: TextOverflow.ellipsis,
-                                          ),
-                                        ),
-                                      ],
+                              ],
+
+                              if (imageUrl != null && imageUrl.isNotEmpty) ...[
+                                CommunityAttachment(url: imageUrl),
+                                const SizedBox(height: 6),
+                              ],
+
+                              // Lecture comment link banner
+                              if (lectureLink != null) ...[
+                                Container(
+                                  margin: const EdgeInsets.only(bottom: 8),
+                                  padding: const EdgeInsets.all(10),
+                                  decoration: BoxDecoration(
+                                    color: isMine
+                                        ? Colors.white.withOpacity(0.15)
+                                        : const Color(0xFF6366F1).withOpacity(0.08),
+                                    borderRadius: BorderRadius.circular(10),
+                                    border: Border.all(
+                                      color: isMine
+                                          ? Colors.white.withOpacity(0.3)
+                                          : const Color(0xFF6366F1).withOpacity(0.3),
                                     ),
-                                    const SizedBox(height: 6),
-                                    InkWell(
-                                      onTap: () {
-                                        HapticFeedback.lightImpact();
-                                        context.push('/courses/${lectureLink.courseId}');
-                                      },
-                                      borderRadius: BorderRadius.circular(6),
-                                      child: Container(
-                                        padding: const EdgeInsets.symmetric(
-                                            horizontal: 10, vertical: 5),
-                                        decoration: BoxDecoration(
-                                          color: isMine
-                                              ? Colors.white
-                                              : const Color(0xFF6366F1),
-                                          borderRadius:
-                                              BorderRadius.circular(6),
-                                        ),
-                                        child: Row(
-                                          mainAxisSize: MainAxisSize.min,
-                                          children: [
-                                            Icon(
-                                              Icons.play_circle_fill_rounded,
-                                              size: 13,
-                                              color: isMine
-                                                  ? tokens.primaryAccent
-                                                  : Colors.white,
-                                            ),
-                                            const SizedBox(width: 4),
-                                            Text(
-                                              'View Lecture',
+                                  ),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Row(
+                                        children: [
+                                          Icon(
+                                            Icons.menu_book_rounded,
+                                            size: 14,
+                                            color: isMine
+                                                ? Colors.white
+                                                : const Color(0xFF6366F1),
+                                          ),
+                                          const SizedBox(width: 5),
+                                          Expanded(
+                                            child: Text(
+                                              'Commented on: ${lectureLink.lectureTitle}',
                                               style: TextStyle(
-                                                fontSize: 11,
+                                                fontSize: 11.5,
                                                 fontWeight: FontWeight.w800,
+                                                color: isMine
+                                                    ? Colors.white
+                                                    : const Color(0xFF6366F1),
+                                              ),
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      const SizedBox(height: 6),
+                                      InkWell(
+                                        onTap: () {
+                                          HapticFeedback.lightImpact();
+                                          context.push('/courses/${lectureLink.courseId}');
+                                        },
+                                        borderRadius: BorderRadius.circular(6),
+                                        child: Container(
+                                          padding: const EdgeInsets.symmetric(
+                                              horizontal: 10, vertical: 5),
+                                          decoration: BoxDecoration(
+                                            color: isMine
+                                                ? Colors.white
+                                                : const Color(0xFF6366F1),
+                                            borderRadius:
+                                                BorderRadius.circular(6),
+                                          ),
+                                          child: Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              Icon(
+                                                Icons.play_circle_fill_rounded,
+                                                size: 13,
                                                 color: isMine
                                                     ? tokens.primaryAccent
                                                     : Colors.white,
                                               ),
-                                            ),
-                                          ],
+                                              const SizedBox(width: 4),
+                                              Text(
+                                                'View Lecture',
+                                                style: TextStyle(
+                                                  fontSize: 11,
+                                                  fontWeight: FontWeight.w800,
+                                                  color: isMine
+                                                      ? tokens.primaryAccent
+                                                      : Colors.white,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
                                         ),
                                       ),
-                                    ),
-                                  ],
+                                    ],
+                                  ),
                                 ),
-                              ),
-                            ],
+                              ],
 
-                            // Clean message body
-                            if (cleanedText.isNotEmpty)
-                              Text(
-                                cleanedText,
-                                style: TextStyle(
-                                  fontSize: 13.5,
-                                  color: isMine ? Colors.white : tokens.textPrimary,
-                                  height: 1.4,
+                              // Clean message body
+                              if (cleanedText.isNotEmpty)
+                                Text(
+                                  cleanedText,
+                                  style: TextStyle(
+                                    fontSize: 13.5,
+                                    color: isMine ? Colors.white : tokens.textPrimary,
+                                    height: 1.4,
+                                  ),
+                                )
+                              else if (imageUrl == null && lectureLink == null)
+                                Text(
+                                  replyTo != null ? '(No text)' : '(Empty message)',
+                                  style: TextStyle(
+                                    fontSize: 12.5,
+                                    fontStyle: FontStyle.italic,
+                                    color: isMine
+                                        ? Colors.white.withOpacity(0.7)
+                                        : tokens.textMuted,
+                                  ),
                                 ),
-                              ),
+                            ],
                           ],
                         ),
                       ),
@@ -1504,167 +1576,172 @@ class _Composer extends StatelessWidget {
         color: tokens.cardBg,
         border: Border(top: BorderSide(color: tokens.border, width: 1)),
       ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // Reply preview bar
-          if (replyingTo != null) ...[
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
-              decoration: BoxDecoration(
-                color: isDark ? const Color(0xFF1E2640) : const Color(0xFFEFF6FF),
-                border: Border(
-                  left: BorderSide(color: tokens.primaryAccent, width: 3),
-                ),
-              ),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          'Replying to ${(replyingTo!['sender']?['name'] as String?) ?? 'User'}',
-                          style: TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w800,
-                            color: tokens.primaryAccent,
-                          ),
-                        ),
-                        const SizedBox(height: 1),
-                        Text(
-                          _cleanMessageContent((replyingTo!['content'] as String?) ?? ''),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                            fontSize: 11.5,
-                            color: tokens.textSecondary,
-                          ),
-                        ),
-                      ],
-                    ),
+      child: SafeArea(
+        top: false,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Reply preview bar
+            if (replyingTo != null) ...[
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+                decoration: BoxDecoration(
+                  color: isDark ? const Color(0xFF1E2640) : const Color(0xFFEFF6FF),
+                  border: Border(
+                    left: BorderSide(color: tokens.primaryAccent, width: 3),
                   ),
-                  if (onCancelReply != null)
-                    InkWell(
-                      onTap: onCancelReply,
-                      borderRadius: BorderRadius.circular(20),
-                      child: Padding(
-                        padding: const EdgeInsets.all(4),
-                        child: Icon(Icons.close_rounded,
-                            size: 18, color: tokens.textMuted),
+                ),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            'Replying to ${(replyingTo!['sender']?['name'] as String?) ?? 'User'}',
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w800,
+                              color: tokens.primaryAccent,
+                            ),
+                          ),
+                          const SizedBox(height: 1),
+                          Text(
+                            _cleanMessageContent((replyingTo!['content'] as String?) ?? ''),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontSize: 11.5,
+                              color: tokens.textSecondary,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
+                    if (onCancelReply != null)
+                      InkWell(
+                        onTap: onCancelReply,
+                        borderRadius: BorderRadius.circular(20),
+                        child: Padding(
+                          padding: const EdgeInsets.all(4),
+                          child: Icon(Icons.close_rounded,
+                              size: 18, color: tokens.textMuted),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+            ],
+
+            // Main input row (compact & sleek)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(10, 8, 10, 8),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  // Attachment Button
+                  InkWell(
+                    onTap: onAttachmentTap,
+                    borderRadius: BorderRadius.circular(50),
+                    child: Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        color: isDark
+                            ? tokens.surfaceSecondary
+                            : const Color(0xFFF1F5F9),
+                        shape: BoxShape.circle,
+                        border: Border.all(color: tokens.border),
+                      ),
+                      alignment: Alignment.center,
+                      child: Icon(
+                        Icons.add_rounded,
+                        color: tokens.textSecondary,
+                        size: 22,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+
+                  // Compact Message Input Pill
+                  Expanded(
+                    child: Container(
+                      constraints: const BoxConstraints(
+                        minHeight: 40,
+                        maxHeight: 120,
+                      ),
+                      decoration: BoxDecoration(
+                        color: isDark
+                            ? tokens.surfaceSecondary
+                            : const Color(0xFFF1F5F9),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(color: tokens.border),
+                      ),
+                      child: TextField(
+                        controller: controller,
+                        focusNode: focusNode,
+                        minLines: 1,
+                        maxLines: 4,
+                        decoration: InputDecoration(
+                          hintText: 'Write a message...',
+                          border: InputBorder.none,
+                          isDense: true,
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 14,
+                            vertical: 10,
+                          ),
+                          hintStyle: TextStyle(
+                            fontSize: 13.5,
+                            color: tokens.textMuted,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        style: TextStyle(
+                          fontSize: 13.5,
+                          color: tokens.textPrimary,
+                          fontWeight: FontWeight.w500,
+                        ),
+                        textInputAction: TextInputAction.send,
+                        onSubmitted: (_) => onSend(),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+
+                  // Send Button
+                  InkWell(
+                    onTap: sending ? null : onSend,
+                    borderRadius: BorderRadius.circular(50),
+                    child: Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        color: tokens.primaryAccent,
+                        shape: BoxShape.circle,
+                      ),
+                      alignment: Alignment.center,
+                      child: sending
+                          ? const SizedBox(
+                              width: 16,
+                              height: 16,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Colors.white,
+                              ),
+                            )
+                          : const Icon(
+                              Icons.send_rounded,
+                              color: Colors.white,
+                              size: 17,
+                            ),
+                    ),
+                  ),
                 ],
               ),
             ),
           ],
-
-          // Main input row (compact & sleek)
-          Padding(
-            padding: const EdgeInsets.fromLTRB(10, 6, 10, 8),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                // Attachment Button
-                InkWell(
-                  onTap: onAttachmentTap,
-                  borderRadius: BorderRadius.circular(50),
-                  child: Container(
-                    width: 36,
-                    height: 36,
-                    decoration: BoxDecoration(
-                      color: isDark
-                          ? tokens.surfaceSecondary
-                          : const Color(0xFFF1F5F9),
-                      shape: BoxShape.circle,
-                      border: Border.all(color: tokens.border),
-                    ),
-                    alignment: Alignment.center,
-                    child: Icon(
-                      Icons.add_rounded,
-                      color: tokens.textSecondary,
-                      size: 20,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 8),
-
-                // Compact Message Input Pill
-                Expanded(
-                  child: Container(
-                    constraints:
-                        const BoxConstraints(minHeight: 36, maxHeight: 90),
-                    decoration: BoxDecoration(
-                      color: isDark
-                          ? tokens.surfaceSecondary
-                          : const Color(0xFFF1F5F9),
-                      borderRadius: BorderRadius.circular(18),
-                      border: Border.all(color: tokens.border),
-                    ),
-                    padding: const EdgeInsets.symmetric(horizontal: 14),
-                    alignment: Alignment.centerLeft,
-                    child: TextField(
-                      controller: controller,
-                      focusNode: focusNode,
-                      minLines: 1,
-                      maxLines: 4,
-                      decoration: InputDecoration(
-                        hintText: 'Write a message...',
-                        border: InputBorder.none,
-                        isDense: true,
-                        contentPadding:
-                            const EdgeInsets.symmetric(vertical: 7),
-                        hintStyle: TextStyle(
-                          fontSize: 13,
-                          color: tokens.textMuted,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: tokens.textPrimary,
-                        fontWeight: FontWeight.w500,
-                      ),
-                      textInputAction: TextInputAction.send,
-                      onSubmitted: (_) => onSend(),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 8),
-
-                // Send Button
-                InkWell(
-                  onTap: sending ? null : onSend,
-                  borderRadius: BorderRadius.circular(50),
-                  child: Container(
-                    width: 36,
-                    height: 36,
-                    decoration: BoxDecoration(
-                      color: tokens.primaryAccent,
-                      shape: BoxShape.circle,
-                    ),
-                    alignment: Alignment.center,
-                    child: sending
-                        ? const SizedBox(
-                            width: 15,
-                            height: 15,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              color: Colors.white,
-                            ),
-                          )
-                        : const Icon(
-                            Icons.send_rounded,
-                            color: Colors.white,
-                            size: 16,
-                          ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }

@@ -32,7 +32,6 @@ interface CourseItem {
   teacherName: string
   enrollmentType?: string
   liveUpgradePrice?: number | null
-  isDemoEnabled?: boolean
   isDemo?: boolean
   _count: { lectures: number; materials: number; topics: number; courseEvents: number }
 }
@@ -178,33 +177,6 @@ export default function CoursesPage() {
       alert(e.message || 'Something went wrong')
       setIsProcessing(false)
       setUpgrading(false)
-    }
-  }
-
-  const handleUnlockClick = async (courseId: string | null) => {
-    if (!courseId) return
-    setIsProcessing(true)
-    try {
-      const res = await fetch('/api/course-offerings')
-      if (res.ok) {
-        const offerings = await res.json()
-        if (Array.isArray(offerings)) {
-          const found = offerings.find((o: any) => o.courseId === courseId)
-          if (found) {
-            setOffering(found)
-            setShowPurchaseModal(true)
-          } else {
-            alert('No batch offering found for this course.')
-          }
-        }
-      } else {
-        alert('Failed to load purchase options.')
-      }
-    } catch (e) {
-      console.error(e)
-      alert('Something went wrong.')
-    } finally {
-      setIsProcessing(false)
     }
   }
 
@@ -523,10 +495,9 @@ export default function CoursesPage() {
 
       <div className="grid-3">
         {filtered.map((course: CourseItem) => {
-          const isTrialDemo = course.enrollmentType === 'DEMO' && !!course.isDemoEnabled && !course.isDemo
-          const isRecorded = ['RECORDED', 'FREE'].includes(course.enrollmentType || '') || isTrialDemo
+          const isRecorded = ['RECORDED', 'FREE'].includes(course.enrollmentType || '')
           const isLive = course.enrollmentType === 'LIVE'
-          const isFreeOrDemo = course.enrollmentType === 'FREE' || isTrialDemo
+          const isFreeOrDemo = course.enrollmentType === 'FREE' || !!course.isDemo
           const coursePalette = getCourseDisplayPalette(course.color, resolvedTheme)
           const liveCardGlow = coursePalette.isRefinedLightPalette ? coursePalette.softBorder : colorWithOpacity(course.color, '40')
           const liveCardHoverGlow = coursePalette.isRefinedLightPalette ? coursePalette.softBorder : colorWithOpacity(course.color, '60')
@@ -653,19 +624,6 @@ export default function CoursesPage() {
                     }}>
                       {batchBadge.text}
                     </div>
-                    {isTrialDemo && (
-                      <div style={{
-                        padding: '3px 10px', borderRadius: '20px',
-                        background: 'rgba(99, 102, 241, 0.75)',
-                        backdropFilter: 'blur(8px)',
-                        fontSize: '9px', fontWeight: '800', color: '#ffffff',
-                        letterSpacing: '0.06em',
-                        width: 'fit-content',
-                        border: '1px solid rgba(255, 255, 255, 0.2)',
-                      }}>
-                        Demo Batch
-                      </div>
-                    )}
                   </div>
                 )}
 
@@ -716,7 +674,7 @@ export default function CoursesPage() {
                   flexWrap: 'wrap',
                 }}>
                   <span>{course.name}</span>
-                  {isTrialDemo && (
+                  {course.isDemo && (
                     <span style={{
                       fontSize: '9px',
                       padding: '2px 8px',
@@ -813,62 +771,6 @@ export default function CoursesPage() {
                       </span>
                       <span>
                         ⚡ Upgrade to PRO — ₹{course.liveUpgradePrice}
-                      </span>
-                      
-                      {/* Shine effect overlay */}
-                      <div style={{
-                        position: 'absolute', top: 0, left: '-100%', width: '50%', height: '100%',
-                        background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent)',
-                        transform: 'skewX(-25deg)',
-                        transition: 'left 0.75s',
-                      }} className="button-shine" />
-                    </button>
-                    
-                    <style dangerouslySetInnerHTML={{ __html: `
-                      button:hover .button-shine { left: 150% !important; }
-                      @keyframes fadeIn { from { opacity: 0; transform: translate(-50%, 5px); } to { opacity: 1; transform: translate(-50%, 0); } }
-                    `}} />
-                  </div>
-                )}
-
-                {/* Unlock Full Course button for DEMO users */}
-                {isTrialDemo && plusPrice != null && plusPrice > 0 && (
-                  <div style={{ position: 'relative', marginTop: 'auto' }}>
-                    <button
-                      onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleUnlockClick(course.id) }}
-                      style={{
-                        width: '100%',
-                        padding: 'var(--course-upgrade-padding, 14px 16px)',
-                        borderRadius: '50px',
-                        border: 'none',
-                        background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
-                        color: '#fff',
-                        fontSize: 'var(--course-upgrade-font-size, 13px)',
-                        fontWeight: '800',
-                        cursor: 'pointer',
-                        marginBottom: '4px',
-                        boxShadow: '0 8px 16px rgba(30, 30, 58, 0.4)',
-                        transition: 'all 0.25s',
-                        letterSpacing: '0.02em',
-                        display: 'flex',
-                        flexDirection: 'var(--course-upgrade-flex-dir, row)' as any,
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        position: 'relative',
-                        overflow: 'hidden',
-                      }}
-                    >
-                      <span style={{ 
-                        position: 'var(--course-badge-pos, absolute)' as any,
-                        left: 'var(--course-badge-left, 12px)',
-                        margin: 'var(--course-optional-margin, 0)',
-                        fontSize: '8px', background: 'rgba(255,255,255,0.15)', padding: '2px 8px', borderRadius: '20px', 
-                        color: '#fff', letterSpacing: '0.05em', fontWeight: '900', border: '1px solid rgba(255,255,255,0.2)' 
-                      }}>
-                        POPULAR
-                      </span>
-                      <span>
-                        ⚡ Unlock Full Course
                       </span>
                       
                       {/* Shine effect overlay */}

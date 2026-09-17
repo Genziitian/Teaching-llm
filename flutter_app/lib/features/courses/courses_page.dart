@@ -478,11 +478,13 @@ class _CourseCard extends ConsumerWidget {
     final isExpired = course.isExpired;
 
     return BouncyPressable(
-      onTap: () {
-        HapticFeedback.lightImpact();
-        context.push('/courses/${course.id}');
-      },
-      scaleDown: 0.98,
+      onTap: isExpired
+          ? null
+          : () {
+              HapticFeedback.lightImpact();
+              context.push('/courses/${course.id}');
+            },
+      scaleDown: isExpired ? 1.0 : 0.98,
       child: Container(
         decoration: BoxDecoration(
           color: tokens.cardBg,

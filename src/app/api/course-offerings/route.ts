@@ -23,17 +23,7 @@ export async function GET(request: NextRequest) {
             courseIconType: true,
             teacherName: true,
             isDisabled: true,
-            isDemoPaid: true,
-            demoPrice: true,
-            isDemoEnabled: true,
-            demoExpiryDays: true,
-            topics: {
-              select: {
-                content: { select: { isDemo: true } },
-                sharedContentLinks: { select: { content: { select: { isDemo: true } } } },
-              },
-            },
-            lectures: { select: { isDemo: true } },
+            isDemo: true,
           }
         }
       },
@@ -44,28 +34,7 @@ export async function GET(request: NextRequest) {
       orderBy: { createdAt: 'desc' }
     })
 
-    const processedOfferings = offerings.map(off => {
-      let hasDemoLectures = false
-      const c = off.course as any
-      if (c?.topics) {
-        c.topics.forEach((t: any) => {
-          t.content?.forEach((cnt: any) => { if (cnt.isDemo) hasDemoLectures = true })
-          t.sharedContentLinks?.forEach((link: any) => { if (link.content?.isDemo) hasDemoLectures = true })
-        })
-      }
-      if (c?.lectures?.some((l: any) => l.isDemo)) hasDemoLectures = true
-
-      const { topics, lectures, ...cleanCourse } = c
-      return {
-        ...off,
-        course: {
-          ...cleanCourse,
-          hasDemoLectures,
-        },
-      }
-    })
-
-    return NextResponse.json(processedOfferings, {
+    return NextResponse.json(offerings, {
       headers: {
         'Cache-Control': 'no-store, no-cache, must-revalidate',
       }

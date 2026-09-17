@@ -452,6 +452,29 @@ export default function LivePage() {
     )
   }
 
+  const handleSync = async () => {
+    try {
+      setSyncing(true)
+      const res = await fetch('/api/live-sessions/sync', { method: 'POST' })
+      if (!res.ok) {
+        const err = await res.json()
+        alert(err.error || 'Failed to sync live sessions')
+        return
+      }
+      const result = await res.json()
+      setLastSyncAt(result.lastSyncAt)
+      await Promise.all([
+        mutate('/api/live-sessions'),
+        mutate('/api/dashboard'),
+      ])
+    } catch (error) {
+      console.error(error)
+      alert('Failed to sync live sessions')
+    } finally {
+      setSyncing(false)
+    }
+  }
+
   return (
     <>
     {/* Mobile redesign */}
@@ -461,6 +484,9 @@ export default function LivePage() {
         onUpgradeClick={(courseId) => {
           handleUnlockClick(courseId)
         }}
+        isManager={isManager}
+        onSync={handleSync}
+        syncing={syncing}
       />
     </div>
     {/* Desktop layout */}
@@ -475,28 +501,7 @@ export default function LivePage() {
           )}
           {isManager && (
             <button
-              onClick={async () => {
-                try {
-                  setSyncing(true)
-                  const res = await fetch('/api/live-sessions/sync', { method: 'POST' })
-                  if (!res.ok) {
-                    const err = await res.json()
-                    alert(err.error || 'Failed to sync live sessions')
-                    return
-                  }
-                  const result = await res.json()
-                  setLastSyncAt(result.lastSyncAt)
-                  await Promise.all([
-                    mutate('/api/live-sessions'),
-                    mutate('/api/dashboard'),
-                  ])
-                } catch (error) {
-                  console.error(error)
-                  alert('Failed to sync live sessions')
-                } finally {
-                  setSyncing(false)
-                }
-              }}
+              onClick={handleSync}
               style={{
                 padding: '0 16px', height: '42px', borderRadius: '50px', border: 'none',
                 background: 'var(--surface-2)', boxShadow: '4px 4px 8px var(--neu-dark), -4px -4px 8px var(--neu-light)',

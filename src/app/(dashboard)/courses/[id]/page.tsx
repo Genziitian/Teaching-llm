@@ -46,14 +46,12 @@ interface CourseDetail {
   isCommunityActive?: boolean
   isDisabled?: boolean
   isEffectivelyDisabled?: boolean
-  isDemoEnabled?: boolean
   isDemo?: boolean
   enrollmentType?: 'LIVE' | 'RECORDED' | 'DEMO' | 'FREE' | null
   liveUpgradePrice?: number | null
   instructorAssignments?: { instructor: { id: string; name: string } }[]
   _count?: { topics: number; lectures: number; materials: number; courseEvents: number }
   createdAt?: string
-  demoExpiryDays?: number | null
   enrollment?: {
     id: string
     createdAt: string
@@ -103,8 +101,6 @@ export default function CourseDetailPage() {
   const [successOrderId, setSuccessOrderId] = useState<string | null>(null)
   const [verifyingPayment, setVerifyingPayment] = useState(false)
   const [purchasedCourse, setPurchasedCourse] = useState<any>(null)
-  const [showUnenrollThanksModal, setShowUnenrollThanksModal] = useState(false)
-  const [showUnenrollFeedbackModal, setShowUnenrollFeedbackModal] = useState(false)
   const [showForcedFeedback, setShowForcedFeedback] = useState(false)
   const [showFeedbackModal, setShowFeedbackModal] = useState(false)
   const [activeSectionTab, setActiveSectionTab] = useState<'lectures' | 'materials' | 'about'>('lectures')
@@ -167,14 +163,6 @@ export default function CourseDetailPage() {
       const isStudent = sessionData.user?.role === 'STUDENT'
       if (activeCourse?.requireFeedback && !activeCourse?.hasSubmittedFeedback && isStudent) {
         setShowForcedFeedback(true)
-      }
-
-      const isTrial = activeCourse?.enrollmentType === 'DEMO' && !!activeCourse?.isDemoEnabled && !activeCourse?.isDemo;
-      if (isTrial) {
-        const demoTopics = activeTopics
-          .filter(topic => topic.content?.some((item: any) => item.videoUrl || item.youtubeUrl))
-          .map(topic => topic.id)
-        setExpandedTopics(new Set(demoTopics))
       }
 
       // Topics start collapsed — user expands on click
@@ -306,22 +294,6 @@ export default function CourseDetailPage() {
     }
 
     router.push(`/community?course=${encodeURIComponent(course.id)}`)
-  }
-  
-  const handleUnenrollDemo = async () => {
-    if (role === 'MANAGER' || role === 'ADMIN') return
-    if (!confirm('Are you sure you want to unenroll from this demo? You will lose access to demo lectures.')) return
-    try {
-      const res = await fetch(`/api/courses/${params.id}/unenroll`, { method: 'POST' })
-      const data = await res.json()
-      if (res.ok) {
-        setShowUnenrollThanksModal(true)
-      } else {
-        alert(data.error || 'Failed to unenroll')
-      }
-    } catch (e: any) {
-      alert(e.message || 'Error unenrolling')
-    }
   }
 
   const [upgradeSuccessOrderId, setUpgradeSuccessOrderId] = useState<string | null>(null)
@@ -622,17 +594,9 @@ export default function CourseDetailPage() {
     }).filter(topic => topic.content.length > 0)
   }
 
-  const isTrialDemo = course.enrollmentType === 'DEMO' && !!course.isDemoEnabled && !course.isDemo;
-  const isCourseExpired = course.expiresAt && new Date(course.expiresAt).getTime() < new Date().getTime();
-  const isDemoExpired = !isManager && isTrialDemo && Number((course as any).demoExpiryDays || 0) > 0 && (() => {
-    const enrollDate = (course as any).enrollment?.createdAt ? new Date((course as any).enrollment.createdAt) : new Date(course.createdAt || Date.now());
-    const expiryMs = Number((course as any).demoExpiryDays) * 24 * 60 * 60 * 1000;
-    return (new Date().getTime() - enrollDate.getTime()) > expiryMs;
-  })();
+  const isExpired = !isManager && Boolean(course.expiresAt && new Date(course.expiresAt).getTime() < new Date().getTime());
 
-  const isExpired = isCourseExpired || isDemoExpired;
-
-  if (isExpired && !isManager) {
+  if (isExpired) {
     return (
       <div className="page-container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '60vh' }}>
         <div style={{ textAlign: 'center', background: 'var(--surface)', padding: '40px', borderRadius: '32px', boxShadow: '0 20px 40px rgba(0,0,0,0.05)', maxWidth: '500px', width: '100%' }}>
@@ -640,55 +604,13 @@ export default function CourseDetailPage() {
             <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
           </div>
           <h1 style={{ fontSize: '24px', fontWeight: '800', color: 'var(--text-primary)', marginBottom: '16px' }}>
-            {isDemoExpired ? 'Demo Access Expired' : 'Access Expired'}
+            Access Expired
           </h1>
           <p style={{ fontSize: '15px', color: 'var(--text-secondary)', lineHeight: '1.6', marginBottom: '32px' }}>
-            {isDemoExpired 
-              ? `Your demo access to ${course.name} has expired. Unlock the full course to continue learning.`
-              : `Your access to ${course.name} has expired. You can no longer view the course lectures or materials.`
-            }
+            Your access to {course.name} has expired. You can no longer view the course lectures or materials.
           </p>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', alignItems: 'center', width: '100%' }}>
-            {isDemoExpired ? (
-              <>
-                {hasValidUpgradePrice && (
-                  <button
-                    onClick={() => setShowPurchaseModal(true)}
-                    style={{
-                      width: '100%',
-                      padding: '14px 28px',
-                      borderRadius: '16px',
-                      background: 'linear-gradient(135deg, #6366f1, #4f46e5)',
-                      color: '#fff',
-                      fontWeight: '800',
-                      fontSize: '15px',
-                      border: 'none',
-                      cursor: 'pointer',
-                      boxShadow: '0 4px 12px rgba(99,102,241,0.3)',
-                    }}
-                  >
-                    Unlock Full Course
-                  </button>
-                )}
-                <button
-                  onClick={handleUnenrollDemo}
-                  style={{
-                    background: 'transparent',
-                    border: 'none',
-                    color: 'var(--text-muted)',
-                    fontSize: '12px',
-                    fontWeight: '700',
-                    cursor: 'pointer',
-                    textDecoration: 'underline',
-                    marginTop: '8px',
-                  }}
-                >
-                  Unenroll from Demo
-                </button>
-              </>
-            ) : (
-              <Link href="/courses" className="btn btn-ghost" style={{ padding: '12px 24px', borderRadius: '16px', background: 'var(--surface)', color: 'var(--text-secondary)', fontWeight: '700', textDecoration: 'none' }}>Back to Courses</Link>
-            )}
+            <Link href="/courses" className="btn btn-ghost" style={{ padding: '12px 24px', borderRadius: '16px', background: 'var(--surface)', color: 'var(--text-secondary)', fontWeight: '700', textDecoration: 'none' }}>Back to Courses</Link>
           </div>
         </div>
       </div>
@@ -721,7 +643,7 @@ export default function CourseDetailPage() {
           onMouseEnter={() => setShowUpgradeHint(true)}
           onMouseLeave={() => setShowUpgradeHint(false)}
           style={{
-            background: ['RECORDED', 'FREE'].includes(course.enrollmentType || '') || isTrialDemo ? 'linear-gradient(135deg, #6b7280, #9ca3af)' : coursePalette.background,
+            background: ['RECORDED', 'FREE'].includes(course.enrollmentType || '') ? 'linear-gradient(135deg, #6b7280, #9ca3af)' : coursePalette.background,
             padding: '28px 24px', position: 'relative', overflow: 'hidden',
           }}
         >
@@ -827,38 +749,6 @@ export default function CourseDetailPage() {
                     >
                       <span style={{ fontSize: '8px', background: 'var(--bg)', padding: '1px 6px', borderRadius: '10px', color: 'var(--text-secondary)' }}>OPTIONAL</span>
                       ⚡ Upgrade to PRO
-                    </button>
-                  </div>
-                )}
-
-                {/* Demo Action Buttons */}
-                {isTrialDemo && (
-                  <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                    {hasValidUpgradePrice && (
-                      <button
-                        onClick={() => setShowPurchaseModal(true)}
-                        style={{
-                          background: 'var(--surface)', color: 'var(--text-primary)', padding: '6px 16px', borderRadius: '50px',
-                          fontSize: '12px', fontWeight: '800', border: 'none', cursor: 'pointer',
-                          display: 'inline-flex', alignItems: 'center', gap: '6px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-                          whiteSpace: 'nowrap',
-                        }}
-                      >
-                        Unlock Full Course
-                      </button>
-                    )}
-                    <button
-                      className="demo-unenroll-button"
-                      onClick={handleUnenrollDemo}
-                      style={{
-                        background: 'color-mix(in srgb, var(--danger-light) 48%, transparent)',
-                        color: 'var(--danger)',
-                        border: '1.5px solid color-mix(in srgb, var(--danger) 52%, transparent)',
-                        padding: '6px 16px', borderRadius: '50px', fontSize: '12px', fontWeight: '800', cursor: 'pointer',
-                        whiteSpace: 'nowrap', transition: 'all 0.18s ease',
-                      }}
-                    >
-                      Unenroll Demo
                     </button>
                   </div>
                 )}
@@ -1161,9 +1051,6 @@ export default function CourseDetailPage() {
 	                  ? `Material${topicItemCount !== 1 ? 's' : ''}`
 	                  : `Lecture${topicItemCount !== 1 ? 's' : ''}`
 
-	                const topicHasDemoContent = topic.content?.some((item: any) => item.isDemo);
-	                const isHighlightedDemoTopic = isTrialDemo && topicHasDemoContent;
-
 	                return (
 	                  <div key={topic.id} style={{ display: 'flex', flexDirection: 'column', gap: expandedTopics.has(topic.id) ? '16px' : '0' }}>
 	                    {/* Topic Accordion Header */}
@@ -1172,8 +1059,8 @@ export default function CourseDetailPage() {
 	                      alignItems: 'center',
 	                      width: '100%',
 	                      minHeight: '62px',
-	                      background: isHighlightedDemoTopic ? 'rgba(99, 102, 241, 0.07)' : 'var(--topic-header-bg)',
-	                      border: isHighlightedDemoTopic ? '1px solid rgba(99, 102, 241, 0.3)' : '1px solid var(--border)',
+	                      background: 'var(--topic-header-bg)',
+	                      border: '1px solid var(--border)',
 	                      borderRadius: '15px',
 	                      boxShadow: '0 6px 18px rgba(15, 23, 42, 0.04)',
 	                      overflow: 'hidden',
@@ -1186,7 +1073,7 @@ export default function CourseDetailPage() {
 	                        bottom: '10px',
 	                        width: '4px',
 	                        borderRadius: '0 4px 4px 0',
-	                        background: isHighlightedDemoTopic ? '#6366f1' : coursePalette.accent,
+	                        background: coursePalette.accent,
 	                        opacity: 0.9,
 	                      }} />
 	                      <button
@@ -1221,20 +1108,6 @@ export default function CourseDetailPage() {
 	                            }}>
 	                              {topic.title}
 	                            </span>
-	                            {isHighlightedDemoTopic && (
-	                              <span style={{
-	                                fontSize: '10px',
-	                                padding: '2px 8px',
-	                                borderRadius: '12px',
-	                                background: '#8b5cf6',
-	                                color: 'white',
-	                                fontWeight: '800',
-	                                letterSpacing: '0.03em',
-	                                whiteSpace: 'nowrap',
-	                              }}>
-	                                Demo Access
-	                              </span>
-	                            )}
 	                            {hasNewContent && renderNewBadge()}
 	                          </div>
 	                          <span style={{ fontSize: '12px', color: 'var(--topic-header-muted)', fontWeight: '700' }}>
@@ -1269,8 +1142,8 @@ export default function CourseDetailPage() {
                                     display: 'flex',
                                     alignItems: 'center',
                                     justifyContent: 'space-between',
-                                    background: isTrialDemo && item.isDemo ? 'rgba(99, 102, 241, 0.04)' : 'var(--surface-2)',
-                                    border: isTrialDemo && item.isDemo ? '1px solid rgba(99, 102, 241, 0.3)' : '1px solid var(--border)',
+                                    background: 'var(--surface-2)',
+                                    border: '1px solid var(--border)',
                                     borderRadius: '12px',
                                     padding: '10px 16px',
                                     gap: '6px',
@@ -1314,20 +1187,6 @@ export default function CourseDetailPage() {
                                         }}>
                                           NOTES ONLY
                                         </span>
-                                        {isTrialDemo && item.isDemo && (
-                                          <span style={{
-                                            background: '#8b5cf6',
-                                            color: 'white',
-                                            padding: '2px 6px',
-                                            borderRadius: '4px',
-                                            fontSize: '9px',
-                                            fontWeight: '800',
-                                            textTransform: 'uppercase',
-                                            letterSpacing: '0.05em'
-                                          }}>
-                                            Demo Access
-                                          </span>
-                                        )}
                                       {item.createdAt && (
                                         <span style={{ display: 'block', fontSize: '11px', color: 'var(--text-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                                           • Added on {new Date(item.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
@@ -1376,8 +1235,8 @@ export default function CourseDetailPage() {
                                     display: 'flex',
                                     alignItems: 'center',
                                     justifyContent: 'space-between',
-                                    background: isTrialDemo && item.isDemo ? 'rgba(99, 102, 241, 0.04)' : 'var(--surface-2)',
-                                    border: isTrialDemo && item.isDemo ? '1px solid rgba(99, 102, 241, 0.3)' : '1px solid var(--border)',
+                                    background: 'var(--surface-2)',
+                                    border: '1px solid var(--border)',
                                     borderRadius: '12px',
                                     padding: '8px 16px',
                                     gap: '16px',
@@ -1425,20 +1284,6 @@ export default function CourseDetailPage() {
                                         }}>
                                           {activeSectionTab === 'materials' ? 'NOTES' : 'NOTES ONLY'}
                                         </span>
-                                        {isTrialDemo && item.isDemo && (
-                                          <span style={{
-                                            background: '#8b5cf6',
-                                            color: 'white',
-                                            padding: '2px 6px',
-                                            borderRadius: '4px',
-                                            fontSize: '9px',
-                                            fontWeight: '800',
-                                            textTransform: 'uppercase',
-                                            letterSpacing: '0.05em'
-                                          }}>
-                                            Demo Access
-                                          </span>
-                                        )}
                                         {item.createdAt && (
                                           <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
                                             • Added on {new Date(item.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
@@ -1503,8 +1348,8 @@ export default function CourseDetailPage() {
                                   display: 'flex',
                                   flexDirection: 'column',
                                   justifyContent: 'space-between',
-                                  background: isTrialDemo && item.isDemo ? 'rgba(99, 102, 241, 0.04)' : 'var(--surface-2)',
-                                  border: isTrialDemo && item.isDemo ? '1px solid rgba(99, 102, 241, 0.3)' : '1px solid var(--border)',
+                                  background: 'var(--surface-2)',
+                                  border: '1px solid var(--border)',
                                   borderRadius: '12px',
                                   padding: '10px 16px',
                                   gap: '6px',
@@ -1555,20 +1400,6 @@ export default function CourseDetailPage() {
                                         }}>
                                           VIDEO
                                         </span>
-                                        {isTrialDemo && item.isDemo && (
-                                          <span style={{
-                                            background: '#8b5cf6',
-                                            color: 'white',
-                                            padding: '2px 6px',
-                                            borderRadius: '4px',
-                                            fontSize: '9px',
-                                            fontWeight: '800',
-                                            textTransform: 'uppercase',
-                                            letterSpacing: '0.05em'
-                                          }}>
-                                            Demo Access
-                                          </span>
-                                        )}
                                         {item.duration && (
                                           <span style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: '600' }}>
                                             • {item.duration}
@@ -1752,8 +1583,8 @@ export default function CourseDetailPage() {
                                         display: 'flex',
                                         alignItems: 'center',
                                         justifyContent: 'space-between',
-                                        background: isTrialDemo && item.isDemo ? 'rgba(99, 102, 241, 0.04)' : 'var(--surface-2)',
-                                        border: isTrialDemo && item.isDemo ? '1px solid rgba(99, 102, 241, 0.3)' : '1px solid var(--border)',
+                                        background: 'var(--surface-2)',
+                                        border: '1px solid var(--border)',
                                         borderRadius: '12px',
                                         padding: '8px 16px',
                                         gap: '16px',
@@ -1784,20 +1615,6 @@ export default function CourseDetailPage() {
                                             }}>
                                               {activeSectionTab === 'materials' ? 'NOTES' : 'NOTES ONLY'}
                                             </span>
-                                            {isTrialDemo && item.isDemo && (
-                                              <span style={{
-                                                background: '#8b5cf6',
-                                                color: 'white',
-                                                padding: '2px 6px',
-                                                borderRadius: '4px',
-                                                fontSize: '9px',
-                                                fontWeight: '800',
-                                                textTransform: 'uppercase',
-                                                letterSpacing: '0.05em'
-                                              }}>
-                                                Demo Access
-                                              </span>
-                                            )}
                                           </div>
                                         </div>
                                       </div>
@@ -2705,148 +2522,6 @@ export default function CourseDetailPage() {
             >
               Start Learning! 🚀
             </button>
-          </div>
-        </div>
-      )}
-
-      {/* Unenroll Thanks Modal */}
-      {showUnenrollThanksModal && (
-        <div style={{
-          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-          background: 'rgba(15, 23, 42, 0.8)', backdropFilter: 'blur(8px)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1001,
-          padding: '20px'
-        }} onClick={() => { setShowUnenrollThanksModal(false); router.push('/courses') }}>
-          <div style={{
-            background: 'var(--surface)', borderRadius: '32px', width: '100%', maxWidth: '440px',
-            boxShadow: '0 0 100px var(--neu-glow), 0 25px 50px -12px rgba(0, 0, 0, 0.5)',
-            padding: '40px', textAlign: 'center',
-            animation: 'modalSlideUp 0.3s ease-out',
-            position: 'relative'
-          }} onClick={e => e.stopPropagation()}>
-            <button 
-              onClick={() => { setShowUnenrollThanksModal(false); router.push('/courses') }}
-              style={{ position: 'absolute', top: '24px', right: '24px', background: 'var(--surface)', border: 'none', width: '36px', height: '36px', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'var(--text-secondary)', transition: 'all 0.2s', zIndex: 10 }}
-            >
-              <X size={20} />
-            </button>
-            <div style={{ fontSize: '64px', marginBottom: '16px' }}>👋</div>
-            <h2 style={{ fontSize: '22px', fontWeight: '800', color: 'var(--text-primary)', marginBottom: '12px', lineHeight: '1.3' }}>
-              Thanks for checking out the Demo!
-            </h2>
-            <p style={{ fontSize: '15px', color: 'var(--text-secondary)', lineHeight: '1.6', marginBottom: '24px' }}>
-              Now please unlock your Full course, your coursemates are waiting for you!
-            </p>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              <button
-                onClick={() => {
-                  setShowUnenrollThanksModal(false)
-                  setShowPurchaseModal(true)
-                }}
-                style={{
-                  width: '100%', padding: '16px', borderRadius: '18px', border: 'none',
-                  background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
-                  color: 'white', fontWeight: '700', fontSize: '15px', cursor: 'pointer',
-                  boxShadow: '0 4px 12px rgba(99, 102, 241, 0.3)',
-                  transition: 'all 0.2s'
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.transform = 'translateY(-2px)'
-                  e.currentTarget.style.boxShadow = '0 8px 16px rgba(99, 102, 241, 0.4)'
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.transform = 'translateY(0)'
-                  e.currentTarget.style.boxShadow = '0 4px 12px rgba(99, 102, 241, 0.3)'
-                }}
-              >
-                Let's go - unlock now 🚀
-              </button>
-              <button
-                onClick={() => {
-                  setShowUnenrollThanksModal(false)
-                  setShowUnenrollFeedbackModal(true)
-                }}
-                style={{
-                  width: '100%', padding: '16px', borderRadius: '18px',
-                  background: 'var(--surface)', color: 'var(--text-secondary)',
-                  border: '1.5px solid var(--border)', fontWeight: '700', fontSize: '15px', cursor: 'pointer',
-                  transition: 'all 0.2s'
-                }}
-              >
-                Later
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Unenroll Feedback Modal */}
-      {showUnenrollFeedbackModal && (
-        <div style={{
-          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-          background: 'rgba(15, 23, 42, 0.8)', backdropFilter: 'blur(8px)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1001,
-          padding: '20px'
-        }} onClick={() => { setShowUnenrollFeedbackModal(false); router.push('/courses') }}>
-          <div style={{
-            background: 'var(--surface)', borderRadius: '32px', width: '100%', maxWidth: '440px',
-            boxShadow: '0 0 100px var(--neu-glow), 0 25px 50px -12px rgba(0, 0, 0, 0.5)',
-            padding: '40px', textAlign: 'center',
-            animation: 'modalSlideUp 0.3s ease-out',
-            position: 'relative'
-          }} onClick={e => e.stopPropagation()}>
-            <button 
-              onClick={() => { setShowUnenrollFeedbackModal(false); router.push('/courses') }}
-              style={{ position: 'absolute', top: '24px', right: '24px', background: 'var(--surface)', border: 'none', width: '36px', height: '36px', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'var(--text-secondary)', transition: 'all 0.2s', zIndex: 10 }}
-            >
-              <X size={20} />
-            </button>
-            <div style={{ fontSize: '64px', marginBottom: '16px' }}>🤔</div>
-            <h2 style={{ fontSize: '22px', fontWeight: '800', color: 'var(--text-primary)', marginBottom: '12px', lineHeight: '1.3' }}>
-              Hey, is everything okay?
-            </h2>
-            <p style={{ fontSize: '15px', color: 'var(--text-secondary)', lineHeight: '1.6', marginBottom: '24px' }}>
-              Did we mess up? Please contact us - we can help you to find something better, or we can make it better! Let us understand.
-            </p>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              <button
-                onClick={() => {
-                  setShowUnenrollFeedbackModal(false)
-                  router.push('/support')
-                }}
-                style={{
-                  width: '100%', padding: '16px', borderRadius: '18px', border: 'none',
-                  background: 'linear-gradient(135deg, #10b981, #059669)',
-                  color: 'white', fontWeight: '700', fontSize: '15px', cursor: 'pointer',
-                  boxShadow: '0 4px 12px rgba(16, 185, 129, 0.3)',
-                  transition: 'all 0.2s'
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.transform = 'translateY(-2px)'
-                  e.currentTarget.style.boxShadow = '0 8px 16px rgba(16, 185, 129, 0.4)'
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.transform = 'translateY(0)'
-                  e.currentTarget.style.boxShadow = '0 4px 12px rgba(16, 185, 129, 0.3)'
-                }}
-              >
-                Contact Us 💬
-              </button>
-              <button
-                onClick={() => {
-                  setShowUnenrollFeedbackModal(false)
-                  router.push('/courses')
-                }}
-                style={{
-                  width: '100%', padding: '16px', borderRadius: '18px',
-                  background: 'var(--surface)', color: 'var(--text-secondary)',
-                  border: '1.5px solid var(--border)', fontWeight: '700', fontSize: '15px', cursor: 'pointer',
-                  transition: 'all 0.2s'
-                }}
-              >
-                Later
-              </button>
-            </div>
           </div>
         </div>
       )}

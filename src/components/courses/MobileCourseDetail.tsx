@@ -58,7 +58,6 @@ interface CourseDetail {
   color?: string
   expiresAt?: string
   teacherName?: string
-  isDemoEnabled?: boolean
   isDemo?: boolean
   enrollmentType?: string | null
   liveUpgradePrice?: number | null
@@ -164,8 +163,7 @@ export default function MobileCourseDetail({
     return new Date(course.expiresAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
   }, [course.expiresAt])
 
-  const isTrialDemo = course.enrollmentType === 'DEMO' && !!course.isDemoEnabled && !course.isDemo;
-  const isRecorded = ['RECORDED', 'FREE'].includes(course.enrollmentType || '') || isTrialDemo;
+  const isRecorded = ['RECORDED', 'FREE'].includes(course.enrollmentType || '');
   const isManager = role === 'ADMIN' || role === 'MANAGER'
   const heroBg = isRecorded
     ? 'linear-gradient(135deg, #4b5563 0%, #374151 50%, #111827 100%)'
@@ -175,7 +173,7 @@ export default function MobileCourseDetail({
   const badge = course.enrollmentType === 'LIVE' ? 'PRO'
     : course.enrollmentType === 'RECORDED' ? 'PLUS'
     : course.enrollmentType === 'FREE' ? 'FREE'
-    : isTrialDemo ? 'DEMO' : null;
+    : course.isDemo ? 'DEMO' : null;
 
   const mentorName = course.teacherName || course.instructorAssignments?.[0]?.instructor?.name || 'Mentor'
 
@@ -438,45 +436,6 @@ export default function MobileCourseDetail({
           </button>
         )}
 
-        {isTrialDemo && !isManager && (
-          <div style={{ display: 'flex', gap: '8px', marginTop: '14px', position: 'relative', zIndex: 2 }}>
-            {hasValidUpgradePrice && (
-              <button
-                onClick={() => setShowPurchaseModal?.(true)}
-                style={{
-                  flex: 1, padding: '10px 14px', borderRadius: '50px', border: 'none',
-                  background: '#ffffff', color: 'var(--accent)', fontSize: '12px', fontWeight: '800', cursor: 'pointer',
-                  boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-                }}
-              >
-                Unlock Full Course
-              </button>
-            )}
-            <button
-              onClick={async () => {
-                if (!confirm('Are you sure you want to unenroll from this demo?')) return
-                try {
-                  const res = await fetch(`/api/courses/${course.id}/unenroll`, { method: 'POST' })
-                  if (res.ok) {
-                    alert('Unenrolled from demo')
-                    router.push('/courses')
-                  } else {
-                    const data = await res.json()
-                    alert(data.error || 'Failed to unenroll')
-                  }
-                } catch { alert('Error unenrolling') }
-              }}
-              style={{
-                flex: hasValidUpgradePrice ? undefined : 1,
-                padding: '8px 16px', borderRadius: '50px', border: '1.5px solid rgba(239, 68, 68, 0.45)',
-                background: 'transparent', color: 'rgba(239, 68, 68, 0.95)', fontSize: '12px', fontWeight: '800', cursor: 'pointer',
-                transition: 'all 0.2s ease',
-              }}
-            >
-              Unenroll Demo
-            </button>
-          </div>
-        )}
       </div>
 
       {/* ──── CONTENT AREA ──── */}
@@ -631,7 +590,6 @@ function CurriculumTab({
     }
     return null
   })()
-  const isTrialDemo = course.enrollmentType === 'DEMO' && !!course.isDemoEnabled && !course.isDemo;
   const hasValidUpgradePrice = offering != null && (
     (offering.hasRecorded && offering.recordedDiscountPrice != null && offering.recordedDiscountPrice > 0) ||
     (offering.hasLive && offering.liveDiscountPrice != null && offering.liveDiscountPrice > 0)
@@ -669,14 +627,11 @@ function CurriculumTab({
           : null
         const topicProgress = topic.content.length > 0 ? Math.round((completed / topic.content.length) * 100) : 0
 
-        const topicHasDemoContent = topic.content?.some((item: any) => item.isDemo);
-        const isHighlightedDemoTopic = isTrialDemo && topicHasDemoContent;
-
         return (
           <div key={topic.id} className="mcd-topic-card" style={{
             background: 'var(--surface)',
             borderRadius: '18px',
-            border: isHighlightedDemoTopic ? '1px solid rgba(99, 102, 241, 0.3)' : '1px solid rgba(15,23,42,0.08)',
+            border: '1px solid rgba(15,23,42,0.08)',
             boxShadow: '0 4px 15px rgba(15,23,42,0.03)',
             overflow: 'hidden',
             marginBottom: '4px',
@@ -686,19 +641,17 @@ function CurriculumTab({
               style={{
                 width: '100%', display: 'flex', alignItems: 'center', gap: '12px',
                 padding: '14px 16px',
-                background: isHighlightedDemoTopic
-                  ? 'linear-gradient(135deg, rgba(99, 102, 241, 0.07), rgba(99, 102, 241, 0.04))'
-                  : 'linear-gradient(135deg, var(--surface-2), var(--surface))',
+                background: 'linear-gradient(135deg, var(--surface-2), var(--surface))',
                 border: 'none', cursor: 'pointer', fontFamily: 'inherit',
                 textAlign: 'left',
-                borderLeft: `4px solid ${isHighlightedDemoTopic ? '#6366f1' : accent}`,
+                borderLeft: `4px solid ${accent}`,
               }}
             >
               {/* Topic number */}
               <div style={{
                 width: '30px', height: '30px', borderRadius: '8px', flexShrink: 0,
-                background: isHighlightedDemoTopic ? 'rgba(99, 102, 241, 0.15)' : accentSoft,
-                color: isHighlightedDemoTopic ? '#6366f1' : accent,
+                background: accentSoft,
+                color: accent,
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 fontSize: '11px', fontWeight: 800,
               }}>
@@ -709,17 +662,6 @@ function CurriculumTab({
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontSize: '13.5px', fontWeight: 800, color: 'var(--text-primary)', lineHeight: 1.3, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: '6px' }}>
                   <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{topic.title}</span>
-                  {isHighlightedDemoTopic && (
-                    <span style={{
-                      background: '#8b5cf6',
-                      color: 'white', padding: '2px 6px', borderRadius: '12px',
-                      fontSize: '9px', fontWeight: '800', textTransform: 'uppercase',
-                      letterSpacing: '0.03em',
-                      flexShrink: 0
-                    }}>
-                      Demo Access
-                    </span>
-                  )}
                   {(((topic as any).createdAt && new Date().getTime() - new Date((topic as any).createdAt).getTime() < 24 * 60 * 60 * 1000) ||
                     topic.content?.some((item: any) => item.createdAt && new Date().getTime() - new Date(item.createdAt).getTime() < 24 * 60 * 60 * 1000)) && (
                     <span style={{
@@ -818,17 +760,6 @@ function CurriculumTab({
                               <div className="mcd-redesigned-info">
                                 <div className="mcd-redesigned-title-wrapper" style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
                                   <span className="mcd-redesigned-title">{item.title}</span>
-                                  {isTrialDemo && item.isDemo && (
-                                    <span style={{
-                                      background: '#8b5cf6',
-                                      color: 'white', padding: '2px 6px', borderRadius: '4px',
-                                      fontSize: '9px', fontWeight: '800', textTransform: 'uppercase',
-                                      letterSpacing: '0.05em',
-                                      flexShrink: 0
-                                    }}>
-                                      Demo Access
-                                    </span>
-                                  )}
                                   {isNew && <span className="mcd-redesigned-new-badge">NEW</span>}
                                 </div>
                                 <span className="mcd-redesigned-age">{uploadAge}</span>
@@ -842,7 +773,6 @@ function CurriculumTab({
                                 key={item.id}
                                 href={lectureHref(item.id)}
                                 className="mcd-redesigned-card"
-                                style={isTrialDemo && item.isDemo ? { background: 'rgba(99, 102, 241, 0.04)', border: '1px solid rgba(99, 102, 241, 0.3)' } : undefined}
                               >
                                 {cardInner}
                               </Link>
@@ -856,7 +786,7 @@ function CurriculumTab({
                                   setPendingDocument(item);
                                 }}
                                 className="mcd-redesigned-card"
-                                style={isTrialDemo && item.isDemo ? { textAlign: 'left', padding: 0, background: 'rgba(99, 102, 241, 0.04)', border: '1px solid rgba(99, 102, 241, 0.3)' } : { textAlign: 'left', padding: 0 }}
+                                style={{ textAlign: 'left', padding: 0 }}
                               >
                                 {cardInner}
                               </button>

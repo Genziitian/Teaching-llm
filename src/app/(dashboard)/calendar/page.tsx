@@ -139,7 +139,28 @@ function CalendarPageContent() {
   const year = currentDate?.getFullYear() || new Date().getFullYear()
   const month = currentDate?.getMonth() ?? new Date().getMonth()
   const monthName = currentDate ? currentDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) : ''
-  const isManager = user?.role === 'MANAGER'
+  const isManager = user?.role === 'MANAGER' || user?.role === 'ADMIN'
+  const [syncing, setSyncing] = useState(false)
+
+  async function handleSyncLiveSessions() {
+    try {
+      setSyncing(true)
+      const res = await fetch('/api/live-sessions/sync', { method: 'POST' })
+      if (!res.ok) {
+        const err = await res.json()
+        alert(err.error || 'Failed to sync live sessions')
+        return
+      }
+      const result = await res.json()
+      alert(`Success: Synced ${result.count ?? 0} live session(s) from calendar for today!`)
+      loadEvents()
+    } catch (error) {
+      console.error(error)
+      alert('Failed to sync live sessions')
+    } finally {
+      setSyncing(false)
+    }
+  }
 
   useEffect(() => {
     // Load user info, classes (courses only), and instructors once
@@ -662,6 +683,23 @@ function CalendarPageContent() {
           {isManager && (
             <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
               <button
+                onClick={handleSyncLiveSessions}
+                disabled={syncing}
+                style={{
+                  background: 'var(--surface-2)', color: 'var(--primary)', border: '1px solid var(--border)', cursor: syncing ? 'wait' : 'pointer',
+                  borderRadius: '50%', width: '40px', height: '40px',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  boxShadow: '4px 4px 10px var(--neu-dark), -4px -4px 10px var(--neu-light)',
+                  opacity: syncing ? 0.6 : 1,
+                }}
+                title="Sync today's scheduled classes to live sessions"
+                aria-label="Sync live sessions"
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ animation: syncing ? 'spin 1s linear infinite' : 'none' }}>
+                  <path d="M21.5 2v6h-6M2 22v-6h6M21.34 15.57a10 10 0 1 1-.92-10.45l3.08 2.88L2 22l-3.08-2.88a10 10 0 1 1 .92 10.45"/>
+                </svg>
+              </button>
+              <button
                 onClick={() => {
                   const dayDateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(mobileSelectedDay).padStart(2, '0')}`
                   openBulkManager(dayDateStr)
@@ -801,6 +839,31 @@ function CalendarPageContent() {
 
         {isManager && (
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <button
+              onClick={handleSyncLiveSessions}
+              disabled={syncing}
+              className="btn"
+              style={{
+                padding: '10px 20px',
+                fontWeight: '700',
+                background: 'var(--surface-2)',
+                color: 'var(--primary)',
+                border: '1px solid var(--border)',
+                borderRadius: '50px',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '8px',
+                cursor: syncing ? 'wait' : 'pointer',
+                boxShadow: '4px 4px 10px var(--neu-dark), -4px -4px 10px var(--neu-light)',
+                opacity: syncing ? 0.7 : 1,
+              }}
+              title="Sync today's scheduled classes to live sessions"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ animation: syncing ? 'spin 1s linear infinite' : 'none' }}>
+                <path d="M21.5 2v6h-6M2 22v-6h6M21.34 15.57a10 10 0 1 1-.92-10.45l3.08 2.88L2 22l-3.08-2.88a10 10 0 1 1 .92 10.45"/>
+              </svg>
+              {syncing ? 'Syncing...' : 'Sync Live Sessions'}
+            </button>
             <button
               onClick={() => openBulkManager()}
               className="btn"

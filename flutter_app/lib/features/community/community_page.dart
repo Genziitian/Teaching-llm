@@ -48,10 +48,16 @@ class CommunityPage extends ConsumerWidget {
                 child: Container(
                   padding: const EdgeInsets.all(18),
                   decoration: BoxDecoration(
-                    color: tokens.cardBg,
+                    color: const Color(0xFFF1F5F9),
                     borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: tokens.border),
-                    boxShadow: AppShadows.sm,
+                    border: Border.all(color: const Color(0xFFE2E8F0)),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.06),
+                        blurRadius: 12,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -59,7 +65,7 @@ class CommunityPage extends ConsumerWidget {
                       Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Expanded(
+                          const Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
@@ -68,15 +74,15 @@ class CommunityPage extends ConsumerWidget {
                                   style: TextStyle(
                                     fontSize: 17,
                                     fontWeight: FontWeight.w800,
-                                    color: tokens.textPrimary,
+                                    color: Color(0xFF0F172A),
                                   ),
                                 ),
-                                const SizedBox(height: 4),
+                                SizedBox(height: 4),
                                 Text(
                                   'Public posts and questions from everyone.',
                                   style: TextStyle(
                                     fontSize: 12.5,
-                                    color: tokens.textSecondary,
+                                    color: Color(0xFF475569),
                                     height: 1.35,
                                   ),
                                 ),
@@ -140,15 +146,15 @@ class CommunityPage extends ConsumerWidget {
                                 padding:
                                     const EdgeInsets.symmetric(vertical: 12),
                                 decoration: BoxDecoration(
-                                  color: tokens.surfaceSecondary,
+                                  color: Colors.white,
                                   borderRadius: BorderRadius.circular(12),
-                                  border: Border.all(color: tokens.border),
+                                  border: Border.all(color: const Color(0xFFCBD5E1)),
                                 ),
                                 alignment: Alignment.center,
-                                child: Text(
+                                child: const Text(
                                   'All Posts',
                                   style: TextStyle(
-                                    color: tokens.textPrimary,
+                                    color: Color(0xFF1E293B),
                                     fontSize: 13.5,
                                     fontWeight: FontWeight.w700,
                                   ),

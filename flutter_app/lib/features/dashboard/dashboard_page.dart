@@ -17,6 +17,7 @@ import '../prompts/admin_message_session.dart';
 import '../../core/services/contact_sync_service.dart';
 import '../../shared/widgets/app_topbar.dart';
 import '../../shared/widgets/section_head.dart';
+import '../support/support_providers.dart' show canAccessSupport;
 import '../../theme/app_colors.dart';
 import '../../theme/app_shadows.dart';
 import '../../theme/app_theme_tokens.dart';
@@ -562,18 +563,21 @@ class _BellButton extends StatelessWidget {
 }
 
 /// 4 Circular Action Buttons Card placed directly below Upcoming Session:
-/// - Free Resources, Support, Downloads, Settings
-class QuickActionGridCard extends StatelessWidget {
+/// - Free Resources, Support (or Calendar for Admin), Downloads, Settings
+class QuickActionGridCard extends ConsumerWidget {
   const QuickActionGridCard({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final cardBg = isDark ? const Color(0xFF13182C) : Colors.white;
     final borderColor =
         isDark ? const Color(0xFF262F4A) : const Color(0xFFE2E8F0);
     final textSecondary =
         isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B);
+
+    final role = ref.watch(authStateProvider).valueOrNull?.role;
+    final showSupport = canAccessSupport(role);
 
     final actions = [
       (
@@ -582,12 +586,20 @@ class QuickActionGridCard extends StatelessWidget {
         icon: Icons.bookmark_rounded,
         onTap: () => context.push('/free-resources'),
       ),
-      (
-        label: 'Support',
-        gradient: const [Color(0xFF0EA5E9), Color(0xFF0284C7)],
-        icon: Icons.headset_mic_rounded,
-        onTap: () => context.push('/support'),
-      ),
+      if (showSupport)
+        (
+          label: 'Support',
+          gradient: const [Color(0xFF0EA5E9), Color(0xFF0284C7)],
+          icon: Icons.headset_mic_rounded,
+          onTap: () => context.push('/support'),
+        )
+      else
+        (
+          label: 'Calendar',
+          gradient: const [Color(0xFF0EA5E9), Color(0xFF0284C7)],
+          icon: Icons.calendar_today_rounded,
+          onTap: () => context.push('/calendar'),
+        ),
       (
         label: 'Downloads',
         gradient: const [Color(0xFF10B981), Color(0xFF059669)],

@@ -184,10 +184,10 @@ export async function GET(
       const isActuallyDeleted = msg.isDeleted || msg.isSystemDeleted
       return {
         ...msg,
-        content: (isActuallyDeleted && session.role !== 'MANAGER') ? '' : msg.content,
+        content: (isActuallyDeleted && !canModerateCommunity(session.role)) ? '' : msg.content,
         sender: {
           ...msg.sender,
-          securityNumber: session.role === 'MANAGER' ? msg.sender.securityNumber : undefined,
+          securityNumber: canModerateCommunity(session.role) ? msg.sender.securityNumber : undefined,
         },
       }
     })

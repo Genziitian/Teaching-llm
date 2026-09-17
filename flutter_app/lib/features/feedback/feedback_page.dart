@@ -76,13 +76,23 @@ class FeedbackPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final user = ref.watch(authStateProvider).valueOrNull;
+    final role = (user?.role ?? 'STUDENT').toUpperCase();
+    final isStudent = role == 'STUDENT';
+    final currentUserId = user?.id;
+
     final enrolledAsync = ref.watch(enrolledCoursesProvider);
     final mineAsync = ref.watch(myFeedbackProvider);
-    final mine = mineAsync.valueOrNull ?? const [];
+    final allFeedback = mineAsync.valueOrNull ?? const [];
     final tokens = context.tokens;
 
+    // Filter out any legacy APP type feedback
+    final courseFeedbacks = allFeedback
+        .where((f) => f['courseId'] != 'APP' && f['type'] != 'APP')
+        .toList();
+
     final feedbackByCourseId = <String, Map<String, dynamic>>{};
-    for (final f in mine) {
+    for (final f in courseFeedbacks) {
       final cId = (f['courseId'] ?? (f['course'] as Map?)?['id'])?.toString();
       if (cId != null) {
         feedbackByCourseId[cId] = f;
@@ -90,12 +100,18 @@ class FeedbackPage extends ConsumerWidget {
     }
 
     final allCourses = enrolledAsync.valueOrNull ?? [];
-    final unrated = allCourses.where((c) => !feedbackByCourseId.containsKey(c['id']?.toString())).toList();
-    final feedbackList = mine;
+    // Only students have unrated pending courses
+    final unrated = isStudent
+        ? allCourses
+            .where((c) => !feedbackByCourseId.containsKey(c['id']?.toString()))
+            .toList()
+        : const <Map<String, dynamic>>[];
 
     return AppPageScaffold(
       title: 'Course Feedback',
-      subtitle: 'Rate your enrolled courses to help us improve',
+      subtitle: isStudent
+          ? 'Rate your enrolled courses to help us improve'
+          : 'Student reviews and course ratings',
       showBack: true,
       body: AppRefresh(
         onRefresh: () async {
@@ -136,120 +152,100 @@ class FeedbackPage extends ConsumerWidget {
             ],
           ),
           data: (courses) {
-            final appFeedback = feedbackByCourseId['APP'] ??
-                feedbackList.where((f) => f['type'] == 'APP' || f['courseId'] == 'APP').firstOrNull;
-
             return ListView(
               physics: const AlwaysScrollableScrollPhysics(),
               padding: const EdgeInsets.fromLTRB(0, 16, 0, 32),
               children: [
-                // ── 1. App Feedback Card ────────────────────────────────
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: _SectionHeader(
-                    title: 'APP EXPERIENCE',
-                    badge: appFeedback != null ? 'RATED' : 'NEW',
-                    badgeColor: appFeedback != null ? tokens.success : tokens.primaryAccent,
-                  ),
-                ),
-                const SizedBox(height: 10),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: InkWell(
-                    onTap: () => RateCourseSheet.show(
-                      context,
-                      courseId: 'APP',
-                      courseName: 'GenZ IITian Mobile App',
-                      courseSubject: 'App Experience & UI',
-                      existingFeedback: appFeedback,
+                // ── 1. Pending Course Reviews (STUDENTS ONLY) ───────────────────
+                if (isStudent && unrated.isNotEmpty) ...[
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: _SectionHeader(
+                      title: 'PENDING COURSE REVIEWS',
+                      badge: '${unrated.length}',
+                      badgeColor: tokens.warning,
                     ),
-                    borderRadius: BorderRadius.circular(16),
-                    child: Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [
-                            const Color(0xFF4F46E5).withOpacity(0.12),
-                            const Color(0xFF7C3AED).withOpacity(0.08),
-                          ],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        ),
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(
-                          color: const Color(0xFF6366F1).withOpacity(0.3),
-                          width: 1.2,
-                        ),
-                      ),
-                      child: Row(
-                        children: [
-                          Container(
-                            width: 46,
-                            height: 46,
-                            decoration: BoxDecoration(
-                              color: const Color(0xFF6366F1),
-                              borderRadius: BorderRadius.circular(14),
-                            ),
-                            child: const Icon(
-                              Icons.smartphone_rounded,
-                              color: Colors.white,
-                              size: 24,
-                            ),
+                  ),
+                  const SizedBox(height: 10),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: Column(
+                      children: [
+                        for (final c in unrated) ...[
+                          _CourseFeedbackRow(
+                            course: c,
+                            existingFeedback: feedbackByCourseId[c['id']?.toString()],
                           ),
-                          const SizedBox(width: 14),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'Rate GenZ IITian App',
-                                  style: TextStyle(
-                                    fontSize: 15.5,
-                                    fontWeight: FontWeight.w800,
-                                    color: tokens.textPrimary,
-                                  ),
-                                ),
-                                const SizedBox(height: 3),
-                                Text(
-                                  appFeedback != null
-                                      ? 'Tap to view or update your app review'
-                                      : 'Share your thoughts on design & performance',
-                                  style: TextStyle(
-                                    fontSize: 12.5,
-                                    color: tokens.textSecondary,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                            decoration: BoxDecoration(
-                              color: appFeedback != null
-                                  ? const Color(0xFF10B981).withOpacity(0.15)
-                                  : const Color(0xFF6366F1),
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            child: Text(
-                              appFeedback != null ? 'Reviewed' : 'Rate App',
-                              style: TextStyle(
-                                fontSize: 12.5,
-                                fontWeight: FontWeight.w800,
-                                color: appFeedback != null ? const Color(0xFF10B981) : Colors.white,
-                              ),
-                            ),
-                          ),
+                          const SizedBox(height: 10),
                         ],
-                      ),
+                      ],
                     ),
                   ),
-                ),
+                  const SizedBox(height: 24),
+                ],
 
-                const SizedBox(height: 28),
-
-                // ── 2. Course Feedback ──────────────────────────────────
-                if (courses.isEmpty)
+                // ── 2. Submitted Course Reviews ─────────────────────────────────
+                if (courseFeedbacks.isNotEmpty) ...[
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: _SectionHeader(
+                      title: isStudent ? 'YOUR SUBMITTED REVIEWS' : 'STUDENT COURSE REVIEWS',
+                      badge: '${courseFeedbacks.length}',
+                      badgeColor: tokens.success,
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: Column(
+                      children: [
+                        for (final f in courseFeedbacks) ...[
+                          _MyFeedbackRow(
+                            f: f,
+                            isStudent: isStudent,
+                            currentUserId: currentUserId,
+                            onTap: () {
+                              final course = f['course'] as Map<String, dynamic>?;
+                              final cId = (f['courseId'] ?? course?['id'])?.toString() ?? '';
+                              final cName = (course?['name'] as String?) ?? 'Course';
+                              RateCourseSheet.show(
+                                context,
+                                courseId: cId,
+                                courseName: cName,
+                                existingFeedback: f,
+                              );
+                            },
+                          ),
+                          const SizedBox(height: 10),
+                        ],
+                      ],
+                    ),
+                  ),
+                ] else if (!isStudent) ...[
+                  Padding(
+                    padding: const EdgeInsets.all(40),
+                    child: Column(
+                      children: [
+                        Icon(Icons.rate_review_outlined, color: tokens.textMuted, size: 44),
+                        const SizedBox(height: 12),
+                        Text(
+                          'No student reviews yet',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w800,
+                            color: tokens.textPrimary,
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          'When students submit feedback for courses, their ratings and reviews will appear here.',
+                          style: TextStyle(fontSize: 13, color: tokens.textSecondary),
+                          textAlign: TextAlign.center,
+                        ),
+                      ],
+                    ),
+                  ),
+                ] else if (courses.isEmpty) ...[
                   Padding(
                     padding: const EdgeInsets.all(40),
                     child: Column(
@@ -275,69 +271,7 @@ class FeedbackPage extends ConsumerWidget {
                         ),
                       ],
                     ),
-                  )
-                else ...[
-                  if (unrated.isNotEmpty) ...[
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 20),
-                      child: _SectionHeader(
-                        title: 'PENDING COURSE REVIEWS',
-                        badge: '${unrated.length}',
-                        badgeColor: tokens.warning,
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 20),
-                      child: Column(
-                        children: [
-                          for (final c in unrated) ...[
-                            _CourseFeedbackRow(
-                              course: c,
-                              existingFeedback: feedbackByCourseId[c['id']?.toString()],
-                            ),
-                            const SizedBox(height: 10),
-                          ],
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-                  ],
-                  if (feedbackList.where((f) => f['courseId'] != 'APP' && f['type'] != 'APP').isNotEmpty) ...[
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 20),
-                      child: _SectionHeader(
-                        title: 'SUBMITTED COURSE REVIEWS',
-                        badge: '${feedbackList.where((f) => f['courseId'] != 'APP' && f['type'] != 'APP').length}',
-                        badgeColor: tokens.success,
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 20),
-                      child: Column(
-                        children: [
-                          for (final f in feedbackList.where((f) => f['courseId'] != 'APP' && f['type'] != 'APP')) ...[
-                            _MyFeedbackRow(
-                              f: f,
-                              onTap: () {
-                                final course = f['course'] as Map<String, dynamic>?;
-                                final cId = (f['courseId'] ?? course?['id'])?.toString() ?? '';
-                                final cName = (course?['name'] as String?) ?? 'Course';
-                                RateCourseSheet.show(
-                                  context,
-                                  courseId: cId,
-                                  courseName: cName,
-                                  existingFeedback: f,
-                                );
-                              },
-                            ),
-                            const SizedBox(height: 10),
-                          ],
-                        ],
-                      ),
-                    ),
-                  ],
+                  ),
                 ],
               ],
             );
@@ -504,8 +438,16 @@ class _CourseFeedbackRow extends StatelessWidget {
 }
 
 class _MyFeedbackRow extends StatelessWidget {
-  const _MyFeedbackRow({required this.f, required this.onTap});
+  const _MyFeedbackRow({
+    required this.f,
+    required this.isStudent,
+    required this.currentUserId,
+    required this.onTap,
+  });
+
   final Map<String, dynamic> f;
+  final bool isStudent;
+  final String? currentUserId;
   final VoidCallback onTap;
 
   @override
@@ -514,62 +456,128 @@ class _MyFeedbackRow extends StatelessWidget {
     final rating = (f['teacherRating'] as num?)?.toInt() ?? 5;
     final comment = (f['comment'] as String?) ?? '';
     final course = f['course'] as Map<String, dynamic>?;
+    final student = f['student'] as Map<String, dynamic>?;
 
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(14),
-        child: Container(
-          padding: const EdgeInsets.all(14),
-          decoration: BoxDecoration(
-            color: tokens.cardBg,
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: tokens.border),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      (course?['name'] as String?) ?? 'Course',
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w800,
-                        color: tokens.textPrimary,
+    final studentId = f['studentId']?.toString() ?? student?['id']?.toString();
+    final canEdit = isStudent &&
+        (currentUserId == null || studentId == null || currentUserId == studentId);
+    final studentName = student?['name'] as String? ??
+        student?['securityNumber'] as String? ??
+        student?['email'] as String? ??
+        (f['studentName'] as String?);
+
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(14),
+      child: Container(
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: tokens.cardBg,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: tokens.border),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        (course?['name'] as String?) ?? 'Course',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w800,
+                          color: tokens.textPrimary,
+                        ),
                       ),
-                    ),
+                      if (!isStudent && studentName != null && studentName.isNotEmpty) ...[
+                        const SizedBox(height: 3),
+                        Row(
+                          children: [
+                            Icon(Icons.person_outline_rounded, size: 12, color: tokens.textSecondary),
+                            const SizedBox(width: 4),
+                            Text(
+                              'By $studentName',
+                              style: TextStyle(
+                                fontSize: 11.5,
+                                fontWeight: FontWeight.w600,
+                                color: tokens.textSecondary,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ],
                   ),
-                  Row(
-                    children: List.generate(
-                      5,
-                      (i) => Icon(
-                        i < rating ? Icons.star_rounded : Icons.star_outline_rounded,
-                        color: const Color(0xFFF59E0B),
-                        size: 16,
-                      ),
+                ),
+                Row(
+                  children: List.generate(
+                    5,
+                    (i) => Icon(
+                      i < rating ? Icons.star_rounded : Icons.star_outline_rounded,
+                      color: const Color(0xFFF59E0B),
+                      size: 16,
                     ),
-                  ),
-                ],
-              ),
-              if (comment.isNotEmpty) ...[
-                const SizedBox(height: 6),
-                Text(
-                  comment,
-                  style: TextStyle(
-                    fontSize: 13,
-                    height: 1.4,
-                    color: tokens.textSecondary,
                   ),
                 ),
               ],
+            ),
+            if (comment.isNotEmpty) ...[
+              const SizedBox(height: 8),
+              Text(
+                comment,
+                maxLines: 3,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: 13,
+                  height: 1.4,
+                  color: tokens.textSecondary,
+                ),
+              ),
             ],
-          ),
+            const SizedBox(height: 8),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: canEdit
+                        ? tokens.success.withOpacity(0.12)
+                        : tokens.textMuted.withOpacity(0.12),
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        canEdit ? Icons.edit_outlined : Icons.visibility_outlined,
+                        size: 12,
+                        color: canEdit ? tokens.success : tokens.textSecondary,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        canEdit ? 'EDIT' : 'VIEW',
+                        style: TextStyle(
+                          fontSize: 10.5,
+                          fontWeight: FontWeight.w800,
+                          color: canEdit ? tokens.success : tokens.textSecondary,
+                          letterSpacing: 0.5,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ],
         ),
       ),
     );
   }
 }
+
 

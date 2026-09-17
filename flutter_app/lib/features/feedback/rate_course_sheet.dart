@@ -137,6 +137,23 @@ class _RateCourseSheetState extends ConsumerState<RateCourseSheet> {
   Future<void> _submit() async {
     setState(() => _errorMessage = null);
 
+    // Security check: Only the student who submitted can update/submit feedback.
+    final user = ref.read(authStateProvider).valueOrNull;
+    final currentUserId = user?.id;
+    final role = (user?.role ?? 'STUDENT').toUpperCase();
+    final isStudent = role == 'STUDENT';
+    final feedbackStudentId = widget.existingFeedback?['studentId'] ??
+        widget.existingFeedback?['student']?['id'];
+    final bool isOwner = isStudent &&
+        (widget.existingFeedback == null ||
+            feedbackStudentId == null ||
+            feedbackStudentId == currentUserId);
+
+    if (!isOwner) {
+      if (mounted) Navigator.of(context).pop(false);
+      return;
+    }
+
     // Explicit validation check
     for (final cat in _categories) {
       if ((_ratings[cat.id] ?? 0) <= 0) {
@@ -219,6 +236,19 @@ class _RateCourseSheetState extends ConsumerState<RateCourseSheet> {
     final tokens = context.tokens;
     final isEdit = widget.existingFeedback != null;
 
+    final user = ref.watch(authStateProvider).valueOrNull;
+    final currentUserId = user?.id;
+    final role = (user?.role ?? 'STUDENT').toUpperCase();
+    final isStudent = role == 'STUDENT';
+    final feedbackStudentId = widget.existingFeedback?['studentId'] ??
+        widget.existingFeedback?['student']?['id'];
+    final bool isOwner = isStudent &&
+        (widget.existingFeedback == null ||
+            feedbackStudentId == null ||
+            feedbackStudentId == currentUserId);
+    final studentName = widget.existingFeedback?['student']?['name'] as String? ??
+        widget.existingFeedback?['student']?['securityNumber'] as String?;
+
     return Container(
       constraints: BoxConstraints(
         maxHeight: MediaQuery.of(context).size.height * 0.92,
@@ -252,14 +282,40 @@ class _RateCourseSheetState extends ConsumerState<RateCourseSheet> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        isEdit ? 'Edit Course Feedback' : 'Course Feedback',
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.w900,
-                          color: tokens.textPrimary,
-                          letterSpacing: -0.3,
-                        ),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              !isOwner
+                                  ? 'Course Feedback Details'
+                                  : (isEdit ? 'Edit Course Feedback' : 'Course Feedback'),
+                              style: TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.w900,
+                                color: tokens.textPrimary,
+                                letterSpacing: -0.3,
+                              ),
+                            ),
+                          ),
+                          if (!isOwner)
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                              decoration: BoxDecoration(
+                                color: tokens.surfaceSecondary,
+                                borderRadius: BorderRadius.circular(6),
+                                border: Border.all(color: tokens.border),
+                              ),
+                              child: const Text(
+                                'READ ONLY',
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w800,
+                                  letterSpacing: 0.5,
+                                  color: Color(0xFF94A3B8),
+                                ),
+                              ),
+                            ),
+                        ],
                       ),
                       const SizedBox(height: 3),
                       Text(
@@ -272,6 +328,17 @@ class _RateCourseSheetState extends ConsumerState<RateCourseSheet> {
                           color: Color(0xFF6366F1),
                         ),
                       ),
+                      if (!isOwner && studentName != null) ...[
+                        const SizedBox(height: 4),
+                        Text(
+                          'Submitted by: $studentName',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: tokens.textSecondary,
+                          ),
+                        ),
+                      ],
                     ],
                   ),
                 ),
@@ -356,7 +423,7 @@ class _RateCourseSheetState extends ConsumerState<RateCourseSheet> {
 
                   // 4 Categories
                   for (final cat in _categories) ...[
-                    _buildCategoryCard(cat, tokens),
+                    _buildCategoryCard(cat, tokens, isOwner),
                     const SizedBox(height: 16),
                   ],
 
@@ -382,87 +449,116 @@ class _RateCourseSheetState extends ConsumerState<RateCourseSheet> {
                       children: [
                         TextField(
                           controller: _commentCtrl,
+                          readOnly: !isOwner,
+                          enabled: isOwner,
                           minLines: 3,
                           maxLines: 6,
                           maxLength: 500,
-                          onChanged: (_) => setState(() {}),
+                          onChanged: isOwner ? (_) => setState(() {}) : null,
                           style: TextStyle(
                             color: tokens.textPrimary,
                             fontSize: 14.5,
                             height: 1.4,
                           ),
                           decoration: InputDecoration(
-                            hintText: 'Share more about what went well and what can be improved...',
+                            hintText: isOwner
+                                ? 'Share more about what went well and what can be improved...'
+                                : (_commentCtrl.text.isEmpty ? 'No comments provided.' : ''),
                             hintStyle: TextStyle(color: tokens.textMuted, fontSize: 13.5),
                             border: InputBorder.none,
                             isDense: true,
                             counterText: '',
                           ),
                         ),
-                        Align(
-                          alignment: Alignment.bottomRight,
-                          child: Text(
-                            '${_commentCtrl.text.length}/500',
-                            style: TextStyle(
-                              fontSize: 11.5,
-                              fontWeight: FontWeight.w600,
-                              color: tokens.textMuted,
+                        if (isOwner)
+                          Align(
+                            alignment: Alignment.bottomRight,
+                            child: Text(
+                              '${_commentCtrl.text.length}/500',
+                              style: TextStyle(
+                                fontSize: 11.5,
+                                fontWeight: FontWeight.w600,
+                                color: tokens.textMuted,
+                              ),
                             ),
                           ),
-                        ),
                       ],
                     ),
                   ),
 
                   const SizedBox(height: 24),
 
-                  // Submit Button
-                  SizedBox(
-                    height: 52,
-                    child: ElevatedButton(
-                      onPressed: _submitting ? null : _submit,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF4F46E5),
-                        foregroundColor: Colors.white,
-                        disabledBackgroundColor: const Color(0xFF4F46E5).withOpacity(0.6),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(14),
+                  // Submit / Close Button
+                  if (isOwner)
+                    SizedBox(
+                      height: 52,
+                      child: ElevatedButton(
+                        onPressed: _submitting ? null : _submit,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF4F46E5),
+                          foregroundColor: Colors.white,
+                          disabledBackgroundColor: const Color(0xFF4F46E5).withOpacity(0.6),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                          elevation: 0,
                         ),
-                        elevation: 0,
-                      ),
-                      child: _submitting
-                          ? const Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                SizedBox(
-                                  width: 22,
-                                  height: 22,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2.5,
-                                    color: Colors.white,
+                        child: _submitting
+                            ? const Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  SizedBox(
+                                    width: 22,
+                                    height: 22,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2.5,
+                                      color: Colors.white,
+                                    ),
                                   ),
-                                ),
-                                SizedBox(width: 12),
-                                Text(
-                                  'Submitting...',
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 15,
-                                    fontWeight: FontWeight.w800,
+                                  SizedBox(width: 12),
+                                  Text(
+                                    'Submitting...',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.w800,
+                                    ),
                                   ),
+                                ],
+                              )
+                            : Text(
+                                isEdit ? 'Update Feedback' : 'Submit Feedback',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w800,
                                 ),
-                              ],
-                            )
-                          : Text(
-                              isEdit ? 'Update Feedback' : 'Submit Feedback',
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 16,
-                                fontWeight: FontWeight.w800,
                               ),
-                            ),
+                      ),
+                    )
+                  else
+                    SizedBox(
+                      height: 50,
+                      child: ElevatedButton(
+                        onPressed: () => Navigator.of(context).pop(false),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: tokens.surfaceSecondary,
+                          foregroundColor: tokens.textPrimary,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(14),
+                            side: BorderSide(color: tokens.border),
+                          ),
+                          elevation: 0,
+                        ),
+                        child: const Text(
+                          'Close',
+                          style: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ),
                     ),
-                  ),
                 ],
               ),
             ),
@@ -472,7 +568,7 @@ class _RateCourseSheetState extends ConsumerState<RateCourseSheet> {
     );
   }
 
-  Widget _buildCategoryCard(_FeedbackCategory cat, AppThemeTokens tokens) {
+  Widget _buildCategoryCard(_FeedbackCategory cat, AppThemeTokens tokens, bool isOwner) {
     final currentVal = _ratings[cat.id] ?? 0;
 
     return Container(
@@ -541,12 +637,14 @@ class _RateCourseSheetState extends ConsumerState<RateCourseSheet> {
               final starNum = i + 1;
               final isFilled = starNum <= currentVal;
               return InkWell(
-                onTap: () {
-                  setState(() {
-                    _ratings[cat.id] = starNum;
-                    _errorMessage = null;
-                  });
-                },
+                onTap: isOwner
+                    ? () {
+                        setState(() {
+                          _ratings[cat.id] = starNum;
+                          _errorMessage = null;
+                        });
+                      }
+                    : null,
                 borderRadius: BorderRadius.circular(12),
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),

@@ -110,16 +110,57 @@ class LiveSessionsPage extends ConsumerStatefulWidget {
 
 class _LiveSessionsPageState extends ConsumerState<LiveSessionsPage> {
   int _tab = 0;
+  bool _syncing = false;
+
+  Future<void> _syncLiveSessions() async {
+    if (_syncing) return;
+    setState(() => _syncing = true);
+    try {
+      final api = ref.read(apiClientProvider);
+      await api.post<dynamic>('/api/live-sessions/sync');
+      if (mounted) {
+        ref.invalidate(liveSessionsProvider);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Live sessions synced successfully')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Sync failed: $e')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _syncing = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     final sessions = ref.watch(liveSessionsProvider);
     final tokens = context.tokens;
+    final user = ref.watch(authStateProvider).value;
+    final isManagerOrAdmin = user?.isManager == true || user?.isAdmin == true;
 
     return AppPageScaffold(
       title: 'Live Sessions',
       subtitle: 'Join classes & rewatch recordings',
       showBack: true,
+      right: isManagerOrAdmin
+          ? (_syncing
+              ? SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: tokens.primaryAccent,
+                  ),
+                )
+              : CircleIconBtn(
+                  icon: Icons.sync,
+                  onTap: _syncLiveSessions,
+                ))
+          : null,
       body: AppRefresh(
         onRefresh: () async => ref.invalidate(liveSessionsProvider),
         child: ListView(

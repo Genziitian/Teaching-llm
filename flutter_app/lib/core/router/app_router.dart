@@ -167,8 +167,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       final isPublic = publicPaths.contains(loc) || loc.startsWith('/company/');
 
       if (isSignedIn) {
-        if ((loc == '/support' || loc.startsWith('/support/')) &&
+        if ((loc == '/support' || loc.startsWith('/support/tickets')) &&
             !canAccessSupport(auth.value?.role)) return '/dashboard';
+        if (loc.startsWith('/support/user-reports') &&
+            auth.value?.role != 'MANAGER' && auth.value?.role != 'ADMIN') return '/dashboard';
         // Signed in but landed on a sign-in surface → push to dashboard.
         if (loc == '/login' || loc == '/welcome') {
           return '/dashboard';
