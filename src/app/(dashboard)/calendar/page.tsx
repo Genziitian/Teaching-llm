@@ -139,7 +139,7 @@ function CalendarPageContent() {
   const year = currentDate?.getFullYear() || new Date().getFullYear()
   const month = currentDate?.getMonth() ?? new Date().getMonth()
   const monthName = currentDate ? currentDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) : ''
-  const isManager = user?.role === 'MANAGER' || user?.role === 'ADMIN'
+  const isManager = user?.role === 'MANAGER'
   const [syncing, setSyncing] = useState(false)
 
   async function handleSyncLiveSessions() {

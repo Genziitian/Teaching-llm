@@ -140,13 +140,13 @@ class _LiveSessionsPageState extends ConsumerState<LiveSessionsPage> {
     final sessions = ref.watch(liveSessionsProvider);
     final tokens = context.tokens;
     final user = ref.watch(authStateProvider).value;
-    final isManagerOrAdmin = user?.isManager == true || user?.isAdmin == true;
+    final isManager = user?.isManager == true;
 
     return AppPageScaffold(
       title: 'Live Sessions',
       subtitle: 'Join classes & rewatch recordings',
       showBack: true,
-      right: isManagerOrAdmin
+      right: isManager
           ? (_syncing
               ? SizedBox(
                   width: 20,

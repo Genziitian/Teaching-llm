@@ -223,7 +223,7 @@ class _CalendarPageState extends ConsumerState<CalendarPage> {
   Widget build(BuildContext context) {
     final tokens = context.tokens;
     final user = ref.watch(authStateProvider).value;
-    final isManagerOrAdmin = user?.isManager == true || user?.isAdmin == true;
+    final isManager = user?.isManager == true;
     final eventsAsync = ref.watch(calendarEventsProvider(
       (year: _focused.year, month: _focused.month),
     ));
@@ -256,7 +256,7 @@ class _CalendarPageState extends ConsumerState<CalendarPage> {
       right: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          if (isManagerOrAdmin) ...[
+          if (isManager) ...[
             _syncing
                 ? SizedBox(
                     width: 20,
@@ -289,7 +289,7 @@ class _CalendarPageState extends ConsumerState<CalendarPage> {
                 ),
         ],
       ),
-      floatingActionButton: isManagerOrAdmin
+      floatingActionButton: isManager
           ? FloatingActionButton(
               onPressed: () => _showEventEditSheet(),
               backgroundColor: tokens.primaryAccent,
@@ -381,7 +381,7 @@ class _CalendarPageState extends ConsumerState<CalendarPage> {
                   else
                     ...eventsForSelected.map((e) => Padding(
                           padding: const EdgeInsets.only(bottom: 10),
-                          child: isManagerOrAdmin
+                          child: isManager
                               ? GestureDetector(
                                   onTap: () => _showEventEditSheet(existing: e),
                                   onLongPress: () {
