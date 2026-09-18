@@ -412,9 +412,13 @@ export default function SupportPage() {
   useEffect(() => {
     fetch('/api/auth/me').then(r => r.json()).then(d => {
       const role = d.user?.role || 'STUDENT'
+      if (role === 'ADMIN') {
+        router.replace('/dashboard')
+        return
+      }
       setUserRole(role)
       setUserId(d.user?.id || '')
-      if (role === 'MANAGER' || role === 'ADMIN') {
+      if (role === 'MANAGER') {
         fetch('/api/users/staff').then(r => r.json()).then((d: any) => {
           const staffList = d.staff || []
           setAdmins(staffList.filter((u: any) => u.role === 'MANAGER'))
@@ -423,7 +427,7 @@ export default function SupportPage() {
     })
     loadTickets()
     loadFaqs()
-  }, [loadTickets, loadFaqs])
+  }, [loadTickets, loadFaqs, router])
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -1166,38 +1170,40 @@ export default function SupportPage() {
             )}
 
             {/* Request a Feature Box */}
-            <div className="ticket-box-pad" style={{ width: '100%', borderRadius: '24px', background: 'var(--surface-2)', border: '1.5px solid var(--border)', boxShadow: 'inset 0 1px 0 var(--neu-glow)', textAlign: 'left' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div>
-                  <div style={{ fontSize: '12px', fontWeight: '800', color: '#8b5cf6', letterSpacing: '0.03em', marginBottom: '4px', textTransform: 'uppercase' }}>
-                    💡 Request a Feature
+            {userRole !== 'ADMIN' && (
+              <div className="ticket-box-pad" style={{ width: '100%', borderRadius: '24px', background: 'var(--surface-2)', border: '1.5px solid var(--border)', boxShadow: 'inset 0 1px 0 var(--neu-glow)', textAlign: 'left' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div>
+                    <div style={{ fontSize: '12px', fontWeight: '800', color: '#8b5cf6', letterSpacing: '0.03em', marginBottom: '4px', textTransform: 'uppercase' }}>
+                      💡 Request a Feature
+                    </div>
+                    <div style={{ fontSize: '13px', color: 'var(--text-secondary)', lineHeight: '1.5' }}>
+                      Have an idea? Tell us what you&apos;d love to see.
+                    </div>
                   </div>
-                  <div style={{ fontSize: '13px', color: 'var(--text-secondary)', lineHeight: '1.5' }}>
-                    Have an idea? Tell us what you&apos;d love to see.
-                  </div>
+                  <button onClick={() => setShowFeatureModal(true)} className="btn" style={{ borderRadius: '50px', padding: '10px 20px', background: 'linear-gradient(135deg, #8b5cf6, #6366f1)', color: '#fff', border: 'none', fontWeight: 700, fontSize: '13px', cursor: 'pointer' }}>+ Request</button>
                 </div>
-                <button onClick={() => setShowFeatureModal(true)} className="btn" style={{ borderRadius: '50px', padding: '10px 20px', background: 'linear-gradient(135deg, #8b5cf6, #6366f1)', color: '#fff', border: 'none', fontWeight: 700, fontSize: '13px', cursor: 'pointer' }}>+ Request</button>
-              </div>
-              {featureRequests.length > 0 && (
-                <div style={{ marginTop: '16px', borderTop: '1px solid rgba(139,92,246,0.15)', paddingTop: '14px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-                    <span style={{ fontSize: '13px', fontWeight: 800, color: 'var(--text-primary)' }}>Your Requests</span>
-                    <button onClick={() => setView('featureRequests')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#8b5cf6', fontSize: '12px', fontWeight: '700', fontFamily: 'inherit' }}>View All →</button>
-                  </div>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                    {featureRequests.slice(0, 3).map(fr => (
-                      <div key={fr.id} onClick={() => setView('featureRequests')} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '10px 12px', background: 'var(--surface)', borderRadius: '14px', cursor: 'pointer', border: '1px solid var(--border)' }}>
-                        <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: fr.status === 'PENDING' ? '#f59e0b' : fr.status === 'ACCEPTED' ? '#10b981' : fr.status === 'REJECTED' ? '#ef4444' : '#6366f1', flexShrink: 0 }} />
-                        <div style={{ flex: 1, minWidth: 0 }}>
-                          <div style={{ fontSize: '13px', fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: 'var(--text-primary)' }}>{fr.title}</div>
-                          <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>{fr.status} · {new Date(fr.createdAt).toLocaleDateString()}</div>
+                {featureRequests.length > 0 && (
+                  <div style={{ marginTop: '16px', borderTop: '1px solid rgba(139,92,246,0.15)', paddingTop: '14px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+                      <span style={{ fontSize: '13px', fontWeight: 800, color: 'var(--text-primary)' }}>Your Requests</span>
+                      <button onClick={() => setView('featureRequests')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#8b5cf6', fontSize: '12px', fontWeight: '700', fontFamily: 'inherit' }}>View All →</button>
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                      {featureRequests.slice(0, 3).map(fr => (
+                        <div key={fr.id} onClick={() => setView('featureRequests')} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '10px 12px', background: 'var(--surface)', borderRadius: '14px', cursor: 'pointer', border: '1px solid var(--border)' }}>
+                          <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: fr.status === 'PENDING' ? '#f59e0b' : fr.status === 'ACCEPTED' ? '#10b981' : fr.status === 'REJECTED' ? '#ef4444' : '#6366f1', flexShrink: 0 }} />
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <div style={{ fontSize: '13px', fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: 'var(--text-primary)' }}>{fr.title}</div>
+                            <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>{fr.status} · {new Date(fr.createdAt).toLocaleDateString()}</div>
+                          </div>
                         </div>
-                      </div>
-                    ))}
+                      ))}
+                    </div>
                   </div>
-                </div>
-              )}
-            </div>
+                )}
+              </div>
+            )}
 
             {userRole === 'MANAGER' && (
               <button onClick={loadChatHistory} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--primary)', fontSize: '13px', fontWeight: '700', fontFamily: 'inherit', display: 'inline-flex', alignItems: 'center', gap: '4px', alignSelf: 'center' }}>

@@ -210,15 +210,16 @@ https://class.genziitian.in/download''';
                   textColor: textPrimary,
                   onTap: () => context.push('/support'),
                 ),
-              _ActionRow(
-                icon: Icons.lightbulb_outline_rounded,
-                iconColor: const Color(0xFF8B5CF6),
-                iconBg: const Color(0xFF8B5CF6).withOpacity(0.12),
-                title: 'Request a Feature',
-                textColor: textPrimary,
-                onTap: () => context.push('/support/feature-requests'),
-              ),
-              if (role == 'MANAGER' || role == 'ADMIN')
+              if (role == 'STUDENT' || role == 'MANAGER')
+                _ActionRow(
+                  icon: Icons.lightbulb_outline_rounded,
+                  iconColor: const Color(0xFF8B5CF6),
+                  iconBg: const Color(0xFF8B5CF6).withOpacity(0.12),
+                  title: 'Request a Feature',
+                  textColor: textPrimary,
+                  onTap: () => context.push('/support/feature-requests'),
+                ),
+              if (role == 'MANAGER')
                 _ActionRow(
                   icon: Icons.flag_outlined,
                   iconColor: const Color(0xFFEF4444),
