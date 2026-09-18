@@ -1,7 +1,7 @@
 name: teaching_llm
 description: Native Android app for the GenZ IITian LMS — mirrors the mobile-web UX.
 publish_to: 'none'
-version: 2.7.12+48
+version: 2.7.13+49
 
 environment:
   sdk: '>=3.4.0 <4.0.0'
