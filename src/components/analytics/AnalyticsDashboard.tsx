@@ -111,18 +111,19 @@ export default function AnalyticsDashboard() {
     )
   }
 
+  const safeCoursesList = Array.isArray(coursesList) ? coursesList : []
   const disabledCourseIds = new Set(
-    (coursesList || [])
+    safeCoursesList
       .filter((c: any) => c.isDisabled || (c.expiresAt && new Date(c.expiresAt).getTime() <= Date.now()))
       .map((c: any) => c.id)
   )
   const disabledCourseNames = new Set(
-    (coursesList || [])
+    safeCoursesList
       .filter((c: any) => c.isDisabled || (c.expiresAt && new Date(c.expiresAt).getTime() <= Date.now()))
       .map((c: any) => (c.name || c.title || '').trim().toLowerCase())
   )
 
-  const activeCourses = (coursesList || []).filter((c: any) => !disabledCourseIds.has(c.id))
+  const activeCourses = safeCoursesList.filter((c: any) => !disabledCourseIds.has(c.id))
 
   const summary = data?.summary || {}
   const dailyTrend = data?.dailyTrend || []
@@ -177,7 +178,7 @@ export default function AnalyticsDashboard() {
   // Format hourly data for recharts
   const hourlyData = Array.from({ length: 24 }, (_, h) => ({
     hour: `${h}:00`,
-    Activity: (hourlyActivity[String(h)] as number) || 0,
+    Activity: (hourlyActivity && typeof hourlyActivity === 'object' ? (hourlyActivity[String(h)] as number) : 0) || 0,
   }))
 
   // Pie data

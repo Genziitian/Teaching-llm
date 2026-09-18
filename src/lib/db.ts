@@ -13,8 +13,13 @@ function getDatabaseUrl() {
 
   try {
     const url = new URL(databaseUrl)
+    // For Supabase pooler on port 6543 (transaction mode), pgbouncer=true is required by Prisma
+    if (url.port === '6543' && !url.searchParams.has('pgbouncer')) {
+      url.searchParams.set('pgbouncer', 'true')
+    }
     if (!url.searchParams.has('connection_limit')) {
-      url.searchParams.set('connection_limit', process.env.PRISMA_CONNECTION_LIMIT || '10')
+      // Default to 5 to prevent exceeding Supabase connection pool limits in multi-process/burst environments
+      url.searchParams.set('connection_limit', process.env.PRISMA_CONNECTION_LIMIT || '5')
     }
     if (!url.searchParams.has('pool_timeout')) {
       url.searchParams.set('pool_timeout', process.env.PRISMA_POOL_TIMEOUT || '10')

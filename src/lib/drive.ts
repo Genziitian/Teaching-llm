@@ -43,17 +43,33 @@ export function getDriveAuthMode(): DriveAuthMode {
 }
 
 let cachedSAClient: drive_v3.Drive | null = null
-function getServiceAccountClient(): drive_v3.Drive {
+function getServiceAccountClient(): drive_v3.Drive | null {
   if (cachedSAClient) return cachedSAClient
-  const email = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL!
-  const key = process.env.GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY!.replace(/\\n/g, '\n')
-  const auth = new google.auth.JWT({
-    email,
-    key,
-    scopes: ['https://www.googleapis.com/auth/drive.readonly'],
-  })
-  cachedSAClient = google.drive({ version: 'v3', auth })
-  return cachedSAClient
+  const email = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL
+  let key = process.env.GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY
+  if (!email || !key) return null
+
+  key = key.trim()
+  if (key.startsWith('"') && key.endsWith('"')) {
+    key = key.slice(1, -1)
+  }
+  if (key.startsWith("'") && key.endsWith("'")) {
+    key = key.slice(1, -1)
+  }
+  key = key.replace(/\\n/g, '\n').replace(/\r\n/g, '\n')
+
+  try {
+    const auth = new google.auth.JWT({
+      email,
+      key,
+      scopes: ['https://www.googleapis.com/auth/drive.readonly'],
+    })
+    cachedSAClient = google.drive({ version: 'v3', auth })
+    return cachedSAClient
+  } catch (err: any) {
+    console.warn('[drive] Failed to initialize Google Service Account client:', err?.message || err)
+    return null
+  }
 }
 
 /* Fetch a byte stream for the given file.
@@ -71,60 +87,64 @@ export async function fetchDriveFileStream(fileId: string, rangeHeader: string |
   if (mode === 'service-account') {
     const drive = getServiceAccountClient()
     
-    // First, check file metadata to see if it's a native Google Doc/Slide/Sheet
-    try {
-      const meta = await drive.files.get({
-        fileId,
-        fields: 'id, name, mimeType',
-        supportsAllDrives: true,
-      })
+    if (drive) {
+      // First, check file metadata to see if it's a native Google Doc/Slide/Sheet
+      try {
+        const meta = await drive.files.get({
+          fileId,
+          fields: 'id, name, mimeType',
+          supportsAllDrives: true,
+        })
 
-      const mime = meta.data.mimeType || ''
-      if (
-        mime.startsWith('application/vnd.google-apps.document') ||
-        mime.startsWith('application/vnd.google-apps.presentation') ||
-        mime.startsWith('application/vnd.google-apps.spreadsheet')
-      ) {
-        // Native Google Workspace file -> Export dynamically to PDF
-        const res = await drive.files.export(
-          { fileId, mimeType: 'application/pdf' },
-          { responseType: 'stream' }
-        )
-        const headers = pickHeaders((res as any).headers)
-        headers['content-type'] = 'application/pdf'
-        return {
-          stream: res.data as unknown as Readable,
-          status: (res as any).status || 200,
-          headers,
+        const mime = meta.data.mimeType || ''
+        if (
+          mime.startsWith('application/vnd.google-apps.document') ||
+          mime.startsWith('application/vnd.google-apps.presentation') ||
+          mime.startsWith('application/vnd.google-apps.spreadsheet')
+        ) {
+          // Native Google Workspace file -> Export dynamically to PDF
+          const res = await drive.files.export(
+            { fileId, mimeType: 'application/pdf' },
+            { responseType: 'stream' }
+          )
+          const headers = pickHeaders((res as any).headers)
+          headers['content-type'] = 'application/pdf'
+          return {
+            stream: res.data as unknown as Readable,
+            status: (res as any).status || 200,
+            headers,
+          }
         }
+      } catch (metaErr: any) {
+        // If metadata check fails, fall through to media download attempt
+        console.warn('[drive] metadata check error, falling back to direct download:', metaErr?.message)
       }
-    } catch (metaErr: any) {
-      // If metadata check fails, fall through to media download attempt
-      console.warn('[drive] metadata check error, falling back to direct download:', metaErr?.message)
-    }
 
-    try {
-      const res = await drive.files.get(
-        { fileId, alt: 'media', supportsAllDrives: true },
-        { responseType: 'stream', headers: requestHeaders }
-      )
-      return { stream: res.data as unknown as Readable, status: (res as any).status || 200, headers: pickHeaders((res as any).headers) }
-    } catch (err: any) {
-      // If Google rejects alt=media because it is a Google Doc, try export to PDF as fallback
-      if (err?.message?.includes('Export') || err?.code === 403 || err?.code === 400) {
-        const res = await drive.files.export(
-          { fileId, mimeType: 'application/pdf' },
-          { responseType: 'stream' }
+      try {
+        const res = await drive.files.get(
+          { fileId, alt: 'media', supportsAllDrives: true },
+          { responseType: 'stream', headers: requestHeaders }
         )
-        const headers = pickHeaders((res as any).headers)
-        headers['content-type'] = 'application/pdf'
-        return {
-          stream: res.data as unknown as Readable,
-          status: (res as any).status || 200,
-          headers,
+        return { stream: res.data as unknown as Readable, status: (res as any).status || 200, headers: pickHeaders((res as any).headers) }
+      } catch (err: any) {
+        // If Google rejects alt=media because it is a Google Doc, try export to PDF as fallback
+        if (err?.message?.includes('Export') || err?.code === 403 || err?.code === 400) {
+          try {
+            const res = await drive.files.export(
+              { fileId, mimeType: 'application/pdf' },
+              { responseType: 'stream' }
+            )
+            const headers = pickHeaders((res as any).headers)
+            headers['content-type'] = 'application/pdf'
+            return {
+              stream: res.data as unknown as Readable,
+              status: (res as any).status || 200,
+              headers,
+            }
+          } catch (_) {}
         }
+        console.warn('[drive] service-account download failed, falling back to public/api-key download:', err?.message)
       }
-      throw err
     }
   }
 
