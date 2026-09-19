@@ -9,6 +9,8 @@ import {
   assignAllUsersToPoolCategory,
   cleanupDuplicatePoolAssignments,
   fullResetAndRedistribute,
+  serialResetAndAssign,
+  DEFAULT_MEMBERS_PER_GROUP,
 } from '@/lib/notification-group-pool'
 import { getGoogleGroupMemberCounts, reconcileGoogleGroupMembers } from '@/lib/google-group-sync'
 
@@ -56,7 +58,7 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: 'categoryId and groupEmail are required' }, { status: 400 })
       }
 
-      const result = await addEmailToPoolCategory(prisma, categoryId, groupEmail, maxCapacity ? Number(maxCapacity) : 500)
+      const result = await addEmailToPoolCategory(prisma, categoryId, groupEmail, maxCapacity ? Number(maxCapacity) : DEFAULT_MEMBERS_PER_GROUP)
       return NextResponse.json({ success: true, message: 'Group Email added to Pool successfully', ...result })
     }
 
@@ -115,6 +117,15 @@ export async function POST(request: Request) {
     if (action === 'FULL_RESET') {
       const { categoryId } = body
       const result = await fullResetAndRedistribute(prisma, categoryId)
+      return NextResponse.json({ success: true, ...result })
+    }
+
+    if (action === 'SERIAL_RESET_ASSIGN') {
+      const { categoryId, membersPerGroup } = body
+      const result = await serialResetAndAssign(prisma, {
+        categoryId,
+        membersPerGroup: membersPerGroup != null ? Number(membersPerGroup) : DEFAULT_MEMBERS_PER_GROUP,
+      })
       return NextResponse.json({ success: true, ...result })
     }
 

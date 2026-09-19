@@ -4,6 +4,7 @@ import { useState } from 'react'
 import useSWR from 'swr'
 import Link from 'next/link'
 import UserAvatar from '@/components/UserAvatar'
+import MailAssignerPanel from '@/components/MailAssignerPanel'
 
 export default function ManageContactsPage() {
   const [search, setSearch] = useState('')
@@ -16,10 +17,12 @@ export default function ManageContactsPage() {
   const [alsoDeleteUserAccount, setAlsoDeleteUserAccount] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
   const [statusMessage, setStatusMessage] = useState<{ text: string; type: 'success' | 'error' } | null>(null)
+  const [mailAssignerOpen, setMailAssignerOpen] = useState(false)
 
   const fetcher = (url: string) => fetch(url).then(r => r.json())
   const { data: authData } = useSWR('/api/auth/me', fetcher)
   const isManager = authData?.user?.role === 'MANAGER'
+  const canUseMailAssigner = authData?.user?.role === 'MANAGER' || authData?.user?.role === 'ADMIN'
 
   const apiUrl = `/api/admin/contacts?search=${encodeURIComponent(search)}&studentId=${encodeURIComponent(studentFilter)}&page=${page}&limit=${limit}`
   const { data, error, isLoading, mutate } = useSWR(apiUrl, fetcher)
@@ -152,7 +155,29 @@ export default function ManageContactsPage() {
           </p>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+          {canUseMailAssigner && (
+            <button
+              onClick={() => setMailAssignerOpen(true)}
+              className="btn btn-secondary"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                padding: '9px 15px',
+                borderRadius: '999px',
+                fontWeight: '700',
+                fontSize: '13.5px',
+                background: 'linear-gradient(135deg, rgba(14,165,233,0.18), rgba(37,99,235,0.22))',
+                border: '1px solid rgba(56,189,248,0.45)',
+                color: '#7DD3FC',
+              }}
+              title="Assign serial numbers and notification Google Group pool emails (not course mails)"
+            >
+              ✉ Mail Assigner
+            </button>
+          )}
+
           <button
             onClick={() => mutate()}
             className="btn btn-secondary"
@@ -187,6 +212,8 @@ export default function ManageContactsPage() {
           </button>
         </div>
       </div>
+
+      <MailAssignerPanel open={mailAssignerOpen} onClose={() => setMailAssignerOpen(false)} />
 
       {/* ── Metric Stat Cards ─────────────────────────────────── */}
       <div style={{

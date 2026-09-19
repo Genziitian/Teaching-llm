@@ -63,6 +63,7 @@ model User {
   notifAnnouncementsEnabled Boolean                    @default(true)
   notifCommunityEnabled   Boolean                      @default(true)
   notificationGroupEmails String?
+  notificationGroupSerial Int?
   isNotificationGroupPending Boolean                  @default(false)
   pendingPoolCategoryIds  String?
   deletionRequestedAt     DateTime?
@@ -1048,7 +1049,7 @@ model NotificationPoolCategory {
 model NotificationPoolEmail {
   id           String   @id @default(cuid())
   groupEmail   String   @unique
-  maxCapacity  Int      @default(500)
+  maxCapacity  Int      @default(700)
   currentCount Int      @default(0)
   isActive     Boolean  @default(true)
   createdAt    DateTime @default(now())
