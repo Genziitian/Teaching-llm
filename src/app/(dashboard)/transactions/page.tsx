@@ -40,8 +40,22 @@ export default function TransactionsPage() {
   const [loading, setLoading] = useState(true)
   const loadingFact = useLoadingFact(loading)
   const [filter, setFilter] = useState('all')
+  const [selectedTerm, setSelectedTerm] = useState('all')
+  const [selectedExam, setSelectedExam] = useState('all')
+  const [termsList, setTermsList] = useState<Array<{ id: string; name: string; termKey: string; year: number }>>([])
 
   const [searchTerm, setSearchTerm] = useState('')
+
+  useEffect(() => {
+    fetch('/api/manage/academic-terms')
+      .then(r => r.json())
+      .then(d => {
+        if (d.success && Array.isArray(d.terms)) {
+          setTermsList(d.terms)
+        }
+      })
+      .catch(() => {})
+  }, [])
 
   const getTransactionCourses = (tx: Transaction) => {
     return tx.courses && tx.courses.length > 0 ? tx.courses : [tx.course]
@@ -60,11 +74,16 @@ export default function TransactionsPage() {
 
   useEffect(() => {
     setLoading(true)
-    fetch(`/api/transactions?filter=${filter}`)
+    const params = new URLSearchParams()
+    if (filter) params.set('filter', filter)
+    if (selectedTerm !== 'all') params.set('termId', selectedTerm)
+    if (selectedExam !== 'all') params.set('examCycle', selectedExam)
+
+    fetch(`/api/transactions?${params.toString()}`)
       .then(r => r.json())
       .then(d => { setData(d); setLoading(false) })
       .catch(() => setLoading(false))
-  }, [filter])
+  }, [filter, selectedTerm, selectedExam])
 
   const filteredTransactions = data?.transactions.filter(tx => {
     const s = searchTerm.toLowerCase()
@@ -248,6 +267,103 @@ export default function TransactionsPage() {
         </div>
       </div>
 
+      {/* Academic Term & Exam Stage Selectors */}
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        flexWrap: 'wrap',
+        gap: '12px',
+        marginBottom: '20px',
+        padding: '12px 18px',
+        background: 'var(--surface-2)',
+        borderRadius: '16px',
+        border: '1px solid var(--border)',
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
+          {/* Term Selector */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span style={{ fontSize: '11px', fontWeight: 800, textTransform: 'uppercase', color: 'var(--text-muted)', letterSpacing: '0.05em' }}>
+              Academic Term:
+            </span>
+            <select
+              value={selectedTerm}
+              onChange={e => setSelectedTerm(e.target.value)}
+              style={{
+                padding: '8px 14px',
+                borderRadius: '10px',
+                background: 'var(--surface)',
+                border: selectedTerm !== 'all' ? '1.5px solid #6366f1' : '1px solid var(--border)',
+                color: 'var(--text-primary)',
+                fontSize: '12px',
+                fontWeight: 600,
+                cursor: 'pointer',
+                outline: 'none',
+              }}
+            >
+              <option value="all">All Academic Terms</option>
+              {termsList.map(t => (
+                <option key={t.id} value={t.id}>
+                  {t.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Exam Stage Selector */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span style={{ fontSize: '11px', fontWeight: 800, textTransform: 'uppercase', color: 'var(--text-muted)', letterSpacing: '0.05em' }}>
+              Exam Stage:
+            </span>
+            <select
+              value={selectedExam}
+              onChange={e => setSelectedExam(e.target.value)}
+              style={{
+                padding: '8px 14px',
+                borderRadius: '10px',
+                background: 'var(--surface)',
+                border: selectedExam !== 'all' ? '1.5px solid #6366f1' : '1px solid var(--border)',
+                color: 'var(--text-primary)',
+                fontSize: '12px',
+                fontWeight: 600,
+                cursor: 'pointer',
+                outline: 'none',
+              }}
+            >
+              <option value="all">All Exam Stages</option>
+              <option value="QUIZ_1">Quiz 1</option>
+              <option value="QUIZ_2">Quiz 2</option>
+              <option value="END_TERM">End Term</option>
+              <option value="FULL_TERM">Full Term</option>
+            </select>
+          </div>
+        </div>
+
+        {(selectedTerm !== 'all' || selectedExam !== 'all') && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--accent)' }}>
+              Filtering revenue by selected term / exam
+            </span>
+            <button
+              type="button"
+              onClick={() => { setSelectedTerm('all'); setSelectedExam('all') }}
+              style={{
+                background: 'rgba(239, 68, 68, 0.1)',
+                border: '1px solid rgba(239, 68, 68, 0.3)',
+                padding: '5px 12px',
+                borderRadius: '8px',
+                color: '#ef4444',
+                fontSize: '11px',
+                fontWeight: 700,
+                cursor: 'pointer',
+              }}
+            >
+              Reset Filters
+            </button>
+          </div>
+        )}
+      </div>
+
       {/* Table & Card List Views */}
       {loading ? (
         <div className="card" style={{ padding: '40px', textAlign: 'center' }}>
@@ -260,7 +376,12 @@ export default function TransactionsPage() {
         </div>
       ) : !filteredTransactions.length ? (
         <div className="card" style={{ padding: '60px', textAlign: 'center' }}>
-          <div style={{ fontSize: '48px', marginBottom: '16px' }}>🔍</div>
+          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '16px', color: 'var(--text-muted)' }}>
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <circle cx="11" cy="11" r="8"/>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+            </svg>
+          </div>
           <h3 style={{ color: 'var(--text-secondary)', fontWeight: '600' }}>No matching transactions</h3>
           <p style={{ color: 'var(--text-muted)', fontSize: '14px' }}>Try a different search term or filter.</p>
         </div>
