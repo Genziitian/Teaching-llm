@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useCallback, useRef } from 'react'
+import { useState } from 'react'
 import useSWR from 'swr'
 import {
   AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell,
@@ -23,9 +23,10 @@ const PIE_COLORS = ['#6366f1', '#10b981', '#f59e0b', '#ec4899', '#0ea5e9', '#8b5
 
 export default function AnalyticsDashboard() {
   const [range, setRange] = useState<RangeKey>('7d')
-  const [countdown, setCountdown] = useState('')
   const [selectedCourse, setSelectedCourse] = useState<string>('all')
   const [selectedTerm, setSelectedTerm] = useState<string>('all')
+  const [isSyncing, setIsSyncing] = useState(false)
+  const [syncStatus, setSyncStatus] = useState<string | null>(null)
 
   const { data, isLoading, mutate } = useSWR(
     `/api/analytics/summary?range=${range}&courseId=${selectedCourse}`,
@@ -36,47 +37,31 @@ export default function AnalyticsDashboard() {
   const { data: feedbackStats } = useSWR('/api/analytics/feedback', fetcher)
   const { data: coursesList } = useSWR('/api/courses', fetcher)
 
-  // ─── Timer Logic ───────────────────────────────────────────────────
-  const isUpdatingRef = useRef(false)
-
-  const computeCountdown = useCallback(() => {
-    if (!data?.timer?.lastUpdatedAt) return 'No data yet'
-    const last = new Date(data.timer.lastUpdatedAt).getTime()
-    const intervalMs = (data.timer.cronIntervalHours || 24) * 60 * 60 * 1000
-    const nextUpdate = last + intervalMs
-    const diff = nextUpdate - Date.now()
-
-    if (diff <= 0) {
-      if (!isUpdatingRef.current) {
-        mutate()
+  // ─── Force Sync Logic ───────────────────────────────────────────────
+  const handleForceSync = async () => {
+    if (isSyncing) return
+    setIsSyncing(true)
+    setSyncStatus(null)
+    try {
+      const res = await fetch('/api/analytics/compute', {
+        method: 'POST',
+        credentials: 'include',
+      })
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}))
+        throw new Error(errData.error || 'Failed to sync analytics')
       }
-      return 'Updating...'
+      await mutate()
+      setSyncStatus('Data synced')
+      setTimeout(() => setSyncStatus(null), 3500)
+    } catch (err: any) {
+      console.error('Failed to sync analytics:', err)
+      setSyncStatus('Sync failed')
+      setTimeout(() => setSyncStatus(null), 3500)
+    } finally {
+      setIsSyncing(false)
     }
-
-    const hours = Math.floor(diff / (1000 * 60 * 60))
-    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60))
-    const seconds = Math.floor((diff % (1000 * 60)) / 1000)
-    return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`
-  }, [data, mutate])
-
-  useEffect(() => {
-    const timer = setInterval(() => setCountdown(computeCountdown()), 1000)
-    setCountdown(computeCountdown())
-    return () => clearInterval(timer)
-  }, [computeCountdown])
-
-  // ─── Auto-Trigger Compute if Stale ─────────────────────────────────
-  useEffect(() => {
-    if (countdown === 'Updating...' && !isUpdatingRef.current) {
-      isUpdatingRef.current = true
-      fetch('/api/analytics/compute', { method: 'POST' })
-        .then(() => mutate())
-        .finally(() => {
-          // Re-enable trigger after 30s just in case
-          setTimeout(() => { isUpdatingRef.current = false }, 30000)
-        })
-    }
-  }, [countdown, mutate])
+  }
 
   // ─── Shared Styles ─────────────────────────────────────────────────
   const neuCard: React.CSSProperties = {
@@ -262,17 +247,59 @@ export default function AnalyticsDashboard() {
             ))}
           </select>
         </div>
-        <div style={{
-          display: 'flex', alignItems: 'center', gap: '10px',
-          padding: '10px 20px', borderRadius: '50px', background: 'var(--surface-2)',
-          boxShadow: 'inset 3px 3px 6px var(--neu-dark), inset -3px -3px 6px var(--neu-light)',
-        }}>
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6366f1" strokeWidth="2.5">
-            <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
-          </svg>
-          <span style={{ fontSize: '12px', fontWeight: 800, color: '#6366f1', fontVariantNumeric: 'tabular-nums' }}>
-            Next update in {countdown}
-          </span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          {syncStatus ? (
+            <span style={{
+              fontSize: '11px',
+              fontWeight: 700,
+              color: syncStatus.includes('failed') ? 'var(--danger, #ef4444)' : '#10b981',
+            }}>
+              {syncStatus}
+            </span>
+          ) : data?.timer?.lastUpdatedAt ? (
+            <span style={{ fontSize: '11px', fontWeight: 600, color: '#9999b0' }}>
+              Synced {new Date(data.timer.lastUpdatedAt).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}
+            </span>
+          ) : null}
+          <button
+            type="button"
+            onClick={handleForceSync}
+            disabled={isSyncing}
+            title="Force refresh and recompute analytics data immediately"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '8px',
+              padding: '10px 20px',
+              borderRadius: '50px',
+              background: isSyncing ? 'var(--surface-2)' : '#6366f1',
+              color: '#ffffff',
+              border: 'none',
+              fontSize: '12px',
+              fontWeight: 800,
+              cursor: isSyncing ? 'not-allowed' : 'pointer',
+              transition: 'all 0.2s ease',
+              boxShadow: isSyncing ? 'none' : '0 4px 14px rgba(99, 102, 241, 0.35)',
+              outline: 'none',
+            }}
+          >
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              style={{
+                animation: isSyncing ? 'spin 1s linear infinite' : 'none',
+              }}
+            >
+              <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/>
+            </svg>
+            <span>{isSyncing ? 'Syncing...' : 'Sync Data'}</span>
+          </button>
         </div>
       </div>
 
