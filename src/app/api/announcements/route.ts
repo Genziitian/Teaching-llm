@@ -14,13 +14,12 @@ export async function GET() {
     }
 
     const accessibleCourseIds = await getAccessibleCourseIds(session.userId, session.role)
-    const retentionCutoff = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
 
-    // MANAGER sees all announcements; others see global + their enrolled course announcements
+    // MANAGER sees all announcements; others see global + their enrolled course announcements.
+    // No date cutoff here — matches dashboard widget; cron handles hard-delete of old rows.
     const where = accessibleCourseIds === null
-      ? { createdAt: { gte: retentionCutoff } }
+      ? {}
       : {
-          createdAt: { gte: retentionCutoff },
           OR: [
             { courseId: null },
             { courseId: { in: accessibleCourseIds } },
