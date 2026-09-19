@@ -886,124 +886,121 @@ export function ManagePageInner({ forcedTab }: ManagePageInnerProps = {}) {
       case 'courses':
         return (
           <>
-            <div className="form-group"><label className="form-label">Name *</label><input className="form-input" value={f.name || ''} onChange={e => set('name', e.target.value)} placeholder="Course name" /></div>
-            <div className="form-group"><label className="form-label">Subject</label><input className="form-input" value={f.subject || ''} onChange={e => set('subject', e.target.value)} placeholder="e.g. Computer Science" /></div>
-            <div className="form-group">
-              <label className="form-label">Course Icon Type</label>
-              <button
-                type="button"
-                onClick={() => setCourseIconPickerOpen(true)}
-                style={{
-                  width: '100%',
-                  minHeight: '54px',
-                  borderRadius: '14px',
-                  border: '1.5px solid var(--border)',
-                  background: 'var(--surface)',
-                  color: 'var(--text-primary)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  gap: '12px',
-                  padding: '10px 12px',
-                  cursor: 'pointer',
-                  fontFamily: 'inherit',
-                  textAlign: 'left',
-                }}
-              >
-                <span style={{ display: 'flex', alignItems: 'center', gap: '12px', minWidth: 0 }}>
-                  <CourseIconBadge type={f.courseIconType || f.icon} size={38} iconSize={20} radius={12} />
-                  <span style={{ minWidth: 0 }}>
-                    <span style={{ display: 'block', fontSize: '13px', fontWeight: 800, color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                      {getCourseIconOption(f.courseIconType || f.icon).label}
-                    </span>
-                    <span style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: 'var(--text-muted)', marginTop: '2px' }}>
-                      Shared website and app icon
+            <style>{`
+              .course-edit-grid {
+                display: grid;
+                gap: 12px;
+              }
+              .course-edit-grid.cols-2 { grid-template-columns: 1fr 1fr; }
+              .course-edit-grid.cols-2-name { grid-template-columns: 1.4fr 1fr; }
+              .course-edit-grid.cols-2-teacher { grid-template-columns: 1fr 1.2fr; align-items: end; }
+              .course-edit-grid.cols-2-term { grid-template-columns: 1.2fr 1fr; align-items: start; }
+              .course-edit-grid.cols-2-price { grid-template-columns: 0.9fr 1.4fr; align-items: start; }
+              .course-edit-grid.cols-3 { grid-template-columns: 1fr 1fr 1fr; }
+              .course-edit-flags {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 10px;
+                padding: 10px 12px;
+                border-radius: 12px;
+                background: var(--bg);
+                border: 1px solid var(--border-light);
+              }
+              @media (max-width: 720px) {
+                .course-edit-grid.cols-2,
+                .course-edit-grid.cols-2-name,
+                .course-edit-grid.cols-2-teacher,
+                .course-edit-grid.cols-2-term,
+                .course-edit-grid.cols-2-price,
+                .course-edit-grid.cols-3,
+                .course-edit-flags {
+                  grid-template-columns: 1fr !important;
+                }
+              }
+            `}</style>
+
+            {/* Row: Name + Subject */}
+            <div className="course-edit-grid cols-2-name">
+              <div className="form-group" style={{ margin: 0 }}>
+                <label className="form-label">Name *</label>
+                <input className="form-input" value={f.name || ''} onChange={e => set('name', e.target.value)} placeholder="Course name" />
+              </div>
+              <div className="form-group" style={{ margin: 0 }}>
+                <label className="form-label">Subject</label>
+                <input className="form-input" value={f.subject || ''} onChange={e => set('subject', e.target.value)} placeholder="e.g. Computer Science" />
+              </div>
+            </div>
+
+            {/* Row: Teacher + Icon */}
+            <div className="course-edit-grid cols-2-teacher">
+              <div className="form-group" style={{ margin: 0 }}>
+                <label className="form-label">Teacher Name</label>
+                <input className="form-input" value={f.teacherName || ''} onChange={e => set('teacherName', e.target.value)} placeholder="Manual teacher name" />
+              </div>
+              <div className="form-group" style={{ margin: 0 }}>
+                <label className="form-label">Course Icon</label>
+                <button
+                  type="button"
+                  onClick={() => setCourseIconPickerOpen(true)}
+                  style={{
+                    width: '100%',
+                    minHeight: '42px',
+                    borderRadius: '12px',
+                    border: '1.5px solid var(--border)',
+                    background: 'var(--bg)',
+                    color: 'var(--text-primary)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    gap: '10px',
+                    padding: '6px 10px',
+                    cursor: 'pointer',
+                    fontFamily: 'inherit',
+                    textAlign: 'left',
+                  }}
+                >
+                  <span style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0 }}>
+                    <CourseIconBadge type={f.courseIconType || f.icon} size={32} iconSize={16} radius={10} />
+                    <span style={{ minWidth: 0 }}>
+                      <span style={{ display: 'block', fontSize: '13px', fontWeight: 700, color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                        {getCourseIconOption(f.courseIconType || f.icon).label}
+                      </span>
+                      <span style={{ display: 'block', fontSize: '10px', fontWeight: 600, color: 'var(--text-muted)', marginTop: '1px' }}>
+                        Website &amp; app icon
+                      </span>
                     </span>
                   </span>
-                </span>
-                <span style={{ color: 'var(--primary)', fontSize: '12px', fontWeight: 900, flexShrink: 0 }}>
-                  Choose
-                </span>
-              </button>
+                  <span style={{ color: 'var(--primary)', fontSize: '12px', fontWeight: 800, flexShrink: 0 }}>
+                    Choose
+                  </span>
+                </button>
+              </div>
             </div>
-            <div className="form-group"><label className="form-label">Teacher Name</label><input className="form-input" value={f.teacherName || ''} onChange={e => set('teacherName', e.target.value)} placeholder="Manual teacher name" /></div>
-            <div className="form-group">
-              <label className="form-label" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <span>Google Group Email (Recorded / Default Batch)</span>
-                {(() => {
-                  const emails = (f.googleGroupEmail || '').split(',').filter((e: string) => e.trim());
-                  const count = Math.max(emails.length, 1);
-                  return count < 5 ? (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        const current = (f.googleGroupEmail || '').split(',').filter((e: string) => e.trim());
-                        if (current.length === 0) current.push('');
-                        current.push('');
-                        set('googleGroupEmail', current.join(','));
-                      }}
-                      style={{
-                        background: 'var(--accent)',
-                        color: '#fff',
-                        border: 'none',
-                        borderRadius: '50%',
-                        width: '22px',
-                        height: '22px',
-                        fontSize: '16px',
-                        lineHeight: '1',
-                        cursor: 'pointer',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        flexShrink: 0,
-                      }}
-                      title="Add another Google Group Email (max 5)"
-                    >+</button>
-                  ) : null;
-                })()}
-              </label>
-              {(() => {
-                const raw = f.googleGroupEmail || '';
-                const emails = raw.split(',');
-                if (emails.length === 0 || (emails.length === 1 && emails[0] === '')) {
-                  return (
-                    <input
-                      className="form-input"
-                      type="email"
-                      value=""
-                      onChange={e => set('googleGroupEmail', e.target.value.toLowerCase())}
-                      placeholder="recorded-batch@yourdomain.com"
-                    />
-                  );
-                }
-                return emails.map((email: string, idx: number) => (
-                  <div key={idx} style={{ display: 'flex', gap: '6px', alignItems: 'center', marginBottom: idx < emails.length - 1 ? '6px' : '0' }}>
-                    <input
-                      className="form-input"
-                      type="email"
-                      value={email.trim()}
-                      onChange={e => {
-                        const updated = [...emails];
-                        updated[idx] = e.target.value.toLowerCase();
-                        set('googleGroupEmail', updated.join(','));
-                      }}
-                      placeholder={`recorded-batch${idx + 1}@yourdomain.com`}
-                      style={{ flex: 1 }}
-                    />
-                    {emails.length > 1 && (
+
+            {/* Row: Google Group emails side by side */}
+            <div className="course-edit-grid cols-2">
+              <div className="form-group" style={{ margin: 0 }}>
+                <label className="form-label" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <span>Google Group (Recorded / Default)</span>
+                  {(() => {
+                    const emails = (f.googleGroupEmail || '').split(',').filter((e: string) => e.trim());
+                    const count = Math.max(emails.length, 1);
+                    return count < 5 ? (
                       <button
                         type="button"
                         onClick={() => {
-                          const updated = emails.filter((_: string, i: number) => i !== idx);
-                          set('googleGroupEmail', updated.length > 0 ? updated.join(',') : '');
+                          const current = (f.googleGroupEmail || '').split(',').filter((e: string) => e.trim());
+                          if (current.length === 0) current.push('');
+                          current.push('');
+                          set('googleGroupEmail', current.join(','));
                         }}
                         style={{
-                          background: 'transparent',
-                          color: 'var(--danger)',
-                          border: '1px solid var(--danger)',
+                          background: 'var(--accent)',
+                          color: '#fff',
+                          border: 'none',
                           borderRadius: '50%',
-                          width: '22px',
-                          height: '22px',
+                          width: '20px',
+                          height: '20px',
                           fontSize: '14px',
                           lineHeight: '1',
                           cursor: 'pointer',
@@ -1012,78 +1009,139 @@ export function ManagePageInner({ forcedTab }: ManagePageInnerProps = {}) {
                           justifyContent: 'center',
                           flexShrink: 0,
                         }}
-                        title="Remove this email"
-                      >×</button>
-                    )}
-                  </div>
-                ));
-              })()}
-              <p style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '4px' }}>
-                Default group. If Live Group Email is empty below, ALL students (Live & Recorded) go here.
-              </p>
+                        title="Add another Google Group Email (max 5)"
+                      >+</button>
+                    ) : null;
+                  })()}
+                </label>
+                {(() => {
+                  const raw = f.googleGroupEmail || '';
+                  const emails = raw.split(',');
+                  if (emails.length === 0 || (emails.length === 1 && emails[0] === '')) {
+                    return (
+                      <input
+                        className="form-input"
+                        type="email"
+                        value=""
+                        onChange={e => set('googleGroupEmail', e.target.value.toLowerCase())}
+                        placeholder="recorded-batch@yourdomain.com"
+                      />
+                    );
+                  }
+                  return emails.map((email: string, idx: number) => (
+                    <div key={idx} style={{ display: 'flex', gap: '6px', alignItems: 'center', marginBottom: idx < emails.length - 1 ? '6px' : '0' }}>
+                      <input
+                        className="form-input"
+                        type="email"
+                        value={email.trim()}
+                        onChange={e => {
+                          const updated = [...emails];
+                          updated[idx] = e.target.value.toLowerCase();
+                          set('googleGroupEmail', updated.join(','));
+                        }}
+                        placeholder={`recorded-batch${idx + 1}@yourdomain.com`}
+                        style={{ flex: 1 }}
+                      />
+                      {emails.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const updated = emails.filter((_: string, i: number) => i !== idx);
+                            set('googleGroupEmail', updated.length > 0 ? updated.join(',') : '');
+                          }}
+                          style={{
+                            background: 'transparent',
+                            color: 'var(--danger)',
+                            border: '1px solid var(--danger)',
+                            borderRadius: '50%',
+                            width: '22px',
+                            height: '22px',
+                            fontSize: '14px',
+                            lineHeight: '1',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            flexShrink: 0,
+                          }}
+                          title="Remove this email"
+                        >×</button>
+                      )}
+                    </div>
+                  ));
+                })()}
+                <p style={{ fontSize: '10px', color: 'var(--text-muted)', marginTop: '4px', lineHeight: 1.35 }}>
+                  Default group. If Live is empty, all students go here.
+                </p>
+              </div>
+              <div className="form-group" style={{ margin: 0 }}>
+                <label className="form-label">Live Google Group (Optional)</label>
+                <input
+                  className="form-input"
+                  type="email"
+                  value={f.liveGoogleGroupEmail || ''}
+                  onChange={e => set('liveGoogleGroupEmail', e.target.value.toLowerCase())}
+                  placeholder="live-batch@yourdomain.com"
+                />
+                <p style={{ fontSize: '10px', color: 'var(--text-muted)', marginTop: '4px', lineHeight: 1.35 }}>
+                  Live students only. Leave blank for general batches.
+                </p>
+              </div>
             </div>
-            <div className="form-group">
-              <label className="form-label">Live Google Group Email (Live Batch Only - Optional)</label>
-              <input
-                className="form-input"
-                type="email"
-                value={f.liveGoogleGroupEmail || ''}
-                onChange={e => set('liveGoogleGroupEmail', e.target.value.toLowerCase())}
-                placeholder="live-batch@yourdomain.com"
-              />
-              <p style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '4px' }}>
-                Optional. When provided, Live batch students are routed to this group, while Recorded students remain in Recorded group. Leave blank for general batches.
-              </p>
+
+            {/* Flags row */}
+            <div className="course-edit-flags">
+              <label style={{ display: 'flex', alignItems: 'center', gap: '8px', opacity: editId ? 0.7 : 1, cursor: editId ? 'default' : 'pointer', margin: 0 }}>
+                <input
+                  type="checkbox"
+                  checked={!!f.isFree}
+                  disabled={editId !== null}
+                  onChange={e => setFormData(p => ({ ...p, isFree: e.target.checked as any }))}
+                />
+                <span style={{ fontSize: '13px', fontWeight: 600 }}>Free Course</span>
+                {editId && (
+                  <span style={{ fontSize: '10px', color: 'var(--accent)', fontWeight: 800, marginLeft: 'auto' }}>🔒 FIXED</span>
+                )}
+              </label>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', margin: 0 }}>
+                <input
+                  type="checkbox"
+                  checked={!!f.isDisabled}
+                  onChange={e => setFormData(p => ({ ...p, isDisabled: e.target.checked as any }))}
+                />
+                <span style={{ fontSize: '13px', fontWeight: 600 }}>Disable Course</span>
+                <span style={{ fontSize: '10px', color: 'var(--text-muted)', marginLeft: 'auto' }}>
+                  Hidden + no new enroll
+                </span>
+              </label>
             </div>
-            <label className="form-group" style={{ display: 'flex', alignItems: 'center', gap: '8px', opacity: editId ? 0.7 : 1 }}>
-              <input 
-                type="checkbox" 
-                checked={!!f.isFree} 
-                disabled={editId !== null}
-                onChange={e => setFormData(p => ({ ...p, isFree: e.target.checked as any }))} 
-              /> 
-              <span style={{fontSize: '13px'}}>Mark as Free Course</span>
-              {editId && (
-                <span style={{ fontSize: '11px', color: 'var(--accent)', fontWeight: '800', marginLeft: 'auto' }}>🔒 FIXED AFTER CREATION</span>
-              )}
-            </label>
-            <label className="form-group" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <input
-                type="checkbox"
-                checked={!!f.isDisabled}
-                onChange={e => setFormData(p => ({ ...p, isDisabled: e.target.checked as any }))}
-              />
-              <span style={{ fontSize: '13px' }}>Disable Course</span>
-              <span style={{ fontSize: '11px', color: 'var(--text-muted)', marginLeft: 'auto' }}>
-                Hidden from non-managers and blocked for new enrollment
-              </span>
-            </label>
-            <div className="form-group"><label className="form-label">Description</label><textarea className="form-input" value={f.description || ''} onChange={e => set('description', e.target.value)} placeholder="Course description" rows={3} style={{ resize: 'vertical' }} /></div>
-            <div className="form-group"><label className="form-label">About Us (About Course)</label><textarea className="form-input" value={f.aboutUs || ''} onChange={e => set('aboutUs', e.target.value)} placeholder="About this course..." rows={3} style={{ resize: 'vertical' }} /></div>
-            
-            {/* Academic Term & Exam Stage (For this course only) */}
-            <div style={{
-              background: 'var(--surface-2, #f8fafc)',
-              border: '1px solid var(--border, #e2e8f0)',
+
+            {/* Description + About side by side */}
+            <div className="course-edit-grid cols-2">
+              <div className="form-group" style={{ margin: 0 }}>
+                <label className="form-label">Description</label>
+                <textarea className="form-input" value={f.description || ''} onChange={e => set('description', e.target.value)} placeholder="Course description" rows={3} style={{ resize: 'vertical' }} />
+              </div>
+              <div className="form-group" style={{ margin: 0 }}>
+                <label className="form-label">About Course</label>
+                <textarea className="form-input" value={f.aboutUs || ''} onChange={e => set('aboutUs', e.target.value)} placeholder="About this course..." rows={3} style={{ resize: 'vertical' }} />
+              </div>
+            </div>
+
+            {/* Academic Term & Exam Stage */}
+            <div className="course-edit-grid cols-2-term" style={{
+              background: 'var(--bg)',
+              border: '1px solid var(--border)',
               borderRadius: '12px',
               padding: '12px 14px',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '10px',
             }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <span style={{ fontSize: '12px', fontWeight: 800, color: 'var(--text-primary)' }}>
-                  Academic Term & Exam Stage
-                </span>
-                <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
-                  For this course only
-                </span>
-              </div>
-
               <div className="form-group" style={{ margin: 0 }}>
-                <label className="form-label" style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', color: 'var(--text-secondary)' }}>
-                  Academic Term
-                </label>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
+                  <label className="form-label" style={{ margin: 0, fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                    Academic Term
+                  </label>
+                  <span style={{ fontSize: '10px', color: 'var(--text-muted)' }}>This course only</span>
+                </div>
                 <select
                   className="form-input"
                   value={f.academicTerm && f.academicYear ? `${f.academicTerm}_${f.academicYear}` : (f.academicTerm || '')}
@@ -1119,10 +1177,10 @@ export function ManagePageInner({ forcedTab }: ManagePageInnerProps = {}) {
               </div>
 
               <div className="form-group" style={{ margin: 0 }}>
-                <label className="form-label" style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', color: 'var(--text-secondary)' }}>
+                <label className="form-label" style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: '6px' }}>
                   Exam Stage
                 </label>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '6px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
                   {[
                     { id: 'QUIZ_1', label: 'Quiz 1' },
                     { id: 'QUIZ_2', label: 'Quiz 2' },
@@ -1136,11 +1194,11 @@ export function ManagePageInner({ forcedTab }: ManagePageInnerProps = {}) {
                         type="button"
                         onClick={() => set('examCycle', stage.id)}
                         style={{
-                          padding: '6px 4px',
+                          padding: '7px 4px',
                           borderRadius: '8px',
-                          border: isSelected ? '1.5px solid #6366f1' : '1px solid var(--border)',
+                          border: isSelected ? '1.5px solid var(--primary)' : '1px solid var(--border)',
                           background: isSelected ? 'rgba(99, 102, 241, 0.12)' : 'var(--surface)',
-                          color: isSelected ? '#4338ca' : 'var(--text-secondary)',
+                          color: isSelected ? 'var(--primary)' : 'var(--text-secondary)',
                           fontSize: '11px',
                           fontWeight: isSelected ? 800 : 600,
                           cursor: 'pointer',
@@ -1156,115 +1214,110 @@ export function ManagePageInner({ forcedTab }: ManagePageInnerProps = {}) {
               </div>
             </div>
 
-            <div className="form-group">
-              <label className="form-label">Course Start Date</label>
-              <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                <input 
-                  type="date" 
-                  className="form-input" 
-                  value={f.startDate ? f.startDate.split('T')[0] : ''} 
-                  onChange={e => set('startDate', e.target.value)}
+            {/* Dates row: Start | End | Expiry */}
+            <div className="course-edit-grid cols-3">
+              <div className="form-group" style={{ margin: 0 }}>
+                <label className="form-label">Start Date</label>
+                <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                  <input
+                    type="date"
+                    className="form-input"
+                    value={f.startDate ? f.startDate.split('T')[0] : ''}
+                    onChange={e => set('startDate', e.target.value)}
+                  />
+                  {f.startDate && (
+                    <button type="button" onClick={() => set('startDate', '')} className="btn btn-ghost btn-sm" style={{ color: 'var(--danger)', padding: '4px 6px', flexShrink: 0 }}>×</button>
+                  )}
+                </div>
+              </div>
+              <div className="form-group" style={{ margin: 0 }}>
+                <label className="form-label">End Date</label>
+                <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                  <input
+                    type="date"
+                    className="form-input"
+                    value={f.endDate ? f.endDate.split('T')[0] : ''}
+                    onChange={e => set('endDate', e.target.value)}
+                  />
+                  {f.endDate && (
+                    <button type="button" onClick={() => set('endDate', '')} className="btn btn-ghost btn-sm" style={{ color: 'var(--danger)', padding: '4px 6px', flexShrink: 0 }}>×</button>
+                  )}
+                </div>
+              </div>
+              <div className="form-group" style={{ margin: 0 }}>
+                <label className="form-label">Access Expiry</label>
+                <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                  <input
+                    type="date"
+                    className="form-input"
+                    value={f.expiresAt ? f.expiresAt.split('T')[0] : ''}
+                    onChange={e => {
+                      const val = e.target.value;
+                      if (!val) { set('expiresAt', ''); return; }
+                      const year = new Date(val).getFullYear();
+                      if ([2025, 2026, 2027].includes(year)) {
+                        set('expiresAt', val);
+                      } else {
+                        alert('Please select a year between 2025 and 2027');
+                      }
+                    }}
+                    min={new Date().toISOString().split('T')[0]}
+                    max="2027-12-31"
+                  />
+                  {f.expiresAt && (
+                    <button type="button" onClick={() => set('expiresAt', '')} className="btn btn-ghost btn-sm" style={{ color: 'var(--danger)', padding: '4px 6px', flexShrink: 0 }}>×</button>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Price + Color */}
+            <div className="course-edit-grid cols-2-price">
+              <div className="form-group" style={{ margin: 0 }}>
+                <label className="form-label">Live Upgrade Price (₹)</label>
+                <input
+                  className="form-input"
+                  type="number"
+                  min="0"
+                  step="1"
+                  value={f.liveUpgradePrice ?? ''}
+                  onChange={e => set('liveUpgradePrice', e.target.value === '' ? '' : Number(e.target.value))}
+                  placeholder="e.g. 99 — empty to hide"
                 />
-                <button 
-                  type="button" 
-                  onClick={() => set('startDate', '')}
-                  className="btn btn-ghost btn-sm"
-                  style={{ color: 'var(--danger)' }}
-                >
-                  Clear
-                </button>
+                <p style={{ fontSize: '10px', color: 'var(--text-muted)', marginTop: '4px', lineHeight: 1.35 }}>
+                  Recording students see Upgrade to Live at this price.
+                </p>
               </div>
-            </div>
-            <div className="form-group">
-              <label className="form-label">Course End Date</label>
-              <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                <input 
-                  type="date" 
-                  className="form-input" 
-                  value={f.endDate ? f.endDate.split('T')[0] : ''} 
-                  onChange={e => set('endDate', e.target.value)}
-                />
-                <button 
-                  type="button" 
-                  onClick={() => set('endDate', '')}
-                  className="btn btn-ghost btn-sm"
-                  style={{ color: 'var(--danger)' }}
-                >
-                  Clear
-                </button>
-              </div>
-            </div>
-            <div className="form-group">
-              <label className="form-label">Live Upgrade Price (₹)</label>
-              <input
-                className="form-input"
-                type="number"
-                min="0"
-                step="1"
-                value={f.liveUpgradePrice ?? ''}
-                onChange={e => set('liveUpgradePrice', e.target.value === '' ? '' : Number(e.target.value))}
-                placeholder="e.g. 99 — leave empty to hide upgrade option"
-              />
-              <p style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '4px' }}>
-                If set, Recording-batch students will see an &quot;Upgrade to Live&quot; button on their course card at this price.
-              </p>
-            </div>
-            <div className="form-group">
-              <label className="form-label">Expiry Date (Course Access Deadline)</label>
-              <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                <input 
-                  type="date" 
-                  className="form-input" 
-                  value={f.expiresAt ? f.expiresAt.split('T')[0] : ''} 
-                  onChange={e => {
-                    const val = e.target.value;
-                    if (!val) { set('expiresAt', ''); return; }
-                    const year = new Date(val).getFullYear();
-                    if ([2025, 2026, 2027].includes(year)) {
-                      set('expiresAt', val);
-                    } else {
-                      alert('Please select a year between 2025 and 2027');
-                    }
-                  }}
-                  min={new Date().toISOString().split('T')[0]}
-                  max="2027-12-31"
-                />
-                <button 
-                  type="button" 
-                  onClick={() => set('expiresAt', '')}
-                  className="btn btn-ghost btn-sm"
-                  style={{ color: 'var(--danger)' }}
-                >
-                  Clear
-                </button>
-              </div>
-              <p style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '4px' }}>
-                Access will be blocked for students after this date. (Allowed years: 2025, 2026, 2027)
-              </p>
-            </div>
-            <div className="form-group">
-              <label className="form-label">Color</label>
-              <div style={{ fontSize: '11px', fontWeight: '600', color: 'var(--text-muted)', marginBottom: '6px' }}>Solid</div>
-              <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '12px' }}>
-                {SOLID_COLORS.map(c => (
-                  <button key={c} type="button" onClick={() => set('color', c)} style={{
-                    width: '32px', height: '32px', borderRadius: '10px', background: c,
-                    border: f.color === c ? '3px solid #1e1e3a' : '2px solid transparent',
-                    cursor: 'pointer', transition: 'all 0.15s',
-                    boxShadow: f.color === c ? `0 0 0 2px var(--surface), 0 0 0 4px ${c}` : 'none',
-                  }} />
-                ))}
-              </div>
-              <div style={{ fontSize: '11px', fontWeight: '600', color: 'var(--text-muted)', marginBottom: '6px' }}>Gradient</div>
-              <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                {GRADIENT_COLORS.map(c => (
-                  <button key={c} type="button" onClick={() => set('color', c)} style={{
-                    width: '32px', height: '32px', borderRadius: '10px', background: c,
-                    border: f.color === c ? '3px solid #1e1e3a' : '2px solid transparent',
-                    cursor: 'pointer', transition: 'all 0.15s',
-                    boxShadow: f.color === c ? '0 0 0 2px var(--surface), 0 0 0 4px #6366f1' : 'none',
-                  }} />
-                ))}
+              <div className="form-group" style={{ margin: 0 }}>
+                <label className="form-label">Color</label>
+                <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', alignItems: 'flex-start' }}>
+                  <div>
+                    <div style={{ fontSize: '10px', fontWeight: 600, color: 'var(--text-muted)', marginBottom: '6px' }}>Solid</div>
+                    <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                      {SOLID_COLORS.map(c => (
+                        <button key={c} type="button" onClick={() => set('color', c)} style={{
+                          width: '28px', height: '28px', borderRadius: '8px', background: c,
+                          border: f.color === c ? '2px solid #fff' : '2px solid transparent',
+                          cursor: 'pointer', transition: 'all 0.15s',
+                          boxShadow: f.color === c ? `0 0 0 2px ${c}` : 'none',
+                        }} />
+                      ))}
+                    </div>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: '10px', fontWeight: 600, color: 'var(--text-muted)', marginBottom: '6px' }}>Gradient</div>
+                    <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                      {GRADIENT_COLORS.map(c => (
+                        <button key={c} type="button" onClick={() => set('color', c)} style={{
+                          width: '28px', height: '28px', borderRadius: '8px', background: c,
+                          border: f.color === c ? '2px solid #fff' : '2px solid transparent',
+                          cursor: 'pointer', transition: 'all 0.15s',
+                          boxShadow: f.color === c ? '0 0 0 2px #6366f1' : 'none',
+                        }} />
+                      ))}
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </>
@@ -4140,7 +4193,18 @@ export function ManagePageInner({ forcedTab }: ManagePageInnerProps = {}) {
       {/* Modal */}
       {showModal && (
         <div className="modal-overlay" onClick={() => setShowModal(false)}>
-          <div className="modal" style={{ ...(tab === 'notifications' ? { maxWidth: '780px', width: '92%' } : {}) }} onClick={e => e.stopPropagation()}>
+          <div
+            className="modal"
+            style={{
+              ...(tab === 'notifications' ? { maxWidth: '780px', width: '92%' } : {}),
+              ...(tab === 'courses' ? {
+                maxWidth: 'min(920px, calc(100vw - 24px))',
+                width: '94%',
+                borderRadius: '20px',
+              } : {}),
+            }}
+            onClick={e => e.stopPropagation()}
+          >
             <div className="modal-header">
               <h3 style={{ fontSize: '16px', fontWeight: '600' }}>
                 {editId ? 'Edit' : 'Create'} {tab === 'faqs' ? 'FAQ' : tab.slice(0, -1).charAt(0).toUpperCase() + tab.slice(1, -1)}
@@ -4151,7 +4215,15 @@ export function ManagePageInner({ forcedTab }: ManagePageInnerProps = {}) {
                 </svg>
               </button>
             </div>
-            <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+            <div
+              className="modal-body"
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: tab === 'courses' ? '12px' : '14px',
+                ...(tab === 'courses' ? { padding: '18px 22px' } : {}),
+              }}
+            >
               {renderForm()}
             </div>
             <div className="modal-footer">
