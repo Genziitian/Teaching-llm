@@ -1,3 +1,9 @@
+import {
+  NOTIFICATION_MEMBERS_PER_GROUP,
+  poolIndexToSerialRange,
+  serialToPoolIndex,
+} from '@/lib/notification-group-constants'
+
 export function normalizeEmail(email: string): string {
   return email.trim().toLowerCase()
 }
@@ -23,7 +29,7 @@ export function validateNotificationGroupEmail(groupEmail: string): string {
 }
 
 /** Default Google Group capacity for notification mail assigner (not course groups). */
-export const DEFAULT_MEMBERS_PER_GROUP = 700
+export const DEFAULT_MEMBERS_PER_GROUP = NOTIFICATION_MEMBERS_PER_GROUP
 
 export async function queueNotificationGroupSyncJob(
   db: any,
@@ -731,21 +737,117 @@ export async function fullResetAndRedistribute(db: any, categoryId?: string) {
 }
 
 /**
- * Mail Assigner: wipe notification-group memberships, assign serials 1..N,
- * pack 700 users per Google Group pool email, queue REMOVE then ADD.
+ * Mail Assigner step 1: remove ALL notification-pool members (DB + queue REMOVE jobs).
+ * Does not touch course Google Groups. After this, run serial assign to add back one-by-one.
+ */
+export async function removeAllNotificationPoolMembers(db: any, categoryId?: string) {
+  let targetCategory: any
+  if (categoryId) {
+    targetCategory = await db.notificationPoolCategory.findUnique({
+      where: { id: categoryId },
+    })
+  } else {
+    targetCategory = await ensureDefaultPoolCategory(db)
+  }
+
+  if (!targetCategory) throw new Error('Pool Category not found')
+
+  const poolEmails = await db.notificationPoolEmail.findMany({
+    where: { categoryId: targetCategory.id },
+    orderBy: { createdAt: 'asc' },
+  })
+
+  if (poolEmails.length === 0) {
+    throw new Error(
+      `No pool emails in "${targetCategory.name}". Add Google Group emails first.`
+    )
+  }
+
+  const categoryEmailAddresses: string[] = poolEmails.map((p: any) => p.groupEmail)
+  const categoryEmailSet = new Set(categoryEmailAddresses)
+
+  await db.groupSyncJob.deleteMany({
+    where: {
+      groupEmail: { in: categoryEmailAddresses },
+      groupType: 'NOTIFICATION',
+      status: { in: ['PENDING', 'PROCESSING'] },
+    },
+  })
+
+  const usersWithAssignment = await db.user.findMany({
+    where: {
+      AND: [
+        { notificationGroupEmails: { not: null } },
+        { NOT: { notificationGroupEmails: '' } },
+      ],
+    },
+    select: { id: true, email: true, notificationGroupEmails: true },
+  })
+
+  let clearedUsers = 0
+  let removeJobsQueued = 0
+
+  for (const user of usersWithAssignment) {
+    const currentEmails = parseNotificationGroupEmails(user.notificationGroupEmails)
+    const oldCategoryEmails = currentEmails.filter(e => categoryEmailSet.has(e))
+    if (oldCategoryEmails.length === 0) continue
+
+    const remainingEmails = currentEmails.filter(e => !categoryEmailSet.has(e))
+    const normUserEmail = normalizeEmail(user.email)
+
+    for (const oldEmail of oldCategoryEmails) {
+      await queueNotificationGroupSyncJob(db, {
+        userEmail: normUserEmail,
+        groupEmail: oldEmail,
+        action: 'REMOVE',
+        force: true,
+      })
+      removeJobsQueued++
+    }
+
+    await db.user.update({
+      where: { id: user.id },
+      data: {
+        notificationGroupEmails: remainingEmails.length > 0 ? remainingEmails.join(',') : null,
+        notificationGroupSerial: null,
+        isNotificationGroupPending: false,
+        pendingPoolCategoryIds: null,
+      },
+    })
+    clearedUsers++
+  }
+
+  for (const poolEmail of poolEmails) {
+    await db.notificationPoolEmail.update({
+      where: { id: poolEmail.id },
+      data: { currentCount: 0, maxCapacity: DEFAULT_MEMBERS_PER_GROUP },
+    })
+  }
+
+  return {
+    categoryId: targetCategory.id,
+    categoryName: targetCategory.name,
+    clearedUsers,
+    removeJobsQueued,
+    poolEmails: categoryEmailAddresses,
+    message: `Removed notification group assignments for ${clearedUsers} users (${removeJobsQueued} REMOVE jobs queued) in "${targetCategory.name}". Process Google Sync, then run serial assign to add members one-by-one. Course mails untouched.`,
+  }
+}
+
+/**
+ * Mail Assigner step 2: assign serials 1..N and queue ADD (700/group, fixed).
+ * Prefer running REMOVE_ALL first so groups are empty, then this adds one-by-one via sync jobs.
  * Never touches course Google Groups (groupType COURSE).
  */
 export async function serialResetAndAssign(
   db: any,
   {
     categoryId,
-    membersPerGroup = DEFAULT_MEMBERS_PER_GROUP,
   }: {
     categoryId?: string
-    membersPerGroup?: number
   } = {}
 ) {
-  const capacity = Math.max(1, Math.floor(Number(membersPerGroup) || DEFAULT_MEMBERS_PER_GROUP))
+  const capacity = DEFAULT_MEMBERS_PER_GROUP
 
   let targetCategory: any
   if (categoryId) {
@@ -769,7 +871,6 @@ export async function serialResetAndAssign(
     )
   }
 
-  // Keep pool capacity in sync with assigner setting (e.g. 700)
   for (const poolEmail of poolEmails) {
     if (poolEmail.maxCapacity !== capacity) {
       await db.notificationPoolEmail.update({
@@ -788,25 +889,24 @@ export async function serialResetAndAssign(
     orderBy: [{ createdAt: 'asc' }, { id: 'asc' }],
   })
 
-  const poolsNeeded = Math.ceil(allUsers.length / capacity)
+  const poolsNeeded = Math.ceil(allUsers.length / capacity) || 1
   if (poolsNeeded > poolEmails.length) {
     throw new Error(
       `Need ${poolsNeeded} pool group emails for ${allUsers.length} users at ${capacity}/group, but only ${poolEmails.length} active. Add more group emails first.`
     )
   }
 
-  // Drop in-flight NOTIFICATION jobs for these pools so we get a clean REMOVE→ADD queue
   await db.groupSyncJob.deleteMany({
     where: {
       groupEmail: { in: categoryEmailAddresses },
       groupType: 'NOTIFICATION',
       status: { in: ['PENDING', 'PROCESSING'] },
+      action: 'ADD',
     },
   })
 
-  let removeJobsQueued = 0
   let addJobsQueued = 0
-  let clearedCount = 0
+  let alreadyHadAssignment = 0
   let unchangedCount = 0
   const poolCounts = new Array(poolEmails.length).fill(0)
   const serialPreview: Array<{
@@ -827,7 +927,9 @@ export async function serialResetAndAssign(
     const otherEmails = currentEmails.filter(e => !categoryEmailSet.has(e))
     const alreadyInTarget = oldCategoryEmails.includes(newGroupEmail)
 
-    // REMOVE only groups they must leave (avoids REMOVE+ADD race on same group)
+    if (oldCategoryEmails.length > 0) alreadyHadAssignment++
+
+    // If still assigned somewhere in this category, move: REMOVE old ≠ new
     for (const oldEmail of oldCategoryEmails) {
       if (oldEmail === newGroupEmail) continue
       await queueNotificationGroupSyncJob(db, {
@@ -836,9 +938,7 @@ export async function serialResetAndAssign(
         action: 'REMOVE',
         force: true,
       })
-      removeJobsQueued++
     }
-    if (oldCategoryEmails.length > 0) clearedCount++
 
     const updatedEmails = [...otherEmails, newGroupEmail]
 
@@ -852,6 +952,8 @@ export async function serialResetAndAssign(
       },
     })
 
+    // "Already added" = DB already had this exact group email (we trust DB;
+    // use Reconcile to verify Google membership).
     if (alreadyInTarget) {
       unchangedCount++
     } else {
@@ -885,6 +987,7 @@ export async function serialResetAndAssign(
   const poolsUsed = poolCounts.filter(c => c > 0).length
   const distribution = poolEmails.map((p: any, i: number) => ({
     groupEmail: p.groupEmail,
+    groupNumber: i + 1,
     serialFrom: poolCounts[i] > 0 ? i * capacity + 1 : null,
     serialTo: poolCounts[i] > 0 ? i * capacity + poolCounts[i] : null,
     memberCount: poolCounts[i],
@@ -894,9 +997,8 @@ export async function serialResetAndAssign(
   return {
     totalUsers: allUsers.length,
     assignedCount: allUsers.length,
-    clearedCount,
+    alreadyHadAssignment,
     unchangedCount,
-    removeJobsQueued,
     addJobsQueued,
     membersPerGroup: capacity,
     poolsUsed,
@@ -905,6 +1007,6 @@ export async function serialResetAndAssign(
     categoryId: targetCategory.id,
     distribution,
     serialPreview,
-    message: `Mail assigner complete: serials 1–${allUsers.length} assigned, ${capacity}/group across ${poolsUsed} pool email(s) in "${targetCategory.name}". Queued ${removeJobsQueued} REMOVE + ${addJobsQueued} ADD (${unchangedCount} already in correct group). Notification groups only — course mails untouched. Process jobs on Google Sync.`,
+    message: `Serials 1–${allUsers.length} assigned. Group 1 = #1–#${Math.min(capacity, allUsers.length)}${allUsers.length > capacity ? `; Group 2 = #${capacity + 1}–#${Math.min(capacity * 2, allUsers.length)}` : ''}${allUsers.length > capacity * 2 ? '; …' : ''}. Queued ${addJobsQueued} ADD jobs. Course mails untouched.`,
   }
 }

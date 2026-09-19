@@ -4,7 +4,6 @@ import { useState } from 'react'
 import useSWR from 'swr'
 import Link from 'next/link'
 import UserAvatar from '@/components/UserAvatar'
-import MailAssignerPanel from '@/components/MailAssignerPanel'
 
 export default function ManageContactsPage() {
   const [search, setSearch] = useState('')
@@ -17,7 +16,6 @@ export default function ManageContactsPage() {
   const [alsoDeleteUserAccount, setAlsoDeleteUserAccount] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
   const [statusMessage, setStatusMessage] = useState<{ text: string; type: 'success' | 'error' } | null>(null)
-  const [mailAssignerOpen, setMailAssignerOpen] = useState(false)
 
   const fetcher = (url: string) => fetch(url).then(r => r.json())
   const { data: authData } = useSWR('/api/auth/me', fetcher)
@@ -157,8 +155,8 @@ export default function ManageContactsPage() {
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
           {canUseMailAssigner && (
-            <button
-              onClick={() => setMailAssignerOpen(true)}
+            <Link
+              href="/manage/mail-assigner"
               className="btn btn-secondary"
               style={{
                 display: 'inline-flex',
@@ -171,11 +169,12 @@ export default function ManageContactsPage() {
                 background: 'linear-gradient(135deg, rgba(14,165,233,0.18), rgba(37,99,235,0.22))',
                 border: '1px solid rgba(56,189,248,0.45)',
                 color: '#7DD3FC',
+                textDecoration: 'none',
               }}
               title="Assign serial numbers and notification Google Group pool emails (not course mails)"
             >
               ✉ Mail Assigner
-            </button>
+            </Link>
           )}
 
           <button
@@ -212,8 +211,6 @@ export default function ManageContactsPage() {
           </button>
         </div>
       </div>
-
-      <MailAssignerPanel open={mailAssignerOpen} onClose={() => setMailAssignerOpen(false)} />
 
       {/* ── Metric Stat Cards ─────────────────────────────────── */}
       <div style={{

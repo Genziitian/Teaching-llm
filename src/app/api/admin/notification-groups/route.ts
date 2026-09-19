@@ -10,6 +10,7 @@ import {
   cleanupDuplicatePoolAssignments,
   fullResetAndRedistribute,
   serialResetAndAssign,
+  removeAllNotificationPoolMembers,
   DEFAULT_MEMBERS_PER_GROUP,
 } from '@/lib/notification-group-pool'
 import { getGoogleGroupMemberCounts, reconcileGoogleGroupMembers } from '@/lib/google-group-sync'
@@ -121,11 +122,14 @@ export async function POST(request: Request) {
     }
 
     if (action === 'SERIAL_RESET_ASSIGN') {
-      const { categoryId, membersPerGroup } = body
-      const result = await serialResetAndAssign(prisma, {
-        categoryId,
-        membersPerGroup: membersPerGroup != null ? Number(membersPerGroup) : DEFAULT_MEMBERS_PER_GROUP,
-      })
+      const { categoryId } = body
+      const result = await serialResetAndAssign(prisma, { categoryId })
+      return NextResponse.json({ success: true, ...result })
+    }
+
+    if (action === 'REMOVE_ALL_POOL_MEMBERS') {
+      const { categoryId } = body
+      const result = await removeAllNotificationPoolMembers(prisma, categoryId)
       return NextResponse.json({ success: true, ...result })
     }
 
