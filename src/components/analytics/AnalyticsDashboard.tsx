@@ -186,13 +186,14 @@ export default function AnalyticsDashboard() {
   const totalPieEnrollments = courseDistribution.reduce((acc: number, c: any) => acc + c.count, 0) || 1
   const pieData = courseDistribution.slice(0, 8).map((c: any, i: number) => ({
     name: c.name.length > 20 ? c.name.substring(0, 18) + '…' : c.name,
+    fullName: c.name,
     value: c.count,
     fill: PIE_COLORS[i % PIE_COLORS.length],
   }))
   // Add "Others" if more than 8 courses
   if (courseDistribution.length > 8) {
     const othersCount = courseDistribution.slice(8).reduce((acc: number, c: any) => acc + c.count, 0)
-    pieData.push({ name: 'Others', value: othersCount, fill: '#94a3b8' })
+    pieData.push({ name: 'Others', fullName: 'Others', value: othersCount, fill: '#94a3b8' })
   }
 
   // Custom tooltip style
@@ -321,7 +322,7 @@ export default function AnalyticsDashboard() {
                   <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
                 </linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="#dddfe6" />
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
               <XAxis dataKey="date" tick={{ fontSize: 11, fill: '#9999b0' }} tickLine={false} axisLine={false} />
               <YAxis tick={{ fontSize: 11, fill: '#9999b0' }} tickLine={false} axisLine={false} allowDecimals={false} />
               <Tooltip contentStyle={tooltipStyle} />
@@ -340,25 +341,44 @@ export default function AnalyticsDashboard() {
           {/* Top 7 Courses (Bar Chart) */}
           <div style={neuCard}>
             <h3 style={{ fontSize: '16px', fontWeight: 800, marginBottom: '20px', color: 'var(--text-primary)' }}>
-              🏆 Top Courses
+              Top Courses
             </h3>
             {topCourses.length === 0 ? (
               <div style={{ padding: '40px', textAlign: 'center', color: '#9999b0', fontSize: '13px' }}>No data</div>
             ) : (
-              <ResponsiveContainer width="100%" height={280}>
+              <ResponsiveContainer width="100%" height={Math.max(160, Math.min(280, topCourses.length * 44 + 60))}>
                 <BarChart
                   data={topCourses.map((c: any) => ({
-                    name: c.name.length > 15 ? c.name.substring(0, 13) + '…' : c.name,
+                    fullName: c.name,
+                    displayName: c.name.length > 20 ? c.name.substring(0, 18) + '…' : c.name,
                     Students: c.count,
                   }))}
                   layout="vertical"
-                  margin={{ top: 5, right: 20, left: 10, bottom: 5 }}
+                  margin={{ top: 10, right: 30, left: 10, bottom: 5 }}
                 >
-                  <CartesianGrid strokeDasharray="3 3" stroke="#dddfe6" horizontal={false} />
+                  <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" horizontal={false} />
                   <XAxis type="number" tick={{ fontSize: 11, fill: '#9999b0' }} tickLine={false} axisLine={false} allowDecimals={false} />
-                  <YAxis dataKey="name" type="category" width={110} tick={{ fontSize: 11, fill: '#9999b0', fontWeight: 600 }} tickLine={false} axisLine={false} />
-                  <Tooltip contentStyle={tooltipStyle} />
-                  <Bar dataKey="Students" radius={[0, 6, 6, 0]} barSize={20}>
+                  <YAxis
+                    dataKey="displayName"
+                    type="category"
+                    width={150}
+                    tick={{ fontSize: 11, fill: 'var(--text-secondary, #9999b0)', fontWeight: 600 }}
+                    tickLine={false}
+                    axisLine={false}
+                  />
+                  <Tooltip
+                    contentStyle={tooltipStyle}
+                    cursor={{ fill: 'rgba(99, 102, 241, 0.08)' }}
+                    formatter={(value: any) => [
+                      `${Number(value).toLocaleString('en-IN')} students`,
+                      'Students'
+                    ]}
+                    labelFormatter={(_: any, payload: any) => {
+                      const item = payload?.[0]?.payload
+                      return item?.fullName || _
+                    }}
+                  />
+                  <Bar dataKey="Students" radius={[0, 6, 6, 0]} barSize={topCourses.length === 1 ? 24 : 18}>
                     {topCourses.map((_: any, i: number) => (
                       <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />
                     ))}
@@ -371,7 +391,7 @@ export default function AnalyticsDashboard() {
           {/* Course Distribution (Pie Chart) */}
           <div style={neuCard}>
             <h3 style={{ fontSize: '16px', fontWeight: 800, marginBottom: '20px', color: 'var(--text-primary)' }}>
-              🍩 Course Distribution
+              Course Distribution
             </h3>
             {pieData.length === 0 ? (
               <div style={{ padding: '40px', textAlign: 'center', color: '#9999b0', fontSize: '13px' }}>No data</div>
@@ -391,7 +411,13 @@ export default function AnalyticsDashboard() {
                         <Cell key={i} fill={entry.fill} />
                       ))}
                     </Pie>
-                    <Tooltip contentStyle={tooltipStyle} />
+                    <Tooltip
+                      contentStyle={tooltipStyle}
+                      formatter={(value: any, _: any, item: any) => [
+                        `${Number(value).toLocaleString('en-IN')} students (${((Number(value) / totalPieEnrollments) * 100).toFixed(1)}%)`,
+                        item?.payload?.fullName || item?.payload?.name || 'Students'
+                      ]}
+                    />
                   </PieChart>
                 </ResponsiveContainer>
                 <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '6px', maxHeight: '240px', overflowY: 'auto' }}>
@@ -401,7 +427,10 @@ export default function AnalyticsDashboard() {
                         width: '10px', height: '10px', borderRadius: '3px', flexShrink: 0,
                         background: PIE_COLORS[i % PIE_COLORS.length],
                       }} />
-                      <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontWeight: 600 }}>
+                      <span
+                        title={c.name}
+                        style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontWeight: 600 }}
+                      >
                         {c.name}
                       </span>
                       <span style={{ fontWeight: 800, color: 'var(--text-primary)' }}>{c.count}</span>
@@ -431,7 +460,7 @@ export default function AnalyticsDashboard() {
             <span style={{
               fontSize: '11px', padding: '6px 14px', borderRadius: '50px', fontWeight: 700,
               background: '#fef3c7', color: '#d97706'
-            }}>⚠ Run analytics compute to populate</span>
+            }}>Run analytics compute to populate</span>
           )}
         </div>
 
@@ -724,7 +753,7 @@ export default function AnalyticsDashboard() {
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
             <div>
               <h2 style={{ fontSize: '20px', fontWeight: 900, color: 'var(--text-primary)', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span>📹 Batch Distribution (Live vs Recorded)</span>
+                <span>Batch Distribution (Live vs Recorded)</span>
               </h2>
               <p style={{ fontSize: '12px', color: '#9999b0', marginTop: '4px', fontWeight: 600 }}>
                 Breakdown of students enrolled in Live vs Recorded batches across all active courses
@@ -752,7 +781,7 @@ export default function AnalyticsDashboard() {
                       <div style={{ paddingLeft: '8px' }}>
                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                           <span style={{ fontSize: '11px', fontWeight: 800, color: '#9999b0', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Live Batch Students</span>
-                          <span style={{ fontSize: '18px' }}>🔴</span>
+                          <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#10b981', display: 'inline-block' }} />
                         </div>
                         <div style={{ fontSize: '28px', fontWeight: 900, color: 'var(--text-primary)', marginTop: '8px' }}>
                           {bStats.liveStudents.toLocaleString()}
@@ -773,7 +802,7 @@ export default function AnalyticsDashboard() {
                       <div style={{ paddingLeft: '8px' }}>
                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                           <span style={{ fontSize: '11px', fontWeight: 800, color: '#9999b0', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Recorded Batch Students</span>
-                          <span style={{ fontSize: '18px' }}>📼</span>
+                          <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#f59e0b', display: 'inline-block' }} />
                         </div>
                         <div style={{ fontSize: '28px', fontWeight: 900, color: 'var(--text-primary)', marginTop: '8px' }}>
                           {bStats.recordedStudents.toLocaleString()}
@@ -795,7 +824,7 @@ export default function AnalyticsDashboard() {
                         <div style={{ paddingLeft: '8px' }}>
                           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                             <span style={{ fontSize: '11px', fontWeight: 800, color: '#9999b0', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Both (Live + Recorded)</span>
-                            <span style={{ fontSize: '18px' }}>⚡</span>
+                            <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#8b5cf6', display: 'inline-block' }} />
                           </div>
                           <div style={{ fontSize: '28px', fontWeight: 900, color: 'var(--text-primary)', marginTop: '8px' }}>
                             {bStats.bothStudents.toLocaleString()}
@@ -817,7 +846,7 @@ export default function AnalyticsDashboard() {
                         <div style={{ paddingLeft: '8px' }}>
                           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                             <span style={{ fontSize: '11px', fontWeight: 800, color: '#9999b0', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Not Enrolled Students</span>
-                            <span style={{ fontSize: '18px' }}>🚫</span>
+                            <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#ef4444', display: 'inline-block' }} />
                           </div>
                           <div style={{ fontSize: '28px', fontWeight: 900, color: 'var(--text-primary)', marginTop: '8px' }}>
                             {(bStats.notEnrolledStudents || 0).toLocaleString()}
@@ -901,7 +930,7 @@ export default function AnalyticsDashboard() {
         {/* Course Growth Table */}
         <div style={neuCard}>
           <h3 style={{ fontSize: '16px', fontWeight: 800, marginBottom: '20px', color: 'var(--text-primary)' }}>
-            📈 Course Growth
+            Course Growth
           </h3>
           {courseGrowth.length === 0 ? (
             <div style={{ padding: '40px', textAlign: 'center', color: '#9999b0', fontSize: '13px' }}>No data</div>
@@ -1283,14 +1312,14 @@ export default function AnalyticsDashboard() {
         <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '24px', marginTop: '12px' }}>
           <div style={neuCard}>
             <h3 style={{ fontSize: '16px', fontWeight: 800, marginBottom: '20px', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span>📱 App & Website Feedback Statistics</span>
+              <span>App & Website Feedback Statistics</span>
             </h3>
             
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '20px', marginBottom: '24px' }}>
               {/* App Feedback Stats Card */}
               <div style={{ background: 'var(--surface)', padding: '20px', borderRadius: '16px', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: '16px' }}>
-                <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: 'rgba(54, 54, 232, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#3636e8', fontSize: '20px' }}>
-                  📱
+                <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: 'rgba(54, 54, 232, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#3636e8', fontSize: '12px', fontWeight: 800 }}>
+                  APP
                 </div>
                 <div>
                   <h4 style={{ margin: 0, fontSize: '12px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>App Feedback</h4>
@@ -1306,8 +1335,8 @@ export default function AnalyticsDashboard() {
 
               {/* Website Feedback Stats Card */}
               <div style={{ background: 'var(--surface)', padding: '20px', borderRadius: '16px', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: '16px' }}>
-                <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: 'rgba(16, 185, 129, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#10b981', fontSize: '20px' }}>
-                  💻
+                <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: 'rgba(16, 185, 129, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#10b981', fontSize: '12px', fontWeight: 800 }}>
+                  WEB
                 </div>
                 <div>
                   <h4 style={{ margin: 0, fontSize: '12px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Website Feedback</h4>
