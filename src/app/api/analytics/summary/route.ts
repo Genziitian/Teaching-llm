@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { getSession } from '@/lib/auth'
+import { computeTermAnalytics } from '@/lib/term-analytics'
 
 /**
  * GET /api/analytics/summary?range=7d
@@ -576,6 +577,15 @@ export async function GET(request: NextRequest) {
       console.error('[Analytics Summary] Failed to compute demo stats:', err)
     }
 
+    // ─── Compute Term Analytics ────────────────────────────────────────
+    let termAnalytics = null
+    try {
+      const termFilter = searchParams.get('termId') || null
+      termAnalytics = await computeTermAnalytics(termFilter)
+    } catch (err) {
+      console.error('[Analytics Summary] Failed to compute term analytics:', err)
+    }
+
     return NextResponse.json({
       range,
       timer: {
@@ -598,6 +608,7 @@ export async function GET(request: NextRequest) {
       demographics,
       batchStats,
       demoStats,
+      termAnalytics,
     })
   } catch (error) {
     console.error('[Analytics Summary] Error:', error)

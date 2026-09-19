@@ -178,7 +178,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
-    const { name, description, subject, color, icon, courseIconType, expiresAt, teacherName, isDemo, isDisabled, isFree, googleGroupEmail, liveGoogleGroupEmail, aboutUs, startDate, endDate } = await request.json()
+    const { name, description, subject, color, icon, courseIconType, expiresAt, teacherName, isDemo, isDisabled, isFree, googleGroupEmail, liveGoogleGroupEmail, aboutUs, startDate, endDate, academicTerm, academicYear, examCycle } = await request.json()
 
     // 1. Rate Limiting
     const rateLimit = await checkRateLimit(session.userId, 'general')
@@ -249,6 +249,9 @@ export async function POST(request: NextRequest) {
           aboutUs: sanitizedAboutUs,
           startDate: startDate ? new Date(startDate) : null,
           endDate: endDate ? new Date(endDate) : null,
+          academicTerm: academicTerm ? String(academicTerm) : null,
+          academicYear: academicYear ? Number(academicYear) : null,
+          examCycle: examCycle ? String(examCycle) : null,
           createdById: session.userId,
         },
       })

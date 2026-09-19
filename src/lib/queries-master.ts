@@ -47,10 +47,25 @@ export const MASTER_QUERIES: Omit<PlatformQuery, 'id'>[] = [
       `YES. Managers have unrestricted system access:\n\n` +
       `• The system rule isCourseEffectivelyDisabled(course, userRole) explicitly returns false whenever userRole === 'MANAGER'.\n` +
       `• Managers can open any expired course, preview all video lectures, download PDFs, and inspect topics.\n` +
-      `• In the Course Edit dialog under /manage, a Manager can modify or extend the "Course Expiry Date" (expiresAt) or clear it entirely. As soon as a manager extends the date, access is instantly restored for all enrolled students across both Web and Mobile App.`,
+      `• In the Course Edit dialog under /manage, a Manager can modify or extend the "Course Expiry Date" (expiresAt) or clear it entirely. As soon as a manager extends the date, access is instantly restored for all enrolled students across both Web and Mobile App.\n` +
+      `• If you are reusing the course for a new batch and do NOT want old students back, use "Remove all enrolled students" on the course row in /manage first (export CSV backup optional, then 3 confirmation steps).`,
     category: 'COURSE_EXPIRY',
     appliesTo: 'BOTH',
     order: 2,
+  },
+  {
+    question: 'How do I reuse a course for a new batch without giving old students access again?',
+    answer:
+      `Extending expiry alone restores access for everyone still enrolled. To reuse a course cleanly:\n\n` +
+      `1. On /manage → Courses, click the "Remove all enrolled students" button (user-minus icon) on that course.\n` +
+      `2. Step 1 of 3: optionally Export enrollment CSV as a backup, then continue.\n` +
+      `3. Step 2 of 3: type the exact course name.\n` +
+      `4. Step 3 of 3: type the course name again AND type "REMOVE ALL ENROLLMENTS", then confirm.\n\n` +
+      `This permanently deletes Enrollment rows for that course and queues Google Group REMOVE jobs. The course content stays. Then set the new expiry / re-enable and enroll only the new batch.\n` +
+      `Demo Course enrollments cannot be bulk-cleared.`,
+    category: 'COURSE_EXPIRY',
+    appliesTo: 'BOTH',
+    order: 3,
   },
   {
     question: 'Is there a course grace period in our code?',
@@ -61,7 +76,7 @@ export const MASTER_QUERIES: Omit<PlatformQuery, 'id'>[] = [
       `• However, student-facing UI and APIs enforce content blocking as soon as expiresAt has passed to maintain strict academic integrity.`,
     category: 'COURSE_EXPIRY',
     appliesTo: 'BOTH',
-    order: 3,
+    order: 4,
   },
 
   // ── 2. App vs Web Features ────────────────────────────────────────────────

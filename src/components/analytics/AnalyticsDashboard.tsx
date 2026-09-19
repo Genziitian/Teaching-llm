@@ -25,6 +25,7 @@ export default function AnalyticsDashboard() {
   const [range, setRange] = useState<RangeKey>('7d')
   const [countdown, setCountdown] = useState('')
   const [selectedCourse, setSelectedCourse] = useState<string>('all')
+  const [selectedTerm, setSelectedTerm] = useState<string>('all')
 
   const { data, isLoading, mutate } = useSWR(
     `/api/analytics/summary?range=${range}&courseId=${selectedCourse}`,
@@ -1052,6 +1053,338 @@ export default function AnalyticsDashboard() {
           )}
         </div>
       </div>
+
+      {/* ─── Term Performance & Retention Analytics ──────────────────── */}
+      {data?.termAnalytics && (
+        <div style={{ marginTop: '32px', marginBottom: '32px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px', flexWrap: 'wrap', gap: '12px' }}>
+            <div>
+              <h2 style={{ fontSize: '20px', fontWeight: 900, color: 'var(--text-primary)', margin: 0 }}>
+                Term Performance & Revenue
+              </h2>
+              <p style={{ fontSize: '12px', color: '#9999b0', marginTop: '4px', fontWeight: 600 }}>
+                Revenue, enrollment and student retention across academic terms
+              </p>
+            </div>
+            <select
+              value={selectedTerm}
+              onChange={(e) => setSelectedTerm(e.target.value)}
+              style={{
+                padding: '8px 18px',
+                borderRadius: '50px',
+                border: 'none',
+                background: 'var(--surface-2)',
+                color: 'var(--text-secondary)',
+                boxShadow: '3px 3px 6px var(--neu-dark), -3px -3px 6px var(--neu-light)',
+                fontWeight: 700,
+                fontSize: '12px',
+                cursor: 'pointer',
+                outline: 'none',
+              }}
+            >
+              <option value="all">All Terms</option>
+              {(data.termAnalytics.availableTerms || []).map((t: any) => (
+                <option key={t.id} value={t.id}>{t.name}</option>
+              ))}
+            </select>
+          </div>
+
+          {/* KPI Cards */}
+          <div style={{ ...neuCard, marginBottom: '24px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px' }}>
+
+              {/* Best Term */}
+              <div style={{ background: 'var(--surface)', padding: '18px', borderRadius: '14px', border: '1px solid var(--border)', position: 'relative', overflow: 'hidden' }}>
+                <div style={{ position: 'absolute', top: 0, left: 0, width: '4px', height: '100%', background: '#6366f1', borderRadius: '4px 0 0 4px' }} />
+                <div style={{ paddingLeft: '8px' }}>
+                  <span style={{ fontSize: '11px', fontWeight: 800, color: '#9999b0', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Best Term</span>
+                  <div style={{ fontSize: '18px', fontWeight: 900, color: 'var(--text-primary)', marginTop: '8px' }}>
+                    {data.termAnalytics.kpis.bestTermName || 'N/A'}
+                  </div>
+                  <div style={{ fontSize: '13px', fontWeight: 700, color: '#6366f1', marginTop: '4px' }}>
+                    {data.termAnalytics.kpis.bestTermRevenue > 0 ? `\u20B9${data.termAnalytics.kpis.bestTermRevenue.toLocaleString('en-IN')}` : '--'}
+                  </div>
+                </div>
+              </div>
+
+              {/* Cumulative Revenue */}
+              <div style={{ background: 'var(--surface)', padding: '18px', borderRadius: '14px', border: '1px solid var(--border)', position: 'relative', overflow: 'hidden' }}>
+                <div style={{ position: 'absolute', top: 0, left: 0, width: '4px', height: '100%', background: '#10b981', borderRadius: '4px 0 0 4px' }} />
+                <div style={{ paddingLeft: '8px' }}>
+                  <span style={{ fontSize: '11px', fontWeight: 800, color: '#9999b0', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Cumulative Revenue</span>
+                  <div style={{ fontSize: '24px', fontWeight: 900, color: 'var(--text-primary)', marginTop: '8px' }}>
+                    {`\u20B9${data.termAnalytics.kpis.cumulativeRevenue.toLocaleString('en-IN')}`}
+                  </div>
+                  <div style={{ fontSize: '12px', color: '#9999b0', marginTop: '4px', fontWeight: 600 }}>Across all terms</div>
+                </div>
+              </div>
+
+              {/* Avg Revenue / Student */}
+              <div style={{ background: 'var(--surface)', padding: '18px', borderRadius: '14px', border: '1px solid var(--border)', position: 'relative', overflow: 'hidden' }}>
+                <div style={{ position: 'absolute', top: 0, left: 0, width: '4px', height: '100%', background: '#f59e0b', borderRadius: '4px 0 0 4px' }} />
+                <div style={{ paddingLeft: '8px' }}>
+                  <span style={{ fontSize: '11px', fontWeight: 800, color: '#9999b0', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Avg Revenue / Student</span>
+                  <div style={{ fontSize: '24px', fontWeight: 900, color: 'var(--text-primary)', marginTop: '8px' }}>
+                    {`\u20B9${data.termAnalytics.kpis.averageRevenuePerStudent.toLocaleString('en-IN')}`}
+                  </div>
+                  <div style={{ fontSize: '12px', color: '#9999b0', marginTop: '4px', fontWeight: 600 }}>Per enrolled student</div>
+                </div>
+              </div>
+
+              {/* Overall Retention Rate */}
+              <div style={{ background: 'var(--surface)', padding: '18px', borderRadius: '14px', border: '1px solid var(--border)', position: 'relative', overflow: 'hidden' }}>
+                <div style={{ position: 'absolute', top: 0, left: 0, width: '4px', height: '100%', background: '#8b5cf6', borderRadius: '4px 0 0 4px' }} />
+                <div style={{ paddingLeft: '8px' }}>
+                  <span style={{ fontSize: '11px', fontWeight: 800, color: '#9999b0', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Retention Rate</span>
+                  <div style={{ fontSize: '24px', fontWeight: 900, color: 'var(--text-primary)', marginTop: '8px' }}>
+                    {data.termAnalytics.kpis.overallRetentionRate}%
+                  </div>
+                  <div style={{ fontSize: '12px', color: '#9999b0', marginTop: '4px', fontWeight: 600 }}>Students returning across terms</div>
+                </div>
+              </div>
+
+              {/* Multi-Course Rate */}
+              <div style={{ background: 'var(--surface)', padding: '18px', borderRadius: '14px', border: '1px solid var(--border)', position: 'relative', overflow: 'hidden' }}>
+                <div style={{ position: 'absolute', top: 0, left: 0, width: '4px', height: '100%', background: '#ec4899', borderRadius: '4px 0 0 4px' }} />
+                <div style={{ paddingLeft: '8px' }}>
+                  <span style={{ fontSize: '11px', fontWeight: 800, color: '#9999b0', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Multi-Course Rate</span>
+                  <div style={{ fontSize: '24px', fontWeight: 900, color: 'var(--text-primary)', marginTop: '8px' }}>
+                    {data.termAnalytics.kpis.multiCoursePurchaseRate}%
+                  </div>
+                  <div style={{ fontSize: '12px', color: '#9999b0', marginTop: '4px', fontWeight: 600 }}>Students buying 2+ courses</div>
+                </div>
+              </div>
+
+              {/* Top Revenue Course */}
+              <div style={{ background: 'var(--surface)', padding: '18px', borderRadius: '14px', border: '1px solid var(--border)', position: 'relative', overflow: 'hidden' }}>
+                <div style={{ position: 'absolute', top: 0, left: 0, width: '4px', height: '100%', background: '#0ea5e9', borderRadius: '4px 0 0 4px' }} />
+                <div style={{ paddingLeft: '8px' }}>
+                  <span style={{ fontSize: '11px', fontWeight: 800, color: '#9999b0', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Top Revenue Course</span>
+                  <div style={{ fontSize: '15px', fontWeight: 900, color: 'var(--text-primary)', marginTop: '8px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={data.termAnalytics.kpis.topRevenueCourse || ''}>
+                    {data.termAnalytics.kpis.topRevenueCourse || 'N/A'}
+                  </div>
+                  <div style={{ fontSize: '13px', fontWeight: 700, color: '#0ea5e9', marginTop: '4px' }}>
+                    {data.termAnalytics.kpis.topRevenueAmount > 0 ? `\u20B9${data.termAnalytics.kpis.topRevenueAmount.toLocaleString('en-IN')}` : '--'}
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          {/* Term-by-Term Revenue Comparison */}
+          {(data.termAnalytics.termSummaries || []).length > 0 && (
+            <div style={{ ...neuCard, marginBottom: '24px' }}>
+              <h3 style={{ fontSize: '16px', fontWeight: 800, marginBottom: '20px', color: 'var(--text-primary)' }}>
+                Term-by-Term Revenue Comparison
+              </h3>
+              <ResponsiveContainer width="100%" height={300}>
+                <BarChart data={data.termAnalytics.termSummaries}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+                  <XAxis dataKey="termName" tick={{ fontSize: 11, fontWeight: 700, fill: '#9999b0' }} tickFormatter={(v: string) => v.replace(' Term', '')} />
+                  <YAxis tick={{ fontSize: 11, fill: '#9999b0' }} tickFormatter={(v: number) => `\u20B9${(v / 1000).toFixed(0)}k`} />
+                  <Tooltip contentStyle={tooltipStyle} formatter={(value: number) => [`\u20B9${value.toLocaleString('en-IN')}`, 'Revenue']} />
+                  <Bar dataKey="revenue" fill="#6366f1" radius={[6, 6, 0, 0]} name="Revenue" />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          )}
+
+          {/* Retention Panel */}
+          {(data.termAnalytics.retention || []).length > 0 && (
+            <div style={{ ...neuCard, marginBottom: '24px' }}>
+              <h3 style={{ fontSize: '16px', fontWeight: 800, marginBottom: '20px', color: 'var(--text-primary)' }}>
+                Student Retention Across Terms
+              </h3>
+              <div style={{ overflowX: 'auto' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                  <thead>
+                    <tr>
+                      <th style={{ textAlign: 'left', padding: '10px 12px', fontSize: '11px', fontWeight: 700, color: '#9999b0', textTransform: 'uppercase', borderBottom: '1px solid var(--border)' }}>Term</th>
+                      <th style={{ textAlign: 'right', padding: '10px 12px', fontSize: '11px', fontWeight: 700, color: '#9999b0', textTransform: 'uppercase', borderBottom: '1px solid var(--border)' }}>Total Students</th>
+                      <th style={{ textAlign: 'right', padding: '10px 12px', fontSize: '11px', fontWeight: 700, color: '#9999b0', textTransform: 'uppercase', borderBottom: '1px solid var(--border)' }}>New</th>
+                      <th style={{ textAlign: 'right', padding: '10px 12px', fontSize: '11px', fontWeight: 700, color: '#9999b0', textTransform: 'uppercase', borderBottom: '1px solid var(--border)' }}>Returning</th>
+                      <th style={{ textAlign: 'right', padding: '10px 12px', fontSize: '11px', fontWeight: 700, color: '#9999b0', textTransform: 'uppercase', borderBottom: '1px solid var(--border)' }}>Retention Rate</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {data.termAnalytics.retention.map((r: any) => (
+                      <tr key={r.termId}>
+                        <td style={{ padding: '12px', fontSize: '13px', fontWeight: 700 }}>{r.termName}</td>
+                        <td style={{ padding: '12px', fontSize: '13px', fontWeight: 800, textAlign: 'right' }}>{r.totalStudents.toLocaleString()}</td>
+                        <td style={{ padding: '12px', fontSize: '13px', fontWeight: 700, textAlign: 'right', color: '#0ea5e9' }}>{r.newStudents.toLocaleString()}</td>
+                        <td style={{ padding: '12px', fontSize: '13px', fontWeight: 700, textAlign: 'right', color: '#10b981' }}>{r.returningStudents.toLocaleString()}</td>
+                        <td style={{ padding: '12px', fontSize: '13px', fontWeight: 800, textAlign: 'right' }}>
+                          {r.retentionRate > 0 ? (
+                            <span style={{
+                              padding: '3px 10px', borderRadius: '12px', fontSize: '11px',
+                              background: r.retentionRate >= 50 ? '#dcfce7' : r.retentionRate >= 25 ? '#fef9c3' : '#fee2e2',
+                              color: r.retentionRate >= 50 ? '#16a34a' : r.retentionRate >= 25 ? '#a16207' : '#dc2626',
+                            }}>
+                              {r.retentionRate}%
+                            </span>
+                          ) : (
+                            <span style={{ color: '#9999b0', fontSize: '12px' }}>First Term</span>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              {/* Retention visual bar */}
+              {data.termAnalytics.retention.length > 1 && (
+                <div style={{ marginTop: '20px' }}>
+                  <ResponsiveContainer width="100%" height={220}>
+                    <BarChart data={data.termAnalytics.retention}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+                      <XAxis dataKey="termName" tick={{ fontSize: 11, fontWeight: 700, fill: '#9999b0' }} tickFormatter={(v: string) => v.replace(' Term', '')} />
+                      <YAxis tick={{ fontSize: 11, fill: '#9999b0' }} />
+                      <Tooltip contentStyle={tooltipStyle} />
+                      <Bar dataKey="newStudents" stackId="students" fill="#0ea5e9" name="New Students" radius={[0, 0, 0, 0]} />
+                      <Bar dataKey="returningStudents" stackId="students" fill="#10b981" name="Returning Students" radius={[6, 6, 0, 0]} />
+                      <Legend wrapperStyle={{ fontSize: '11px', fontWeight: 700 }} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Exam Cycle Breakdown */}
+          {(data.termAnalytics.examCycleStats || []).length > 0 && (
+            <div style={{ ...neuCard, marginBottom: '24px' }}>
+              <h3 style={{ fontSize: '16px', fontWeight: 800, marginBottom: '20px', color: 'var(--text-primary)' }}>
+                Exam Stage Breakdown
+              </h3>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '16px', marginBottom: '20px' }}>
+                {data.termAnalytics.examCycleStats.map((ec: any, idx: number) => {
+                  const cycleColors = ['#6366f1', '#10b981', '#f59e0b', '#8b5cf6']
+                  return (
+                    <div key={ec.cycle} style={{ background: 'var(--surface)', padding: '16px', borderRadius: '14px', border: '1px solid var(--border)', position: 'relative', overflow: 'hidden' }}>
+                      <div style={{ position: 'absolute', top: 0, left: 0, width: '4px', height: '100%', background: cycleColors[idx % 4], borderRadius: '4px 0 0 4px' }} />
+                      <div style={{ paddingLeft: '8px' }}>
+                        <span style={{ fontSize: '11px', fontWeight: 800, color: '#9999b0', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{ec.label}</span>
+                        <div style={{ fontSize: '20px', fontWeight: 900, color: 'var(--text-primary)', marginTop: '6px' }}>
+                          {`\u20B9${ec.revenue.toLocaleString('en-IN')}`}
+                        </div>
+                        <div style={{ fontSize: '12px', color: '#9999b0', marginTop: '4px', fontWeight: 600 }}>
+                          {ec.enrollmentCount.toLocaleString()} students
+                        </div>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+              <ResponsiveContainer width="100%" height={240}>
+                <BarChart data={data.termAnalytics.examCycleStats} layout="vertical">
+                  <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+                  <XAxis type="number" tick={{ fontSize: 11, fill: '#9999b0' }} tickFormatter={(v: number) => `\u20B9${(v / 1000).toFixed(0)}k`} />
+                  <YAxis dataKey="label" type="category" width={80} tick={{ fontSize: 11, fontWeight: 700, fill: '#9999b0' }} />
+                  <Tooltip contentStyle={tooltipStyle} formatter={(value: number) => [`\u20B9${value.toLocaleString('en-IN')}`, 'Revenue']} />
+                  <Bar dataKey="revenue" fill="#6366f1" radius={[0, 6, 6, 0]} name="Revenue" />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          )}
+
+          {/* Top Courses by Revenue */}
+          {(data.termAnalytics.courseBreakdown || []).length > 0 && (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '24px', marginBottom: '24px' }}>
+              {/* Revenue Table */}
+              <div style={neuCard}>
+                <h3 style={{ fontSize: '15px', fontWeight: 800, marginBottom: '16px', color: 'var(--text-primary)' }}>
+                  Top Courses by Revenue
+                </h3>
+                <div style={{ overflowX: 'auto' }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                    <thead>
+                      <tr>
+                        <th style={{ textAlign: 'left', padding: '8px 10px', fontSize: '10px', fontWeight: 700, color: '#9999b0', textTransform: 'uppercase', borderBottom: '1px solid var(--border)' }}>Course</th>
+                        <th style={{ textAlign: 'center', padding: '8px 10px', fontSize: '10px', fontWeight: 700, color: '#9999b0', textTransform: 'uppercase', borderBottom: '1px solid var(--border)' }}>Exam</th>
+                        <th style={{ textAlign: 'right', padding: '8px 10px', fontSize: '10px', fontWeight: 700, color: '#9999b0', textTransform: 'uppercase', borderBottom: '1px solid var(--border)' }}>Revenue</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {data.termAnalytics.courseBreakdown.slice(0, 10).map((cb: any) => (
+                        <tr key={`${cb.courseId}-${cb.termId}`}>
+                          <td style={{ padding: '10px', fontSize: '12px', fontWeight: 700, maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={cb.courseName}>
+                            <div>{cb.courseName}</div>
+                            <div style={{ fontSize: '10px', color: '#9999b0', fontWeight: 600, marginTop: '2px' }}>{cb.termName}</div>
+                          </td>
+                          <td style={{ padding: '10px', textAlign: 'center' }}>
+                            <span style={{
+                              padding: '2px 8px', borderRadius: '10px', fontSize: '10px', fontWeight: 700,
+                              background: cb.examCycle === 'QUIZ_1' ? '#ede9fe' : cb.examCycle === 'QUIZ_2' ? '#d1fae5' : cb.examCycle === 'END_TERM' ? '#fef3c7' : '#f1f5f9',
+                              color: cb.examCycle === 'QUIZ_1' ? '#7c3aed' : cb.examCycle === 'QUIZ_2' ? '#059669' : cb.examCycle === 'END_TERM' ? '#d97706' : '#64748b',
+                            }}>{cb.examCycleLabel}</span>
+                          </td>
+                          <td style={{ padding: '10px', fontSize: '13px', fontWeight: 900, textAlign: 'right', color: '#6366f1' }}>
+                            {`\u20B9${cb.revenue.toLocaleString('en-IN')}`}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              {/* Enrollment Table */}
+              <div style={neuCard}>
+                <h3 style={{ fontSize: '15px', fontWeight: 800, marginBottom: '16px', color: 'var(--text-primary)' }}>
+                  Top Courses by Students
+                </h3>
+                <div style={{ overflowX: 'auto' }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                    <thead>
+                      <tr>
+                        <th style={{ textAlign: 'left', padding: '8px 10px', fontSize: '10px', fontWeight: 700, color: '#9999b0', textTransform: 'uppercase', borderBottom: '1px solid var(--border)' }}>Course</th>
+                        <th style={{ textAlign: 'center', padding: '8px 10px', fontSize: '10px', fontWeight: 700, color: '#9999b0', textTransform: 'uppercase', borderBottom: '1px solid var(--border)' }}>Exam</th>
+                        <th style={{ textAlign: 'right', padding: '8px 10px', fontSize: '10px', fontWeight: 700, color: '#9999b0', textTransform: 'uppercase', borderBottom: '1px solid var(--border)' }}>Students</th>
+                        <th style={{ textAlign: 'right', padding: '8px 10px', fontSize: '10px', fontWeight: 700, color: '#9999b0', textTransform: 'uppercase', borderBottom: '1px solid var(--border)' }}>Returning</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {[...data.termAnalytics.courseBreakdown].sort((a: any, b: any) => b.enrollmentCount - a.enrollmentCount).slice(0, 10).map((cb: any) => (
+                        <tr key={`enr-${cb.courseId}-${cb.termId}`}>
+                          <td style={{ padding: '10px', fontSize: '12px', fontWeight: 700, maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={cb.courseName}>
+                            <div>{cb.courseName}</div>
+                            <div style={{ fontSize: '10px', color: '#9999b0', fontWeight: 600, marginTop: '2px' }}>{cb.termName}</div>
+                          </td>
+                          <td style={{ padding: '10px', textAlign: 'center' }}>
+                            <span style={{
+                              padding: '2px 8px', borderRadius: '10px', fontSize: '10px', fontWeight: 700,
+                              background: cb.examCycle === 'QUIZ_1' ? '#ede9fe' : cb.examCycle === 'QUIZ_2' ? '#d1fae5' : cb.examCycle === 'END_TERM' ? '#fef3c7' : '#f1f5f9',
+                              color: cb.examCycle === 'QUIZ_1' ? '#7c3aed' : cb.examCycle === 'QUIZ_2' ? '#059669' : cb.examCycle === 'END_TERM' ? '#d97706' : '#64748b',
+                            }}>{cb.examCycleLabel}</span>
+                          </td>
+                          <td style={{ padding: '10px', fontSize: '13px', fontWeight: 900, textAlign: 'right' }}>
+                            {cb.enrollmentCount.toLocaleString()}
+                          </td>
+                          <td style={{ padding: '10px', fontSize: '13px', fontWeight: 700, textAlign: 'right', color: '#10b981' }}>
+                            {cb.returningStudents > 0 ? cb.returningStudents.toLocaleString() : '--'}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Empty state */}
+          {(!data.termAnalytics.termSummaries || data.termAnalytics.termSummaries.length === 0) && (
+            <div style={{ ...neuCard, textAlign: 'center', padding: '60px' }}>
+              <div style={{ fontSize: '15px', fontWeight: 700, color: '#9999b0' }}>No term data available yet</div>
+              <div style={{ fontSize: '13px', color: '#9999b0', marginTop: '8px' }}>
+                Tag your courses with Academic Term and Exam Stage in the course edit modal to start seeing term insights.
+              </div>
+            </div>
+          )}
+
+        </div>
+      )}
 
       {/* ─── App & Website Feedback Stats ────────────────────────── */}
       {feedbackStats && (

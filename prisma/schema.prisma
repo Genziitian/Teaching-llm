@@ -156,6 +156,9 @@ model Course {
   aboutUs               String?
   startDate             DateTime?
   endDate               DateTime?
+  academicTerm          String?
+  academicYear          Int?
+  examCycle             String?
   announcements         Announcement[]
   bundleOfferingCourses BundleOfferingCourse[]
   createdBy             User                   @relation("CourseCreator", fields: [createdById], references: [id])

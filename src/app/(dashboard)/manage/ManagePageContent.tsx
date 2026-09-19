@@ -18,6 +18,7 @@ import {
   IITM_ALL_SUBJECTS,
 } from '@/lib/iitm-taxonomy'
 import { type PlatformQuery, QUERY_CATEGORIES } from '@/lib/queries-master'
+import ClearCourseEnrollmentsModal from '@/components/ClearCourseEnrollmentsModal'
 
 export type Tab = 'courses' | 'offerings' | 'bundles' | 'lectures' | 'events' | 'materials' | 'announcements' | 'notifications' | 'home-slides' | 'faqs' | 'queries'
 
@@ -45,6 +46,7 @@ export function ManagePageInner({ forcedTab }: ManagePageInnerProps = {}) {
   const searchParams = useSearchParams()
   const initialTab = forcedTab || (searchParams.get('tab') as Tab) || 'courses'
   const [tab, setTab] = useState<Tab>(initialTab)
+  const [clearEnrollmentsCourse, setClearEnrollmentsCourse] = useState<{ id: string; name: string } | null>(null)
 
   const fetcher = async (url: string) => {
     const res = await fetch(url)
@@ -493,7 +495,7 @@ export function ManagePageInner({ forcedTab }: ManagePageInnerProps = {}) {
   function openCreate() {
     setEditId(null)
     setFormData(
-      tab === 'courses' ? { isDisabled: false, googleGroupEmail: '', courseIconType: 'book_open', icon: 'BookOpen' } :
+      tab === 'courses' ? { isDisabled: false, googleGroupEmail: '', courseIconType: 'book_open', icon: 'BookOpen', academicTerm: '', academicYear: new Date().getFullYear(), examCycle: 'FULL_TERM' } :
       tab === 'faqs' ? { question: '', answer: '', order: faqs.length } :
       {}
     )
@@ -1055,6 +1057,99 @@ export function ManagePageInner({ forcedTab }: ManagePageInnerProps = {}) {
             </label>
             <div className="form-group"><label className="form-label">Description</label><textarea className="form-input" value={f.description || ''} onChange={e => set('description', e.target.value)} placeholder="Course description" rows={3} style={{ resize: 'vertical' }} /></div>
             <div className="form-group"><label className="form-label">About Us (About Course)</label><textarea className="form-input" value={f.aboutUs || ''} onChange={e => set('aboutUs', e.target.value)} placeholder="About this course..." rows={3} style={{ resize: 'vertical' }} /></div>
+            
+            {/* Academic Term & Exam Cycle Settings */}
+            <div style={{
+              background: 'var(--surface-2, #f8fafc)',
+              border: '1px solid var(--border, #e2e8f0)',
+              borderRadius: '12px',
+              padding: '14px 16px',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '12px',
+            }}>
+              <div>
+                <div style={{ fontSize: '13px', fontWeight: 800, color: 'var(--text-primary)' }}>
+                  Academic Term & Exam Cycle
+                </div>
+                <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '2px' }}>
+                  Assign this course to an academic trimester and exam stage for analytics and retention tracking.
+                </div>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1.3fr 1fr', gap: '12px' }}>
+                <div className="form-group" style={{ margin: 0 }}>
+                  <label className="form-label" style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', color: 'var(--text-secondary)' }}>
+                    Academic Term
+                  </label>
+                  <select
+                    className="form-input"
+                    value={f.academicTerm || ''}
+                    onChange={e => set('academicTerm', e.target.value)}
+                    style={{ fontSize: '12px' }}
+                  >
+                    <option value="">Not Assigned</option>
+                    <option value="JAN">January Term (Jan - Apr)</option>
+                    <option value="MAY">May Term (May - Aug)</option>
+                    <option value="SEP">September Term (Sep - Dec)</option>
+                  </select>
+                </div>
+
+                <div className="form-group" style={{ margin: 0 }}>
+                  <label className="form-label" style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', color: 'var(--text-secondary)' }}>
+                    Academic Year
+                  </label>
+                  <input
+                    type="number"
+                    className="form-input"
+                    value={f.academicYear ?? ''}
+                    onChange={e => set('academicYear', e.target.value === '' ? '' : Number(e.target.value))}
+                    placeholder="e.g. 2026"
+                    min="2020"
+                    max="2035"
+                    style={{ fontSize: '12px' }}
+                  />
+                </div>
+              </div>
+
+              <div className="form-group" style={{ margin: 0 }}>
+                <label className="form-label" style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', color: 'var(--text-secondary)' }}>
+                  Exam Stage
+                </label>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '6px' }}>
+                  {[
+                    { id: 'QUIZ_1', label: 'Quiz 1' },
+                    { id: 'QUIZ_2', label: 'Quiz 2' },
+                    { id: 'END_TERM', label: 'End Term' },
+                    { id: 'FULL_TERM', label: 'Full Term' },
+                  ].map(stage => {
+                    const isSelected = (f.examCycle || 'FULL_TERM') === stage.id
+                    return (
+                      <button
+                        key={stage.id}
+                        type="button"
+                        onClick={() => set('examCycle', stage.id)}
+                        style={{
+                          padding: '8px 4px',
+                          borderRadius: '8px',
+                          border: isSelected ? '1.5px solid #6366f1' : '1px solid var(--border)',
+                          background: isSelected ? 'rgba(99, 102, 241, 0.12)' : 'var(--surface)',
+                          color: isSelected ? '#4338ca' : 'var(--text-secondary)',
+                          fontSize: '11px',
+                          fontWeight: isSelected ? 800 : 600,
+                          cursor: 'pointer',
+                          textAlign: 'center',
+                          transition: 'all 0.15s ease',
+                        }}
+                      >
+                        {stage.label}
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+            </div>
+
             <div className="form-group">
               <label className="form-label">Course Start Date</label>
               <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
@@ -1819,6 +1914,20 @@ export function ManagePageInner({ forcedTab }: ManagePageInnerProps = {}) {
   return (
     <div className="page-container fade-in">
       {confirmDialog}
+      {clearEnrollmentsCourse && (
+        <ClearCourseEnrollmentsModal
+          open
+          courseId={clearEnrollmentsCourse.id}
+          courseName={clearEnrollmentsCourse.name}
+          onClose={() => setClearEnrollmentsCourse(null)}
+          onCleared={({ removedCount }) => {
+            setClearEnrollmentsCourse(null)
+            window.alert(
+              `Removed ${removedCount} student enrollment${removedCount === 1 ? '' : 's'}. Those users no longer have access. You can reuse this course with a new batch.`
+            )
+          }}
+        />
+      )}
       {loadError ? (
         <div
           className="card"
@@ -3790,6 +3899,25 @@ export function ManagePageInner({ forcedTab }: ManagePageInnerProps = {}) {
                          >
                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                              <line x1="8" y1="2" x2="8" y2="6"/><line x1="16" y1="2" x2="16" y2="6"/><path d="M3 4h2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4h2"/><path d="M9 9h6v6H9z"/>
+                           </svg>
+                         </button>
+                       )}
+                       {tab === 'courses' && !item.isDemo && (
+                         <button
+                           onClick={() => setClearEnrollmentsCourse({ id: item.id, name: item.name })}
+                           className="btn btn-ghost btn-sm"
+                           style={{
+                             color: 'var(--danger)',
+                             border: '1px solid var(--danger-light)',
+                             padding: '6px',
+                             cursor: 'pointer',
+                           }}
+                           title="Remove all enrolled students (for course reuse)"
+                         >
+                           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                             <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/>
+                             <circle cx="9" cy="7" r="4"/>
+                             <line x1="23" y1="11" x2="17" y2="11"/>
                            </svg>
                          </button>
                        )}

@@ -199,7 +199,7 @@ export async function PUT(
     }
 
     const { id } = await params
-    const { name, description, subject, color, icon, courseIconType, expiresAt, teacherName, isCommunityActive, isDisabled, googleGroupEmail, liveGoogleGroupEmail, liveUpgradePrice, requireFeedback, aboutUs, startDate, endDate } = await request.json()
+    const { name, description, subject, color, icon, courseIconType, expiresAt, teacherName, isCommunityActive, isDisabled, googleGroupEmail, liveGoogleGroupEmail, liveUpgradePrice, requireFeedback, aboutUs, startDate, endDate, academicTerm, academicYear, examCycle } = await request.json()
 
     if (isDisabled !== undefined && !isManagerOrSuperAdmin(session.role)) {
       return NextResponse.json({ error: 'Only managers can enable or disable courses' }, { status: 403 })
@@ -248,6 +248,9 @@ export async function PUT(
           aboutUs: aboutUs !== undefined ? (aboutUs || null) : undefined,
           startDate: startDate !== undefined ? (startDate ? new Date(startDate) : null) : undefined,
           endDate: endDate !== undefined ? (endDate ? new Date(endDate) : null) : undefined,
+          academicTerm: academicTerm !== undefined ? (academicTerm || null) : undefined,
+          academicYear: academicYear !== undefined ? (academicYear ? Number(academicYear) : null) : undefined,
+          examCycle: examCycle !== undefined ? (examCycle || null) : undefined,
         },
       })
 
