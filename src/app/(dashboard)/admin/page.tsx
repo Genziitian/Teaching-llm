@@ -47,6 +47,7 @@ interface User {
   gender?: string
   avatar?: string | null
   securityNumber?: string | null
+  notificationGroupSerial?: number | null
   createdAt: string
   isGoogleUser?: boolean
   notificationGroupEmails?: string | null
@@ -501,7 +502,7 @@ export default function AdminPage() {
           </svg>
           <input
             type="text"
-            placeholder="Search by Name, Email, Security No. or Mobile"
+            placeholder="Search by Name, Email, Security No, Serial #, or Mobile"
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
             style={{
@@ -684,7 +685,7 @@ export default function AdminPage() {
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
           </svg>
-          Showing 500 most recently enrolled users. <strong style={{ marginLeft: 4 }}>Search by name, email, security number, or mobile to find anyone.</strong>
+          Showing 500 most recently enrolled users. <strong style={{ marginLeft: 4 }}>Search by name, email, security number, serial #, or mobile to find anyone.</strong>
         </div>
       )}
 
@@ -768,6 +769,14 @@ export default function AdminPage() {
                         <>
                           <span style={{ color: 'var(--border)' }}>•</span>
                           <span style={{ color: 'var(--accent)', fontWeight: '600', letterSpacing: '0.05em', flexShrink: 0 }}>{user.securityNumber}</span>
+                        </>
+                      )}
+                      {user.notificationGroupSerial != null && (
+                        <>
+                          <span style={{ color: 'var(--border)' }}>•</span>
+                          <span style={{ color: '#7DD3FC', fontWeight: '700', letterSpacing: '0.04em', flexShrink: 0 }}>
+                            #{user.notificationGroupSerial}
+                          </span>
                         </>
                       )}
                     </div>

@@ -63,7 +63,7 @@ model User {
   notifAnnouncementsEnabled Boolean                    @default(true)
   notifCommunityEnabled   Boolean                      @default(true)
   notificationGroupEmails String?
-  notificationGroupSerial Int?
+  notificationGroupSerial Int?                       @unique
   isNotificationGroupPending Boolean                  @default(false)
   pendingPoolCategoryIds  String?
   deletionRequestedAt     DateTime?

@@ -33,6 +33,7 @@ export async function GET(
         email: true,
         role: true,
         securityNumber: true,
+        notificationGroupSerial: true,
         createdAt: true,
         gender: true,
         age: true,

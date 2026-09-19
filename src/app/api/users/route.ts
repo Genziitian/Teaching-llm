@@ -36,6 +36,7 @@ export async function GET(request: NextRequest) {
       gender: true,
       avatar: true,
       securityNumber: true,
+      notificationGroupSerial: true,
       isTerminated: true,
       isGoogleUser: true,
       isSuperManager: true,
@@ -149,6 +150,12 @@ export async function GET(request: NextRequest) {
       { securityNumber: { contains: search, mode: 'insensitive' } },
       { mobileNumber: { contains: search, mode: 'insensitive' } },
     ]
+
+    // Exact match on unique group serial (e.g. "1401" or "#1401")
+    const serialSearch = Number(search.replace(/^#/, '').trim())
+    if (Number.isInteger(serialSearch) && serialSearch > 0 && String(serialSearch) === search.replace(/^#/, '').trim()) {
+      searchFields.push({ notificationGroupSerial: serialSearch })
+    }
 
     if (mobileMatchedUserIds.length > 0) {
       searchFields.push({ id: { in: mobileMatchedUserIds } })

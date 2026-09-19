@@ -205,6 +205,14 @@ export default function MailAssignerPageContent() {
     await postAction('RECONCILE_GOOGLE')
   }
 
+  const handleEnsureSerials = async () => {
+    const ok = window.confirm(
+      'Assign a unique serial number to every user who is missing one?\n\nExisting serials are never changed. One serial per user.'
+    )
+    if (!ok) return
+    await postAction('ENSURE_SERIALS')
+  }
+
   const waitingMessage = (() => {
     if (canRunAssigner) {
       return `Ready for Step 2 — ${activePoolCount}/${poolsNeeded} active pool emails for ${totalUsersCount.toLocaleString()} users at ${MEMBERS_PER_GROUP}/group.`
@@ -561,6 +569,16 @@ export default function MailAssignerPageContent() {
             : canRunAssigner
               ? 'Step 2 · Assign serials & ADD'
               : `Waiting — need ${poolsShortBy || poolsNeeded} active mail(s)`}
+        </button>
+
+        <button
+          type="button"
+          className="btn btn-secondary"
+          disabled={!!busyAction}
+          onClick={handleEnsureSerials}
+          style={{ padding: '12px 16px', borderRadius: 999, fontWeight: 700, fontSize: 13 }}
+        >
+          {busyAction === 'ENSURE_SERIALS' ? 'Assigning serials…' : 'Assign missing serials'}
         </button>
 
         <button

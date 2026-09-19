@@ -11,6 +11,7 @@ import {
   fullResetAndRedistribute,
   serialResetAndAssign,
   removeAllNotificationPoolMembers,
+  ensureAllUsersHaveGroupSerials,
   DEFAULT_MEMBERS_PER_GROUP,
 } from '@/lib/notification-group-pool'
 import { getGoogleGroupMemberCounts, reconcileGoogleGroupMembers } from '@/lib/google-group-sync'
@@ -130,6 +131,11 @@ export async function POST(request: Request) {
     if (action === 'REMOVE_ALL_POOL_MEMBERS') {
       const { categoryId } = body
       const result = await removeAllNotificationPoolMembers(prisma, categoryId)
+      return NextResponse.json({ success: true, ...result })
+    }
+
+    if (action === 'ENSURE_SERIALS') {
+      const result = await ensureAllUsersHaveGroupSerials(prisma)
       return NextResponse.json({ success: true, ...result })
     }
 

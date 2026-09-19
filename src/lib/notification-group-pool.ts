@@ -31,6 +31,89 @@ export function validateNotificationGroupEmail(groupEmail: string): string {
 /** Default Google Group capacity for notification mail assigner (not course groups). */
 export const DEFAULT_MEMBERS_PER_GROUP = NOTIFICATION_MEMBERS_PER_GROUP
 
+/**
+ * Allocate the next unique notificationGroupSerial (1, 2, 3…).
+ * Retries on unique conflicts under concurrent creates.
+ */
+export async function allocateNextGroupSerial(db: any): Promise<number> {
+  for (let attempt = 0; attempt < 8; attempt++) {
+    const agg = await db.user.aggregate({
+      _max: { notificationGroupSerial: true },
+    })
+    const next = (agg._max.notificationGroupSerial || 0) + 1
+    try {
+      // Caller assigns this value; uniqueness enforced by DB.
+      // Soft-check: if already taken (race), loop again.
+      const taken = await db.user.findFirst({
+        where: { notificationGroupSerial: next },
+        select: { id: true },
+      })
+      if (!taken) return next
+    } catch {
+      // continue
+    }
+  }
+  // Fallback: use count-based high watermark
+  const count = await db.user.count()
+  return count + 1
+}
+
+/** Ensure a single user has a unique serial; returns the serial. */
+export async function ensureUserGroupSerial(db: any, userId: string): Promise<number> {
+  const user = await db.user.findUnique({
+    where: { id: userId },
+    select: { id: true, notificationGroupSerial: true },
+  })
+  if (!user) throw new Error('User not found')
+  if (user.notificationGroupSerial != null) return user.notificationGroupSerial as number
+
+  for (let attempt = 0; attempt < 8; attempt++) {
+    const serial = await allocateNextGroupSerial(db)
+    try {
+      await db.user.update({
+        where: { id: userId },
+        data: { notificationGroupSerial: serial },
+      })
+      return serial
+    } catch (err: any) {
+      // Unique violation — retry with a new number
+      if (String(err?.code) === 'P2002' || /unique/i.test(String(err?.message || ''))) continue
+      throw err
+    }
+  }
+  throw new Error('Failed to allocate a unique notificationGroupSerial')
+}
+
+/**
+ * Backfill every user missing a serial (ordered by join time).
+ * Does not change users who already have one.
+ */
+export async function ensureAllUsersHaveGroupSerials(db: any) {
+  const missing = await db.user.findMany({
+    where: { notificationGroupSerial: null },
+    select: { id: true },
+    orderBy: [{ createdAt: 'asc' }, { id: 'asc' }],
+  })
+
+  let assigned = 0
+  for (const user of missing) {
+    await ensureUserGroupSerial(db, user.id)
+    assigned++
+  }
+
+  const total = await db.user.count()
+  const withSerial = await db.user.count({
+    where: { notificationGroupSerial: { not: null } },
+  })
+
+  return {
+    backfilled: assigned,
+    totalUsers: total,
+    withSerial,
+    message: `Serials ready: ${withSerial}/${total} users have a unique serial (${assigned} newly assigned).`,
+  }
+}
+
 export async function queueNotificationGroupSyncJob(
   db: any,
   {
@@ -192,6 +275,9 @@ export async function getOrAssignPoolCategory(db: any, userEmail: string, catego
 
   if (!targetCategory) return { assigned: false, pending: true }
 
+  // Permanent unique serial for this user (1, 2, 3…) — used for pool packing + search
+  const serial = await ensureUserGroupSerial(db, targetUser.id)
+
   // Find active email in this category with space
   const poolEmails = await db.notificationPoolEmail.findMany({
     where: { categoryId: targetCategory.id, isActive: true },
@@ -199,7 +285,7 @@ export async function getOrAssignPoolCategory(db: any, userEmail: string, catego
   })
 
   // CHECK: If user ALREADY has an email belonging to this category, DO NOT assign a second email from the same category!
-  const categoryEmailAddresses = poolEmails.map(p => p.groupEmail)
+  const categoryEmailAddresses = poolEmails.map((p: any) => p.groupEmail)
   const currentGroups = parseNotificationGroupEmails(targetUser.notificationGroupEmails)
   const existingCategoryEmail = currentGroups.find(email => categoryEmailAddresses.includes(email))
 
@@ -209,17 +295,25 @@ export async function getOrAssignPoolCategory(db: any, userEmail: string, catego
       groupEmail: existingCategoryEmail,
       categoryName: targetCategory.name,
       newlyAssigned: false,
+      serial,
     }
   }
 
+  // Prefer pool bucket from serial: 1–700 → pool 0, 701–1400 → pool 1, …
+  const preferredIndex = serialToPoolIndex(serial)
   let availableEmail: any = null
-  for (const p of poolEmails) {
-    const actualCount = await db.user.count({
-      where: { notificationGroupEmails: { contains: p.groupEmail } },
-    })
-    if (actualCount < p.maxCapacity) {
-      availableEmail = p
-      break
+
+  if (poolEmails[preferredIndex]) {
+    availableEmail = poolEmails[preferredIndex]
+  } else {
+    for (const p of poolEmails) {
+      const actualCount = await db.user.count({
+        where: { notificationGroupEmails: { contains: p.groupEmail } },
+      })
+      if (actualCount < p.maxCapacity) {
+        availableEmail = p
+        break
+      }
     }
   }
 
@@ -278,10 +372,17 @@ export async function getOrAssignPoolCategory(db: any, userEmail: string, catego
       groupEmail: availableEmail.groupEmail,
       categoryName: targetCategory.name,
       newlyAssigned: true,
+      serial,
     }
   }
 
-  return { assigned: true, groupEmail: availableEmail.groupEmail, categoryName: targetCategory.name, newlyAssigned: false }
+  return {
+    assigned: true,
+    groupEmail: availableEmail.groupEmail,
+    categoryName: targetCategory.name,
+    newlyAssigned: false,
+    serial,
+  }
 }
 
 /**
@@ -809,7 +910,7 @@ export async function removeAllNotificationPoolMembers(db: any, categoryId?: str
       where: { id: user.id },
       data: {
         notificationGroupEmails: remainingEmails.length > 0 ? remainingEmails.join(',') : null,
-        notificationGroupSerial: null,
+        // Keep permanent unique serial — only clear group membership
         isNotificationGroupPending: false,
         pendingPoolCategoryIds: null,
       },
@@ -835,9 +936,9 @@ export async function removeAllNotificationPoolMembers(db: any, categoryId?: str
 }
 
 /**
- * Mail Assigner step 2: assign serials 1..N and queue ADD (700/group, fixed).
- * Prefer running REMOVE_ALL first so groups are empty, then this adds one-by-one via sync jobs.
- * Never touches course Google Groups (groupType COURSE).
+ * Mail Assigner step 2: ensure unique serials exist, pack into pools by serial
+ * (1–700 → group 1, 701–1400 → group 2, …), queue ADD jobs.
+ * Does NOT renumber existing serials. Never touches course Google Groups.
  */
 export async function serialResetAndAssign(
   db: any,
@@ -859,6 +960,9 @@ export async function serialResetAndAssign(
   }
 
   if (!targetCategory) throw new Error('Pool Category not found')
+
+  // Backfill any missing unique serials first (never duplicate / never steal)
+  const serialEnsure = await ensureAllUsersHaveGroupSerials(db)
 
   let poolEmails = await db.notificationPoolEmail.findMany({
     where: { categoryId: targetCategory.id, isActive: true },
@@ -885,14 +989,23 @@ export async function serialResetAndAssign(
   const categoryEmailSet = new Set(categoryEmailAddresses)
 
   const allUsers = await db.user.findMany({
-    select: { id: true, email: true, notificationGroupEmails: true },
-    orderBy: [{ createdAt: 'asc' }, { id: 'asc' }],
+    select: {
+      id: true,
+      email: true,
+      notificationGroupEmails: true,
+      notificationGroupSerial: true,
+    },
+    orderBy: [{ notificationGroupSerial: 'asc' }, { createdAt: 'asc' }],
   })
 
-  const poolsNeeded = Math.ceil(allUsers.length / capacity) || 1
+  const maxSerial = allUsers.reduce(
+    (max: number, u: any) => Math.max(max, u.notificationGroupSerial || 0),
+    0
+  )
+  const poolsNeeded = Math.ceil(maxSerial / capacity) || 1
   if (poolsNeeded > poolEmails.length) {
     throw new Error(
-      `Need ${poolsNeeded} pool group emails for ${allUsers.length} users at ${capacity}/group, but only ${poolEmails.length} active. Add more group emails first.`
+      `Need ${poolsNeeded} pool group emails for serials up to #${maxSerial} at ${capacity}/group, but only ${poolEmails.length} active. Add more group emails first.`
     )
   }
 
@@ -915,11 +1028,14 @@ export async function serialResetAndAssign(
     groupEmail: string
   }> = []
 
-  for (let i = 0; i < allUsers.length; i++) {
-    const user = allUsers[i]
-    const serial = i + 1
-    const poolIndex = Math.floor((serial - 1) / capacity)
+  for (const user of allUsers) {
+    const serial = user.notificationGroupSerial as number
+    const poolIndex = serialToPoolIndex(serial, capacity)
     const targetPoolEmail = poolEmails[poolIndex]
+    if (!targetPoolEmail) {
+      throw new Error(`No pool email for serial #${serial} (pool index ${poolIndex})`)
+    }
+
     const newGroupEmail = targetPoolEmail.groupEmail as string
     const normUserEmail = normalizeEmail(user.email)
     const currentEmails = parseNotificationGroupEmails(user.notificationGroupEmails)
@@ -929,7 +1045,6 @@ export async function serialResetAndAssign(
 
     if (oldCategoryEmails.length > 0) alreadyHadAssignment++
 
-    // If still assigned somewhere in this category, move: REMOVE old ≠ new
     for (const oldEmail of oldCategoryEmails) {
       if (oldEmail === newGroupEmail) continue
       await queueNotificationGroupSyncJob(db, {
@@ -946,14 +1061,12 @@ export async function serialResetAndAssign(
       where: { id: user.id },
       data: {
         notificationGroupEmails: updatedEmails.join(','),
-        notificationGroupSerial: serial,
+        // serial already permanent + unique — do not renumber
         isNotificationGroupPending: false,
         pendingPoolCategoryIds: null,
       },
     })
 
-    // "Already added" = DB already had this exact group email (we trust DB;
-    // use Reconcile to verify Google membership).
     if (alreadyInTarget) {
       unchangedCount++
     } else {
@@ -985,14 +1098,17 @@ export async function serialResetAndAssign(
   }
 
   const poolsUsed = poolCounts.filter(c => c > 0).length
-  const distribution = poolEmails.map((p: any, i: number) => ({
-    groupEmail: p.groupEmail,
-    groupNumber: i + 1,
-    serialFrom: poolCounts[i] > 0 ? i * capacity + 1 : null,
-    serialTo: poolCounts[i] > 0 ? i * capacity + poolCounts[i] : null,
-    memberCount: poolCounts[i],
-    maxCapacity: capacity,
-  }))
+  const distribution = poolEmails.map((p: any, i: number) => {
+    const range = poolIndexToSerialRange(i, maxSerial, capacity)
+    return {
+      groupEmail: p.groupEmail,
+      groupNumber: i + 1,
+      serialFrom: poolCounts[i] > 0 ? range.serialFrom : null,
+      serialTo: poolCounts[i] > 0 ? range.serialTo : null,
+      memberCount: poolCounts[i],
+      maxCapacity: capacity,
+    }
+  })
 
   return {
     totalUsers: allUsers.length,
@@ -1001,12 +1117,14 @@ export async function serialResetAndAssign(
     unchangedCount,
     addJobsQueued,
     membersPerGroup: capacity,
+    maxSerial,
+    serialsBackfilled: serialEnsure.backfilled,
     poolsUsed,
     poolsAvailable: poolEmails.length,
     categoryName: targetCategory.name,
     categoryId: targetCategory.id,
     distribution,
     serialPreview,
-    message: `Serials 1–${allUsers.length} assigned. Group 1 = #1–#${Math.min(capacity, allUsers.length)}${allUsers.length > capacity ? `; Group 2 = #${capacity + 1}–#${Math.min(capacity * 2, allUsers.length)}` : ''}${allUsers.length > capacity * 2 ? '; …' : ''}. Queued ${addJobsQueued} ADD jobs. Course mails untouched.`,
+    message: `Packed ${allUsers.length} users by unique serial (max #${maxSerial}). ${serialEnsure.backfilled} new serials issued. Queued ${addJobsQueued} ADD jobs. Course mails untouched.`,
   }
 }

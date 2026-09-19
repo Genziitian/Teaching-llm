@@ -9,8 +9,26 @@ const APP_URL = process.env.NEXT_PUBLIC_APP_URL?.trim().replace(/\/$/, '') || ''
 
 const GOOGLE_WORKSPACE_DOMAIN = process.env.GOOGLE_WORKSPACE_DOMAIN?.trim().toLowerCase() || ''
 const GOOGLE_SERVICE_ACCOUNT_EMAIL = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL?.trim() || ''
-const GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY = process.env.GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY?.replace(/\\n/g, '\n') || ''
 const GOOGLE_WORKSPACE_ADMIN_EMAIL = process.env.GOOGLE_WORKSPACE_ADMIN_EMAIL?.trim() || ''
+
+/**
+ * Normalize PEM private key from env (Render/Vercel often wrap in quotes or escape \\n).
+ * Bad formatting causes: "Found a character that cannot be part of a valid base64 string."
+ */
+function normalizeServiceAccountPrivateKey(raw?: string | null): string {
+  if (!raw) return ''
+  let key = raw.trim()
+  if ((key.startsWith('"') && key.endsWith('"')) || (key.startsWith("'") && key.endsWith("'"))) {
+    key = key.slice(1, -1)
+  }
+  // Handle double-escaped newlines from JSON-style env paste
+  key = key.replace(/\\\\n/g, '\n').replace(/\\n/g, '\n').replace(/\r\n/g, '\n')
+  return key.trim()
+}
+
+const GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY = normalizeServiceAccountPrivateKey(
+  process.env.GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY
+)
 
 type SyncAction = 'ADD' | 'REMOVE'
 type SyncStatus = 'PENDING' | 'PROCESSING' | 'SUCCESS' | 'FAILED'
@@ -434,8 +452,22 @@ async function getGoogleAccessToken() {
     throw new Error('Google Group sync credentials are not fully configured')
   }
 
+  if (!GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY.includes('BEGIN PRIVATE KEY')) {
+    throw new Error(
+      'GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY looks invalid (missing BEGIN PRIVATE KEY). Re-paste the full PEM including headers.'
+    )
+  }
+
   const now = Math.floor(Date.now() / 1000)
-  const key = await importPKCS8(GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY, 'RS256')
+  let key
+  try {
+    key = await importPKCS8(GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY, 'RS256')
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err)
+    throw new Error(
+      `Failed to parse GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY (${msg}). Fix the PEM in env (no broken base64 / use real newlines or \\n), then Retry Failed Jobs.`
+    )
+  }
   const assertion = await new SignJWT({ scope: GOOGLE_GROUP_SCOPE })
     .setProtectedHeader({ alg: 'RS256', typ: 'JWT' })
     .setIssuer(GOOGLE_SERVICE_ACCOUNT_EMAIL)
