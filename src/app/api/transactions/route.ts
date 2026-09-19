@@ -1,9 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
-import fs from 'fs'
-import path from 'path'
 import { prisma } from '@/lib/db'
 import { getSession } from '@/lib/auth'
 import { ensureCourseColumns } from '@/lib/course-schema-sync'
+import { getAcademicTerms } from '@/lib/academic-terms-config'
 
 function isAdminOrManager(role: string) {
   return role === 'MANAGER' || role === 'ADMIN'
@@ -29,15 +28,12 @@ export async function GET(request: NextRequest) {
     const termId = searchParams.get('termId') || 'all'
     const examCycle = searchParams.get('examCycle') || 'all'
 
-    // Load academic terms config for date window lookups
+    // Load academic terms config for date window lookups (DB-backed)
     let termConfig: any = null
     try {
-      const configPath = path.join(process.cwd(), 'src', 'data', 'academic-terms-config.json')
-      if (fs.existsSync(configPath)) {
-        const parsed = JSON.parse(fs.readFileSync(configPath, 'utf-8'))
-        if (termId !== 'all') {
-          termConfig = (parsed.terms || []).find((t: any) => t.id === termId)
-        }
+      if (termId !== 'all') {
+        const terms = await getAcademicTerms()
+        termConfig = terms.find((t: any) => t.id === termId) || null
       }
     } catch {}
 

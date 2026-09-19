@@ -1107,6 +1107,12 @@ model AnalyticsConfig {
   cronIntervalHours Int      @default(24)
 }
 
+model AcademicTermsConfig {
+  id        String   @id @default("singleton")
+  terms     Json     @default("[]")
+  updatedAt DateTime @updatedAt
+}
+
 model LectureProgress {
   id            String   @id @default(cuid())
   userId        String

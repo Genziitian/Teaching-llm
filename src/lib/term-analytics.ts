@@ -6,8 +6,6 @@
  * WRITES to: nothing — returns computed data for the summary endpoint.
  */
 
-import fs from 'fs'
-import path from 'path'
 import { prisma } from '@/lib/db'
 import {
   type TermKey,
@@ -22,6 +20,7 @@ import {
   TERM_LABELS,
   EXAM_CYCLE_LABELS,
 } from '@/lib/academic-terms'
+import { getAcademicTerms } from '@/lib/academic-terms-config'
 
 // ─── Result Types ────────────────────────────────────────────────────────────
 
@@ -125,16 +124,11 @@ export async function computeTermAnalytics(
 
   const availableTermsSet = new Map<string, { id: string; name: string; termKey: TermKey; year: number }>()
 
-  // Pre-populate with all manager-configured terms
+  // Pre-populate with all manager-configured terms (DB-backed)
   try {
-    const configPath = path.join(process.cwd(), 'src', 'data', 'academic-terms-config.json')
-    if (fs.existsSync(configPath)) {
-      const parsed = JSON.parse(fs.readFileSync(configPath, 'utf-8'))
-      if (Array.isArray(parsed.terms)) {
-        for (const t of parsed.terms) {
-          availableTermsSet.set(t.id, { id: t.id, name: t.name, termKey: t.termKey, year: Number(t.year) })
-        }
-      }
+    const configured = await getAcademicTerms()
+    for (const t of configured) {
+      availableTermsSet.set(t.id, { id: t.id, name: t.name, termKey: t.termKey, year: Number(t.year) })
     }
   } catch (e) {
     console.error('[term-analytics] Failed to load terms config:', e)
