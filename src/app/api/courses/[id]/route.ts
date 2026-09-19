@@ -4,6 +4,7 @@ import { getSession, isAdminOrManager, isManagerOrSuperAdmin } from '@/lib/auth'
 import { logActivity, ACTION, MODULE } from '@/lib/activity-log'
 import { isCourseEffectivelyDisabled, isCourseExpired } from '@/lib/course-state'
 import { queueExplicitGoogleGroupSyncJobs, validateGoogleGroupEmail, parseGoogleGroupEmails, reSyncCourseGroupMembers } from '@/lib/google-group-sync'
+import { ensureCourseColumns } from '@/lib/course-schema-sync'
 
 export async function GET(
   request: NextRequest,
@@ -14,6 +15,8 @@ export async function GET(
     if (!session) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
+
+    await ensureCourseColumns()
 
     const { id } = await params
 
@@ -197,6 +200,8 @@ export async function PUT(
     if (session.role !== 'MANAGER') {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
+
+    await ensureCourseColumns()
 
     const { id } = await params
     const { name, description, subject, color, icon, courseIconType, expiresAt, teacherName, isCommunityActive, isDisabled, googleGroupEmail, liveGoogleGroupEmail, liveUpgradePrice, requireFeedback, aboutUs, startDate, endDate, academicTerm, academicYear, examCycle } = await request.json()

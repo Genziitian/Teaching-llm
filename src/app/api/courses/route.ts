@@ -7,6 +7,7 @@ import { sanitizeInput } from '@/lib/validation'
 import { isCourseEffectivelyDisabled, isCourseExpired } from '@/lib/course-state'
 import { queueGoogleGroupSyncJobs, validateGoogleGroupEmail } from '@/lib/google-group-sync'
 import { logCourseDataDiagnostics } from '@/lib/course-data-diagnostics'
+import { ensureCourseColumns } from '@/lib/course-schema-sync'
 
 export async function GET() {
   try {
@@ -14,6 +15,8 @@ export async function GET() {
     if (!session) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
+
+    await ensureCourseColumns()
 
     const where: any = {
       isGlobal: false,
@@ -37,9 +40,10 @@ export async function GET() {
       ...(isManager ? {} : { isDisabled: false }),
     }
 
-    // Parallelize course fetch and minimal content counts queries
-    const [courses, directContents, sharedContents] = await Promise.all([
-      prisma.course.findMany({
+    // Parallelize course fetch and minimal content counts queries with automatic resilience
+    let courses: any[] = []
+    try {
+      courses = await prisma.course.findMany({
         where,
         include: {
           createdBy: { select: { name: true } },
@@ -51,7 +55,48 @@ export async function GET() {
           },
         },
         orderBy: { createdAt: 'desc' },
-      }),
+      })
+    } catch (courseFetchErr: any) {
+      console.warn('[Courses GET] findMany failed, attempting column sync:', courseFetchErr?.message)
+      try {
+        await prisma.$executeRawUnsafe(`
+          ALTER TABLE "Class" ADD COLUMN IF NOT EXISTS "academicTerm" TEXT;
+          ALTER TABLE "Class" ADD COLUMN IF NOT EXISTS "academicYear" INTEGER;
+          ALTER TABLE "Class" ADD COLUMN IF NOT EXISTS "examCycle" TEXT;
+        `)
+        courses = await prisma.course.findMany({
+          where,
+          include: {
+            createdBy: { select: { name: true } },
+            _count: {
+              select: {
+                topics: true,
+                courseEvents: true,
+              },
+            },
+          },
+          orderBy: { createdAt: 'desc' },
+        })
+      } catch (retryErr: any) {
+        console.error('[Courses GET] Retry failed, using raw query fallback:', retryErr?.message)
+        const rawCourses: any[] = await prisma.$queryRawUnsafe(`
+          SELECT id, name, description, subject, color, icon, "courseIconType", "teacherName", "liveUpgradePrice", "googleGroupEmail", "liveGoogleGroupEmail", "isDemo", "isFree", "isCommunityActive", "isDisabled", "expiresAt", "aboutUs", "startDate", "endDate", "createdById", "createdAt", "updatedAt"
+          FROM "Class"
+          WHERE "isGlobal" = false AND id != 'general-discussion' ${!isManager ? 'AND "isDisabled" = false' : ''}
+          ORDER BY "createdAt" DESC
+        `)
+        courses = rawCourses.map(c => ({
+          ...c,
+          academicTerm: null,
+          academicYear: null,
+          examCycle: null,
+          createdBy: { name: 'Admin' },
+          _count: { topics: 0, courseEvents: 0 }
+        }))
+      }
+    }
+
+    const [directContents, sharedContents] = await Promise.all([
       prisma.content.findMany({
         where: {
           topic: {

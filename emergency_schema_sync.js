@@ -32,7 +32,19 @@ async function main() {
     `ALTER TABLE "Class" ADD COLUMN IF NOT EXISTS "liveUpgradePrice" DOUBLE PRECISION;`,
     'liveUpgradePrice'
   )
-  console.log('  ✅ liveUpgradePrice column ready')
+  await safeExec(
+    `ALTER TABLE "Class" ADD COLUMN IF NOT EXISTS "academicTerm" TEXT;`,
+    'academicTerm'
+  )
+  await safeExec(
+    `ALTER TABLE "Class" ADD COLUMN IF NOT EXISTS "academicYear" INTEGER;`,
+    'academicYear'
+  )
+  await safeExec(
+    `ALTER TABLE "Class" ADD COLUMN IF NOT EXISTS "examCycle" TEXT;`,
+    'examCycle'
+  )
+  console.log('  ✅ liveUpgradePrice & academic columns ready')
 
   // ─── FIX #2: UpgradeTransaction table ─────────────────────
   console.log('[2/5] Creating UpgradeTransaction table...')
