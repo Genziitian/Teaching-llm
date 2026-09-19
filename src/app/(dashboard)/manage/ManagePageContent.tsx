@@ -887,438 +887,477 @@ export function ManagePageInner({ forcedTab }: ManagePageInnerProps = {}) {
         return (
           <>
             <style>{`
-              .course-edit-grid {
-                display: grid;
-                gap: 12px;
+              .ce-form {
+                display: flex;
+                flex-direction: column;
+                gap: 28px;
               }
-              .course-edit-grid.cols-2 { grid-template-columns: 1fr 1fr; }
-              .course-edit-grid.cols-2-name { grid-template-columns: 1.4fr 1fr; }
-              .course-edit-grid.cols-2-teacher { grid-template-columns: 1fr 1.2fr; align-items: end; }
-              .course-edit-grid.cols-2-term { grid-template-columns: 1.2fr 1fr; align-items: start; }
-              .course-edit-grid.cols-2-price { grid-template-columns: 0.9fr 1.4fr; align-items: start; }
-              .course-edit-grid.cols-3 { grid-template-columns: 1fr 1fr 1fr; }
-              .course-edit-flags {
+              .ce-section {
+                display: flex;
+                flex-direction: column;
+                gap: 16px;
+              }
+              .ce-section-label {
+                font-size: 11px;
+                font-weight: 650;
+                letter-spacing: 0.06em;
+                text-transform: uppercase;
+                color: var(--text-muted);
+                margin: 0;
+              }
+              .ce-row {
                 display: grid;
-                grid-template-columns: 1fr 1fr;
-                gap: 10px;
+                gap: 20px;
+              }
+              .ce-row.r2 { grid-template-columns: 1fr 1fr; }
+              .ce-row.r2-wide { grid-template-columns: 1.5fr 1fr; }
+              .ce-row.r3 { grid-template-columns: 1fr 1fr 1fr; }
+              .ce-row.r4 { grid-template-columns: 1fr 1fr 1fr 1fr; }
+              .ce-field {
+                display: flex;
+                flex-direction: column;
+                gap: 8px;
+                margin: 0;
+                min-width: 0;
+              }
+              .ce-field label {
+                font-size: 13px;
+                font-weight: 500;
+                color: var(--text-secondary);
+              }
+              .ce-hint {
+                font-size: 12px;
+                color: var(--text-muted);
+                line-height: 1.4;
+                margin: 0;
+              }
+              .ce-checks {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 24px;
+                align-items: center;
+              }
+              .ce-check {
+                display: inline-flex;
+                align-items: center;
+                gap: 8px;
+                cursor: pointer;
+                margin: 0;
+                font-size: 13px;
+                font-weight: 500;
+                color: var(--text-primary);
+              }
+              .ce-stages {
+                display: flex;
+                gap: 8px;
+                flex-wrap: wrap;
+              }
+              .ce-stage {
+                flex: 1;
+                min-width: 88px;
                 padding: 10px 12px;
-                border-radius: 12px;
-                background: var(--bg);
-                border: 1px solid var(--border-light);
+                border-radius: 10px;
+                border: 1px solid var(--border);
+                background: transparent;
+                color: var(--text-secondary);
+                font-size: 13px;
+                font-weight: 600;
+                cursor: pointer;
+                text-align: center;
+                transition: border-color 0.15s, color 0.15s, background 0.15s;
+                font-family: inherit;
               }
-              @media (max-width: 720px) {
-                .course-edit-grid.cols-2,
-                .course-edit-grid.cols-2-name,
-                .course-edit-grid.cols-2-teacher,
-                .course-edit-grid.cols-2-term,
-                .course-edit-grid.cols-2-price,
-                .course-edit-grid.cols-3,
-                .course-edit-flags {
-                  grid-template-columns: 1fr !important;
+              .ce-stage.is-on {
+                border-color: var(--primary);
+                color: var(--primary);
+                background: color-mix(in srgb, var(--primary) 10%, transparent);
+              }
+              .ce-icon-btn {
+                width: 100%;
+                min-height: 48px;
+                border-radius: 12px;
+                border: 1px solid var(--border);
+                background: var(--bg);
+                color: var(--text-primary);
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 12px;
+                padding: 8px 14px;
+                cursor: pointer;
+                font-family: inherit;
+                text-align: left;
+              }
+              .ce-colors {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 8px;
+                align-items: center;
+              }
+              .ce-swatch {
+                width: 30px;
+                height: 30px;
+                border-radius: 9px;
+                border: 2px solid transparent;
+                cursor: pointer;
+                padding: 0;
+                transition: box-shadow 0.15s, border-color 0.15s;
+              }
+              @media (max-width: 860px) {
+                .ce-row.r2,
+                .ce-row.r2-wide,
+                .ce-row.r3,
+                .ce-row.r4 {
+                  grid-template-columns: 1fr;
                 }
+                .ce-stages { display: grid; grid-template-columns: 1fr 1fr; }
               }
             `}</style>
 
-            {/* Row: Name + Subject */}
-            <div className="course-edit-grid cols-2-name">
-              <div className="form-group" style={{ margin: 0 }}>
-                <label className="form-label">Name *</label>
-                <input className="form-input" value={f.name || ''} onChange={e => set('name', e.target.value)} placeholder="Course name" />
-              </div>
-              <div className="form-group" style={{ margin: 0 }}>
-                <label className="form-label">Subject</label>
-                <input className="form-input" value={f.subject || ''} onChange={e => set('subject', e.target.value)} placeholder="e.g. Computer Science" />
-              </div>
-            </div>
-
-            {/* Row: Teacher + Icon */}
-            <div className="course-edit-grid cols-2-teacher">
-              <div className="form-group" style={{ margin: 0 }}>
-                <label className="form-label">Teacher Name</label>
-                <input className="form-input" value={f.teacherName || ''} onChange={e => set('teacherName', e.target.value)} placeholder="Manual teacher name" />
-              </div>
-              <div className="form-group" style={{ margin: 0 }}>
-                <label className="form-label">Course Icon</label>
-                <button
-                  type="button"
-                  onClick={() => setCourseIconPickerOpen(true)}
-                  style={{
-                    width: '100%',
-                    minHeight: '42px',
-                    borderRadius: '12px',
-                    border: '1.5px solid var(--border)',
-                    background: 'var(--bg)',
-                    color: 'var(--text-primary)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    gap: '10px',
-                    padding: '6px 10px',
-                    cursor: 'pointer',
-                    fontFamily: 'inherit',
-                    textAlign: 'left',
-                  }}
-                >
-                  <span style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0 }}>
-                    <CourseIconBadge type={f.courseIconType || f.icon} size={32} iconSize={16} radius={10} />
-                    <span style={{ minWidth: 0 }}>
-                      <span style={{ display: 'block', fontSize: '13px', fontWeight: 700, color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                        {getCourseIconOption(f.courseIconType || f.icon).label}
+            <div className="ce-form">
+              {/* Basics */}
+              <section className="ce-section">
+                <p className="ce-section-label">Basics</p>
+                <div className="ce-row r2-wide">
+                  <div className="ce-field">
+                    <label>Name *</label>
+                    <input className="form-input" value={f.name || ''} onChange={e => set('name', e.target.value)} placeholder="Course name" />
+                  </div>
+                  <div className="ce-field">
+                    <label>Subject</label>
+                    <input className="form-input" value={f.subject || ''} onChange={e => set('subject', e.target.value)} placeholder="e.g. Computer Science" />
+                  </div>
+                </div>
+                <div className="ce-row r2">
+                  <div className="ce-field">
+                    <label>Teacher</label>
+                    <input className="form-input" value={f.teacherName || ''} onChange={e => set('teacherName', e.target.value)} placeholder="Teacher name" />
+                  </div>
+                  <div className="ce-field">
+                    <label>Icon</label>
+                    <button type="button" className="ce-icon-btn" onClick={() => setCourseIconPickerOpen(true)}>
+                      <span style={{ display: 'flex', alignItems: 'center', gap: '12px', minWidth: 0 }}>
+                        <CourseIconBadge type={f.courseIconType || f.icon} size={34} iconSize={18} radius={10} />
+                        <span style={{ minWidth: 0 }}>
+                          <span style={{ display: 'block', fontSize: '13px', fontWeight: 650, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                            {getCourseIconOption(f.courseIconType || f.icon).label}
+                          </span>
+                          <span style={{ display: 'block', fontSize: '11px', color: 'var(--text-muted)', marginTop: '2px' }}>
+                            Shared across web &amp; app
+                          </span>
+                        </span>
                       </span>
-                      <span style={{ display: 'block', fontSize: '10px', fontWeight: 600, color: 'var(--text-muted)', marginTop: '1px' }}>
-                        Website &amp; app icon
-                      </span>
-                    </span>
-                  </span>
-                  <span style={{ color: 'var(--primary)', fontSize: '12px', fontWeight: 800, flexShrink: 0 }}>
-                    Choose
-                  </span>
-                </button>
-              </div>
-            </div>
-
-            {/* Row: Google Group emails side by side */}
-            <div className="course-edit-grid cols-2">
-              <div className="form-group" style={{ margin: 0 }}>
-                <label className="form-label" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <span>Google Group (Recorded / Default)</span>
-                  {(() => {
-                    const emails = (f.googleGroupEmail || '').split(',').filter((e: string) => e.trim());
-                    const count = Math.max(emails.length, 1);
-                    return count < 5 ? (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          const current = (f.googleGroupEmail || '').split(',').filter((e: string) => e.trim());
-                          if (current.length === 0) current.push('');
-                          current.push('');
-                          set('googleGroupEmail', current.join(','));
-                        }}
-                        style={{
-                          background: 'var(--accent)',
-                          color: '#fff',
-                          border: 'none',
-                          borderRadius: '50%',
-                          width: '20px',
-                          height: '20px',
-                          fontSize: '14px',
-                          lineHeight: '1',
-                          cursor: 'pointer',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          flexShrink: 0,
-                        }}
-                        title="Add another Google Group Email (max 5)"
-                      >+</button>
-                    ) : null;
-                  })()}
-                </label>
-                {(() => {
-                  const raw = f.googleGroupEmail || '';
-                  const emails = raw.split(',');
-                  if (emails.length === 0 || (emails.length === 1 && emails[0] === '')) {
-                    return (
-                      <input
-                        className="form-input"
-                        type="email"
-                        value=""
-                        onChange={e => set('googleGroupEmail', e.target.value.toLowerCase())}
-                        placeholder="recorded-batch@yourdomain.com"
-                      />
-                    );
-                  }
-                  return emails.map((email: string, idx: number) => (
-                    <div key={idx} style={{ display: 'flex', gap: '6px', alignItems: 'center', marginBottom: idx < emails.length - 1 ? '6px' : '0' }}>
-                      <input
-                        className="form-input"
-                        type="email"
-                        value={email.trim()}
-                        onChange={e => {
-                          const updated = [...emails];
-                          updated[idx] = e.target.value.toLowerCase();
-                          set('googleGroupEmail', updated.join(','));
-                        }}
-                        placeholder={`recorded-batch${idx + 1}@yourdomain.com`}
-                        style={{ flex: 1 }}
-                      />
-                      {emails.length > 1 && (
-                        <button
-                          type="button"
-                          onClick={() => {
-                            const updated = emails.filter((_: string, i: number) => i !== idx);
-                            set('googleGroupEmail', updated.length > 0 ? updated.join(',') : '');
-                          }}
-                          style={{
-                            background: 'transparent',
-                            color: 'var(--danger)',
-                            border: '1px solid var(--danger)',
-                            borderRadius: '50%',
-                            width: '22px',
-                            height: '22px',
-                            fontSize: '14px',
-                            lineHeight: '1',
-                            cursor: 'pointer',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            flexShrink: 0,
-                          }}
-                          title="Remove this email"
-                        >×</button>
-                      )}
-                    </div>
-                  ));
-                })()}
-                <p style={{ fontSize: '10px', color: 'var(--text-muted)', marginTop: '4px', lineHeight: 1.35 }}>
-                  Default group. If Live is empty, all students go here.
-                </p>
-              </div>
-              <div className="form-group" style={{ margin: 0 }}>
-                <label className="form-label">Live Google Group (Optional)</label>
-                <input
-                  className="form-input"
-                  type="email"
-                  value={f.liveGoogleGroupEmail || ''}
-                  onChange={e => set('liveGoogleGroupEmail', e.target.value.toLowerCase())}
-                  placeholder="live-batch@yourdomain.com"
-                />
-                <p style={{ fontSize: '10px', color: 'var(--text-muted)', marginTop: '4px', lineHeight: 1.35 }}>
-                  Live students only. Leave blank for general batches.
-                </p>
-              </div>
-            </div>
-
-            {/* Flags row */}
-            <div className="course-edit-flags">
-              <label style={{ display: 'flex', alignItems: 'center', gap: '8px', opacity: editId ? 0.7 : 1, cursor: editId ? 'default' : 'pointer', margin: 0 }}>
-                <input
-                  type="checkbox"
-                  checked={!!f.isFree}
-                  disabled={editId !== null}
-                  onChange={e => setFormData(p => ({ ...p, isFree: e.target.checked as any }))}
-                />
-                <span style={{ fontSize: '13px', fontWeight: 600 }}>Free Course</span>
-                {editId && (
-                  <span style={{ fontSize: '10px', color: 'var(--accent)', fontWeight: 800, marginLeft: 'auto' }}>🔒 FIXED</span>
-                )}
-              </label>
-              <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', margin: 0 }}>
-                <input
-                  type="checkbox"
-                  checked={!!f.isDisabled}
-                  onChange={e => setFormData(p => ({ ...p, isDisabled: e.target.checked as any }))}
-                />
-                <span style={{ fontSize: '13px', fontWeight: 600 }}>Disable Course</span>
-                <span style={{ fontSize: '10px', color: 'var(--text-muted)', marginLeft: 'auto' }}>
-                  Hidden + no new enroll
-                </span>
-              </label>
-            </div>
-
-            {/* Description + About side by side */}
-            <div className="course-edit-grid cols-2">
-              <div className="form-group" style={{ margin: 0 }}>
-                <label className="form-label">Description</label>
-                <textarea className="form-input" value={f.description || ''} onChange={e => set('description', e.target.value)} placeholder="Course description" rows={3} style={{ resize: 'vertical' }} />
-              </div>
-              <div className="form-group" style={{ margin: 0 }}>
-                <label className="form-label">About Course</label>
-                <textarea className="form-input" value={f.aboutUs || ''} onChange={e => set('aboutUs', e.target.value)} placeholder="About this course..." rows={3} style={{ resize: 'vertical' }} />
-              </div>
-            </div>
-
-            {/* Academic Term & Exam Stage */}
-            <div className="course-edit-grid cols-2-term" style={{
-              background: 'var(--bg)',
-              border: '1px solid var(--border)',
-              borderRadius: '12px',
-              padding: '12px 14px',
-            }}>
-              <div className="form-group" style={{ margin: 0 }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
-                  <label className="form-label" style={{ margin: 0, fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                    Academic Term
+                      <span style={{ color: 'var(--primary)', fontSize: '13px', fontWeight: 700, flexShrink: 0 }}>Choose</span>
+                    </button>
+                  </div>
+                </div>
+                <div className="ce-checks">
+                  <label className="ce-check" style={{ opacity: editId ? 0.65 : 1, cursor: editId ? 'default' : 'pointer' }}>
+                    <input
+                      type="checkbox"
+                      checked={!!f.isFree}
+                      disabled={editId !== null}
+                      onChange={e => setFormData(p => ({ ...p, isFree: e.target.checked as any }))}
+                    />
+                    Free course
+                    {editId && <span style={{ fontSize: '11px', color: 'var(--accent)', fontWeight: 700 }}>Fixed</span>}
                   </label>
-                  <span style={{ fontSize: '10px', color: 'var(--text-muted)' }}>This course only</span>
+                  <label className="ce-check">
+                    <input
+                      type="checkbox"
+                      checked={!!f.isDisabled}
+                      onChange={e => setFormData(p => ({ ...p, isDisabled: e.target.checked as any }))}
+                    />
+                    Disable course
+                    <span style={{ fontSize: '12px', color: 'var(--text-muted)', fontWeight: 400 }}>Hidden from students</span>
+                  </label>
                 </div>
-                <select
-                  className="form-input"
-                  value={f.academicTerm && f.academicYear ? `${f.academicTerm}_${f.academicYear}` : (f.academicTerm || '')}
-                  onChange={e => {
-                    const val = e.target.value
-                    if (!val) {
-                      set('academicTerm', '')
-                      set('academicYear', '')
-                    } else if (val.includes('_')) {
-                      const [termKey, yearStr] = val.split('_')
-                      set('academicTerm', termKey)
-                      set('academicYear', Number(yearStr))
-                    } else {
-                      set('academicTerm', val)
-                    }
-                  }}
-                  style={{ fontSize: '12px' }}
-                >
-                  <option value="">None / Not Assigned</option>
-                  {(termsConfigData?.terms || []).map((t: any) => (
-                    <option key={t.id} value={`${t.termKey}_${t.year}`}>
-                      {t.name} ({t.startDate} to {t.endDate}){t.isCurrent ? ' - Current' : ''}
-                    </option>
-                  ))}
-                  {!termsConfigData?.terms?.length && (
-                    <>
-                      <option value={`JAN_${new Date().getFullYear()}`}>January {new Date().getFullYear()} Term</option>
-                      <option value={`MAY_${new Date().getFullYear()}`}>May {new Date().getFullYear()} Term</option>
-                      <option value={`SEP_${new Date().getFullYear()}`}>September {new Date().getFullYear()} Term</option>
-                    </>
-                  )}
-                </select>
-              </div>
+              </section>
 
-              <div className="form-group" style={{ margin: 0 }}>
-                <label className="form-label" style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: '6px' }}>
-                  Exam Stage
-                </label>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
-                  {[
-                    { id: 'QUIZ_1', label: 'Quiz 1' },
-                    { id: 'QUIZ_2', label: 'Quiz 2' },
-                    { id: 'END_TERM', label: 'End Term' },
-                    { id: 'FULL_TERM', label: 'Full Term' },
-                  ].map(stage => {
-                    const isSelected = (f.examCycle || 'FULL_TERM') === stage.id
-                    return (
-                      <button
-                        key={stage.id}
-                        type="button"
-                        onClick={() => set('examCycle', stage.id)}
-                        style={{
-                          padding: '7px 4px',
-                          borderRadius: '8px',
-                          border: isSelected ? '1.5px solid var(--primary)' : '1px solid var(--border)',
-                          background: isSelected ? 'rgba(99, 102, 241, 0.12)' : 'var(--surface)',
-                          color: isSelected ? 'var(--primary)' : 'var(--text-secondary)',
-                          fontSize: '11px',
-                          fontWeight: isSelected ? 800 : 600,
-                          cursor: 'pointer',
-                          textAlign: 'center',
-                          transition: 'all 0.15s ease',
-                        }}
-                      >
-                        {stage.label}
-                      </button>
-                    )
-                  })}
-                </div>
-              </div>
-            </div>
-
-            {/* Dates row: Start | End | Expiry */}
-            <div className="course-edit-grid cols-3">
-              <div className="form-group" style={{ margin: 0 }}>
-                <label className="form-label">Start Date</label>
-                <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
-                  <input
-                    type="date"
-                    className="form-input"
-                    value={f.startDate ? f.startDate.split('T')[0] : ''}
-                    onChange={e => set('startDate', e.target.value)}
-                  />
-                  {f.startDate && (
-                    <button type="button" onClick={() => set('startDate', '')} className="btn btn-ghost btn-sm" style={{ color: 'var(--danger)', padding: '4px 6px', flexShrink: 0 }}>×</button>
-                  )}
-                </div>
-              </div>
-              <div className="form-group" style={{ margin: 0 }}>
-                <label className="form-label">End Date</label>
-                <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
-                  <input
-                    type="date"
-                    className="form-input"
-                    value={f.endDate ? f.endDate.split('T')[0] : ''}
-                    onChange={e => set('endDate', e.target.value)}
-                  />
-                  {f.endDate && (
-                    <button type="button" onClick={() => set('endDate', '')} className="btn btn-ghost btn-sm" style={{ color: 'var(--danger)', padding: '4px 6px', flexShrink: 0 }}>×</button>
-                  )}
-                </div>
-              </div>
-              <div className="form-group" style={{ margin: 0 }}>
-                <label className="form-label">Access Expiry</label>
-                <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
-                  <input
-                    type="date"
-                    className="form-input"
-                    value={f.expiresAt ? f.expiresAt.split('T')[0] : ''}
-                    onChange={e => {
-                      const val = e.target.value;
-                      if (!val) { set('expiresAt', ''); return; }
-                      const year = new Date(val).getFullYear();
-                      if ([2025, 2026, 2027].includes(year)) {
-                        set('expiresAt', val);
-                      } else {
-                        alert('Please select a year between 2025 and 2027');
+              {/* Groups */}
+              <section className="ce-section">
+                <p className="ce-section-label">Google Groups</p>
+                <div className="ce-row r2">
+                  <div className="ce-field">
+                    <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <span>Recorded / Default</span>
+                      {(() => {
+                        const emails = (f.googleGroupEmail || '').split(',').filter((e: string) => e.trim())
+                        const count = Math.max(emails.length, 1)
+                        return count < 5 ? (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const current = (f.googleGroupEmail || '').split(',').filter((e: string) => e.trim())
+                              if (current.length === 0) current.push('')
+                              current.push('')
+                              set('googleGroupEmail', current.join(','))
+                            }}
+                            style={{
+                              background: 'transparent',
+                              color: 'var(--primary)',
+                              border: '1px solid var(--border)',
+                              borderRadius: '8px',
+                              width: '28px',
+                              height: '28px',
+                              fontSize: '16px',
+                              lineHeight: 1,
+                              cursor: 'pointer',
+                            }}
+                            title="Add another email (max 5)"
+                          >+</button>
+                        ) : null
+                      })()}
+                    </label>
+                    {(() => {
+                      const raw = f.googleGroupEmail || ''
+                      const emails = raw.split(',')
+                      if (emails.length === 0 || (emails.length === 1 && emails[0] === '')) {
+                        return (
+                          <input
+                            className="form-input"
+                            type="email"
+                            value=""
+                            onChange={e => set('googleGroupEmail', e.target.value.toLowerCase())}
+                            placeholder="recorded-batch@yourdomain.com"
+                          />
+                        )
                       }
-                    }}
-                    min={new Date().toISOString().split('T')[0]}
-                    max="2027-12-31"
-                  />
-                  {f.expiresAt && (
-                    <button type="button" onClick={() => set('expiresAt', '')} className="btn btn-ghost btn-sm" style={{ color: 'var(--danger)', padding: '4px 6px', flexShrink: 0 }}>×</button>
-                  )}
+                      return emails.map((email: string, idx: number) => (
+                        <div key={idx} style={{ display: 'flex', gap: '8px', alignItems: 'center', marginBottom: idx < emails.length - 1 ? '8px' : 0 }}>
+                          <input
+                            className="form-input"
+                            type="email"
+                            value={email.trim()}
+                            onChange={e => {
+                              const updated = [...emails]
+                              updated[idx] = e.target.value.toLowerCase()
+                              set('googleGroupEmail', updated.join(','))
+                            }}
+                            placeholder={`recorded-batch${idx + 1}@yourdomain.com`}
+                            style={{ flex: 1 }}
+                          />
+                          {emails.length > 1 && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const updated = emails.filter((_: string, i: number) => i !== idx)
+                                set('googleGroupEmail', updated.length > 0 ? updated.join(',') : '')
+                              }}
+                              style={{
+                                background: 'transparent',
+                                color: 'var(--danger)',
+                                border: '1px solid var(--border)',
+                                borderRadius: '8px',
+                                width: '32px',
+                                height: '32px',
+                                cursor: 'pointer',
+                                flexShrink: 0,
+                              }}
+                              title="Remove"
+                            >×</button>
+                          )}
+                        </div>
+                      ))
+                    })()}
+                    <p className="ce-hint">Used for all students when Live group is empty.</p>
+                  </div>
+                  <div className="ce-field">
+                    <label>Live (optional)</label>
+                    <input
+                      className="form-input"
+                      type="email"
+                      value={f.liveGoogleGroupEmail || ''}
+                      onChange={e => set('liveGoogleGroupEmail', e.target.value.toLowerCase())}
+                      placeholder="live-batch@yourdomain.com"
+                    />
+                    <p className="ce-hint">Only Live-batch students. Leave blank for general batches.</p>
+                  </div>
                 </div>
-              </div>
-            </div>
+              </section>
 
-            {/* Price + Color */}
-            <div className="course-edit-grid cols-2-price">
-              <div className="form-group" style={{ margin: 0 }}>
-                <label className="form-label">Live Upgrade Price (₹)</label>
-                <input
-                  className="form-input"
-                  type="number"
-                  min="0"
-                  step="1"
-                  value={f.liveUpgradePrice ?? ''}
-                  onChange={e => set('liveUpgradePrice', e.target.value === '' ? '' : Number(e.target.value))}
-                  placeholder="e.g. 99 — empty to hide"
-                />
-                <p style={{ fontSize: '10px', color: 'var(--text-muted)', marginTop: '4px', lineHeight: 1.35 }}>
-                  Recording students see Upgrade to Live at this price.
-                </p>
-              </div>
-              <div className="form-group" style={{ margin: 0 }}>
-                <label className="form-label">Color</label>
-                <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', alignItems: 'flex-start' }}>
-                  <div>
-                    <div style={{ fontSize: '10px', fontWeight: 600, color: 'var(--text-muted)', marginBottom: '6px' }}>Solid</div>
-                    <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-                      {SOLID_COLORS.map(c => (
-                        <button key={c} type="button" onClick={() => set('color', c)} style={{
-                          width: '28px', height: '28px', borderRadius: '8px', background: c,
-                          border: f.color === c ? '2px solid #fff' : '2px solid transparent',
-                          cursor: 'pointer', transition: 'all 0.15s',
-                          boxShadow: f.color === c ? `0 0 0 2px ${c}` : 'none',
-                        }} />
-                      ))}
-                    </div>
+              {/* Content */}
+              <section className="ce-section">
+                <p className="ce-section-label">Content</p>
+                <div className="ce-row r2">
+                  <div className="ce-field">
+                    <label>Description</label>
+                    <textarea
+                      className="form-input"
+                      value={f.description || ''}
+                      onChange={e => set('description', e.target.value)}
+                      placeholder="Short course description"
+                      rows={4}
+                      style={{ resize: 'vertical', minHeight: '96px' }}
+                    />
                   </div>
-                  <div>
-                    <div style={{ fontSize: '10px', fontWeight: 600, color: 'var(--text-muted)', marginBottom: '6px' }}>Gradient</div>
-                    <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-                      {GRADIENT_COLORS.map(c => (
-                        <button key={c} type="button" onClick={() => set('color', c)} style={{
-                          width: '28px', height: '28px', borderRadius: '8px', background: c,
-                          border: f.color === c ? '2px solid #fff' : '2px solid transparent',
-                          cursor: 'pointer', transition: 'all 0.15s',
-                          boxShadow: f.color === c ? '0 0 0 2px #6366f1' : 'none',
-                        }} />
+                  <div className="ce-field">
+                    <label>About</label>
+                    <textarea
+                      className="form-input"
+                      value={f.aboutUs || ''}
+                      onChange={e => set('aboutUs', e.target.value)}
+                      placeholder="About this course…"
+                      rows={4}
+                      style={{ resize: 'vertical', minHeight: '96px' }}
+                    />
+                  </div>
+                </div>
+              </section>
+
+              {/* Schedule */}
+              <section className="ce-section">
+                <p className="ce-section-label">Schedule &amp; Access</p>
+                <div className="ce-row r2">
+                  <div className="ce-field">
+                    <label>Academic term</label>
+                    <select
+                      className="form-input"
+                      value={f.academicTerm && f.academicYear ? `${f.academicTerm}_${f.academicYear}` : (f.academicTerm || '')}
+                      onChange={e => {
+                        const val = e.target.value
+                        if (!val) {
+                          set('academicTerm', '')
+                          set('academicYear', '')
+                        } else if (val.includes('_')) {
+                          const [termKey, yearStr] = val.split('_')
+                          set('academicTerm', termKey)
+                          set('academicYear', Number(yearStr))
+                        } else {
+                          set('academicTerm', val)
+                        }
+                      }}
+                    >
+                      <option value="">None / Not assigned</option>
+                      {(termsConfigData?.terms || []).map((t: any) => (
+                        <option key={t.id} value={`${t.termKey}_${t.year}`}>
+                          {t.name}{t.isCurrent ? ' · Current' : ''}
+                        </option>
                       ))}
+                      {!termsConfigData?.terms?.length && (
+                        <>
+                          <option value={`JAN_${new Date().getFullYear()}`}>January {new Date().getFullYear()} Term</option>
+                          <option value={`MAY_${new Date().getFullYear()}`}>May {new Date().getFullYear()} Term</option>
+                          <option value={`SEP_${new Date().getFullYear()}`}>September {new Date().getFullYear()} Term</option>
+                        </>
+                      )}
+                    </select>
+                  </div>
+                  <div className="ce-field">
+                    <label>Exam stage</label>
+                    <div className="ce-stages">
+                      {[
+                        { id: 'QUIZ_1', label: 'Quiz 1' },
+                        { id: 'QUIZ_2', label: 'Quiz 2' },
+                        { id: 'END_TERM', label: 'End Term' },
+                        { id: 'FULL_TERM', label: 'Full Term' },
+                      ].map(stage => {
+                        const isSelected = (f.examCycle || 'FULL_TERM') === stage.id
+                        return (
+                          <button
+                            key={stage.id}
+                            type="button"
+                            className={`ce-stage${isSelected ? ' is-on' : ''}`}
+                            onClick={() => set('examCycle', stage.id)}
+                          >
+                            {stage.label}
+                          </button>
+                        )
+                      })}
                     </div>
                   </div>
                 </div>
-              </div>
+                <div className="ce-row r4">
+                  <div className="ce-field">
+                    <label>Start</label>
+                    <input
+                      type="date"
+                      className="form-input"
+                      value={f.startDate ? f.startDate.split('T')[0] : ''}
+                      onChange={e => set('startDate', e.target.value)}
+                    />
+                  </div>
+                  <div className="ce-field">
+                    <label>End</label>
+                    <input
+                      type="date"
+                      className="form-input"
+                      value={f.endDate ? f.endDate.split('T')[0] : ''}
+                      onChange={e => set('endDate', e.target.value)}
+                    />
+                  </div>
+                  <div className="ce-field">
+                    <label>Access expiry</label>
+                    <input
+                      type="date"
+                      className="form-input"
+                      value={f.expiresAt ? f.expiresAt.split('T')[0] : ''}
+                      onChange={e => {
+                        const val = e.target.value
+                        if (!val) { set('expiresAt', ''); return }
+                        const year = new Date(val).getFullYear()
+                        if ([2025, 2026, 2027].includes(year)) {
+                          set('expiresAt', val)
+                        } else {
+                          alert('Please select a year between 2025 and 2027')
+                        }
+                      }}
+                      min={new Date().toISOString().split('T')[0]}
+                      max="2027-12-31"
+                    />
+                  </div>
+                  <div className="ce-field">
+                    <label>Live upgrade (₹)</label>
+                    <input
+                      className="form-input"
+                      type="number"
+                      min="0"
+                      step="1"
+                      value={f.liveUpgradePrice ?? ''}
+                      onChange={e => set('liveUpgradePrice', e.target.value === '' ? '' : Number(e.target.value))}
+                      placeholder="Optional"
+                    />
+                  </div>
+                </div>
+              </section>
+
+              {/* Appearance */}
+              <section className="ce-section">
+                <p className="ce-section-label">Appearance</p>
+                <div className="ce-field">
+                  <label>Color</label>
+                  <div className="ce-colors">
+                    {SOLID_COLORS.map(c => (
+                      <button
+                        key={c}
+                        type="button"
+                        className="ce-swatch"
+                        onClick={() => set('color', c)}
+                        style={{
+                          background: c,
+                          borderColor: f.color === c ? '#fff' : 'transparent',
+                          boxShadow: f.color === c ? `0 0 0 2px ${c}` : 'none',
+                        }}
+                        title={c}
+                      />
+                    ))}
+                    <span style={{ width: '1px', height: '22px', background: 'var(--border)', margin: '0 4px' }} />
+                    {GRADIENT_COLORS.map(c => (
+                      <button
+                        key={c}
+                        type="button"
+                        className="ce-swatch"
+                        onClick={() => set('color', c)}
+                        style={{
+                          background: c,
+                          borderColor: f.color === c ? '#fff' : 'transparent',
+                          boxShadow: f.color === c ? '0 0 0 2px var(--primary)' : 'none',
+                        }}
+                      />
+                    ))}
+                  </div>
+                </div>
+              </section>
             </div>
           </>
         )
@@ -4198,15 +4237,19 @@ export function ManagePageInner({ forcedTab }: ManagePageInnerProps = {}) {
             style={{
               ...(tab === 'notifications' ? { maxWidth: '780px', width: '92%' } : {}),
               ...(tab === 'courses' ? {
-                maxWidth: 'min(920px, calc(100vw - 24px))',
-                width: '94%',
-                borderRadius: '20px',
+                maxWidth: 'min(1120px, calc(100vw - 48px))',
+                width: '96%',
+                borderRadius: '18px',
+                maxHeight: '92vh',
               } : {}),
             }}
             onClick={e => e.stopPropagation()}
           >
-            <div className="modal-header">
-              <h3 style={{ fontSize: '16px', fontWeight: '600' }}>
+            <div
+              className="modal-header"
+              style={tab === 'courses' ? { padding: '22px 32px 18px' } : undefined}
+            >
+              <h3 style={{ fontSize: tab === 'courses' ? '18px' : '16px', fontWeight: '600', letterSpacing: '-0.01em' }}>
                 {editId ? 'Edit' : 'Create'} {tab === 'faqs' ? 'FAQ' : tab.slice(0, -1).charAt(0).toUpperCase() + tab.slice(1, -1)}
               </h3>
               <button onClick={() => setShowModal(false)} style={{ color: 'var(--text-muted)', cursor: 'pointer', background: 'none', border: 'none' }}>
@@ -4220,13 +4263,16 @@ export function ManagePageInner({ forcedTab }: ManagePageInnerProps = {}) {
               style={{
                 display: 'flex',
                 flexDirection: 'column',
-                gap: tab === 'courses' ? '12px' : '14px',
-                ...(tab === 'courses' ? { padding: '18px 22px' } : {}),
+                gap: tab === 'courses' ? '0' : '14px',
+                ...(tab === 'courses' ? { padding: '8px 32px 28px' } : {}),
               }}
             >
               {renderForm()}
             </div>
-            <div className="modal-footer">
+            <div
+              className="modal-footer"
+              style={tab === 'courses' ? { padding: '16px 32px 22px' } : undefined}
+            >
               <button onClick={() => setShowModal(false)} className="btn btn-ghost">Cancel</button>
               <button onClick={handleSave} disabled={saving} className="btn btn-primary">
                 {saving ? 'Saving…' : (editId ? 'Update' : 'Create')}
