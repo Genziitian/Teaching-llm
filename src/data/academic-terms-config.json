@@ -1,0 +1,88 @@
+{
+  "terms": [
+    {
+      "id": "JAN-2025",
+      "name": "January 2025 Term",
+      "termKey": "JAN",
+      "year": 2025,
+      "startDate": "2025-01-01",
+      "endDate": "2025-04-30",
+      "isCurrent": false,
+      "examCycles": {
+        "QUIZ_1": { "startDate": "2025-01-10", "endDate": "2025-02-16" },
+        "QUIZ_2": { "startDate": "2025-02-17", "endDate": "2025-03-23" },
+        "END_TERM": { "startDate": "2025-03-24", "endDate": "2025-04-30" }
+      }
+    },
+    {
+      "id": "MAY-2025",
+      "name": "May 2025 Term",
+      "termKey": "MAY",
+      "year": 2025,
+      "startDate": "2025-05-01",
+      "endDate": "2025-08-31",
+      "isCurrent": false,
+      "examCycles": {
+        "QUIZ_1": { "startDate": "2025-05-10", "endDate": "2025-06-15" },
+        "QUIZ_2": { "startDate": "2025-06-16", "endDate": "2025-07-20" },
+        "END_TERM": { "startDate": "2025-07-21", "endDate": "2025-08-31" }
+      }
+    },
+    {
+      "id": "SEP-2025",
+      "name": "September 2025 Term",
+      "termKey": "SEP",
+      "year": 2025,
+      "startDate": "2025-09-01",
+      "endDate": "2025-12-31",
+      "isCurrent": false,
+      "examCycles": {
+        "QUIZ_1": { "startDate": "2025-09-10", "endDate": "2025-10-15" },
+        "QUIZ_2": { "startDate": "2025-10-16", "endDate": "2025-11-20" },
+        "END_TERM": { "startDate": "2025-11-21", "endDate": "2025-12-31" }
+      }
+    },
+    {
+      "id": "JAN-2026",
+      "name": "January 2026 Term",
+      "termKey": "JAN",
+      "year": 2026,
+      "startDate": "2026-01-01",
+      "endDate": "2026-04-30",
+      "isCurrent": true,
+      "examCycles": {
+        "QUIZ_1": { "startDate": "2026-01-10", "endDate": "2026-02-15" },
+        "QUIZ_2": { "startDate": "2026-02-16", "endDate": "2026-03-22" },
+        "END_TERM": { "startDate": "2026-03-23", "endDate": "2026-04-30" }
+      }
+    },
+    {
+      "id": "MAY-2026",
+      "name": "May 2026 Term",
+      "termKey": "MAY",
+      "year": 2026,
+      "startDate": "2026-05-01",
+      "endDate": "2026-08-31",
+      "isCurrent": false,
+      "examCycles": {
+        "QUIZ_1": { "startDate": "2026-05-10", "endDate": "2026-06-15" },
+        "QUIZ_2": { "startDate": "2026-06-16", "endDate": "2026-07-20" },
+        "END_TERM": { "startDate": "2026-07-21", "endDate": "2026-08-31" }
+      }
+    },
+    {
+      "id": "SEP-2026",
+      "name": "September 2026 Term",
+      "termKey": "SEP",
+      "year": 2026,
+      "startDate": "2026-09-01",
+      "endDate": "2026-12-31",
+      "isCurrent": false,
+      "examCycles": {
+        "QUIZ_1": { "startDate": "2026-09-10", "endDate": "2026-10-15" },
+        "QUIZ_2": { "startDate": "2026-10-16", "endDate": "2026-11-20" },
+        "END_TERM": { "startDate": "2026-11-21", "endDate": "2026-12-31" }
+      }
+    }
+  ]
+}

@@ -19,6 +19,7 @@ import {
 } from '@/lib/iitm-taxonomy'
 import { type PlatformQuery, QUERY_CATEGORIES } from '@/lib/queries-master'
 import ClearCourseEnrollmentsModal from '@/components/ClearCourseEnrollmentsModal'
+import AcademicTermsModal from '@/components/manage/AcademicTermsModal'
 
 export type Tab = 'courses' | 'offerings' | 'bundles' | 'lectures' | 'events' | 'materials' | 'announcements' | 'notifications' | 'home-slides' | 'faqs' | 'queries'
 
@@ -47,6 +48,7 @@ export function ManagePageInner({ forcedTab }: ManagePageInnerProps = {}) {
   const initialTab = forcedTab || (searchParams.get('tab') as Tab) || 'courses'
   const [tab, setTab] = useState<Tab>(initialTab)
   const [clearEnrollmentsCourse, setClearEnrollmentsCourse] = useState<{ id: string; name: string } | null>(null)
+  const [academicTermsModalOpen, setAcademicTermsModalOpen] = useState(false)
 
   const fetcher = async (url: string) => {
     const res = await fetch(url)
@@ -63,6 +65,7 @@ export function ManagePageInner({ forcedTab }: ManagePageInnerProps = {}) {
   // Courses & instructors always loaded — used in form dropdowns across all tabs
   const { data: coursesData, error: coursesError, isLoading: loadingCourses, mutate: mutateCourses } = useSWR('/api/courses', fetcher)
   const { data: instructorsData, error: instructorsError, mutate: mutateInstructors } = useSWR('/api/instructors', fetcher)
+  const { data: termsConfigData, mutate: mutateTermsConfig } = useSWR('/api/manage/academic-terms', fetcher)
 
   // All other tabs: only fetch when that tab is active
   const { data: bundlesData, error: bundlesError, isLoading: loadingBundles, mutate: mutateBundles } = useSWR(
@@ -1058,58 +1061,61 @@ export function ManagePageInner({ forcedTab }: ManagePageInnerProps = {}) {
             <div className="form-group"><label className="form-label">Description</label><textarea className="form-input" value={f.description || ''} onChange={e => set('description', e.target.value)} placeholder="Course description" rows={3} style={{ resize: 'vertical' }} /></div>
             <div className="form-group"><label className="form-label">About Us (About Course)</label><textarea className="form-input" value={f.aboutUs || ''} onChange={e => set('aboutUs', e.target.value)} placeholder="About this course..." rows={3} style={{ resize: 'vertical' }} /></div>
             
-            {/* Academic Term & Exam Cycle Settings */}
+            {/* Academic Term & Exam Stage (For this course only) */}
             <div style={{
               background: 'var(--surface-2, #f8fafc)',
               border: '1px solid var(--border, #e2e8f0)',
               borderRadius: '12px',
-              padding: '14px 16px',
+              padding: '12px 14px',
               display: 'flex',
               flexDirection: 'column',
-              gap: '12px',
+              gap: '10px',
             }}>
-              <div>
-                <div style={{ fontSize: '13px', fontWeight: 800, color: 'var(--text-primary)' }}>
-                  Academic Term & Exam Cycle
-                </div>
-                <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '2px' }}>
-                  Assign this course to an academic trimester and exam stage for analytics and retention tracking.
-                </div>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <span style={{ fontSize: '12px', fontWeight: 800, color: 'var(--text-primary)' }}>
+                  Academic Term & Exam Stage
+                </span>
+                <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
+                  For this course only
+                </span>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1.3fr 1fr', gap: '12px' }}>
-                <div className="form-group" style={{ margin: 0 }}>
-                  <label className="form-label" style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', color: 'var(--text-secondary)' }}>
-                    Academic Term
-                  </label>
-                  <select
-                    className="form-input"
-                    value={f.academicTerm || ''}
-                    onChange={e => set('academicTerm', e.target.value)}
-                    style={{ fontSize: '12px' }}
-                  >
-                    <option value="">Not Assigned</option>
-                    <option value="JAN">January Term (Jan - Apr)</option>
-                    <option value="MAY">May Term (May - Aug)</option>
-                    <option value="SEP">September Term (Sep - Dec)</option>
-                  </select>
-                </div>
-
-                <div className="form-group" style={{ margin: 0 }}>
-                  <label className="form-label" style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', color: 'var(--text-secondary)' }}>
-                    Academic Year
-                  </label>
-                  <input
-                    type="number"
-                    className="form-input"
-                    value={f.academicYear ?? ''}
-                    onChange={e => set('academicYear', e.target.value === '' ? '' : Number(e.target.value))}
-                    placeholder="e.g. 2026"
-                    min="2020"
-                    max="2035"
-                    style={{ fontSize: '12px' }}
-                  />
-                </div>
+              <div className="form-group" style={{ margin: 0 }}>
+                <label className="form-label" style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', color: 'var(--text-secondary)' }}>
+                  Academic Term
+                </label>
+                <select
+                  className="form-input"
+                  value={f.academicTerm && f.academicYear ? `${f.academicTerm}_${f.academicYear}` : (f.academicTerm || '')}
+                  onChange={e => {
+                    const val = e.target.value
+                    if (!val) {
+                      set('academicTerm', '')
+                      set('academicYear', '')
+                    } else if (val.includes('_')) {
+                      const [termKey, yearStr] = val.split('_')
+                      set('academicTerm', termKey)
+                      set('academicYear', Number(yearStr))
+                    } else {
+                      set('academicTerm', val)
+                    }
+                  }}
+                  style={{ fontSize: '12px' }}
+                >
+                  <option value="">None / Not Assigned</option>
+                  {(termsConfigData?.terms || []).map((t: any) => (
+                    <option key={t.id} value={`${t.termKey}_${t.year}`}>
+                      {t.name} ({t.startDate} to {t.endDate}){t.isCurrent ? ' - Current' : ''}
+                    </option>
+                  ))}
+                  {!termsConfigData?.terms?.length && (
+                    <>
+                      <option value={`JAN_${new Date().getFullYear()}`}>January {new Date().getFullYear()} Term</option>
+                      <option value={`MAY_${new Date().getFullYear()}`}>May {new Date().getFullYear()} Term</option>
+                      <option value={`SEP_${new Date().getFullYear()}`}>September {new Date().getFullYear()} Term</option>
+                    </>
+                  )}
+                </select>
               </div>
 
               <div className="form-group" style={{ margin: 0 }}>
@@ -1130,7 +1136,7 @@ export function ManagePageInner({ forcedTab }: ManagePageInnerProps = {}) {
                         type="button"
                         onClick={() => set('examCycle', stage.id)}
                         style={{
-                          padding: '8px 4px',
+                          padding: '6px 4px',
                           borderRadius: '8px',
                           border: isSelected ? '1.5px solid #6366f1' : '1px solid var(--border)',
                           background: isSelected ? 'rgba(99, 102, 241, 0.12)' : 'var(--surface)',
@@ -1928,6 +1934,13 @@ export function ManagePageInner({ forcedTab }: ManagePageInnerProps = {}) {
           }}
         />
       )}
+      <AcademicTermsModal
+        isOpen={academicTermsModalOpen}
+        onClose={() => setAcademicTermsModalOpen(false)}
+        onUpdated={() => {
+          if (typeof mutateTermsConfig === 'function') mutateTermsConfig()
+        }}
+      />
       {loadError ? (
         <div
           className="card"
@@ -2048,6 +2061,29 @@ export function ManagePageInner({ forcedTab }: ManagePageInnerProps = {}) {
               style={{ borderRadius: '50px', fontSize: '12px', padding: '8px 16px' }}
             >
               Reset to Defaults
+            </button>
+          )}
+          {tab === 'courses' && userRole === 'MANAGER' && (
+            <button
+              type="button"
+              onClick={() => setAcademicTermsModalOpen(true)}
+              className="btn btn-secondary"
+              style={{
+                borderRadius: '50px',
+                fontSize: '12px',
+                padding: '8px 16px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+              }}
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                <line x1="16" y1="2" x2="16" y2="6"/>
+                <line x1="8" y1="2" x2="8" y2="6"/>
+                <line x1="3" y1="10" x2="21" y2="10"/>
+              </svg>
+              Academic Terms & Exam Cycles
             </button>
           )}
           {tab !== 'notifications' && ((tab === 'events' || tab === 'announcements' || tab === 'home-slides' || tab === 'faqs' || tab === 'queries') || userRole === 'MANAGER' || userRole === 'ADMIN') && (
