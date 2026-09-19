@@ -890,29 +890,14 @@ export function ManagePageInner({ forcedTab }: ManagePageInnerProps = {}) {
               .ce-form {
                 display: flex;
                 flex-direction: column;
-                gap: 28px;
-              }
-              .ce-section {
-                display: flex;
-                flex-direction: column;
-                gap: 16px;
-              }
-              .ce-section-label {
-                font-size: 11px;
-                font-weight: 650;
-                letter-spacing: 0.06em;
-                text-transform: uppercase;
-                color: var(--text-muted);
-                margin: 0;
+                gap: 18px;
               }
               .ce-row {
                 display: grid;
+                grid-template-columns: 1fr 1fr;
                 gap: 20px;
+                align-items: start;
               }
-              .ce-row.r2 { grid-template-columns: 1fr 1fr; }
-              .ce-row.r2-wide { grid-template-columns: 1.5fr 1fr; }
-              .ce-row.r3 { grid-template-columns: 1fr 1fr 1fr; }
-              .ce-row.r4 { grid-template-columns: 1fr 1fr 1fr 1fr; }
               .ce-field {
                 display: flex;
                 flex-direction: column;
@@ -924,43 +909,45 @@ export function ManagePageInner({ forcedTab }: ManagePageInnerProps = {}) {
                 font-size: 13px;
                 font-weight: 500;
                 color: var(--text-secondary);
+                min-height: 20px;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
               }
               .ce-hint {
                 font-size: 12px;
                 color: var(--text-muted);
                 line-height: 1.4;
                 margin: 0;
-              }
-              .ce-checks {
-                display: flex;
-                flex-wrap: wrap;
-                gap: 24px;
-                align-items: center;
+                min-height: 17px;
               }
               .ce-check {
-                display: inline-flex;
+                display: flex;
                 align-items: center;
-                gap: 8px;
-                cursor: pointer;
+                gap: 10px;
                 margin: 0;
+                min-height: 44px;
+                padding: 0 14px;
+                border-radius: 12px;
+                border: 1px solid var(--border);
+                background: var(--bg);
                 font-size: 13px;
                 font-weight: 500;
                 color: var(--text-primary);
+                cursor: pointer;
               }
               .ce-stages {
-                display: flex;
+                display: grid;
+                grid-template-columns: repeat(4, 1fr);
                 gap: 8px;
-                flex-wrap: wrap;
               }
               .ce-stage {
-                flex: 1;
-                min-width: 88px;
-                padding: 10px 12px;
+                padding: 11px 8px;
                 border-radius: 10px;
                 border: 1px solid var(--border);
-                background: transparent;
+                background: var(--bg);
                 color: var(--text-secondary);
-                font-size: 13px;
+                font-size: 12px;
                 font-weight: 600;
                 cursor: pointer;
                 text-align: center;
@@ -974,7 +961,7 @@ export function ManagePageInner({ forcedTab }: ManagePageInnerProps = {}) {
               }
               .ce-icon-btn {
                 width: 100%;
-                min-height: 48px;
+                height: 44px;
                 border-radius: 12px;
                 border: 1px solid var(--border);
                 background: var(--bg);
@@ -983,7 +970,7 @@ export function ManagePageInner({ forcedTab }: ManagePageInnerProps = {}) {
                 align-items: center;
                 justify-content: space-between;
                 gap: 12px;
-                padding: 8px 14px;
+                padding: 0 14px;
                 cursor: pointer;
                 font-family: inherit;
                 text-align: left;
@@ -993,338 +980,317 @@ export function ManagePageInner({ forcedTab }: ManagePageInnerProps = {}) {
                 flex-wrap: wrap;
                 gap: 8px;
                 align-items: center;
+                min-height: 44px;
               }
               .ce-swatch {
-                width: 30px;
-                height: 30px;
-                border-radius: 9px;
+                width: 28px;
+                height: 28px;
+                border-radius: 8px;
                 border: 2px solid transparent;
                 cursor: pointer;
                 padding: 0;
                 transition: box-shadow 0.15s, border-color 0.15s;
               }
               @media (max-width: 860px) {
-                .ce-row.r2,
-                .ce-row.r2-wide,
-                .ce-row.r3,
-                .ce-row.r4 {
-                  grid-template-columns: 1fr;
-                }
-                .ce-stages { display: grid; grid-template-columns: 1fr 1fr; }
+                .ce-row { grid-template-columns: 1fr; }
+                .ce-stages { grid-template-columns: 1fr 1fr; }
               }
             `}</style>
 
             <div className="ce-form">
-              {/* Basics */}
-              <section className="ce-section">
-                <p className="ce-section-label">Basics</p>
-                <div className="ce-row r2-wide">
-                  <div className="ce-field">
-                    <label>Name *</label>
-                    <input className="form-input" value={f.name || ''} onChange={e => set('name', e.target.value)} placeholder="Course name" />
-                  </div>
-                  <div className="ce-field">
-                    <label>Subject</label>
-                    <input className="form-input" value={f.subject || ''} onChange={e => set('subject', e.target.value)} placeholder="e.g. Computer Science" />
-                  </div>
+              <div className="ce-row">
+                <div className="ce-field">
+                  <label>Name *</label>
+                  <input className="form-input" value={f.name || ''} onChange={e => set('name', e.target.value)} placeholder="Course name" />
                 </div>
-                <div className="ce-row r2">
-                  <div className="ce-field">
-                    <label>Teacher</label>
-                    <input className="form-input" value={f.teacherName || ''} onChange={e => set('teacherName', e.target.value)} placeholder="Teacher name" />
-                  </div>
-                  <div className="ce-field">
-                    <label>Icon</label>
-                    <button type="button" className="ce-icon-btn" onClick={() => setCourseIconPickerOpen(true)}>
-                      <span style={{ display: 'flex', alignItems: 'center', gap: '12px', minWidth: 0 }}>
-                        <CourseIconBadge type={f.courseIconType || f.icon} size={34} iconSize={18} radius={10} />
-                        <span style={{ minWidth: 0 }}>
-                          <span style={{ display: 'block', fontSize: '13px', fontWeight: 650, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                            {getCourseIconOption(f.courseIconType || f.icon).label}
-                          </span>
-                          <span style={{ display: 'block', fontSize: '11px', color: 'var(--text-muted)', marginTop: '2px' }}>
-                            Shared across web &amp; app
-                          </span>
-                        </span>
-                      </span>
-                      <span style={{ color: 'var(--primary)', fontSize: '13px', fontWeight: 700, flexShrink: 0 }}>Choose</span>
-                    </button>
-                  </div>
+                <div className="ce-field">
+                  <label>Subject</label>
+                  <input className="form-input" value={f.subject || ''} onChange={e => set('subject', e.target.value)} placeholder="e.g. Computer Science" />
                 </div>
-                <div className="ce-checks">
-                  <label className="ce-check" style={{ opacity: editId ? 0.65 : 1, cursor: editId ? 'default' : 'pointer' }}>
-                    <input
-                      type="checkbox"
-                      checked={!!f.isFree}
-                      disabled={editId !== null}
-                      onChange={e => setFormData(p => ({ ...p, isFree: e.target.checked as any }))}
-                    />
-                    Free course
-                    {editId && <span style={{ fontSize: '11px', color: 'var(--accent)', fontWeight: 700 }}>Fixed</span>}
-                  </label>
-                  <label className="ce-check">
-                    <input
-                      type="checkbox"
-                      checked={!!f.isDisabled}
-                      onChange={e => setFormData(p => ({ ...p, isDisabled: e.target.checked as any }))}
-                    />
-                    Disable course
-                    <span style={{ fontSize: '12px', color: 'var(--text-muted)', fontWeight: 400 }}>Hidden from students</span>
-                  </label>
-                </div>
-              </section>
+              </div>
 
-              {/* Groups */}
-              <section className="ce-section">
-                <p className="ce-section-label">Google Groups</p>
-                <div className="ce-row r2">
-                  <div className="ce-field">
-                    <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                      <span>Recorded / Default</span>
-                      {(() => {
-                        const emails = (f.googleGroupEmail || '').split(',').filter((e: string) => e.trim())
-                        const count = Math.max(emails.length, 1)
-                        return count < 5 ? (
+              <div className="ce-row">
+                <div className="ce-field">
+                  <label>Teacher</label>
+                  <input className="form-input" value={f.teacherName || ''} onChange={e => set('teacherName', e.target.value)} placeholder="Teacher name" />
+                </div>
+                <div className="ce-field">
+                  <label>Icon</label>
+                  <button type="button" className="ce-icon-btn" onClick={() => setCourseIconPickerOpen(true)}>
+                    <span style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0 }}>
+                      <CourseIconBadge type={f.courseIconType || f.icon} size={28} iconSize={15} radius={8} />
+                      <span style={{ fontSize: '13px', fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                        {getCourseIconOption(f.courseIconType || f.icon).label}
+                      </span>
+                    </span>
+                    <span style={{ color: 'var(--primary)', fontSize: '13px', fontWeight: 700, flexShrink: 0 }}>Choose</span>
+                  </button>
+                </div>
+              </div>
+
+              <div className="ce-row">
+                <label className="ce-check" style={{ opacity: editId ? 0.65 : 1, cursor: editId ? 'default' : 'pointer' }}>
+                  <input
+                    type="checkbox"
+                    checked={!!f.isFree}
+                    disabled={editId !== null}
+                    onChange={e => setFormData(p => ({ ...p, isFree: e.target.checked as any }))}
+                  />
+                  Free course
+                  {editId && <span style={{ fontSize: '11px', color: 'var(--accent)', fontWeight: 700, marginLeft: 'auto' }}>Fixed</span>}
+                </label>
+                <label className="ce-check">
+                  <input
+                    type="checkbox"
+                    checked={!!f.isDisabled}
+                    onChange={e => setFormData(p => ({ ...p, isDisabled: e.target.checked as any }))}
+                  />
+                  Disable course
+                  <span style={{ fontSize: '12px', color: 'var(--text-muted)', fontWeight: 400, marginLeft: 'auto' }}>Hidden from students</span>
+                </label>
+              </div>
+
+              <div className="ce-row">
+                <div className="ce-field">
+                  <label>
+                    <span>Recorded / Default group</span>
+                    {(() => {
+                      const emails = (f.googleGroupEmail || '').split(',').filter((e: string) => e.trim())
+                      const count = Math.max(emails.length, 1)
+                      return count < 5 ? (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const current = (f.googleGroupEmail || '').split(',').filter((e: string) => e.trim())
+                            if (current.length === 0) current.push('')
+                            current.push('')
+                            set('googleGroupEmail', current.join(','))
+                          }}
+                          style={{
+                            background: 'transparent',
+                            color: 'var(--primary)',
+                            border: '1px solid var(--border)',
+                            borderRadius: '8px',
+                            width: '26px',
+                            height: '26px',
+                            fontSize: '15px',
+                            lineHeight: 1,
+                            cursor: 'pointer',
+                          }}
+                          title="Add another email (max 5)"
+                        >+</button>
+                      ) : null
+                    })()}
+                  </label>
+                  {(() => {
+                    const raw = f.googleGroupEmail || ''
+                    const emails = raw.split(',')
+                    if (emails.length === 0 || (emails.length === 1 && emails[0] === '')) {
+                      return (
+                        <input
+                          className="form-input"
+                          type="email"
+                          value=""
+                          onChange={e => set('googleGroupEmail', e.target.value.toLowerCase())}
+                          placeholder="recorded-batch@yourdomain.com"
+                        />
+                      )
+                    }
+                    return emails.map((email: string, idx: number) => (
+                      <div key={idx} style={{ display: 'flex', gap: '8px', alignItems: 'center', marginBottom: idx < emails.length - 1 ? '8px' : 0 }}>
+                        <input
+                          className="form-input"
+                          type="email"
+                          value={email.trim()}
+                          onChange={e => {
+                            const updated = [...emails]
+                            updated[idx] = e.target.value.toLowerCase()
+                            set('googleGroupEmail', updated.join(','))
+                          }}
+                          placeholder={`recorded-batch${idx + 1}@yourdomain.com`}
+                          style={{ flex: 1 }}
+                        />
+                        {emails.length > 1 && (
                           <button
                             type="button"
                             onClick={() => {
-                              const current = (f.googleGroupEmail || '').split(',').filter((e: string) => e.trim())
-                              if (current.length === 0) current.push('')
-                              current.push('')
-                              set('googleGroupEmail', current.join(','))
+                              const updated = emails.filter((_: string, i: number) => i !== idx)
+                              set('googleGroupEmail', updated.length > 0 ? updated.join(',') : '')
                             }}
                             style={{
                               background: 'transparent',
-                              color: 'var(--primary)',
+                              color: 'var(--danger)',
                               border: '1px solid var(--border)',
                               borderRadius: '8px',
-                              width: '28px',
-                              height: '28px',
-                              fontSize: '16px',
-                              lineHeight: 1,
+                              width: '32px',
+                              height: '32px',
                               cursor: 'pointer',
+                              flexShrink: 0,
                             }}
-                            title="Add another email (max 5)"
-                          >+</button>
-                        ) : null
-                      })()}
-                    </label>
-                    {(() => {
-                      const raw = f.googleGroupEmail || ''
-                      const emails = raw.split(',')
-                      if (emails.length === 0 || (emails.length === 1 && emails[0] === '')) {
-                        return (
-                          <input
-                            className="form-input"
-                            type="email"
-                            value=""
-                            onChange={e => set('googleGroupEmail', e.target.value.toLowerCase())}
-                            placeholder="recorded-batch@yourdomain.com"
-                          />
-                        )
-                      }
-                      return emails.map((email: string, idx: number) => (
-                        <div key={idx} style={{ display: 'flex', gap: '8px', alignItems: 'center', marginBottom: idx < emails.length - 1 ? '8px' : 0 }}>
-                          <input
-                            className="form-input"
-                            type="email"
-                            value={email.trim()}
-                            onChange={e => {
-                              const updated = [...emails]
-                              updated[idx] = e.target.value.toLowerCase()
-                              set('googleGroupEmail', updated.join(','))
-                            }}
-                            placeholder={`recorded-batch${idx + 1}@yourdomain.com`}
-                            style={{ flex: 1 }}
-                          />
-                          {emails.length > 1 && (
-                            <button
-                              type="button"
-                              onClick={() => {
-                                const updated = emails.filter((_: string, i: number) => i !== idx)
-                                set('googleGroupEmail', updated.length > 0 ? updated.join(',') : '')
-                              }}
-                              style={{
-                                background: 'transparent',
-                                color: 'var(--danger)',
-                                border: '1px solid var(--border)',
-                                borderRadius: '8px',
-                                width: '32px',
-                                height: '32px',
-                                cursor: 'pointer',
-                                flexShrink: 0,
-                              }}
-                              title="Remove"
-                            >×</button>
-                          )}
-                        </div>
-                      ))
-                    })()}
-                    <p className="ce-hint">Used for all students when Live group is empty.</p>
-                  </div>
-                  <div className="ce-field">
-                    <label>Live (optional)</label>
-                    <input
-                      className="form-input"
-                      type="email"
-                      value={f.liveGoogleGroupEmail || ''}
-                      onChange={e => set('liveGoogleGroupEmail', e.target.value.toLowerCase())}
-                      placeholder="live-batch@yourdomain.com"
-                    />
-                    <p className="ce-hint">Only Live-batch students. Leave blank for general batches.</p>
-                  </div>
+                            title="Remove"
+                          >×</button>
+                        )}
+                      </div>
+                    ))
+                  })()}
+                  <p className="ce-hint">Used for all students when Live group is empty.</p>
                 </div>
-              </section>
-
-              {/* Content */}
-              <section className="ce-section">
-                <p className="ce-section-label">Content</p>
-                <div className="ce-row r2">
-                  <div className="ce-field">
-                    <label>Description</label>
-                    <textarea
-                      className="form-input"
-                      value={f.description || ''}
-                      onChange={e => set('description', e.target.value)}
-                      placeholder="Short course description"
-                      rows={4}
-                      style={{ resize: 'vertical', minHeight: '96px' }}
-                    />
-                  </div>
-                  <div className="ce-field">
-                    <label>About</label>
-                    <textarea
-                      className="form-input"
-                      value={f.aboutUs || ''}
-                      onChange={e => set('aboutUs', e.target.value)}
-                      placeholder="About this course…"
-                      rows={4}
-                      style={{ resize: 'vertical', minHeight: '96px' }}
-                    />
-                  </div>
-                </div>
-              </section>
-
-              {/* Schedule */}
-              <section className="ce-section">
-                <p className="ce-section-label">Schedule &amp; Access</p>
-                <div className="ce-row r2">
-                  <div className="ce-field">
-                    <label>Academic term</label>
-                    <select
-                      className="form-input"
-                      value={f.academicTerm && f.academicYear ? `${f.academicTerm}_${f.academicYear}` : (f.academicTerm || '')}
-                      onChange={e => {
-                        const val = e.target.value
-                        if (!val) {
-                          set('academicTerm', '')
-                          set('academicYear', '')
-                        } else if (val.includes('_')) {
-                          const [termKey, yearStr] = val.split('_')
-                          set('academicTerm', termKey)
-                          set('academicYear', Number(yearStr))
-                        } else {
-                          set('academicTerm', val)
-                        }
-                      }}
-                    >
-                      <option value="">None / Not assigned</option>
-                      {(termsConfigData?.terms || []).map((t: any) => (
-                        <option key={t.id} value={`${t.termKey}_${t.year}`}>
-                          {t.name}{t.isCurrent ? ' · Current' : ''}
-                        </option>
-                      ))}
-                      {!termsConfigData?.terms?.length && (
-                        <>
-                          <option value={`JAN_${new Date().getFullYear()}`}>January {new Date().getFullYear()} Term</option>
-                          <option value={`MAY_${new Date().getFullYear()}`}>May {new Date().getFullYear()} Term</option>
-                          <option value={`SEP_${new Date().getFullYear()}`}>September {new Date().getFullYear()} Term</option>
-                        </>
-                      )}
-                    </select>
-                  </div>
-                  <div className="ce-field">
-                    <label>Exam stage</label>
-                    <div className="ce-stages">
-                      {[
-                        { id: 'QUIZ_1', label: 'Quiz 1' },
-                        { id: 'QUIZ_2', label: 'Quiz 2' },
-                        { id: 'END_TERM', label: 'End Term' },
-                        { id: 'FULL_TERM', label: 'Full Term' },
-                      ].map(stage => {
-                        const isSelected = (f.examCycle || 'FULL_TERM') === stage.id
-                        return (
-                          <button
-                            key={stage.id}
-                            type="button"
-                            className={`ce-stage${isSelected ? ' is-on' : ''}`}
-                            onClick={() => set('examCycle', stage.id)}
-                          >
-                            {stage.label}
-                          </button>
-                        )
-                      })}
-                    </div>
-                  </div>
-                </div>
-                <div className="ce-row r4">
-                  <div className="ce-field">
-                    <label>Start</label>
-                    <input
-                      type="date"
-                      className="form-input"
-                      value={f.startDate ? f.startDate.split('T')[0] : ''}
-                      onChange={e => set('startDate', e.target.value)}
-                    />
-                  </div>
-                  <div className="ce-field">
-                    <label>End</label>
-                    <input
-                      type="date"
-                      className="form-input"
-                      value={f.endDate ? f.endDate.split('T')[0] : ''}
-                      onChange={e => set('endDate', e.target.value)}
-                    />
-                  </div>
-                  <div className="ce-field">
-                    <label>Access expiry</label>
-                    <input
-                      type="date"
-                      className="form-input"
-                      value={f.expiresAt ? f.expiresAt.split('T')[0] : ''}
-                      onChange={e => {
-                        const val = e.target.value
-                        if (!val) { set('expiresAt', ''); return }
-                        const year = new Date(val).getFullYear()
-                        if ([2025, 2026, 2027].includes(year)) {
-                          set('expiresAt', val)
-                        } else {
-                          alert('Please select a year between 2025 and 2027')
-                        }
-                      }}
-                      min={new Date().toISOString().split('T')[0]}
-                      max="2027-12-31"
-                    />
-                  </div>
-                  <div className="ce-field">
-                    <label>Live upgrade (₹)</label>
-                    <input
-                      className="form-input"
-                      type="number"
-                      min="0"
-                      step="1"
-                      value={f.liveUpgradePrice ?? ''}
-                      onChange={e => set('liveUpgradePrice', e.target.value === '' ? '' : Number(e.target.value))}
-                      placeholder="Optional"
-                    />
-                  </div>
-                </div>
-              </section>
-
-              {/* Appearance */}
-              <section className="ce-section">
-                <p className="ce-section-label">Appearance</p>
                 <div className="ce-field">
+                  <label>Live group (optional)</label>
+                  <input
+                    className="form-input"
+                    type="email"
+                    value={f.liveGoogleGroupEmail || ''}
+                    onChange={e => set('liveGoogleGroupEmail', e.target.value.toLowerCase())}
+                    placeholder="live-batch@yourdomain.com"
+                  />
+                  <p className="ce-hint">Only Live-batch students. Leave blank for general batches.</p>
+                </div>
+              </div>
+
+              <div className="ce-row">
+                <div className="ce-field">
+                  <label>Description</label>
+                  <textarea
+                    className="form-input"
+                    value={f.description || ''}
+                    onChange={e => set('description', e.target.value)}
+                    placeholder="Short course description"
+                    rows={4}
+                    style={{ resize: 'vertical', minHeight: '96px' }}
+                  />
+                </div>
+                <div className="ce-field">
+                  <label>About</label>
+                  <textarea
+                    className="form-input"
+                    value={f.aboutUs || ''}
+                    onChange={e => set('aboutUs', e.target.value)}
+                    placeholder="About this course…"
+                    rows={4}
+                    style={{ resize: 'vertical', minHeight: '96px' }}
+                  />
+                </div>
+              </div>
+
+              <div className="ce-row">
+                <div className="ce-field">
+                  <label>Academic term</label>
+                  <select
+                    className="form-input"
+                    value={f.academicTerm && f.academicYear ? `${f.academicTerm}_${f.academicYear}` : (f.academicTerm || '')}
+                    onChange={e => {
+                      const val = e.target.value
+                      if (!val) {
+                        set('academicTerm', '')
+                        set('academicYear', '')
+                      } else if (val.includes('_')) {
+                        const [termKey, yearStr] = val.split('_')
+                        set('academicTerm', termKey)
+                        set('academicYear', Number(yearStr))
+                      } else {
+                        set('academicTerm', val)
+                      }
+                    }}
+                  >
+                    <option value="">None / Not assigned</option>
+                    {(termsConfigData?.terms || []).map((t: any) => (
+                      <option key={t.id} value={`${t.termKey}_${t.year}`}>
+                        {t.name}{t.isCurrent ? ' · Current' : ''}
+                      </option>
+                    ))}
+                    {!termsConfigData?.terms?.length && (
+                      <>
+                        <option value={`JAN_${new Date().getFullYear()}`}>January {new Date().getFullYear()} Term</option>
+                        <option value={`MAY_${new Date().getFullYear()}`}>May {new Date().getFullYear()} Term</option>
+                        <option value={`SEP_${new Date().getFullYear()}`}>September {new Date().getFullYear()} Term</option>
+                      </>
+                    )}
+                  </select>
+                </div>
+                <div className="ce-field">
+                  <label>Exam stage</label>
+                  <div className="ce-stages">
+                    {[
+                      { id: 'QUIZ_1', label: 'Quiz 1' },
+                      { id: 'QUIZ_2', label: 'Quiz 2' },
+                      { id: 'END_TERM', label: 'End Term' },
+                      { id: 'FULL_TERM', label: 'Full Term' },
+                    ].map(stage => {
+                      const isSelected = (f.examCycle || 'FULL_TERM') === stage.id
+                      return (
+                        <button
+                          key={stage.id}
+                          type="button"
+                          className={`ce-stage${isSelected ? ' is-on' : ''}`}
+                          onClick={() => set('examCycle', stage.id)}
+                        >
+                          {stage.label}
+                        </button>
+                      )
+                    })}
+                  </div>
+                </div>
+              </div>
+
+              <div className="ce-row">
+                <div className="ce-field">
+                  <label>Start date</label>
+                  <input
+                    type="date"
+                    className="form-input"
+                    value={f.startDate ? f.startDate.split('T')[0] : ''}
+                    onChange={e => set('startDate', e.target.value)}
+                  />
+                </div>
+                <div className="ce-field">
+                  <label>End date</label>
+                  <input
+                    type="date"
+                    className="form-input"
+                    value={f.endDate ? f.endDate.split('T')[0] : ''}
+                    onChange={e => set('endDate', e.target.value)}
+                  />
+                </div>
+              </div>
+
+              <div className="ce-row">
+                <div className="ce-field">
+                  <label>Access expiry</label>
+                  <input
+                    type="date"
+                    className="form-input"
+                    value={f.expiresAt ? f.expiresAt.split('T')[0] : ''}
+                    onChange={e => {
+                      const val = e.target.value
+                      if (!val) { set('expiresAt', ''); return }
+                      const year = new Date(val).getFullYear()
+                      if ([2025, 2026, 2027].includes(year)) {
+                        set('expiresAt', val)
+                      } else {
+                        alert('Please select a year between 2025 and 2027')
+                      }
+                    }}
+                    min={new Date().toISOString().split('T')[0]}
+                    max="2027-12-31"
+                  />
+                </div>
+                <div className="ce-field">
+                  <label>Live upgrade (₹)</label>
+                  <input
+                    className="form-input"
+                    type="number"
+                    min="0"
+                    step="1"
+                    value={f.liveUpgradePrice ?? ''}
+                    onChange={e => set('liveUpgradePrice', e.target.value === '' ? '' : Number(e.target.value))}
+                    placeholder="Optional"
+                  />
+                </div>
+              </div>
+
+              <div className="ce-row">
+                <div className="ce-field" style={{ gridColumn: '1 / -1' }}>
                   <label>Color</label>
                   <div className="ce-colors">
                     {SOLID_COLORS.map(c => (
@@ -1357,7 +1323,7 @@ export function ManagePageInner({ forcedTab }: ManagePageInnerProps = {}) {
                     ))}
                   </div>
                 </div>
-              </section>
+              </div>
             </div>
           </>
         )
