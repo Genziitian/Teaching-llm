@@ -9,7 +9,7 @@ import { queueGoogleGroupSyncJobs, validateGoogleGroupEmail } from '@/lib/google
 import { logCourseDataDiagnostics } from '@/lib/course-data-diagnostics'
 import { ensureCourseColumns } from '@/lib/course-schema-sync'
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
     const session = await getFullSession()
     if (!session) {
@@ -18,13 +18,18 @@ export async function GET() {
 
     await ensureCourseColumns()
 
+    const { searchParams } = new URL(request.url)
+    const activeOnly = searchParams.get('activeOnly') === 'true'
+
     const where: any = {
       isGlobal: false,
       id: { not: 'general-discussion' },
     }
 
     const isManager = isManagerOrSuperAdmin(session.role)
-    if (!isManager) {
+    // activeOnly: hide disabled for everyone (including managers) in pickers.
+    // Full manage lists still use /api/courses without activeOnly.
+    if (!isManager || activeOnly) {
       where.isDisabled = false
     }
 
@@ -37,7 +42,7 @@ export async function GET() {
       id: session.accessibleCourseIds !== null
         ? { in: session.accessibleCourseIds, not: 'general-discussion' }
         : { not: 'general-discussion' },
-      ...(isManager ? {} : { isDisabled: false }),
+      ...(!isManager || activeOnly ? { isDisabled: false } : {}),
     }
 
     // Parallelize course fetch and minimal content counts queries with automatic resilience
@@ -82,7 +87,7 @@ export async function GET() {
         const rawCourses: any[] = await prisma.$queryRawUnsafe(`
           SELECT id, name, description, subject, color, icon, "courseIconType", "teacherName", "liveUpgradePrice", "googleGroupEmail", "liveGoogleGroupEmail", "isDemo", "isFree", "isCommunityActive", "isDisabled", "expiresAt", "aboutUs", "startDate", "endDate", "createdById", "createdAt", "updatedAt"
           FROM "Class"
-          WHERE "isGlobal" = false AND id != 'general-discussion' ${!isManager ? 'AND "isDisabled" = false' : ''}
+          WHERE "isGlobal" = false AND id != 'general-discussion' ${(!isManager || activeOnly) ? 'AND "isDisabled" = false' : ''}
           ORDER BY "createdAt" DESC
         `)
         courses = rawCourses.map(c => ({
@@ -168,8 +173,8 @@ export async function GET() {
 
       return {
         ...course,
-        isExpired: isManager ? false : isCourseExpired(course),
-        isEffectivelyDisabled: isManager ? false : isCourseEffectivelyDisabled(course),
+        isExpired: (isManager && !activeOnly) ? false : isCourseExpired(course),
+        isEffectivelyDisabled: (isManager && !activeOnly) ? false : isCourseEffectivelyDisabled(course),
         enrollmentType: course.isDemo ? 'DEMO' : course.isFree ? 'FREE' : (session.enrollmentTypes[course.id] || 'LIVE'),
         _count: {
           courseEvents: course._count.courseEvents,
@@ -179,6 +184,10 @@ export async function GET() {
         }
       }
     }).filter(course => {
+      if (activeOnly) {
+        // Pickers: never show disabled (already filtered) or expired courses
+        return !isCourseExpired(course)
+      }
       if (isManager) return true;
       if (course.isExpired && course.expiresAt) {
         const expiryDate = new Date(course.expiresAt)

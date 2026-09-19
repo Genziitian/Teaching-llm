@@ -97,6 +97,17 @@ export default function AdminPage() {
   const [passwordCopied, setPasswordCopied] = useState(false)
   const [editingUserIsSuperManager, setEditingUserIsSuperManager] = useState(false)
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null)
+  const [showBulkImport, setShowBulkImport] = useState(false)
+  const [bulkEmailsText, setBulkEmailsText] = useState('')
+  const [bulkImporting, setBulkImporting] = useState(false)
+  const [bulkImportError, setBulkImportError] = useState('')
+  const [bulkImportResult, setBulkImportResult] = useState<null | {
+    summary: { total: number; created: number; skippedExisting: number; invalid: number; failed: number }
+    created: Array<{ email: string; securityNumber: string; name: string }>
+    skippedExisting: string[]
+    invalid: string[]
+    failed: Array<{ email: string; error: string }>
+  }>(null)
 
   function getDisplayName(user: Partial<User>) {
     const fullName = user.name?.trim()
@@ -150,7 +161,7 @@ export default function AdminPage() {
 
   async function loadCourses() {
     try {
-      const res = await fetch('/api/courses')
+      const res = await fetch('/api/courses?activeOnly=true')
       const data = await res.json()
       setCourses(normalizeCollection<CourseInfo>(data, 'courses'))
     } catch (e) {
@@ -307,6 +318,43 @@ export default function AdminPage() {
     setSaving(false)
   }
 
+
+  async function handleBulkImport() {
+    if (!bulkEmailsText.trim()) {
+      setBulkImportError('Paste at least one email')
+      return
+    }
+    setBulkImporting(true)
+    setBulkImportError('')
+    setBulkImportResult(null)
+    try {
+      const res = await fetch('/api/users/bulk-import', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: bulkEmailsText }),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        setBulkImportError(data.error || 'Import failed')
+        setBulkImporting(false)
+        return
+      }
+      setBulkImportResult(data)
+      if (data.summary?.created > 0) {
+        loadUsers()
+      }
+    } catch (e) {
+      setBulkImportError('Something went wrong')
+    }
+    setBulkImporting(false)
+  }
+
+  function openBulkImport() {
+    setBulkEmailsText('')
+    setBulkImportError('')
+    setBulkImportResult(null)
+    setShowBulkImport(true)
+  }
 
   function copyPassword() {
     navigator.clipboard.writeText(generatedPassword)
@@ -528,6 +576,20 @@ export default function AdminPage() {
               <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
             </svg>
             Export CSV
+          </button>
+        )}
+        {userRole === 'MANAGER' && (
+          <button
+            onClick={openBulkImport}
+            className="btn btn-ghost"
+            style={{ borderRadius: '50px', padding: '0 20px', fontSize: '13px' }}
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+              <polyline points="17 8 12 3 7 8"/>
+              <line x1="12" y1="3" x2="12" y2="15"/>
+            </svg>
+            Bulk Import
           </button>
         )}
         {userRole === 'MANAGER' && (
@@ -869,6 +931,136 @@ export default function AdminPage() {
         )}
       </div>
       </>
+
+      {/* Bulk Import Modal */}
+      {showBulkImport && (
+        <div className="modal-overlay" onClick={() => !bulkImporting && setShowBulkImport(false)}>
+          <div
+            className="modal"
+            onClick={e => e.stopPropagation()}
+            style={{ maxWidth: '560px', width: '94%', borderRadius: '20px' }}
+          >
+            <div className="modal-header">
+              <div>
+                <h3 style={{ fontSize: '16px', fontWeight: 650, margin: 0 }}>Bulk Import Students</h3>
+                <p style={{ fontSize: '12px', color: 'var(--text-muted)', margin: '4px 0 0' }}>
+                  Paste emails only. Existing accounts are skipped.
+                </p>
+              </div>
+              <button
+                onClick={() => !bulkImporting && setShowBulkImport(false)}
+                style={{ color: 'var(--text-muted)', cursor: 'pointer', background: 'none', border: 'none' }}
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+              </button>
+            </div>
+            <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+              {!bulkImportResult ? (
+                <>
+                  <div className="form-group" style={{ margin: 0 }}>
+                    <label className="form-label">Emails</label>
+                    <textarea
+                      className="form-input"
+                      value={bulkEmailsText}
+                      onChange={e => setBulkEmailsText(e.target.value)}
+                      placeholder={'one@email.com\ntwo@email.com\nthree@email.com'}
+                      rows={10}
+                      disabled={bulkImporting}
+                      style={{ resize: 'vertical', fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace', fontSize: '13px' }}
+                    />
+                    <p style={{ fontSize: '12px', color: 'var(--text-muted)', margin: '6px 0 0', lineHeight: 1.4 }}>
+                      One email per line (commas/spaces also work). For each new email we create a student with security ID, notification pool, and demo course if available. Name is taken from the email prefix.
+                    </p>
+                  </div>
+                  {bulkImportError && (
+                    <div style={{ color: 'var(--danger)', fontSize: '13px', fontWeight: 600 }}>{bulkImportError}</div>
+                  )}
+                </>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  <div style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(3, 1fr)',
+                    gap: '10px',
+                  }}>
+                    {[
+                      { label: 'Created', value: bulkImportResult.summary.created, color: 'var(--success, #10b981)' },
+                      { label: 'Skipped', value: bulkImportResult.summary.skippedExisting, color: 'var(--text-muted)' },
+                      { label: 'Invalid', value: bulkImportResult.summary.invalid + bulkImportResult.summary.failed, color: 'var(--danger)' },
+                    ].map(stat => (
+                      <div key={stat.label} style={{
+                        padding: '12px',
+                        borderRadius: '12px',
+                        border: '1px solid var(--border)',
+                        background: 'var(--bg)',
+                        textAlign: 'center',
+                      }}>
+                        <div style={{ fontSize: '20px', fontWeight: 800, color: stat.color }}>{stat.value}</div>
+                        <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '2px' }}>{stat.label}</div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {bulkImportResult.created.length > 0 && (
+                    <div>
+                      <div style={{ fontSize: '12px', fontWeight: 650, color: 'var(--text-secondary)', marginBottom: '6px' }}>
+                        New accounts
+                      </div>
+                      <div style={{
+                        maxHeight: '180px',
+                        overflowY: 'auto',
+                        borderRadius: '10px',
+                        border: '1px solid var(--border)',
+                        padding: '8px 10px',
+                        fontSize: '12px',
+                      }}>
+                        {bulkImportResult.created.map(u => (
+                          <div key={u.email} style={{ display: 'flex', justifyContent: 'space-between', gap: '8px', padding: '4px 0', borderBottom: '1px solid var(--border-light)' }}>
+                            <span style={{ color: 'var(--text-primary)' }}>{u.email}</span>
+                            <span style={{ color: 'var(--accent)', fontWeight: 650 }}>{u.securityNumber}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {bulkImportResult.skippedExisting.length > 0 && (
+                    <p style={{ fontSize: '12px', color: 'var(--text-muted)', margin: 0 }}>
+                      Skipped existing: {bulkImportResult.skippedExisting.slice(0, 8).join(', ')}
+                      {bulkImportResult.skippedExisting.length > 8 ? ` +${bulkImportResult.skippedExisting.length - 8} more` : ''}
+                    </p>
+                  )}
+                  {bulkImportResult.invalid.length > 0 && (
+                    <p style={{ fontSize: '12px', color: 'var(--danger)', margin: 0 }}>
+                      Invalid: {bulkImportResult.invalid.join(', ')}
+                    </p>
+                  )}
+                </div>
+              )}
+            </div>
+            <div className="modal-footer">
+              <button
+                onClick={() => setShowBulkImport(false)}
+                className="btn btn-ghost"
+                disabled={bulkImporting}
+              >
+                {bulkImportResult ? 'Close' : 'Cancel'}
+              </button>
+              {!bulkImportResult && (
+                <button
+                  onClick={handleBulkImport}
+                  disabled={bulkImporting || !bulkEmailsText.trim()}
+                  className="btn btn-primary"
+                >
+                  {bulkImporting ? 'Importing…' : 'Import Students'}
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Modal */}
       {showModal && (

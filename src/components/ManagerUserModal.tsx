@@ -180,7 +180,7 @@ export default function ManagerUserModal({ userId, onClose, onUpdate, mode = 'mo
 
   async function loadCourses() {
     try {
-      const res = await fetch('/api/courses')
+      const res = await fetch('/api/courses?activeOnly=true')
       const data = await res.json()
       setCourses(normalizeCollection<CourseInfo>(data, 'courses'))
     } catch (e) {

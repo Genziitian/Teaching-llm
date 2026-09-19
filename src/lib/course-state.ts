@@ -9,6 +9,18 @@ export function isCourseExpired(course: CourseStateLike, now = new Date()) {
   return expiresAt.getTime() <= now.getTime()
 }
 
+/**
+ * True when a course must NOT appear in pickers / assignment selectors.
+ * Ignores manager role — disabled and expired courses stay hidden from selection UIs.
+ */
+export function isCourseHiddenFromSelection(course: CourseStateLike, now = new Date()) {
+  return !!course.isDisabled || isCourseExpired(course, now)
+}
+
+export function isCourseSelectable(course: CourseStateLike, now = new Date()) {
+  return !isCourseHiddenFromSelection(course, now)
+}
+
 export function isCourseInGracePeriod(course: CourseStateLike, now = new Date()) {
   if (!course.expiresAt) return false
   const expiresAt = course.expiresAt instanceof Date ? course.expiresAt : new Date(course.expiresAt)
