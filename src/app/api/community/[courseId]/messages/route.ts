@@ -5,6 +5,7 @@ import { logActivity, ACTION, MODULE } from '@/lib/activity-log'
 import { validateLength, sanitizeInput } from '@/lib/validation'
 import { sseEmitter } from '@/lib/sse'
 import { sendCommunityNotification, sendDMNotification, sendTagNotification, sendReplyNotification } from '@/lib/community-notifications'
+import { ensureCourseColumns } from '@/lib/course-schema-sync'
 
 // ─── DM helpers ─────────────────────────────────────────────────────────────
 
@@ -37,6 +38,8 @@ export async function GET(
     if (!courseId) return NextResponse.json({ error: 'Missing courseId' }, { status: 400 })
     const session = await getSession()
     if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+    await ensureCourseColumns()
 
     // ── Direct Message path ──────────────────────────────────────────────────
     if (isDM(courseId)) {
@@ -94,7 +97,10 @@ export async function GET(
 
     // ── Community path ───────────────────────────────────────────────────────
     if (courseId === 'general-discussion') {
-      const exists = await prisma.course.findUnique({ where: { id: 'general-discussion' } })
+      const exists = await prisma.course.findUnique({
+        where: { id: 'general-discussion' },
+        select: { id: true }
+      })
       if (!exists) {
         const mgr = await prisma.user.findFirst({ where: { role: { in: ['MANAGER', 'ADMIN'] } } })
         if (mgr) {
@@ -105,7 +111,8 @@ export async function GET(
               description: 'Public community posts and general questions',
               createdById: mgr.id,
               isCommunityActive: true,
-            }
+            },
+            select: { id: true }
           })
         }
       }
@@ -207,6 +214,8 @@ export async function POST(
   try {
     const session = await getSession()
     if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+    await ensureCourseColumns()
 
     const { content, imageUrl, replyToId } = await request.json()
     if ((!content || !content.trim()) && !imageUrl) {
@@ -394,6 +403,7 @@ export async function POST(
     await prisma.course.update({
       where: { id: params.courseId },
       data: { lastMessageAt: message.createdAt },
+      select: { id: true },
     })
 
     logActivity({

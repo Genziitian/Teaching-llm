@@ -46,7 +46,10 @@ export async function GET(request: NextRequest) {
           lte: graceCutoff,
         },
       },
-      include: {
+      select: {
+        id: true,
+        name: true,
+        expiresAt: true,
         enrollments: {
           include: {
             user: {
@@ -98,6 +101,7 @@ export async function GET(request: NextRequest) {
         data: {
           isDisabled: true,
         },
+        select: { id: true },
       })
 
       totalArchivedEnrollments += enrollments.length

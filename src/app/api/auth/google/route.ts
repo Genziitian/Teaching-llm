@@ -82,7 +82,8 @@ export async function POST(request: NextRequest) {
 
       // Auto-enroll in demo course if one exists
       const demoCourse = await prisma.course.findFirst({
-        where: { isDemo: true }
+        where: { isDemo: true },
+        select: { id: true }
       })
 
       if (demoCourse) {

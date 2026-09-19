@@ -64,6 +64,7 @@ function harness(role = 'STUDENT', userId = 'student-a') {
     '@/lib/activity-log': { logActivity: () => {}, ACTION: {}, MODULE: {} },
     '@/lib/system-notifications': new Proxy({}, { get: () => async () => {} }),
     '@/lib/community-notifications': {}, '@/lib/validation': {}, '@/lib/sse': {},
+    '@/lib/course-schema-sync': { ensureCourseColumns: async () => {} },
   }
   const cache = new Map()
   function load(file) {

@@ -3,6 +3,7 @@ import { prisma } from '@/lib/db'
 import { getSession, isAdminOrManager } from '@/lib/auth'
 import { logActivity, ACTION, MODULE } from '@/lib/activity-log'
 import { checkRateLimit } from '@/lib/ratelimit'
+import { ensureCourseColumns } from '@/lib/course-schema-sync'
 
 export async function POST(
   request: NextRequest,
@@ -17,6 +18,8 @@ export async function POST(
     if (session.role !== 'MANAGER') {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
+
+    await ensureCourseColumns()
 
     const { id } = await params
 

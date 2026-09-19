@@ -210,7 +210,10 @@ export async function PUT(
       return NextResponse.json({ error: 'Only managers can enable or disable courses' }, { status: 403 })
     }
 
-    const existingCourse = await (prisma.course.findUnique as any)({ where: { id } })
+    const existingCourse = await (prisma.course.findUnique as any)({
+      where: { id },
+      select: { id: true, expiresAt: true },
+    })
     if (!existingCourse) {
       return NextResponse.json({ error: 'Course not found' }, { status: 404 })
     }

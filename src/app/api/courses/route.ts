@@ -266,7 +266,8 @@ export async function POST(request: NextRequest) {
     // Prevent multiple demo courses
     if (isDemo) {
       const existingDemo = await prisma.course.findFirst({
-        where: { isDemo: true }
+        where: { isDemo: true },
+        select: { id: true },
       })
       if (existingDemo) {
         return NextResponse.json({ 

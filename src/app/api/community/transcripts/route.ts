@@ -21,7 +21,11 @@ export async function GET(request: NextRequest) {
     if (!courseId) {
       const classes = await prisma.course.findMany({
         where: { id: { not: 'general-discussion' } },
-        include: {
+        select: {
+          id: true,
+          name: true,
+          subject: true,
+          color: true,
           _count: { select: { communityMessages: true } },
         },
         orderBy: { name: 'asc' },
