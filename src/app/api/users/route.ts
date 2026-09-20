@@ -78,9 +78,15 @@ export async function GET(request: NextRequest) {
       },
     }
 
-    // Soft-deleted accounts (admin trash / process-delete) stay in DB for FK safety
-    // but should not appear in User Management.
-    const notSoftDeleted = { NOT: { deletionRequestReason: 'DELETED' } }
+    // Soft-deleted accounts stay in DB for FK safety but should not appear here.
+    // SQL treats NULL != 'DELETED' as unknown, so `NOT reason = 'DELETED'` would
+    // hide every normal user (reason is null). Explicitly keep nulls.
+    const notSoftDeleted = {
+      OR: [
+        { deletionRequestReason: null },
+        { deletionRequestReason: { not: 'DELETED' } },
+      ],
+    }
 
     // No search query: fetch all ADMIN, MANAGER, and INSTRUCTOR users,
     // plus the latest 500 STUDENT users, to avoid overloading.
