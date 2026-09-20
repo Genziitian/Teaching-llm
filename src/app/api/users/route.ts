@@ -78,15 +78,24 @@ export async function GET(request: NextRequest) {
       },
     }
 
+    // Soft-deleted accounts (admin trash / process-delete) stay in DB for FK safety
+    // but should not appear in User Management.
+    const notSoftDeleted = { NOT: { deletionRequestReason: 'DELETED' } }
+
     // No search query: fetch all ADMIN, MANAGER, and INSTRUCTOR users,
     // plus the latest 500 STUDENT users, to avoid overloading.
     if (!search) {
       if (courseId && courseId !== 'all') {
         const users = await prisma.user.findMany({
           where: {
-            OR: [
-              { enrollments: { some: { courseId } } },
-              { instructorAssignments: { some: { courseId } } },
+            AND: [
+              notSoftDeleted,
+              {
+                OR: [
+                  { enrollments: { some: { courseId } } },
+                  { instructorAssignments: { some: { courseId } } },
+                ],
+              },
             ],
           },
           select: userSelect,
@@ -97,7 +106,8 @@ export async function GET(request: NextRequest) {
 
       const staffUsers = await prisma.user.findMany({
         where: {
-          role: { in: ['ADMIN', 'MANAGER', 'INSTRUCTOR'] }
+          role: { in: ['ADMIN', 'MANAGER', 'INSTRUCTOR'] },
+          ...notSoftDeleted,
         },
         select: userSelect,
         orderBy: { createdAt: 'desc' },
@@ -105,7 +115,8 @@ export async function GET(request: NextRequest) {
 
       const studentUsers = await prisma.user.findMany({
         where: {
-          role: 'STUDENT'
+          role: 'STUDENT',
+          ...notSoftDeleted,
         },
         select: userSelect,
         orderBy: { createdAt: 'desc' },
@@ -114,7 +125,8 @@ export async function GET(request: NextRequest) {
 
       const deletionRequestUsers = await prisma.user.findMany({
         where: {
-          deletionRequestedAt: { not: null }
+          deletionRequestedAt: { not: null },
+          ...notSoftDeleted,
         },
         select: userSelect,
         orderBy: { deletionRequestedAt: 'desc' },
@@ -164,6 +176,7 @@ export async function GET(request: NextRequest) {
     // Search query provided: search across all users, optionally filtering by courseId
     const whereClause: any = {
       AND: [
+        notSoftDeleted,
         {
           OR: searchFields,
         }

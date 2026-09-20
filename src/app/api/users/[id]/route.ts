@@ -145,6 +145,8 @@ export async function PUT(
         return NextResponse.json({ error: 'Only Managers can terminate user accounts' }, { status: 403 })
       }
       data.isTerminated = isTerminated
+      // Invalidate all existing sessions when terminating/restoring
+      data.tokenVersion = { increment: 1 }
     }
     if (age !== undefined) data.age = age
     if (state !== undefined) data.state = state
@@ -428,19 +430,62 @@ export async function DELETE(
         name: true,
         email: true,
         role: true,
+        isSuperManager: true,
+        notificationGroupEmails: true,
         enrollments: { select: { courseId: true } },
       },
     })
 
+    if (!targetUser) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 })
+    }
+
+    if (targetUser.isSuperManager) {
+      return NextResponse.json({ error: 'Cannot delete a super manager' }, { status: 403 })
+    }
+
+    // Soft-delete instead of hard delete: students usually have community messages,
+    // tickets, chat sessions, etc. without onDelete: Cascade, so prisma.user.delete()
+    // throws a FK constraint error (500). Match the deletion-request flow.
+    const originalEmail = targetUser.email
+    const groupEmails = parseNotificationGroupEmails(targetUser.notificationGroupEmails)
+
     await prisma.$transaction(async (tx) => {
-      if (targetUser?.email && targetUser.enrollments.length > 0) {
+      if (originalEmail && targetUser.enrollments.length > 0) {
         await queueGoogleGroupSyncJobs(tx, {
-          userEmail: targetUser.email,
+          userEmail: originalEmail,
           courseIds: targetUser.enrollments.map(enrollment => enrollment.courseId),
           action: 'REMOVE',
         })
       }
-      await tx.user.delete({ where: { id } })
+
+      for (const groupEmail of groupEmails) {
+        await queueNotificationGroupSyncJob(tx, {
+          userEmail: originalEmail,
+          groupEmail,
+          action: 'REMOVE',
+        })
+      }
+
+      await tx.user.update({
+        where: { id },
+        data: {
+          isTerminated: true,
+          tokenVersion: { increment: 1 },
+          // Free the email unique constraint so they can re-register later
+          email: `deleted_${id}_${Date.now()}@deleted.local`,
+          avatar: null,
+          aboutMe: null,
+          mobileNumber: null,
+          instagramUrl: null,
+          linkedinUrl: null,
+          notificationGroupEmails: null,
+          isNotificationGroupPending: false,
+          pendingPoolCategoryIds: null,
+          deletionRequestedAt: null,
+          deletionRequestReason: 'DELETED',
+        },
+      })
     })
 
     logActivity({
@@ -448,7 +493,7 @@ export async function DELETE(
       userName: session.name,
       userRole: session.role,
       actionType: ACTION.USER_DELETED,
-      actionDescription: `${session.name} deleted user ${targetUser?.name || id} (${targetUser?.email || 'unknown'})`,
+      actionDescription: `${session.name} deleted user ${targetUser.name || id} (${originalEmail})`,
       moduleName: MODULE.USER_MGMT,
       targetId: id,
     })
@@ -456,6 +501,9 @@ export async function DELETE(
     return NextResponse.json({ message: 'User deleted successfully' })
   } catch (error) {
     console.error('Error deleting user:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : 'Internal server error' },
+      { status: 500 }
+    )
   }
 }
