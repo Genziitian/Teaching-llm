@@ -3,35 +3,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/auth/auth_providers.dart';
-import '../../core/auth/token_storage.dart';
 import '../../theme/app_theme_tokens.dart';
 import '../profile/profile_page.dart';
 
-/// Modal dialog prompting student to configure their IITM degree / diploma identity.
-/// Mirrors IdentitySetupBlocker.tsx from the Next.js / Capacitor web app.
+/// Full-screen required identity setup — mirrors IdentitySetupBlocker.tsx.
+/// Submits to `/api/profile/identity`. Cannot be dismissed.
 class IdentitySetupDialog extends ConsumerStatefulWidget {
   const IdentitySetupDialog({super.key});
-
-  static bool _isShowing = false;
-
-  static Future<bool?> show(BuildContext context) async {
-    if (_isShowing) return null;
-    _isShowing = true;
-    try {
-      return await showModalBottomSheet<bool>(
-        context: context,
-        useRootNavigator: true,
-        isDismissible: false,
-        enableDrag: false,
-        isScrollControlled: true,
-        useSafeArea: true,
-        backgroundColor: Colors.transparent,
-        builder: (_) => const IdentitySetupDialog(),
-      );
-    } finally {
-      _isShowing = false;
-    }
-  }
 
   @override
   ConsumerState<IdentitySetupDialog> createState() =>
@@ -103,20 +81,6 @@ class _IdentitySetupDialogState extends ConsumerState<IdentitySetupDialog> {
         'iitmUserType': _selectedUserType,
       });
 
-      // Update local in-memory auth state and persistent disk cache immediately so it never prompts again
-      final currentUser = ref.read(authStateProvider).value;
-      if (currentUser != null) {
-        final updated = currentUser.copyWith(
-          isIdentityUpdated: true,
-          iitmJoinYear: _selectedYear,
-          iitmJoinMonth: _selectedMonth,
-          iitmLevel: _selectedLevel,
-          iitmUserType: _selectedUserType,
-        );
-        await const TokenStorage().saveUser(updated);
-        ref.read(authStateProvider.notifier).updateCurrentUser(updated);
-      }
-
       ref.invalidate(profileProvider);
 
       if (mounted) {
@@ -143,7 +107,18 @@ class _IdentitySetupDialogState extends ConsumerState<IdentitySetupDialog> {
   }
 
   void _finish() {
-    Navigator.of(context).pop(true);
+    final currentUser = ref.read(authStateProvider).value;
+    if (currentUser != null) {
+      ref.read(authStateProvider.notifier).updateCurrentUser(
+        currentUser.copyWith(
+          isIdentityUpdated: true,
+          iitmJoinYear: _selectedYear,
+          iitmJoinMonth: _selectedMonth,
+          iitmLevel: _selectedLevel,
+          iitmUserType: _selectedUserType,
+        ),
+      );
+    }
   }
 
   @override
@@ -154,84 +129,81 @@ class _IdentitySetupDialogState extends ConsumerState<IdentitySetupDialog> {
     if (_showWelcomeModal) {
       return PopScope(
         canPop: false,
-        child: _buildWelcomeView(tokens, isDark),
+        child: Scaffold(
+          backgroundColor: const Color(0xA60F172A),
+          body: Center(child: _buildWelcomeView(tokens, isDark)),
+        ),
       );
     }
 
     return PopScope(
       canPop: false,
-      child: Container(
-        constraints: BoxConstraints(
-          maxHeight: MediaQuery.of(context).size.height * 0.90,
-        ),
-        decoration: BoxDecoration(
-          color: tokens.cardBg,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // Drag handle
-            Center(
-              child: Container(
-                margin: const EdgeInsets.only(top: 10, bottom: 6),
-                width: 36,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: tokens.border,
-                  borderRadius: BorderRadius.circular(2),
-                ),
+      child: Scaffold(
+        backgroundColor: tokens.bg,
+        body: SafeArea(
+          child: Center(
+            child: SingleChildScrollView(
+              padding: EdgeInsets.fromLTRB(
+                16,
+                16,
+                16,
+                MediaQuery.of(context).viewInsets.bottom + 24,
               ),
-            ),
-
-            Expanded(
-              child: SingleChildScrollView(
-                padding: EdgeInsets.fromLTRB(
-                  20,
-                  8,
-                  20,
-                  MediaQuery.of(context).viewInsets.bottom + 24,
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    // Header with Shield Icon (Matching Next.js IdentitySetupBlocker)
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 680),
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 32, vertical: 24),
+                  decoration: BoxDecoration(
+                    color: tokens.cardBg,
+                    borderRadius: BorderRadius.circular(24),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(isDark ? 0.28 : 0.08),
+                        blurRadius: 45,
+                        offset: const Offset(0, 20),
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
                     Center(
                       child: Column(
                         children: [
                           Container(
-                            width: 48,
-                            height: 48,
+                            width: 44,
+                            height: 44,
                             decoration: BoxDecoration(
                               gradient: const LinearGradient(
                                 colors: [Color(0xFF818CF8), Color(0xFF4F46E5)],
                                 begin: Alignment.topLeft,
                                 end: Alignment.bottomRight,
                               ),
-                              borderRadius: BorderRadius.circular(14),
+                              borderRadius: BorderRadius.circular(12),
                               boxShadow: [
                                 BoxShadow(
                                   color:
-                                      const Color(0xFF4F46E5).withOpacity(0.3),
+                                      const Color(0xFF4F46E5).withOpacity(0.15),
                                   blurRadius: 12,
-                                  offset: const Offset(0, 4),
+                                  offset: const Offset(0, 6),
                                 ),
                               ],
                             ),
                             child: const Icon(
                               Icons.shield_rounded,
                               color: Colors.white,
-                              size: 26,
+                              size: 22,
                             ),
                           ),
-                          const SizedBox(height: 12),
+                          const SizedBox(height: 10),
                           Text(
                             'Update Your Profile',
                             style: TextStyle(
-                              fontSize: 20,
+                              fontSize: 21,
                               fontWeight: FontWeight.w900,
                               color: tokens.textPrimary,
-                              letterSpacing: -0.3,
+                              letterSpacing: -0.4,
                             ),
                           ),
                         ],
@@ -488,11 +460,12 @@ class _IdentitySetupDialogState extends ConsumerState<IdentitySetupDialog> {
                               ),
                       ),
                     ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ),
-          ],
+          ),
         ),
       ),
     );
@@ -500,10 +473,19 @@ class _IdentitySetupDialogState extends ConsumerState<IdentitySetupDialog> {
 
   Widget _buildWelcomeView(AppThemeTokens tokens, bool isDark) {
     return Container(
-      padding: const EdgeInsets.all(28),
+      margin: const EdgeInsets.all(20),
+      padding: const EdgeInsets.fromLTRB(32, 40, 32, 32),
+      constraints: const BoxConstraints(maxWidth: 440),
       decoration: BoxDecoration(
         color: tokens.cardBg,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.25),
+            blurRadius: 50,
+            offset: const Offset(0, 25),
+          ),
+        ],
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,

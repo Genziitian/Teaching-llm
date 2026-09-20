@@ -11,7 +11,9 @@ import '../../features/academics/free_materials_browse_page.dart';
 import '../../features/academics/free_resources_page.dart';
 import '../../features/academics/purchased_materials_page.dart';
 import '../../features/announcements/announcements_page.dart';
+import '../../features/auth/identity_setup_dialog.dart';
 import '../../features/auth/login_page.dart';
+import '../../features/auth/profile_setup_dialog.dart';
 import '../../features/auth/welcome_page.dart';
 import '../../features/community/community_chat_page.dart';
 import '../../features/community/community_page.dart';
@@ -167,10 +169,22 @@ final routerProvider = Provider<GoRouter>((ref) {
       final isPublic = publicPaths.contains(loc) || loc.startsWith('/company/');
 
       if (isSignedIn) {
+        final user = auth.value!;
+        // Match web dashboard layout: these two screens block the entire app.
+        // New Google users cannot reach Home until both are saved.
+        if (!user.isProfileComplete) {
+          return loc == '/profile-setup' ? null : '/profile-setup';
+        }
+        if (user.needsIdentitySetup) {
+          return loc == '/identity-setup' ? null : '/identity-setup';
+        }
+        if (loc == '/profile-setup' || loc == '/identity-setup') {
+          return '/dashboard';
+        }
         if (loc.startsWith('/support/user-reports') &&
-            auth.value?.role != 'MANAGER') return '/dashboard';
+            user.role != 'MANAGER') return '/dashboard';
         if (loc.startsWith('/support') &&
-            !canAccessSupport(auth.value?.role)) return '/dashboard';
+            !canAccessSupport(user.role)) return '/dashboard';
         // Signed in but landed on a sign-in surface → push to dashboard.
         if (loc == '/login' || loc == '/welcome') {
           return '/dashboard';
@@ -202,6 +216,20 @@ final routerProvider = Provider<GoRouter>((ref) {
         pageBuilder: (context, state) => _buildSmoothPage(
           key: state.pageKey,
           child: const LoginPage(),
+        ),
+      ),
+      GoRoute(
+        path: '/profile-setup',
+        pageBuilder: (context, state) => _buildSmoothPage(
+          key: state.pageKey,
+          child: const ProfileSetupDialog(),
+        ),
+      ),
+      GoRoute(
+        path: '/identity-setup',
+        pageBuilder: (context, state) => _buildSmoothPage(
+          key: state.pageKey,
+          child: const IdentitySetupDialog(),
         ),
       ),
       // Fullscreen video — no bottom nav, hence not inside the ShellRoute.

@@ -3,7 +3,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/auth/auth_providers.dart';
-import '../../core/auth/token_storage.dart';
 import '../../theme/app_theme_tokens.dart';
 import '../profile/profile_page.dart';
 
@@ -16,32 +15,10 @@ const List<String> kIndianStates = [
   'Other'
 ];
 
-/// ProfileSetupDialog — mirrors ProfileSetupBlocker.tsx from Next.js.
-/// Prompts first-time users to complete their personal details (Name, Mobile, Gender, Age, State)
-/// and submits to `/api/profile/setup`.
+/// Full-screen required profile setup — mirrors ProfileSetupBlocker.tsx.
+/// Submits to `/api/profile/setup`. Cannot be dismissed.
 class ProfileSetupDialog extends ConsumerStatefulWidget {
   const ProfileSetupDialog({super.key});
-
-  static bool _isShowing = false;
-
-  static Future<bool?> show(BuildContext context) async {
-    if (_isShowing) return null;
-    _isShowing = true;
-    try {
-      return await showModalBottomSheet<bool>(
-        context: context,
-        useRootNavigator: true,
-        isDismissible: false,
-        enableDrag: false,
-        isScrollControlled: true,
-        useSafeArea: true,
-        backgroundColor: Colors.transparent,
-        builder: (_) => const ProfileSetupDialog(),
-      );
-    } finally {
-      _isShowing = false;
-    }
-  }
 
   @override
   ConsumerState<ProfileSetupDialog> createState() => _ProfileSetupDialogState();
@@ -120,7 +97,7 @@ class _ProfileSetupDialogState extends ConsumerState<ProfileSetupDialog> {
     }
 
     if (_selectedGender == null || _selectedGender!.isEmpty) {
-      setState(() => _error = 'Please select your gender.');
+      setState(() => _error = 'Please select a gender option.');
       return;
     }
 
@@ -131,11 +108,10 @@ class _ProfileSetupDialogState extends ConsumerState<ProfileSetupDialog> {
     }
 
     if (_selectedState == null || _selectedState!.isEmpty) {
-      setState(() => _error = 'Please select your state.');
+      setState(() => _error = 'Please choose your state from the dropdown.');
       return;
     }
 
-    // Show confirmation review popup before submitting, matching Web
     final confirmed = await _showConfirmationDialog(
       first: first,
       last: last,
@@ -173,52 +149,45 @@ class _ProfileSetupDialogState extends ConsumerState<ProfileSetupDialog> {
 
     return showDialog<bool>(
       context: context,
-      useRootNavigator: true,
       barrierDismissible: false,
       builder: (ctx) => AlertDialog(
         backgroundColor: tokens.cardBg,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-        contentPadding: const EdgeInsets.fromLTRB(22, 24, 22, 20),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        contentPadding: const EdgeInsets.fromLTRB(32, 36, 32, 32),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // Warning Icon
             Container(
-              width: 56,
-              height: 56,
+              width: 60,
+              height: 60,
               decoration: BoxDecoration(
-                color: isDark ? const Color(0x33F59E0B) : const Color(0xFFFEF3C7),
+                color: isDark ? const Color(0x33F59E0B) : const Color(0xFFFFF8E1),
                 shape: BoxShape.circle,
               ),
               child: const Icon(
                 Icons.warning_amber_rounded,
                 color: Color(0xFFF59E0B),
-                size: 32,
+                size: 28,
               ),
             ),
-            const SizedBox(height: 16),
-
-            // Title
+            const SizedBox(height: 20),
             Text(
               'Please check all details carefully',
               textAlign: TextAlign.center,
               style: TextStyle(
-                fontSize: 17.5,
+                fontSize: 20,
                 fontWeight: FontWeight.w900,
                 color: tokens.textPrimary,
-                letterSpacing: -0.3,
               ),
             ),
-            const SizedBox(height: 8),
-
-            // Subtitle with highlighted warning
+            const SizedBox(height: 12),
             RichText(
               textAlign: TextAlign.center,
               text: TextSpan(
                 style: TextStyle(
-                  fontSize: 13,
+                  fontSize: 14,
                   color: tokens.textSecondary,
-                  height: 1.5,
+                  height: 1.65,
                 ),
                 children: [
                   const TextSpan(text: 'These details '),
@@ -226,50 +195,46 @@ class _ProfileSetupDialogState extends ConsumerState<ProfileSetupDialog> {
                     text: 'cannot be changed',
                     style: TextStyle(
                       color: tokens.danger,
-                      fontWeight: FontWeight.w800,
+                      fontWeight: FontWeight.w700,
                     ),
                   ),
                   const TextSpan(
-                    text: ' once submitted. Make sure everything is correct before continuing.',
+                    text:
+                        ' once submitted. Make sure everything is correct before continuing.',
                   ),
                 ],
               ),
             ),
-            const SizedBox(height: 18),
-
-            // Summary Box
+            const SizedBox(height: 28),
             Container(
+              width: double.infinity,
               decoration: BoxDecoration(
-                color: tokens.surfaceSecondary,
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: tokens.border.withOpacity(0.6)),
+                color: tokens.surface,
+                borderRadius: BorderRadius.circular(12),
               ),
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+              padding: const EdgeInsets.all(16),
               child: Column(
                 children: [
                   _summaryRow('Name', '$first $last', tokens),
-                  _summaryDivider(tokens),
-                  _summaryRow('Mobile', '+91 $mobile', tokens),
-                  _summaryDivider(tokens),
+                  _summaryRow('Mobile', mobile, tokens),
                   _summaryRow('Age', '$age', tokens),
-                  _summaryDivider(tokens),
                   _summaryRow('Gender', genderDisplay, tokens),
-                  _summaryDivider(tokens),
-                  _summaryRow('State', state, tokens),
+                  _summaryRow('State', state, tokens, isLast: true),
                 ],
               ),
             ),
-            const SizedBox(height: 20),
-
-            // Buttons
+            const SizedBox(height: 24),
             Row(
               children: [
                 Expanded(
                   child: OutlinedButton(
                     onPressed: () => Navigator.of(ctx).pop(false),
                     style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                      side: BorderSide(color: tokens.border),
+                      padding: const EdgeInsets.symmetric(vertical: 13),
+                      side: BorderSide(
+                        color: isDark ? tokens.border : const Color(0xFFE0E3EA),
+                        width: 2,
+                      ),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
@@ -284,21 +249,21 @@ class _ProfileSetupDialogState extends ConsumerState<ProfileSetupDialog> {
                     ),
                   ),
                 ),
-                const SizedBox(width: 10),
+                const SizedBox(width: 12),
                 Expanded(
                   child: ElevatedButton(
                     onPressed: () => Navigator.of(ctx).pop(true),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF2563EB),
+                      backgroundColor: const Color(0xFF6366F1),
                       foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      padding: const EdgeInsets.symmetric(vertical: 13),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
                       elevation: 0,
                     ),
                     child: const Text(
-                      'Yes, Submit',
+                      'Continue',
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w800,
@@ -314,16 +279,30 @@ class _ProfileSetupDialogState extends ConsumerState<ProfileSetupDialog> {
     );
   }
 
-  Widget _summaryRow(String label, String value, AppThemeTokens tokens) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6),
+  Widget _summaryRow(
+    String label,
+    String value,
+    AppThemeTokens tokens, {
+    bool isLast = false,
+  }) {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 5),
+      decoration: BoxDecoration(
+        border: isLast
+            ? null
+            : Border(
+                bottom: BorderSide(
+                  color: tokens.border.withOpacity(0.7),
+                ),
+              ),
+      ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(
             label,
             style: TextStyle(
-              fontSize: 12.5,
+              fontSize: 13.5,
               fontWeight: FontWeight.w600,
               color: tokens.textSecondary,
             ),
@@ -334,8 +313,8 @@ class _ProfileSetupDialogState extends ConsumerState<ProfileSetupDialog> {
               textAlign: TextAlign.end,
               overflow: TextOverflow.ellipsis,
               style: TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w800,
+                fontSize: 13.5,
+                fontWeight: FontWeight.w700,
                 color: tokens.textPrimary,
               ),
             ),
@@ -343,10 +322,6 @@ class _ProfileSetupDialogState extends ConsumerState<ProfileSetupDialog> {
         ],
       ),
     );
-  }
-
-  Widget _summaryDivider(AppThemeTokens tokens) {
-    return Divider(height: 1, thickness: 1, color: tokens.border.withOpacity(0.4));
   }
 
   Future<void> _doSubmit({
@@ -370,31 +345,26 @@ class _ProfileSetupDialogState extends ConsumerState<ProfileSetupDialog> {
         'state': state,
       });
 
-      // Update in-memory user and persistent storage
       final currentUser = ref.read(authStateProvider).value;
       if (currentUser != null) {
-        final updated = currentUser.copyWith(
-          name: '$first $last',
-          firstName: first,
-          lastName: last,
-          mobileNumber: mobile,
-          gender: gender,
-          isProfileComplete: true,
+        ref.read(authStateProvider.notifier).updateCurrentUser(
+          currentUser.copyWith(
+            name: '$first $last',
+            firstName: first,
+            lastName: last,
+            mobileNumber: mobile,
+            gender: gender,
+            isProfileComplete: true,
+          ),
         );
-        await const TokenStorage().saveUser(updated);
-        ref.read(authStateProvider.notifier).updateCurrentUser(updated);
       }
 
       ref.invalidate(profileProvider);
-
-      if (mounted) {
-        Navigator.of(context).pop(true);
-      }
     } catch (e) {
       if (mounted) {
         setState(() {
           _saving = false;
-          _error = 'Failed to save profile. Please try again.';
+          _error = 'Failed to complete profile setup.';
         });
       }
     }
@@ -407,333 +377,307 @@ class _ProfileSetupDialogState extends ConsumerState<ProfileSetupDialog> {
 
     return PopScope(
       canPop: false,
-      child: Container(
-        constraints: BoxConstraints(
-          maxHeight: MediaQuery.of(context).size.height * 0.90,
-        ),
-        decoration: BoxDecoration(
-          color: tokens.cardBg,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-          // Drag handle
-          Center(
-            child: Container(
-              margin: const EdgeInsets.only(top: 10, bottom: 6),
-              width: 36,
-              height: 4,
-              decoration: BoxDecoration(
-                color: tokens.border,
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
-          ),
-
-          Expanded(
+      child: Scaffold(
+        backgroundColor: tokens.bg,
+        body: SafeArea(
+          child: Center(
             child: SingleChildScrollView(
-              padding: EdgeInsets.fromLTRB(
-                20,
-                8,
-                20,
-                MediaQuery.of(context).viewInsets.bottom + 24,
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  // Header
-                  Center(
-                    child: Column(
-                      children: [
-                        Container(
-                          width: 48,
-                          height: 48,
-                          decoration: BoxDecoration(
-                            gradient: const LinearGradient(
-                              colors: [Color(0xFF3B82F6), Color(0xFF1D4ED8)],
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                            ),
-                            borderRadius: BorderRadius.circular(14),
-                          ),
-                          child: const Icon(
-                            Icons.person_rounded,
-                            color: Colors.white,
-                            size: 26,
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        Text(
-                          'Complete Your Profile',
-                          style: TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.w900,
-                            color: tokens.textPrimary,
-                            letterSpacing: -0.3,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          'Please provide your basic details to continue',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontSize: 12.5,
-                            color: tokens.textSecondary,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  const SizedBox(height: 20),
-
-                  // Error alert
-                  if (_error != null) ...[
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                      decoration: BoxDecoration(
-                        color: tokens.danger.withOpacity(0.12),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: tokens.danger.withOpacity(0.3)),
+              padding: const EdgeInsets.all(20),
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 540),
+                child: Container(
+                  padding: const EdgeInsets.all(32),
+                  decoration: BoxDecoration(
+                    color: tokens.cardBg,
+                    borderRadius: BorderRadius.circular(24),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(isDark ? 0.28 : 0.08),
+                        blurRadius: 40,
+                        offset: const Offset(0, 20),
                       ),
-                      child: Row(
+                    ],
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Text(
+                        'Welcome back to GenZ IITian!',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 26,
+                          fontWeight: FontWeight.w900,
+                          color: tokens.textPrimary,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Please update your details so we can serve you better.',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 14,
+                          height: 1.6,
+                          color: tokens.textSecondary,
+                        ),
+                      ),
+                      const SizedBox(height: 30),
+                      if (_error != null) ...[
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 12,
+                          ),
+                          decoration: BoxDecoration(
+                            color: tokens.danger.withOpacity(0.12),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(Icons.error_outline,
+                                  color: tokens.danger, size: 16),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  _error!,
+                                  style: TextStyle(
+                                    color: tokens.danger,
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+                      ],
+                      Row(
                         children: [
-                          Icon(Icons.error_outline, color: tokens.danger, size: 18),
-                          const SizedBox(width: 8),
                           Expanded(
-                            child: Text(
-                              _error!,
-                              style: TextStyle(
-                                color: tokens.danger,
-                                fontSize: 12.5,
-                                fontWeight: FontWeight.w600,
+                            child: _LabeledField(
+                              label: 'First Name',
+                              child: TextField(
+                                controller: _firstNameController,
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: tokens.textPrimary,
+                                ),
+                                decoration: _inputDecoration('John', tokens),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: _LabeledField(
+                              label: 'Last Name',
+                              child: TextField(
+                                controller: _lastNameController,
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: tokens.textPrimary,
+                                ),
+                                decoration: _inputDecoration('Doe', tokens),
                               ),
                             ),
                           ),
                         ],
                       ),
-                    ),
-                    const SizedBox(height: 16),
-                  ],
-
-                  // First Name & Last Name
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'First Name',
-                              style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w700, color: tokens.textSecondary),
-                            ),
-                            const SizedBox(height: 6),
-                            TextField(
-                              controller: _firstNameController,
-                              style: TextStyle(fontSize: 13.5, color: tokens.textPrimary),
-                              decoration: _inputDecoration('First Name', tokens),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Last Name',
-                              style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w700, color: tokens.textSecondary),
-                            ),
-                            const SizedBox(height: 6),
-                            TextField(
-                              controller: _lastNameController,
-                              style: TextStyle(fontSize: 13.5, color: tokens.textPrimary),
-                              decoration: _inputDecoration('Last Name', tokens),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-
-                  const SizedBox(height: 14),
-
-                  // Mobile Number
-                  Text(
-                    'WhatsApp / Mobile Number',
-                    style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w700, color: tokens.textSecondary),
-                  ),
-                  const SizedBox(height: 6),
-                  TextField(
-                    controller: _mobileController,
-                    keyboardType: TextInputType.phone,
-                    inputFormatters: [
-                      FilteringTextInputFormatter.digitsOnly,
-                      LengthLimitingTextInputFormatter(10),
-                    ],
-                    style: TextStyle(fontSize: 13.5, color: tokens.textPrimary),
-                    decoration: _inputDecoration('10-digit mobile number', tokens, prefix: '+91 '),
-                  ),
-
-                  const SizedBox(height: 14),
-
-                  // Gender Selection
-                  Text(
-                    'Gender',
-                    style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w700, color: tokens.textSecondary),
-                  ),
-                  const SizedBox(height: 6),
-                  Row(
-                    children: [
-                      {'key': 'MALE', 'label': 'Male'},
-                      {'key': 'FEMALE', 'label': 'Female'},
-                      {'key': 'OTHER', 'label': 'Other'},
-                    ].map((g) {
-                      final isSelected = _selectedGender == g['key'];
-                      return Expanded(
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 3),
-                          child: InkWell(
-                            onTap: () => setState(() => _selectedGender = g['key']),
-                            borderRadius: BorderRadius.circular(10),
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(vertical: 10),
-                              alignment: Alignment.center,
-                              decoration: BoxDecoration(
-                                color: isSelected
-                                    ? (isDark ? const Color(0xFF1E3A8A) : const Color(0xFFDBEAFE))
-                                    : tokens.surfaceSecondary,
-                                borderRadius: BorderRadius.circular(10),
-                                border: Border.all(
-                                  color: isSelected ? const Color(0xFF3B82F6) : tokens.border,
-                                  width: isSelected ? 2 : 1,
-                                ),
-                              ),
-                              child: Text(
-                                g['label']!,
+                      const SizedBox(height: 20),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: _LabeledField(
+                              label: 'Mobile Number',
+                              child: TextField(
+                                controller: _mobileController,
+                                keyboardType: TextInputType.phone,
+                                inputFormatters: [
+                                  FilteringTextInputFormatter.digitsOnly,
+                                  LengthLimitingTextInputFormatter(10),
+                                ],
                                 style: TextStyle(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w700,
-                                  color: isSelected
-                                      ? (isDark ? const Color(0xFF93C5FD) : const Color(0xFF1D4ED8))
-                                      : tokens.textSecondary,
+                                  fontSize: 14,
+                                  color: tokens.textPrimary,
+                                ),
+                                decoration: _inputDecoration(
+                                  '10 digit number',
+                                  tokens,
                                 ),
                               ),
                             ),
                           ),
-                        ),
-                      );
-                    }).toList(),
-                  ),
-
-                  const SizedBox(height: 14),
-
-                  // Age
-                  Text(
-                    'Age',
-                    style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w700, color: tokens.textSecondary),
-                  ),
-                  const SizedBox(height: 6),
-                  TextField(
-                    controller: _ageController,
-                    keyboardType: TextInputType.number,
-                    inputFormatters: [
-                      FilteringTextInputFormatter.digitsOnly,
-                      LengthLimitingTextInputFormatter(3),
-                    ],
-                    style: TextStyle(fontSize: 13.5, color: tokens.textPrimary),
-                    decoration: _inputDecoration('Enter your age (e.g. 20)', tokens),
-                  ),
-
-                  const SizedBox(height: 14),
-
-                  // State Dropdown
-                  Text(
-                    'State / Union Territory',
-                    style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w700, color: tokens.textSecondary),
-                  ),
-                  const SizedBox(height: 6),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12),
-                    decoration: BoxDecoration(
-                      color: tokens.surfaceSecondary,
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(color: tokens.border),
-                    ),
-                    child: DropdownButtonHideUnderline(
-                      child: DropdownButton<String>(
-                        value: _selectedState,
-                        hint: Text('Select your State', style: TextStyle(fontSize: 13, color: tokens.textMuted)),
-                        isExpanded: true,
-                        dropdownColor: tokens.cardBg,
-                        icon: Icon(Icons.arrow_drop_down, color: tokens.textMuted),
-                        items: kIndianStates
-                            .map((s) => DropdownMenuItem(
-                                  value: s,
-                                  child: Text(
-                                    s,
-                                    style: TextStyle(fontSize: 13.5, color: tokens.textPrimary),
-                                  ),
-                                ))
-                            .toList(),
-                        onChanged: (v) => setState(() => _selectedState = v),
-                      ),
-                    ),
-                  ),
-
-                  const SizedBox(height: 24),
-
-                  // Submit Button
-                  SizedBox(
-                    height: 48,
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF2563EB),
-                        foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        elevation: 0,
-                      ),
-                      onPressed: _saving ? null : _submit,
-                      child: _saving
-                          ? const SizedBox(
-                              width: 22,
-                              height: 22,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2.4,
-                                color: Colors.white,
-                              ),
-                            )
-                          : const Text(
-                              'Save Profile',
-                              style: TextStyle(
-                                fontSize: 15,
-                                fontWeight: FontWeight.w800,
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: _LabeledField(
+                              label: 'Age',
+                              child: TextField(
+                                controller: _ageController,
+                                keyboardType: TextInputType.number,
+                                inputFormatters: [
+                                  FilteringTextInputFormatter.digitsOnly,
+                                  LengthLimitingTextInputFormatter(3),
+                                ],
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: tokens.textPrimary,
+                                ),
+                                decoration:
+                                    _inputDecoration('e.g. 21', tokens),
                               ),
                             ),
-                    ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 20),
+                      _LabeledField(
+                        label: 'State / Territory',
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12),
+                          decoration: BoxDecoration(
+                            color: tokens.cardBg,
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(color: tokens.border),
+                          ),
+                          child: DropdownButtonHideUnderline(
+                            child: DropdownButton<String>(
+                              value: _selectedState,
+                              hint: Text(
+                                'Select your state',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: tokens.textMuted,
+                                ),
+                              ),
+                              isExpanded: true,
+                              dropdownColor: tokens.cardBg,
+                              icon: Icon(
+                                Icons.arrow_drop_down,
+                                color: tokens.textMuted,
+                              ),
+                              items: kIndianStates
+                                  .map(
+                                    (s) => DropdownMenuItem(
+                                      value: s,
+                                      child: Text(
+                                        s,
+                                        style: TextStyle(
+                                          fontSize: 14,
+                                          color: tokens.textPrimary,
+                                        ),
+                                      ),
+                                    ),
+                                  )
+                                  .toList(),
+                              onChanged: (v) =>
+                                  setState(() => _selectedState = v),
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                      _LabeledField(
+                        label: 'Gender',
+                        child: Row(
+                          children: [
+                            for (final g in [
+                              {'key': 'MALE', 'label': 'male'},
+                              {'key': 'FEMALE', 'label': 'female'},
+                              {'key': 'OTHER', 'label': 'other'},
+                            ]) ...[
+                              if (g['key'] != 'MALE') const SizedBox(width: 12),
+                              Expanded(
+                                child: InkWell(
+                                  onTap: () => setState(
+                                    () => _selectedGender = g['key'],
+                                  ),
+                                  borderRadius: BorderRadius.circular(12),
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 12,
+                                    ),
+                                    alignment: Alignment.center,
+                                    decoration: BoxDecoration(
+                                      color: _selectedGender == g['key']
+                                          ? (isDark
+                                              ? const Color(0xFF312E81)
+                                              : const Color(0xFFEFF0FE))
+                                          : tokens.surface,
+                                      borderRadius: BorderRadius.circular(12),
+                                      border: Border.all(
+                                        color: _selectedGender == g['key']
+                                            ? const Color(0xFF6366F1)
+                                            : (isDark
+                                                ? tokens.border
+                                                : const Color(0xFFE0E3EA)),
+                                        width: 2,
+                                      ),
+                                    ),
+                                    child: Text(
+                                      g['label']!,
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w700,
+                                        color: _selectedGender == g['key']
+                                            ? tokens.primaryAccent
+                                            : tokens.textSecondary,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 30),
+                      SizedBox(
+                        height: 52,
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF6366F1),
+                            foregroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            elevation: 0,
+                            shadowColor: const Color(0x4D6366F1),
+                          ),
+                          onPressed: _saving ? null : _submit,
+                          child: _saving
+                              ? const SizedBox(
+                                  width: 22,
+                                  height: 22,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2.4,
+                                    color: Colors.white,
+                                  ),
+                                )
+                              : const Text(
+                                  'Submit',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w800,
+                                  ),
+                                ),
+                        ),
+                      ),
+                    ],
                   ),
-                ],
+                ),
               ),
             ),
           ),
-        ],
+        ),
       ),
-    ),
-  );
-}
+    );
+  }
 
-  InputDecoration _inputDecoration(String hint, AppThemeTokens tokens, {String? prefix}) {
+  InputDecoration _inputDecoration(String hint, AppThemeTokens tokens) {
     return InputDecoration(
       hintText: hint,
-      prefixText: prefix,
-      prefixStyle: TextStyle(fontSize: 13.5, fontWeight: FontWeight.w700, color: tokens.textPrimary),
-      hintStyle: TextStyle(fontSize: 13, color: tokens.textMuted),
+      hintStyle: TextStyle(fontSize: 14, color: tokens.textMuted),
       filled: true,
-      fillColor: tokens.surfaceSecondary,
+      fillColor: tokens.cardBg,
       contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(10),
@@ -745,8 +689,35 @@ class _ProfileSetupDialogState extends ConsumerState<ProfileSetupDialog> {
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(10),
-        borderSide: const BorderSide(color: Color(0xFF3B82F6), width: 1.5),
+        borderSide: const BorderSide(color: Color(0xFF6366F1), width: 1.5),
       ),
+    );
+  }
+}
+
+class _LabeledField extends StatelessWidget {
+  const _LabeledField({required this.label, required this.child});
+
+  final String label;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    final tokens = context.tokens;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w700,
+            color: tokens.textPrimary,
+          ),
+        ),
+        const SizedBox(height: 6),
+        child,
+      ],
     );
   }
 }

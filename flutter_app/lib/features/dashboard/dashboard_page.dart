@@ -8,11 +8,8 @@ import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../core/auth/auth_providers.dart';
-import '../../core/models/user.dart';
 import '../../core/tour/tour_target_registry.dart';
 import '../../theme/theme_mode_provider.dart';
-import '../auth/profile_setup_dialog.dart';
-import '../auth/identity_setup_dialog.dart';
 import '../prompts/admin_message_session.dart';
 import '../../core/services/contact_sync_service.dart';
 import '../../shared/widgets/app_topbar.dart';
@@ -27,19 +24,6 @@ import '../../shared/widgets/app_avatar.dart';
 import '../../shared/widgets/app_refresh.dart';
 import '../../shared/widgets/bouncy_pressable.dart';
 import '../../shared/widgets/youtube/youtube_utils.dart';
-
-bool _hasCompleteProfileData(Map<String, dynamic> profile) {
-  final mobileDigits =
-      (profile['mobileNumber']?.toString() ?? '').replaceAll(RegExp(r'\D'), '');
-  final age = profile['age'];
-  return (profile['firstName']?.toString().trim().isNotEmpty ?? false) &&
-      (profile['lastName']?.toString().trim().isNotEmpty ?? false) &&
-      mobileDigits.length >= 10 &&
-      (profile['gender']?.toString().trim().isNotEmpty ?? false) &&
-      age is num &&
-      age > 0 &&
-      (profile['state']?.toString().trim().isNotEmpty ?? false);
-}
 
 class DashboardPage extends ConsumerStatefulWidget {
   const DashboardPage({super.key});
@@ -66,51 +50,6 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
     if (user == null || !mounted) return;
 
     _checkedModals = true;
-
-    // Always confirm profile state with the server before showing a mandatory
-    // modal. Older cached login payloads may still carry a stale false flag.
-    if (!user.isProfileComplete) {
-      try {
-        final response = await ref
-            .read(apiClientProvider)
-            .get<Map<String, dynamic>>('/api/auth/me');
-        final freshJson = response.data?['user'] as Map<String, dynamic>?;
-        if (freshJson != null) {
-          var freshUser = User.fromJson(freshJson);
-          if (!freshUser.isProfileComplete) {
-            final profileResponse = await ref
-                .read(apiClientProvider)
-                .get<Map<String, dynamic>>('/api/profile');
-            final profileJson =
-                profileResponse.data?['user'] as Map<String, dynamic>?;
-            if (profileJson != null && _hasCompleteProfileData(profileJson)) {
-              freshUser = freshUser.copyWith(isProfileComplete: true);
-            }
-          }
-          ref.read(authStateProvider.notifier).updateCurrentUser(freshUser);
-          user = freshUser;
-        }
-      } catch (_) {
-        // Do not block an existing user with a mandatory form when their
-        // completion status cannot be verified because the network is down.
-        return;
-      }
-    }
-
-    if (!mounted) return;
-
-    // 1. Mandatory Profile Setup if profile not complete
-    if (!user.isProfileComplete) {
-      final completed = await ProfileSetupDialog.show(context);
-      if (completed != true || !mounted) return;
-    }
-
-    // 2. Mandatory Identity Setup if identity not updated
-    final updatedUser = ref.read(authStateProvider).value;
-    if (updatedUser != null && updatedUser.needsIdentitySetup && mounted) {
-      final completed = await IdentitySetupDialog.show(context);
-      if (completed != true || !mounted) return;
-    }
 
     // Complete native permission requests before presenting admin messages.
     if (mounted) {
