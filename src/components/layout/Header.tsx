@@ -70,6 +70,7 @@ const PAGE_TITLES: Record<string, { title: string; subtitle: string }> = {
   '/manage/prompts': { title: 'User Prompts', subtitle: 'Create and manage quick feedback prompts for users' },
   '/manage/updates': { title: 'Update System', subtitle: 'Manage greetings, updates, and user messages' },
   '/manage/coupons': { title: 'Coupon Management', subtitle: 'Create and manage discount coupons' },
+  '/manage/facts': { title: 'Loading Facts', subtitle: 'Add, edit, search and rarity-tag facts shown on loading screens' },
   '/manage':     { title: 'Manage Content',    subtitle: 'Create and edit courses, lectures, and sessions' },
   '/company/about-us': { title: 'About Us', subtitle: 'Learn more about GenZ IITian and our team' },
   '/company/': { title: 'Company Policy', subtitle: 'View terms, privacy and company details' },

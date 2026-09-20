@@ -1599,3 +1599,18 @@ model StudentContact {
   @@index([createdAt])
 }
 
+model LoadingFact {
+  id        String   @id @default(cuid())
+  code      String?  @unique
+  text      String
+  rarity    String   @default("COMMON")
+  isCoupon  Boolean  @default(false)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([rarity])
+  @@index([isActive])
+  @@index([createdAt])
+}
+

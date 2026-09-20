@@ -1,5 +1,16 @@
 import { LOADING_FACTS, LoadingFact, LoadingFactRarity } from './loading-facts-data';
 
+let runtimeFacts: LoadingFact[] | null = null;
+
+export function setRuntimeLoadingFacts(facts: LoadingFact[]) {
+  const cleaned = facts.filter(fact => fact?.id && fact?.text);
+  runtimeFacts = cleaned.length > 0 ? cleaned : null;
+}
+
+function getFactPool(): LoadingFact[] {
+  return runtimeFacts && runtimeFacts.length > 0 ? runtimeFacts : LOADING_FACTS;
+}
+
 export interface LoadingFactState {
   recentFactIds: string[];
   lastShownFactId: string | null;
@@ -118,7 +129,8 @@ export function getNextLoadingFact(options?: GetFactOptions): LoadingFact {
   }
 
   // 6. Filter candidate facts by rarity and coupon availability
-  let pool = LOADING_FACTS.filter(f => f.rarity === targetRarity);
+  const source = getFactPool();
+  let pool = source.filter(f => f.rarity === targetRarity);
   if (!options?.allowCoupon) {
     // If coupon is not explicitly enabled, prefer non-coupon facts,
     // or if pool has only coupon facts keep it
@@ -139,7 +151,7 @@ export function getNextLoadingFact(options?: GetFactOptions): LoadingFact {
 
   // Ultimate fallback
   if (candidates.length === 0) {
-    candidates = pool.length > 0 ? pool : LOADING_FACTS;
+    candidates = pool.length > 0 ? pool : source;
   }
 
   const selectedFact = candidates[Math.floor(Math.random() * candidates.length)];

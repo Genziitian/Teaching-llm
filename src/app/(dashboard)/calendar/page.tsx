@@ -2110,13 +2110,10 @@ function CalendarPageContent() {
                 </div>
               </div>
 
-              {/* Events List Grouped by Date */}
+              {/* Events List Grouped by Date — block layout so overflow:hidden cards don't flex-shrink */}
               <div style={{
                 maxHeight: '340px',
                 overflowY: 'auto',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '12px',
                 paddingRight: '4px'
               }}>
                 {bulkFilteredEvents.length === 0 ? (
@@ -2125,7 +2122,7 @@ function CalendarPageContent() {
                     <p style={{ fontSize: '12px', marginTop: '4px' }}>Try adjusting your date range or search keyword.</p>
                   </div>
                 ) : (
-                  Object.entries(bulkEventsByDate).map(([dateStr, dateEvs]) => {
+                  Object.entries(bulkEventsByDate).map(([dateStr, dateEvs], dateIdx, dateEntries) => {
                     const allDateSelected = dateEvs.every(e => selectedBulkEventIds.has(e.id))
                     const formattedDateHeader = new Date(dateStr + 'T00:00:00').toLocaleDateString('en-US', {
                       weekday: 'short',
@@ -2134,7 +2131,16 @@ function CalendarPageContent() {
                     })
 
                     return (
-                      <div key={dateStr} style={{ borderRadius: '16px', border: '1px solid var(--border)', background: 'var(--surface)', overflow: 'hidden' }}>
+                      <div
+                        key={dateStr}
+                        style={{
+                          borderRadius: '16px',
+                          border: '1px solid var(--border)',
+                          background: 'var(--surface)',
+                          overflow: 'hidden',
+                          marginBottom: dateIdx < dateEntries.length - 1 ? '12px' : 0,
+                        }}
+                      >
                         {/* Date Subheader with Group Select */}
                         <div style={{
                           display: 'flex',

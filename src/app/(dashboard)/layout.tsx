@@ -16,6 +16,7 @@ import GlobalUploadProgressModal from '@/components/GlobalUploadProgressModal'
 
 
 import { TourProvider } from '@/components/tour/TourContext'
+import LoadingFactsHydrator from '@/components/LoadingFactsHydrator'
 
 export default async function DashboardLayout({
   children,
@@ -63,6 +64,7 @@ export default async function DashboardLayout({
             <SupportFloatingButton />
             <MobileBottomNav userRole={session.role} />
           </div>
+          <LoadingFactsHydrator />
           <UpdateOverlay />
           <DynamicPromptBlocker />
           <UserJourneyTracker enableDetailedLogs={session.enableDetailedLogs} />
