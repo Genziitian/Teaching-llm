@@ -998,6 +998,67 @@ tr:hover td {
   }
 }
 
+.admin-advance-filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 12px;
+  padding: 14px 16px;
+  margin-bottom: 8px;
+  border-radius: 18px;
+  background: var(--surface-2);
+  box-shadow: inset 3px 3px 6px var(--neu-dark), inset -3px -3px 6px var(--neu-light);
+}
+
+.admin-advance-filter-field {
+  flex: 1;
+  min-width: 160px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.admin-advance-filter-field label {
+  font-size: 10px;
+  font-weight: 800;
+  color: var(--text-muted);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.admin-advance-filter-control {
+  display: flex;
+  align-items: center;
+  padding: 8px 14px;
+  border-radius: 50px;
+  background: var(--bg);
+  box-shadow: 3px 3px 6px var(--neu-dark), -3px -3px 6px var(--neu-light);
+}
+
+.admin-advance-filter-control select {
+  background: none;
+  border: none;
+  width: 100%;
+  outline: none;
+  font-size: 13px;
+  color: var(--text-primary);
+  cursor: pointer;
+}
+
+.admin-advance-filter-control select option {
+  background: var(--bg);
+  color: var(--text-primary);
+}
+
+@media (max-width: 767px) {
+  .admin-advance-filters {
+    padding: 12px;
+  }
+  .admin-advance-filter-field {
+    min-width: 100%;
+  }
+}
+
 /* Admin user-row: collapses fixed columns onto next line on phones */
 @media (max-width: 767px) {
   .admin-user-row {

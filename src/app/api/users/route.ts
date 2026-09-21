@@ -24,6 +24,31 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url)
     const search = searchParams.get('search')?.trim() || ''
     const courseId = searchParams.get('courseId')?.trim() || ''
+    const iitmLevel = searchParams.get('iitmLevel')?.trim() || ''
+    const state = searchParams.get('state')?.trim() || ''
+    const iitmUserType = searchParams.get('iitmUserType')?.trim() || ''
+
+    const profileFilters: Prisma.UserWhereInput[] = []
+    if (iitmLevel) {
+      profileFilters.push({ iitmLevel: { equals: iitmLevel, mode: 'insensitive' } })
+    }
+    if (state) {
+      profileFilters.push({ state: { equals: state, mode: 'insensitive' } })
+    }
+    if (iitmUserType) {
+      profileFilters.push({ iitmUserType: { equals: iitmUserType, mode: 'insensitive' } })
+    }
+    const hasProfileFilters = profileFilters.length > 0
+
+    const courseFilter: Prisma.UserWhereInput | null =
+      courseId && courseId !== 'all'
+        ? {
+            OR: [
+              { enrollments: { some: { courseId } } },
+              { instructorAssignments: { some: { courseId } } },
+            ],
+          }
+        : null
 
     const userSelect = {
       id: true,
@@ -34,6 +59,7 @@ export async function GET(request: NextRequest) {
       email: true,
       role: true,
       gender: true,
+      state: true,
       avatar: true,
       securityNumber: true,
       notificationGroupSerial: true,
@@ -46,6 +72,8 @@ export async function GET(request: NextRequest) {
       isNotificationGroupPending: true,
       deletionRequestedAt: true,
       deletionRequestReason: true,
+      iitmLevel: true,
+      iitmUserType: true,
       createdAt: true,
       enrollments: {
         select: {
@@ -91,23 +119,23 @@ export async function GET(request: NextRequest) {
     // No search query: fetch all ADMIN, MANAGER, and INSTRUCTOR users,
     // plus the latest 500 STUDENT users, to avoid overloading.
     if (!search) {
-      if (courseId && courseId !== 'all') {
+      if (courseFilter || hasProfileFilters) {
         const users = await prisma.user.findMany({
           where: {
             AND: [
               notSoftDeleted,
-              {
-                OR: [
-                  { enrollments: { some: { courseId } } },
-                  { instructorAssignments: { some: { courseId } } },
-                ],
-              },
+              ...(courseFilter ? [courseFilter] : []),
+              ...profileFilters,
             ],
           },
           select: userSelect,
           orderBy: { createdAt: 'desc' },
+          ...(hasProfileFilters && !courseFilter ? { take: 500 } : {}),
         })
-        return NextResponse.json({ users, limited: false })
+        return NextResponse.json({
+          users,
+          limited: hasProfileFilters && !courseFilter && users.length === 500,
+        })
       }
 
       const staffUsers = await prisma.user.findMany({
@@ -189,13 +217,12 @@ export async function GET(request: NextRequest) {
       ]
     }
 
-    if (courseId && courseId !== 'all') {
-      whereClause.AND.push({
-        OR: [
-          { enrollments: { some: { courseId } } },
-          { instructorAssignments: { some: { courseId } } },
-        ],
-      })
+    if (courseFilter) {
+      whereClause.AND.push(courseFilter)
+    }
+
+    if (hasProfileFilters) {
+      whereClause.AND.push(...profileFilters)
     }
 
     const users = await prisma.user.findMany({

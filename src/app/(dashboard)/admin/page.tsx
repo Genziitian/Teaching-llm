@@ -7,6 +7,17 @@ import ManagerUserModal from '@/components/ManagerUserModal'
 import UserAvatar from '@/components/UserAvatar'
 import { useConfirmDialog } from '@/hooks/useConfirmDialog'
 
+const IITM_LEVELS = ['Qualifier', 'Foundation', 'Diploma', 'Degree'] as const
+const IITM_CATEGORIES = ['STANDALONE', 'DUAL DEGREE', 'WORKING PROFESSIONAL'] as const
+const INDIAN_STATES = [
+  'Andhra Pradesh', 'Arunachal Pradesh', 'Assam', 'Bihar', 'Chhattisgarh', 'Goa', 'Gujarat', 'Haryana',
+  'Himachal Pradesh', 'Jharkhand', 'Karnataka', 'Kerala', 'Madhya Pradesh', 'Maharashtra', 'Manipur',
+  'Meghalaya', 'Mizoram', 'Nagaland', 'Odisha', 'Punjab', 'Rajasthan', 'Sikkim', 'Tamil Nadu', 'Telangana',
+  'Tripura', 'Uttar Pradesh', 'Uttarakhand', 'West Bengal', 'Andaman and Nicobar Islands', 'Chandigarh',
+  'Dadra and Nagar Haveli and Daman and Diu', 'Delhi', 'Jammu and Kashmir', 'Ladakh', 'Lakshadweep', 'Puducherry',
+  'Other',
+]
+
 interface CourseInfo {
   id: string
   name: string
@@ -58,6 +69,9 @@ interface User {
   isSuperManager?: boolean
   deletionRequestedAt?: string | null
   deletionRequestReason?: string | null
+  state?: string | null
+  iitmLevel?: string | null
+  iitmUserType?: string | null
 }
 
 
@@ -70,6 +84,10 @@ export default function AdminPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('')
   const [selectedCourseId, setSelectedCourseId] = useState<string>('all')
+  const [showAdvanceFilters, setShowAdvanceFilters] = useState(false)
+  const [iitmLevelFilter, setIitmLevelFilter] = useState('')
+  const [stateFilter, setStateFilter] = useState('')
+  const [iitmCategoryFilter, setIitmCategoryFilter] = useState('')
 
 
   // Debounce search
@@ -171,7 +189,7 @@ export default function AdminPage() {
     }
   }
 
-  // Build the SWR key: include both search and courseId to fetch the correct data from the server
+  // Build the SWR key: include search, course, and profile filters so the server returns matching users
   const getUsersApiKey = () => {
     const params = new URLSearchParams()
     if (debouncedSearchQuery) {
@@ -179,6 +197,15 @@ export default function AdminPage() {
     }
     if (selectedCourseId !== 'all') {
       params.append('courseId', selectedCourseId)
+    }
+    if (iitmLevelFilter) {
+      params.append('iitmLevel', iitmLevelFilter)
+    }
+    if (stateFilter) {
+      params.append('state', stateFilter)
+    }
+    if (iitmCategoryFilter) {
+      params.append('iitmUserType', iitmCategoryFilter)
     }
     const query = params.toString()
     return query ? `/api/users?${query}` : '/api/users'
@@ -446,8 +473,8 @@ export default function AdminPage() {
     STUDENT: { bg: 'var(--success-light)', color: 'var(--success)' },
   }
 
-  // Filter users by role tab and course — server already handles course/search filtering,
-  // but we keep a safeguard check for courseId to support immediate UI filter transitions.
+  // Filter users by role tab, course, and profile fields — server already handles course/search/profile
+  // filtering, but we keep a safeguard check for immediate UI filter transitions.
   const visibleUsers = users
   const filtered = visibleUsers.filter(u => {
     if (filter === 'DELETION_REQUESTS') {
@@ -460,8 +487,19 @@ export default function AdminPage() {
       const isInstructor = (u.instructorAssignments || []).some(a => a.courseId === selectedCourseId)
       if (!isEnrolled && !isInstructor) return false
     }
+    if (iitmLevelFilter && (u.iitmLevel || '').toLowerCase() !== iitmLevelFilter.toLowerCase()) {
+      return false
+    }
+    if (stateFilter && (u.state || '').toLowerCase() !== stateFilter.toLowerCase()) {
+      return false
+    }
+    if (iitmCategoryFilter && (u.iitmUserType || '').toLowerCase() !== iitmCategoryFilter.toLowerCase()) {
+      return false
+    }
     return true
   })
+
+  const activeAdvanceFilterCount = [iitmLevelFilter, stateFilter, iitmCategoryFilter].filter(Boolean).length
 
   const counts = {
     all: visibleUsers.length,
@@ -490,8 +528,8 @@ export default function AdminPage() {
       {confirmDialog}
 
       <>
-      <div className="page-header">
-      <div style={{ display: 'flex', gap: '16px', marginBottom: '24px', flexWrap: 'wrap' }}>
+      <div className="page-header" style={{ flexDirection: 'column', alignItems: 'stretch', gap: showAdvanceFilters ? '12px' : 0 }}>
+      <div style={{ display: 'flex', gap: '16px', marginBottom: showAdvanceFilters ? 0 : '24px', flexWrap: 'wrap' }}>
         <div style={{
           flex: 1, minWidth: '300px', display: 'flex', alignItems: 'center', gap: '12px',
           padding: '10px 20px', borderRadius: '50px', background: 'var(--surface-2)',
@@ -552,6 +590,52 @@ export default function AdminPage() {
             ))}
           </select>
         </div>
+        {userRole === 'MANAGER' && (
+          <button
+            type="button"
+            onClick={() => setShowAdvanceFilters(v => !v)}
+            className="btn btn-ghost"
+            title="Filter by IITM level, state, or category"
+            style={{
+              borderRadius: '50px',
+              padding: '0 14px',
+              fontSize: '12px',
+              height: '42px',
+              gap: '6px',
+              flexShrink: 0,
+              border: showAdvanceFilters || activeAdvanceFilterCount > 0
+                ? '1.5px solid var(--accent)'
+                : undefined,
+              color: showAdvanceFilters || activeAdvanceFilterCount > 0
+                ? 'var(--accent)'
+                : undefined,
+            }}
+          >
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+              <line x1="4" y1="6" x2="20" y2="6"/>
+              <line x1="8" y1="12" x2="16" y2="12"/>
+              <line x1="11" y1="18" x2="13" y2="18"/>
+            </svg>
+            Advance Filters
+            {activeAdvanceFilterCount > 0 && (
+              <span style={{
+                background: 'var(--accent)',
+                color: '#fff',
+                fontSize: '10px',
+                fontWeight: '800',
+                minWidth: '16px',
+                height: '16px',
+                padding: '0 5px',
+                borderRadius: '8px',
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}>
+                {activeAdvanceFilterCount}
+              </span>
+            )}
+          </button>
+        )}
         {userRole === 'MANAGER' && (
           <button
             onClick={() => {
@@ -637,6 +721,67 @@ export default function AdminPage() {
           </Link>
         )}
       </div>
+
+      {userRole === 'MANAGER' && showAdvanceFilters && (
+        <div className="admin-advance-filters">
+          <div className="admin-advance-filter-field">
+            <label>IITM Level</label>
+            <div className="admin-advance-filter-control">
+              <select
+                value={iitmLevelFilter}
+                onChange={e => setIitmLevelFilter(e.target.value)}
+              >
+                <option value="">All Levels</option>
+                {IITM_LEVELS.map(level => (
+                  <option key={level} value={level}>{level}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+          <div className="admin-advance-filter-field">
+            <label>State</label>
+            <div className="admin-advance-filter-control">
+              <select
+                value={stateFilter}
+                onChange={e => setStateFilter(e.target.value)}
+              >
+                <option value="">All States</option>
+                {INDIAN_STATES.map(state => (
+                  <option key={state} value={state}>{state}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+          <div className="admin-advance-filter-field">
+            <label>IITM Category</label>
+            <div className="admin-advance-filter-control">
+              <select
+                value={iitmCategoryFilter}
+                onChange={e => setIitmCategoryFilter(e.target.value)}
+              >
+                <option value="">All Categories</option>
+                {IITM_CATEGORIES.map(category => (
+                  <option key={category} value={category}>{category}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+          {activeAdvanceFilterCount > 0 && (
+            <button
+              type="button"
+              className="btn btn-ghost"
+              onClick={() => {
+                setIitmLevelFilter('')
+                setStateFilter('')
+                setIitmCategoryFilter('')
+              }}
+              style={{ borderRadius: '50px', padding: '0 16px', fontSize: '12px', height: '42px', alignSelf: 'flex-end' }}
+            >
+              Clear
+            </button>
+          )}
+        </div>
+      )}
       </div>
 
       {/* Stats */}
@@ -685,7 +830,9 @@ export default function AdminPage() {
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
           </svg>
-          Showing 500 most recently enrolled users. <strong style={{ marginLeft: 4 }}>Search by name, email, security number, serial #, or mobile to find anyone.</strong>
+          {activeAdvanceFilterCount > 0
+            ? <>Showing up to 500 users matching these filters. <strong style={{ marginLeft: 4 }}>Add search or another filter to narrow further.</strong></>
+            : <>Showing 500 most recently enrolled users. <strong style={{ marginLeft: 4 }}>Search by name, email, security number, serial #, or mobile to find anyone.</strong></>}
         </div>
       )}
 
