@@ -18,8 +18,8 @@
 
 import { createContext, useCallback, useContext, useEffect, useState } from 'react'
 
-type ThemeChoice = 'light' | 'dark' | 'system'
-type ResolvedTheme = 'light' | 'dark'
+type ThemeChoice = 'light' | 'dark' | 'black' | 'system'
+type ResolvedTheme = 'light' | 'dark' | 'black'
 
 interface ThemeContextValue {
   theme: ThemeChoice
@@ -30,10 +30,11 @@ interface ThemeContextValue {
 const STORAGE_KEY = 'theme'
 
 /** Status-bar / browser-chrome colors per resolved theme. Keep in sync with the
- *  inline script in layout.tsx and the dark `--sidebar-bg` in globals.css. */
+ *  inline script in layout.tsx and the dark/black `--sidebar-bg` in globals.css. */
 const CHROME_COLOR: Record<ResolvedTheme, string> = {
   light: '#e8eaf0',
   dark: '#161a23',
+  black: '#000000',
 }
 
 const ThemeContext = createContext<ThemeContextValue | undefined>(undefined)
@@ -44,7 +45,7 @@ function getSystemTheme(): ResolvedTheme {
 }
 
 function normalize(v: string | null): ThemeChoice {
-  return v === 'light' || v === 'dark' || v === 'system' ? v : 'system'
+  return v === 'light' || v === 'dark' || v === 'black' || v === 'system' ? v : 'system'
 }
 
 function resolve(choice: ThemeChoice): ResolvedTheme {
@@ -56,7 +57,7 @@ function applyResolved(resolved: ResolvedTheme) {
   if (typeof document === 'undefined') return
   const root = document.documentElement
   root.setAttribute('data-theme', resolved)
-  root.style.colorScheme = resolved
+  root.style.colorScheme = (resolved === 'dark' || resolved === 'black') ? 'dark' : 'light'
 
   let meta = document.querySelector('meta[name="theme-color"]') as HTMLMetaElement | null
   if (!meta) {

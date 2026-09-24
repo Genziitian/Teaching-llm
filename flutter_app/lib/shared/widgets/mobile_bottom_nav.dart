@@ -65,9 +65,12 @@ class MobileBottomNav extends StatelessWidget {
   Widget build(BuildContext context) {
     final tokens = context.tokens;
     final isDark = context.isDark;
-    final navBg = isDark
-        ? const Color(0xF2101426)
-        : const Color(0xF2FFFFFF);
+    final isBlack = tokens.isBlack;
+    final navBg = isBlack
+        ? const Color(0xF2000000)
+        : (isDark
+            ? const Color(0xF2101426)
+            : const Color(0xF2FFFFFF));
     final borderColor = tokens.border;
 
     final academicsActive = _isActive(_center);
@@ -168,6 +171,7 @@ class MobileBottomNav extends StatelessWidget {
               child: _CenterFab(
                 active: academicsActive,
                 isDark: isDark,
+                isBlack: isBlack,
               ),
             ),
           ),
@@ -230,25 +234,49 @@ class _NavItem extends StatelessWidget {
 }
 
 class _CenterFab extends StatelessWidget {
-  const _CenterFab({required this.active, required this.isDark});
+  const _CenterFab({
+    required this.active,
+    required this.isDark,
+    this.isBlack = false,
+  });
   final bool active;
   final bool isDark;
+  final bool isBlack;
 
   @override
   Widget build(BuildContext context) {
-    final gradient = active
-        ? const LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [Color(0xFF8B5CF6), Color(0xFF4F46E5)],
-          )
-        : const LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [Color(0xFF7C3AED), Color(0xFF6366F1)],
-          );
+    final gradient = isBlack
+        ? (active
+            ? const LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [Color(0xFFFFFFFF), Color(0xFFD4D4D8)],
+              )
+            : const LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [Color(0xFF27272A), Color(0xFF18181B)],
+              ))
+        : (active
+            ? const LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [Color(0xFF8B5CF6), Color(0xFF4F46E5)],
+              )
+            : const LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [Color(0xFF7C3AED), Color(0xFF6366F1)],
+              ));
 
-    final borderColor = isDark ? const Color(0xFF101426) : Colors.white;
+    final borderColor = isBlack
+        ? const Color(0xFF000000)
+        : (isDark ? const Color(0xFF101426) : Colors.white);
+    final iconColor = isBlack
+        ? (active ? Colors.black : Colors.white)
+        : Colors.white;
+
+    final tokens = context.tokens;
 
     return BouncyPressable(
       onTap: () {
@@ -281,9 +309,9 @@ class _CenterFab extends StatelessWidget {
                 ],
               ),
               alignment: Alignment.center,
-              child: const Icon(
+              child: Icon(
                 Icons.school_outlined,
-                color: Colors.white,
+                color: iconColor,
                 size: 26,
               ),
             ),
@@ -294,7 +322,9 @@ class _CenterFab extends StatelessWidget {
             curve: Curves.easeOut,
             style: TextStyle(
               fontSize: 10.5,
-              color: active ? AppColors.brand : AppColors.muted,
+              color: active
+                  ? (isBlack ? tokens.primaryAccent : AppColors.brand)
+                  : tokens.textMuted,
               fontWeight: active ? FontWeight.w700 : FontWeight.w500,
               fontFamily: 'Manrope',
             ),

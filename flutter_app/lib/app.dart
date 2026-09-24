@@ -32,8 +32,30 @@ class TeachingLlmApp extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final router = ref.watch(routerProvider);
     final isSignedIn = ref.watch(authStateProvider).value != null;
-    final themeMode =
-        ref.watch(themeModeProvider).valueOrNull ?? ThemeMode.system;
+    final appThemeMode =
+        ref.watch(themeModeProvider).valueOrNull ?? AppThemeMode.system;
+
+    final ThemeData darkThemeData;
+    final ThemeMode themeMode;
+    switch (appThemeMode) {
+      case AppThemeMode.light:
+        darkThemeData = AppTheme.dark();
+        themeMode = ThemeMode.light;
+        break;
+      case AppThemeMode.dark:
+        darkThemeData = AppTheme.dark();
+        themeMode = ThemeMode.dark;
+        break;
+      case AppThemeMode.black:
+        darkThemeData = AppTheme.black();
+        themeMode = ThemeMode.dark;
+        break;
+      case AppThemeMode.system:
+        darkThemeData = AppTheme.dark();
+        themeMode = ThemeMode.system;
+        break;
+    }
+
     PushNotificationService.instance.attachRouter(router);
     AppNavHistoryObserver.instance.attachRouter(router);
     unawaited(
@@ -43,8 +65,8 @@ class TeachingLlmApp extends ConsumerWidget {
     return MaterialApp.router(
       title: 'Gen-Z IITian',
       debugShowCheckedModeBanner: false,
-      theme: AppTheme.light(),
-      darkTheme: AppTheme.dark(),
+      theme: appThemeMode == AppThemeMode.black ? AppTheme.black() : AppTheme.light(),
+      darkTheme: darkThemeData,
       themeMode: themeMode,
       routerConfig: router,
       scrollBehavior: const AppScrollBehavior(),

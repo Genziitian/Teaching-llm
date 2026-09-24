@@ -85,22 +85,40 @@ export async function ensureUserGroupSerial(db: any, userId: string): Promise<nu
 }
 
 /**
- * Backfill every user missing a serial (ordered by join time).
- * Does not change users who already have one.
+ * Backfill users missing a serial (ordered by join time).
+ * Pass limit to process in chunks for live UI progress.
  */
-export async function ensureAllUsersHaveGroupSerials(db: any) {
+export async function ensureAllUsersHaveGroupSerials(
+  db: any,
+  { limit }: { limit?: number } = {}
+) {
+  const batchSize = limit && limit > 0 ? Math.min(500, Math.floor(limit)) : undefined
+
+  const totalMissing = await db.user.count({
+    where: { notificationGroupSerial: null },
+  })
+
   const missing = await db.user.findMany({
     where: { notificationGroupSerial: null },
-    select: { id: true },
+    select: { id: true, email: true },
     orderBy: [{ createdAt: 'asc' }, { id: 'asc' }],
+    ...(batchSize ? { take: batchSize } : {}),
   })
 
   let assigned = 0
+  const lastAssigned: Array<{ email: string; serial: number }> = []
   for (const user of missing) {
-    await ensureUserGroupSerial(db, user.id)
+    const serial = await ensureUserGroupSerial(db, user.id)
     assigned++
+    if (lastAssigned.length < 8) {
+      lastAssigned.push({ email: normalizeEmail(user.email), serial })
+    } else {
+      lastAssigned.shift()
+      lastAssigned.push({ email: normalizeEmail(user.email), serial })
+    }
   }
 
+  const remaining = Math.max(0, totalMissing - assigned)
   const total = await db.user.count()
   const withSerial = await db.user.count({
     where: { notificationGroupSerial: { not: null } },
@@ -108,9 +126,15 @@ export async function ensureAllUsersHaveGroupSerials(db: any) {
 
   return {
     backfilled: assigned,
+    remaining,
+    done: remaining === 0,
     totalUsers: total,
     withSerial,
-    message: `Serials ready: ${withSerial}/${total} users have a unique serial (${assigned} newly assigned).`,
+    lastAssigned,
+    message:
+      remaining === 0
+        ? `Serials ready: ${withSerial}/${total} users have a unique serial (${assigned} in this batch).`
+        : `Serials progress: assigned ${assigned} this batch, ${remaining} still missing (${withSerial}/${total} have serials).`,
   }
 }
 
@@ -936,19 +960,25 @@ export async function removeAllNotificationPoolMembers(db: any, categoryId?: str
 }
 
 /**
- * Mail Assigner step 2: ensure unique serials exist, pack into pools by serial
- * (1–700 → group 1, 701–1400 → group 2, …), queue ADD jobs.
- * Does NOT renumber existing serials. Never touches course Google Groups.
+ * Mail Assigner step 2 (chunked): pack users into pools by permanent serial.
+ * Call repeatedly with increasing offset until done=true.
+ * Never touches course Google Groups.
  */
 export async function serialResetAndAssign(
   db: any,
   {
     categoryId,
+    offset = 0,
+    limit = 75,
   }: {
     categoryId?: string
+    offset?: number
+    limit?: number
   } = {}
 ) {
   const capacity = DEFAULT_MEMBERS_PER_GROUP
+  const batchSize = Math.max(1, Math.min(200, Math.floor(Number(limit) || 75)))
+  const start = Math.max(0, Math.floor(Number(offset) || 0))
 
   let targetCategory: any
   if (categoryId) {
@@ -960,9 +990,6 @@ export async function serialResetAndAssign(
   }
 
   if (!targetCategory) throw new Error('Pool Category not found')
-
-  // Backfill any missing unique serials first (never duplicate / never steal)
-  const serialEnsure = await ensureAllUsersHaveGroupSerials(db)
 
   let poolEmails = await db.notificationPoolEmail.findMany({
     where: { categoryId: targetCategory.id, isActive: true },
@@ -988,7 +1015,34 @@ export async function serialResetAndAssign(
   const categoryEmailAddresses: string[] = poolEmails.map((p: any) => p.groupEmail)
   const categoryEmailSet = new Set(categoryEmailAddresses)
 
-  const allUsers = await db.user.findMany({
+  const totalUsers = await db.user.count({
+    where: { notificationGroupSerial: { not: null } },
+  })
+
+  const maxAgg = await db.user.aggregate({
+    _max: { notificationGroupSerial: true },
+  })
+  const maxSerial = maxAgg._max.notificationGroupSerial || 0
+  const poolsNeeded = Math.ceil(Math.max(maxSerial, 1) / capacity) || 1
+  if (totalUsers > 0 && poolsNeeded > poolEmails.length) {
+    throw new Error(
+      `Need ${poolsNeeded} pool group emails for serials up to #${maxSerial} at ${capacity}/group, but only ${poolEmails.length} active. Add more group emails first.`
+    )
+  }
+
+  if (start === 0) {
+    await db.groupSyncJob.deleteMany({
+      where: {
+        groupEmail: { in: categoryEmailAddresses },
+        groupType: 'NOTIFICATION',
+        status: { in: ['PENDING', 'PROCESSING'] },
+        action: 'ADD',
+      },
+    })
+  }
+
+  const batchUsers = await db.user.findMany({
+    where: { notificationGroupSerial: { not: null } },
     select: {
       id: true,
       email: true,
@@ -996,39 +1050,16 @@ export async function serialResetAndAssign(
       notificationGroupSerial: true,
     },
     orderBy: [{ notificationGroupSerial: 'asc' }, { createdAt: 'asc' }],
-  })
-
-  const maxSerial = allUsers.reduce(
-    (max: number, u: any) => Math.max(max, u.notificationGroupSerial || 0),
-    0
-  )
-  const poolsNeeded = Math.ceil(maxSerial / capacity) || 1
-  if (poolsNeeded > poolEmails.length) {
-    throw new Error(
-      `Need ${poolsNeeded} pool group emails for serials up to #${maxSerial} at ${capacity}/group, but only ${poolEmails.length} active. Add more group emails first.`
-    )
-  }
-
-  await db.groupSyncJob.deleteMany({
-    where: {
-      groupEmail: { in: categoryEmailAddresses },
-      groupType: 'NOTIFICATION',
-      status: { in: ['PENDING', 'PROCESSING'] },
-      action: 'ADD',
-    },
+    skip: start,
+    take: batchSize,
   })
 
   let addJobsQueued = 0
   let alreadyHadAssignment = 0
   let unchangedCount = 0
-  const poolCounts = new Array(poolEmails.length).fill(0)
-  const serialPreview: Array<{
-    serial: number
-    email: string
-    groupEmail: string
-  }> = []
+  const recent: Array<{ serial: number; email: string; groupEmail: string; action: string }> = []
 
-  for (const user of allUsers) {
+  for (const user of batchUsers) {
     const serial = user.notificationGroupSerial as number
     const poolIndex = serialToPoolIndex(serial, capacity)
     const targetPoolEmail = poolEmails[poolIndex]
@@ -1039,8 +1070,8 @@ export async function serialResetAndAssign(
     const newGroupEmail = targetPoolEmail.groupEmail as string
     const normUserEmail = normalizeEmail(user.email)
     const currentEmails = parseNotificationGroupEmails(user.notificationGroupEmails)
-    const oldCategoryEmails = currentEmails.filter(e => categoryEmailSet.has(e))
-    const otherEmails = currentEmails.filter(e => !categoryEmailSet.has(e))
+    const oldCategoryEmails = currentEmails.filter((e: string) => categoryEmailSet.has(e))
+    const otherEmails = currentEmails.filter((e: string) => !categoryEmailSet.has(e))
     const alreadyInTarget = oldCategoryEmails.includes(newGroupEmail)
 
     if (oldCategoryEmails.length > 0) alreadyHadAssignment++
@@ -1061,14 +1092,15 @@ export async function serialResetAndAssign(
       where: { id: user.id },
       data: {
         notificationGroupEmails: updatedEmails.join(','),
-        // serial already permanent + unique — do not renumber
         isNotificationGroupPending: false,
         pendingPoolCategoryIds: null,
       },
     })
 
+    let actionLabel = 'unchanged'
     if (alreadyInTarget) {
       unchangedCount++
+      actionLabel = 'already in group'
     } else {
       await queueNotificationGroupSyncJob(db, {
         userEmail: normUserEmail,
@@ -1077,54 +1109,69 @@ export async function serialResetAndAssign(
         force: true,
       })
       addJobsQueued++
+      actionLabel = 'queued ADD'
     }
 
-    poolCounts[poolIndex]++
+    recent.push({
+      serial,
+      email: normUserEmail,
+      groupEmail: newGroupEmail,
+      action: actionLabel,
+    })
+  }
 
-    if (serialPreview.length < 20) {
-      serialPreview.push({
-        serial,
-        email: normUserEmail,
-        groupEmail: newGroupEmail,
+  const nextOffset = start + batchUsers.length
+  const done = nextOffset >= totalUsers
+
+  if (done) {
+    for (const poolEmail of poolEmails) {
+      const liveCount = await db.user.count({
+        where: { notificationGroupEmails: { contains: poolEmail.groupEmail } },
+      })
+      await db.notificationPoolEmail.update({
+        where: { id: poolEmail.id },
+        data: { currentCount: liveCount, maxCapacity: capacity },
       })
     }
   }
 
-  for (let i = 0; i < poolEmails.length; i++) {
-    await db.notificationPoolEmail.update({
-      where: { id: poolEmails[i].id },
-      data: { currentCount: poolCounts[i], maxCapacity: capacity },
-    })
-  }
-
-  const poolsUsed = poolCounts.filter(c => c > 0).length
-  const distribution = poolEmails.map((p: any, i: number) => {
-    const range = poolIndexToSerialRange(i, maxSerial, capacity)
-    return {
-      groupEmail: p.groupEmail,
-      groupNumber: i + 1,
-      serialFrom: poolCounts[i] > 0 ? range.serialFrom : null,
-      serialTo: poolCounts[i] > 0 ? range.serialTo : null,
-      memberCount: poolCounts[i],
-      maxCapacity: capacity,
-    }
-  })
+  const distribution = done
+    ? await Promise.all(
+        poolEmails.map(async (p: any, i: number) => {
+          const liveCount = await db.user.count({
+            where: { notificationGroupEmails: { contains: p.groupEmail } },
+          })
+          const range = poolIndexToSerialRange(i, maxSerial, capacity)
+          return {
+            groupEmail: p.groupEmail,
+            groupNumber: i + 1,
+            serialFrom: liveCount > 0 ? range.serialFrom : null,
+            serialTo: liveCount > 0 ? range.serialTo : null,
+            memberCount: liveCount,
+            maxCapacity: capacity,
+          }
+        })
+      )
+    : undefined
 
   return {
-    totalUsers: allUsers.length,
-    assignedCount: allUsers.length,
+    totalUsers,
+    processed: batchUsers.length,
+    offset: start,
+    nextOffset,
+    done,
+    addJobsQueued,
     alreadyHadAssignment,
     unchangedCount,
-    addJobsQueued,
     membersPerGroup: capacity,
     maxSerial,
-    serialsBackfilled: serialEnsure.backfilled,
-    poolsUsed,
-    poolsAvailable: poolEmails.length,
     categoryName: targetCategory.name,
     categoryId: targetCategory.id,
+    recent,
     distribution,
-    serialPreview,
-    message: `Packed ${allUsers.length} users by unique serial (max #${maxSerial}). ${serialEnsure.backfilled} new serials issued. Queued ${addJobsQueued} ADD jobs. Course mails untouched.`,
+    percent: totalUsers > 0 ? Math.min(100, Math.round((nextOffset / totalUsers) * 100)) : 100,
+    message: done
+      ? `Done packing ${totalUsers} users by serial (max #${maxSerial}). Last batch queued ${addJobsQueued} ADD jobs.`
+      : `Packing ${nextOffset}/${totalUsers} (${Math.min(100, Math.round((nextOffset / totalUsers) * 100))}%). Batch queued ${addJobsQueued} ADD.`,
   }
 }

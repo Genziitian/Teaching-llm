@@ -13,6 +13,7 @@ import { saveDashboardSnapshot, getDashboardSnapshot } from '@/lib/offline-db'
 import OfflineBanner from '@/components/ui/OfflineBanner'
 import OfflinePageNotice from '@/components/OfflinePageNotice'
 import { useLoadingFact } from '@/hooks/useLoadingFact'
+import { useLanguage } from '@/contexts/LanguageContext'
 import LoadingFactCard from '@/components/ui/LoadingFactCard'
 
 const fetcher = (url: string) => fetch(url).then(res => res.json())
@@ -40,6 +41,7 @@ function parseAnnouncementContent(content: string): { body: string; metadata: An
 }
 
 export default function DashboardPage() {
+  const { t } = useLanguage()
   const router = useRouter()
   const { data: dashboardData, error, isLoading: loading, mutate } = useSWR('/api/dashboard', fetcher, {
     revalidateOnFocus: false
@@ -441,24 +443,24 @@ export default function DashboardPage() {
 
 
   const statCards = [
-    { label: 'Total Courses', value: stats?.totalCourses ?? 0, color: 'var(--accent)', bg: 'var(--primary-light)', icon: (
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#6366f1" strokeWidth="2"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
+    { label: t('dashboard.stats.totalCourses'), value: stats?.totalCourses ?? 0, color: 'var(--accent)', bg: 'var(--primary-light)', icon: (
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
     )},
-    { label: 'Lectures', value: stats?.totalLectures ?? 0, color: 'var(--accent)', bg: 'var(--primary-light)', icon: (
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#8b5cf6" strokeWidth="2"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg>
+    { label: t('dashboard.stats.lectures'), value: stats?.totalLectures ?? 0, color: 'var(--accent)', bg: 'var(--primary-light)', icon: (
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg>
     )},
     ...(!isStudentView ? [{
-      label: 'Students Enrolled', value: stats?.totalStudents ?? 0, color: 'var(--success)', bg: 'var(--success-light)', icon: (
+      label: t('dashboard.stats.studentsEnrolled'), value: stats?.totalStudents ?? 0, color: 'var(--success)', bg: 'var(--success-light)', icon: (
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
       ),
     }] : [
-      { label: 'Upcoming Sessions', value: upNextCount, color: 'var(--warning)', bg: 'var(--warning-light)', icon: (
+      { label: t('dashboard.stats.upcomingSessions'), value: upNextCount, color: 'var(--warning)', bg: 'var(--warning-light)', icon: (
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" strokeWidth="2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
       )},
     ]),
     { 
-      label: examCountdown?.title || 'Exam Countdown', 
-      value: `${examCountdown?.daysLeft ?? 0} Days`, 
+      label: examCountdown?.title || t('dashboard.stats.examCountdown'), 
+      value: `${examCountdown?.daysLeft ?? 0}  ${t('dashboard.stats.days')}`, 
       color: (examCountdown?.daysLeft ?? 0) <= 3 && (examCountdown?.daysLeft ?? 0) > 0 ? 'var(--danger)' : 'var(--warning)', 
       bg: getTimerColor(examCountdown?.daysLeft ?? 0),
       isTimer: true,
@@ -470,7 +472,7 @@ export default function DashboardPage() {
     },
     ...(!isStudentView ? [
       { 
-        label: 'Active Sessions', 
+        label: t('dashboard.stats.activeSessions'), 
         value: liveNowCount, 
         color: 'var(--danger)',
         bg: 'var(--danger-light)',
@@ -481,14 +483,14 @@ export default function DashboardPage() {
         )
       },
       { 
-        label: 'Support System', 
-        value: dashboardData?.supportSummary?.isSupportActive ? 'Online' : 'Offline', 
+        label: t('dashboard.stats.supportSystem'), 
+        value: dashboardData?.supportSummary?.isSupportActive ? t('dashboard.stats.online') : t('dashboard.stats.offline'), 
         color: 'var(--primary)', 
-        bg: '#ebebff', 
+        bg: 'var(--primary-light)', 
         isSupport: true,
         summary: dashboardData?.supportSummary,
         icon: (
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#3636e8" strokeWidth="2">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
           </svg>
         )
@@ -600,7 +602,7 @@ export default function DashboardPage() {
         )}
 
         {isMobile && (
-          /* Mobile-only Upcoming Session skeleton */
+          /* Mobile-only {t('dashboard.upNext.upcomingSession')} skeleton */
           <div style={{ marginBottom: '24px' }}>
             <div className="skeleton" style={{ height: '20px', width: '150px', marginBottom: '14px', borderRadius: '4px' }} />
             <div style={{ display: 'flex', alignItems: 'center', gap: '14px', padding: '18px', borderRadius: '20px', background: 'var(--surface)' }}>
@@ -615,7 +617,7 @@ export default function DashboardPage() {
           </div>
         )}
 
-        {/* Row 2: Recent Lecture Viewed */}
+        {/* Row 2: {t('dashboard.recent.title')} Viewed */}
         <div className={isMobile ? '' : 'card'} style={isMobile ? { marginBottom: '24px' } : { padding: '22px 20px', borderRadius: '22px', marginBottom: '20px' }}>
           <div className="skeleton" style={{ height: '20px', width: '150px', marginBottom: isMobile ? '14px' : '18px', borderRadius: '4px' }} />
           <div style={{
@@ -640,7 +642,7 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Row 4: Announcements Skeleton */}
+        {/* Row 4: {t('dashboard.announcements.title')} Skeleton */}
         <div className="card" style={{ padding: '20px 24px', borderRadius: '16px', background: 'var(--surface)', border: '1px solid var(--border)', boxShadow: 'none' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: '16px', borderBottom: '1px solid var(--border)', marginBottom: '4px' }}>
             <div className="skeleton" style={{ height: '18px', width: '130px', borderRadius: '4px' }} />
@@ -989,7 +991,7 @@ export default function DashboardPage() {
                       fontWeight: '800'
                     }}
                   >
-                    Join as Instructor
+                    {t('dashboard.live.joinInstructor')}
                   </a>
                 </div>
               </div>
@@ -1001,8 +1003,8 @@ export default function DashboardPage() {
                   </svg>
                 </div>
                 <div style={{ textAlign: 'center' }}>
-                  <div style={{ fontSize: '16px', color: 'var(--text-primary)', fontWeight: '700' }}>No Active Sessions</div>
-                  <div style={{ fontSize: '13px', color: 'var(--text-muted)', marginTop: '4px' }}>All live courses are currently offline</div>
+                  <div style={{ fontSize: '16px', color: 'var(--text-primary)', fontWeight: '700' }}>{t('dashboard.live.noActiveSessions')}</div>
+                  <div style={{ fontSize: '13px', color: 'var(--text-muted)', marginTop: '4px' }}>{t('dashboard.live.allOffline')}</div>
                 </div>
               </div>
             )}
@@ -1044,7 +1046,7 @@ export default function DashboardPage() {
                 textTransform: 'uppercase',
                 letterSpacing: '0.05em'
               }}>
-                {dashboardData?.supportSummary?.isSupportActive ? 'Online' : 'Offline'}
+                {dashboardData?.supportSummary?.isSupportActive ? t('dashboard.stats.online') : t('dashboard.stats.offline')}
               </div>
             </div>
 
@@ -1056,7 +1058,7 @@ export default function DashboardPage() {
                 {dashboardData?.supportSummary?.openTickets ?? 0}
               </div>
               <div style={{ fontSize: '13px', color: 'var(--text-secondary)', fontWeight: '600' }}>
-                Open Support Tickets
+                {t('dashboard.support.openTickets')}
               </div>
             </div>
 
@@ -1065,16 +1067,16 @@ export default function DashboardPage() {
               alignItems: 'center',
               justifyContent: 'center',
               padding: '12px',
-              background: 'var(--primary)',
-              color: '#fff',
+              background: 'var(--button-background, var(--primary))',
+              color: 'var(--button-text, #fff)',
               fontSize: '13px',
               fontWeight: '800',
               borderRadius: '12px',
-              boxShadow: '0 8px 20px rgba(54,54,232,0.3)',
+              boxShadow: 'var(--shadow-sm)',
               textDecoration: 'none',
               transition: 'transform 0.2s'
             }}>
-              Go to Support
+              {t('dashboard.support.goToSupport')}
             </Link>
           </div>
         </div>
@@ -1085,14 +1087,14 @@ export default function DashboardPage() {
         <div className="modal-overlay" style={{ zIndex: 1000 }}>
           <div className="modal" style={{ maxWidth: '400px' }}>
             <div className="modal-header">
-              <h3 style={{ fontWeight: 800 }}>Edit Exam Timer</h3>
+              <h3 style={{ fontWeight: 800 }}>{t('dashboard.timer.editTitle')}</h3>
               <button onClick={() => setIsEditingTimer(false)}>
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
               </button>
             </div>
             <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               <div className="form-group">
-                <label className="form-label">Headline / Title</label>
+                <label className="form-label">{t('dashboard.timer.headline')}</label>
                 <input 
                   className="form-input"
                   value={timerTitle}
@@ -1101,7 +1103,7 @@ export default function DashboardPage() {
                 />
               </div>
               <div className="form-group">
-                <label className="form-label">Days Remaining</label>
+                <label className="form-label">{t('dashboard.timer.daysRemaining')}</label>
                 <input 
                   className="form-input"
                   type="number"
@@ -1111,8 +1113,8 @@ export default function DashboardPage() {
               </div>
             </div>
             <div className="modal-footer">
-              <button className="btn btn-ghost" onClick={() => setIsEditingTimer(false)}>Cancel</button>
-              <button className="btn btn-primary" onClick={handleUpdateTimer}>Update Timer</button>
+              <button className="btn btn-ghost" onClick={() => setIsEditingTimer(false)}>{t('dashboard.timer.cancel')}</button>
+              <button className="btn btn-primary" onClick={handleUpdateTimer}>{t('dashboard.timer.update')}</button>
             </div>
           </div>
         </div>
@@ -1146,8 +1148,8 @@ export default function DashboardPage() {
                 <div>
                   <div style={{ fontSize: '14px', fontWeight: '800', color: 'var(--text-primary)' }}>
                     {deletionRequestData.request?.status === 'APPROVED'
-                      ? 'Manager Accepted Deletion Request'
-                      : 'Account Deletion Requested'}
+                      ? t('dashboard.deletion.managerAccepted')
+                      : t('dashboard.deletion.requested')}
                   </div>
                   <div style={{ fontSize: '12.5px', color: 'var(--text-secondary)' }}>
                     {deletionRequestData.request?.status === 'APPROVED'
@@ -1295,7 +1297,7 @@ export default function DashboardPage() {
                             <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
                           </svg>
                         </div>
-                        Unlock to Join
+                        {t('dashboard.live.unlockToJoin')}
                       </button>
                     ) : (
                       <a
@@ -1327,7 +1329,7 @@ export default function DashboardPage() {
                             <polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>
                           </svg>
                         </div>
-                        Join Live
+                        {t('dashboard.live.joinLive')}
                       </a>
                     )}
                   </div>
@@ -1358,7 +1360,7 @@ export default function DashboardPage() {
                       <polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>
                     </svg>
                   </div>
-                  <div style={{ fontSize: '13px', color: 'var(--text-muted)', fontWeight: '500', textAlign: 'center' }}>No active courses right now</div>
+                  <div style={{ fontSize: '13px', color: 'var(--text-muted)', fontWeight: '500', textAlign: 'center' }}>{t('dashboard.courses.noActiveCourses')}</div>
                   <Link href="/live" style={{ fontSize: '12px', color: 'var(--accent)', fontWeight: '600', textDecoration: 'none' }}>View schedule →</Link>
                 </div>
               )}
@@ -1367,14 +1369,14 @@ export default function DashboardPage() {
             {/* Up Next panel */}
             <div className="card" style={{ padding: '20px', borderRadius: '20px', display: 'flex', flexDirection: 'column' }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
-                <h3 style={{ fontSize: '15px', fontWeight: '700', color: 'var(--text-primary)' }}>Up Next</h3>
+                <h3 style={{ fontSize: '15px', fontWeight: '700', color: 'var(--text-primary)' }}>{t('dashboard.upNext.title')}</h3>
                 <Link href="/live" style={{ fontSize: '12px', color: 'var(--accent)', fontWeight: '600', textDecoration: 'none' }}>
-                  View All →
+                  {t('dashboard.announcements.viewAll')} →
                 </Link>
               </div>
               {upNextSessions.length === 0 ? (
                 <div style={{ padding: '24px 0', textAlign: 'center', color: 'var(--text-muted)', fontSize: '13px' }}>
-                  No upcoming sessions
+                  {t('dashboard.upNext.noUpcoming')}
                 </div>
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
@@ -1444,17 +1446,17 @@ export default function DashboardPage() {
 
           {/* Categories: temporarily hidden — will be re-enabled later. */}
 
-          {/* ── Mobile-only: Upcoming Session (compact) ── */}
+          {/* ── Mobile-only: {t('dashboard.upNext.upcomingSession')} (compact) ── */}
           {isMobile && (
             <div style={{ marginBottom: '24px' }}>
               <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: '14px', padding: '0 4px', gap: '12px' }}>
                 <div style={{ minWidth: 0 }}>
                   <h3 style={{ fontSize: '18px', fontWeight: 900, color: 'var(--text-primary)', letterSpacing: '-0.02em', margin: 0 }}>
-                    Upcoming Session
+                    {t('dashboard.upNext.upcomingSession')}
                   </h3>
                 </div>
                 <Link href="/live" style={{ fontSize: '12px', color: 'var(--accent)', fontWeight: 800, textDecoration: 'none', whiteSpace: 'nowrap', flexShrink: 0 }}>
-                  View All →
+                  {t('dashboard.announcements.viewAll')} →
                 </Link>
               </div>
               {hasLive && frontSession ? (
@@ -1492,7 +1494,7 @@ export default function DashboardPage() {
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', fontSize: '10px', fontWeight: 800, color: 'var(--danger)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '3px' }}>
                       <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--danger)', animation: 'redLivePulse 1.4s infinite' }} />
-                      LIVE NOW
+                      {t('dashboard.live.liveNow')}
                     </div>
                     <div style={{ fontSize: '15.5px', fontWeight: 800, color: 'var(--text-primary)', lineHeight: 1.25, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                       {frontSession.title}
@@ -1584,24 +1586,24 @@ export default function DashboardPage() {
                   <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#cbd5e1" strokeWidth="1.8" style={{ marginBottom: '8px' }}>
                     <polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>
                   </svg>
-                  <div style={{ fontWeight: 700, color: 'var(--text-secondary)' }}>No upcoming sessions</div>
-                  <div style={{ fontSize: '11px', marginTop: '2px' }}>Check back later for live classes</div>
+                  <div style={{ fontWeight: 700, color: 'var(--text-secondary)' }}>{t('dashboard.upNext.noUpcoming')}</div>
+                  <div style={{ fontSize: '11px', marginTop: '2px' }}>{t('dashboard.upNext.checkBack')}</div>
                 </div>
               )}
             </div>
           )}
 
-          {/* ── Row 2: Recent Lecture Viewed ── */}
+          {/* ── Row 2: {t('dashboard.recent.title')} Viewed ── */}
           {recentViewedLecture && (
             <div className={isMobile ? '' : 'card'} style={isMobile ? { marginBottom: '24px' } : { padding: '22px 20px', borderRadius: '22px', marginBottom: '20px' }}>
               <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: isMobile ? '14px' : '18px', padding: isMobile ? '0 4px' : '0', gap: '12px' }}>
                 <div style={{ minWidth: 0 }}>
                   <h3 style={{ fontSize: isMobile ? '18px' : '16px', fontWeight: isMobile ? 900 : 700, color: 'var(--text-primary)', letterSpacing: isMobile ? '-0.02em' : 'normal', margin: 0 }}>
-                    Recent Lecture
+                    {t('dashboard.recent.title')}
                   </h3>
                 </div>
                 <Link href="/materials/recordings" style={{ fontSize: '12px', color: 'var(--accent)', fontWeight: 800, textDecoration: 'none', whiteSpace: 'nowrap', flexShrink: 0 }}>
-                  View All →
+                  {t('dashboard.announcements.viewAll')} →
                 </Link>
               </div>
               <div style={{ display: 'flex' }}>
@@ -1676,7 +1678,7 @@ export default function DashboardPage() {
                           letterSpacing: '0.01em',
                         }}
                       >
-                        Continue Watching
+                        {t('dashboard.recent.continueWatching')}
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ marginLeft: '4px' }}><polyline points="9 18 15 12 9 6"/></svg>
                       </Link>
                     </div>
@@ -1812,7 +1814,7 @@ export default function DashboardPage() {
         </>
       )}
 
-      {/* ── Row 3: Announcements ── */}
+      {/* ── Row 3: {t('dashboard.announcements.title')} ── */}
       {announcements.length > 0 && (
         <div
           className="card announcements-web-container"
@@ -1839,7 +1841,7 @@ export default function DashboardPage() {
             }}
           >
             <h3 style={{ fontSize: '16px', fontWeight: '700', color: 'var(--text-primary)', margin: 0 }}>
-              Announcements
+              {t('dashboard.announcements.title')}
             </h3>
             <Link
               href="/announcements"
@@ -1854,7 +1856,7 @@ export default function DashboardPage() {
                 transition: 'opacity 0.15s ease',
               }}
             >
-              View All →
+              {t('dashboard.announcements.viewAll')} →
             </Link>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column' }}>
@@ -2053,8 +2055,8 @@ export default function DashboardPage() {
                           minWidth: '120px',
                           maxWidth: '150px',
                           borderRadius: '8px',
-                          background: 'var(--primary)',
-                          color: '#ffffff',
+                          background: 'var(--button-background, var(--primary))',
+                          color: 'var(--button-text, #ffffff)',
                           fontSize: '12px',
                           fontWeight: '600',
                           textDecoration: 'none',

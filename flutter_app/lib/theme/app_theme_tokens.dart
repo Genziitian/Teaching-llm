@@ -21,6 +21,7 @@ class AppThemeTokens extends ThemeExtension<AppThemeTokens> {
     required this.warning,
     required this.info,
     required this.isDark,
+    this.isBlack = false,
   });
 
   final Color bg;
@@ -39,6 +40,7 @@ class AppThemeTokens extends ThemeExtension<AppThemeTokens> {
   final Color warning;
   final Color info;
   final bool isDark;
+  final bool isBlack;
 
   static const light = AppThemeTokens(
     bg: Color(0xFFF8F9FC),
@@ -57,6 +59,7 @@ class AppThemeTokens extends ThemeExtension<AppThemeTokens> {
     warning: Color(0xFFF59E0B),
     info: Color(0xFF3B82F6),
     isDark: false,
+    isBlack: false,
   );
 
   static const dark = AppThemeTokens(
@@ -76,6 +79,27 @@ class AppThemeTokens extends ThemeExtension<AppThemeTokens> {
     warning: Color(0xFFFBBF24),
     info: Color(0xFF60A5FA),
     isDark: true,
+    isBlack: false,
+  );
+
+  static const black = AppThemeTokens(
+    bg: Color(0xFF000000),
+    surface: Color(0xFF0A0A0A),
+    surfaceSecondary: Color(0xFF141414),
+    cardBg: Color(0xFF0D0D0D),
+    textPrimary: Color(0xFFFFFFFF),
+    textSecondary: Color(0xFFA1A1AA),
+    textMuted: Color(0xFF71717A),
+    border: Color(0xFF27272A),
+    borderLight: Color(0xFF18181B),
+    divider: Color(0xFF27272A),
+    primaryAccent: Color(0xFFFFFFFF),
+    danger: Color(0xFFEF4444),
+    success: Color(0xFF10B981),
+    warning: Color(0xFFF59E0B),
+    info: Color(0xFF3B82F6),
+    isDark: true,
+    isBlack: true,
   );
 
   @override
@@ -96,6 +120,7 @@ class AppThemeTokens extends ThemeExtension<AppThemeTokens> {
     Color? warning,
     Color? info,
     bool? isDark,
+    bool? isBlack,
   }) {
     return AppThemeTokens(
       bg: bg ?? this.bg,
@@ -114,6 +139,7 @@ class AppThemeTokens extends ThemeExtension<AppThemeTokens> {
       warning: warning ?? this.warning,
       info: info ?? this.info,
       isDark: isDark ?? this.isDark,
+      isBlack: isBlack ?? this.isBlack,
     );
   }
 
@@ -139,6 +165,7 @@ class AppThemeTokens extends ThemeExtension<AppThemeTokens> {
       warning: Color.lerp(warning, other.warning, t)!,
       info: Color.lerp(info, other.info, t)!,
       isDark: t < 0.5 ? isDark : other.isDark,
+      isBlack: t < 0.5 ? isBlack : other.isBlack,
     );
   }
 }
@@ -152,4 +179,6 @@ extension AppThemeContextExtension on BuildContext {
           : AppThemeTokens.light);
 
   bool get isDark => Theme.of(this).brightness == Brightness.dark;
+
+  bool get isBlack => tokens.isBlack;
 }

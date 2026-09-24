@@ -37,10 +37,12 @@ export default function CapacitorBridge() {
       // = dark text (for light bg).
       const applyStatusBarStyles = async () => {
         try {
-          const dark = document.documentElement.getAttribute('data-theme') === 'dark'
-          await StatusBar.setStyle({ style: dark ? Style.Dark : Style.Light })
-          await StatusBar.setBackgroundColor({ color: dark ? '#161a23' : '#e8eaf0' })
-          try { await Keyboard.setStyle({ style: dark ? KeyboardStyle.Dark : KeyboardStyle.Light }) } catch {}
+          const currentTheme = document.documentElement.getAttribute('data-theme')
+          const isDarkOrBlack = currentTheme === 'dark' || currentTheme === 'black'
+          const barColor = currentTheme === 'black' ? '#000000' : (currentTheme === 'dark' ? '#161a23' : '#e8eaf0')
+          await StatusBar.setStyle({ style: isDarkOrBlack ? Style.Dark : Style.Light })
+          await StatusBar.setBackgroundColor({ color: barColor })
+          try { await Keyboard.setStyle({ style: isDarkOrBlack ? KeyboardStyle.Dark : KeyboardStyle.Light }) } catch {}
         } catch (e) { console.warn('StatusBar style application failed', e) }
       }
 

@@ -615,10 +615,11 @@ export default function Sidebar({ userRole, userName, userEmail }: SidebarProps)
                   gap: isCurrentlyExpanded ? '12px' : '0px',
                   padding,
                   borderRadius,
-                  color: isActive ? '#ffffff' : 'var(--text-secondary)',
-                  background: isActive ? 'var(--primary)' : 'transparent',
+                  color: isActive ? 'var(--sidebar-active-text, #ffffff)' : 'var(--text-secondary)',
+                  background: isActive ? 'var(--sidebar-active, var(--primary))' : 'transparent',
+                  border: isActive ? '1px solid var(--sidebar-active-border, transparent)' : '1px solid transparent',
                   boxShadow: isActive
-                    ? '0 4px 12px rgba(54,54,232,0.35)'
+                    ? 'var(--shadow-sm)'
                     : 'none',
                   textDecoration: 'none',
                   fontSize,
@@ -655,7 +656,7 @@ export default function Sidebar({ userRole, userName, userEmail }: SidebarProps)
                     <span 
                       className="sidebar-link-icon"
                       style={{
-                        color: isStore ? '#ffffff' : (isActive ? '#ffffff' : 'var(--text-secondary)'),
+                        color: isStore ? '#ffffff' : (isActive ? 'var(--sidebar-active-text, #ffffff)' : 'var(--text-secondary)'),
                         flexShrink: 0,
                         display: 'flex',
                         position: 'relative',

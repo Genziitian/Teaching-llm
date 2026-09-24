@@ -179,7 +179,9 @@ class _SocialCardDialogState extends ConsumerState<_SocialCardDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final tokens = context.tokens;
     final isDark = context.isDark;
+    final isBlack = tokens.isBlack;
     final currentUser = ref.watch(authStateProvider).value;
     final currentUserId = currentUser?.id;
 
@@ -215,10 +217,14 @@ class _SocialCardDialogState extends ConsumerState<_SocialCardDialog> {
       child: Container(
         constraints: const BoxConstraints(maxWidth: 480, maxHeight: 680),
         decoration: BoxDecoration(
-          color: isDark ? const Color(0xFF131127) : const Color(0xFF1E1B4B),
+          color: isBlack
+              ? const Color(0xFF0D0D0D)
+              : (isDark ? const Color(0xFF131127) : const Color(0xFF1E1B4B)),
           borderRadius: BorderRadius.circular(24),
           border: Border.all(
-            color: const Color(0xFF6366F1).withOpacity(0.35),
+            color: isBlack
+                ? const Color(0xFF27272A)
+                : const Color(0xFF6366F1).withOpacity(0.35),
             width: 1.5,
           ),
           boxShadow: const [
@@ -375,7 +381,9 @@ class _SocialCardDialogState extends ConsumerState<_SocialCardDialog> {
                                     gender: userGender,
                                     size: 90,
                                     border: Border.all(
-                                      color: const Color(0xFF131127),
+                                      color: isBlack
+                                          ? const Color(0xFF141414)
+                                          : const Color(0xFF131127),
                                       width: 3,
                                     ),
                                   ),

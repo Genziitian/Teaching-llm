@@ -89,4 +89,42 @@ class AppTheme {
       splashColor: const Color(0x1A4F46E5),
     );
   }
+
+  static ThemeData black() {
+    final base = ThemeData.dark(useMaterial3: true);
+    const tokens = AppThemeTokens.black;
+
+    return base.copyWith(
+      scaffoldBackgroundColor: tokens.bg,
+      colorScheme: ColorScheme.dark(
+        primary: tokens.primaryAccent,
+        secondary: tokens.primaryAccent,
+        surface: tokens.surface,
+        onPrimary: Colors.black,
+        onSurface: tokens.textPrimary,
+        error: tokens.danger,
+      ),
+      cardColor: tokens.cardBg,
+      dividerColor: tokens.border,
+      textTheme: AppTypography.textTheme(
+        base.textTheme,
+        primaryColor: tokens.textPrimary,
+        secondaryColor: tokens.textSecondary,
+      ),
+      appBarTheme: AppBarTheme(
+        backgroundColor: tokens.bg,
+        foregroundColor: tokens.textPrimary,
+        elevation: 0,
+        scrolledUnderElevation: 0,
+        centerTitle: false,
+      ),
+      extensions: const [
+        AppThemeTokens.black,
+      ],
+      pageTransitionsTheme: _pageTransitionsTheme,
+      splashFactory: InkRipple.splashFactory,
+      highlightColor: const Color(0x14FFFFFF),
+      splashColor: const Color(0x1AFFFFFF),
+    );
+  }
 }

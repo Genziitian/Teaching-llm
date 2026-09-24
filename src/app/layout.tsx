@@ -20,11 +20,11 @@ const THEME_INIT_SCRIPT = `
   try {
     var c = localStorage.getItem('theme');
     var sys = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-    var r = (c === 'dark' || c === 'light') ? c : sys;
+    var r = (c === 'dark' || c === 'light' || c === 'black') ? c : sys;
     var d = document.documentElement;
     d.setAttribute('data-theme', r);
-    d.style.colorScheme = r;
-    var col = r === 'dark' ? '#161a23' : '#e8eaf0';
+    d.style.colorScheme = (r === 'dark' || r === 'black') ? 'dark' : 'light';
+    var col = r === 'black' ? '#000000' : (r === 'dark' ? '#161a23' : '#e8eaf0');
     var m = document.querySelector('meta[name="theme-color"]');
     if (!m) { m = document.createElement('meta'); m.setAttribute('name','theme-color'); document.head.appendChild(m); }
     m.setAttribute('content', col);
@@ -126,6 +126,7 @@ import SWRProvider from '@/components/SWRProvider'
 import ServiceWorkerRegister from '@/components/ServiceWorkerRegister'
 import GoogleAnalytics from '@/components/GoogleAnalytics'
 import MicrosoftClarity from '@/components/MicrosoftClarity'
+import { LanguageProvider } from '@/contexts/LanguageContext'
 
 export default function RootLayout({
   children,
@@ -147,13 +148,15 @@ export default function RootLayout({
         <PostHogProvider>
           <SWRProvider>
             <ThemeProvider>
-              <MobileBlocker />
-              <CapacitorBridge />
-              <AppUpdater />
-              <SplashOverlay />
-              <CapacitorPlayStoreBanner />
-              <ServiceWorkerRegister />
-              <CsrfProvider>{children}</CsrfProvider>
+              <LanguageProvider>
+                <MobileBlocker />
+                <CapacitorBridge />
+                <AppUpdater />
+                <SplashOverlay />
+                <CapacitorPlayStoreBanner />
+                <ServiceWorkerRegister />
+                <CsrfProvider>{children}</CsrfProvider>
+              </LanguageProvider>
             </ThemeProvider>
           </SWRProvider>
         </PostHogProvider>

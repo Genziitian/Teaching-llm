@@ -123,8 +123,12 @@ export async function POST(request: Request) {
     }
 
     if (action === 'SERIAL_RESET_ASSIGN') {
-      const { categoryId } = body
-      const result = await serialResetAndAssign(prisma, { categoryId })
+      const { categoryId, offset, limit } = body
+      const result = await serialResetAndAssign(prisma, {
+        categoryId,
+        offset: offset != null ? Number(offset) : 0,
+        limit: limit != null ? Number(limit) : 75,
+      })
       return NextResponse.json({ success: true, ...result })
     }
 
@@ -135,7 +139,10 @@ export async function POST(request: Request) {
     }
 
     if (action === 'ENSURE_SERIALS') {
-      const result = await ensureAllUsersHaveGroupSerials(prisma)
+      const { limit } = body
+      const result = await ensureAllUsersHaveGroupSerials(prisma, {
+        limit: limit != null ? Number(limit) : 150,
+      })
       return NextResponse.json({ success: true, ...result })
     }
 

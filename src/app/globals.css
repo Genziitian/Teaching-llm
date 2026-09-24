@@ -79,6 +79,26 @@
   --quiz-countdown-label-color: #4f566b;
   --quiz-countdown-edit-bg: rgba(255,255,255,0.5);
   --quiz-countdown-edit-icon: #1e1e3a;
+
+  /* Standardized theme tokens */
+  --background: var(--bg);
+  --card-background: var(--surface);
+  --surface-secondary: var(--surface-2);
+  --surface-hover: rgba(54, 54, 232, 0.06);
+  --border-subtle: var(--border-light);
+  --accent-hover: #4f46e5;
+  --button-background: var(--primary);
+  --button-text: #ffffff;
+  --button-hover-background: var(--primary-dark);
+  --button-secondary-bg: var(--bg);
+  --button-secondary-text: var(--primary);
+  --button-secondary-border: var(--border);
+  --input-background: var(--bg);
+  --input-border: var(--border);
+  --sidebar-background: var(--sidebar-bg);
+  --sidebar-active: var(--primary);
+  --sidebar-active-text: #ffffff;
+  --sidebar-active-border: transparent;
 }
 
 /* Community Channel List Buttons */
@@ -201,6 +221,26 @@
   --skeleton-shine: #272d3b;
   color-scheme: dark;
 
+  /* Standardized theme tokens for Dark */
+  --background: var(--bg);
+  --card-background: var(--surface);
+  --surface-secondary: var(--surface-2);
+  --surface-hover: rgba(255, 255, 255, 0.06);
+  --border-subtle: var(--border-light);
+  --accent-hover: #9b9bff;
+  --button-background: var(--primary);
+  --button-text: #ffffff;
+  --button-hover-background: var(--primary-dark);
+  --button-secondary-bg: var(--surface-2);
+  --button-secondary-text: var(--text-primary);
+  --button-secondary-border: var(--border);
+  --input-background: var(--surface-2);
+  --input-border: var(--border);
+  --sidebar-background: var(--sidebar-bg);
+  --sidebar-active: var(--primary);
+  --sidebar-active-text: #ffffff;
+  --sidebar-active-border: transparent;
+
   /* Community specific dark styles */
   --community-item-bg: #131b2e;
   --community-item-bg-mobile: #131b2e;
@@ -209,20 +249,123 @@
   --community-item-shadow-dark: #020617;
 }
 
-/* Dark-mode logo: dark plate + render the (dark-inked) logo as a clean white
-   silhouette so it reads on the dark sidebar instead of glowing as a white blob. */
-:root[data-theme="dark"] .sidebar-logo-plate {
+/* ── Black theme palette (True Black Monochrome System) ──
+   Activated by <html data-theme="black">.
+   Premium, minimal, sharp, monochrome, high-contrast interface.
+   Uses deep black background, near-black cards, dark charcoal elevations,
+   crisp white headings, and subtle grayscale states. Semantic colors
+   (danger/success/warning) are strictly preserved. */
+:root[data-theme="black"] {
+  --sidebar-bg: #000000;
+  --sidebar-background: #000000;
+  --bg: #000000;
+  --background: #000000;
+  --surface: #0a0a0a;
+  --card-background: #0a0a0a;
+  --surface-2: #141414;
+  --surface-secondary: #141414;
+  --surface-hover: #1f1f1f;
+  --border: rgba(255, 255, 255, 0.12);
+  --border-light: rgba(255, 255, 255, 0.06);
+  --border-subtle: rgba(255, 255, 255, 0.06);
+  --social-card-border: #000000;
+  --social-card-shadow: 0 10px 30px rgba(0, 0, 0, 0.8), 0 1px 3px rgba(0, 0, 0, 0.5);
+
+  --primary: #ffffff;
+  --primary-dark: #d4d4d8;
+  --primary-light: rgba(255, 255, 255, 0.06);
+  --accent: #ffffff;
+  --accent-hover: #e4e4e7;
+
+  --button-background: #ffffff;
+  --button-text: #000000;
+  --button-hover-background: #e4e4e7;
+  --button-secondary-bg: #18181b;
+  --button-secondary-text: #ffffff;
+  --button-secondary-border: rgba(255, 255, 255, 0.16);
+
+  --input-background: #0d0d0d;
+  --input-border: rgba(255, 255, 255, 0.16);
+
+  --sidebar-active: #18181b;
+  --sidebar-active-text: #ffffff;
+  --sidebar-active-border: rgba(255, 255, 255, 0.2);
+
+  /* Semantic colors: Preserved */
+  --success: #34d399;
+  --success-light: rgba(52, 211, 153, 0.16);
+  --warning: #fbbf24;
+  --warning-light: rgba(251, 191, 36, 0.16);
+  --danger: #f87171;
+  --danger-light: rgba(248, 113, 113, 0.16);
+  --info: #60a5fa;
+  --info-light: rgba(96, 165, 250, 0.16);
+
+  --text-primary: #ffffff;
+  --text-secondary: #a1a1aa;
+  --text-muted: #71717a;
+  --text-inverse: #000000;
+
+  --course-icon-bg: #18181b;
+  --course-icon-color: #ffffff;
+  --course-icon-border: rgba(255, 255, 255, 0.16);
+  --course-icon-hover-bg: #222225;
+  --course-icon-selected-bg: #27272a;
+  --course-icon-selected-border: rgba(255, 255, 255, 0.4);
+
+  --staff-role-badge-manager-bg: rgba(255, 255, 255, 0.1);
+  --staff-role-badge-manager-border: rgba(255, 255, 255, 0.25);
+  --staff-role-badge-manager-color: #ffffff;
+  --staff-role-badge-manager-icon: #ffffff;
+  --staff-role-badge-admin-bg: rgba(251, 113, 133, 0.12);
+  --staff-role-badge-admin-border: rgba(251, 113, 133, 0.35);
+  --staff-role-badge-admin-color: #fb7185;
+  --staff-role-badge-admin-icon: #fb7185;
+
+  --topic-header-bg: #141414;
+  --topic-header-text: #ffffff;
+  --topic-header-muted: #a1a1aa;
+  --quiz-countdown-label-color: rgba(255, 255, 255, 0.75);
+  --quiz-countdown-edit-bg: rgba(255, 255, 255, 0.15);
+  --quiz-countdown-edit-icon: #ffffff;
+
+  --neu-light: transparent;
+  --neu-dark: #000000;
+  --neu-glow: transparent;
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.8);
+  --shadow: 0 4px 12px rgba(0, 0, 0, 0.85);
+  --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.9);
+  --shadow-lg: 0 16px 40px rgba(0, 0, 0, 0.95);
+  --community-box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8);
+  --shadow-inset: inset 0 1px 2px rgba(0, 0, 0, 0.8);
+  --scrollbar-thumb: #27272a;
+  --scrollbar-thumb-hover: #3f3f46;
+  --skeleton-base: #141414;
+  --skeleton-shine: #222222;
+  color-scheme: dark;
+
+  /* Community specific black styles */
+  --community-item-bg: #121212;
+  --community-item-bg-mobile: #121212;
+  --community-item-text: #f4f4f5;
+  --community-item-shadow-light: rgba(255, 255, 255, 0.03);
+  --community-item-shadow-dark: #000000;
+}
+
+/* Dark & Black mode logo: render as clean white silhouette on dark/black backgrounds */
+:root[data-theme="dark"] .sidebar-logo-plate,
+:root[data-theme="black"] .sidebar-logo-plate {
   background: var(--surface-2) !important;
   box-shadow: none !important;
 }
 :root[data-theme="dark"] .sidebar-logo-img,
-:root[data-theme="dark"] .mobile-login-logo-img {
+:root[data-theme="dark"] .mobile-login-logo-img,
+:root[data-theme="black"] .sidebar-logo-img,
+:root[data-theme="black"] .mobile-login-logo-img {
   filter: brightness(0) invert(1);
 }
 
-/* Community chat wallpaper — light doodle by default, dark doodle in dark mode.
-   Save the dark doodle image to public/images/chat-wallpaper-dark.png. The dark
-   base color is a graceful fallback until that asset exists. */
+/* Community chat wallpaper */
 .chat-wallpaper {
   background-image: url(/images/chat-wallpaper.png);
   background-repeat: repeat;
@@ -233,15 +376,17 @@
   background-color: #111317;
   background-image: url(/images/chat-wallpaper-dark.png);
 }
+:root[data-theme="black"] .chat-wallpaper {
+  background-color: #000000;
+  background-image: url(/images/chat-wallpaper-dark.png);
+}
 
-/* Rich-text page content (About Us / policies) — keep headings & links readable
-   on dark when the stored HTML doesn't carry its own color. */
-/* Stored HTML (About/Contact/policy pages) often has inline dark text colors
-   baked in by the manager, which vanish on dark. Force readable colors in dark
-   with !important so those inline styles can't make text invisible. Links and
-   headings/emphasis get their own readable tokens. */
+/* Rich-text page content (About Us / policies) */
 :root[data-theme="dark"] .custom-page-content,
-:root[data-theme="dark"] .custom-page-content * { color: var(--text-secondary) !important; }
+:root[data-theme="dark"] .custom-page-content *,
+:root[data-theme="black"] .custom-page-content,
+:root[data-theme="black"] .custom-page-content * { color: var(--text-secondary) !important; }
+
 :root[data-theme="dark"] .custom-page-content h1,
 :root[data-theme="dark"] .custom-page-content h2,
 :root[data-theme="dark"] .custom-page-content h3,
@@ -249,8 +394,18 @@
 :root[data-theme="dark"] .custom-page-content h5,
 :root[data-theme="dark"] .custom-page-content h6,
 :root[data-theme="dark"] .custom-page-content strong,
-:root[data-theme="dark"] .custom-page-content b { color: var(--text-primary) !important; }
+:root[data-theme="dark"] .custom-page-content b,
+:root[data-theme="black"] .custom-page-content h1,
+:root[data-theme="black"] .custom-page-content h2,
+:root[data-theme="black"] .custom-page-content h3,
+:root[data-theme="black"] .custom-page-content h4,
+:root[data-theme="black"] .custom-page-content h5,
+:root[data-theme="black"] .custom-page-content h6,
+:root[data-theme="black"] .custom-page-content strong,
+:root[data-theme="black"] .custom-page-content b { color: var(--text-primary) !important; }
+
 :root[data-theme="dark"] .custom-page-content a { color: var(--accent) !important; }
+:root[data-theme="black"] .custom-page-content a { color: #ffffff !important; text-decoration: underline; }
 
 html {
   height: 100%;
@@ -437,7 +592,7 @@ img {
 
 /* Cards */
 .card {
-  background: var(--surface);
+  background: var(--card-background, var(--surface));
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow);
   border: none;
@@ -459,22 +614,169 @@ img {
 }
 
 .btn-primary {
-  background: var(--primary);
-  color: white;
+  background: var(--button-background, var(--primary));
+  color: var(--button-text, white);
   box-shadow: 4px 4px 8px rgba(54,54,232,0.3), -2px -2px 6px var(--neu-glow);
 }
 .btn-primary:hover {
-  background: var(--primary-dark);
+  background: var(--button-hover-background, var(--primary-dark));
   box-shadow: 4px 4px 12px rgba(54,54,232,0.4), -2px -2px 6px var(--neu-glow);
 }
 
 .btn-secondary {
-  background: var(--bg);
-  color: var(--primary);
+  background: var(--button-secondary-bg, var(--bg));
+  color: var(--button-secondary-text, var(--primary));
   box-shadow: var(--shadow-sm);
+  border: 1px solid var(--button-secondary-border, transparent);
 }
 .btn-secondary:hover {
   box-shadow: var(--shadow);
+}
+
+/* Dark theme button shadows */
+:root[data-theme="dark"] .btn-primary {
+  box-shadow: 0 4px 14px rgba(109,109,255,0.35);
+}
+:root[data-theme="dark"] .btn-primary:hover {
+  box-shadow: 0 6px 18px rgba(109,109,255,0.45);
+}
+
+/* Black theme button & control overrides */
+:root[data-theme="black"] .btn-primary {
+  background: #ffffff !important;
+  color: #000000 !important;
+  box-shadow: 0 2px 8px rgba(255, 255, 255, 0.15) !important;
+  font-weight: 700;
+}
+:root[data-theme="black"] .btn-primary:hover {
+  background: #e4e4e7 !important;
+  color: #000000 !important;
+  box-shadow: 0 4px 12px rgba(255, 255, 255, 0.25) !important;
+}
+:root[data-theme="black"] .btn-secondary {
+  background: #18181b !important;
+  color: #ffffff !important;
+  border: 1px solid rgba(255, 255, 255, 0.16) !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.5) !important;
+}
+:root[data-theme="black"] .btn-secondary:hover {
+  background: #27272a !important;
+  border-color: rgba(255, 255, 255, 0.3) !important;
+}
+:root[data-theme="black"] .btn-ghost {
+  background: transparent !important;
+  color: #a1a1aa !important;
+  box-shadow: none !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+:root[data-theme="black"] .btn-ghost:hover {
+  background: #18181b !important;
+  color: #ffffff !important;
+}
+
+:root[data-theme="black"] .card {
+  background: #0a0a0a !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  box-shadow: none !important;
+}
+:root[data-theme="black"] .modal {
+  background: #0d0d0d !important;
+  border: 1px solid rgba(255, 255, 255, 0.14) !important;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.95) !important;
+}
+:root[data-theme="black"] .modal-overlay {
+  background: rgba(0, 0, 0, 0.85) !important;
+  backdrop-filter: blur(8px) !important;
+}
+
+:root[data-theme="black"] .sidebar-nav {
+  background: #000000 !important;
+  border-right: 1px solid var(--border) !important;
+}
+:root[data-theme="black"] .sidebar-link-item.active {
+  background: var(--sidebar-active) !important;
+  color: var(--sidebar-active-text) !important;
+  border: 1px solid var(--sidebar-active-border) !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.6) !important;
+}
+:root[data-theme="black"] .sidebar-link-item.active .sidebar-link-icon,
+:root[data-theme="black"] .sidebar-link-item.active .sidebar-link-label {
+  color: #ffffff !important;
+}
+:root[data-theme="black"] .sidebar-link-item:not(.active):hover {
+  background: var(--surface-hover) !important;
+}
+:root[data-theme="black"] .sidebar-link-item:not(.active):hover .sidebar-link-icon,
+:root[data-theme="black"] .sidebar-link-item:not(.active):hover .sidebar-link-label {
+  color: #ffffff !important;
+}
+:root[data-theme="black"] .sidebar-logout-card {
+  border-top: 1px solid var(--border) !important;
+}
+:root[data-theme="black"] .sidebar-toggle-btn {
+  background: #18181b !important;
+  color: #ffffff !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+}
+
+:root[data-theme="black"] .mobile-bottom-nav {
+  background: #000000 !important;
+  border-top: 1px solid var(--border) !important;
+  box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.8) !important;
+}
+:root[data-theme="black"] .mobile-bottom-nav::before {
+  background: #000000 !important;
+  border-top: 1px solid var(--border) !important;
+}
+:root[data-theme="black"] .mobile-bottom-tab.active {
+  color: #ffffff !important;
+}
+:root[data-theme="black"] .mobile-bottom-tab.active .tab-label {
+  color: #ffffff !important;
+}
+:root[data-theme="black"] .mobile-bottom-tab.academics-action-tab .tab-icon-wrapper {
+  background: #ffffff !important;
+  border-color: #000000 !important;
+  color: #000000 !important;
+  box-shadow: 0 4px 16px rgba(255, 255, 255, 0.2) !important;
+}
+:root[data-theme="black"] .mobile-bottom-tab.academics-action-tab .tab-icon svg {
+  stroke: #000000 !important;
+}
+:root[data-theme="black"] .mobile-bottom-tab.academics-action-tab.active .tab-icon-wrapper {
+  background: #e4e4e7 !important;
+  transform: scale(1.05);
+  box-shadow: 0 6px 20px rgba(255, 255, 255, 0.3) !important;
+}
+:root[data-theme="black"] .mobile-bottom-tab.academics-action-tab.active .tab-label {
+  color: #ffffff !important;
+}
+
+:root[data-theme="black"] .form-input,
+:root[data-theme="black"] input:not([type="checkbox"]):not([type="radio"]),
+:root[data-theme="black"] textarea,
+:root[data-theme="black"] select {
+  background: var(--input-background) !important;
+  border: 1px solid var(--input-border) !important;
+  color: var(--text-primary) !important;
+}
+:root[data-theme="black"] .form-input:focus,
+:root[data-theme="black"] input:not([type="checkbox"]):not([type="radio"]):focus,
+:root[data-theme="black"] textarea:focus,
+:root[data-theme="black"] select:focus {
+  border-color: #ffffff !important;
+  box-shadow: 0 0 0 1px #ffffff !important;
+}
+
+:root[data-theme="black"] th {
+  background: #141414 !important;
+  border-bottom: 1px solid var(--border) !important;
+}
+:root[data-theme="black"] td {
+  border-bottom: 1px solid var(--border-light) !important;
+}
+:root[data-theme="black"] tr:hover td {
+  background: #18181b !important;
 }
 
 .btn-ghost {

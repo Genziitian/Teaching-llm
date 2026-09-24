@@ -24,20 +24,25 @@ class LoadingFactCard extends StatelessWidget {
 
     final tokens = context.tokens;
     final isDark = tokens.isDark;
+    final isBlack = tokens.isBlack;
     final isRare = currentFact.rarity == LoadingFactRarity.rare;
     final isUltraRare = currentFact.rarity == LoadingFactRarity.ultraRare;
     final isCoupon = currentFact.isCoupon;
 
-    // Background and border colors ensuring high contrast across both Light & Dark modes
-    final Color bgColor = isDark
-        ? const Color(0xFF161A23)
-        : Colors.white;
+    // Background and border colors ensuring high contrast across Light, Dark & Black modes
+    final Color bgColor = isBlack
+        ? const Color(0xFF0D0D0D)
+        : (isDark
+            ? const Color(0xFF161A23)
+            : Colors.white);
 
     final Color borderColor = isUltraRare
         ? const Color(0xFFF59E0B)
         : isRare
-            ? const Color(0xFF6366F1)
-            : (isDark ? const Color(0xFF2A3143) : const Color(0xFFE2E8F0));
+            ? (isBlack ? const Color(0xFF71717A) : const Color(0xFF6366F1))
+            : (isBlack
+                ? const Color(0xFF27272A)
+                : (isDark ? const Color(0xFF2A3143) : const Color(0xFFE2E8F0)));
 
     final Color textColor = tokens.textPrimary;
 

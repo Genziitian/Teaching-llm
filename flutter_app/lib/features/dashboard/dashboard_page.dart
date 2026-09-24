@@ -10,6 +10,8 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../core/auth/auth_providers.dart';
 import '../../core/tour/tour_target_registry.dart';
 import '../../theme/theme_mode_provider.dart';
+import '../../core/l10n/language_provider.dart';
+import '../../core/l10n/app_translations.dart';
 import '../prompts/admin_message_session.dart';
 import '../../core/services/contact_sync_service.dart';
 import '../../shared/widgets/app_topbar.dart';
@@ -60,17 +62,18 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
     }
   }
 
-  String _greet() {
+  String _greet(String locale) {
     final h = DateTime.now().hour;
-    if (h < 12) return 'Good Morning';
-    if (h < 17) return 'Good Afternoon';
-    if (h < 21) return 'Good Evening';
-    return 'Good Night';
+    if (h < 12) return AppTranslations.t('dashboard.greeting.morning', locale);
+    if (h < 17) return AppTranslations.t('dashboard.greeting.afternoon', locale);
+    if (h < 21) return AppTranslations.t('dashboard.greeting.evening', locale);
+    return AppTranslations.t('dashboard.greeting.night', locale);
   }
 
   @override
   Widget build(BuildContext context) {
     final tokens = context.tokens;
+    final currentLanguage = ref.watch(languageProvider).value ?? 'en';
     final user = ref.watch(authStateProvider).value;
     final firstName =
         (user?.firstName ?? user?.name.split(' ').first) ?? 'there';
@@ -111,7 +114,7 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
           children: [
             _HomeGreeting(
               firstName: firstName,
-              greeting: _greet(),
+              greeting: _greet(currentLanguage),
             ),
             Builder(
               builder: (context) {
@@ -171,8 +174,8 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
                                   children: [
                                     Text(
                                       isApproved
-                                          ? 'Manager Accepted Deletion'
-                                          : 'Account Deletion Requested',
+                                          ? AppTranslations.t('dashboard.deletion.accepted', currentLanguage)
+                                          : AppTranslations.t('dashboard.deletion.requested', currentLanguage),
                                       style: TextStyle(
                                         fontSize: 13.5,
                                         fontWeight: FontWeight.w700,
@@ -182,8 +185,8 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
                                     const SizedBox(height: 2),
                                     Text(
                                       isApproved
-                                          ? 'Scheduled for deletion • Tap to view timeline or cancel'
-                                          : '24h review active • Tap to view timeline or cancel',
+                                          ? AppTranslations.t('dashboard.deletion.scheduled', currentLanguage)
+                                          : AppTranslations.t('dashboard.deletion.review', currentLanguage),
                                       style: TextStyle(
                                         fontSize: 11.5,
                                         color: tokens.textSecondary,
@@ -228,7 +231,7 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
-                          'Offline Mode • Showing saved content',
+                          AppTranslations.t('dashboard.offline', currentLanguage),
                           style: TextStyle(
                             fontSize: 12.5,
                             fontWeight: FontWeight.w600,
@@ -258,8 +261,8 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 child: SectionHead(
-                  title: 'Upcoming Session',
-                  right: 'View All →',
+                  title: AppTranslations.t('dashboard.upcomingSession', currentLanguage),
+                  right: AppTranslations.t('dashboard.viewAll', currentLanguage),
                   onRightTap: () => context.go('/live'),
                 ),
               ),
@@ -277,8 +280,8 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 child: SectionHead(
-                  title: 'Recent Lecture',
-                  right: 'View All →',
+                  title: AppTranslations.t('dashboard.recentLecture', currentLanguage),
+                  right: AppTranslations.t('dashboard.viewAll', currentLanguage),
                   onRightTap: () => context.go('/courses'),
                 ),
               ),
@@ -302,8 +305,8 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
               child: SectionHead(
-                title: 'Announcements',
-                right: announcements.isEmpty ? null : 'View All →',
+                title: AppTranslations.t('dashboard.announcements', currentLanguage),
+                right: announcements.isEmpty ? null : AppTranslations.t('dashboard.viewAll', currentLanguage),
                 onRightTap: announcements.isEmpty
                     ? null
                     : () => context.go('/announcements'),
@@ -404,11 +407,22 @@ class _HomeGreeting extends ConsumerWidget {
             ),
           ),
 
-          // Theme toggle button (Moon/Sun)
+          // Theme toggle button (Moon/Sun/Contrast)
           BouncyPressable(
             onTap: () {
               HapticFeedback.lightImpact();
-              final nextMode = isDark ? ThemeMode.light : ThemeMode.dark;
+              final currentMode =
+                  ref.read(themeModeProvider).valueOrNull ?? AppThemeMode.system;
+              final AppThemeMode nextMode;
+              if (currentMode == AppThemeMode.light) {
+                nextMode = AppThemeMode.dark;
+              } else if (currentMode == AppThemeMode.dark) {
+                nextMode = AppThemeMode.black;
+              } else if (currentMode == AppThemeMode.black) {
+                nextMode = AppThemeMode.light;
+              } else {
+                nextMode = isDark ? AppThemeMode.light : AppThemeMode.dark;
+              }
               ref.read(themeModeProvider.notifier).set(nextMode);
             },
             scaleDown: 0.90,
@@ -422,10 +436,13 @@ class _HomeGreeting extends ConsumerWidget {
                 boxShadow: AppShadows.sm,
               ),
               child: Icon(
-                isDark ? Icons.wb_sunny_outlined : Icons.nightlight_outlined,
+                context.tokens.isBlack
+                    ? Icons.contrast_rounded
+                    : (isDark ? Icons.wb_sunny_outlined : Icons.nightlight_outlined),
                 size: 19,
-                color:
-                    isDark ? const Color(0xFFF59E0B) : const Color(0xFF475569),
+                color: context.tokens.isBlack
+                    ? Colors.white
+                    : (isDark ? const Color(0xFFF59E0B) : const Color(0xFF475569)),
               ),
             ),
           ),
@@ -831,12 +848,12 @@ class _UpcomingSessionCard extends StatelessWidget {
   }
 }
 
-class _RecentLectureCard extends StatelessWidget {
+class _RecentLectureCard extends ConsumerWidget {
   const _RecentLectureCard({required this.lecture});
   final Map<String, dynamic>? lecture;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     if (lecture == null) {
       return const _EmptyStateCard(
         icon: Icons.play_circle_outline_rounded,
@@ -1015,12 +1032,12 @@ class _RecentLectureCard extends StatelessWidget {
                   ),
                 ],
               ),
-              child: const Row(
+              child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                    'Continue Watching',
-                    style: TextStyle(
+                    AppTranslations.t('dashboard.continueWatching', ref.watch(languageProvider).value ?? 'en'),
+                    style: const TextStyle(
                       color: Colors.white,
                       fontSize: 14.5,
                       fontWeight: FontWeight.w700,
@@ -1042,17 +1059,18 @@ class _RecentLectureCard extends StatelessWidget {
   }
 }
 
-class _AnnouncementsCard extends StatelessWidget {
+class _AnnouncementsCard extends ConsumerWidget {
   const _AnnouncementsCard({required this.items});
   final List items;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final currentLanguage = ref.watch(languageProvider).value ?? 'en';
     if (items.isEmpty) {
-      return const _EmptyStateCard(
+      return _EmptyStateCard(
         icon: Icons.campaign_outlined,
-        title: 'No announcements',
-        sub: 'You are all caught up!',
+        title: AppTranslations.t('dashboard.announcements.empty.title', currentLanguage),
+        sub: AppTranslations.t('dashboard.announcements.empty.sub', currentLanguage),
       );
     }
 

@@ -6,6 +6,7 @@ import { usePushNotifications } from '@/hooks/usePushNotifications'
 import { useTheme } from '@/components/ThemeProvider'
 import { DELETION_REASONS } from '@/lib/deletion-reasons'
 import { useTour } from '@/components/tour/TourContext'
+import { useLanguage } from '@/contexts/LanguageContext'
 
 
 function Toggle({ checked, onChange }: { checked: boolean; onChange: (v: boolean) => void }) {
@@ -71,7 +72,7 @@ export default function SettingsPage() {
   const { theme, setTheme } = useTheme()
 
   // Language preference
-  const [language, setLanguage] = useState('en-US')
+  const { language, setLanguage, t } = useLanguage()
 
   // Global Maintenance Mode (Manager only)
   const [maintenanceMode, setMaintenanceMode] = useState(false)
@@ -360,7 +361,7 @@ export default function SettingsPage() {
               Settings
             </span>
             <span style={{ display: 'block', fontSize: '12px', color: 'var(--text-muted)', marginTop: '2px' }}>
-              Manage passwords, appearance, and notifications
+              {t('settings.subtitle')}
             </span>
           </div>
         </div>
@@ -400,14 +401,14 @@ export default function SettingsPage() {
               </svg>
               Notifications
             </h3>
-            <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '18px' }}>Choose what alerts you want to receive.</p>
+            <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '18px' }}>{t('settings.notifications.desc')}</p>
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', flex: 1 }}>
                 {/* Regular Toggles */}
                 <div style={insetRow}>
                   <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: '13.5px', fontWeight: '600', color: 'var(--text-primary)' }}>Email Notifications</div>
-                    <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '2px' }}>Receive updates and alerts via email</div>
+                    <div style={{ fontSize: '13.5px', fontWeight: '600', color: 'var(--text-primary)' }}>Email {t('settings.notifications.title')}</div>
+                    <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '2px' }}>{t('settings.notifications.emailDesc')}</div>
                   </div>
                   <Toggle checked={notifEmail} onChange={setNotifEmail} />
                 </div>
@@ -416,8 +417,8 @@ export default function SettingsPage() {
                 {isNativeApp ? (
                   <div style={insetRow}>
                     <div style={{ flex: 1 }}>
-                      <div style={{ fontSize: '13.5px', fontWeight: '600', color: 'var(--text-primary)' }}>App Push Notifications</div>
-                      <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '2px' }}>Get live alerts directly on your device</div>
+                      <div style={{ fontSize: '13.5px', fontWeight: '600', color: 'var(--text-primary)' }}>App Push {t('settings.notifications.title')}</div>
+                      <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '2px' }}>{t('settings.notifications.appPushDesc')}</div>
                     </div>
                     <Toggle 
                       checked={nativeSubscribed} 
@@ -443,8 +444,8 @@ export default function SettingsPage() {
                   isSupported && (
                     <div style={insetRow}>
                       <div style={{ flex: 1 }}>
-                        <div style={{ fontSize: '13.5px', fontWeight: '600', color: 'var(--text-primary)' }}>Browser Push Alerts</div>
-                        <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '2px' }}>Get live alerts even when the site is closed</div>
+                        <div style={{ fontSize: '13.5px', fontWeight: '600', color: 'var(--text-primary)' }}>{t('settings.notifications.browserPush')}</div>
+                        <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '2px' }}>{t('settings.notifications.browserPushDesc')}</div>
                       </div>
                       <Toggle 
                         checked={isSubscribed} 
@@ -475,27 +476,27 @@ export default function SettingsPage() {
               </svg>
               Preferences
             </h3>
-            <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '18px' }}>Customize your experience.</p>
+            <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '18px' }}>{t('settings.preferences.desc')}</p>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', flex: 1 }}>
               {/* Theme Mode */}
               <div style={insetRow}>
                 <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: '13.5px', fontWeight: '600', color: 'var(--text-primary)' }}>Theme Mode</div>
-                  <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '2px' }}>Select your preferred interface theme</div>
+                  <div style={{ fontSize: '13.5px', fontWeight: '600', color: 'var(--text-primary)' }}>{t('settings.preferences.themeMode')}</div>
+                  <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '2px' }}>{t('settings.preferences.themeDesc')}</div>
                 </div>
                 <div style={{ display: 'flex', gap: '6px', flexShrink: 0 }}>
-                  {(['light', 'dark', 'system'] as const).map(t => (
+                  {(['light', 'dark', 'black', 'system'] as const).map(t => (
                     <button
                       key={t}
                       onClick={() => setTheme(t)}
                       style={{
                         padding: '7px 14px', borderRadius: '50px', border: 'none',
                         fontSize: '12px', fontWeight: '600', cursor: 'pointer',
-                        background: theme === t ? 'var(--primary)' : 'var(--surface-2)',
-                        color: theme === t ? '#ffffff' : 'var(--text-secondary)',
+                        background: theme === t ? 'var(--button-background, var(--primary))' : 'var(--surface-2)',
+                        color: theme === t ? 'var(--button-text, #ffffff)' : 'var(--text-secondary)',
                         boxShadow: theme === t
-                          ? '3px 3px 7px rgba(54,54,232,0.35), -1px -1px 4px var(--neu-glow)'
+                          ? '3px 3px 7px rgba(0,0,0,0.35), -1px -1px 4px var(--neu-glow)'
                           : '3px 3px 6px var(--neu-dark), -3px -3px 6px var(--neu-light)',
                         transition: 'all 0.2s ease',
                       }}
@@ -509,12 +510,12 @@ export default function SettingsPage() {
               {/* Language */}
               <div style={insetRow}>
                 <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: '13.5px', fontWeight: '600', color: 'var(--text-primary)' }}>Language</div>
-                  <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '2px' }}>Choose your display language</div>
+                  <div style={{ fontSize: '13.5px', fontWeight: '600', color: 'var(--text-primary)' }}>{t('settings.preferences.language')}</div>
+                  <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '2px' }}>{t('settings.preferences.languageDesc')}</div>
                 </div>
                 <select
                   value={language}
-                  onChange={e => setLanguage(e.target.value)}
+                  onChange={e => setLanguage(e.target.value as 'en' | 'hi')}
                   style={{
                     padding: '7px 12px', borderRadius: '50px', border: 'none',
                     fontSize: '12px', fontWeight: '600', cursor: 'pointer',
@@ -523,8 +524,8 @@ export default function SettingsPage() {
                     outline: 'none', appearance: 'auto', flexShrink: 0,
                   }}
                 >
-                  <option value="en-US">English (US)</option>
-                  <option value="en-GB">English (UK)</option>
+                  <option value="en">English</option>
+                  
                   <option value="hi">Hindi</option>
                 </select>
               </div>
@@ -532,8 +533,8 @@ export default function SettingsPage() {
               {/* Guidance / Take App Tour */}
               <div style={insetRow} data-tour="settings-replay-card">
                 <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: '13.5px', fontWeight: '600', color: 'var(--text-primary)' }}>Take App Tour</div>
-                  <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '2px' }}>Take a quick guided tour of the GenZ IITIAN platform.</div>
+                  <div style={{ fontSize: '13.5px', fontWeight: '600', color: 'var(--text-primary)' }}>{t('settings.preferences.takeTour')}</div>
+                  <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '2px' }}>{t('settings.preferences.takeTourDesc')}</div>
                 </div>
                 <button
                   type="button"
@@ -564,7 +565,7 @@ export default function SettingsPage() {
                         Maintenance Mode
                       </div>
                       <div style={{ fontSize: '12px', color: maintenanceMode ? 'var(--danger)' : 'var(--text-muted)', marginTop: '2px' }}>
-                        Restrict access for all non-manager users
+                        {t('settings.preferences.maintenanceDesc')}
                       </div>
                     </div>
                     <Toggle checked={maintenanceMode} onChange={handleToggleMaintenance} />
@@ -712,7 +713,7 @@ export default function SettingsPage() {
             Danger Zone
           </h3>
           <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '18px' }}>
-            Irreversible actions regarding your platform account.
+            {t('settings.dangerZone.desc')}
           </p>
 
           {deleteSuccessMessage && (

@@ -6,6 +6,8 @@ import 'package:go_router/go_router.dart';
 
 import '../../core/auth/auth_providers.dart';
 import '../../theme/theme_mode_provider.dart';
+import '../../core/l10n/language_provider.dart';
+import '../../core/l10n/app_translations.dart';
 import '../../shared/widgets/bouncy_pressable.dart';
 import '../../shared/widgets/sub_page_header.dart';
 import '../../theme/app_shadows.dart';
@@ -126,7 +128,9 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
   @override
   Widget build(BuildContext context) {
     final currentThemeMode =
-        ref.watch(themeModeProvider).valueOrNull ?? ThemeMode.system;
+        ref.watch(themeModeProvider).valueOrNull ?? AppThemeMode.system;
+
+    final currentLanguage = ref.watch(languageProvider).value ?? 'en';
 
     final notifAsync = ref.watch(notificationPrefsProvider);
     final prefs = notifAsync.valueOrNull ??
@@ -142,8 +146,8 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     final deletionReq = _deletionData?['request'] as Map<String, dynamic>?;
 
     return AppPageScaffold(
-      title: 'Settings',
-      subtitle: 'Preferences & appearance',
+      title: AppTranslations.t('settings.title', currentLanguage),
+      subtitle: AppTranslations.t('settings.preferences', currentLanguage),
       onBack: () => context.canPop() ? context.pop() : context.go('/more'),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(0, 16, 0, 60),
@@ -152,7 +156,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
             // ── 1. APPEARANCE (THEME) ──────────────────────────────
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: _SectionHeader(title: 'APPEARANCE', color: textSecondary),
+              child: _SectionHeader(title: AppTranslations.t('settings.appearance', currentLanguage), color: textSecondary),
             ),
             const SizedBox(height: 10),
             Padding(
@@ -168,36 +172,47 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                 child: Row(
                   children: [
                     _ThemeTab(
-                      label: 'System',
+                      label: AppTranslations.t('settings.theme.system', currentLanguage),
                       icon: Icons.brightness_auto_rounded,
-                      isSelected: currentThemeMode == ThemeMode.system,
+                      isSelected: currentThemeMode == AppThemeMode.system,
                       onTap: () {
                         HapticFeedback.lightImpact();
                         ref
                             .read(themeModeProvider.notifier)
-                            .set(ThemeMode.system);
+                            .set(AppThemeMode.system);
                       },
                     ),
                     _ThemeTab(
-                      label: 'Light',
+                      label: AppTranslations.t('settings.theme.light', currentLanguage),
                       icon: Icons.light_mode_rounded,
-                      isSelected: currentThemeMode == ThemeMode.light,
+                      isSelected: currentThemeMode == AppThemeMode.light,
                       onTap: () {
                         HapticFeedback.lightImpact();
                         ref
                             .read(themeModeProvider.notifier)
-                            .set(ThemeMode.light);
+                            .set(AppThemeMode.light);
                       },
                     ),
                     _ThemeTab(
-                      label: 'Dark',
+                      label: AppTranslations.t('settings.theme.dark', currentLanguage),
                       icon: Icons.dark_mode_rounded,
-                      isSelected: currentThemeMode == ThemeMode.dark,
+                      isSelected: currentThemeMode == AppThemeMode.dark,
                       onTap: () {
                         HapticFeedback.lightImpact();
                         ref
                             .read(themeModeProvider.notifier)
-                            .set(ThemeMode.dark);
+                            .set(AppThemeMode.dark);
+                      },
+                    ),
+                    _ThemeTab(
+                      label: AppTranslations.t('settings.theme.black', currentLanguage),
+                      icon: Icons.contrast_rounded,
+                      isSelected: currentThemeMode == AppThemeMode.black,
+                      onTap: () {
+                        HapticFeedback.lightImpact();
+                        ref
+                            .read(themeModeProvider.notifier)
+                            .set(AppThemeMode.black);
                       },
                     ),
                   ],
@@ -207,11 +222,54 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
 
             const SizedBox(height: 24),
 
+            // ── 1.5 LANGUAGE ─────────────────────────────────────────
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: _SectionHeader(title: AppTranslations.t('settings.language', currentLanguage), color: textSecondary),
+            ),
+            const SizedBox(height: 10),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Container(
+                padding: const EdgeInsets.all(6),
+                decoration: BoxDecoration(
+                  color: cardBg,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: borderColor),
+                  boxShadow: AppShadows.sm,
+                ),
+                child: Row(
+                  children: [
+                    _ThemeTab(
+                      label: 'English',
+                      icon: Icons.language_rounded,
+                      isSelected: currentLanguage == 'en',
+                      onTap: () {
+                        HapticFeedback.lightImpact();
+                        ref.read(languageProvider.notifier).set('en');
+                      },
+                    ),
+                    _ThemeTab(
+                      label: 'हिंदी',
+                      icon: Icons.language_rounded,
+                      isSelected: currentLanguage == 'hi',
+                      onTap: () {
+                        HapticFeedback.lightImpact();
+                        ref.read(languageProvider.notifier).set('hi');
+                      },
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            
+            const SizedBox(height: 24),
+
             // ── 2. PUSH NOTIFICATIONS ──────────────────────────────
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
               child: _SectionHeader(
-                  title: 'PUSH NOTIFICATIONS', color: textSecondary),
+                  title: AppTranslations.t('settings.pushNotifications', currentLanguage), color: textSecondary),
             ),
             const SizedBox(height: 10),
             Padding(
@@ -239,14 +297,14 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                             color: tokens.primaryAccent, size: 20),
                       ),
                       title: Text(
-                        'Announcements & News',
+                        AppTranslations.t('settings.notif.announcements', currentLanguage),
                         style: TextStyle(
                             fontSize: 14.5,
                             fontWeight: FontWeight.w600,
                             color: textPrimary),
                       ),
                       subtitle: Text(
-                        'Important notices from mentors and admins',
+                        AppTranslations.t('settings.notif.announcements.sub', currentLanguage),
                         style: TextStyle(fontSize: 12, color: textSecondary),
                       ),
                       value: prefs.announcements,
@@ -275,14 +333,14 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                             color: tokens.success, size: 20),
                       ),
                       title: Text(
-                        'Community Messages',
+                        AppTranslations.t('settings.notif.community', currentLanguage),
                         style: TextStyle(
                             fontSize: 14.5,
                             fontWeight: FontWeight.w600,
                             color: textPrimary),
                       ),
                       subtitle: Text(
-                        'Course group discussions and threads',
+                        AppTranslations.t('settings.notif.community.sub', currentLanguage),
                         style: TextStyle(fontSize: 12, color: textSecondary),
                       ),
                       value: prefs.community,
@@ -487,7 +545,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                               color: tokens.danger, size: 22),
                         ),
                         title: Text(
-                          'Delete Your Account',
+                          AppTranslations.t('settings.deleteAccount', currentLanguage),
                           style: TextStyle(
                               fontSize: 14.5,
                               fontWeight: FontWeight.w600,

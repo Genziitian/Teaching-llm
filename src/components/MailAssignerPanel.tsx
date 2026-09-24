@@ -26,6 +26,22 @@ type PoolCategory = {
   totalAssigned?: number
 }
 
+type LiveLogLine = { t: number; text: string }
+
+type LiveProgress = {
+  open: boolean
+  title: string
+  phase: string
+  detail: string
+  percent: number
+  processed: number
+  total: number
+  addJobsQueued: number
+  lines: LiveLogLine[]
+  done: boolean
+  error?: string
+}
+
 type AssignResult = {
   message?: string
   totalUsers?: number
@@ -46,6 +62,7 @@ type AssignResult = {
     maxCapacity: number
   }>
   serialPreview?: Array<{ serial: number; email: string; groupEmail: string }>
+  recent?: Array<{ serial: number; email: string; groupEmail: string; action: string }>
 }
 
 const fetcher = (url: string) => fetch(url).then(r => r.json())
@@ -75,6 +92,7 @@ export default function MailAssignerPageContent() {
   const [status, setStatus] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
   const [lastResult, setLastResult] = useState<AssignResult | null>(null)
   const [lastRemoveResult, setLastRemoveResult] = useState<AssignResult | null>(null)
+  const [live, setLive] = useState<LiveProgress | null>(null)
 
   const categoryId = selectedCategoryId || defaultCategory?.id || ''
   const activeCategory = categories.find(c => c.id === categoryId) || defaultCategory
@@ -104,19 +122,32 @@ export default function MailAssignerPageContent() {
     }
   })
 
+  const postJson = async (action: string, body: Record<string, unknown> = {}) => {
+    const res = await fetch('/api/admin/notification-groups', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action, ...body }),
+    })
+    const json = await res.json()
+    if (!res.ok) {
+      throw new Error(json.error || 'Request failed')
+    }
+    return json
+  }
+
+  const pushLiveLine = (text: string) => {
+    setLive(prev => {
+      if (!prev) return prev
+      const lines = [...prev.lines, { t: Date.now(), text }].slice(-40)
+      return { ...prev, lines, detail: text }
+    })
+  }
+
   const postAction = async (action: string, body: Record<string, unknown> = {}) => {
     setBusyAction(action)
     setStatus(null)
     try {
-      const res = await fetch('/api/admin/notification-groups', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action, ...body }),
-      })
-      const json = await res.json()
-      if (!res.ok) {
-        throw new Error(json.error || 'Request failed')
-      }
+      const json = await postJson(action, body)
       setStatus({ type: 'success', text: json.message || 'Done' })
       if (action === 'SERIAL_RESET_ASSIGN') setLastResult(json)
       if (action === 'REMOVE_ALL_POOL_MEMBERS') setLastRemoveResult(json)
@@ -183,18 +214,144 @@ export default function MailAssignerPageContent() {
       return
     }
     const ok = window.confirm(
-      `Step 2 — Assign serials & ADD to groups?\n\n` +
-        `• Every user gets serial 1…N (by join order)\n` +
+      `Step 2 — Pack users into groups by serial?\n\n` +
+        `• Runs in live batches (you’ll see progress)\n` +
         `• Group 1 = serials 1–${MEMBERS_PER_GROUP}\n` +
         `• Group 2 = serials ${MEMBERS_PER_GROUP + 1}–${MEMBERS_PER_GROUP * 2}\n` +
-        `• (same pattern for more groups)\n` +
         `• Queues ADD jobs for Google Sync\n\n` +
         `Tip: run Step 1 (Remove all) first if groups still have old members.\n` +
         `Course Google Groups are NOT touched.`
     )
     if (!ok) return
 
-    await postAction('SERIAL_RESET_ASSIGN', { categoryId })
+    setBusyAction('SERIAL_RESET_ASSIGN')
+    setStatus(null)
+    setLive({
+      open: true,
+      title: 'Mail Assigner — live progress',
+      phase: 'Preparing',
+      detail: 'Starting…',
+      percent: 0,
+      processed: 0,
+      total: totalUsersCount,
+      addJobsQueued: 0,
+      lines: [{ t: Date.now(), text: 'Started Step 2' }],
+      done: false,
+    })
+
+    let totalAdd = 0
+    try {
+      // Phase 1: ensure serials in chunks
+      setLive(prev => prev && { ...prev, phase: 'Assigning missing serials' })
+      pushLiveLine('Phase 1: backfill unique serials…')
+      let serialGuard = 0
+      while (serialGuard < 200) {
+        const ens = await postJson('ENSURE_SERIALS', { limit: 150 })
+        const withSerial = ens.withSerial ?? 0
+        const remaining = ens.remaining ?? 0
+        const total = ens.totalUsers ?? totalUsersCount
+        setLive(prev =>
+          prev
+            ? {
+                ...prev,
+                phase: 'Assigning missing serials',
+                processed: withSerial,
+                total,
+                percent: total > 0 ? Math.round((withSerial / total) * 100) : 0,
+                detail: ens.message || `Serials ${withSerial}/${total}`,
+                lines: [
+                  ...prev.lines,
+                  {
+                    t: Date.now(),
+                    text: ens.message || `Serials batch +${ens.backfilled}, remaining ${remaining}`,
+                  },
+                ].slice(-40),
+              }
+            : prev
+        )
+        if (ens.done) break
+        serialGuard++
+      }
+
+      // Phase 2: pack by serial in chunks
+      setLive(prev => prev && { ...prev, phase: 'Packing users into pool groups' })
+      pushLiveLine('Phase 2: packing by serial into Google Group pools…')
+      let offset = 0
+      let guard = 0
+      let lastJson: any = null
+      while (guard < 500) {
+        const json = await postJson('SERIAL_RESET_ASSIGN', {
+          categoryId,
+          offset,
+          limit: 75,
+        })
+        lastJson = json
+        totalAdd += json.addJobsQueued || 0
+        offset = json.nextOffset ?? offset + (json.processed || 0)
+        const recentLines = (json.recent || []).map(
+          (r: { serial: number; email: string; groupEmail: string; action: string }) =>
+            `#${r.serial} ${r.email} → ${r.groupEmail} (${r.action})`
+        )
+        setLive(prev =>
+          prev
+            ? {
+                ...prev,
+                phase: 'Packing users into pool groups',
+                processed: offset,
+                total: json.totalUsers ?? prev.total,
+                percent: json.percent ?? 0,
+                addJobsQueued: totalAdd,
+                detail: json.message || `Packed ${offset}/${json.totalUsers}`,
+                lines: [
+                  ...prev.lines,
+                  { t: Date.now(), text: json.message || `Batch @ offset ${json.offset}` },
+                  ...recentLines.map((text: string) => ({ t: Date.now(), text })),
+                ].slice(-40),
+              }
+            : prev
+        )
+        if (json.done) break
+        guard++
+      }
+
+      setLastResult({
+        ...lastJson,
+        addJobsQueued: totalAdd,
+        message: `Finished. Queued ${totalAdd} ADD jobs total. Process them on Google Sync.`,
+      })
+      setStatus({
+        type: 'success',
+        text: `Finished packing. Queued ${totalAdd} ADD jobs — open Google Sync to process.`,
+      })
+      setLive(prev =>
+        prev
+          ? {
+              ...prev,
+              done: true,
+              phase: 'Complete',
+              percent: 100,
+              detail: `Done. ${totalAdd} ADD jobs queued for Google Sync.`,
+              lines: [...prev.lines, { t: Date.now(), text: 'Complete.' }].slice(-40),
+            }
+          : prev
+      )
+      await mutate()
+    } catch (err) {
+      const text = err instanceof Error ? err.message : 'Request failed'
+      setStatus({ type: 'error', text })
+      setLive(prev =>
+        prev
+          ? {
+              ...prev,
+              error: text,
+              detail: text,
+              lines: [...prev.lines, { t: Date.now(), text: `ERROR: ${text}` }].slice(-40),
+            }
+          : prev
+      )
+    } finally {
+      setBusyAction(null)
+    }
   }
 
   const handleReconcile = async () => {
@@ -207,10 +364,73 @@ export default function MailAssignerPageContent() {
 
   const handleEnsureSerials = async () => {
     const ok = window.confirm(
-      'Assign a unique serial number to every user who is missing one?\n\nExisting serials are never changed. One serial per user.'
+      'Assign a unique serial number to every user who is missing one?\n\nExisting serials are never changed. Live progress will open.'
     )
     if (!ok) return
-    await postAction('ENSURE_SERIALS')
+
+    setBusyAction('ENSURE_SERIALS')
+    setStatus(null)
+    setLive({
+      open: true,
+      title: 'Assign missing serials — live',
+      phase: 'Assigning missing serials',
+      detail: 'Starting…',
+      percent: 0,
+      processed: 0,
+      total: totalUsersCount,
+      addJobsQueued: 0,
+      lines: [{ t: Date.now(), text: 'Started serial backfill' }],
+      done: false,
+    })
+
+    try {
+      let guard = 0
+      while (guard < 200) {
+        const ens = await postJson('ENSURE_SERIALS', { limit: 150 })
+        const withSerial = ens.withSerial ?? 0
+        const total = ens.totalUsers ?? totalUsersCount
+        const last = (ens.lastAssigned || [])
+          .map((r: { email: string; serial: number }) => `#${r.serial} ${r.email}`)
+          .join(' · ')
+        setLive(prev =>
+          prev
+            ? {
+                ...prev,
+                processed: withSerial,
+                total,
+                percent: total > 0 ? Math.round((withSerial / total) * 100) : 0,
+                detail: ens.message || '',
+                lines: [
+                  ...prev.lines,
+                  { t: Date.now(), text: ens.message || `Batch +${ens.backfilled}` },
+                  ...(last ? [{ t: Date.now(), text: `Recent: ${last}` }] : []),
+                ].slice(-40),
+              }
+            : prev
+        )
+        if (ens.done) break
+        guard++
+      }
+      setStatus({ type: 'success', text: 'All users now have a unique serial.' })
+      setLive(prev =>
+        prev
+          ? {
+              ...prev,
+              done: true,
+              phase: 'Complete',
+              percent: 100,
+              detail: 'All missing serials assigned.',
+            }
+          : prev
+      )
+      await mutate()
+    } catch (err) {
+      const text = err instanceof Error ? err.message : 'Request failed'
+      setStatus({ type: 'error', text })
+      setLive(prev => (prev ? { ...prev, error: text, detail: text } : prev))
+    } finally {
+      setBusyAction(null)
+    }
   }
 
   const waitingMessage = (() => {
@@ -565,7 +785,9 @@ export default function MailAssignerPageContent() {
           }}
         >
           {busyAction === 'SERIAL_RESET_ASSIGN'
-            ? 'Assigning…'
+            ? live?.phase
+              ? `${live.phase}… ${live.percent}%`
+              : 'Assigning…'
             : canRunAssigner
               ? 'Step 2 · Assign serials & ADD'
               : `Waiting — need ${poolsShortBy || poolsNeeded} active mail(s)`}
@@ -615,8 +837,8 @@ export default function MailAssignerPageContent() {
             Last serial assign
           </div>
           <div style={{ fontSize: 13, color: 'var(--text-muted)', lineHeight: 1.5 }}>
-            Users: {lastResult.assignedCount}/{lastResult.totalUsers} · ADD {lastResult.addJobsQueued} · already in
-            correct group (DB) {lastResult.unchangedCount}
+            Users: {lastResult.totalUsers} · ADD {lastResult.addJobsQueued} · already in correct group (DB){' '}
+            {lastResult.unchangedCount}
           </div>
           {lastResult.distribution && lastResult.distribution.length > 0 && (
             <div style={{ marginTop: 12, display: 'grid', gap: 6 }}>
@@ -633,6 +855,143 @@ export default function MailAssignerPageContent() {
                 ))}
             </div>
           )}
+        </div>
+      )}
+
+      {live?.open && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 90,
+            background: 'rgba(0,0,0,0.6)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: 16,
+          }}
+          onClick={() => {
+            if (live.done || live.error) setLive(null)
+          }}
+        >
+          <div
+            className="card"
+            onClick={e => e.stopPropagation()}
+            style={{
+              width: '100%',
+              maxWidth: 560,
+              borderRadius: 18,
+              padding: '20px 22px',
+              background: 'var(--bg-card, #12141c)',
+              border: '1px solid rgba(255,255,255,0.1)',
+              maxHeight: '85vh',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 12,
+            }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'flex-start' }}>
+              <div>
+                <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase' }}>
+                  Live activity
+                </div>
+                <h2 style={{ margin: '4px 0 0', fontSize: 18, fontWeight: 800, color: 'var(--text-primary)' }}>
+                  {live.title}
+                </h2>
+              </div>
+              {(live.done || live.error) && (
+                <button
+                  type="button"
+                  onClick={() => setLive(null)}
+                  style={{
+                    background: 'transparent',
+                    border: 'none',
+                    color: 'var(--text-muted)',
+                    fontWeight: 800,
+                    cursor: 'pointer',
+                    fontSize: 16,
+                  }}
+                >
+                  ✕
+                </button>
+              )}
+            </div>
+
+            <div style={{ fontSize: 13.5, fontWeight: 700, color: live.error ? '#EF4444' : '#7DD3FC' }}>
+              {live.phase}
+            </div>
+            <div style={{ fontSize: 13, color: 'var(--text-muted)' }}>{live.detail}</div>
+
+            <div
+              style={{
+                height: 10,
+                borderRadius: 999,
+                background: 'rgba(255,255,255,0.08)',
+                overflow: 'hidden',
+              }}
+            >
+              <div
+                style={{
+                  height: '100%',
+                  width: `${Math.max(2, live.percent)}%`,
+                  background: live.error
+                    ? '#EF4444'
+                    : 'linear-gradient(90deg, #0EA5E9, #2563EB)',
+                  transition: 'width 0.25s ease',
+                }}
+              />
+            </div>
+
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, fontSize: 12.5, color: 'var(--text-muted)' }}>
+              <span>
+                Progress: <strong style={{ color: 'var(--text-primary)' }}>{live.processed}/{live.total}</strong>
+              </span>
+              <span>
+                Percent: <strong style={{ color: 'var(--text-primary)' }}>{live.percent}%</strong>
+              </span>
+              {live.addJobsQueued > 0 && (
+                <span>
+                  ADD jobs queued: <strong style={{ color: 'var(--text-primary)' }}>{live.addJobsQueued}</strong>
+                </span>
+              )}
+            </div>
+
+            <div
+              style={{
+                flex: 1,
+                minHeight: 160,
+                maxHeight: 280,
+                overflowY: 'auto',
+                borderRadius: 12,
+                background: 'rgba(0,0,0,0.28)',
+                padding: '10px 12px',
+                fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace',
+                fontSize: 11.5,
+                lineHeight: 1.45,
+                color: 'var(--text-muted)',
+              }}
+            >
+              {live.lines.map((line, i) => (
+                <div key={`${line.t}-${i}`} style={{ marginBottom: 4 }}>
+                  {line.text}
+                </div>
+              ))}
+              {!live.done && !live.error && (
+                <div style={{ color: '#7DD3FC', marginTop: 6 }}>Working… keep this tab open.</div>
+              )}
+            </div>
+
+            {(live.done || live.error) && (
+              <button
+                type="button"
+                className="btn btn-primary"
+                onClick={() => setLive(null)}
+                style={{ padding: '10px 14px', borderRadius: 999, fontWeight: 700 }}
+              >
+                Close
+              </button>
+            )}
+          </div>
         </div>
       )}
     </div>

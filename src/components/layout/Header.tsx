@@ -7,6 +7,7 @@ import UserAvatar from '@/components/UserAvatar'
 import { usePushNotifications } from '@/hooks/usePushNotifications'
 import { clearSWRCache } from '@/lib/cache'
 import { useTheme } from '@/components/ThemeProvider'
+import { useLanguage } from '@/contexts/LanguageContext'
 
 function Toggle({ checked, onChange }: { checked: boolean; onChange: (v: boolean) => void }) {
   return (
@@ -94,6 +95,7 @@ const TYPE_COLORS: Record<string, string> = {
 }
 
 export default function Header({ userName, userRole }: HeaderProps) {
+  const { t } = useLanguage()
   const router = useRouter()
   const pathname = usePathname()
   const searchParams = useSearchParams()
@@ -184,24 +186,24 @@ export default function Header({ userName, userRole }: HeaderProps) {
     const hour = new Date().getHours()
     if (hour >= 5 && hour < 12) {
       return {
-        heading: 'Good Morning',
+        heading: t('dashboard.greeting.morning'),
         subtext: 'Hope you’re ready for a productive day ahead.'
       }
     }
     if (hour >= 12 && hour < 17) {
       return {
-        heading: 'Good Afternoon',
+        heading: t('dashboard.greeting.afternoon'),
         subtext: 'Keep going strong, you’re making great progress.'
       }
     }
     if (hour >= 17 && hour < 21) {
       return {
-        heading: 'Good Evening',
+        heading: t('dashboard.greeting.evening'),
         subtext: 'Take a moment to relax and review your day.'
       }
     }
     return {
-      heading: 'Good Night',
+      heading: t('dashboard.greeting.night'),
       subtext: 'You’ve done well today. Get some good rest.'
     }
   }
@@ -499,13 +501,21 @@ export default function Header({ userName, userRole }: HeaderProps) {
           <span className="download-btn-text">Download App</span>
         </a>
 
-        {/* Appearance Toggle — Dark/Light */}
+        {/* Appearance Toggle — Light / Dark / Black */}
         <button
           onClick={() => {
             const { resolvedTheme, setTheme } = themeCtx
-            setTheme(resolvedTheme === 'dark' ? 'light' : 'dark')
+            if (resolvedTheme === 'light') setTheme('dark')
+            else if (resolvedTheme === 'dark') setTheme('black')
+            else setTheme('light')
           }}
-          title={themeCtx.resolvedTheme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+          title={
+            themeCtx.resolvedTheme === 'light'
+              ? 'Switch to Dark Mode'
+              : themeCtx.resolvedTheme === 'dark'
+              ? 'Switch to Black Mode'
+              : 'Switch to Light Mode'
+          }
           className="theme-toggle-btn"
           style={{
             width: '38px', height: '38px', borderRadius: '50%',
@@ -513,7 +523,7 @@ export default function Header({ userName, userRole }: HeaderProps) {
             background: 'var(--surface)',
             boxShadow: 'var(--shadow)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            color: themeCtx.resolvedTheme === 'dark' ? '#f59e0b' : 'var(--text-secondary)',
+            color: themeCtx.resolvedTheme === 'dark' ? '#f59e0b' : (themeCtx.resolvedTheme === 'black' ? '#ffffff' : 'var(--text-secondary)'),
             transition: 'all 0.3s cubic-bezier(0.4,0,0.2,1)',
             position: 'relative',
             overflow: 'hidden',
@@ -521,7 +531,12 @@ export default function Header({ userName, userRole }: HeaderProps) {
           onMouseEnter={e => { e.currentTarget.style.boxShadow = 'var(--shadow-sm)'; e.currentTarget.style.transform = 'scale(1.08)'; }}
           onMouseLeave={e => { e.currentTarget.style.boxShadow = 'var(--shadow)'; e.currentTarget.style.transform = 'scale(1)'; }}
         >
-          {themeCtx.resolvedTheme === 'dark' ? (
+          {themeCtx.resolvedTheme === 'black' ? (
+            /* Contrast / Eclipse icon for Black mode */
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" style={{ transition: 'transform 0.4s ease' }}>
+              <path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 18a8 8 0 0 1 0-16z"/>
+            </svg>
+          ) : themeCtx.resolvedTheme === 'dark' ? (
             /* Sun icon */
             <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{ transition: 'transform 0.4s ease' }}>
               <circle cx="12" cy="12" r="5"/>
@@ -743,10 +758,10 @@ export default function Header({ userName, userRole }: HeaderProps) {
                   fontWeight: '500', color: 'var(--text-primary)', fontFamily: 'inherit',
                   transition: 'background 0.15s',
                 }}
-                onMouseEnter={e => (e.currentTarget.style.background = 'rgba(54,54,232,0.06)')}
+                onMouseEnter={e => (e.currentTarget.style.background = 'var(--surface-hover)')}
                 onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
               >
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#6b6b8a" strokeWidth="2">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ color: 'var(--text-secondary)' }}>
                   <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
                   <circle cx="12" cy="7" r="4"/>
                 </svg>
@@ -761,10 +776,10 @@ export default function Header({ userName, userRole }: HeaderProps) {
                   fontWeight: '500', color: 'var(--text-primary)', fontFamily: 'inherit',
                   transition: 'background 0.15s',
                 }}
-                onMouseEnter={e => (e.currentTarget.style.background = 'rgba(54,54,232,0.06)')}
+                onMouseEnter={e => (e.currentTarget.style.background = 'var(--surface-hover)')}
                 onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
               >
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#6b6b8a" strokeWidth="2">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ color: 'var(--text-secondary)' }}>
                   <circle cx="12" cy="12" r="3"/>
                   <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
                 </svg>

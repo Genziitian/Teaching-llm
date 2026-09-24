@@ -94,7 +94,7 @@ export function colorWithOpacity(color: string, opacitySuffix: string): string {
   return `${hex}${opacitySuffix}`
 }
 
-type ResolvedTheme = 'light' | 'dark'
+type ResolvedTheme = 'light' | 'dark' | 'black'
 
 export interface CourseDisplayPalette {
   isRefinedLightPalette: boolean

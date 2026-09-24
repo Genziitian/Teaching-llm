@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../theme/app_theme_tokens.dart';
+
 /// Shimmer loading sweep matching Capacitor / Web UI's skeleton effect
 /// (`@keyframes skeleton-loading 1.5s infinite`).
 class ShimmerLoading extends StatefulWidget {
@@ -39,11 +41,17 @@ class _ShimmerLoadingState extends State<ShimmerLoading>
 
   @override
   Widget build(BuildContext context) {
+    final tokens = context.tokens;
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final isBlack = tokens.isBlack;
     final base = widget.baseColor ??
-        (isDark ? const Color(0xFF1E2442) : const Color(0xFFE8EAF0));
+        (isBlack
+            ? const Color(0xFF141414)
+            : (isDark ? const Color(0xFF1E2442) : const Color(0xFFE8EAF0)));
     final highlight = widget.highlightColor ??
-        (isDark ? const Color(0xFF2C345C) : const Color(0xFFF6F7FB));
+        (isBlack
+            ? const Color(0xFF27272A)
+            : (isDark ? const Color(0xFF2C345C) : const Color(0xFFF6F7FB)));
 
     return AnimatedBuilder(
       animation: _controller,
@@ -92,8 +100,12 @@ class SkeletonBox extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final tokens = context.tokens;
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final bg = isDark ? const Color(0xFF1E2442) : const Color(0xFFE8EAF0);
+    final isBlack = tokens.isBlack;
+    final bg = isBlack
+        ? const Color(0xFF141414)
+        : (isDark ? const Color(0xFF1E2442) : const Color(0xFFE8EAF0));
 
     return ShimmerLoading(
       child: Container(
