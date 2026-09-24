@@ -162,14 +162,6 @@ async function openOfficialPlayListing() {
   }
 
   try {
-    const { App } = await import('@capacitor/app')
-    await App.openUrl({ url: PLAY_LISTING_URL })
-    return
-  } catch {
-    // Older shells, or a device without a handler for the listing URL.
-  }
-
-  try {
     const { Browser } = await import('@capacitor/browser')
     await Browser.open({ url: PLAY_LISTING_URL })
     return
