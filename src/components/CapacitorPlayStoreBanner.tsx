@@ -4,10 +4,13 @@ import { useEffect, useRef, useState } from 'react'
 
 const PLAY_PACKAGE = 'com.teaching.lms'
 const PLAY_REFERRER = 'utm_source=capacitor&utm_medium=sunset_banner'
-const PLAY_LISTING_URL = `https://play.google.com/store/apps/details?id=${PLAY_PACKAGE}&referrer=${encodeURIComponent(PLAY_REFERRER)}`
-
 type PlayInlineBridge = {
   openOfficialApp?: () => void
+}
+
+type PlayWindow = Window & {
+  GenZPlayInline?: PlayInlineBridge
+  __openOfficialPlayApp?: () => void
 }
 
 /**
@@ -38,6 +41,7 @@ export default function CapacitorPlayStoreBanner() {
 
   useEffect(() => {
     if (!visible) return
+    document.getElementById('cap-play-sunset')?.remove()
     const previous = document.body.style.overflow
     document.body.style.overflow = 'hidden'
     return () => {
@@ -154,20 +158,23 @@ export default function CapacitorPlayStoreBanner() {
   )
 }
 
-async function openOfficialPlayListing() {
-  const nativeBridge = (window as unknown as { GenZPlayInline?: PlayInlineBridge }).GenZPlayInline
-  if (typeof nativeBridge?.openOfficialApp === 'function') {
-    nativeBridge.openOfficialApp()
+function openOfficialPlayListing() {
+  const playWindow = window as PlayWindow
+  if (typeof playWindow.__openOfficialPlayApp === 'function') {
+    playWindow.__openOfficialPlayApp()
     return
   }
 
-  try {
-    const { Browser } = await import('@capacitor/browser')
-    await Browser.open({ url: PLAY_LISTING_URL })
+  if (typeof playWindow.GenZPlayInline?.openOfficialApp === 'function') {
+    playWindow.GenZPlayInline.openOfficialApp()
     return
-  } catch {
-    window.location.href = PLAY_LISTING_URL
   }
+
+  const referrer = encodeURIComponent(PLAY_REFERRER)
+  const marketUrl = `market://details?id=${PLAY_PACKAGE}&referrer=${referrer}`
+  const httpsUrl = `https://play.google.com/store/apps/details?id=${PLAY_PACKAGE}&referrer=${referrer}`
+  const native = !!(window as unknown as { Capacitor?: { isNativePlatform?: () => boolean } }).Capacitor?.isNativePlatform?.()
+  window.location.href = native ? marketUrl : httpsUrl
 }
 
 function isPlayBannerPreview() {
