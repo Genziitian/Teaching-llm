@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { getSession } from '@/lib/auth'
 import { normalizeFactRarity, parseBulkFactLine } from '@/lib/facts/loading-fact-rarity'
+import { ensureLoadingFactsSeeded } from '@/lib/facts/seed-loading-facts'
 
 export async function POST(request: NextRequest) {
   try {
@@ -9,6 +10,8 @@ export async function POST(request: NextRequest) {
     if (!session || session.role !== 'MANAGER') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
+
+    await ensureLoadingFactsSeeded().catch(() => {})
 
     const data = await request.json()
     const fallbackRarity = normalizeFactRarity(data.rarity)
@@ -38,10 +41,12 @@ export async function POST(request: NextRequest) {
 
     await prisma.loadingFact.createMany({
       data: unique.map(item => ({
+        id: `lf_custom_${crypto.randomUUID()}`,
         text: item.text,
         rarity: item.rarity,
         isCoupon,
         isActive: true,
+        updatedAt: new Date(),
       })),
     })
 

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { getSession } from '@/lib/auth'
-import { ensureLoadingFactsSeeded } from '@/lib/facts/seed-loading-facts'
+import { ensureLoadingFactsSeeded, getBundledFactsPayload } from '@/lib/facts/seed-loading-facts'
 import { normalizeFactRarity } from '@/lib/facts/loading-fact-rarity'
 
 export async function GET(request: NextRequest) {
@@ -11,14 +11,22 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    await ensureLoadingFactsSeeded()
-
     const { searchParams } = new URL(request.url)
     const q = (searchParams.get('q') || '').trim()
     const rarity = searchParams.get('rarity') || ''
     const active = searchParams.get('active') || 'all'
     const page = Math.max(1, Number(searchParams.get('page') || 1))
     const limit = Math.min(100, Math.max(10, Number(searchParams.get('limit') || 50)))
+
+    try {
+      await ensureLoadingFactsSeeded()
+    } catch (seedError) {
+      console.error('[manage/facts] Seed Error:', seedError)
+      return NextResponse.json({
+        ...getBundledFactsPayload({ q, rarity, page, limit }),
+        warning: 'Showing built-in facts. Database seed failed; edits may not save until this is fixed.',
+      })
+    }
 
     const where: Record<string, unknown> = {}
     if (q) where.text = { contains: q, mode: 'insensitive' }
@@ -29,7 +37,7 @@ export async function GET(request: NextRequest) {
     const [facts, total, commonCount, rareCount, ultraCount, activeCount] = await Promise.all([
       prisma.loadingFact.findMany({
         where,
-        orderBy: { createdAt: 'desc' },
+        orderBy: { createdAt: 'asc' },
         skip: (page - 1) * limit,
         take: limit,
       }),
@@ -40,11 +48,19 @@ export async function GET(request: NextRequest) {
       prisma.loadingFact.count({ where: { isActive: true } }),
     ])
 
+    if (total === 0) {
+      return NextResponse.json({
+        ...getBundledFactsPayload({ q, rarity, page, limit }),
+        warning: 'Showing built-in facts until they are saved to the database.',
+      })
+    }
+
     return NextResponse.json({
       facts,
       total,
       page,
       limit,
+      source: 'database',
       counts: {
         all: commonCount + rareCount + ultraCount,
         COMMON: commonCount,
@@ -55,7 +71,16 @@ export async function GET(request: NextRequest) {
     })
   } catch (error) {
     console.error('[manage/facts] GET Error:', error)
-    return NextResponse.json({ error: 'Failed to fetch facts' }, { status: 500 })
+    const { searchParams } = new URL(request.url)
+    return NextResponse.json({
+      ...getBundledFactsPayload({
+        q: (searchParams.get('q') || '').trim(),
+        rarity: searchParams.get('rarity') || '',
+        page: Math.max(1, Number(searchParams.get('page') || 1)),
+        limit: Math.min(100, Math.max(10, Number(searchParams.get('limit') || 50))),
+      }),
+      warning: 'Could not load facts from the database, so the built-in pack is shown instead.',
+    })
   }
 }
 
@@ -65,6 +90,8 @@ export async function POST(request: NextRequest) {
     if (!session || session.role !== 'MANAGER') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
+
+    await ensureLoadingFactsSeeded().catch(() => {})
 
     const data = await request.json()
     const text = String(data.text || '').trim()

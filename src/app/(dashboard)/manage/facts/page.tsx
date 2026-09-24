@@ -49,10 +49,11 @@ export default function LoadingFactsAdminPage() {
     return `/api/manage/facts?${params.toString()}`
   }, [debouncedSearch, rarityFilter, page])
 
-  const { data, isLoading, mutate } = useSWR(query, fetcher, { revalidateOnFocus: false })
+  const { data, error, isLoading, mutate } = useSWR(query, fetcher, { revalidateOnFocus: false })
   const facts: ManagedFact[] = data?.facts || []
   const total = data?.total || 0
   const counts = data?.counts || { all: 0, COMMON: 0, RARE: 0, ULTRA_RARE: 0 }
+  const warning = typeof data?.warning === 'string' ? data.warning : ''
   const totalPages = Math.max(1, Math.ceil(total / 50))
 
   const applySearch = () => {
@@ -263,6 +264,36 @@ export default function LoadingFactsAdminPage() {
           </button>
         )}
       </div>
+
+      {error && (
+        <div style={{
+          marginBottom: '16px',
+          padding: '12px 16px',
+          borderRadius: '12px',
+          background: 'rgba(239,68,68,0.1)',
+          border: '1px solid rgba(239,68,68,0.35)',
+          color: 'var(--danger)',
+          fontSize: '13px',
+          fontWeight: 700,
+        }}>
+          Could not load facts. Refresh the page to try again.
+        </div>
+      )}
+
+      {warning && (
+        <div style={{
+          marginBottom: '16px',
+          padding: '12px 16px',
+          borderRadius: '12px',
+          background: 'rgba(245,158,11,0.12)',
+          border: '1px solid rgba(245,158,11,0.35)',
+          color: '#f59e0b',
+          fontSize: '13px',
+          fontWeight: 700,
+        }}>
+          {warning}
+        </div>
+      )}
 
       {showAdd && (
         <div className="card" style={{ padding: '20px', marginBottom: '18px', borderTop: '4px solid var(--primary)' }}>
