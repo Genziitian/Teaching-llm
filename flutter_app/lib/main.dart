@@ -8,6 +8,7 @@ import 'config/api_config.dart';
 import 'core/notifications/push_notification_service.dart';
 import 'core/router/nav_history_observer.dart';
 import 'features/auth/welcome_page.dart';
+import 'features/launch/play_store_launch_overlay.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -45,10 +46,14 @@ void main() async {
   // Read the welcome-seen flag eagerly so the router's synchronous redirect
   // can decide between /welcome and /login without flicker.
   final welcomeSeen = await WelcomePage.hasBeenSeen();
+  // Play Store welcome is Flutter-only and stays dismissed for the life of
+  // this install once Enter is tapped.
+  final launchSeen = await PlayStoreLaunch.hasBeenSeen();
 
   runApp(ProviderScope(
     overrides: [
       welcomeSeenProvider.overrideWith((_) => welcomeSeen),
+      playStoreLaunchSeenProvider.overrideWith((_) => launchSeen),
     ],
     child: const TeachingLlmApp(),
   ));

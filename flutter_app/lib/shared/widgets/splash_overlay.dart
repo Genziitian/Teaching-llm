@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/facts/loading_fact_service.dart';
 import '../../core/facts/loading_facts_data.dart';
+import '../../features/launch/play_store_launch_overlay.dart';
 import '../../features/prompts/admin_messages_host.dart';
 import 'loading_fact_card.dart';
 
@@ -33,6 +34,16 @@ class _SplashOverlayState extends ConsumerState<SplashOverlay>
     super.initState();
     if (_hasShownThisSession) {
       _loaderVisible = false;
+      return;
+    }
+
+    // The one-time welcome is the first screen. Skip the loader so it cannot
+    // cover that welcome, and so Enter opens the app directly.
+    final launchPending = playStoreLaunchApplies() &&
+        !ref.read(playStoreLaunchSeenProvider);
+    if (launchPending) {
+      _loaderVisible = false;
+      _hasShownThisSession = true;
       return;
     }
 
@@ -76,10 +87,15 @@ class _SplashOverlayState extends ConsumerState<SplashOverlay>
   @override
   Widget build(BuildContext context) {
     final overlayVisible = _loaderVisible;
+    final showingLaunch =
+        playStoreLaunchApplies() && !ref.watch(playStoreLaunchSeenProvider);
 
     return Stack(
       children: [
-        AdminMessagesHost(enabled: !_loaderVisible, child: widget.child),
+        AdminMessagesHost(
+          enabled: !_loaderVisible && !showingLaunch,
+          child: widget.child,
+        ),
         if (overlayVisible)
           AnimatedOpacity(
             opacity: overlayVisible ? 1.0 : 0.0,

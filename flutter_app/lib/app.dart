@@ -7,6 +7,7 @@ import 'core/auth/auth_providers.dart';
 import 'core/notifications/push_notification_service.dart';
 import 'core/router/app_router.dart';
 import 'core/router/nav_history_observer.dart';
+import 'features/launch/play_store_launch_overlay.dart';
 import 'shared/widgets/splash_overlay.dart';
 import 'theme/app_theme.dart';
 import 'theme/theme_mode_provider.dart';
@@ -47,8 +48,12 @@ class TeachingLlmApp extends ConsumerWidget {
       themeMode: themeMode,
       routerConfig: router,
       scrollBehavior: const AppScrollBehavior(),
-      builder: (context, child) => SplashOverlay(
-        child: child ?? const SizedBox.shrink(),
+      // The Play Store welcome sits above the router and the loading splash,
+      // so it is the first screen whether or not someone is signed in.
+      builder: (context, child) => PlayStoreLaunchOverlay(
+        child: SplashOverlay(
+          child: child ?? const SizedBox.shrink(),
+        ),
       ),
     );
   }
