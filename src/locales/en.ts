@@ -29,6 +29,7 @@ export const en = {
     live: {
       liveNow: 'LIVE NOW',
       joinLive: 'Join Live',
+      joinInstructor: 'Join Now',
       unlockToJoin: 'Unlock to Join',
       noActiveSessions: 'No Active Sessions',
       allOffline: 'All live courses are currently offline',

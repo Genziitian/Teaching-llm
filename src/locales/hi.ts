@@ -29,6 +29,7 @@ export const hi = {
     live: {
       liveNow: 'अभी लाइव',
       joinLive: 'लाइव में शामिल हों',
+      joinInstructor: 'अभी शामिल हों',
       unlockToJoin: 'शामिल होने के लिए अनलॉक करें',
       noActiveSessions: 'कोई सक्रिय सेशन नहीं',
       allOffline: 'सभी लाइव कोर्सेज अभी ऑफलाइन हैं',
