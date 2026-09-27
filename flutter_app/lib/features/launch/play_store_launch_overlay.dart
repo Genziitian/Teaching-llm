@@ -158,39 +158,54 @@ class _CelebrationScreen extends StatelessWidget {
               SafeArea(
                 child: Padding(
                   padding: const EdgeInsets.fromLTRB(22, 8, 22, 16),
-                  child: Column(
-                    children: [
-                      Expanded(
-                        child: LayoutBuilder(
-                          builder: (context, constraints) {
-                            return SingleChildScrollView(
-                              physics: const BouncingScrollPhysics(),
-                              child: ConstrainedBox(
-                                constraints: BoxConstraints(
-                                  minHeight: constraints.maxHeight,
-                                ),
-                                child: const Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    _Eyebrow(),
-                                    SizedBox(height: 18),
-                                    _Headline(),
-                                    SizedBox(height: 16),
-                                    _Thanks(),
-                                    SizedBox(height: 18),
-                                    _NoteCard(),
-                                    SizedBox(height: 18),
-                                    _SignOff(),
-                                  ],
-                                ),
-                              ),
-                            );
-                          },
-                        ),
+                  child: Center(
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 520),
+                      child: Column(
+                        children: [
+                          Expanded(
+                            child: LayoutBuilder(
+                              builder: (context, constraints) {
+                                return SingleChildScrollView(
+                                  physics: const BouncingScrollPhysics(),
+                                  child: ConstrainedBox(
+                                    constraints: BoxConstraints(
+                                      minHeight: constraints.maxHeight,
+                                    ),
+                                    child: Column(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: [
+                                        // Logo
+                                        ConstrainedBox(
+                                          constraints: const BoxConstraints(maxHeight: 80),
+                                          child: Image.asset(
+                                            'assets/mobile-login-logo.png',
+                                            height: 70,
+                                            fit: BoxFit.contain,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 16),
+                                        const _Eyebrow(),
+                                        const SizedBox(height: 18),
+                                        const _Headline(),
+                                        const SizedBox(height: 16),
+                                        const _Thanks(),
+                                        const SizedBox(height: 18),
+                                        const _NoteCard(),
+                                        const SizedBox(height: 18),
+                                        const _SignOff(),
+                                      ],
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
+                          const SizedBox(height: 14),
+                          _EnterButton(onPressed: onEnter),
+                        ],
                       ),
-                      const SizedBox(height: 14),
-                      _EnterButton(onPressed: onEnter),
-                    ],
+                    ),
                   ),
                 ),
               ),

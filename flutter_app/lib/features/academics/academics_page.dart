@@ -65,21 +65,24 @@ class AcademicsPage extends ConsumerWidget {
       backgroundColor: tokens.bg,
       body: SafeArea(
         bottom: false,
-        child: AppRefresh(
-          onRefresh: () async {
-            final now = DateTime.now();
-            ref.invalidate(
-                calendarEventsProvider((year: now.year, month: now.month)));
-            ref.invalidate(liveSessionsProvider);
-            ref.invalidate(freeCoursesProvider);
-            ref.invalidate(freeMaterialsProvider);
-            ref.invalidate(purchasedMaterialsProvider);
-            ref.invalidate(coursesProvider);
-          },
-          child: ListView(
-            physics: const AlwaysScrollableScrollPhysics(),
-            padding: const EdgeInsets.fromLTRB(20, 18, 20, 110),
-            children: [
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 1080),
+            child: AppRefresh(
+              onRefresh: () async {
+                final now = DateTime.now();
+                ref.invalidate(
+                    calendarEventsProvider((year: now.year, month: now.month)));
+                ref.invalidate(liveSessionsProvider);
+                ref.invalidate(freeCoursesProvider);
+                ref.invalidate(freeMaterialsProvider);
+                ref.invalidate(purchasedMaterialsProvider);
+                ref.invalidate(coursesProvider);
+              },
+              child: ListView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: const EdgeInsets.fromLTRB(20, 18, 20, 110),
+                children: [
               // ── Header ─────────────────────────────────────────────
               Row(
                 children: [
@@ -123,11 +126,14 @@ class AcademicsPage extends ConsumerWidget {
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
                 itemCount: items.length,
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: MediaQuery.sizeOf(context).width >= 900
+                      ? 4
+                      : (MediaQuery.sizeOf(context).width >= 600 ? 3 : 2),
                   crossAxisSpacing: 14,
                   mainAxisSpacing: 14,
-                  childAspectRatio: 1.05,
+                  childAspectRatio:
+                      MediaQuery.sizeOf(context).width >= 600 ? 1.25 : 1.05,
                 ),
                 itemBuilder: (context, i) {
                   final item = items[i];
@@ -189,6 +195,8 @@ class AcademicsPage extends ConsumerWidget {
           ),
         ),
       ),
-    );
+    ),
+  ),
+);
   }
 }

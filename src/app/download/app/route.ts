@@ -15,8 +15,8 @@ export async function GET(request: Request) {
   const isIOS = /iPad|iPhone|iPod/.test(userAgent)
 
   if (isAndroid) {
-    // Redirect directly to the existing Supabase storage APK download URL
-    return NextResponse.redirect('https://zedmvgqhnapmpqpnzoqh.supabase.co/storage/v1/object/public/downloads/class%20genz.apk')
+    // Redirect directly to official Google Play Store listing
+    return NextResponse.redirect('https://play.google.com/store/apps/details?id=com.teaching.lms')
   } else if (isIOS) {
     return NextResponse.redirect(`${baseUrl}/download?device=ios`)
   } else {

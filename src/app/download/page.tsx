@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import posthog from 'posthog-js'
 import Link from 'next/link'
 
-const APK_URL = 'https://zedmvgqhnapmpqpnzoqh.supabase.co/storage/v1/object/public/downloads/class%20genz.apk'
+const PLAY_STORE_URL = 'https://play.google.com/store/apps/details?id=com.teaching.lms'
 const SHARE_URL = 'https://class.genziitian.in/download'
 
 const FEATURES = [
@@ -25,10 +25,8 @@ const SCREENSHOTS = [
 ]
 
 export default function DownloadPage() {
-  const [downloading, setDownloading] = useState(false)
   const [activeScreen, setActiveScreen] = useState(0)
   const [copied, setCopied] = useState(false)
-  const [downloadCount, setDownloadCount] = useState(344)
   const [device, setDevice] = useState<'android' | 'ios' | 'desktop' | null>(null)
   const [showQrModal, setShowQrModal] = useState(false)
   const [showIosModal, setShowIosModal] = useState(false)
@@ -36,21 +34,6 @@ export default function DownloadPage() {
   const [copiedLink, setCopiedLink] = useState(false)
   const [downloadAppUrl, setDownloadAppUrl] = useState('https://class.genziitian.in/download/app')
   const [iosUrl, setIosUrl] = useState('https://class.genziitian.in/download?device=ios')
-
-  useEffect(() => {
-    const calculateDownloads = () => {
-      // Anchored to June 7, 2026, at 09:00:00 UTC+5:30
-      const anchorTime = new Date('2026-06-07T09:00:00+05:30').getTime()
-      const now = Date.now()
-      const diffMs = now - anchorTime
-      const diffHours = Math.floor(diffMs / (1000 * 60 * 60))
-      setDownloadCount(344 + Math.max(0, diffHours))
-    }
-
-    calculateDownloads()
-    const interval = setInterval(calculateDownloads, 60000)
-    return () => clearInterval(interval)
-  }, [])
 
   useEffect(() => {
     posthog.capture('download_page_viewed')
@@ -120,17 +103,12 @@ export default function DownloadPage() {
       return
     }
 
-    setDownloading(true)
-    posthog.capture('apk_download_clicked', { source: 'download_page' })
-    const a = document.createElement('a')
-    a.href = APK_URL
-    a.download = 'GENz-IITIAN.apk'
-    a.click()
-    setTimeout(() => setDownloading(false), 3000)
+    posthog.capture('play_store_clicked', { source: 'download_page' })
+    window.open(PLAY_STORE_URL, '_blank', 'noopener,noreferrer')
   }
 
   function handleCopyDownloadLink() {
-    navigator.clipboard.writeText(downloadAppUrl)
+    navigator.clipboard.writeText(PLAY_STORE_URL)
     setCopiedLink(true)
     setTimeout(() => setCopiedLink(false), 2000)
   }
@@ -288,6 +266,59 @@ export default function DownloadPage() {
           font-size: 12px; color: #64748b; font-weight: 500;
         }
         .pill-dot { width: 6px; height: 6px; border-radius: 50%; background: #22c55e; flex-shrink: 0; }
+
+        /* ─── PLAY STORE BUTTON & ANNOUNCEMENT ─── */
+        .play-btn {
+          display: inline-flex; align-items: center; gap: 14px;
+          background: #111119; color: #fff; border: 1.5px solid rgba(255,255,255,0.18);
+          border-radius: 16px; padding: 12px 24px; cursor: pointer; text-decoration: none;
+          font-family: 'Inter', sans-serif;
+          box-shadow: 0 8px 24px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.12);
+          transition: all 0.25s cubic-bezier(0.34,1.56,0.64,1);
+        }
+        .play-btn:hover {
+          background: #191924; border-color: rgba(52,211,153,0.5);
+          box-shadow: 0 12px 32px rgba(16,185,129,0.22);
+          transform: translateY(-2px) scale(1.02);
+        }
+        .play-btn:active { transform: scale(0.98); }
+
+        .announcement-banner {
+          display: flex; align-items: center; justify-content: space-between; gap: 16px;
+          background: linear-gradient(135deg, rgba(1,135,95,0.15) 0%, rgba(99,102,241,0.14) 100%);
+          border: 1px solid rgba(52,211,153,0.35);
+          border-radius: 18px; padding: 14px 20px; margin-bottom: 24px;
+          box-shadow: 0 8px 30px rgba(1,135,95,0.12);
+          backdrop-filter: blur(10px);
+          animation: bannerFadeIn 0.5s ease-out;
+        }
+        @keyframes bannerFadeIn {
+          from { opacity: 0; transform: translateY(-6px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        .announcement-body {
+          display: flex; align-items: center; gap: 10px; font-size: 13.5px;
+          line-height: 1.5; color: #e2e8f0; text-align: left;
+        }
+        .announcement-tag {
+          display: inline-flex; align-items: center; gap: 5px;
+          background: #01875f; color: #fff; font-size: 10.5px;
+          font-weight: 800; letter-spacing: 0.05em; padding: 4px 10px;
+          border-radius: 8px; text-transform: uppercase; flex-shrink: 0;
+        }
+        .announcement-text { color: #cbd5e1; }
+        .announcement-text strong { color: #fff; }
+        .announcement-cta {
+          display: inline-flex; align-items: center; gap: 8px;
+          background: #ffffff; color: #0f172a; font-size: 13px;
+          font-weight: 700; padding: 8px 16px; border-radius: 12px;
+          text-decoration: none; flex-shrink: 0; transition: all 0.2s ease;
+          box-shadow: 0 4px 14px rgba(255,255,255,0.15);
+        }
+        .announcement-cta:hover {
+          background: #f1f5f9; transform: translateY(-1px);
+          box-shadow: 0 6px 20px rgba(255,255,255,0.25);
+        }
 
         /* ─── PHONE MOCKUP ─── */
         .hero-right { flex-shrink: 0; position: relative; display: flex; flex-direction: column; align-items: center; }
@@ -879,6 +910,10 @@ export default function DownloadPage() {
           .screens-section { padding: 60px 20px 70px; }
           .cta-section { padding: 70px 20px; }
           .screen-phone { width: 150px; height: 305px; }
+          .announcement-banner { flex-direction: column; align-items: stretch; gap: 12px; padding: 14px; }
+          .announcement-body { flex-direction: column; align-items: flex-start; gap: 8px; font-size: 13px; }
+          .announcement-cta { width: 100%; justify-content: center; }
+          .play-btn { width: 100%; justify-content: center; }
         }
       `}</style>
 
@@ -892,15 +927,41 @@ export default function DownloadPage() {
           <Link href="/login" className="nav-login-link">
             Student Login
           </Link>
-          <button className="nav-cta" onClick={handleDownload}>
-            ⬇ Download App
-          </button>
+          <a
+            href={PLAY_STORE_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="nav-cta"
+            style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', textDecoration: 'none' }}
+          >
+            <PlayGlyph size={15} />
+            <span>Google Play</span>
+          </a>
         </div>
       </nav>
 
       {/* ─── HERO ─── */}
       <section className="hero">
         <div className="hero-left">
+          {/* Announcement Banner */}
+          <div className="announcement-banner">
+            <div className="announcement-body">
+              <span className="announcement-tag">Google Play</span>
+              <span className="announcement-text">
+                🎉 <strong>Official Release:</strong> We are proud to announce our official app is now live on Google Play Store! Please download it.
+              </span>
+            </div>
+            <a
+              href={PLAY_STORE_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="announcement-cta"
+            >
+              <PlayGlyph size={15} />
+              <span>Install App</span>
+            </a>
+          </div>
+
           <div className="badge">
             <span className="badge-live" />
             First-of-its-kind · IITM BS Community
@@ -937,16 +998,22 @@ export default function DownloadPage() {
                     </p>
                   </div>
                 )
-              ) : device === 'android' ? (
-                <button className="dl-btn" onClick={handleDownload} disabled={downloading}>
-                  <span className="dl-icon">{downloading ? '⏳' : '⬇️'}</span>
-                  <span>{downloading ? 'Downloading...' : 'Download Android App'}</span>
-                </button>
               ) : (
-                <button className="dl-btn" onClick={handleDownload}>
-                  <span className="dl-icon">⬇️</span>
-                  <span>Download Free APK</span>
-                </button>
+                <a
+                  href={PLAY_STORE_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="play-btn"
+                  onClick={() => posthog.capture('play_store_clicked', { source: 'hero' })}
+                >
+                  <span className="dl-icon" style={{ background: 'rgba(255,255,255,0.08)' }}>
+                    <PlayGlyph size={24} />
+                  </span>
+                  <div style={{ textAlign: 'left' }}>
+                    <div style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.08em', opacity: 0.8, fontWeight: 600 }}>Get it on</div>
+                    <div style={{ fontSize: '18px', fontWeight: 800, lineHeight: 1.15 }}>Google Play</div>
+                  </div>
+                </a>
               )}
               <button className="share-btn" onClick={handleShare}>
                 <svg width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
@@ -965,16 +1032,24 @@ export default function DownloadPage() {
               <div className="dual-qr-flex">
                 <div className="dual-qr-card">
                   <div className="dual-qr-card-label">
-                    Android/Tablet
+                    <PlayGlyph size={15} />
+                    Android / Play Store
                   </div>
                   <div className="dual-qr-code-wrap">
                     <img
-                      src={`https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(downloadAppUrl)}`}
-                      alt="Android App QR"
+                      src={`https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(PLAY_STORE_URL)}`}
+                      alt="Google Play QR"
                     />
                   </div>
-                  <div className="dual-qr-card-sub">Scan to download the Android app</div>
-                  <div style={{ fontSize: '11px', color: '#6366f1', fontWeight: '700' }}>Download APK</div>
+                  <div className="dual-qr-card-sub">Scan to install from Google Play</div>
+                  <a
+                    href={PLAY_STORE_URL}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{ fontSize: '11px', color: '#34d399', fontWeight: '700', textDecoration: 'none' }}
+                  >
+                    Google Play Store ↗
+                  </a>
                 </div>
 
                 <div className="dual-qr-card">
@@ -1024,8 +1099,7 @@ export default function DownloadPage() {
       {/* ─── STATS ─── */}
       <div className="stats">
         {[
-          { n: `${downloadCount}+`, l: 'App Downloads', highlight: true },
-          { n: '500+', l: 'Active Students' },
+          { n: '500+', l: 'Active Students', highlight: true },
           { n: '50+',  l: 'Live Sessions' },
           { n: '4.9★', l: 'Student Rating' },
           { n: '100%', l: 'Free to Download' },
@@ -1100,9 +1174,9 @@ export default function DownloadPage() {
         <h2 className="section-h">Install in <span className="grad">3 Simple Steps</span></h2>
         <div className="steps">
           {[
-            { n: '1', t: 'Download the APK', b: 'Tap the button below. The APK file is ~25 MB and downloads in seconds.' },
-            { n: '2', t: 'Allow Installation', b: 'When prompted, tap "Install anyway". If asked, go to Settings → Security → Allow unknown sources.' },
-            { n: '3', t: 'Open & Sign In', b: 'Open the GENz IITian app and sign in with your Google account to get started instantly.' },
+            { n: '1', t: 'Open Google Play Store', b: 'Click the button or scan the QR code to open GenZ IITian directly on the Google Play Store.' },
+            { n: '2', t: 'Tap Install', b: 'Verified and secured by Google Play Protect. The app downloads and installs automatically in seconds.' },
+            { n: '3', t: 'Sign In & Learn', b: 'Open the GENz IITian app and sign in with your Google account to access your courses instantly.' },
           ].map(s => (
             <div key={s.n} className="step">
               <div className="step-n">{s.n}</div>
@@ -1118,7 +1192,7 @@ export default function DownloadPage() {
       {/* ─── CTA ─── */}
       <section className="cta-section">
         <h2 className="cta-h">Ready to Join the<br /><span className="grad">IITM BS Community?</span></h2>
-        <p className="cta-sub">Download the app free and become part of the future of IITM BS learning.</p>
+        <p className="cta-sub">Install our official app from the Google Play Store and start learning today.</p>
         <div className="cta-btn-row" style={{ display: 'flex', flexDirection: 'column', gap: '8px', alignItems: 'center' }}>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '14px', alignItems: 'center', justifyContent: 'center' }}>
             {device === 'ios' ? (
@@ -1137,16 +1211,22 @@ export default function DownloadPage() {
                   </p>
                 </div>
               )
-            ) : device === 'android' ? (
-              <button className="dl-btn" onClick={handleDownload} disabled={downloading}>
-                <span className="dl-icon">{downloading ? '⏳' : '⬇️'}</span>
-                <span>{downloading ? 'Downloading...' : 'Download Android App'}</span>
-              </button>
             ) : (
-              <button className="dl-btn" onClick={handleDownload}>
-                <span className="dl-icon">⬇️</span>
-                <span>Download Free APK</span>
-              </button>
+              <a
+                href={PLAY_STORE_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="play-btn"
+                onClick={() => posthog.capture('play_store_clicked', { source: 'cta' })}
+              >
+                <span className="dl-icon" style={{ background: 'rgba(255,255,255,0.08)' }}>
+                  <PlayGlyph size={24} />
+                </span>
+                <div style={{ textAlign: 'left' }}>
+                  <div style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.08em', opacity: 0.8, fontWeight: 600 }}>Get it on</div>
+                  <div style={{ fontSize: '18px', fontWeight: 800, lineHeight: 1.15 }}>Google Play</div>
+                </div>
+              </a>
             )}
             <button className="share-btn" onClick={handleShare}>
               <svg width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
@@ -1165,21 +1245,22 @@ export default function DownloadPage() {
               <div className="dual-qr-title" style={{ textAlign: 'center', marginBottom: '20px' }}>Get GenZ IITian on your phone</div>
               <div className="dual-qr-flex" style={{ justifyContent: 'center' }}>
                 <div className="dual-qr-card" style={{ maxWidth: '175px' }}>
-                  <div className="dual-qr-card-label">
-                    Android/Tablet
+                  <div className="dual-qr-card-label" style={{ fontSize: '13px' }}>
+                    <PlayGlyph size={14} />
+                    Google Play
                   </div>
                   <div className="dual-qr-code-wrap">
                     <img
-                      src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(downloadAppUrl)}`}
-                      alt="Android App QR"
+                      src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(PLAY_STORE_URL)}`}
+                      alt="Google Play QR"
                       style={{ width: '90px', height: '90px' }}
                     />
                   </div>
-                  <div className="dual-qr-card-sub" style={{ fontSize: '10.5px' }}>Scan to download Android app</div>
+                  <div className="dual-qr-card-sub" style={{ fontSize: '10.5px' }}>Scan for Google Play</div>
                 </div>
 
                 <div className="dual-qr-card" style={{ maxWidth: '175px' }}>
-                  <div className="dual-qr-card-label">
+                  <div className="dual-qr-card-label" style={{ fontSize: '13px' }}>
                     iPhone/iPad
                   </div>
                   <div className="dual-qr-code-wrap">
@@ -1189,7 +1270,7 @@ export default function DownloadPage() {
                       style={{ width: '90px', height: '90px' }}
                     />
                   </div>
-                  <div className="dual-qr-card-sub" style={{ fontSize: '10.5px' }}>Scan to add to your iPhone</div>
+                  <div className="dual-qr-card-sub" style={{ fontSize: '10.5px' }}>Scan to add to iPhone</div>
                 </div>
               </div>
             </div>
@@ -1208,7 +1289,7 @@ export default function DownloadPage() {
 
       {/* Toast */}
       {copied && <div className="toast">🔗 Link copied! Share it with your friends.</div>}
-      {copiedLink && <div className="toast">🔗 Download link copied to clipboard!</div>}
+      {copiedLink && <div className="toast">🔗 Play Store link copied to clipboard!</div>}
 
       {/* Dual Device QR Code Modal Overlay */}
       {showQrModal && (
@@ -1229,16 +1310,17 @@ export default function DownloadPage() {
               {/* Android QR */}
               <div className="dual-qr-card" style={{ padding: '16px 12px' }}>
                 <div className="dual-qr-card-label" style={{ fontSize: '13.5px' }}>
-                  Android/Tablet
+                  <PlayGlyph size={15} />
+                  Google Play
                 </div>
                 <div className="dual-qr-code-wrap">
                   <img
-                    src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(downloadAppUrl)}`}
-                    alt="Android App QR"
+                    src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(PLAY_STORE_URL)}`}
+                    alt="Google Play QR"
                     style={{ width: '105px', height: '105px' }}
                   />
                 </div>
-                <div className="dual-qr-card-sub" style={{ fontSize: '11px' }}>Scan to download APK</div>
+                <div className="dual-qr-card-sub" style={{ fontSize: '11px' }}>Scan to open Play Store</div>
               </div>
 
               {/* iPhone QR */}
@@ -1258,11 +1340,23 @@ export default function DownloadPage() {
             </div>
 
             <div className="qr-modal-specs" style={{ fontSize: '11px', color: '#64748b', marginBottom: '20px' }}>
-              Android 8.0+  •  iOS Safari  •  Free
+              Google Play Verified  •  iOS Safari  •  Free
             </div>
-            <button className="btn-copy-link" onClick={handleCopyDownloadLink}>
-              {copiedLink ? '✅ Link Copied!' : 'Copy Android Download Link'}
-            </button>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', width: '100%' }}>
+              <a
+                href={PLAY_STORE_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="btn-copy-link"
+                style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', background: 'linear-gradient(135deg, #01875f, #029e6f)', color: '#fff' }}
+              >
+                <PlayGlyph size={16} />
+                <span>Open Google Play Store</span>
+              </a>
+              <button className="btn-copy-link" onClick={handleCopyDownloadLink}>
+                {copiedLink ? '✅ Link Copied!' : 'Copy Play Store Link'}
+              </button>
+            </div>
           </div>
         </div>
       )}
@@ -1335,5 +1429,16 @@ export default function DownloadPage() {
         </div>
       )}
     </>
+  )
+}
+
+function PlayGlyph({ size = 20 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true" style={{ display: 'inline-block', verticalAlign: 'middle', flexShrink: 0 }}>
+      <path fill="#34A853" d="M3.5 20.5 14.2 12 3.5 3.5v17z" />
+      <path fill="#FBBC04" d="M3.5 20.5 14.2 12l3.2 2.6-13.9 5.9z" />
+      <path fill="#EA4335" d="M3.5 3.5 17.4 9.4 14.2 12 3.5 3.5z" />
+      <path fill="#4285F4" d="M17.4 9.4 20.5 11c.7.4.7 1.6 0 2l-3.1 1.6L14.2 12l3.2-2.6z" />
+    </svg>
   )
 }

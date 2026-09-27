@@ -153,9 +153,12 @@ class CoursesPage extends ConsumerWidget {
               ),
             ),
             Expanded(
-              child: AppRefresh(
-                onRefresh: () async => ref.invalidate(coursesProvider),
-                child: ListView(
+              child: Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 1080),
+                  child: AppRefresh(
+                    onRefresh: () async => ref.invalidate(coursesProvider),
+                    child: ListView(
                   physics: const AlwaysScrollableScrollPhysics(),
                   padding: const EdgeInsets.fromLTRB(20, 16, 20, 110),
                   children: [
@@ -231,6 +234,8 @@ class CoursesPage extends ConsumerWidget {
                           return 0;
                         });
 
+                        final isTablet = MediaQuery.sizeOf(context).width >= 720;
+
                         return Column(
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
@@ -239,10 +244,28 @@ class CoursesPage extends ConsumerWidget {
                               _ContinueCard(course: continueCourse),
                             ],
                             const SizedBox(height: 14),
-                            for (final c in remainingCourses) ...[
-                              _CourseCard(course: c),
-                              const SizedBox(height: 14),
-                            ],
+                            if (isTablet)
+                              LayoutBuilder(
+                                builder: (context, constraints) {
+                                  final cardWidth = (constraints.maxWidth - 16) / 2;
+                                  return Wrap(
+                                    spacing: 16,
+                                    runSpacing: 16,
+                                    children: [
+                                      for (final c in remainingCourses)
+                                        SizedBox(
+                                          width: cardWidth,
+                                          child: _CourseCard(course: c),
+                                        ),
+                                    ],
+                                  );
+                                },
+                              )
+                            else
+                              for (final c in remainingCourses) ...[
+                                _CourseCard(course: c),
+                                const SizedBox(height: 14),
+                              ],
                           ],
                         );
                       },
@@ -251,6 +274,8 @@ class CoursesPage extends ConsumerWidget {
                 ),
               ),
             ),
+          ),
+        ),
           ],
         ),
       ),

@@ -104,14 +104,17 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
 
     return SafeArea(
       bottom: false,
-      child: AppRefresh(
-        onRefresh: () async {
-          ref.invalidate(dashboardProvider);
-        },
-        child: ListView(
-          physics: const AlwaysScrollableScrollPhysics(),
-          padding: const EdgeInsets.only(bottom: 110),
-          children: [
+      child: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 1080),
+          child: AppRefresh(
+            onRefresh: () async {
+              ref.invalidate(dashboardProvider);
+            },
+            child: ListView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              padding: const EdgeInsets.only(bottom: 110),
+              children: [
             _HomeGreeting(
               firstName: firstName,
               greeting: _greet(currentLanguage),
@@ -320,7 +323,9 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
           ],
         ),
       ),
-    );
+    ),
+  ),
+);
   }
 }
 

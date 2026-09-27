@@ -618,9 +618,7 @@ export default function Sidebar({ userRole, userName, userEmail }: SidebarProps)
                   color: isActive ? 'var(--sidebar-active-text, #ffffff)' : 'var(--text-secondary)',
                   background: isActive ? 'var(--sidebar-active, var(--primary))' : 'transparent',
                   border: isActive ? '1px solid var(--sidebar-active-border, transparent)' : '1px solid transparent',
-                  boxShadow: isActive
-                    ? 'var(--shadow-sm)'
-                    : 'none',
+                  boxShadow: 'none',
                   textDecoration: 'none',
                   fontSize,
                   fontWeight: isActive ? '700' : '500',

@@ -258,29 +258,22 @@ export async function queueGoogleGroupSyncJobs(
     const hasLiveGroup = Boolean(course.liveGoogleGroupEmail?.trim())
 
     if (action === 'ADD') {
-      if (hasLiveGroup && enrollmentType === 'LIVE') {
-        const liveEmails = parseGoogleGroupEmails(course.liveGoogleGroupEmail)
-        for (const ge of liveEmails) {
+      // 1. All enrolled students (Live & Recorded) get added to the Recorded / Default group
+      if (course.googleGroupEmail) {
+        const recEmails = parseGoogleGroupEmails(course.googleGroupEmail)
+        for (const ge of recEmails) {
           explicitJobs.push({ userEmail: normalizedUserEmail, courseId: course.id, groupEmail: ge, action: 'ADD' })
         }
-        if (course.googleGroupEmail) {
-          const recEmails = parseGoogleGroupEmails(course.googleGroupEmail)
-          for (const ge of recEmails) {
-            explicitJobs.push({ userEmail: normalizedUserEmail, courseId: course.id, groupEmail: ge, action: 'REMOVE' })
-          }
-        }
-      } else {
-        if (course.googleGroupEmail) {
-          const recEmails = parseGoogleGroupEmails(course.googleGroupEmail)
-          for (const ge of recEmails) {
-            explicitJobs.push({ userEmail: normalizedUserEmail, courseId: course.id, groupEmail: ge, action: 'ADD' })
-          }
-        }
-        if (hasLiveGroup) {
-          const liveEmails = parseGoogleGroupEmails(course.liveGoogleGroupEmail)
-          for (const ge of liveEmails) {
-            explicitJobs.push({ userEmail: normalizedUserEmail, courseId: course.id, groupEmail: ge, action: 'REMOVE' })
-          }
+      }
+
+      // 2. If a dedicated Live group exists:
+      // - LIVE students are joined to it as well (so they are in BOTH groups).
+      // - RECORDED students are removed from it (preventing unauthorized live access).
+      if (hasLiveGroup) {
+        const liveAction: SyncAction = enrollmentType === 'LIVE' ? 'ADD' : 'REMOVE'
+        const liveEmails = parseGoogleGroupEmails(course.liveGoogleGroupEmail)
+        for (const ge of liveEmails) {
+          explicitJobs.push({ userEmail: normalizedUserEmail, courseId: course.id, groupEmail: ge, action: liveAction })
         }
       }
     } else if (action === 'REMOVE') {
@@ -345,25 +338,24 @@ export async function reSyncCourseGroupMembers(db: any, courseId: string) {
     const userEmail = normalizeEmail(enrollment.user.email)
     const enrollmentType = enrollment.type
 
-    if (hasLiveGroup && enrollmentType === 'LIVE') {
-      for (const ge of parseGoogleGroupEmails(course.liveGoogleGroupEmail)) {
+    if (enrollmentType === 'DEMO') {
+      continue
+    }
+
+    // 1. All enrolled students (Live & Recorded) get added to the Recorded / Default group
+    if (hasRecordedGroup) {
+      for (const ge of parseGoogleGroupEmails(course.googleGroupEmail)) {
         explicitJobs.push({ userEmail, courseId, groupEmail: ge, action: 'ADD' })
       }
-      if (hasRecordedGroup) {
-        for (const ge of parseGoogleGroupEmails(course.googleGroupEmail)) {
-          explicitJobs.push({ userEmail, courseId, groupEmail: ge, action: 'REMOVE' })
-        }
-      }
-    } else {
-      if (hasRecordedGroup) {
-        for (const ge of parseGoogleGroupEmails(course.googleGroupEmail)) {
-          explicitJobs.push({ userEmail, courseId, groupEmail: ge, action: 'ADD' })
-        }
-      }
-      if (hasLiveGroup) {
-        for (const ge of parseGoogleGroupEmails(course.liveGoogleGroupEmail)) {
-          explicitJobs.push({ userEmail, courseId, groupEmail: ge, action: 'REMOVE' })
-        }
+    }
+
+    // 2. If a dedicated Live group exists:
+    // - LIVE students are added to it as well (so they are in BOTH groups)
+    // - RECORDED students are removed from it (preventing unauthorized live access)
+    if (hasLiveGroup) {
+      const liveAction: SyncAction = enrollmentType === 'LIVE' ? 'ADD' : 'REMOVE'
+      for (const ge of parseGoogleGroupEmails(course.liveGoogleGroupEmail)) {
+        explicitJobs.push({ userEmail, courseId, groupEmail: ge, action: liveAction })
       }
     }
   }

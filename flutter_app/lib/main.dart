@@ -18,11 +18,22 @@ void main() async {
     debugPrint('PushNotificationService init error in main: $e');
   }
 
-  // Lock to portrait for the mobile-first UX; the web app is mobile-portrait
-  // by design and the Flutter app should match.
-  await SystemChrome.setPreferredOrientations([
-    DeviceOrientation.portraitUp,
-  ]);
+  // Smart orientation: portrait-only on phones, all orientations on tablets.
+  final firstView = WidgetsBinding.instance.platformDispatcher.views.first;
+  final shortestSide = firstView.physicalSize.shortestSide / firstView.devicePixelRatio;
+  if (shortestSide < 600) {
+    await SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+    ]);
+  } else {
+    // Tablets can rotate freely
+    await SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+      DeviceOrientation.portraitDown,
+      DeviceOrientation.landscapeLeft,
+      DeviceOrientation.landscapeRight,
+    ]);
+  }
 
   // Enable edge-to-edge display mode for Android 15+ and backward compatibility.
   await SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);

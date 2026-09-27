@@ -5,12 +5,13 @@ import '../../core/tour/app_tour_overlay.dart';
 import '../../theme/app_colors.dart';
 import 'mobile_bottom_nav.dart';
 
-/// Wraps every shell route so the bottom nav is always visible on tabbed pages.
-/// Modern native mobile behavior:
-/// - Scroll down -> smoothly slides navigation bar downward off-screen (200-240ms).
-/// - Small scroll up -> immediately slides navigation bar back into view.
-/// - Tab switch -> instantly restores navigation bar.
-/// - Top of page -> keeps navigation bar visible.
+import 'tablet_nav_rail.dart';
+
+/// Wraps every shell route so the navigation is always visible on tabbed pages.
+/// - On wide screens (>= 768dp, tablets in landscape or desktop): Displays an adaptive
+///   Side Navigation Rail on the left (matching the Capacitor/web sidebar experience).
+/// - On phones and compact screens (< 768dp): Displays the auto-hiding frosted glass
+///   bottom navigation bar.
 class AppScaffold extends StatefulWidget {
   const AppScaffold({
     super.key,
@@ -81,43 +82,59 @@ class _AppScaffoldState extends State<AppScaffold> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final bg =
         isDark ? Theme.of(context).scaffoldBackgroundColor : AppColors.bg;
+    final screenWidth = MediaQuery.sizeOf(context).width;
+    final isTabletRail = screenWidth >= 768;
 
     return AppTourOverlayWrapper(
       child: Material(
         color: bg,
-        child: Stack(
-          children: [
-            // Scrollable Screen Content
-            Positioned.fill(
-              child: NotificationListener<ScrollNotification>(
-                onNotification: _onScrollNotification,
-                child: widget.child,
-              ),
-            ),
-
-            // Auto-Hiding Bottom Navigation Bar with Smooth Native Slide Animation
-            Positioned(
-              left: 0,
-              right: 0,
-              bottom: 0,
-              child: AnimatedSlide(
-                offset: _navVisible ? Offset.zero : const Offset(0, 1.3),
-                duration: const Duration(milliseconds: 220),
-                curve: Curves.fastOutSlowIn,
-                child: AnimatedOpacity(
-                  opacity: _navVisible ? 1.0 : 0.0,
-                  duration: const Duration(milliseconds: 180),
-                  curve: Curves.easeOut,
-                  child: IgnorePointer(
-                    ignoring: !_navVisible,
-                    child:
-                        MobileBottomNav(currentLocation: widget.currentLocation),
+        child: isTabletRail
+            ? Row(
+                children: [
+                  TabletNavRail(currentLocation: widget.currentLocation),
+                  Expanded(
+                    child: widget.child,
                   ),
-                ),
+                ],
+              )
+            : Stack(
+                children: [
+                  // Scrollable Screen Content
+                  Positioned.fill(
+                    child: NotificationListener<ScrollNotification>(
+                      onNotification: _onScrollNotification,
+                      child: widget.child,
+                    ),
+                  ),
+
+                  // Auto-Hiding Bottom Navigation Bar with Smooth Native Slide Animation
+                  Positioned(
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    child: AnimatedSlide(
+                      offset: _navVisible ? Offset.zero : const Offset(0, 1.3),
+                      duration: const Duration(milliseconds: 220),
+                      curve: Curves.fastOutSlowIn,
+                      child: AnimatedOpacity(
+                        opacity: _navVisible ? 1.0 : 0.0,
+                        duration: const Duration(milliseconds: 180),
+                        curve: Curves.easeOut,
+                        child: IgnorePointer(
+                          ignoring: !_navVisible,
+                          child: Center(
+                            child: ConstrainedBox(
+                              constraints: const BoxConstraints(maxWidth: 600),
+                              child: MobileBottomNav(
+                                  currentLocation: widget.currentLocation),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ),
-            ),
-          ],
-        ),
       ),
     );
   }

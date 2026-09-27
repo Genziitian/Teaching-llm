@@ -1133,7 +1133,7 @@ export function ManagePageInner({ forcedTab }: ManagePageInnerProps = {}) {
                       </div>
                     ))
                   })()}
-                  <p className="ce-hint">Used for all students when Live group is empty.</p>
+                  <p className="ce-hint">Default group. All students (both Recorded & Live) are added here.</p>
                 </div>
                 <div className="ce-field">
                   <label>Live group (optional)</label>
@@ -1144,7 +1144,7 @@ export function ManagePageInner({ forcedTab }: ManagePageInnerProps = {}) {
                     onChange={e => set('liveGoogleGroupEmail', e.target.value.toLowerCase())}
                     placeholder="live-batch@yourdomain.com"
                   />
-                  <p className="ce-hint">Only Live-batch students. Leave blank for general batches.</p>
+                  <p className="ce-hint">Live students are joined here in addition to the recorded group.</p>
                 </div>
               </div>
 

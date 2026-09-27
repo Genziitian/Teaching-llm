@@ -26,7 +26,7 @@ export const MASTER_FAQS: MasterFaq[] = [
   {
     question: 'Is there a mobile app available?',
     answer:
-      'Yes! The official Gen-Z IITian Android app is live and available for download. You can also access the full learning platform on any web browser at app.genziitian.in. An iOS app is currently in our roadmap.',
+      'Yes! The official Gen-Z IITian Android app is live on the Google Play Store. You can download it directly from Google Play or access the full learning platform on any web browser at app.genziitian.in. An iOS app is currently in our roadmap.',
     order: 3,
   },
   {

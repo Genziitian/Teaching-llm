@@ -642,31 +642,39 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Row 4: {t('dashboard.announcements.title')} Skeleton */}
-        <div className="card" style={{ padding: '20px 24px', borderRadius: '16px', background: 'var(--surface)', border: '1px solid var(--border)', boxShadow: 'none' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: '16px', borderBottom: '1px solid var(--border)', marginBottom: '4px' }}>
-            <div className="skeleton" style={{ height: '18px', width: '130px', borderRadius: '4px' }} />
-            <div className="skeleton" style={{ height: '14px', width: '75px', borderRadius: '4px' }} />
-          </div>
-          <div style={{ display: 'flex', flexDirection: 'column' }}>
-            {[1, 2, 3].map((i, idx, arr) => (
-              <div key={i} style={{ padding: '16px 0', borderBottom: idx !== arr.length - 1 ? '1px solid var(--border)' : 'none', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '16px' }}>
-                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '14px', flex: 1 }}>
-                  <div className="skeleton" style={{ width: '42px', height: '42px', borderRadius: '10px', flexShrink: 0 }} />
-                  <div style={{ flex: 1 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
-                      <div className="skeleton" style={{ height: '15px', width: '180px', borderRadius: '4px' }} />
-                      <div className="skeleton" style={{ height: '15px', width: '60px', borderRadius: '4px' }} />
+        {/* Row 4: Video + Announcements Skeleton */}
+        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '20px', marginBottom: '24px' }}>
+          {!isMobile && (
+            <div className="card" style={{ padding: '20px 24px', borderRadius: '20px', background: 'var(--surface)', border: '1px solid var(--border)', boxShadow: 'none' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                <div className="skeleton" style={{ height: '18px', width: '140px', borderRadius: '4px' }} />
+                <div className="skeleton" style={{ height: '18px', width: '60px', borderRadius: '20px' }} />
+              </div>
+              <div className="skeleton" style={{ width: '100%', aspectRatio: '16/9', borderRadius: '12px', marginBottom: '16px' }} />
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '12px', borderTop: '1px solid var(--border)' }}>
+                <div className="skeleton" style={{ height: '12px', width: '180px', borderRadius: '4px' }} />
+                <div className="skeleton" style={{ height: '12px', width: '90px', borderRadius: '4px' }} />
+              </div>
+            </div>
+          )}
+          <div className="card" style={{ padding: '20px 24px', borderRadius: '20px', background: 'var(--surface)', border: '1px solid var(--border)', boxShadow: 'none' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: '16px', borderBottom: '1px solid var(--border)', marginBottom: '4px' }}>
+              <div className="skeleton" style={{ height: '18px', width: '130px', borderRadius: '4px' }} />
+              <div className="skeleton" style={{ height: '14px', width: '75px', borderRadius: '4px' }} />
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column' }}>
+              {[1, 2, 3].map((i, idx, arr) => (
+                <div key={i} style={{ padding: '14px 0', borderBottom: idx !== arr.length - 1 ? '1px solid var(--border)' : 'none', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '16px' }}>
+                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: '14px', flex: 1 }}>
+                    <div className="skeleton" style={{ width: '36px', height: '36px', borderRadius: '10px', flexShrink: 0 }} />
+                    <div style={{ flex: 1 }}>
+                      <div className="skeleton" style={{ height: '14px', width: '140px', borderRadius: '4px', marginBottom: '6px' }} />
+                      <div className="skeleton" style={{ height: '12px', width: '70%', borderRadius: '4px' }} />
                     </div>
-                    <div className="skeleton" style={{ height: '13px', width: '75%', borderRadius: '4px' }} />
                   </div>
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexShrink: 0 }}>
-                  <div className="skeleton" style={{ height: '12px', width: '75px', borderRadius: '4px' }} />
-                  <div className="skeleton" style={{ height: '32px', width: '120px', borderRadius: '8px' }} />
-                </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         </div>
       </div>
@@ -743,6 +751,53 @@ export default function DashboardPage() {
             width: 100% !important;
             justify-content: space-between !important;
             padding-left: 56px !important;
+          }
+        }
+        .dashboard-video-announcements-row {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 20px;
+          align-items: stretch;
+          margin-bottom: 24px;
+        }
+        .dashboard-video-box {
+          display: flex;
+          flex-direction: column;
+          justifyContent: space-between;
+          padding: 20px 24px;
+          border-radius: 20px;
+          background: var(--surface);
+          border: 1px solid var(--border);
+          box-shadow: none;
+          overflow: hidden;
+        }
+        .dashboard-announcements-compact-card {
+          display: flex;
+          flex-direction: column;
+          padding: 20px 24px;
+          border-radius: 20px;
+          background: var(--surface);
+          border: 1px solid var(--border);
+          box-shadow: none;
+          overflow: hidden;
+        }
+        .dashboard-announcements-scroll::-webkit-scrollbar {
+          width: 5px;
+        }
+        .dashboard-announcements-scroll::-webkit-scrollbar-track {
+          background: transparent;
+        }
+        .dashboard-announcements-scroll::-webkit-scrollbar-thumb {
+          background: var(--border);
+          border-radius: 4px;
+        }
+        @media (max-width: 900px) {
+          .dashboard-video-announcements-row {
+            grid-template-columns: 1fr !important;
+            gap: 16px !important;
+          }
+          .dashboard-video-box-web-only {
+            display: none !important;
           }
         }
       `}</style>
@@ -1814,273 +1869,370 @@ export default function DashboardPage() {
         </>
       )}
 
-      {/* ── Row 3: {t('dashboard.announcements.title')} ── */}
-      {announcements.length > 0 && (
-        <div
-          className="card announcements-web-container"
-          style={{
-            padding: '20px 24px',
-            borderRadius: '16px',
-            background: 'var(--surface)',
-            border: '1px solid var(--border)',
-            boxShadow: 'none',
-            maxWidth: '100%',
-            overflow: 'hidden',
-          }}
-        >
-          <div
-            style={{
+      {/* ── Row 3: Video Box (Left) + Announcements (Right) [Web View Grid] ── */}
+      <div className="dashboard-video-announcements-row">
+        {/* Left: How to Use Me Video Box (Web View Only) */}
+        {!isMobile && (
+          <div className="card dashboard-video-box dashboard-video-box-web-only">
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <div style={{
+                  width: '34px', height: '34px', borderRadius: '10px',
+                  background: 'linear-gradient(135deg, rgba(99,102,241,0.18), rgba(168,85,247,0.18))',
+                  color: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center'
+                }}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                    <polygon points="5 3 19 12 5 21 5 3"/>
+                  </svg>
+                </div>
+                <div>
+                  <h3 style={{ fontSize: '16px', fontWeight: '700', color: 'var(--text-primary)', margin: 0 }}>
+                    How to Use Me
+                  </h3>
+                  <p style={{ fontSize: '12px', color: 'var(--text-muted)', margin: '2px 0 0 0' }}>
+                    Platform walkthrough &amp; student guide
+                  </p>
+                </div>
+              </div>
+              <span style={{
+                fontSize: '11px',
+                fontWeight: '700',
+                padding: '3px 10px',
+                borderRadius: '20px',
+                background: 'rgba(99, 102, 241, 0.1)',
+                color: 'var(--primary)',
+                letterSpacing: '0.04em',
+                textTransform: 'uppercase',
+              }}>
+                Tutorial
+              </span>
+            </div>
+
+            <div style={{
+              position: 'relative',
+              width: '100%',
+              aspectRatio: '16/9',
+              borderRadius: '12px',
+              overflow: 'hidden',
+              background: '#0a0a14',
+              boxShadow: '0 4px 16px rgba(0, 0, 0, 0.12)',
+            }}>
+              <iframe
+                src="https://www.youtube-nocookie.com/embed/kFu0yHDSeWM?rel=0&amp;modestbranding=1"
+                title="How to Use GenZ IITian"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                allowFullScreen
+                loading="lazy"
+                style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  width: '100%',
+                  height: '100%',
+                  border: 'none',
+                }}
+              />
+            </div>
+
+            <div style={{
               display: 'flex',
-              justifyContent: 'space-between',
               alignItems: 'center',
-              paddingBottom: '16px',
-              borderBottom: '1px solid var(--border)',
-              marginBottom: '4px',
-              flexWrap: 'wrap',
-              gap: '8px',
+              justifyContent: 'space-between',
+              marginTop: '12px',
+              paddingTop: '10px',
+              borderTop: '1px solid var(--border)',
+              fontSize: '12px',
+              color: 'var(--text-muted)',
+            }}>
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                <span>💡</span> Learn how to navigate courses, live classes &amp; doubts
+              </span>
+              <a
+                href="https://youtu.be/kFu0yHDSeWM?si=PHHL4K3RLr5uoE6-"
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{
+                  color: 'var(--primary)',
+                  fontWeight: '600',
+                  textDecoration: 'none',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '4px',
+                  fontSize: '11.5px',
+                }}
+              >
+                Watch on YouTube ↗
+              </a>
+            </div>
+          </div>
+        )}
+
+        {/* Right: Announcements (Compact Square) */}
+        {announcements.length > 0 && (
+          <div
+            className="card dashboard-announcements-compact-card announcements-web-container"
+            style={{
+              padding: '20px 24px',
+              borderRadius: '20px',
+              background: 'var(--surface)',
+              border: '1px solid var(--border)',
+              boxShadow: 'none',
+              display: 'flex',
+              flexDirection: 'column',
+              overflow: 'hidden',
             }}
           >
-            <h3 style={{ fontSize: '16px', fontWeight: '700', color: 'var(--text-primary)', margin: 0 }}>
-              {t('dashboard.announcements.title')}
-            </h3>
-            <Link
-              href="/announcements"
+            <div
               style={{
-                fontSize: '13px',
-                fontWeight: '600',
-                color: 'var(--primary)',
-                textDecoration: 'none',
-                display: 'inline-flex',
+                display: 'flex',
+                justifyContent: 'space-between',
                 alignItems: 'center',
-                gap: '4px',
-                transition: 'opacity 0.15s ease',
+                paddingBottom: '14px',
+                borderBottom: '1px solid var(--border)',
+                marginBottom: '4px',
+                flexWrap: 'wrap',
+                gap: '8px',
               }}
             >
-              {t('dashboard.announcements.viewAll')} →
-            </Link>
-          </div>
-          <div style={{ display: 'flex', flexDirection: 'column' }}>
-            {announcements.map((a, index) => {
-              const { body: parsedBody, metadata } = parseAnnouncementContent(a.content)
-              const isHighPriority = metadata.importance === 'high'
-              const formattedDate = new Date(a.createdAt).toLocaleDateString('en-GB', {
-                day: '2-digit',
-                month: '2-digit',
-                year: 'numeric',
-              })
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <h3 style={{ fontSize: '16px', fontWeight: '700', color: 'var(--text-primary)', margin: 0 }}>
+                  {t('dashboard.announcements.title')}
+                </h3>
+                <span style={{
+                  fontSize: '11px',
+                  fontWeight: '700',
+                  padding: '2px 8px',
+                  borderRadius: '10px',
+                  background: 'var(--surface-2)',
+                  color: 'var(--text-secondary)',
+                }}>
+                  {announcements.length}
+                </span>
+              </div>
+              <Link
+                href="/announcements"
+                style={{
+                  fontSize: '13px',
+                  fontWeight: '600',
+                  color: 'var(--primary)',
+                  textDecoration: 'none',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '4px',
+                  transition: 'opacity 0.15s ease',
+                }}
+              >
+                {t('dashboard.announcements.viewAll')} →
+              </Link>
+            </div>
 
-              // Icon & badge config based on existing types and importance
-              let iconSvg = (
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M22 17H2a3 3 0 0 0 3-3V9a7 7 0 0 1 14 0v5a3 3 0 0 0 3 3zm-8.27 4a2 2 0 0 1-3.46 0"/>
-                </svg>
-              )
-              let iconColor = 'var(--primary, #4f46e5)'
-              let iconBg = 'rgba(79, 70, 229, 0.1)'
-              let badgeLabel = 'General'
-              let badgeColor = 'var(--primary, #4f46e5)'
-              let badgeBg = 'rgba(79, 70, 229, 0.08)'
+            <div
+              className="dashboard-announcements-scroll"
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                overflowY: 'auto',
+                maxHeight: '340px',
+                paddingRight: '4px',
+              }}
+            >
+              {announcements.map((a, index) => {
+                const { body: parsedBody, metadata } = parseAnnouncementContent(a.content)
+                const isHighPriority = metadata.importance === 'high'
+                const formattedDate = new Date(a.createdAt).toLocaleDateString('en-GB', {
+                  day: '2-digit',
+                  month: '2-digit',
+                  year: 'numeric',
+                })
 
-              if (isHighPriority || a.type === 'error') {
-                iconColor = 'var(--danger, #ef4444)'
-                iconBg = 'rgba(239, 68, 68, 0.1)'
-                badgeLabel = isHighPriority ? 'Important' : 'Alert'
-                badgeColor = '#ef4444'
-                badgeBg = 'rgba(239, 68, 68, 0.08)'
-                iconSvg = (
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <circle cx="12" cy="12" r="10"/>
-                    <line x1="12" y1="8" x2="12" y2="12"/>
-                    <line x1="12" y1="16" x2="12.01" y2="16"/>
+                let iconSvg = (
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M22 17H2a3 3 0 0 0 3-3V9a7 7 0 0 1 14 0v5a3 3 0 0 0 3 3zm-8.27 4a2 2 0 0 1-3.46 0"/>
                   </svg>
                 )
-              } else if (a.type === 'warning') {
-                iconColor = '#f59e0b'
-                iconBg = 'rgba(245, 158, 11, 0.1)'
-                badgeLabel = 'Update'
-                badgeColor = '#d97706'
-                badgeBg = 'rgba(245, 158, 11, 0.08)'
-                iconSvg = (
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
-                    <line x1="12" y1="9" x2="12" y2="13"/>
-                    <line x1="12" y1="17" x2="12.01" y2="17"/>
-                  </svg>
-                )
-              } else if (a.type === 'success') {
-                iconColor = '#10b981'
-                iconBg = 'rgba(16, 185, 129, 0.1)'
-                badgeLabel = 'Success'
-                badgeColor = '#059669'
-                badgeBg = 'rgba(16, 185, 129, 0.08)'
-                iconSvg = (
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
-                    <polyline points="22 4 12 14.01 9 11.01"/>
-                  </svg>
-                )
-              }
+                let iconColor = 'var(--primary, #4f46e5)'
+                let iconBg = 'rgba(79, 70, 229, 0.1)'
+                let badgeLabel = 'General'
+                let badgeColor = 'var(--primary, #4f46e5)'
+                let badgeBg = 'rgba(79, 70, 229, 0.08)'
 
-              const isLast = index === announcements.length - 1
-              const hasCta = Boolean(metadata.ctaText && metadata.ctaLink)
+                if (isHighPriority || a.type === 'error') {
+                  iconColor = 'var(--danger, #ef4444)'
+                  iconBg = 'rgba(239, 68, 68, 0.1)'
+                  badgeLabel = isHighPriority ? 'Important' : 'Alert'
+                  badgeColor = '#ef4444'
+                  badgeBg = 'rgba(239, 68, 68, 0.08)'
+                  iconSvg = (
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <circle cx="12" cy="12" r="10"/>
+                      <line x1="12" y1="8" x2="12" y2="12"/>
+                      <line x1="12" y1="16" x2="12.01" y2="16"/>
+                    </svg>
+                  )
+                } else if (a.type === 'warning') {
+                  iconColor = '#f59e0b'
+                  iconBg = 'rgba(245, 158, 11, 0.1)'
+                  badgeLabel = 'Update'
+                  badgeColor = '#d97706'
+                  badgeBg = 'rgba(245, 158, 11, 0.08)'
+                  iconSvg = (
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                      <line x1="12" y1="9" x2="12" y2="13"/>
+                      <line x1="12" y1="17" x2="12.01" y2="17"/>
+                    </svg>
+                  )
+                } else if (a.type === 'success') {
+                  iconColor = '#10b981'
+                  iconBg = 'rgba(16, 185, 129, 0.1)'
+                  badgeLabel = 'Success'
+                  badgeColor = '#059669'
+                  badgeBg = 'rgba(16, 185, 129, 0.08)'
+                  iconSvg = (
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                      <polyline points="22 4 12 14.01 9 11.01"/>
+                    </svg>
+                  )
+                }
 
-              return (
-                <div
-                  key={a.id}
-                  className="announcement-compact-row"
-                  style={{
-                    padding: '16px 0',
-                    borderBottom: isLast ? 'none' : '1px solid var(--border)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    gap: '16px',
-                    maxWidth: '100%',
-                    boxSizing: 'border-box',
-                    minHeight: '80px',
-                  }}
-                >
-                  {/* Left Side: Icon + Content (Title, Tag, Description) */}
+                const isLast = index === announcements.length - 1
+                const hasCta = Boolean(metadata.ctaText && metadata.ctaLink)
+
+                return (
                   <div
+                    key={a.id}
+                    className="announcement-compact-row"
                     style={{
+                      padding: '13px 0',
+                      borderBottom: isLast ? 'none' : '1px solid var(--border)',
                       display: 'flex',
-                      alignItems: 'flex-start',
-                      gap: '14px',
-                      flex: 1,
-                      minWidth: 0,
+                      flexDirection: 'column',
+                      gap: '7px',
+                      maxWidth: '100%',
+                      boxSizing: 'border-box',
                     }}
                   >
-                    <div
-                      style={{
-                        width: '42px',
-                        height: '42px',
-                        borderRadius: '10px',
-                        background: iconBg,
-                        color: iconColor,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        flexShrink: 0,
-                        marginTop: '2px',
-                      }}
-                    >
-                      {iconSvg}
-                    </div>
-
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div
+                    {/* Top Row: Icon + Title + Badge + Date */}
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0, flex: 1 }}>
+                        <div
+                          style={{
+                            width: '32px',
+                            height: '32px',
+                            borderRadius: '8px',
+                            background: iconBg,
+                            color: iconColor,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            flexShrink: 0,
+                          }}
+                        >
+                          {iconSvg}
+                        </div>
+                        <div style={{ minWidth: 0, flex: 1, display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+                          <span
+                            style={{
+                              fontSize: '13.5px',
+                              fontWeight: '700',
+                              color: 'var(--text-primary)',
+                              lineHeight: '1.25',
+                            }}
+                          >
+                            {a.title}
+                          </span>
+                          <span
+                            style={{
+                              fontSize: '10px',
+                              fontWeight: '700',
+                              padding: '1px 6px',
+                              borderRadius: '4px',
+                              background: badgeBg,
+                              color: badgeColor,
+                              letterSpacing: '0.02em',
+                              whiteSpace: 'nowrap',
+                            }}
+                          >
+                            {badgeLabel}
+                          </span>
+                        </div>
+                      </div>
+                      <span
                         style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '8px',
-                          flexWrap: 'wrap',
-                          marginBottom: '4px',
+                          fontSize: '11.5px',
+                          color: 'var(--text-muted)',
+                          fontWeight: '500',
+                          whiteSpace: 'nowrap',
+                          flexShrink: 0,
                         }}
                       >
-                        <span
-                          style={{
-                            fontSize: '14px',
-                            fontWeight: '700',
-                            color: 'var(--text-primary)',
-                            lineHeight: '1.3',
-                          }}
-                        >
-                          {a.title}
-                        </span>
-                        <span
-                          style={{
-                            fontSize: '11px',
-                            fontWeight: '600',
-                            padding: '2px 8px',
-                            borderRadius: '4px',
-                            background: badgeBg,
-                            color: badgeColor,
-                            letterSpacing: '0.02em',
-                            whiteSpace: 'nowrap',
-                          }}
-                        >
-                          {badgeLabel}
-                        </span>
-                      </div>
+                        {formattedDate}
+                      </span>
+                    </div>
 
+                    {/* Bottom Row: Description + CTA Button */}
+                    <div
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        gap: '10px',
+                        paddingLeft: '42px',
+                      }}
+                    >
                       <div
                         style={{
-                          fontSize: '13px',
+                          fontSize: '12.5px',
                           color: 'var(--text-secondary)',
                           lineHeight: '1.4',
                           display: '-webkit-box',
-                          WebkitLineClamp: 2,
+                          WebkitLineClamp: 1,
                           WebkitBoxOrient: 'vertical',
                           overflow: 'hidden',
                           textOverflow: 'ellipsis',
+                          flex: 1,
                         }}
                       >
                         {parsedBody}
                       </div>
+
+                      {hasCta && (
+                        <a
+                          href={metadata.ctaLink}
+                          target={metadata.ctaLink!.startsWith('http') ? '_blank' : '_self'}
+                          rel="noopener noreferrer"
+                          style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: '4px',
+                            padding: '5px 12px',
+                            borderRadius: '8px',
+                            background: 'var(--button-background, var(--primary))',
+                            color: 'var(--button-text, #ffffff)',
+                            fontSize: '11.5px',
+                            fontWeight: '700',
+                            textDecoration: 'none',
+                            whiteSpace: 'nowrap',
+                            flexShrink: 0,
+                            transition: 'opacity 0.15s ease',
+                          }}
+                        >
+                          <span>{metadata.ctaText}</span>
+                          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                            <polyline points="9 18 15 12 9 6"></polyline>
+                          </svg>
+                        </a>
+                      )}
                     </div>
                   </div>
-
-                  {/* Right Side: Date & CTA */}
-                  <div
-                    className="announcement-compact-right"
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '16px',
-                      flexShrink: 0,
-                    }}
-                  >
-                    <span
-                      style={{
-                        fontSize: '12px',
-                        color: 'var(--text-muted)',
-                        fontWeight: '500',
-                        whiteSpace: 'nowrap',
-                      }}
-                    >
-                      {formattedDate}
-                    </span>
-
-                    {hasCta && (
-                      <a
-                        href={metadata.ctaLink}
-                        target={metadata.ctaLink!.startsWith('http') ? '_blank' : '_self'}
-                        rel="noopener noreferrer"
-                        style={{
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          gap: '6px',
-                          padding: '7px 14px',
-                          minWidth: '120px',
-                          maxWidth: '150px',
-                          borderRadius: '8px',
-                          background: 'var(--button-background, var(--primary))',
-                          color: 'var(--button-text, #ffffff)',
-                          fontSize: '12px',
-                          fontWeight: '600',
-                          textDecoration: 'none',
-                          whiteSpace: 'nowrap',
-                          transition: 'opacity 0.15s ease',
-                          boxSizing: 'border-box',
-                        }}
-                      >
-                        <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                          {metadata.ctaText}
-                        </span>
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
-                          <line x1="5" y1="12" x2="19" y2="12"></line>
-                          <polyline points="12 5 19 12 12 19"></polyline>
-                        </svg>
-                      </a>
-                    )}
-                  </div>
-                </div>
-              )
-            })}
+                )
+              })}
+            </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
 
       <style>{`
         @keyframes badgeGlow {

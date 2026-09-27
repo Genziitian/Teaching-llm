@@ -2710,6 +2710,10 @@ tr:hover td {
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
 }
 
+.sidebar-link-item.active {
+  box-shadow: none !important;
+}
+
 /* Hover state for inactive links */
 .sidebar-link-item:not(.active):hover {
   background: rgba(255, 255, 255, 0.08) !important;
