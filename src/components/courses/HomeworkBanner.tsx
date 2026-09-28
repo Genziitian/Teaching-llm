@@ -1120,14 +1120,14 @@ function HomeworkFormModal({
     }}>
       <div style={{
         background: 'var(--surface)',
-        borderRadius: '24px',
+        borderRadius: '18px',
         width: '100%',
-        maxWidth: '540px',
+        maxWidth: '980px',
         boxShadow: '0 20px 40px rgba(0,0,0,0.2)',
         overflow: 'hidden',
         display: 'flex',
         flexDirection: 'column',
-        maxHeight: '92vh'
+        maxHeight: '86vh'
       }}>
         <div style={{
           padding: '20px 24px',
@@ -1140,9 +1140,6 @@ function HomeworkFormModal({
             <h2 style={{ fontSize: '18px', fontWeight: 800, margin: 0, color: 'var(--text-primary)' }}>
               {isEditing ? 'Edit Homework' : 'Create New Homework'}
             </h2>
-            <p style={{ fontSize: '12px', color: 'var(--text-secondary)', margin: '2px 0 0' }}>
-              Set assignment details, attachments, and due date.
-            </p>
           </div>
           <button
             onClick={onClose}
@@ -1158,7 +1155,7 @@ function HomeworkFormModal({
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} style={{ padding: '20px 24px', overflowY: 'auto', flex: 1 }}>
+        <form onSubmit={handleSubmit} style={{ padding: '18px 24px 16px', overflowY: 'auto', flex: 1 }}>
           {error && (
             <div style={{
               background: 'rgba(239, 68, 68, 0.1)',
@@ -1173,213 +1170,215 @@ function HomeworkFormModal({
             </div>
           )}
 
-          {/* Title */}
-          <div style={{ marginBottom: '16px' }}>
-            <label style={{ display: 'block', fontSize: '13px', fontWeight: 700, marginBottom: '6px', color: 'var(--text-primary)' }}>
-              Homework Title *
-            </label>
-            <input
-              type="text"
-              required
-              value={title}
-              onChange={e => setTitle(e.target.value)}
-              placeholder="e.g. Chapter 3 Practice Problems"
-              style={{
-                width: '100%',
-                padding: '11px 14px',
-                borderRadius: '12px',
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '18px 22px', alignItems: 'start' }}>
+            <div>
+              {/* Title */}
+              <div style={{ marginBottom: '14px' }}>
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: 700, marginBottom: '6px', color: 'var(--text-primary)' }}>
+                  Homework Title *
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={title}
+                  onChange={e => setTitle(e.target.value)}
+                  placeholder="e.g. Chapter 3 Practice Problems"
+                  style={{
+                    width: '100%',
+                    padding: '11px 14px',
+                    borderRadius: '12px',
+                    border: '1px solid var(--border)',
+                    background: 'var(--surface-2)',
+                    color: 'var(--text-primary)',
+                    fontSize: '13.5px',
+                    boxSizing: 'border-box'
+                  }}
+                />
+              </div>
+
+              {/* Days and Time Selection */}
+              <div style={{ marginBottom: '14px' }}>
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: 700, marginBottom: '6px', color: 'var(--text-primary)' }}>
+                  Set Deadline (Days & Time) *
+                </label>
+
+                {/* Quick preset buttons */}
+                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '10px' }}>
+                  {[1, 2, 3, 5, 7].map(d => (
+                    <button
+                      key={d}
+                      type="button"
+                      onClick={() => setDays(d)}
+                      style={{
+                        padding: '6px 14px',
+                        borderRadius: '20px',
+                        border: days === d ? `1.5px solid ${courseColor}` : '1px solid var(--border)',
+                        background: days === d ? courseColor : 'var(--surface-2)',
+                        color: days === d ? '#fff' : 'var(--text-primary)',
+                        fontSize: '12px',
+                        fontWeight: 700,
+                        cursor: 'pointer',
+                        transition: 'all 0.15s'
+                      }}
+                    >
+                      {d} {d === 1 ? 'Day' : 'Days'}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Manual Days input and Time selector */}
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '11.5px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '4px' }}>
+                      Days (1 to max 7)
+                    </label>
+                    <input
+                      type="number"
+                      min={1}
+                      max={7}
+                      required
+                      value={days}
+                      onChange={e => {
+                        const val = parseInt(e.target.value, 10)
+                        if (!isNaN(val)) {
+                          setDays(Math.min(7, Math.max(1, val)))
+                        }
+                      }}
+                      style={{
+                        width: '100%',
+                        padding: '10px 12px',
+                        borderRadius: '12px',
+                        border: '1px solid var(--border)',
+                        background: 'var(--surface-2)',
+                        color: 'var(--text-primary)',
+                        fontSize: '13.5px',
+                        fontWeight: 700,
+                        boxSizing: 'border-box'
+                      }}
+                    />
+                  </div>
+
+                  <div>
+                    <label style={{ display: 'block', fontSize: '11.5px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '4px' }}>
+                      Submission Time
+                    </label>
+                    <input
+                      type="time"
+                      required
+                      value={dueTime}
+                      onChange={e => setDueTime(e.target.value)}
+                      style={{
+                        width: '100%',
+                        padding: '10px 12px',
+                        borderRadius: '12px',
+                        border: '1px solid var(--border)',
+                        background: 'var(--surface-2)',
+                        color: 'var(--text-primary)',
+                        fontSize: '13.5px',
+                        fontWeight: 600,
+                        boxSizing: 'border-box'
+                      }}
+                    />
+                  </div>
+                </div>
+
+                {/* Computed deadline display */}
+                <div style={{
+                  marginTop: '10px',
+                  padding: '10px 14px',
+                  borderRadius: '12px',
+                  background: 'var(--surface-2)',
+                  border: '1px solid var(--border)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  flexWrap: 'wrap',
+                  gap: '6px'
+                }}>
+                  <span style={{ fontSize: '12.5px', color: 'var(--text-secondary)' }}>
+                    Due on: <strong style={{ color: 'var(--text-primary)' }}>
+                      {computedDueAt.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })} at {computedDueAt.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}
+                    </strong>
+                  </span>
+                  <span style={{ fontSize: '11px', color: courseColor, fontWeight: 800 }}>
+                    ({days} {days === 1 ? 'day' : 'days'} from now)
+                  </span>
+                </div>
+
+              </div>
+
+              {/* Submission control */}
+              <div style={{
+                marginBottom: '0',
+                padding: '12px 14px',
+                borderRadius: '14px',
                 border: '1px solid var(--border)',
                 background: 'var(--surface-2)',
-                color: 'var(--text-primary)',
-                fontSize: '13.5px',
-                boxSizing: 'border-box'
-              }}
-            />
-          </div>
-
-          {/* Days and Time Selection */}
-          <div style={{ marginBottom: '18px' }}>
-            <label style={{ display: 'block', fontSize: '13px', fontWeight: 700, marginBottom: '6px', color: 'var(--text-primary)' }}>
-              Set Deadline (Days & Time) *
-            </label>
-
-            {/* Quick preset buttons */}
-            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '10px' }}>
-              {[1, 2, 3, 5, 7].map(d => (
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                gap: '12px',
+                flexWrap: 'wrap'
+              }}>
+                <div style={{ minWidth: 0 }}>
+                  <p style={{ margin: 0, fontSize: '13px', fontWeight: 800, color: 'var(--text-primary)' }}>
+                    Submission Control
+                  </p>
+                  <p style={{ margin: '2px 0 0', fontSize: '11.5px', color: 'var(--text-secondary)' }}>
+                    {isOpen ? 'Students can submit homework.' : 'Students can view homework but cannot submit.'}
+                  </p>
+                </div>
                 <button
-                  key={d}
                   type="button"
-                  onClick={() => setDays(d)}
+                  onClick={() => setIsOpen(prev => !prev)}
                   style={{
-                    padding: '6px 14px',
-                    borderRadius: '20px',
-                    border: days === d ? `1.5px solid ${courseColor}` : '1px solid var(--border)',
-                    background: days === d ? courseColor : 'var(--surface-2)',
-                    color: days === d ? '#fff' : 'var(--text-primary)',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    padding: '8px 14px',
+                    borderRadius: '999px',
+                    border: `1px solid ${isOpen ? 'rgba(34, 197, 94, 0.28)' : 'rgba(239, 68, 68, 0.24)'}`,
+                    background: isOpen ? 'rgba(34, 197, 94, 0.1)' : 'rgba(239, 68, 68, 0.08)',
+                    color: isOpen ? '#10b981' : '#ef4444',
                     fontSize: '12px',
-                    fontWeight: 700,
-                    cursor: 'pointer',
-                    transition: 'all 0.15s'
+                    fontWeight: 800,
+                    cursor: 'pointer'
                   }}
                 >
-                  {d} {d === 1 ? 'Day' : 'Days'}
+                  {isOpen ? <Unlock size={14} /> : <Lock size={14} />}
+                  {isOpen ? 'Submission On' : 'Submission Off'}
                 </button>
-              ))}
+              </div>
             </div>
 
-            {/* Manual Days input and Time selector */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-              <div>
-                <label style={{ display: 'block', fontSize: '11.5px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '4px' }}>
-                  Days (1 to max 7)
+            <div>
+              {/* Description */}
+              <div style={{ marginBottom: '14px' }}>
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: 700, marginBottom: '6px', color: 'var(--text-primary)' }}>
+                  Description or Instructions
                 </label>
-                <input
-                  type="number"
-                  min={1}
-                  max={7}
-                  required
-                  value={days}
-                  onChange={e => {
-                    const val = parseInt(e.target.value, 10)
-                    if (!isNaN(val)) {
-                      setDays(Math.min(7, Math.max(1, val)))
-                    }
-                  }}
+                <textarea
+                  value={description}
+                  onChange={e => setDescription(e.target.value)}
+                  placeholder="Write questions, instructions, or reading requirements..."
+                  rows={6}
                   style={{
                     width: '100%',
-                    padding: '10px 12px',
+                    padding: '12px 14px',
                     borderRadius: '12px',
                     border: '1px solid var(--border)',
                     background: 'var(--surface-2)',
                     color: 'var(--text-primary)',
-                    fontSize: '13.5px',
-                    fontWeight: 700,
-                    boxSizing: 'border-box'
+                    fontSize: '13px',
+                    resize: 'vertical',
+                    boxSizing: 'border-box',
+                    minHeight: '150px'
                   }}
                 />
               </div>
 
-              <div>
-                <label style={{ display: 'block', fontSize: '11.5px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '4px' }}>
-                  Submission Time
-                </label>
-                <input
-                  type="time"
-                  required
-                  value={dueTime}
-                  onChange={e => setDueTime(e.target.value)}
-                  style={{
-                    width: '100%',
-                    padding: '10px 12px',
-                    borderRadius: '12px',
-                    border: '1px solid var(--border)',
-                    background: 'var(--surface-2)',
-                    color: 'var(--text-primary)',
-                    fontSize: '13.5px',
-                    fontWeight: 600,
-                    boxSizing: 'border-box'
-                  }}
-                />
-              </div>
-            </div>
-
-            {/* Computed deadline display */}
-            <div style={{
-              marginTop: '10px',
-              padding: '10px 14px',
-              borderRadius: '12px',
-              background: 'var(--surface-2)',
-              border: '1px solid var(--border)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              flexWrap: 'wrap',
-              gap: '6px'
-            }}>
-              <span style={{ fontSize: '12.5px', color: 'var(--text-secondary)' }}>
-                Due on: <strong style={{ color: 'var(--text-primary)' }}>
-                  {computedDueAt.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })} at {computedDueAt.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}
-                </strong>
-              </span>
-              <span style={{ fontSize: '11px', color: courseColor, fontWeight: 800 }}>
-                ({days} {days === 1 ? 'day' : 'days'} from now)
-              </span>
-            </div>
-
-            <span style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '6px', display: 'block' }}>
-              Student upload files are cleaned after the retention period, while submission history remains visible.
-            </span>
-          </div>
-
-          {/* Submission control */}
-          <div style={{
-            marginBottom: '16px',
-            padding: '12px 14px',
-            borderRadius: '14px',
-            border: '1px solid var(--border)',
-            background: 'var(--surface-2)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            gap: '12px',
-            flexWrap: 'wrap'
-          }}>
-            <div style={{ minWidth: 0 }}>
-              <p style={{ margin: 0, fontSize: '13px', fontWeight: 800, color: 'var(--text-primary)' }}>
-                Submission Control
-              </p>
-              <p style={{ margin: '2px 0 0', fontSize: '11.5px', color: 'var(--text-secondary)' }}>
-                {isOpen ? 'Students can submit homework.' : 'Students can view homework but cannot submit.'}
-              </p>
-            </div>
-            <button
-              type="button"
-              onClick={() => setIsOpen(prev => !prev)}
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '6px',
-                padding: '8px 14px',
-                borderRadius: '999px',
-                border: `1px solid ${isOpen ? 'rgba(34, 197, 94, 0.28)' : 'rgba(239, 68, 68, 0.24)'}`,
-                background: isOpen ? 'rgba(34, 197, 94, 0.1)' : 'rgba(239, 68, 68, 0.08)',
-                color: isOpen ? '#10b981' : '#ef4444',
-                fontSize: '12px',
-                fontWeight: 800,
-                cursor: 'pointer'
-              }}
-            >
-              {isOpen ? <Unlock size={14} /> : <Lock size={14} />}
-              {isOpen ? 'Submission On' : 'Submission Off'}
-            </button>
-          </div>
-
-          {/* Description */}
-          <div style={{ marginBottom: '16px' }}>
-            <label style={{ display: 'block', fontSize: '13px', fontWeight: 700, marginBottom: '6px', color: 'var(--text-primary)' }}>
-              Description or Instructions
-            </label>
-            <textarea
-              value={description}
-              onChange={e => setDescription(e.target.value)}
-              placeholder="Write questions, instructions, or reading requirements..."
-              rows={4}
-              style={{
-                width: '100%',
-                padding: '12px 14px',
-                borderRadius: '12px',
-                border: '1px solid var(--border)',
-                background: 'var(--surface-2)',
-                color: 'var(--text-primary)',
-                fontSize: '13px',
-                resize: 'vertical',
-                boxSizing: 'border-box'
-              }}
-            />
-          </div>
-
-          {/* Attachments */}
-          <div style={{ marginBottom: '16px' }}>
+              {/* Attachments */}
+              <div style={{ marginBottom: 0 }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
               <label style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-primary)' }}>
                 Attach Question Papers / Photos / PDFs
@@ -1473,6 +1472,8 @@ function HomeworkFormModal({
                 ))}
               </div>
             )}
+              </div>
+            </div>
           </div>
 
           {/* Action buttons */}
