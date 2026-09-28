@@ -5,7 +5,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/auth/auth_providers.dart';
 import '../../shared/widgets/app_avatar.dart';
-import '../../shared/widgets/bouncy_pressable.dart';
 import '../../shared/widgets/party_pips.dart';
 import '../../theme/app_shadows.dart';
 import '../../theme/app_theme_tokens.dart';
@@ -41,12 +40,6 @@ class _Sept26ProgressDialogState extends ConsumerState<Sept26ProgressDialog> {
     'Foundation',
     'Diploma',
     'Degree',
-  ];
-
-  static const List<Map<String, String>> _categories = [
-    {'key': 'STANDALONE', 'label': 'STANDALONE'},
-    {'key': 'DUAL DEGREE', 'label': 'DUAL DEGREE'},
-    {'key': 'WORKING PROFESSIONAL', 'label': 'WORKING PROFESSIONAL'},
   ];
 
   @override
@@ -347,166 +340,674 @@ class _Sept26ProgressDialogState extends ConsumerState<Sept26ProgressDialog> {
 
     final user = ref.watch(authStateProvider).value;
     final oldMobile = user?.mobileNumber ?? '';
+    final isMobileChanged = oldMobile.isNotEmpty && oldMobile != _mobileController.text.trim();
 
     return PopScope(
       canPop: false,
       child: Scaffold(
-        backgroundColor: tokens.bg,
-        body: SafeArea(
-          child: Center(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 580),
-                child: Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 24, vertical: 28),
-                  decoration: BoxDecoration(
-                    color: tokens.cardBg,
-                    borderRadius: BorderRadius.circular(24),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(isDark ? 0.35 : 0.08),
-                        blurRadius: 36,
-                        offset: const Offset(0, 16),
-                      ),
-                    ],
-                    border: Border.all(color: tokens.border),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      // Header Badge
-                      Center(
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 14, vertical: 6),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFF6366F1).withOpacity(0.12),
-                            borderRadius: BorderRadius.circular(20),
-                            border: Border.all(
-                              color: const Color(0xFF6366F1).withOpacity(0.3),
+        backgroundColor: const Color(0xFF0F172A),
+        body: Container(
+          decoration: const BoxDecoration(
+            gradient: RadialGradient(
+              center: Alignment.topRight,
+              radius: 1.5,
+              colors: [Color(0xFF1E1B4B), Color(0xFF0F172A)],
+            ),
+          ),
+          child: SafeArea(
+            child: Center(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+                physics: const BouncingScrollPhysics(),
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 580),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+                    decoration: BoxDecoration(
+                      color: tokens.cardBg,
+                      borderRadius: BorderRadius.circular(22),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.45),
+                          blurRadius: 36,
+                          offset: const Offset(0, 16),
+                        ),
+                      ],
+                      border: Border.all(color: tokens.border.withOpacity(0.6)),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        // Header Logo
+                        Center(
+                          child: Image.asset(
+                            'assets/mobile-login-logo.png',
+                            height: 32,
+                            fit: BoxFit.contain,
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+
+                        // Header Badge
+                        Center(
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 5),
+                            decoration: BoxDecoration(
+                              gradient: const LinearGradient(
+                                colors: [Color(0xFFE0E7FF), Color(0xFFEDE9FE)],
+                              ),
+                              borderRadius: BorderRadius.circular(50),
+                            ),
+                            child: const Text(
+                              "WELCOME TO SEPT '26 TERM",
+                              style: TextStyle(
+                                color: Color(0xFF4F46E5),
+                                fontSize: 11.5,
+                                fontWeight: FontWeight.w800,
+                                letterSpacing: 0.4,
+                              ),
                             ),
                           ),
-                          child: const Row(
-                            mainAxisSize: MainAxisSize.min,
+                        ),
+                        const SizedBox(height: 8),
+
+                        // Title
+                        Text(
+                          "Let's Update Your Progress!",
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.w900,
+                            color: tokens.textPrimary,
+                            letterSpacing: -0.3,
+                          ),
+                        ),
+                        const SizedBox(height: 14),
+
+                        // Progress Bar
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                          decoration: BoxDecoration(
+                            color: isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+                            ),
+                          ),
+                          child: Row(
                             children: [
-                              Text('✨', style: TextStyle(fontSize: 14)),
-                              SizedBox(width: 6),
-                              Text(
-                                "Sept '26 Term Update",
-                                style: TextStyle(
-                                  fontSize: 12.5,
-                                  fontWeight: FontWeight.w800,
-                                  color: Color(0xFF6366F1),
-                                  letterSpacing: 0.2,
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Text(
+                                          'TERM REFRESH PROGRESS',
+                                          style: TextStyle(
+                                            fontSize: 11,
+                                            fontWeight: FontWeight.w800,
+                                            color: tokens.textMuted,
+                                          ),
+                                        ),
+                                        Text(
+                                          '${(_progressPercent * 100).toInt()}% Completed',
+                                          style: TextStyle(
+                                            fontSize: 11,
+                                            fontWeight: FontWeight.w800,
+                                            color: _progressPercent == 1.0
+                                                ? const Color(0xFF10B981)
+                                                : const Color(0xFF6366F1),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 6),
+                                    ClipRRect(
+                                      borderRadius: BorderRadius.circular(4),
+                                      child: LinearProgressIndicator(
+                                        value: _progressPercent,
+                                        minHeight: 6,
+                                        backgroundColor: isDark
+                                            ? const Color(0xFF334155)
+                                            : const Color(0xFFE2E8F0),
+                                        valueColor: AlwaysStoppedAnimation<Color>(
+                                          _progressPercent == 1.0
+                                              ? const Color(0xFF10B981)
+                                              : const Color(0xFF6366F1),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              if (_progressPercent == 1.0) ...[
+                                const SizedBox(width: 10),
+                                Container(
+                                  width: 24,
+                                  height: 24,
+                                  decoration: const BoxDecoration(
+                                    color: Color(0xFFD1FAE5),
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: const Icon(
+                                    Icons.check_rounded,
+                                    size: 16,
+                                    color: Color(0xFF059669),
+                                  ),
+                                ),
+                              ],
+                            ],
+                          ),
+                        ),
+
+                        // Error message if any
+                        if (_error != null) ...[
+                          const SizedBox(height: 12),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
+                            decoration: BoxDecoration(
+                              color: tokens.danger.withOpacity(0.12),
+                              borderRadius: BorderRadius.circular(10),
+                              border: Border.all(color: tokens.danger.withOpacity(0.3)),
+                            ),
+                            child: Row(
+                              children: [
+                                Icon(Icons.error_outline, color: tokens.danger, size: 15),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: Text(
+                                    _error!,
+                                    style: TextStyle(
+                                      color: tokens.danger,
+                                      fontSize: 12.5,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                        const SizedBox(height: 14),
+
+                        // ── Photo Section ──
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: tokens.surfaceSecondary,
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(color: tokens.border),
+                          ),
+                          child: Row(
+                            children: [
+                              GestureDetector(
+                                onTap: _showPhotoSheet,
+                                child: Stack(
+                                  children: [
+                                    AppAvatar(
+                                      avatarUrl: _avatarUrl,
+                                      gender: user?.gender,
+                                      size: 56,
+                                      border: Border.all(
+                                        color: const Color(0xFF6366F1),
+                                        width: 2.5,
+                                      ),
+                                    ),
+                                    Positioned(
+                                      bottom: 0,
+                                      right: 0,
+                                      child: Container(
+                                        padding: const EdgeInsets.all(3),
+                                        decoration: const BoxDecoration(
+                                          color: Color(0xFF6366F1),
+                                          shape: BoxShape.circle,
+                                        ),
+                                        child: const Icon(
+                                          Icons.camera_alt,
+                                          size: 10,
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      children: [
+                                        Text(
+                                          'Profile Photo',
+                                          style: TextStyle(
+                                            fontSize: 13.5,
+                                            fontWeight: FontWeight.w800,
+                                            color: tokens.textPrimary,
+                                          ),
+                                        ),
+                                        const SizedBox(width: 6),
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 1),
+                                          decoration: BoxDecoration(
+                                            color: const Color(0xFFEFF0FE),
+                                            borderRadius: BorderRadius.circular(12),
+                                          ),
+                                          child: const Text(
+                                            'Optional',
+                                            style: TextStyle(
+                                              fontSize: 10.5,
+                                              fontWeight: FontWeight.w700,
+                                              color: Color(0xFF6366F1),
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      'Optional — Keep your existing photo or upload a fresh one for the new term.',
+                                      style: TextStyle(
+                                        fontSize: 11.5,
+                                        color: tokens.textMuted,
+                                        height: 1.3,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 6),
+                                    Row(
+                                      children: [
+                                        ElevatedButton(
+                                          onPressed: _showPhotoSheet,
+                                          style: ElevatedButton.styleFrom(
+                                            backgroundColor: const Color(0xFF6366F1),
+                                            foregroundColor: Colors.white,
+                                            elevation: 0,
+                                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                            minimumSize: const Size(0, 28),
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius: BorderRadius.circular(8),
+                                            ),
+                                          ),
+                                          child: Text(
+                                            _avatarUrl != null ? 'Change Photo' : 'Upload Photo',
+                                            style: const TextStyle(
+                                              fontSize: 11.5,
+                                              fontWeight: FontWeight.w700,
+                                            ),
+                                          ),
+                                        ),
+                                        if (_avatarUrl != null) ...[
+                                          const SizedBox(width: 8),
+                                          OutlinedButton(
+                                            onPressed: () => setState(() => _avatarUrl = null),
+                                            style: OutlinedButton.styleFrom(
+                                              foregroundColor: tokens.danger,
+                                              side: BorderSide(
+                                                color: tokens.danger.withOpacity(0.3),
+                                              ),
+                                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                              minimumSize: const Size(0, 28),
+                                              shape: RoundedRectangleBorder(
+                                                borderRadius: BorderRadius.circular(8),
+                                              ),
+                                            ),
+                                            child: const Text(
+                                              'Remove',
+                                              style: TextStyle(
+                                                fontSize: 11.5,
+                                                fontWeight: FontWeight.w600,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ],
+                                    ),
+                                  ],
                                 ),
                               ),
                             ],
                           ),
                         ),
-                      ),
-                      const SizedBox(height: 14),
+                        const SizedBox(height: 14),
 
-                      // Title
-                      Text(
-                        "Welcome to Sept '26 Term! 🎉",
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.w900,
-                          color: tokens.textPrimary,
-                          letterSpacing: -0.5,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-
-                      // Subtitle
-                      Text(
-                        "Let's update your progress to tailor your upcoming courses, groups, and mentorship sessions.",
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: 14,
-                          height: 1.5,
-                          color: tokens.textSecondary,
-                        ),
-                      ),
-                      const SizedBox(height: 20),
-
-                      // Live Progress Bar
-                      Container(
-                        padding: const EdgeInsets.all(14),
-                        decoration: BoxDecoration(
-                          color: tokens.surface,
-                          borderRadius: BorderRadius.circular(14),
-                          border: Border.all(color: tokens.border),
-                        ),
-                        child: Column(
+                        // ── Field 1: Which IITM Level are You in Now? ──
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(
-                                  'Progress',
+                            Text(
+                              '1. Which IITM Level are You in Now?',
+                              style: TextStyle(
+                                fontSize: 13.5,
+                                fontWeight: FontWeight.w800,
+                                color: tokens.textPrimary,
+                              ),
+                            ),
+                            if (_selectedLevel != null)
+                              Text(
+                                '$_selectedLevel ✓',
+                                style: const TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w800,
+                                  color: Color(0xFF6366F1),
+                                ),
+                              ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        GridView.count(
+                          crossAxisCount: 2,
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          mainAxisSpacing: 8,
+                          crossAxisSpacing: 8,
+                          childAspectRatio: 3.4,
+                          children: _levels.map((level) {
+                            final isSelected = _selectedLevel == level;
+                            return InkWell(
+                              onTap: () {
+                                setState(() => _selectedLevel = level);
+                                _triggerCelebration('level');
+                              },
+                              borderRadius: BorderRadius.circular(12),
+                              child: Container(
+                                alignment: Alignment.center,
+                                decoration: BoxDecoration(
+                                  color: isSelected ? const Color(0xFFEFF0FE) : tokens.surface,
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(
+                                    color: isSelected ? const Color(0xFF6366F1) : tokens.border,
+                                    width: 2,
+                                  ),
+                                  boxShadow: isSelected
+                                      ? [
+                                          BoxShadow(
+                                            color: const Color(0xFF6366F1).withOpacity(0.2),
+                                            blurRadius: 8,
+                                            offset: const Offset(0, 3),
+                                          ),
+                                        ]
+                                      : null,
+                                ),
+                                child: Text(
+                                  level,
                                   style: TextStyle(
                                     fontSize: 12.5,
                                     fontWeight: FontWeight.w700,
-                                    color: tokens.textSecondary,
+                                    color: isSelected ? const Color(0xFF4F46E5) : tokens.textSecondary,
                                   ),
                                 ),
-                                Text(
-                                  '${(_progressPercent * 100).toInt()}% Complete ($_requiredCompletedCount/3 required)',
-                                  style: const TextStyle(
-                                    fontSize: 12.5,
-                                    fontWeight: FontWeight.w800,
-                                    color: Color(0xFF6366F1),
-                                  ),
-                                ),
-                              ],
+                              ),
+                            );
+                          }).toList(),
+                        ),
+                        const SizedBox(height: 14),
+
+                        // ── Field 2: Are You Currently: ──
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              '2. Are You Currently:',
+                              style: TextStyle(
+                                fontSize: 13.5,
+                                fontWeight: FontWeight.w800,
+                                color: tokens.textPrimary,
+                              ),
                             ),
-                            const SizedBox(height: 8),
-                            ClipRRect(
-                              borderRadius: BorderRadius.circular(6),
-                              child: LinearProgressIndicator(
-                                value: _progressPercent,
-                                minHeight: 7,
-                                backgroundColor: isDark
-                                    ? const Color(0xFF1E293B)
-                                    : const Color(0xFFE2E8F0),
-                                valueColor: const AlwaysStoppedAnimation<Color>(
-                                  Color(0xFF6366F1),
+                            if (_selectedCategory != null)
+                              const Text(
+                                'Selected ✓',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w800,
+                                  color: Color(0xFF6366F1),
                                 ),
+                              ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: _buildCategoryButton(
+                                key: 'STANDALONE',
+                                label: 'Standalone',
+                                tokens: tokens,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: _buildCategoryButton(
+                                key: 'DUAL DEGREE',
+                                label: 'Dual Degree',
+                                tokens: tokens,
                               ),
                             ),
                           ],
                         ),
-                      ),
-                      const SizedBox(height: 24),
+                        const SizedBox(height: 8),
+                        _buildCategoryButton(
+                          key: 'WORKING PROFESSIONAL',
+                          label: 'Working Professional',
+                          tokens: tokens,
+                        ),
+                        const SizedBox(height: 14),
 
-                      // Error message if any
-                      if (_error != null) ...[
+                        // ── Field 3: Mobile Number ──
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              '3. Mobile Number (Update if Changed)',
+                              style: TextStyle(
+                                fontSize: 13.5,
+                                fontWeight: FontWeight.w800,
+                                color: tokens.textPrimary,
+                              ),
+                            ),
+                            if (_mobileController.text.trim().length == 10 &&
+                                RegExp(r'^[6789]\d{9}$').hasMatch(_mobileController.text.trim()))
+                              const Text(
+                                'Verified ✓',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w800,
+                                  color: Color(0xFF10B981),
+                                ),
+                              )
+                            else if (_mobileController.text.isNotEmpty)
+                              Text(
+                                '${_mobileController.text.length}/10 digits',
+                                style: const TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w700,
+                                  color: Color(0xFF6366F1),
+                                ),
+                              ),
+                          ],
+                        ),
+                        const SizedBox(height: 6),
                         Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 14, vertical: 11),
                           decoration: BoxDecoration(
-                            color: tokens.danger.withOpacity(0.12),
+                            color: tokens.surface,
                             borderRadius: BorderRadius.circular(12),
                             border: Border.all(
-                              color: tokens.danger.withOpacity(0.3),
+                              color: (_mobileController.text.trim().length == 10 &&
+                                      RegExp(r'^[6789]\d{9}$').hasMatch(_mobileController.text.trim()))
+                                  ? const Color(0xFF10B981)
+                                  : tokens.border,
+                              width: 2,
                             ),
                           ),
                           child: Row(
                             children: [
-                              Icon(Icons.error_outline,
-                                  color: tokens.danger, size: 16),
-                              const SizedBox(width: 8),
+                              const Padding(
+                                padding: EdgeInsets.only(left: 14, right: 6),
+                                child: Text(
+                                  '+91',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w700,
+                                    color: Color(0xFF64748B),
+                                  ),
+                                ),
+                              ),
+                              Expanded(
+                                child: TextField(
+                                  controller: _mobileController,
+                                  keyboardType: TextInputType.phone,
+                                  maxLength: 10,
+                                  buildCounter: (context, {required currentLength, required isFocused, maxLength}) => null,
+                                  inputFormatters: [
+                                    FilteringTextInputFormatter.digitsOnly,
+                                    LengthLimitingTextInputFormatter(10),
+                                  ],
+                                  onChanged: (val) {
+                                    setState(() {});
+                                    if (val.length == 10 && RegExp(r'^[6789]').hasMatch(val)) {
+                                      _triggerCelebration('mobile');
+                                    }
+                                  },
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w700,
+                                    color: tokens.textPrimary,
+                                    letterSpacing: 0.5,
+                                  ),
+                                  decoration: InputDecoration(
+                                    hintText: 'Enter 10-digit number (starts with 6-9)',
+                                    hintStyle: TextStyle(
+                                      fontSize: 12.5,
+                                      fontWeight: FontWeight.w500,
+                                      color: tokens.textMuted,
+                                    ),
+                                    border: InputBorder.none,
+                                    contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 11),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        if (isMobileChanged) ...[
+                          const SizedBox(height: 6),
+                          const Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Icon(Icons.warning_amber_rounded, size: 13, color: Color(0xFFD97706)),
+                              SizedBox(width: 5),
                               Expanded(
                                 child: Text(
-                                  _error!,
+                                  'Notice: Changing mobile number. Old number will be securely archived for audit.',
                                   style: TextStyle(
-                                    color: tokens.danger,
-                                    fontSize: 13,
+                                    fontSize: 11,
+                                    color: Color(0xFFD97706),
                                     fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                        const SizedBox(height: 14),
+
+                        // ── Field 4: Social Card Links (Optional) ──
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: tokens.surfaceSecondary,
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(color: tokens.border),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Text(
+                                    '4. Social Card Links (Optional)',
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w800,
+                                      color: tokens.textPrimary,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 6),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 1),
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFFEFF0FE),
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    child: const Text(
+                                      'Optional',
+                                      style: TextStyle(
+                                        fontSize: 10.5,
+                                        fontWeight: FontWeight.w700,
+                                        color: Color(0xFF6366F1),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 10),
+                              Text(
+                                'Instagram Profile Link',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w700,
+                                  color: tokens.textSecondary,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              TextField(
+                                controller: _instagramController,
+                                style: TextStyle(fontSize: 12, color: tokens.textPrimary),
+                                decoration: InputDecoration(
+                                  hintText: 'https://instagram.com/...',
+                                  hintStyle: TextStyle(fontSize: 12, color: tokens.textMuted),
+                                  filled: true,
+                                  fillColor: tokens.surface,
+                                  contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                    borderSide: BorderSide(color: tokens.border),
+                                  ),
+                                  enabledBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                    borderSide: BorderSide(color: tokens.border),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(height: 10),
+                              Text(
+                                'LinkedIn Profile Link',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w700,
+                                  color: tokens.textSecondary,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              TextField(
+                                controller: _linkedinController,
+                                style: TextStyle(fontSize: 12, color: tokens.textPrimary),
+                                decoration: InputDecoration(
+                                  hintText: 'https://linkedin.com/in/...',
+                                  hintStyle: TextStyle(fontSize: 12, color: tokens.textMuted),
+                                  filled: true,
+                                  fillColor: tokens.surface,
+                                  contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                    borderSide: BorderSide(color: tokens.border),
+                                  ),
+                                  enabledBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                    borderSide: BorderSide(color: tokens.border),
                                   ),
                                 ),
                               ),
@@ -514,345 +1015,54 @@ class _Sept26ProgressDialogState extends ConsumerState<Sept26ProgressDialog> {
                           ),
                         ),
                         const SizedBox(height: 20),
+
+                        // Submit Button
+                        SizedBox(
+                          width: double.infinity,
+                          height: 48,
+                          child: ElevatedButton(
+                            onPressed: _saving ? null : _submit,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF6366F1),
+                              foregroundColor: Colors.white,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(14),
+                              ),
+                              elevation: 0,
+                            ),
+                            child: _saving
+                                ? const Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      SizedBox(
+                                        width: 18,
+                                        height: 18,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                      SizedBox(width: 8),
+                                      Text(
+                                        'Saving Progress...',
+                                        style: TextStyle(
+                                          fontSize: 15,
+                                          fontWeight: FontWeight.w800,
+                                        ),
+                                      ),
+                                    ],
+                                  )
+                                : const Text(
+                                    'Save Progress & Enter Dashboard',
+                                    style: TextStyle(
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.w800,
+                                    ),
+                                  ),
+                          ),
+                        ),
                       ],
-
-                      // ── FIELD 1: Profile Photo (Optional) ──
-                      Center(
-                        child: Column(
-                          children: [
-                            Stack(
-                              children: [
-                                AppAvatar(
-                                  avatarUrl: _avatarUrl,
-                                  gender: user?.gender,
-                                  size: 82,
-                                  border: Border.all(
-                                    color: const Color(0xFF6366F1)
-                                        .withOpacity(0.35),
-                                    width: 2.5,
-                                  ),
-                                ),
-                                Positioned(
-                                  bottom: 0,
-                                  right: 0,
-                                  child: Container(
-                                    padding: const EdgeInsets.all(5),
-                                    decoration: BoxDecoration(
-                                      color: const Color(0xFF6366F1),
-                                      shape: BoxShape.circle,
-                                      border: Border.all(
-                                          color: tokens.cardBg, width: 2),
-                                    ),
-                                    child: const Icon(
-                                      Icons.camera_alt,
-                                      size: 13,
-                                      color: Colors.white,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 10),
-                            Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                BouncyPressable(
-                                  onTap: _showPhotoSheet,
-                                  scaleDown: 0.96,
-                                  child: Container(
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 14, vertical: 6),
-                                    decoration: BoxDecoration(
-                                      color: tokens.surfaceSecondary,
-                                      borderRadius: BorderRadius.circular(10),
-                                      border: Border.all(color: tokens.border),
-                                    ),
-                                    child: Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        Icon(Icons.photo_camera_outlined,
-                                            size: 14,
-                                            color: tokens.textPrimary),
-                                        const SizedBox(width: 6),
-                                        Text(
-                                          _avatarUrl != null
-                                              ? 'Change Photo'
-                                              : 'Add Photo (Optional)',
-                                          style: TextStyle(
-                                            fontSize: 12,
-                                            fontWeight: FontWeight.w700,
-                                            color: tokens.textPrimary,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                                if (_avatarUrl != null) ...[
-                                  const SizedBox(width: 8),
-                                  BouncyPressable(
-                                    onTap: () =>
-                                        setState(() => _avatarUrl = null),
-                                    scaleDown: 0.96,
-                                    child: Container(
-                                      padding: const EdgeInsets.symmetric(
-                                          horizontal: 10, vertical: 6),
-                                      decoration: BoxDecoration(
-                                        color: tokens.danger.withOpacity(0.1),
-                                        borderRadius:
-                                            BorderRadius.circular(10),
-                                        border: Border.all(
-                                          color: tokens.danger.withOpacity(0.3),
-                                        ),
-                                      ),
-                                      child: Row(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          Icon(Icons.close,
-                                              size: 13, color: tokens.danger),
-                                          const SizedBox(width: 4),
-                                          Text(
-                                            'Remove',
-                                            style: TextStyle(
-                                              fontSize: 12,
-                                              fontWeight: FontWeight.w700,
-                                              color: tokens.danger,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ],
-                            ),
-                            const SizedBox(height: 5),
-                            Text(
-                              'Profile photo is optional',
-                              style: TextStyle(
-                                fontSize: 11.5,
-                                color: tokens.textMuted,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 24),
-
-                      // ── FIELD 2: IITM Level ──
-                      _buildSectionHeader('Current IITM Level *', tokens),
-                      const SizedBox(height: 10),
-                      Wrap(
-                        spacing: 8,
-                        runSpacing: 8,
-                        children: _levels.map((level) {
-                          final isSelected = _selectedLevel == level;
-                          return InkWell(
-                            onTap: () {
-                              setState(() => _selectedLevel = level);
-                              _triggerCelebration('level');
-                            },
-                            borderRadius: BorderRadius.circular(10),
-                            child: AnimatedContainer(
-                              duration: const Duration(milliseconds: 180),
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 16, vertical: 10),
-                              decoration: BoxDecoration(
-                                color: isSelected
-                                    ? const Color(0xFF6366F1)
-                                    : tokens.surface,
-                                borderRadius: BorderRadius.circular(10),
-                                border: Border.all(
-                                  color: isSelected
-                                      ? const Color(0xFF6366F1)
-                                      : tokens.border,
-                                  width: isSelected ? 2 : 1,
-                                ),
-                              ),
-                              child: Text(
-                                level,
-                                style: TextStyle(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w700,
-                                  color: isSelected
-                                      ? Colors.white
-                                      : tokens.textSecondary,
-                                ),
-                              ),
-                            ),
-                          );
-                        }).toList(),
-                      ),
-                      const SizedBox(height: 24),
-
-                      // ── FIELD 3: IITM Category ──
-                      _buildSectionHeader('IITM Category *', tokens),
-                      const SizedBox(height: 10),
-                      Column(
-                        children: _categories.map((cat) {
-                          final key = cat['key']!;
-                          final label = cat['label']!;
-                          final isSelected = _selectedCategory == key;
-
-                          return Padding(
-                            padding: const EdgeInsets.only(bottom: 8),
-                            child: InkWell(
-                              onTap: () {
-                                setState(() => _selectedCategory = key);
-                                _triggerCelebration('category');
-                              },
-                              borderRadius: BorderRadius.circular(12),
-                              child: AnimatedContainer(
-                                duration: const Duration(milliseconds: 180),
-                                width: double.infinity,
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 16, vertical: 12),
-                                decoration: BoxDecoration(
-                                  color: isSelected
-                                      ? (isDark
-                                          ? const Color(0xFF312E81)
-                                          : const Color(0xFFEEF2FF))
-                                      : tokens.surface,
-                                  borderRadius: BorderRadius.circular(12),
-                                  border: Border.all(
-                                    color: isSelected
-                                        ? const Color(0xFF6366F1)
-                                        : tokens.border,
-                                    width: isSelected ? 2 : 1,
-                                  ),
-                                ),
-                                child: Row(
-                                  children: [
-                                    Icon(
-                                      isSelected
-                                          ? Icons.radio_button_checked
-                                          : Icons.radio_button_off,
-                                      size: 18,
-                                      color: isSelected
-                                          ? const Color(0xFF6366F1)
-                                          : tokens.textMuted,
-                                    ),
-                                    const SizedBox(width: 10),
-                                    Text(
-                                      label,
-                                      style: TextStyle(
-                                        fontSize: 13,
-                                        fontWeight: FontWeight.w700,
-                                        color: isSelected
-                                            ? const Color(0xFF6366F1)
-                                            : tokens.textPrimary,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          );
-                        }).toList(),
-                      ),
-                      const SizedBox(height: 20),
-
-                      // ── FIELD 4: Mobile Number ──
-                      _buildSectionHeader('Mobile Number *', tokens),
-                      const SizedBox(height: 6),
-                      TextField(
-                        controller: _mobileController,
-                        keyboardType: TextInputType.phone,
-                        inputFormatters: [
-                          FilteringTextInputFormatter.digitsOnly,
-                          LengthLimitingTextInputFormatter(10),
-                        ],
-                        onChanged: (val) {
-                          if (val.length == 10) {
-                            _triggerCelebration('mobile');
-                          }
-                        },
-                        style: TextStyle(
-                            fontSize: 14, color: tokens.textPrimary),
-                        decoration: _inputDecoration('10-digit number', tokens),
-                      ),
-                      const SizedBox(height: 6),
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Icon(Icons.shield_outlined,
-                              size: 13, color: tokens.textMuted),
-                          const SizedBox(width: 5),
-                          Expanded(
-                            child: Text(
-                              oldMobile.isNotEmpty
-                                  ? 'Current registered: +91 $oldMobile. Old numbers are archived for security.'
-                                  : 'Used for instant SMS & batch notifications.',
-                              style: TextStyle(
-                                fontSize: 11.5,
-                                color: tokens.textMuted,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 24),
-
-                      // ── FIELD 5: Social Card Links (Optional) ──
-                      _buildSectionHeader(
-                          'Social Links (Optional for Student Card)', tokens),
-                      const SizedBox(height: 10),
-                      TextField(
-                        controller: _instagramController,
-                        style: TextStyle(
-                            fontSize: 14, color: tokens.textPrimary),
-                        decoration: _inputDecoration(
-                          'Instagram username or URL',
-                          tokens,
-                          prefixIcon: Icons.camera_alt_outlined,
-                        ),
-                      ),
-                      const SizedBox(height: 10),
-                      TextField(
-                        controller: _linkedinController,
-                        style: TextStyle(
-                            fontSize: 14, color: tokens.textPrimary),
-                        decoration: _inputDecoration(
-                          'LinkedIn profile URL',
-                          tokens,
-                          prefixIcon: Icons.link_rounded,
-                        ),
-                      ),
-                      const SizedBox(height: 32),
-
-                      // Submit Button
-                      SizedBox(
-                        height: 52,
-                        child: ElevatedButton(
-                          onPressed: _saving ? null : _submit,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF6366F1),
-                            foregroundColor: Colors.white,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(14),
-                            ),
-                            elevation: 0,
-                            shadowColor: const Color(0x4D6366F1),
-                          ),
-                          child: _saving
-                              ? const SizedBox(
-                                  width: 22,
-                                  height: 22,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2.4,
-                                    color: Colors.white,
-                                  ),
-                                )
-                              : const Text(
-                                  "Confirm & Update for Sept '26 🚀",
-                                  style: TextStyle(
-                                    fontSize: 15,
-                                    fontWeight: FontWeight.w800,
-                                  ),
-                                ),
-                        ),
-                      ),
-                    ],
+                    ),
                   ),
                 ),
               ),
@@ -863,54 +1073,58 @@ class _Sept26ProgressDialogState extends ConsumerState<Sept26ProgressDialog> {
     );
   }
 
-  Widget _buildSectionHeader(String title, AppThemeTokens tokens) {
-    return Text(
-      title,
-      style: TextStyle(
-        fontSize: 13,
-        fontWeight: FontWeight.w700,
-        color: tokens.textPrimary,
-        letterSpacing: 0.1,
-      ),
-    );
-  }
-
-  InputDecoration _inputDecoration(
-    String hint,
-    AppThemeTokens tokens, {
-    IconData? prefixIcon,
+  Widget _buildCategoryButton({
+    required String key,
+    required String label,
+    required AppThemeTokens tokens,
   }) {
-    return InputDecoration(
-      hintText: hint,
-      prefixIcon: prefixIcon != null
-          ? Icon(prefixIcon, size: 18, color: tokens.textMuted)
-          : null,
-      hintStyle: TextStyle(fontSize: 14, color: tokens.textMuted),
-      filled: true,
-      fillColor: tokens.surface,
-      contentPadding:
-          const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(10),
-        borderSide: BorderSide(color: tokens.border),
-      ),
-      enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(10),
-        borderSide: BorderSide(color: tokens.border),
-      ),
-      focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(10),
-        borderSide: const BorderSide(color: Color(0xFF6366F1), width: 1.8),
+    final isSelected = _selectedCategory == key;
+    return InkWell(
+      onTap: () {
+        setState(() => _selectedCategory = key);
+        _triggerCelebration('category');
+      },
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        height: 42,
+        alignment: Alignment.center,
+        padding: const EdgeInsets.symmetric(horizontal: 10),
+        decoration: BoxDecoration(
+          color: isSelected ? const Color(0xFFEFF0FE) : tokens.surface,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: isSelected ? const Color(0xFF6366F1) : tokens.border,
+            width: 2,
+          ),
+          boxShadow: isSelected
+              ? [
+                  BoxShadow(
+                    color: const Color(0xFF6366F1).withOpacity(0.2),
+                    blurRadius: 8,
+                    offset: const Offset(0, 3),
+                  ),
+                ]
+              : null,
+        ),
+        child: Text(
+          label,
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w700,
+            color: isSelected ? const Color(0xFF4F46E5) : tokens.textSecondary,
+          ),
+        ),
       ),
     );
   }
 
   Widget _buildCelebrationView(AppThemeTokens tokens, bool isDark) {
     return ConstrainedBox(
-      constraints: const BoxConstraints(maxWidth: 480),
+      constraints: const BoxConstraints(maxWidth: 440),
       child: Container(
-        margin: const EdgeInsets.all(24),
-        padding: const EdgeInsets.all(32),
+        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 26),
         decoration: BoxDecoration(
           color: tokens.cardBg,
           borderRadius: BorderRadius.circular(24),
@@ -921,41 +1135,63 @@ class _Sept26ProgressDialogState extends ConsumerState<Sept26ProgressDialog> {
           mainAxisSize: MainAxisSize.min,
           children: [
             Container(
-              width: 72,
-              height: 72,
-              decoration: BoxDecoration(
-                color: const Color(0xFF10B981).withOpacity(0.15),
+              width: 64,
+              height: 64,
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [Color(0xFF10B981), Color(0xFF059669)],
+                ),
                 shape: BoxShape.circle,
               ),
               child: const Center(
-                child: Text('🎉', style: TextStyle(fontSize: 34)),
+                child: Icon(Icons.check_rounded, color: Colors.white, size: 32),
               ),
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 16),
             Text(
-              "You're all set for Sept '26! 🚀",
+              "You're All Set for Sept '26!",
               textAlign: TextAlign.center,
               style: TextStyle(
-                fontSize: 22,
+                fontSize: 20,
                 fontWeight: FontWeight.w900,
                 color: tokens.textPrimary,
-                letterSpacing: -0.4,
+                letterSpacing: -0.3,
               ),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 10),
             Text(
-              "Your academic profile and contact details have been successfully refreshed. Let's make this term great!",
+              'Your current IITM Level has been updated to $_selectedLevel.',
               textAlign: TextAlign.center,
               style: TextStyle(
-                fontSize: 14,
-                height: 1.55,
+                fontSize: 13.5,
+                height: 1.5,
                 color: tokens.textSecondary,
               ),
             ),
-            const SizedBox(height: 28),
+            const SizedBox(height: 14),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+              decoration: BoxDecoration(
+                color: const Color(0xFF10B981).withOpacity(0.08),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: const Color(0xFF10B981).withOpacity(0.25),
+                ),
+              ),
+              child: const Text(
+                'Best of luck for an incredible new term with GenZ IITian!',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: Color(0xFF059669),
+                  fontWeight: FontWeight.w700,
+                  fontSize: 13,
+                ),
+              ),
+            ),
+            const SizedBox(height: 20),
             SizedBox(
               width: double.infinity,
-              height: 50,
+              height: 48,
               child: ElevatedButton(
                 onPressed: _finish,
                 style: ElevatedButton.styleFrom(
@@ -967,7 +1203,7 @@ class _Sept26ProgressDialogState extends ConsumerState<Sept26ProgressDialog> {
                   elevation: 0,
                 ),
                 child: const Text(
-                  'Let’s Go to Dashboard',
+                  'Continue to Dashboard →',
                   style: TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.w800,

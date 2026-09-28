@@ -38,7 +38,7 @@ export default function SecureWebPdfViewer({
   watermarkEmail,
   title,
   onBack,
-  initialFullscreen = false,
+  initialFullscreen = true,
 }: Props) {
   const [numPages, setNumPages] = useState<number>(0)
   const [pageNumber, setPageNumber] = useState<number>(1)
@@ -541,6 +541,31 @@ export default function SecureWebPdfViewer({
         )}
       </div>
 
+      {numPages > 0 && (
+        <>
+          <button
+            type="button"
+            onClick={handlePrev}
+            disabled={pageNumber <= 1}
+            style={sideNavBtnStyle('left', pageNumber <= 1, isFullscreen)}
+            title="Previous page"
+          >
+            <ChevronLeft size={20} />
+            <span>Previous</span>
+          </button>
+          <button
+            type="button"
+            onClick={handleNext}
+            disabled={isTwoPage ? pageNumber + 1 >= numPages : pageNumber >= numPages}
+            style={sideNavBtnStyle('right', isTwoPage ? pageNumber + 1 >= numPages : pageNumber >= numPages, isFullscreen)}
+            title="Next page"
+          >
+            <span>Next</span>
+            <ChevronRight size={20} />
+          </button>
+        </>
+      )}
+
       {/* Floating Bottom Quick Nav for Mobile/Tablet */}
       {numPages > 0 && (
         <div
@@ -681,6 +706,33 @@ function pagerArrowBtn(disabled: boolean, isFullscreen = false): React.CSSProper
     justifyContent: 'center',
     cursor: disabled ? 'default' : 'pointer',
     opacity: disabled ? 0.4 : 1,
+  }
+}
+
+function sideNavBtnStyle(side: 'left' | 'right', disabled: boolean, isFullscreen = false): React.CSSProperties {
+  return {
+    position: isFullscreen ? 'fixed' : 'absolute',
+    top: '50%',
+    [side]: isFullscreen ? '22px' : '18px',
+    transform: 'translateY(-50%)',
+    zIndex: 30,
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '6px',
+    minWidth: '112px',
+    justifyContent: 'center',
+    padding: '12px 14px',
+    borderRadius: '999px',
+    border: isFullscreen ? '1px solid rgba(248, 250, 252, 0.22)' : '1px solid var(--border)',
+    background: isFullscreen ? 'rgba(15, 23, 42, 0.88)' : 'rgba(255, 255, 255, 0.94)',
+    color: isFullscreen ? '#f8fafc' : 'var(--text-primary)',
+    boxShadow: '0 10px 24px rgba(15, 23, 42, 0.18)',
+    fontSize: '13px',
+    fontWeight: 900,
+    cursor: disabled ? 'default' : 'pointer',
+    opacity: disabled ? 0.35 : 1,
+    pointerEvents: disabled ? 'none' : 'auto',
+    backdropFilter: 'blur(10px)',
   }
 }
 

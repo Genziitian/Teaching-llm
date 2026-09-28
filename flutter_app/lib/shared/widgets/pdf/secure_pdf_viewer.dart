@@ -167,9 +167,12 @@ class _SecurePdfViewerState extends ConsumerState<SecurePdfViewer> {
         }
       }
 
-      // 3. Otherwise, fetch online via backend proxy into a temporary cache file
+      // 3. Otherwise, fetch online via backend proxy or direct URL into a temporary cache file
+      final isDirectUrl = widget.contentId.startsWith('http://') ||
+          widget.contentId.startsWith('https://');
+
       final token = await const TokenStorage().read();
-      if (token == null || token.isEmpty) {
+      if (!isDirectUrl && (token == null || token.isEmpty)) {
         if (mounted) {
           setState(() => _error = 'Not signed in — please log in again.');
         }
@@ -177,25 +180,38 @@ class _SecurePdfViewerState extends ConsumerState<SecurePdfViewer> {
       }
 
       final dir = await getApplicationCacheDirectory();
-      final dst = File('${dir.path}/${widget.contentId}.pdf');
+      final cacheKey = isDirectUrl
+          ? 'doc_${widget.contentId.hashCode.abs()}'
+          : widget.contentId;
+      final dst = File('${dir.path}/$cacheKey.pdf');
       if (await dst.exists()) {
         try {
           await dst.delete();
         } catch (_) {}
       }
 
-      final proxyPath =
-          UrlResolver.resolve(widget.contentId, widget.contentType);
-      final url = '${ApiConfig.baseUrl}$proxyPath';
+      final String url;
+      final Map<String, dynamic> headers;
+      if (isDirectUrl) {
+        url = widget.contentId;
+        headers = {
+          'Accept': 'application/pdf,*/*;q=0.5',
+        };
+      } else {
+        final proxyPath =
+            UrlResolver.resolve(widget.contentId, widget.contentType);
+        url = '${ApiConfig.baseUrl}$proxyPath';
+        headers = {
+          'Authorization': 'Bearer $token',
+          'X-Requested-With': 'XMLHttpRequest',
+          'Accept': 'application/pdf,*/*;q=0.5',
+        };
+      }
 
       final dio = Dio(BaseOptions(
         connectTimeout: const Duration(seconds: 30),
         receiveTimeout: const Duration(minutes: 5),
-        headers: {
-          'Authorization': 'Bearer $token',
-          'X-Requested-With': 'XMLHttpRequest',
-          'Accept': 'application/pdf,*/*;q=0.5',
-        },
+        headers: headers,
         validateStatus: (_) => true,
       ));
 

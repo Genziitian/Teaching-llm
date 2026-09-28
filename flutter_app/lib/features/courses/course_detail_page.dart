@@ -211,18 +211,19 @@ class _CourseDetailPageState extends ConsumerState<CourseDetailPage> {
                     course: course,
                     accent: accent,
                     isExpired: isExpired,
+                    topicsCount: topicsCount,
+                    lecturesCount: lecturesCount,
                   ),
 
-                  // 1.5 Homework Banner
-                  HomeworkBannerCard(
-                    courseId: widget.courseId,
-                    accent: accent,
-                  ),
-
-                  // 2. Tabs: Curriculum, Downloaded Notes, Overview, Feedback
+                  // 2. Tabs: Curriculum, Downloaded Notes, Homework, Overview, Feedback
                   _CourseTabBar(
                     activeIndex: _activeTabIndex,
                     downloadsCount: courseDownloads.length,
+                    homeworkCount: ref
+                            .watch(homeworkListProvider(widget.courseId))
+                            .value
+                            ?.length ??
+                        0,
                     accent: accent,
                     onTabSelected: (index) =>
                         setState(() => _activeTabIndex = index),
@@ -272,6 +273,12 @@ class _CourseDetailPageState extends ConsumerState<CourseDetailPage> {
       }
       return Column(
         children: [
+          // Sleek web-matching Homework Reminder Strip
+          HomeworkCurriculumReminder(
+            courseId: courseId,
+            accent: accent,
+            onViewHomework: () => setState(() => _activeTabIndex = 2),
+          ),
           for (var i = 0; i < topics.length; i++) ...[
             _TopicAccordion(
               index: i + 1,
@@ -294,6 +301,13 @@ class _CourseDetailPageState extends ConsumerState<CourseDetailPage> {
         accent: accent,
       );
     } else if (_activeTabIndex == 2) {
+      // Homework Tab
+      return HomeworkBannerCard(
+        courseId: courseId,
+        accent: accent,
+        showEmptyState: true,
+      );
+    } else if (_activeTabIndex == 3) {
       // Overview Tab
       return _OverviewTabContent(
         course: course,
@@ -425,11 +439,15 @@ class _CourseHero extends StatelessWidget {
     required this.course,
     required this.accent,
     this.isExpired = false,
+    this.topicsCount,
+    this.lecturesCount,
   });
 
   final Map<String, dynamic> course;
   final Color accent;
   final bool isExpired;
+  final int? topicsCount;
+  final int? lecturesCount;
 
   String _badgeText() {
     final enrollmentType = (course['enrollmentType'] as String?)?.toUpperCase();
@@ -633,6 +651,56 @@ class _CourseHero extends StatelessWidget {
                     height: 1.2,
                   ),
                 ),
+
+                // Web Stats & Teacher Info Row
+                if ((topicsCount != null && topicsCount! > 0) ||
+                    (course['teacherName'] as String?)?.isNotEmpty == true) ...[
+                  const SizedBox(height: 8),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 4,
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    children: [
+                      if (topicsCount != null && topicsCount! > 0)
+                        Text(
+                          '$topicsCount topics · ${lecturesCount ?? 0} lectures',
+                          style: TextStyle(
+                            fontSize: 11.5,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.white.withOpacity(0.9),
+                          ),
+                        ),
+                      if ((course['teacherName'] as String?)?.isNotEmpty == true) ...[
+                        Text(
+                          '·',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.white.withOpacity(0.6),
+                          ),
+                        ),
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.person_outline_rounded,
+                              size: 13,
+                              color: Colors.white.withOpacity(0.9),
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              course['teacherName'] as String,
+                              style: TextStyle(
+                                fontSize: 11.5,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.white.withOpacity(0.9),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ],
+                  ),
+                ],
               ],
             ),
           ),
@@ -649,12 +717,14 @@ class _CourseTabBar extends StatelessWidget {
   const _CourseTabBar({
     required this.activeIndex,
     this.downloadsCount,
+    this.homeworkCount,
     required this.accent,
     required this.onTabSelected,
   });
 
   final int activeIndex;
   final int? downloadsCount;
+  final int? homeworkCount;
   final Color accent;
   final ValueChanged<int> onTabSelected;
 
@@ -668,6 +738,12 @@ class _CourseTabBar extends StatelessWidget {
         title: 'Downloaded Notes',
         count: downloadsCount != null && downloadsCount! > 0
             ? downloadsCount
+            : null,
+      ),
+      _TabItem(
+        title: 'Homework',
+        count: homeworkCount != null && homeworkCount! > 0
+            ? homeworkCount
             : null,
       ),
       const _TabItem(title: 'Overview'),

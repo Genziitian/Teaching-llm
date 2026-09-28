@@ -206,32 +206,12 @@ export default function Sept26ProgressBlocker({ user }: { user: any }) {
   const isMobileChanged = isInitialMobileValid && user.mobileNumber !== formData.mobileNumber
 
   return (
-    <div style={{
-      position: 'fixed',
-      inset: 0,
-      background: 'radial-gradient(circle at top right, #1e1b4b 0%, #0f172a 100%)',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      zIndex: 9998,
-      padding: '16px',
-      overflowY: 'auto',
-    }}>
+    <div className="blocker-overlay">
       {/* ── Spring Falling Leaves Ambient Background ── */}
       <SpringLeavesBackground />
 
       {/* ── Main Blocker Card ── */}
-      <div className="fade-in" style={{
-        position: 'relative',
-        zIndex: 2,
-        background: 'var(--surface, #ffffff)',
-        width: '100%',
-        maxWidth: '640px',
-        padding: '22px 26px',
-        borderRadius: '24px',
-        boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(255, 255, 255, 0.1)',
-        margin: 'auto',
-      }}>
+      <div className="fade-in blocker-card">
 
         {/* ── Center Loading Overlay (Shown while saving) ── */}
         {loading && (
@@ -516,7 +496,7 @@ export default function Sept26ProgressBlocker({ user }: { user: any }) {
               )}
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px' }}>
+            <div className="level-grid">
               {['Qualifier', 'Foundation', 'Diploma', 'Degree'].map(level => {
                 const isSelected = formData.iitmLevel === level
                 return (
@@ -560,17 +540,19 @@ export default function Sept26ProgressBlocker({ user }: { user: any }) {
               )}
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px' }}>
+            <div className="category-grid">
               {[
                 { key: 'STANDALONE', label: 'Standalone' },
                 { key: 'DUAL DEGREE', label: 'Dual Degree' },
                 { key: 'WORKING PROFESSIONAL', label: 'Working Professional' },
               ].map(type => {
                 const isSelected = formData.iitmUserType === type.key
+                const isWorkingProf = type.key === 'WORKING PROFESSIONAL'
                 return (
                   <button
                     key={type.key}
                     type="button"
+                    className={isWorkingProf ? 'category-item-wide' : ''}
                     onClick={(e) => handleCategorySelect(type.key, e)}
                     style={{
                       padding: '11px 6px',
@@ -688,7 +670,7 @@ export default function Sept26ProgressBlocker({ user }: { user: any }) {
               </span>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+            <div className="social-grid">
               <div>
                 <label style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-secondary, #475569)', marginBottom: '4px', display: 'block' }}>
                   Instagram Profile Link
@@ -777,44 +759,47 @@ export default function Sept26ProgressBlocker({ user }: { user: any }) {
           alignItems: 'center',
           justifyContent: 'center',
           zIndex: 10000,
-          padding: '20px',
+          padding: '16px',
           backdropFilter: 'blur(8px)',
           WebkitBackdropFilter: 'blur(8px)',
+          overflowY: 'auto',
+          WebkitOverflowScrolling: 'touch',
         }}>
           <div style={{
             background: 'var(--surface, #ffffff)',
             borderRadius: '24px',
-            padding: '36px 28px',
+            padding: '26px 20px',
             maxWidth: '440px',
             width: '100%',
             boxShadow: '0 25px 50px -12px rgba(0,0,0,0.35)',
             textAlign: 'center',
             border: '1px solid rgba(255,255,255,0.8)',
             animation: 'celebratePopIn 0.35s cubic-bezier(0.34, 1.56, 0.64, 1)',
+            margin: 'auto',
           }}>
             {/* Animated Celebration Icon */}
             <div style={{
-              width: '68px',
-              height: '68px',
+              width: '64px',
+              height: '64px',
               borderRadius: '50%',
               background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              margin: '0 auto 18px',
+              margin: '0 auto 16px',
               boxShadow: '0 10px 25px rgba(16, 185, 129, 0.4)',
               color: '#ffffff',
             }}>
-              <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
                 <polyline points="20 6 9 17 4 12" />
               </svg>
             </div>
 
             <h2 style={{
-              fontSize: '22px',
+              fontSize: '20px',
               fontWeight: 900,
               color: 'var(--text-primary, #0f172a)',
-              marginBottom: '12px',
+              marginBottom: '10px',
               letterSpacing: '-0.02em',
             }}>
               You&apos;re All Set for Sept &apos;26!
@@ -822,7 +807,7 @@ export default function Sept26ProgressBlocker({ user }: { user: any }) {
 
             {/* Line 1: Updated Status */}
             <p style={{
-              fontSize: '14px',
+              fontSize: '13.5px',
               color: 'var(--text-secondary, #64748b)',
               lineHeight: 1.5,
               margin: '0 0 10px 0',
@@ -838,8 +823,8 @@ export default function Sept26ProgressBlocker({ user }: { user: any }) {
               padding: '10px 14px',
               color: '#059669',
               fontWeight: 700,
-              fontSize: '13.5px',
-              marginBottom: '24px',
+              fontSize: '13px',
+              marginBottom: '20px',
               letterSpacing: '0.01em',
             }}>
               Best of luck for an incredible new term with GenZ IITian!
@@ -850,7 +835,7 @@ export default function Sept26ProgressBlocker({ user }: { user: any }) {
               disabled={enteringDashboard}
               style={{
                 width: '100%',
-                padding: '14px',
+                padding: '13px',
                 borderRadius: '12px',
                 fontSize: '15px',
                 fontWeight: 800,
@@ -896,6 +881,77 @@ export default function Sept26ProgressBlocker({ user }: { user: any }) {
           `}</style>
         </div>
       )}
+
+      <style jsx>{`
+        .blocker-overlay {
+          position: fixed;
+          inset: 0;
+          background: radial-gradient(circle at top right, #1e1b4b 0%, #0f172a 100%);
+          display: flex;
+          justify-content: center;
+          align-items: flex-start;
+          z-index: 9998;
+          padding: max(14px, env(safe-area-inset-top)) max(10px, env(safe-area-inset-right)) max(24px, env(safe-area-inset-bottom)) max(10px, env(safe-area-inset-left));
+          overflow-y: auto;
+          -webkit-overflow-scrolling: touch;
+        }
+        .blocker-card {
+          position: relative;
+          z-index: 2;
+          background: var(--surface, #ffffff);
+          width: 100%;
+          max-width: 640px;
+          padding: 18px 14px;
+          border-radius: 20px;
+          box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(255, 255, 255, 0.1);
+          margin: auto;
+          box-sizing: border-box;
+        }
+        @media (min-width: 600px) {
+          .blocker-card {
+            padding: 22px 26px;
+            border-radius: 24px;
+          }
+        }
+        .level-grid {
+          display: grid;
+          grid-template-columns: repeat(2, 1fr);
+          gap: 8px;
+        }
+        @media (min-width: 520px) {
+          .level-grid {
+            grid-template-columns: repeat(4, 1fr);
+          }
+        }
+        .category-grid {
+          display: grid;
+          grid-template-columns: repeat(2, 1fr);
+          gap: 8px;
+        }
+        @media (min-width: 520px) {
+          .category-grid {
+            grid-template-columns: repeat(3, 1fr);
+          }
+        }
+        .category-item-wide {
+          grid-column: span 2;
+        }
+        @media (min-width: 520px) {
+          .category-item-wide {
+            grid-column: span 1;
+          }
+        }
+        .social-grid {
+          display: grid;
+          grid-template-columns: 1fr;
+          gap: 10px;
+        }
+        @media (min-width: 520px) {
+          .social-grid {
+            grid-template-columns: 1fr 1fr;
+          }
+        }
+      `}</style>
     </div>
   )
 }
