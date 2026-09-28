@@ -740,7 +740,7 @@ function LoadingState({ progress, fact }: { progress: number; fact: ReturnType<t
             color: 'var(--text-primary)',
           }}
         >
-          {isFinalizing ? '...' : `${pct}%`}
+          {pct}%
         </div>
       </div>
       <div style={{ fontSize: '13px', fontWeight: 600 }}>
