@@ -16,6 +16,12 @@ class User {
     this.iitmJoinMonth,
     this.iitmLevel,
     this.iitmUserType,
+    this.createdAt,
+    this.hasUpdatedProgressSept26 = false,
+    this.previousMobileNumber,
+    this.instagramUrl,
+    this.linkedinUrl,
+    this.isSept26ProgressUpdateActive = false,
     this.isIdentityUpdated = false,
     this.isProfileComplete = false,
     this.appTourCompleted = false,
@@ -38,6 +44,12 @@ class User {
   final String? iitmJoinMonth;
   final String? iitmLevel;
   final String? iitmUserType;
+  final String? createdAt;
+  final bool hasUpdatedProgressSept26;
+  final String? previousMobileNumber;
+  final String? instagramUrl;
+  final String? linkedinUrl;
+  final bool isSept26ProgressUpdateActive;
   final bool isIdentityUpdated;
   final bool isProfileComplete;
   final bool appTourCompleted;
@@ -48,6 +60,20 @@ class User {
   bool get isAdmin => role == 'ADMIN';
   bool get isStudent => role == 'STUDENT';
   bool get needsIdentitySetup => !isManager && !isAdmin && !isIdentityUpdated;
+
+  bool get isOldUser {
+    if (createdAt == null || createdAt!.isEmpty) return false;
+    final created = DateTime.tryParse(createdAt!);
+    if (created == null) return false;
+    return DateTime.now().difference(created).inDays >= 30;
+  }
+
+  bool get needsSept26ProgressUpdate =>
+      isSept26ProgressUpdateActive &&
+      !isManager &&
+      !isAdmin &&
+      isOldUser &&
+      !hasUpdatedProgressSept26;
 
   User copyWith({
     String? id,
@@ -65,6 +91,12 @@ class User {
     String? iitmJoinMonth,
     String? iitmLevel,
     String? iitmUserType,
+    String? createdAt,
+    bool? hasUpdatedProgressSept26,
+    String? previousMobileNumber,
+    String? instagramUrl,
+    String? linkedinUrl,
+    bool? isSept26ProgressUpdateActive,
     bool? isIdentityUpdated,
     bool? isProfileComplete,
     bool? appTourCompleted,
@@ -87,6 +119,14 @@ class User {
       iitmJoinMonth: iitmJoinMonth ?? this.iitmJoinMonth,
       iitmLevel: iitmLevel ?? this.iitmLevel,
       iitmUserType: iitmUserType ?? this.iitmUserType,
+      createdAt: createdAt ?? this.createdAt,
+      hasUpdatedProgressSept26:
+          hasUpdatedProgressSept26 ?? this.hasUpdatedProgressSept26,
+      previousMobileNumber: previousMobileNumber ?? this.previousMobileNumber,
+      instagramUrl: instagramUrl ?? this.instagramUrl,
+      linkedinUrl: linkedinUrl ?? this.linkedinUrl,
+      isSept26ProgressUpdateActive:
+          isSept26ProgressUpdateActive ?? this.isSept26ProgressUpdateActive,
       isIdentityUpdated: isIdentityUpdated ?? this.isIdentityUpdated,
       isProfileComplete: isProfileComplete ?? this.isProfileComplete,
       appTourCompleted: appTourCompleted ?? this.appTourCompleted,
@@ -112,6 +152,14 @@ class User {
       iitmJoinMonth: j['iitmJoinMonth'] as String?,
       iitmLevel: j['iitmLevel'] as String?,
       iitmUserType: j['iitmUserType'] as String?,
+      createdAt: j['createdAt'] as String?,
+      hasUpdatedProgressSept26:
+          (j['hasUpdatedProgressSept26'] as bool?) ?? false,
+      previousMobileNumber: j['previousMobileNumber'] as String?,
+      instagramUrl: j['instagramUrl'] as String?,
+      linkedinUrl: j['linkedinUrl'] as String?,
+      isSept26ProgressUpdateActive:
+          (j['isSept26ProgressUpdateActive'] as bool?) ?? false,
       isIdentityUpdated: (j['isIdentityUpdated'] as bool?) ?? false,
       isProfileComplete: (j['isProfileComplete'] as bool?) ?? false,
       appTourCompleted: (j['appTourCompleted'] as bool?) ?? false,
@@ -137,6 +185,12 @@ class User {
       'iitmJoinMonth': iitmJoinMonth,
       'iitmLevel': iitmLevel,
       'iitmUserType': iitmUserType,
+      'createdAt': createdAt,
+      'hasUpdatedProgressSept26': hasUpdatedProgressSept26,
+      'previousMobileNumber': previousMobileNumber,
+      'instagramUrl': instagramUrl,
+      'linkedinUrl': linkedinUrl,
+      'isSept26ProgressUpdateActive': isSept26ProgressUpdateActive,
       'isIdentityUpdated': isIdentityUpdated,
       'isProfileComplete': isProfileComplete,
       'appTourCompleted': appTourCompleted,

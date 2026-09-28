@@ -41,6 +41,9 @@ model User {
   iitmLevel               String?
   iitmUserType            String?
   isIdentityUpdated       Boolean                      @default(false)
+  hasUpdatedProgressSept26 Boolean                     @default(false)
+  previousMobileNumber    String?
+  progressUpdatedAt       DateTime?
   blockedUntil            DateTime?
   hasSeenWelcome          Boolean                      @default(false)
   isSuperManager          Boolean                      @default(false)
@@ -946,6 +949,7 @@ model UpdateSystemSettings {
   promoSplashFrequency String @default("ONCE")
   promoSplashIntervalDays Int @default(1)
   promoSplashVersion Int @default(1)
+  sept26ProgressUpdateActive Boolean @default(false)
 }
 
 model PromoSplashView {

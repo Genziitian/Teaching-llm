@@ -48,6 +48,9 @@ interface User {
   enableDetailedLogs?: boolean
   deletionRequestedAt?: string | null
   deletionRequestReason?: string | null
+  previousMobileNumber?: string | null
+  hasUpdatedProgressSept26?: boolean
+  progressUpdatedAt?: string | null
 }
 
 interface ManagerUserModalProps {
@@ -417,6 +420,12 @@ export default function ManagerUserModal({ userId, onClose, onUpdate, mode = 'mo
                     <div>
                       <label style={{ fontSize: '10px', fontWeight: '800', color: 'var(--text-muted)', letterSpacing: '0.05em', textTransform: 'uppercase', marginBottom: '8px', display: 'block' }}>Mobile Number</label>
                       <input style={neuInset} value={formData.mobileNumber} onChange={e => setFormData({...formData, mobileNumber: e.target.value})} />
+                      {user?.previousMobileNumber && (
+                        <div style={{ marginTop: '5px', fontSize: '11px', color: '#d97706', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                          <span style={{ fontWeight: 800 }}>Archived Old Mobile:</span>
+                          <span style={{ fontFamily: 'monospace', fontWeight: 700 }}>{user.previousMobileNumber}</span>
+                        </div>
+                      )}
                     </div>
                     <div style={{ display: 'flex', alignItems: 'flex-end' }}>
                       <button

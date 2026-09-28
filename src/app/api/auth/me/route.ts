@@ -35,34 +35,42 @@ export async function GET() {
     return NextResponse.json({ error: 'Not authenticated' }, { status: 401 })
   }
 
-  // Step 3: SINGLE DB query — covers auth checks + all user fields
-  const user = await (prisma.user as any).findUnique({
-    where: { id: payload.userId },
-    select: {
-      id: true, name: true, email: true, role: true, avatar: true, gender: true, createdAt: true,
-      firstName: true, lastName: true, mobileNumber: true,
-      age: true, state: true, isProfileComplete: true,
-      appTourCompleted: true, appTourCompletedAt: true, completedTourVersion: true,
-      isIdentityUpdated: true, iitmJoinYear: true, iitmJoinMonth: true, iitmLevel: true, iitmUserType: true,
-      isTerminated: true, tokenVersion: true,
-      canTerminate: true, canCreateStudents: true,
-      isSuperManager: true,
-      enrollments: {
-        select: {
-          course: {
-            select: { id: true, name: true, subject: true }
+  // Step 3: DB query — covers user fields + settings
+  const [user, settings] = await Promise.all([
+    (prisma.user as any).findUnique({
+      where: { id: payload.userId },
+      select: {
+        id: true, name: true, email: true, role: true, avatar: true, gender: true, createdAt: true,
+        firstName: true, lastName: true, mobileNumber: true, previousMobileNumber: true,
+        age: true, state: true, isProfileComplete: true,
+        hasUpdatedProgressSept26: true,
+        instagramUrl: true, linkedinUrl: true,
+        appTourCompleted: true, appTourCompletedAt: true, completedTourVersion: true,
+        isIdentityUpdated: true, iitmJoinYear: true, iitmJoinMonth: true, iitmLevel: true, iitmUserType: true,
+        isTerminated: true, tokenVersion: true,
+        canTerminate: true, canCreateStudents: true,
+        isSuperManager: true,
+        enrollments: {
+          select: {
+            course: {
+              select: { id: true, name: true, subject: true }
+            }
+          }
+        },
+        instructorAssignments: {
+          select: {
+            course: {
+              select: { id: true, name: true, subject: true }
+            }
           }
         }
       },
-      instructorAssignments: {
-        select: {
-          course: {
-            select: { id: true, name: true, subject: true }
-          }
-        }
-      }
-    },
-  })
+    }),
+    prisma.updateSystemSettings.findUnique({
+      where: { id: 'singleton' },
+      select: { sept26ProgressUpdateActive: true },
+    }).catch(() => null),
+  ])
 
   if (!user) {
     return NextResponse.json({ error: 'User not found' }, { status: 404 })
@@ -87,17 +95,23 @@ export async function GET() {
     })
   }
 
+  const isSept26ProgressUpdateActive = Boolean(settings?.sept26ProgressUpdateActive)
+
   const transformedUser = {
     ...user,
     isProfileComplete,
     isSuperManager: user.isSuperManager || user.email === 'lkiitmng2428@gmail.com',
+    isSept26ProgressUpdateActive,
   }
 
   // Remove internal fields from response
   delete transformedUser.isTerminated
   delete transformedUser.tokenVersion
 
-  return NextResponse.json({ user: transformedUser }, {
+  return NextResponse.json({
+    user: transformedUser,
+    isSept26ProgressUpdateActive: Boolean(settings?.sept26ProgressUpdateActive),
+  }, {
     headers: {
       'Cache-Control': 'no-store, no-cache, must-revalidate',
     }

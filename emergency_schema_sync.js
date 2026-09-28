@@ -444,7 +444,14 @@ async function main() {
   await safeExec(`ALTER TABLE "Exam" ADD CONSTRAINT "Exam_testSeriesId_fkey" FOREIGN KEY ("testSeriesId") REFERENCES "TestSeries"("id") ON DELETE CASCADE ON UPDATE CASCADE;`, 'Exam.testSeriesId fkey')
   await safeExec(`CREATE INDEX IF NOT EXISTS "Exam_testSeriesId_idx" ON "Exam"("testSeriesId");`, 'idx')
 
-  console.log('  ✅ Test Series tables ready')
+  // Add Sept 26 progress update and mobile archive columns to User
+  await safeExec(`ALTER TABLE "User" ADD COLUMN IF NOT EXISTS "hasUpdatedProgressSept26" BOOLEAN NOT NULL DEFAULT false;`, 'User.hasUpdatedProgressSept26')
+  await safeExec(`ALTER TABLE "User" ADD COLUMN IF NOT EXISTS "previousMobileNumber" TEXT;`, 'User.previousMobileNumber')
+  await safeExec(`ALTER TABLE "User" ADD COLUMN IF NOT EXISTS "progressUpdatedAt" TIMESTAMP(3);`, 'User.progressUpdatedAt')
+  await safeExec(`CREATE INDEX IF NOT EXISTS "User_hasUpdatedProgressSept26_idx" ON "User"("hasUpdatedProgressSept26");`, 'User_hasUpdatedProgressSept26_idx')
+  await safeExec(`ALTER TABLE "UpdateSystemSettings" ADD COLUMN IF NOT EXISTS "sept26ProgressUpdateActive" BOOLEAN NOT NULL DEFAULT false;`, 'UpdateSystemSettings.sept26ProgressUpdateActive')
+
+  console.log('  ✅ Sept 26 Progress Update columns ready')
 
   console.log('\n╔═══════════════════════════════════════════════════╗')
   console.log('║   ✅ SCHEMA SYNC COMPLETE                        ║')

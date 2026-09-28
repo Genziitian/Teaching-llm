@@ -10,7 +10,7 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { firstName, lastName, mobileNumber, gender, age, state } = await request.json()
+    const { firstName, lastName, mobileNumber, gender, age, state, avatar } = await request.json()
 
     // 1. Strict Validations
     if (!firstName || !lastName || !firstName.trim() || !lastName.trim()) {
@@ -49,10 +49,12 @@ export async function PUT(request: NextRequest) {
         age: ageInt,
         state: state.trim(),
         isProfileComplete: true,
+        ...(avatar !== undefined ? { avatar } : {}),
       },
       select: {
         id: true,
         name: true,
+        avatar: true,
         isProfileComplete: true,
       },
     })

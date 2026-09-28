@@ -79,6 +79,11 @@ export default function SettingsPage() {
   const [maintenanceEndsAt, setMaintenanceEndsAt] = useState('')
   const [isManagerUser, setIsManagerUser] = useState(false)
 
+  // Sept '26 Term Progress Update Campaign (Manager only)
+  const [sept26Active, setSept26Active] = useState(false)
+  const [completedSept26Count, setCompletedSept26Count] = useState(0)
+  const [updatingSept26, setUpdatingSept26] = useState(false)
+
   // Help Card Config
   const [helpCardConfig, setHelpCardConfig] = useState({ title: '', buttonText: '', redirectUrl: '', isEnabled: true })
   const [savingHelpCard, setSavingHelpCard] = useState(false)
@@ -90,6 +95,8 @@ export default function SettingsPage() {
       .then(data => {
         if (data?.settings) {
           setIsManagerUser(true)
+          setSept26Active(Boolean(data.settings.sept26ProgressUpdateActive))
+          setCompletedSept26Count(data.completedSept26Count ?? 0)
           setMaintenanceMode(data.settings.maintenanceMode || false)
           if (data.settings.maintenanceEndsAt) {
             const dateObj = new Date(data.settings.maintenanceEndsAt)
@@ -123,6 +130,30 @@ export default function SettingsPage() {
       })
       .catch(err => console.error('Failed to fetch deletion status:', err))
   }, [])
+
+  const handleToggleSept26 = async (newVal: boolean) => {
+    setUpdatingSept26(true)
+    setSept26Active(newVal)
+    try {
+      const res = await fetch('/api/updates/settings', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sept26ProgressUpdateActive: newVal }),
+      })
+      const json = await res.json()
+      if (json?.settings) {
+        setSept26Active(Boolean(json.settings.sept26ProgressUpdateActive))
+        if (json.completedSept26Count !== undefined) {
+          setCompletedSept26Count(json.completedSept26Count)
+        }
+      }
+    } catch (err) {
+      console.error('Failed to toggle Sept 26 campaign:', err)
+      setSept26Active(!newVal)
+    } finally {
+      setUpdatingSept26(false)
+    }
+  }
 
   // Account Deletion State
   const [showDeleteModal, setShowDeleteModal] = useState(false)
@@ -632,6 +663,71 @@ export default function SettingsPage() {
           </div>
 
         </div>
+
+        {/* ── Sept '26 Term Progress Campaign (Manager only) ── */}
+        {isManagerUser && (
+          <div className="card" style={{
+            padding: isMobile ? '18px 16px' : '26px 28px',
+            border: sept26Active ? '2px solid #6366f1' : '1px solid var(--border)',
+            background: sept26Active
+              ? 'linear-gradient(180deg, rgba(99, 102, 241, 0.05) 0%, var(--surface) 100%)'
+              : 'var(--surface)',
+            boxShadow: sept26Active ? '0 8px 24px rgba(99, 102, 241, 0.12)' : 'none',
+            transition: 'all 0.3s ease',
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '16px' }}>
+              <div style={{ flex: 1, minWidth: '260px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '6px' }}>
+                  <span style={{ fontSize: '20px' }}>🎓</span>
+                  <h3 style={{ fontSize: '16px', fontWeight: '800', color: 'var(--text-primary)', margin: 0 }}>
+                    Sept &apos;26 Term Progress Campaign
+                  </h3>
+                  <span style={{
+                    fontSize: '11px',
+                    fontWeight: '800',
+                    padding: '3px 10px',
+                    borderRadius: '20px',
+                    background: sept26Active ? '#dcfce7' : '#f1f5f9',
+                    color: sept26Active ? '#15803d' : '#64748b',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '5px'
+                  }}>
+                    <span style={{
+                      width: '7px',
+                      height: '7px',
+                      borderRadius: '50%',
+                      background: sept26Active ? '#16a34a' : '#94a3b8'
+                    }} />
+                    {sept26Active ? 'ACTIVE / LIVE' : 'DEACTIVATED'}
+                  </span>
+                </div>
+                <p style={{ fontSize: '13px', color: 'var(--text-secondary)', margin: '4px 0 0 0', lineHeight: 1.5, maxWidth: '640px' }}>
+                  Controls the mandatory <strong>&ldquo;Welcome to Sept &apos;26 Term! Let&apos;s Update Your Progress&rdquo;</strong> prompt. When turned ON, students who joined &ge;30 days ago must refresh their IITM Level, Category, and Mobile Number before entering the dashboard. When turned OFF, no student is prompted.
+                </p>
+                <div style={{ display: 'flex', gap: '18px', marginTop: '12px', fontSize: '12.5px', color: 'var(--text-muted)', flexWrap: 'wrap' }}>
+                  <span>👥 Completed so far: <strong style={{ color: 'var(--text-primary)' }}>{completedSept26Count} students</strong></span>
+                  <span>🛡️ Safeguard: <span style={{ color: '#6366f1' }}>Archiving previous mobile numbers for manager audit</span></span>
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', alignSelf: isMobile ? 'flex-start' : 'center' }}>
+                <span style={{
+                  fontSize: '12px',
+                  fontWeight: '800',
+                  color: sept26Active ? 'var(--success, #16a34a)' : 'var(--text-muted)',
+                  textTransform: 'uppercase'
+                }}>
+                  {sept26Active ? 'Active' : 'Deactivated'}
+                </span>
+                <Toggle
+                  checked={sept26Active}
+                  onChange={(v) => !updatingSept26 && handleToggleSept26(v)}
+                />
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* ── Help Card Settings (Manager only) ── */}
         {isManagerUser && (

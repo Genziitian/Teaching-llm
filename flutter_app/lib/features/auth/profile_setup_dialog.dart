@@ -3,6 +3,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/auth/auth_providers.dart';
+import '../../shared/widgets/app_avatar.dart';
+import '../../shared/widgets/bouncy_pressable.dart';
 import '../../theme/app_theme_tokens.dart';
 import '../profile/profile_page.dart';
 
@@ -32,6 +34,7 @@ class _ProfileSetupDialogState extends ConsumerState<ProfileSetupDialog> {
 
   String? _selectedGender;
   String? _selectedState;
+  String? _avatarUrl;
   bool _saving = false;
   String? _error;
 
@@ -40,6 +43,9 @@ class _ProfileSetupDialogState extends ConsumerState<ProfileSetupDialog> {
     super.initState();
     final user = ref.read(authStateProvider).value;
     if (user != null) {
+      if (user.avatar != null && user.avatar!.isNotEmpty) {
+        _avatarUrl = user.avatar;
+      }
       if (user.firstName != null && user.firstName!.isNotEmpty) {
         _firstNameController.text = user.firstName!;
       } else if (user.name.isNotEmpty) {
@@ -62,6 +68,122 @@ class _ProfileSetupDialogState extends ConsumerState<ProfileSetupDialog> {
         _selectedGender = user.gender!.toUpperCase();
       }
     }
+  }
+
+  void _showPhotoSheet() {
+    final tokens = context.tokens;
+    showModalBottomSheet<void>(
+      context: context,
+      useRootNavigator: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => Container(
+        padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
+        decoration: BoxDecoration(
+          color: tokens.cardBg,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+          border: Border.all(color: tokens.border),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: tokens.border,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            const SizedBox(height: 18),
+            Text(
+              'Profile Photo (Optional)',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w800,
+                color: tokens.textPrimary,
+              ),
+            ),
+            const SizedBox(height: 16),
+            ListTile(
+              leading: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF8B5CF6).withOpacity(0.12),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(Icons.camera_alt_outlined, color: Color(0xFF8B5CF6)),
+              ),
+              title: Text('Click Photo', style: TextStyle(fontWeight: FontWeight.w700, color: tokens.textPrimary)),
+              subtitle: Text('Take a photo with your camera', style: TextStyle(color: tokens.textSecondary, fontSize: 12)),
+              onTap: () {
+                Navigator.pop(ctx);
+                _showPhotoGuidelines('Click Photo');
+              },
+            ),
+            ListTile(
+              leading: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF3B82F6).withOpacity(0.12),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(Icons.photo_library_outlined, color: Color(0xFF3B82F6)),
+              ),
+              title: Text('Choose Image', style: TextStyle(fontWeight: FontWeight.w700, color: tokens.textPrimary)),
+              subtitle: Text('Select from your device gallery', style: TextStyle(color: tokens.textSecondary, fontSize: 12)),
+              onTap: () {
+                Navigator.pop(ctx);
+                _showPhotoGuidelines('Choose Image');
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showPhotoGuidelines(String actionLabel) {
+    final tokens = context.tokens;
+    showDialog<void>(
+      context: context,
+      useRootNavigator: true,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: tokens.cardBg,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Text(
+          'Profile Photo (Optional)',
+          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: tokens.textPrimary),
+        ),
+        content: Text(
+          'Maximum image size: 10 MB. Supported formats: JPG, PNG, WEBP. Profile photo is completely optional and can be updated anytime.',
+          style: TextStyle(fontSize: 13.5, height: 1.45, color: tokens.textSecondary),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: Text('Cancel', style: TextStyle(color: tokens.textMuted, fontWeight: FontWeight.w700)),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(ctx);
+              setState(() {
+                _avatarUrl ??= AppAvatar.getDefaultAvatarAsset(_selectedGender);
+              });
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Profile photo selected! (Optional)')),
+              );
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: tokens.primaryAccent,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              elevation: 0,
+            ),
+            child: const Text('Select', style: TextStyle(fontWeight: FontWeight.w700)),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -215,6 +337,7 @@ class _ProfileSetupDialogState extends ConsumerState<ProfileSetupDialog> {
               padding: const EdgeInsets.all(16),
               child: Column(
                 children: [
+                  _summaryRow('Photo', _avatarUrl != null ? 'Uploaded' : 'Default / None (Optional)', tokens),
                   _summaryRow('Name', '$first $last', tokens),
                   _summaryRow('Mobile', mobile, tokens),
                   _summaryRow('Age', '$age', tokens),
@@ -343,6 +466,7 @@ class _ProfileSetupDialogState extends ConsumerState<ProfileSetupDialog> {
         'gender': gender,
         'age': age,
         'state': state,
+        if (_avatarUrl != null) 'avatar': _avatarUrl,
       });
 
       final currentUser = ref.read(authStateProvider).value;
@@ -354,6 +478,7 @@ class _ProfileSetupDialogState extends ConsumerState<ProfileSetupDialog> {
             lastName: last,
             mobileNumber: mobile,
             gender: gender,
+            avatar: _avatarUrl ?? currentUser.avatar,
             isProfileComplete: true,
           ),
         );
@@ -451,6 +576,133 @@ class _ProfileSetupDialogState extends ConsumerState<ProfileSetupDialog> {
                         ),
                         const SizedBox(height: 20),
                       ],
+                      // Profile Photo (Optional)
+                      Center(
+                        child: Column(
+                          children: [
+                            Stack(
+                              children: [
+                                AppAvatar(
+                                  avatarUrl: _avatarUrl,
+                                  gender: _selectedGender,
+                                  size: 84,
+                                  border: Border.all(
+                                    color: const Color(0xFF6366F1).withOpacity(0.35),
+                                    width: 2.5,
+                                  ),
+                                ),
+                                Positioned(
+                                  bottom: 0,
+                                  right: 0,
+                                  child: Container(
+                                    padding: const EdgeInsets.all(5),
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFF6366F1),
+                                      shape: BoxShape.circle,
+                                      border: Border.all(
+                                        color: tokens.cardBg,
+                                        width: 2,
+                                      ),
+                                    ),
+                                    child: const Icon(
+                                      Icons.camera_alt,
+                                      size: 13,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 10),
+                            Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                BouncyPressable(
+                                  onTap: _showPhotoSheet,
+                                  scaleDown: 0.96,
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 14,
+                                      vertical: 6,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: tokens.surfaceSecondary,
+                                      borderRadius: BorderRadius.circular(10),
+                                      border: Border.all(color: tokens.border),
+                                    ),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Icon(
+                                          Icons.photo_camera_outlined,
+                                          size: 14,
+                                          color: tokens.textPrimary,
+                                        ),
+                                        const SizedBox(width: 6),
+                                        Text(
+                                          _avatarUrl != null
+                                              ? 'Change Photo'
+                                              : 'Add Photo (Optional)',
+                                          style: TextStyle(
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.w700,
+                                            color: tokens.textPrimary,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                                if (_avatarUrl != null) ...[
+                                  const SizedBox(width: 8),
+                                  BouncyPressable(
+                                    onTap: () => setState(() => _avatarUrl = null),
+                                    scaleDown: 0.96,
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 10,
+                                        vertical: 6,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: tokens.danger.withOpacity(0.1),
+                                        borderRadius: BorderRadius.circular(10),
+                                        border: Border.all(
+                                          color: tokens.danger.withOpacity(0.3),
+                                        ),
+                                      ),
+                                      child: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Icon(Icons.close,
+                                              size: 13, color: tokens.danger),
+                                          const SizedBox(width: 4),
+                                          Text(
+                                            'Remove',
+                                            style: TextStyle(
+                                              fontSize: 12,
+                                              fontWeight: FontWeight.w700,
+                                              color: tokens.danger,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ],
+                            ),
+                            const SizedBox(height: 6),
+                            Text(
+                              'Photo is optional and can be updated anytime.',
+                              style: TextStyle(
+                                fontSize: 11.5,
+                                color: tokens.textMuted,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 24),
                       Row(
                         children: [
                           Expanded(

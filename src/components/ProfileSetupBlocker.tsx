@@ -1,8 +1,9 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import type { FullSession } from '@/lib/auth'
+import { getDefaultAvatar } from '@/lib/avatar'
 
 const INDIAN_STATES = [
   "Andhra Pradesh", "Arunachal Pradesh", "Assam", "Bihar", "Chhattisgarh", "Goa", "Gujarat", "Haryana",
@@ -15,6 +16,7 @@ const INDIAN_STATES = [
 
 export default function ProfileSetupBlocker({ user }: { user: FullSession }) {
   const router = useRouter()
+  const fileInputRef = useRef<HTMLInputElement>(null)
   
   // Split existing name into first and last guess if needed, though they was nullish in standard flow
   const nameParts = (user.name || '').split(' ')
@@ -30,6 +32,9 @@ export default function ProfileSetupBlocker({ user }: { user: FullSession }) {
     state: ''
   })
   
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(user.avatar || null)
+  const [uploadingAvatar, setUploadingAvatar] = useState(false)
+  const [avatarError, setAvatarError] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const [showConfirmModal, setShowConfirmModal] = useState(false)
@@ -42,6 +47,48 @@ export default function ProfileSetupBlocker({ user }: { user: FullSession }) {
   const handleGenderSelect = (val: string) => {
     setFormData({ ...formData, gender: val })
     if (error) setError('')
+  }
+
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    if (!['image/jpeg', 'image/png', 'image/gif', 'image/webp'].includes(file.type)) {
+      setAvatarError('Please select a valid image (JPEG, PNG, GIF, WebP).')
+      return
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      setAvatarError('Image must be under 10MB.')
+      return
+    }
+    setAvatarError('')
+    setUploadingAvatar(true)
+    try {
+      const fd = new FormData()
+      fd.append('avatar', file)
+      const res = await fetch('/api/profile/avatar', {
+        method: 'POST',
+        body: fd,
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        throw new Error(data.error || 'Failed to upload photo')
+      }
+      setAvatarUrl(data.avatar)
+    } catch (err: any) {
+      setAvatarError(err.message || 'Failed to upload photo')
+    } finally {
+      setUploadingAvatar(false)
+      if (fileInputRef.current) fileInputRef.current.value = ''
+    }
+  }
+
+  const handleRemoveAvatar = async () => {
+    setUploadingAvatar(true)
+    try {
+      await fetch('/api/profile/avatar', { method: 'DELETE' })
+      setAvatarUrl(null)
+    } catch {}
+    setUploadingAvatar(false)
   }
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -80,7 +127,10 @@ export default function ProfileSetupBlocker({ user }: { user: FullSession }) {
       const res = await fetch('/api/profile/setup', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData)
+        body: JSON.stringify({
+          ...formData,
+          avatar: avatarUrl || undefined,
+        })
       })
       const data = await res.json()
       
@@ -147,6 +197,125 @@ export default function ProfileSetupBlocker({ user }: { user: FullSession }) {
         )}
 
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+          
+          {/* Optional Profile Photo */}
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: '4px' }}>
+            <input
+              type="file"
+              ref={fileInputRef}
+              onChange={handleAvatarUpload}
+              accept="image/jpeg,image/png,image/gif,image/webp"
+              style={{ display: 'none' }}
+            />
+            <div
+              onClick={() => !uploadingAvatar && fileInputRef.current?.click()}
+              style={{
+                position: 'relative',
+                width: '84px',
+                height: '84px',
+                borderRadius: '50%',
+                cursor: 'pointer',
+                boxShadow: '0 6px 18px rgba(99,102,241,0.2)',
+                border: '3px solid #6366f1',
+                overflow: 'hidden',
+                background: '#eff0fe',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                transition: 'transform 0.15s ease',
+              }}
+              title="Click to choose a photo"
+            >
+              {avatarUrl ? (
+                <img
+                  src={avatarUrl}
+                  alt="Profile"
+                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                />
+              ) : (
+                <img
+                  src={getDefaultAvatar(formData.gender)}
+                  alt="Default Profile"
+                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                />
+              )}
+
+              {/* Camera Overlay */}
+              <div style={{
+                position: 'absolute',
+                inset: 0,
+                background: uploadingAvatar ? 'rgba(0,0,0,0.5)' : 'rgba(0,0,0,0.2)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                transition: 'opacity 0.2s',
+              }}>
+                {uploadingAvatar ? (
+                  <span style={{ color: '#fff', fontSize: '11px', fontWeight: 800 }}>...</span>
+                ) : (
+                  <div style={{
+                    background: 'rgba(255,255,255,0.92)',
+                    borderRadius: '50%',
+                    width: '26px',
+                    height: '26px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: '#4f46e5',
+                    boxShadow: '0 2px 6px rgba(0,0,0,0.15)'
+                  }}>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+                      <circle cx="12" cy="13" r="4"/>
+                    </svg>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '6px' }}>
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={uploadingAvatar}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: '#4f46e5',
+                  fontSize: '12px',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  padding: '2px 6px',
+                }}
+              >
+                {uploadingAvatar ? 'Uploading...' : avatarUrl ? 'Change Photo' : 'Add Photo (Optional)'}
+              </button>
+              {avatarUrl && (
+                <button
+                  type="button"
+                  onClick={handleRemoveAvatar}
+                  disabled={uploadingAvatar}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    color: 'var(--danger, #ef4444)',
+                    fontSize: '12px',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    padding: '2px 6px',
+                  }}
+                >
+                  Remove
+                </button>
+              )}
+            </div>
+
+            {avatarError && (
+              <span style={{ fontSize: '11px', color: 'var(--danger)', marginTop: '4px', fontWeight: 600 }}>
+                {avatarError}
+              </span>
+            )}
+          </div>
           
           <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) minmax(0,1fr)', gap: '16px' }}>
             <div className="form-group" style={{ margin: 0 }}>
@@ -314,6 +483,7 @@ export default function ProfileSetupBlocker({ user }: { user: FullSession }) {
             {/* Summary of entered details */}
             <div style={{ background: 'var(--surface)', borderRadius: '12px', padding: '16px', marginBottom: '24px', textAlign: 'left' }}>
               {[
+                { label: 'Profile Photo', value: avatarUrl ? 'Uploaded Photo ✓' : 'Default Avatar' },
                 { label: 'Name', value: `${formData.firstName} ${formData.lastName}` },
                 { label: 'Mobile', value: formData.mobileNumber },
                 { label: 'Age', value: formData.age },

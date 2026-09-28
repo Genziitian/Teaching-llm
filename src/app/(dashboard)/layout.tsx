@@ -8,6 +8,7 @@ import UpdateOverlay from '@/components/UpdateOverlay'
 import SupportFloatingButton from '@/components/ui/SupportFloatingButton'
 import ProfileSetupBlocker from '@/components/ProfileSetupBlocker'
 import IdentitySetupBlocker from '@/components/IdentitySetupBlocker'
+import Sept26ProgressBlocker from '@/components/Sept26ProgressBlocker'
 import DynamicPromptBlocker from '@/components/DynamicPromptBlocker'
 import UserJourneyTracker from '@/components/UserJourneyTracker'
 import PushNotificationSetup from '@/components/PushNotificationSetup'
@@ -45,6 +46,16 @@ export default async function DashboardLayout({
 
   if (!session.isIdentityUpdated) {
     return <IdentitySetupBlocker user={session} />
+  }
+
+  // Check if existing student (joined at least 1 month / 30 days ago) needs the Sept '26 Term progress update.
+  // ONLY blocks when the Manager has explicitly ACTIVATED the campaign in Manager Settings.
+  const isOldUser = session.createdAt
+    ? (Date.now() - new Date(session.createdAt).getTime() >= 30 * 24 * 60 * 60 * 1000)
+    : false
+
+  if (session.isSept26ProgressUpdateActive && isOldUser && !session.hasUpdatedProgressSept26) {
+    return <Sept26ProgressBlocker user={session} />
   }
 
   return (

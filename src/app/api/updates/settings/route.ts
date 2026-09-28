@@ -14,19 +14,25 @@ export async function GET() {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const settings = await prisma.updateSystemSettings.upsert({
-      where: { id: 'singleton' },
-      create: { 
-        id: 'singleton', 
-        welcomeEnabled: true, 
-        customEnabled: true,
-        maintenanceMode: false,
-        maintenanceEndsAt: null
-      },
-      update: {},
-    })
+    const [settings, completedSept26Count] = await Promise.all([
+      prisma.updateSystemSettings.upsert({
+        where: { id: 'singleton' },
+        create: { 
+          id: 'singleton', 
+          welcomeEnabled: true, 
+          customEnabled: true,
+          maintenanceMode: false,
+          maintenanceEndsAt: null,
+          sept26ProgressUpdateActive: false,
+        },
+        update: {},
+      }),
+      prisma.user.count({
+        where: { hasUpdatedProgressSept26: true },
+      }),
+    ])
 
-    return NextResponse.json({ settings })
+    return NextResponse.json({ settings, completedSept26Count })
   } catch (error) {
     console.error('Error fetching update settings:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
@@ -41,7 +47,7 @@ export async function PUT(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { welcomeEnabled, customEnabled, maintenanceMode, maintenanceEndsAt } = body
+    const { welcomeEnabled, customEnabled, maintenanceMode, maintenanceEndsAt, sept26ProgressUpdateActive } = body
 
     const endsAtDate = maintenanceEndsAt ? new Date(maintenanceEndsAt) : null
 
@@ -53,12 +59,14 @@ export async function PUT(request: NextRequest) {
         customEnabled: customEnabled ?? true,
         maintenanceMode: maintenanceMode ?? false,
         maintenanceEndsAt: endsAtDate,
+        sept26ProgressUpdateActive: sept26ProgressUpdateActive ?? false,
       },
       update: {
         ...(welcomeEnabled !== undefined && { welcomeEnabled }),
         ...(customEnabled !== undefined && { customEnabled }),
         ...(maintenanceMode !== undefined && { maintenanceMode }),
         ...(maintenanceEndsAt !== undefined && { maintenanceEndsAt: endsAtDate }),
+        ...(sept26ProgressUpdateActive !== undefined && { sept26ProgressUpdateActive }),
       },
     })
 

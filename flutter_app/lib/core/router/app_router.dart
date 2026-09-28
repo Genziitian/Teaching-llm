@@ -14,6 +14,7 @@ import '../../features/announcements/announcements_page.dart';
 import '../../features/auth/identity_setup_dialog.dart';
 import '../../features/auth/login_page.dart';
 import '../../features/auth/profile_setup_dialog.dart';
+import '../../features/auth/sept26_progress_dialog.dart';
 import '../../features/auth/welcome_page.dart';
 import '../../features/community/community_chat_page.dart';
 import '../../features/community/community_page.dart';
@@ -178,7 +179,12 @@ final routerProvider = Provider<GoRouter>((ref) {
         if (user.needsIdentitySetup) {
           return loc == '/identity-setup' ? null : '/identity-setup';
         }
-        if (loc == '/profile-setup' || loc == '/identity-setup') {
+        if (user.needsSept26ProgressUpdate) {
+          return loc == '/sept26-progress' ? null : '/sept26-progress';
+        }
+        if (loc == '/profile-setup' ||
+            loc == '/identity-setup' ||
+            loc == '/sept26-progress') {
           return '/dashboard';
         }
         if (loc.startsWith('/support/user-reports') &&
@@ -230,6 +236,13 @@ final routerProvider = Provider<GoRouter>((ref) {
         pageBuilder: (context, state) => _buildSmoothPage(
           key: state.pageKey,
           child: const IdentitySetupDialog(),
+        ),
+      ),
+      GoRoute(
+        path: '/sept26-progress',
+        pageBuilder: (context, state) => _buildSmoothPage(
+          key: state.pageKey,
+          child: const Sept26ProgressDialog(),
         ),
       ),
       // Fullscreen video — no bottom nav, hence not inside the ShellRoute.

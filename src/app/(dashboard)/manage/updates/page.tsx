@@ -36,6 +36,7 @@ interface SystemUpdate {
 interface Settings {
   welcomeEnabled: boolean
   customEnabled: boolean
+  sept26ProgressUpdateActive?: boolean
 }
 
 // ─── Toggle Switch ─────────────────────────────────────────────────────────────

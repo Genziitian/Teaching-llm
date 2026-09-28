@@ -33,6 +33,14 @@ export interface FullSession extends JWTPayload {
   isTerminated: boolean
   isProfileComplete: boolean
   isIdentityUpdated: boolean
+  hasUpdatedProgressSept26?: boolean
+  progressUpdatedAt?: Date | string | null
+  previousMobileNumber?: string | null
+  avatar?: string | null
+  mobileNumber?: string | null
+  instagramUrl?: string | null
+  linkedinUrl?: string | null
+  createdAt?: Date | string
   iitmJoinYear: string | null
   iitmJoinMonth: string | null
   iitmLevel: string | null
@@ -42,6 +50,7 @@ export interface FullSession extends JWTPayload {
   accessibleCourseIds: string[] | null // null = all courses (MANAGER)
   enrollmentTypes: Record<string, string> // courseId → 'LIVE' | 'RECORDED'
   isMaintenanceMode?: boolean
+  isSept26ProgressUpdateActive?: boolean
 }
 
 export function signToken(payload: JWTPayload): string {
@@ -156,9 +165,10 @@ export async function getFullSession(): Promise<FullSession | null> {
     const now = new Date()
     let user: any = null
     let maintenanceState: { active: boolean } | null = null
+    let updateSettings: { sept26ProgressUpdateActive: boolean } | null = null
 
     try {
-      [user, maintenanceState] = await Promise.all([
+      [user, maintenanceState, updateSettings] = await Promise.all([
         (prisma.user.findUnique as any)({
           where: { id: jwtPayload.userId },
           select: {
@@ -167,6 +177,14 @@ export async function getFullSession(): Promise<FullSession | null> {
             tokenVersion: true,
             isProfileComplete: true,
             isIdentityUpdated: true,
+            hasUpdatedProgressSept26: true,
+            progressUpdatedAt: true,
+            previousMobileNumber: true,
+            avatar: true,
+            mobileNumber: true,
+            instagramUrl: true,
+            linkedinUrl: true,
+            createdAt: true,
             iitmJoinYear: true,
             iitmJoinMonth: true,
             iitmLevel: true,
@@ -200,6 +218,10 @@ export async function getFullSession(): Promise<FullSession | null> {
           console.error('Raw Error:', error?.message || error)
           return { active: false }
         }),
+        prisma.updateSystemSettings.findUnique({
+          where: { id: 'singleton' },
+          select: { sept26ProgressUpdateActive: true },
+        }).catch(() => null),
       ])
     } catch (error: any) {
       console.error('\n[AUTH CRITICAL ERROR] User database lookup failed in getFullSession!')
@@ -234,6 +256,14 @@ export async function getFullSession(): Promise<FullSession | null> {
       isTerminated: user.isTerminated,
       isProfileComplete: user.isProfileComplete,
       isIdentityUpdated: user.isIdentityUpdated || false,
+      hasUpdatedProgressSept26: Boolean(user.hasUpdatedProgressSept26),
+      progressUpdatedAt: user.progressUpdatedAt || null,
+      previousMobileNumber: user.previousMobileNumber || null,
+      avatar: user.avatar || null,
+      mobileNumber: user.mobileNumber || null,
+      instagramUrl: user.instagramUrl || null,
+      linkedinUrl: user.linkedinUrl || null,
+      createdAt: user.createdAt,
       iitmJoinYear: user.iitmJoinYear || null,
       iitmJoinMonth: user.iitmJoinMonth || null,
       iitmLevel: user.iitmLevel || null,
@@ -247,7 +277,8 @@ export async function getFullSession(): Promise<FullSession | null> {
             ...instructorAssignments.map(a => [a.courseId, 'LIVE']),
             ...enrollments.map(e => [e.courseId, e.type || 'LIVE']),
           ]),
-      isMaintenanceMode: Boolean(maintenanceState?.active) && !canBypassMaintenance(userRole)
+      isMaintenanceMode: Boolean(maintenanceState?.active) && !canBypassMaintenance(userRole),
+      isSept26ProgressUpdateActive: Boolean(updateSettings?.sept26ProgressUpdateActive),
     }
   } catch {
     return null

@@ -10,7 +10,7 @@ export async function GET() {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const [updates, settings] = await Promise.all([
+    const [updates, settings, completedSept26Count] = await Promise.all([
       prisma.systemUpdate.findMany({
         where: { type: { in: ['WELCOME', 'CUSTOM'] } },
         orderBy: [{ priority: 'desc' }, { createdAt: 'desc' }],
@@ -21,12 +21,15 @@ export async function GET() {
       }),
       prisma.updateSystemSettings.upsert({
         where: { id: 'singleton' },
-        create: { id: 'singleton', welcomeEnabled: true, customEnabled: true },
+        create: { id: 'singleton', welcomeEnabled: true, customEnabled: true, sept26ProgressUpdateActive: false },
         update: {},
+      }),
+      prisma.user.count({
+        where: { hasUpdatedProgressSept26: true },
       }),
     ])
 
-    return NextResponse.json({ updates, settings })
+    return NextResponse.json({ updates, settings, completedSept26Count })
   } catch (error) {
     console.error('Error fetching updates:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
