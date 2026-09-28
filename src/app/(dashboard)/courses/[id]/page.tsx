@@ -1012,14 +1012,23 @@ export default function CourseDetailPage() {
           const filteredTopics = getFilteredTopics()
           if (filteredTopics.length === 0) {
             return (
-              <div className="card empty-state" style={{ padding: '48px' }}>
-                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="1.5" style={{ marginBottom: '12px' }}>
-                  <path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-                </svg>
-                <p style={{ fontSize: '15px', fontWeight: '500', marginBottom: '4px' }}>No matches found</p>
-                <p style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
-                  Try refining your search query or sorting options.
-                </p>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                {activeSectionTab === 'lectures' && (
+                  <HomeworkBanner
+                    courseId={course.id}
+                    isManager={isManager}
+                    courseColor={coursePalette.accent}
+                  />
+                )}
+                <div className="card empty-state" style={{ padding: '48px' }}>
+                  <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="1.5" style={{ marginBottom: '12px' }}>
+                    <path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                  </svg>
+                  <p style={{ fontSize: '15px', fontWeight: '500', marginBottom: '4px' }}>No matches found</p>
+                  <p style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
+                    Try refining your search query or sorting options.
+                  </p>
+                </div>
               </div>
             )
           }
@@ -1037,6 +1046,13 @@ export default function CourseDetailPage() {
 
           return (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', containerType: 'inline-size' }}>
+              {activeSectionTab === 'lectures' && (
+                <HomeworkBanner
+                  courseId={course.id}
+                  isManager={isManager}
+                  courseColor={coursePalette.accent}
+                />
+              )}
               {filteredTopics.map((topic, topicIdx) => {
                 const hasNewContent = isNewContentItem(topic as any) || topic.content?.some((item: any) => isNewContentItem(item));
 

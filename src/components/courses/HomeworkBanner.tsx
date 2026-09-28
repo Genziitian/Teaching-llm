@@ -373,53 +373,6 @@ export default function HomeworkBanner({ courseId, isManager, courseColor = '#63
             )}
           </div>
 
-          {hasMaterials && (
-            <div style={{ marginTop: '12px' }}>
-              <button
-                type="button"
-                onClick={() => setShowMaterialsMap(prev => ({ ...prev, [hw.id]: !prev[hw.id] }))}
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                  padding: '7px 12px',
-                  borderRadius: '999px',
-                  border: '1px solid var(--border)',
-                  background: 'var(--surface-2)',
-                  color: 'var(--text-primary)',
-                  fontSize: '12px',
-                  fontWeight: 800,
-                  cursor: 'pointer'
-                }}
-              >
-                <FileText size={13} /> {showMaterials ? 'Hide Material' : `View Material (${hw.fileUrls.length})`}
-              </button>
-
-              {showMaterials && (
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '10px' }}>
-                  {hw.fileUrls.map((url, idx) => {
-                    const isImg = /\.(jpg|jpeg|png|webp)($|\?)/i.test(url)
-                    return (
-                      <a
-                        key={idx}
-                        href={url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '6px 12px', borderRadius: '10px', background: 'var(--surface-2)', border: '1px solid var(--border)', color: 'var(--text-primary)', fontSize: '12px', fontWeight: 600, textDecoration: 'none' }}
-                      >
-                        {isImg ? <Download size={13} style={{ color: courseColor }} /> : <FileText size={13} style={{ color: courseColor }} />}
-                        <span style={{ maxWidth: '160px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                          {getFileName(url)}
-                        </span>
-                        <ExternalLink size={11} style={{ opacity: 0.6 }} />
-                      </a>
-                    )
-                  })}
-                </div>
-              )}
-            </div>
-          )}
-
           <div style={{
             marginTop: '16px',
             paddingTop: '12px',
@@ -446,6 +399,27 @@ export default function HomeworkBanner({ courseId, isManager, courseColor = '#63
             </div>
 
             <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+              {hasMaterials && (
+                <button
+                  type="button"
+                  onClick={() => setShowMaterialsMap(prev => ({ ...prev, [hw.id]: !prev[hw.id] }))}
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    padding: '8px 14px',
+                    borderRadius: '999px',
+                    border: '1px solid var(--border)',
+                    background: 'var(--surface-2)',
+                    color: 'var(--text-primary)',
+                    fontSize: '12.5px',
+                    fontWeight: 800,
+                    cursor: 'pointer'
+                  }}
+                >
+                  <FileText size={14} /> {showMaterials ? 'Hide Material' : `View Material (${hw.fileUrls.length})`}
+                </button>
+              )}
               <button
                 onClick={() => setSubmittingHomework(hw)}
                 disabled={!canSubmit}
@@ -474,11 +448,34 @@ export default function HomeworkBanner({ courseId, isManager, courseColor = '#63
                   onClick={() => setShowCreateModal(true)}
                   style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', padding: '8px 14px', borderRadius: '999px', border: '1px solid var(--border)', background: 'var(--surface)', color: 'var(--text-primary)', fontSize: '12.5px', fontWeight: 600, cursor: 'pointer' }}
                 >
-                  <Plus size={14} /> Add Another
+                  <Plus size={14} /> New Homework
                 </button>
               )}
             </div>
           </div>
+
+          {hasMaterials && showMaterials && (
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '12px', justifyContent: 'flex-end' }}>
+              {hw.fileUrls.map((url, idx) => {
+                const isImg = /\.(jpg|jpeg|png|webp)($|\?)/i.test(url)
+                return (
+                  <a
+                    key={idx}
+                    href={url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '6px 12px', borderRadius: '10px', background: 'var(--surface-2)', border: '1px solid var(--border)', color: 'var(--text-primary)', fontSize: '12px', fontWeight: 600, textDecoration: 'none' }}
+                  >
+                    {isImg ? <Download size={13} style={{ color: courseColor }} /> : <FileText size={13} style={{ color: courseColor }} />}
+                    <span style={{ maxWidth: '160px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {getFileName(url)}
+                    </span>
+                    <ExternalLink size={11} style={{ opacity: 0.6 }} />
+                  </a>
+                )
+              })}
+            </div>
+          )}
         </div>
       </div>
     )
@@ -534,14 +531,15 @@ export default function HomeworkBanner({ courseId, isManager, courseColor = '#63
       {previewHomework && !showAllHomework && !selectedHomework && (
         <div style={{
           border: '1px solid rgba(245, 158, 11, 0.28)',
-          borderLeft: '4px solid #f59e0b',
+          borderLeft: '5px solid #f59e0b',
           background: 'rgba(245, 158, 11, 0.07)',
-          borderRadius: '10px',
-          padding: '9px 12px',
+          borderRadius: '14px',
+          padding: '14px 16px',
+          minHeight: '72px',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          gap: '12px',
+          gap: '16px',
           flexWrap: 'wrap'
         }}>
           <button
@@ -556,14 +554,15 @@ export default function HomeworkBanner({ courseId, isManager, courseColor = '#63
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
-              gap: '10px',
+              gap: '12px',
+              flexWrap: 'wrap',
               textAlign: 'left'
             }}
           >
-            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', color: '#d97706', fontSize: '12px', fontWeight: 900, textTransform: 'uppercase', flexShrink: 0 }}>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', color: '#d97706', fontSize: '12px', fontWeight: 900, textTransform: 'uppercase', flexShrink: 0 }}>
               <Clock size={14} /> Open Homework #{getSerial(previewHomework.id)}
             </span>
-            <span style={{ color: 'var(--text-primary)', fontSize: '13px', fontWeight: 800, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            <span style={{ color: 'var(--text-primary)', fontSize: '15px', fontWeight: 900, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 'min(420px, 100%)' }}>
               {previewHomework.title}
             </span>
             <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', color: 'var(--text-secondary)', fontSize: '12px', fontWeight: 700, flexShrink: 0 }}>
@@ -573,11 +572,18 @@ export default function HomeworkBanner({ courseId, isManager, courseColor = '#63
           </button>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+            <button
+              type="button"
+              onClick={() => openHomeworkDetail(previewHomework.id)}
+              style={{ border: 'none', background: courseColor, color: '#fff', borderRadius: '999px', padding: '9px 18px', fontSize: '13px', fontWeight: 900, cursor: 'pointer', boxShadow: '0 6px 14px rgba(0,0,0,0.14)' }}
+            >
+              View
+            </button>
             {sortedHomework.length > 1 && (
               <button
                 type="button"
                 onClick={() => setShowAllHomework(true)}
-                style={{ border: '1px solid var(--border)', background: 'var(--surface)', color: 'var(--text-primary)', borderRadius: '999px', padding: '6px 12px', fontSize: '12px', fontWeight: 800, cursor: 'pointer' }}
+                style={{ border: '1px solid var(--border)', background: 'var(--surface)', color: 'var(--text-primary)', borderRadius: '999px', padding: '9px 14px', fontSize: '12px', fontWeight: 800, cursor: 'pointer' }}
               >
                 View All Homework
               </button>
@@ -586,9 +592,9 @@ export default function HomeworkBanner({ courseId, isManager, courseColor = '#63
               <button
                 type="button"
                 onClick={() => setShowCreateModal(true)}
-                style={{ border: 'none', background: courseColor, color: '#fff', borderRadius: '999px', padding: '6px 12px', fontSize: '12px', fontWeight: 800, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+                style={{ border: 'none', background: courseColor, color: '#fff', borderRadius: '999px', padding: '9px 14px', fontSize: '12px', fontWeight: 800, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
               >
-                <Plus size={13} /> New
+                <Plus size={13} /> New Homework
               </button>
             )}
           </div>
@@ -631,16 +637,7 @@ export default function HomeworkBanner({ courseId, isManager, courseColor = '#63
       )}
 
       {selectedHomework && (
-        <>
-          <button
-            type="button"
-            onClick={() => setSelectedHomeworkId(null)}
-            style={{ border: '1px solid var(--border)', background: 'var(--surface-2)', color: 'var(--text-primary)', borderRadius: '999px', padding: '6px 12px', fontSize: '12px', fontWeight: 800, cursor: 'pointer', marginBottom: '10px' }}
-          >
-            Back to Homework
-          </button>
-          {renderHomeworkDetail(selectedHomework)}
-        </>
+        renderHomeworkDetail(selectedHomework)
       )}
 
       {/* Modal: Student Homework Submit */}
