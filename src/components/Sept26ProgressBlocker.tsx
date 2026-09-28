@@ -255,7 +255,7 @@ export default function Sept26ProgressBlocker({ user }: { user: any }) {
             }}>
               Updating your academic profile for the Sept &apos;26 Term. Just a moment!
             </p>
-            <style jsx>{`
+            <style>{`
               @keyframes spin {
                 0% { transform: rotate(0deg); }
                 100% { transform: rotate(360deg); }
@@ -869,7 +869,7 @@ export default function Sept26ProgressBlocker({ user }: { user: any }) {
               )}
             </button>
           </div>
-          <style jsx>{`
+          <style>{`
             @keyframes celebratePopIn {
               0% { opacity: 0; transform: scale(0.85) translateY(16px); }
               100% { opacity: 1; transform: scale(1) translateY(0); }
@@ -882,7 +882,7 @@ export default function Sept26ProgressBlocker({ user }: { user: any }) {
         </div>
       )}
 
-      <style jsx>{`
+      <style>{`
         .blocker-overlay {
           position: fixed;
           inset: 0;
