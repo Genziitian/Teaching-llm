@@ -14,7 +14,6 @@ import {
   X,
   ExternalLink,
   Users,
-  Search,
   Download,
   FileCheck,
   ChevronDown,
@@ -47,6 +46,7 @@ interface StudentSubmissionRecord {
   studentId: string
   name: string
   email: string
+  securityNumber?: string | null
   mobileNumber?: string | null
   avatar?: string | null
   isSubmitted: boolean
@@ -1538,8 +1538,7 @@ function SubmissionsViewerModal({
     students: StudentSubmissionRecord[]
   } | null>(null)
   const [loading, setLoading] = useState(true)
-  const [search, setSearch] = useState('')
-  const [filter, setFilter] = useState<'all' | 'submitted' | 'pending'>('all')
+  const [viewingSubmissionId, setViewingSubmissionId] = useState<string | null>(null)
 
   const fetchSubmissions = useCallback(async () => {
     try {
@@ -1560,12 +1559,18 @@ function SubmissionsViewerModal({
   }, [fetchSubmissions])
 
   const handleDeleteSubmission = async (subId: string, studentName: string) => {
-    if (!confirm(`Delete submission for ${studentName}?`)) return
+    const firstConfirm = confirm(`Delete submission for ${studentName}?`)
+    if (!firstConfirm) return
+
+    const secondConfirm = confirm('Final confirmation: this will permanently delete this student submission record. Continue?')
+    if (!secondConfirm) return
+
     try {
       const res = await fetch(`/api/homework/${homework.id}/submissions/${subId}`, {
         method: 'DELETE'
       })
       if (res.ok) {
+        setViewingSubmissionId(null)
         fetchSubmissions()
         onSubmissionDeleted()
       } else {
@@ -1576,14 +1581,7 @@ function SubmissionsViewerModal({
     }
   }
 
-  const filteredStudents = (data?.students || []).filter(s => {
-    const matchSearch =
-      s.name.toLowerCase().includes(search.toLowerCase()) ||
-      s.email.toLowerCase().includes(search.toLowerCase())
-    if (filter === 'submitted') return matchSearch && s.isSubmitted
-    if (filter === 'pending') return matchSearch && !s.isSubmitted
-    return matchSearch
-  })
+  const students = data?.students || []
 
   return (
     <div style={{
@@ -1641,109 +1639,19 @@ function SubmissionsViewerModal({
           </button>
         </div>
 
-        {/* Stats bar */}
-        {data && (
-          <div style={{
-            display: 'flex',
-            borderBottom: '1px solid var(--border)',
-            background: 'var(--surface-2)'
-          }}>
-            <div style={{ flex: 1, padding: '12px 16px', textAlign: 'center', borderRight: '1px solid var(--border)' }}>
-              <span style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase' }}>
-                Enrolled
-              </span>
-              <p style={{ fontSize: '18px', fontWeight: 800, margin: '2px 0 0', color: 'var(--text-primary)' }}>
-                {data.stats.totalStudents}
-              </p>
-            </div>
-            <div style={{ flex: 1, padding: '12px 16px', textAlign: 'center', borderRight: '1px solid var(--border)' }}>
-              <span style={{ fontSize: '11px', color: '#10b981', fontWeight: 700, textTransform: 'uppercase' }}>
-                Submitted
-              </span>
-              <p style={{ fontSize: '18px', fontWeight: 800, margin: '2px 0 0', color: '#10b981' }}>
-                {data.stats.submittedCount}
-              </p>
-            </div>
-            <div style={{ flex: 1, padding: '12px 16px', textAlign: 'center' }}>
-              <span style={{ fontSize: '11px', color: '#ef4444', fontWeight: 700, textTransform: 'uppercase' }}>
-                Pending
-              </span>
-              <p style={{ fontSize: '18px', fontWeight: 800, margin: '2px 0 0', color: '#ef4444' }}>
-                {data.stats.pendingCount}
-              </p>
-            </div>
-          </div>
-        )}
-
-        {/* Search & Filter */}
-        <div style={{
-          padding: '14px 24px',
-          borderBottom: '1px solid var(--border)',
-          display: 'flex',
-          gap: '12px',
-          alignItems: 'center',
-          flexWrap: 'wrap'
-        }}>
-          <div style={{
-            flex: 1,
-            minWidth: '200px',
-            position: 'relative'
-          }}>
-            <Search size={15} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
-            <input
-              type="text"
-              placeholder="Search student by name or email..."
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-              style={{
-                width: '100%',
-                padding: '8px 12px 8px 36px',
-                borderRadius: '50px',
-                border: '1px solid var(--border)',
-                background: 'var(--surface-2)',
-                color: 'var(--text-primary)',
-                fontSize: '12.5px',
-                boxSizing: 'border-box'
-              }}
-            />
-          </div>
-
-          <div style={{ display: 'flex', gap: '6px' }}>
-            {(['all', 'submitted', 'pending'] as const).map(tabKey => (
-              <button
-                key={tabKey}
-                onClick={() => setFilter(tabKey)}
-                style={{
-                  padding: '6px 12px',
-                  borderRadius: '20px',
-                  border: filter === tabKey ? `1px solid ${courseColor}` : '1px solid var(--border)',
-                  background: filter === tabKey ? courseColor : 'var(--surface-2)',
-                  color: filter === tabKey ? '#fff' : 'var(--text-secondary)',
-                  fontSize: '12px',
-                  fontWeight: 700,
-                  cursor: 'pointer',
-                  textTransform: 'capitalize'
-                }}
-              >
-                {tabKey}
-              </button>
-            ))}
-          </div>
-        </div>
-
         {/* Student list */}
         <div style={{ flex: 1, overflowY: 'auto', padding: '16px 24px' }}>
           {loading ? (
             <p style={{ textAlign: 'center', color: 'var(--text-secondary)', padding: '24px 0' }}>
               Loading submissions...
             </p>
-          ) : filteredStudents.length === 0 ? (
+          ) : students.length === 0 ? (
             <p style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '24px 0', fontSize: '13px' }}>
-              No students match the criteria.
+              No students found.
             </p>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-              {filteredStudents.map(student => (
+              {students.map(student => (
                 <div
                   key={student.studentId}
                   style={{
@@ -1768,51 +1676,35 @@ function SubmissionsViewerModal({
                         {student.name}
                       </h4>
                       <p style={{ margin: '2px 0 0', fontSize: '12px', color: 'var(--text-secondary)' }}>
-                        {student.email} {student.mobileNumber ? `• ${student.mobileNumber}` : ''}
+                        Security ID: {student.securityNumber || 'Not assigned'}
                       </p>
                     </div>
 
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <span style={{
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: '4px',
-                        padding: '3px 10px',
-                        borderRadius: '20px',
-                        fontSize: '11px',
-                        fontWeight: 800,
-                        background: student.isSubmitted ? 'rgba(34, 197, 94, 0.15)' : 'rgba(239, 68, 68, 0.1)',
-                        color: student.isSubmitted ? '#10b981' : '#ef4444'
-                      }}>
-                        {student.isSubmitted ? <CheckCircle2 size={12} /> : <AlertCircle size={12} />}
-                        {student.isSubmitted ? 'Submitted' : 'Not Submitted'}
-                      </span>
-
                       {student.submission && (
                         <button
-                          onClick={() => handleDeleteSubmission(student.submission!.id, student.name)}
+                          onClick={() => setViewingSubmissionId(prev => prev === student.submission!.id ? null : student.submission!.id)}
                           style={{
-                            padding: '4px 8px',
-                            borderRadius: '8px',
-                            border: '1px solid rgba(239, 68, 68, 0.25)',
-                            background: 'rgba(239, 68, 68, 0.08)',
-                            color: '#ef4444',
+                            padding: '6px 12px',
+                            borderRadius: '999px',
+                            border: '1px solid rgba(34, 197, 94, 0.28)',
+                            background: 'rgba(34, 197, 94, 0.12)',
+                            color: '#10b981',
                             cursor: 'pointer',
-                            fontSize: '11px',
+                            fontSize: '12px',
                             display: 'inline-flex',
                             alignItems: 'center',
                             gap: '4px',
-                            fontWeight: 700
+                            fontWeight: 800
                           }}
-                          title="Delete this student's submission"
                         >
-                          <Trash2 size={12} /> Delete
+                          <CheckCircle2 size={12} /> View Submission
                         </button>
                       )}
                     </div>
                   </div>
 
-                  {student.submission && (
+                  {student.submission && viewingSubmissionId === student.submission.id && (
                     <div style={{
                       background: 'var(--surface)',
                       borderRadius: '10px',
@@ -1865,6 +1757,28 @@ function SubmissionsViewerModal({
                           ))}
                         </div>
                       )}
+
+                      <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '10px' }}>
+                        <button
+                          onClick={() => handleDeleteSubmission(student.submission!.id, student.name)}
+                          style={{
+                            padding: '6px 10px',
+                            borderRadius: '8px',
+                            border: '1px solid rgba(239, 68, 68, 0.25)',
+                            background: 'rgba(239, 68, 68, 0.08)',
+                            color: '#ef4444',
+                            cursor: 'pointer',
+                            fontSize: '11.5px',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '4px',
+                            fontWeight: 800
+                          }}
+                          title="Delete this student's submission"
+                        >
+                          <Trash2 size={12} /> Delete Submission
+                        </button>
+                      </div>
                     </div>
                   )}
                 </div>
