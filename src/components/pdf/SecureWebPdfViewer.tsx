@@ -13,7 +13,8 @@ import {
   ZoomOut, 
   BookOpen, 
   FileText,
-  RotateCcw
+  RotateCcw,
+  Download
 } from 'lucide-react'
 import { useLoadingFact } from '@/hooks/useLoadingFact'
 import LoadingFactCard from '@/components/ui/LoadingFactCard'
@@ -229,6 +230,23 @@ export default function SecureWebPdfViewer({
     setPageNumber(p => Math.min(numPages, p + step))
   }
 
+  const handleDownload = () => {
+    const target = resolvedFile || fallbackUrl
+    if (!target || typeof document === 'undefined') return
+
+    const filenameBase = (title || 'material')
+      .replace(/[^a-z0-9]+/gi, '-')
+      .replace(/^-+|-+$/g, '')
+      .toLowerCase() || 'material'
+
+    const link = document.createElement('a')
+    link.href = target
+    link.download = `${filenameBase}.pdf`
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+  }
+
   // Ensure left page is odd in two-page mode
   const firstPage = pageNumber
   const secondPage = isTwoPage && firstPage + 1 <= numPages ? firstPage + 1 : null
@@ -287,7 +305,7 @@ export default function SecureWebPdfViewer({
           {isFullscreen ? (
             <button
               onClick={() => setIsFullscreen(false)}
-              style={iconBtnStyle(isFullscreen)}
+              style={exitBtnStyle}
               title="Exit Fullscreen (Esc)"
             >
               <Minimize2 size={16} />
@@ -333,7 +351,7 @@ export default function SecureWebPdfViewer({
             onClick={() => setIsTwoPage(false)}
             style={{
               ...toggleBtnStyle,
-              background: !isTwoPage ? 'var(--primary, #6366f1)' : 'transparent',
+              background: !isTwoPage ? (isFullscreen ? '#4f46e5' : 'var(--primary, #6366f1)') : 'transparent',
               color: !isTwoPage ? '#ffffff' : isFullscreen ? '#cbd5e1' : 'var(--text-muted)',
             }}
             title="Single Page View"
@@ -345,7 +363,7 @@ export default function SecureWebPdfViewer({
             onClick={() => setIsTwoPage(true)}
             style={{
               ...toggleBtnStyle,
-              background: isTwoPage ? 'var(--primary, #6366f1)' : 'transparent',
+              background: isTwoPage ? (isFullscreen ? '#4f46e5' : 'var(--primary, #6366f1)') : 'transparent',
               color: isTwoPage ? '#ffffff' : isFullscreen ? '#cbd5e1' : 'var(--text-muted)',
             }}
             title="Two Page Spread (Side-by-Side)"
@@ -390,6 +408,15 @@ export default function SecureWebPdfViewer({
 
         {/* Right: Pagination & Fullscreen Toggle */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <button
+            onClick={handleDownload}
+            style={iconBtnStyle(isFullscreen)}
+            title="Download PDF"
+          >
+            <Download size={16} />
+            <span style={{ fontSize: '12px', fontWeight: 700 }}>Download Material</span>
+          </button>
+
           <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
             <button
               onClick={handlePrev}
@@ -414,8 +441,12 @@ export default function SecureWebPdfViewer({
             onClick={() => setIsFullscreen(f => !f)}
             style={{
               ...iconBtnStyle(isFullscreen),
-              background: isFullscreen ? 'rgba(99, 102, 241, 0.28)' : 'var(--surface)',
-              borderColor: isFullscreen ? '#6366f1' : 'var(--border)',
+              ...(isFullscreen
+                ? exitBtnStyle
+                : {
+                    background: 'var(--surface)',
+                    borderColor: 'var(--border)',
+                  }),
             }}
             title={isFullscreen ? 'Exit Fullscreen' : 'Enter Fullscreen'}
           >
@@ -667,6 +698,20 @@ function iconBtnStyle(isFullscreen = false): React.CSSProperties {
   }
 }
 
+const exitBtnStyle: React.CSSProperties = {
+  display: 'inline-flex',
+  alignItems: 'center',
+  gap: '6px',
+  background: '#dc2626',
+  border: '1px solid #ef4444',
+  borderRadius: '8px',
+  padding: '6px 12px',
+  color: '#ffffff',
+  cursor: 'pointer',
+  transition: 'all 0.15s ease',
+  boxShadow: '0 8px 18px rgba(220, 38, 38, 0.24)',
+}
+
 const toggleBtnStyle: React.CSSProperties = {
   display: 'inline-flex',
   alignItems: 'center',
@@ -710,6 +755,10 @@ function pagerArrowBtn(disabled: boolean, isFullscreen = false): React.CSSProper
 }
 
 function sideNavBtnStyle(side: 'left' | 'right', disabled: boolean, isFullscreen = false): React.CSSProperties {
+  const fullscreenBg = disabled ? 'rgba(71, 85, 105, 0.92)' : '#2563eb'
+  const fullscreenBorder = disabled ? 'rgba(148, 163, 184, 0.45)' : '#60a5fa'
+  const fullscreenColor = disabled ? '#cbd5e1' : '#ffffff'
+
   return {
     position: isFullscreen ? 'fixed' : 'absolute',
     top: '50%',
@@ -723,14 +772,16 @@ function sideNavBtnStyle(side: 'left' | 'right', disabled: boolean, isFullscreen
     justifyContent: 'center',
     padding: '12px 14px',
     borderRadius: '999px',
-    border: isFullscreen ? '1px solid rgba(248, 250, 252, 0.22)' : '1px solid var(--border)',
-    background: isFullscreen ? 'rgba(15, 23, 42, 0.88)' : 'rgba(255, 255, 255, 0.94)',
-    color: isFullscreen ? '#f8fafc' : 'var(--text-primary)',
-    boxShadow: '0 10px 24px rgba(15, 23, 42, 0.18)',
+    border: isFullscreen ? `1px solid ${fullscreenBorder}` : '1px solid var(--border)',
+    background: isFullscreen ? fullscreenBg : disabled ? 'rgba(226, 232, 240, 0.96)' : '#2563eb',
+    color: isFullscreen ? fullscreenColor : disabled ? '#64748b' : '#ffffff',
+    boxShadow: isFullscreen
+      ? '0 14px 30px rgba(0, 0, 0, 0.38)'
+      : '0 10px 24px rgba(37, 99, 235, 0.22)',
     fontSize: '13px',
     fontWeight: 900,
     cursor: disabled ? 'default' : 'pointer',
-    opacity: disabled ? 0.35 : 1,
+    opacity: disabled ? 0.78 : 1,
     pointerEvents: disabled ? 'none' : 'auto',
     backdropFilter: 'blur(10px)',
   }
