@@ -13,8 +13,8 @@ export default function Sept26ProgressBlocker({ user }: { user: any }) {
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const [formData, setFormData] = useState({
-    iitmLevel: user.iitmLevel || '',
-    iitmUserType: user.iitmUserType || '',
+    iitmLevel: '',
+    iitmUserType: '',
     mobileNumber: user.mobileNumber || '',
     instagramUrl: user.instagramUrl || '',
     linkedinUrl: user.linkedinUrl || '',
@@ -26,8 +26,8 @@ export default function Sept26ProgressBlocker({ user }: { user: any }) {
 
   const [completedFields, setCompletedFields] = useState<Record<string, boolean>>({
     photo: Boolean(user.avatar),
-    level: Boolean(user.iitmLevel),
-    category: Boolean(user.iitmUserType),
+    level: false,
+    category: false,
     mobile: Boolean(user.mobileNumber && user.mobileNumber.length >= 10),
   })
 
@@ -197,14 +197,14 @@ export default function Sept26ProgressBlocker({ user }: { user: any }) {
         background: 'var(--surface, #ffffff)',
         width: '100%',
         maxWidth: '640px',
-        padding: '28px 32px',
+        padding: '22px 26px',
         borderRadius: '24px',
         boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.1)',
         margin: 'auto',
       }}>
 
         {/* Term Badge & Header */}
-        <div style={{ textAlign: 'center', marginBottom: '18px' }}>
+        <div style={{ textAlign: 'center', marginBottom: '12px' }}>
           <div style={{
             display: 'inline-flex',
             alignItems: 'center',
@@ -224,23 +224,14 @@ export default function Sept26ProgressBlocker({ user }: { user: any }) {
           </div>
 
           <h1 style={{
-            fontSize: '24px',
+            fontSize: '22px',
             fontWeight: 900,
             color: 'var(--text-primary, #0f172a)',
-            marginBottom: '6px',
+            marginBottom: '0',
             letterSpacing: '-0.02em',
           }}>
-            Let&apos;s Update Your Progress! 🚀
+            Let&apos;s Update Your Progress!
           </h1>
-          <p style={{
-            fontSize: '13.5px',
-            color: 'var(--text-secondary, #64748b)',
-            lineHeight: 1.5,
-            maxWidth: '480px',
-            margin: '0 auto',
-          }}>
-            It&apos;s time for the new term! Refresh your current level, contact info, and profile photo so your journey stays up to date.
-          </p>
         </div>
 
         {/* Gamified Progress Bar */}
@@ -248,7 +239,7 @@ export default function Sept26ProgressBlocker({ user }: { user: any }) {
           background: '#f1f5f9',
           borderRadius: '12px',
           padding: '10px 14px',
-          marginBottom: '20px',
+          marginBottom: '12px',
           display: 'flex',
           alignItems: 'center',
           gap: '12px',
@@ -304,7 +295,7 @@ export default function Sept26ProgressBlocker({ user }: { user: any }) {
           </div>
         )}
 
-        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
 
           {/* ── Photo Section ── */}
           <div style={{
@@ -364,11 +355,6 @@ export default function Sept26ProgressBlocker({ user }: { user: any }) {
                 <span style={{ fontSize: '10.5px', fontWeight: 700, color: '#6366f1', background: '#eff0fe', padding: '1px 7px', borderRadius: '12px' }}>
                   Optional
                 </span>
-                {avatarUrl && (
-                  <span style={{ fontSize: '10px', fontWeight: 800, color: '#10b981', background: '#d1fae5', padding: '2px 8px', borderRadius: '20px' }}>
-                    Photo Set ✓
-                  </span>
-                )}
               </div>
               <p style={{ fontSize: '12px', color: 'var(--text-muted, #64748b)', margin: '2px 0 6px 0' }}>
                 Optional — Keep your existing photo or upload a fresh one for the new term.
@@ -558,13 +544,9 @@ export default function Sept26ProgressBlocker({ user }: { user: any }) {
               />
             </div>
 
-            {isMobileChanged ? (
+            {isMobileChanged && (
               <p style={{ fontSize: '11px', color: '#d97706', marginTop: '6px', fontWeight: 600 }}>
                 ⚠️ Notice: Changing mobile number. Old number ({user.mobileNumber}) will be safely kept in audit records for security verification.
-              </p>
-            ) : (
-              <p style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)', marginTop: '4px' }}>
-                Used for SMS alerts, login OTPs, and course study group access.
               </p>
             )}
           </div>
@@ -584,9 +566,6 @@ export default function Sept26ProgressBlocker({ user }: { user: any }) {
                 Optional
               </span>
             </div>
-            <p style={{ fontSize: '11.5px', color: 'var(--text-muted, #64748b)', marginBottom: '12px', lineHeight: 1.4 }}>
-              Add your links so peers in IITM BS can connect with you on your GenZ IITian Student Card.
-            </p>
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
               <div>
@@ -641,7 +620,7 @@ export default function Sept26ProgressBlocker({ user }: { user: any }) {
             disabled={loading}
             style={{
               width: '100%',
-              padding: '16px',
+              padding: '13px',
               borderRadius: '14px',
               fontSize: '15.5px',
               fontWeight: 800,
