@@ -126,6 +126,8 @@ model User {
   reviewedReports         UserReport[]                 @relation("ReportReviewer")
   reportAudits            UserReportAudit[]            @relation("ReportAuditActor")
   deletionRequests        AccountDeletionRequest[]
+  createdHomeworks        Homework[]                   @relation("HomeworkCreator")
+  homeworkSubmissions     HomeworkSubmission[]         @relation("HomeworkSubmitter")
 
   @@index([role])  // Used by dashboard count: prisma.user.count({ where: { role: 'STUDENT' } })
 }
@@ -184,6 +186,7 @@ model Course {
   topics                Topic[]
   upgradeTransactions     UpgradeTransaction[]
   communityMutePrefs      CommunityMutePreference[]
+  homeworks               Homework[]
 
   @@index([lastMessageAt])
   @@map("Class")
@@ -1616,5 +1619,40 @@ model LoadingFact {
   @@index([rarity])
   @@index([isActive])
   @@index([createdAt])
+}
+
+model Homework {
+  id          String               @id @default(cuid())
+  courseId    String               @map("classId")
+  title       String
+  description String?
+  fileUrls    String[]             @default([])
+  dueAt       DateTime
+  createdById String
+  createdAt   DateTime             @default(now())
+  updatedAt   DateTime             @updatedAt
+
+  course      Course               @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  createdBy   User                 @relation("HomeworkCreator", fields: [createdById], references: [id])
+  submissions HomeworkSubmission[]
+
+  @@index([courseId])
+  @@index([dueAt])
+}
+
+model HomeworkSubmission {
+  id          String   @id @default(cuid())
+  homeworkId  String
+  studentId   String
+  fileUrls    String[] @default([])
+  note        String?
+  submittedAt DateTime @default(now())
+
+  homework    Homework @relation(fields: [homeworkId], references: [id], onDelete: Cascade)
+  student     User     @relation("HomeworkSubmitter", fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@unique([homeworkId, studentId])
+  @@index([homeworkId])
+  @@index([studentId])
 }
 

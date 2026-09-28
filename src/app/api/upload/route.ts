@@ -52,7 +52,7 @@ export async function POST(request: NextRequest) {
     const filename = `${secureId}.${normalizedExt}`
 
     const type = formData.get('type') as string || 'announcements'
-    const allowedTypes = ['announcements', 'exams', 'updates', 'materials', 'store-notes']
+    const allowedTypes = ['announcements', 'exams', 'updates', 'materials', 'store-notes', 'homework']
     const finalType = allowedTypes.includes(type) ? type : 'announcements'
 
     // Upload to Supabase Storage (bucket: lms-uploads or secure-notes)

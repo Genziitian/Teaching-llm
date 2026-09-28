@@ -11,6 +11,10 @@
     {
       "path": "/api/cron/auto-close-tickets",
       "schedule": "30 0 * * *"
+    },
+    {
+      "path": "/api/cron/cleanup-homework",
+      "schedule": "45 0 * * *"
     }
   ]
 }

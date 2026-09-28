@@ -8,6 +8,7 @@ import FeedbackModal from '@/components/FeedbackModal'
 import { getCourseDisplayPalette, isGradient } from '@/lib/color-utils'
 import { Capacitor } from '@capacitor/core'
 import { useTheme } from '@/components/ThemeProvider'
+import HomeworkBanner from '@/components/courses/HomeworkBanner'
 
 const fetcher = (url: string) => fetch(url).then(r => r.json())
 
@@ -440,10 +441,11 @@ export default function MobileCourseDetail({
 
       {/* ──── CONTENT AREA ──── */}
       <div style={{ padding: '0 14px', marginTop: '14px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
-
-
-
-
+        <HomeworkBanner
+          courseId={course.id}
+          isManager={isManager}
+          courseColor={coursePalette.accent}
+        />
 
         {/* ──── Tabs ──── */}
         <div style={{

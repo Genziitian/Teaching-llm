@@ -14,6 +14,8 @@ import '../../theme/app_shadows.dart';
 import '../../theme/app_theme_tokens.dart';
 import '../feedback/feedback_page.dart' show myFeedbackProvider;
 import '../feedback/rate_course_sheet.dart';
+import '../homework/homework_banner.dart';
+import '../homework/homework_providers.dart';
 
 final courseDetailProvider =
     FutureProvider.family<Map<String, dynamic>, String>((ref, id) async {
@@ -198,6 +200,7 @@ class _CourseDetailPageState extends ConsumerState<CourseDetailPage> {
                 ref.invalidate(courseProgressProvider(widget.courseId));
                 ref.invalidate(downloadedNotesProvider);
                 ref.invalidate(myFeedbackProvider);
+                ref.invalidate(homeworkListProvider(widget.courseId));
               },
               child: ListView(
                 physics: const AlwaysScrollableScrollPhysics(),
@@ -208,6 +211,12 @@ class _CourseDetailPageState extends ConsumerState<CourseDetailPage> {
                     course: course,
                     accent: accent,
                     isExpired: isExpired,
+                  ),
+
+                  // 1.5 Homework Banner
+                  HomeworkBannerCard(
+                    courseId: widget.courseId,
+                    accent: accent,
                   ),
 
                   // 2. Tabs: Curriculum, Downloaded Notes, Overview, Feedback

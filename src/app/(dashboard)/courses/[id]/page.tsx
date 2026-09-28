@@ -11,6 +11,7 @@ import { colorWithOpacity, getCourseDisplayPalette } from '@/lib/color-utils'
 import { useTheme } from '@/components/ThemeProvider'
 import { useLoadingFact } from '@/hooks/useLoadingFact'
 import LoadingFactCard from '@/components/ui/LoadingFactCard'
+import HomeworkBanner from '@/components/courses/HomeworkBanner'
 
 interface ContentItem {
   id: string
@@ -861,6 +862,13 @@ export default function CourseDetailPage() {
           }
         }
       `}} />
+
+      {/* Homework Banner */}
+      <HomeworkBanner
+        courseId={course.id}
+        isManager={isManager}
+        courseColor={coursePalette.accent}
+      />
 
       {/* Tab Navigation and Search/Filter Bar */}
       <div style={{
