@@ -15,6 +15,8 @@ import {
   FileText,
   RotateCcw
 } from 'lucide-react'
+import { useLoadingFact } from '@/hooks/useLoadingFact'
+import LoadingFactCard from '@/components/ui/LoadingFactCard'
 
 // Point to local worker copied into /public
 pdfjs.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs'
@@ -41,6 +43,7 @@ export default function SecureWebPdfViewer({
   const [numPages, setNumPages] = useState<number>(0)
   const [pageNumber, setPageNumber] = useState<number>(1)
   const [error, setError] = useState<string | null>(null)
+  const loadingFact = useLoadingFact(numPages === 0 && !error)
   
   // View mode: 2-page spread vs 1-page view
   const [isTwoPage, setIsTwoPage] = useState<boolean>(() => {
@@ -72,7 +75,8 @@ export default function SecureWebPdfViewer({
     }
   }, [fileBlob, resolvedFile])
 
-  // Progress animation with randomized organic speed profiles (fast bursts, pauses, gradual creeps)
+  // Progress animation with randomized organic speed profiles.
+  // Keep the simulated value below completion so it never appears stuck at 99%.
   const [loadProgress, setLoadProgress] = useState<number>(0)
   const [simulatedProgress, setSimulatedProgress] = useState<number>(0)
 
@@ -85,53 +89,58 @@ export default function SecureWebPdfViewer({
     const profile = Math.floor(Math.random() * 3)
 
     const tick = () => {
-      if (current >= 99) return
+      if (current >= 92) return
 
       let step = 0
       let nextDelay = 100
 
       if (profile === 0) {
-        // Fast burst
-        step = current < 60
-          ? Math.floor(Math.random() * 14) + 10
-          : current < 88
+        step = current < 20
+          ? Math.floor(Math.random() * 9) + 12
+          : current < 60
+          ? Math.floor(Math.random() * 10) + 7
+          : current < 84
           ? Math.floor(Math.random() * 8) + 4
-          : current < 96
+          : current < 90
           ? 2
           : 1
-        nextDelay = current < 60
-          ? Math.floor(Math.random() * 60) + 40
+        nextDelay = current < 20
+          ? Math.floor(Math.random() * 35) + 20
+          : current < 60
+          ? Math.floor(Math.random() * 70) + 45
           : Math.floor(Math.random() * 120) + 70
       } else if (profile === 1) {
-        // Dynamic with occasional micro-pauses for realism
-        const isPause = Math.random() < 0.15 && current > 20 && current < 85
+        const isPause = Math.random() < 0.16 && current > 28 && current < 82
         if (isPause) {
           step = 0
           nextDelay = Math.floor(Math.random() * 250) + 140
         } else {
-          step = current < 45
+          step = current < 20
+            ? Math.floor(Math.random() * 10) + 10
+            : current < 45
             ? Math.floor(Math.random() * 9) + 5
-            : current < 82
+            : current < 78
             ? Math.floor(Math.random() * 6) + 3
-            : current < 95
+            : current < 90
             ? 2
             : 1
-          nextDelay = Math.floor(Math.random() * 100) + 70
+          nextDelay = current < 20 ? Math.floor(Math.random() * 35) + 25 : Math.floor(Math.random() * 100) + 70
         }
       } else {
-        // Steady, slower flow
-        step = current < 50
+        step = current < 20
+          ? Math.floor(Math.random() * 8) + 9
+          : current < 50
           ? Math.floor(Math.random() * 6) + 4
-          : current < 85
+          : current < 84
           ? Math.floor(Math.random() * 4) + 2
           : 1
-        nextDelay = Math.floor(Math.random() * 150) + 110
+        nextDelay = current < 20 ? Math.floor(Math.random() * 40) + 35 : Math.floor(Math.random() * 150) + 110
       }
 
-      current = Math.min(99, current + step)
+      current = Math.min(92, current + step)
       setSimulatedProgress(current / 100)
 
-      if (current < 99) {
+      if (current < 92) {
         timeoutId = setTimeout(tick, nextDelay)
       }
     }
@@ -460,7 +469,7 @@ export default function SecureWebPdfViewer({
                 setLoadProgress(Math.min(1, loaded / total))
               }
             }}
-            loading={<LoadingState progress={simulatedProgress} />}
+            loading={<LoadingState progress={simulatedProgress} fact={loadingFact} />}
             error={null}
           >
             <div
@@ -671,8 +680,9 @@ function pagerArrowBtn(disabled: boolean): React.CSSProperties {
   }
 }
 
-function LoadingState({ progress }: { progress: number }) {
+function LoadingState({ progress, fact }: { progress: number; fact: ReturnType<typeof useLoadingFact> }) {
   const pct = Math.round(progress * 100)
+  const isFinalizing = pct >= 90
   const size = 64
   const stroke = 4
   const r = (size - stroke) / 2
@@ -730,12 +740,13 @@ function LoadingState({ progress }: { progress: number }) {
             color: 'var(--text-primary)',
           }}
         >
-          {pct}%
+          {isFinalizing ? '...' : `${pct}%`}
         </div>
       </div>
       <div style={{ fontSize: '13px', fontWeight: 600 }}>
-        {pct < 100 ? 'Loading PDF…' : 'Rendering pages…'}
+        {isFinalizing ? 'Opening PDF…' : 'Loading PDF…'}
       </div>
+      <LoadingFactCard fact={fact} style={{ marginTop: '8px', maxWidth: '420px' }} />
     </div>
   )
 }

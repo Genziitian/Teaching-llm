@@ -1333,7 +1333,7 @@ export default function LecturePage() {
                         }}
                       >
                         <ExternalLink size={15} />
-                        Open Link
+                        Download Material
                       </a>
                     )}
                   </div>

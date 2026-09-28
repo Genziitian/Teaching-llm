@@ -84,7 +84,7 @@ export default function MaterialViewerClient({
             }}
           >
             <ExternalLink size={15} />
-            Open Link
+            Download Material
           </a>
         )}
       </div>
