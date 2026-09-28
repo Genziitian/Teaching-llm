@@ -111,7 +111,8 @@ export default function HomeworkBanner({ courseId, isManager, courseColor = '#63
   const [togglingId, setTogglingId] = useState<string | null>(null)
   const [selectedHomeworkId, setSelectedHomeworkId] = useState<string | null>(null)
   const [showAllHomework, setShowAllHomework] = useState(false)
-  const [showMaterialsMap, setShowMaterialsMap] = useState<Record<string, boolean>>({})
+  const [materialPickerHomework, setMaterialPickerHomework] = useState<HomeworkItem | null>(null)
+  const [imagePreviewMaterial, setImagePreviewMaterial] = useState<{ url: string; label: string } | null>(null)
 
   const fetchHomework = useCallback(async () => {
     try {
@@ -186,6 +187,33 @@ export default function HomeworkBanner({ courseId, isManager, courseColor = '#63
     setShowAllHomework(false)
   }
 
+  const isImageMaterial = (url: string) => /\.(jpg|jpeg|png|webp|gif|avif)($|\?)/i.test(url)
+  const isPdfMaterial = (url: string) => /\.pdf($|\?)/i.test(url) || /application%2Fpdf|application\/pdf/i.test(url)
+
+  const openMaterialUrl = (url: string, label: string) => {
+    if (isImageMaterial(url)) {
+      setImagePreviewMaterial({ url, label })
+      return
+    }
+    if (isPdfMaterial(url)) {
+      const href = `/homework/material-viewer?url=${encodeURIComponent(url)}&title=${encodeURIComponent(label)}`
+      window.open(href, '_blank', 'noopener,noreferrer')
+      return
+    }
+    window.open(url, '_blank', 'noopener,noreferrer')
+  }
+
+  const openHomeworkMaterials = (hw: HomeworkItem) => {
+    const urls = hw.fileUrls || []
+    if (urls.length === 1) {
+      openMaterialUrl(urls[0], 'Material 1')
+      return
+    }
+    if (urls.length > 1) {
+      setMaterialPickerHomework(hw)
+    }
+  }
+
   const renderHomeworkDetail = (hw: HomeworkItem) => {
     const serial = getSerial(hw.id)
     const isSubmitted = !!hw.isSubmitted
@@ -194,7 +222,6 @@ export default function HomeworkBanner({ courseId, isManager, courseColor = '#63
     const canSubmit = isOpen
     const isExpanded = !!expandedDesc[hw.id]
     const hasMaterials = hw.fileUrls && hw.fileUrls.length > 0
-    const showMaterials = !!showMaterialsMap[hw.id]
 
     return (
       <div
@@ -402,7 +429,7 @@ export default function HomeworkBanner({ courseId, isManager, courseColor = '#63
               {hasMaterials && (
                 <button
                   type="button"
-                  onClick={() => setShowMaterialsMap(prev => ({ ...prev, [hw.id]: !prev[hw.id] }))}
+                  onClick={() => openHomeworkMaterials(hw)}
                   style={{
                     display: 'inline-flex',
                     alignItems: 'center',
@@ -417,7 +444,7 @@ export default function HomeworkBanner({ courseId, isManager, courseColor = '#63
                     cursor: 'pointer'
                   }}
                 >
-                  <FileText size={14} /> {showMaterials ? 'Hide Material' : `View Material (${hw.fileUrls.length})`}
+                  <FileText size={14} /> View Homework Material
                 </button>
               )}
               <button
@@ -454,28 +481,6 @@ export default function HomeworkBanner({ courseId, isManager, courseColor = '#63
             </div>
           </div>
 
-          {hasMaterials && showMaterials && (
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '12px', justifyContent: 'flex-end' }}>
-              {hw.fileUrls.map((url, idx) => {
-                const isImg = /\.(jpg|jpeg|png|webp)($|\?)/i.test(url)
-                return (
-                  <a
-                    key={idx}
-                    href={url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '6px 12px', borderRadius: '10px', background: 'var(--surface-2)', border: '1px solid var(--border)', color: 'var(--text-primary)', fontSize: '12px', fontWeight: 600, textDecoration: 'none' }}
-                  >
-                    {isImg ? <Download size={13} style={{ color: courseColor }} /> : <FileText size={13} style={{ color: courseColor }} />}
-                    <span style={{ maxWidth: '160px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                      {getFileName(url)}
-                    </span>
-                    <ExternalLink size={11} style={{ opacity: 0.6 }} />
-                  </a>
-                )
-              })}
-            </div>
-          )}
         </div>
       </div>
     )
@@ -559,7 +564,7 @@ export default function HomeworkBanner({ courseId, isManager, courseColor = '#63
             }}
           >
             <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', color: '#d97706', fontSize: '12px', fontWeight: 900, textTransform: 'uppercase', flexShrink: 0 }}>
-              <Clock size={14} /> View Homework #{getSerial(previewHomework.id)}
+              <Clock size={14} /> Homework #{getSerial(previewHomework.id)}
             </span>
             <span style={{ color: 'var(--text-primary)', fontSize: '15px', fontWeight: 900, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 'min(420px, 100%)' }}>
               {previewHomework.title}
@@ -576,7 +581,7 @@ export default function HomeworkBanner({ courseId, isManager, courseColor = '#63
               onClick={() => openHomeworkDetail(previewHomework.id)}
               style={{ border: 'none', background: courseColor, color: '#fff', borderRadius: '999px', padding: '9px 18px', fontSize: '13px', fontWeight: 900, cursor: 'pointer', boxShadow: '0 6px 14px rgba(0,0,0,0.14)' }}
             >
-              View
+              View Homework
             </button>
             {sortedHomework.length > 1 && (
               <button
@@ -679,6 +684,185 @@ export default function HomeworkBanner({ courseId, isManager, courseColor = '#63
           onSubmissionDeleted={fetchHomework}
         />
       )}
+
+      {materialPickerHomework && (
+        <HomeworkMaterialPickerModal
+          homework={materialPickerHomework}
+          courseColor={courseColor}
+          onOpenMaterial={openMaterialUrl}
+          onClose={() => setMaterialPickerHomework(null)}
+        />
+      )}
+
+      {imagePreviewMaterial && (
+        <HomeworkImagePreviewModal
+          material={imagePreviewMaterial}
+          onClose={() => setImagePreviewMaterial(null)}
+        />
+      )}
+    </div>
+  )
+}
+
+function HomeworkMaterialPickerModal({
+  homework,
+  courseColor,
+  onOpenMaterial,
+  onClose
+}: {
+  homework: HomeworkItem
+  courseColor: string
+  onOpenMaterial: (url: string, label: string) => void
+  onClose: () => void
+}) {
+  return (
+    <div style={{
+      position: 'fixed',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      backgroundColor: 'rgba(0, 0, 0, 0.62)',
+      backdropFilter: 'blur(4px)',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      zIndex: 10000,
+      padding: '16px'
+    }}>
+      <div style={{
+        background: 'var(--surface)',
+        borderRadius: '18px',
+        width: '100%',
+        maxWidth: '420px',
+        boxShadow: '0 20px 40px rgba(0,0,0,0.22)',
+        overflow: 'hidden'
+      }}>
+        <div style={{
+          padding: '16px 18px',
+          borderBottom: '1px solid var(--border)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: '12px'
+        }}>
+          <div>
+            <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 900, color: 'var(--text-primary)' }}>
+              View Homework Material
+            </h3>
+            <p style={{ margin: '2px 0 0', fontSize: '12px', color: 'var(--text-secondary)' }}>
+              {homework.title}
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            style={{ background: 'none', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', padding: '4px' }}
+          >
+            <X size={18} />
+          </button>
+        </div>
+        <div style={{ padding: '14px 18px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          {homework.fileUrls.map((url, idx) => (
+            <button
+              key={idx}
+              type="button"
+              onClick={() => {
+                onOpenMaterial(url, `Material ${idx + 1}`)
+                onClose()
+              }}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                gap: '10px',
+                padding: '10px 12px',
+                borderRadius: '10px',
+                background: 'var(--surface-2)',
+                border: '1px solid var(--border)',
+                color: 'var(--text-primary)',
+                fontSize: '13px',
+                fontWeight: 800,
+                cursor: 'pointer',
+                width: '100%',
+                textAlign: 'left'
+              }}
+            >
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+                <FileText size={15} style={{ color: courseColor }} />
+                Material {idx + 1}
+              </span>
+              <ExternalLink size={13} style={{ opacity: 0.7 }} />
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function HomeworkImagePreviewModal({
+  material,
+  onClose
+}: {
+  material: { url: string; label: string }
+  onClose: () => void
+}) {
+  return (
+    <div style={{
+      position: 'fixed',
+      inset: 0,
+      background: 'rgba(0, 0, 0, 0.92)',
+      zIndex: 10001,
+      display: 'flex',
+      flexDirection: 'column'
+    }}>
+      <div style={{
+        padding: '12px 16px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        gap: '12px',
+        borderBottom: '1px solid rgba(255,255,255,0.12)'
+      }}>
+        <h3 style={{ margin: 0, color: '#fff', fontSize: '15px', fontWeight: 900 }}>{material.label}</h3>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <a
+            href={material.url}
+            download
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '8px 12px',
+              borderRadius: '999px',
+              background: '#10b981',
+              color: '#fff',
+              fontSize: '12px',
+              fontWeight: 900,
+              textDecoration: 'none'
+            }}
+          >
+            <Download size={14} /> Download
+          </a>
+          <button
+            type="button"
+            onClick={onClose}
+            style={{ border: '1px solid rgba(255,255,255,0.24)', background: 'rgba(255,255,255,0.08)', color: '#fff', borderRadius: '999px', padding: '8px 10px', cursor: 'pointer' }}
+          >
+            <X size={16} />
+          </button>
+        </div>
+      </div>
+      <div style={{ flex: 1, minHeight: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px' }}>
+        <img
+          src={material.url}
+          alt={material.label}
+          style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }}
+        />
+      </div>
     </div>
   )
 }
