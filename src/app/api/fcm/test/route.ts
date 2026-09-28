@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { getSession } from '@/lib/auth'
 import { firebaseAdmin } from '@/lib/firebase-admin'
+import { isStaleFcmTokenError } from '@/lib/fcm'
 
 // POST /api/fcm/test — Test native FCM notification delivery (Manager/Admin only)
 export async function POST(request: NextRequest) {
@@ -117,10 +118,7 @@ export async function POST(request: NextRequest) {
         })
       } catch (err: any) {
         console.error(`[FCM Test] Send failed for device ${device.id}:`, err)
-        if (
-          err.code === 'messaging/invalid-registration-token' ||
-          err.code === 'messaging/registration-token-not-registered'
-        ) {
+        if (isStaleFcmTokenError(err)) {
           staleIds.push(device.id)
         }
         results.push({

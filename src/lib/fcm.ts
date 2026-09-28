@@ -15,6 +15,26 @@ interface FcmPayload {
   channelId?: string
 }
 
+export function isStaleFcmTokenError(err: any) {
+  const code = err?.code || err?.errorInfo?.code
+  const message = err?.message || err?.errorInfo?.message || ''
+
+  return (
+    code === 'messaging/invalid-registration-token' ||
+    code === 'messaging/registration-token-not-registered' ||
+    code === 'messaging/mismatched-credential' ||
+    /SenderId mismatch/i.test(message)
+  )
+}
+
+async function deleteStaleFcmTokens(ids: string[]) {
+  const uniqueIds = Array.from(new Set(ids))
+  if (uniqueIds.length === 0) return
+
+  await prisma.fcmDeviceToken.deleteMany({ where: { id: { in: uniqueIds } } })
+  console.log(`[FCM] Cleaned up ${uniqueIds.length} stale device token(s).`)
+}
+
 /**
  * Sends an FCM push notification to a list of user IDs.
  * Silently removes expired/invalid tokens from DB.
@@ -82,10 +102,7 @@ export async function sendFcmToUsers(userIds: string[], payload: FcmPayload) {
         })
       } catch (err: any) {
         // Token is invalid/expired — mark for cleanup
-        if (
-          err.code === 'messaging/invalid-registration-token' ||
-          err.code === 'messaging/registration-token-not-registered'
-        ) {
+        if (isStaleFcmTokenError(err)) {
           staleIds.push(t.id)
         } else {
           console.error('FCM send error:', err.message || err.code)
@@ -95,9 +112,7 @@ export async function sendFcmToUsers(userIds: string[], payload: FcmPayload) {
   )
 
   // Clean up dead tokens
-  if (staleIds.length > 0) {
-    await prisma.fcmDeviceToken.deleteMany({ where: { id: { in: staleIds } } })
-  }
+  await deleteStaleFcmTokens(staleIds)
 }
 
 /**
@@ -185,13 +200,14 @@ export async function syncUserTopicSubscriptions(userId: string) {
       }),
       prisma.fcmDeviceToken.findMany({
         where: { userId },
-        select: { token: true },
+        select: { id: true, token: true },
       }),
     ])
 
     if (!user || tokens.length === 0) return
 
     const deviceTokens = tokens.map((t) => t.token)
+    const staleIds: string[] = []
     
     // 1. Subscribe to each enrolled course topic
     for (const enrollment of enrollments) {
@@ -199,6 +215,12 @@ export async function syncUserTopicSubscriptions(userId: string) {
       const response = await firebaseAdmin.messaging().subscribeToTopic(deviceTokens, topicName)
       console.log(`[FCM-Topics] Subscribed user ${userId} tokens to topic: ${topicName}. Success count: ${response.successCount}, Failure count: ${response.failureCount}`)
       if (response.failureCount > 0) {
+        response.errors.forEach((failure) => {
+          if (isStaleFcmTokenError(failure.error)) {
+            const failedToken = tokens[failure.index]
+            if (failedToken) staleIds.push(failedToken.id)
+          }
+        })
         console.warn(`[FCM-Topics] Subscription failures for ${topicName}:`, JSON.stringify(response.errors))
       }
     }
@@ -209,9 +231,17 @@ export async function syncUserTopicSubscriptions(userId: string) {
       const response = await firebaseAdmin.messaging().subscribeToTopic(deviceTokens, globalTopic)
       console.log(`[FCM-Topics] Subscribed student ${userId} tokens to topic: ${globalTopic}. Success count: ${response.successCount}, Failure count: ${response.failureCount}`)
       if (response.failureCount > 0) {
+        response.errors.forEach((failure) => {
+          if (isStaleFcmTokenError(failure.error)) {
+            const failedToken = tokens[failure.index]
+            if (failedToken) staleIds.push(failedToken.id)
+          }
+        })
         console.warn(`[FCM-Topics] Global subscription failures:`, JSON.stringify(response.errors))
       }
     }
+
+    await deleteStaleFcmTokens(staleIds)
   } catch (err) {
     console.error('[FCM-Topics] Error syncing user topic subscriptions:', err)
   }
@@ -229,7 +259,7 @@ export async function syncAllExistingTopics() {
   try {
     console.log('[FCM-Topics] Starting migration of all existing active tokens to topics...')
     const tokens = await prisma.fcmDeviceToken.findMany({
-      select: { userId: true, token: true }
+      select: { id: true, userId: true, token: true }
     })
 
     if (tokens.length === 0) {
@@ -238,12 +268,12 @@ export async function syncAllExistingTopics() {
     }
 
     // Group tokens by userId
-    const userTokensMap: Record<string, string[]> = {}
+    const userTokensMap: Record<string, typeof tokens> = {}
     for (const t of tokens) {
       if (!userTokensMap[t.userId]) {
         userTokensMap[t.userId] = []
       }
-      userTokensMap[t.userId].push(t.token)
+      userTokensMap[t.userId].push(t)
     }
 
     const userIds = Object.keys(userTokensMap)
@@ -251,6 +281,8 @@ export async function syncAllExistingTopics() {
 
     for (const userId of userIds) {
       const userTokens = userTokensMap[userId]
+      const deviceTokens = userTokens.map((t) => t.token)
+      const staleIds: string[] = []
 
       const [user, enrollments] = await Promise.all([
         prisma.user.findUnique({
@@ -267,13 +299,27 @@ export async function syncAllExistingTopics() {
 
       // 1. Subscribe to each enrolled course topic
       for (const enrollment of enrollments) {
-        await firebaseAdmin.messaging().subscribeToTopic(userTokens, `course_${enrollment.courseId}`)
+        const response = await firebaseAdmin.messaging().subscribeToTopic(deviceTokens, `course_${enrollment.courseId}`)
+        response.errors.forEach((failure) => {
+          if (isStaleFcmTokenError(failure.error)) {
+            const failedToken = userTokens[failure.index]
+            if (failedToken) staleIds.push(failedToken.id)
+          }
+        })
       }
 
       // 2. Subscribe to student announcements if role is STUDENT
       if (user.role === 'STUDENT') {
-        await firebaseAdmin.messaging().subscribeToTopic(userTokens, 'student_announcements')
+        const response = await firebaseAdmin.messaging().subscribeToTopic(deviceTokens, 'student_announcements')
+        response.errors.forEach((failure) => {
+          if (isStaleFcmTokenError(failure.error)) {
+            const failedToken = userTokens[failure.index]
+            if (failedToken) staleIds.push(failedToken.id)
+          }
+        })
       }
+
+      await deleteStaleFcmTokens(staleIds)
     }
     console.log('[FCM-Topics] Migration completed successfully!')
   } catch (err) {
