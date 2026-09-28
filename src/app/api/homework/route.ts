@@ -3,6 +3,7 @@ import { prisma } from '@/lib/db'
 import { getSession, isAdminOrManager, getAccessibleCourseIds } from '@/lib/auth'
 import { logActivity, ACTION, MODULE } from '@/lib/activity-log'
 import { ensureHomeworkTables } from '@/lib/homework-schema-sync'
+import { sendHomeworkAssignedNotification } from '@/lib/system-notifications'
 
 export async function GET(request: NextRequest) {
   try {
@@ -135,6 +136,18 @@ export async function POST(request: NextRequest) {
         targetId: homework.id,
       })
     } catch (_) {}
+
+    // Send notifications to enrolled students
+    try {
+      await sendHomeworkAssignedNotification(
+        homework.courseId,
+        homework.title,
+        homework.dueAt,
+        homework.id
+      )
+    } catch (notiErr) {
+      console.error('[Homework] Failed to dispatch assigned notification:', notiErr)
+    }
 
     return NextResponse.json(homework, { status: 201 })
   } catch (error: any) {

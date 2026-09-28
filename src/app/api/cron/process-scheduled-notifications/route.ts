@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { sendFcmToUsers } from '@/lib/fcm'
 import { sendPushToUsers } from '@/lib/push'
+import { processHomeworkDueReminders } from '@/lib/system-notifications'
 
 export const dynamic = 'force-dynamic'
 
@@ -94,6 +95,10 @@ export async function GET(request: NextRequest) {
           console.error(`[cron-notifications] Error sending welcome notification ${noti.id}:`, err)
         }
       })
+    )
+
+    await processHomeworkDueReminders().catch((err) =>
+      console.error('[cron-notifications] Error processing homework due reminders:', err)
     )
 
     return NextResponse.json({

@@ -1140,3 +1140,262 @@ export async function sendDailyScheduleNotification() {
   }
 }
 
+/**
+ * Sends a notification to enrolled users when new homework is assigned.
+ */
+export async function sendHomeworkAssignedNotification(
+  courseId: string,
+  title: string,
+  dueAt: Date,
+  homeworkId?: string
+) {
+  try {
+    const [course, enrollments] = await Promise.all([
+      prisma.course.findUnique({
+        where: { id: courseId },
+        select: { name: true },
+      }),
+      prisma.enrollment.findMany({
+        where: { courseId },
+        select: { userId: true },
+      }),
+    ])
+
+    const recipientIds = Array.from(new Set(enrollments.map((e) => e.userId)))
+    if (recipientIds.length === 0) return
+
+    const formattedDue = new Intl.DateTimeFormat('en-IN', {
+      timeZone: 'Asia/Kolkata',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true,
+    }).format(new Date(dueAt))
+
+    const notiTitle = 'New Homework Assigned'
+    const notiBody = `New homework assigned: "${title}". Due by ${formattedDue}. Complete it on time!`
+    const ctaLink = `/courses/${courseId}?tab=curriculum`
+
+    await prisma.notification.createMany({
+      data: recipientIds.map((userId) => ({
+        userId,
+        title: notiTitle,
+        content: notiBody,
+        type: 'INFO',
+      })),
+    })
+
+    recipientIds.forEach((userId) => sseEmitter.emit(`user:${userId}:notify`))
+
+    const pushPayload = {
+      title: notiTitle,
+      body: notiBody,
+      url: ctaLink,
+      tag: `homework_assigned_${homeworkId || courseId}_${Date.now()}`,
+      ctaText: 'View Homework',
+      ctaLink,
+      importance: 'high' as const,
+      sound: 'default' as const,
+      channelId: 'class_updates',
+    }
+
+    await Promise.allSettled([
+      sendFcmToUsers(recipientIds, pushPayload),
+      sendPushToUsers(recipientIds, pushPayload),
+    ])
+
+    await logNotification({
+      category: 'HOMEWORK_ASSIGNED',
+      title: notiTitle,
+      body: notiBody,
+      courseId,
+      courseName: course?.name,
+      recipientCount: recipientIds.length,
+      metadata: { homeworkId, courseId },
+    })
+  } catch (err) {
+    console.error('[Homework-Notification] Error sending homework assigned notification:', err)
+  }
+}
+
+/**
+ * Sends a notification to enrolled users when homework is updated.
+ */
+export async function sendHomeworkUpdatedNotification(
+  courseId: string,
+  title: string,
+  dueAt: Date,
+  homeworkId?: string
+) {
+  try {
+    const [course, enrollments] = await Promise.all([
+      prisma.course.findUnique({
+        where: { id: courseId },
+        select: { name: true },
+      }),
+      prisma.enrollment.findMany({
+        where: { courseId },
+        select: { userId: true },
+      }),
+    ])
+
+    const recipientIds = Array.from(new Set(enrollments.map((e) => e.userId)))
+    if (recipientIds.length === 0) return
+
+    const formattedDue = new Intl.DateTimeFormat('en-IN', {
+      timeZone: 'Asia/Kolkata',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true,
+    }).format(new Date(dueAt))
+
+    const notiTitle = 'Homework Updated'
+    const notiBody = `Homework updated: "${title}". Due by ${formattedDue}. Please check the latest details.`
+    const ctaLink = `/courses/${courseId}?tab=curriculum`
+
+    await prisma.notification.createMany({
+      data: recipientIds.map((userId) => ({
+        userId,
+        title: notiTitle,
+        content: notiBody,
+        type: 'INFO',
+      })),
+    })
+
+    recipientIds.forEach((userId) => sseEmitter.emit(`user:${userId}:notify`))
+
+    const pushPayload = {
+      title: notiTitle,
+      body: notiBody,
+      url: ctaLink,
+      tag: `homework_updated_${homeworkId || courseId}_${Date.now()}`,
+      ctaText: 'View Homework',
+      ctaLink,
+      importance: 'high' as const,
+      sound: 'default' as const,
+      channelId: 'class_updates',
+    }
+
+    await Promise.allSettled([
+      sendFcmToUsers(recipientIds, pushPayload),
+      sendPushToUsers(recipientIds, pushPayload),
+    ])
+
+    await logNotification({
+      category: 'HOMEWORK_UPDATED',
+      title: notiTitle,
+      body: notiBody,
+      courseId,
+      courseName: course?.name,
+      recipientCount: recipientIds.length,
+      metadata: { homeworkId, courseId },
+    })
+  } catch (err) {
+    console.error('[Homework-Notification] Error sending homework updated notification:', err)
+  }
+}
+
+/**
+ * Checks for homework due within 2 hours and sends reminder to enrolled students who have not yet submitted.
+ */
+export async function processHomeworkDueReminders() {
+  try {
+    const now = new Date()
+    const twoHoursFromNow = new Date(now.getTime() + 2 * 60 * 60 * 1000)
+
+    const upcomingHomework = await prisma.homework.findMany({
+      where: {
+        isOpen: true,
+        dueAt: {
+          gte: now,
+          lte: twoHoursFromNow,
+        },
+      },
+      include: {
+        course: { select: { id: true, name: true } },
+        submissions: { select: { studentId: true } },
+      },
+    })
+
+    if (upcomingHomework.length === 0) return
+
+    for (const hw of upcomingHomework) {
+      // Check if 2h reminder was already sent for this homework
+      const alreadySent = await prisma.notificationLog.findFirst({
+        where: {
+          category: 'HOMEWORK_DUE_REMINDER',
+          metadata: { contains: hw.id },
+        },
+      })
+
+      if (alreadySent) continue
+
+      // Only enrolled users of this course
+      const enrollments = await prisma.enrollment.findMany({
+        where: { courseId: hw.courseId },
+        select: { userId: true },
+      })
+
+      // Exclude students who already submitted
+      const submittedStudentIds = new Set(hw.submissions.map((s) => s.studentId))
+      const pendingRecipientIds = Array.from(
+        new Set(
+          enrollments
+            .map((e) => e.userId)
+            .filter((userId) => !submittedStudentIds.has(userId))
+        )
+      )
+
+      const reminderTitle = 'Homework Due Soon'
+      const reminderBody = `You still haven't completed your homework "${hw.title}". Do it fast!`
+      const ctaLink = `/courses/${hw.courseId}?tab=curriculum`
+
+      if (pendingRecipientIds.length > 0) {
+        await prisma.notification.createMany({
+          data: pendingRecipientIds.map((userId) => ({
+            userId,
+            title: reminderTitle,
+            content: reminderBody,
+            type: 'INFO',
+          })),
+        })
+
+        pendingRecipientIds.forEach((userId) => sseEmitter.emit(`user:${userId}:notify`))
+
+        const pushPayload = {
+          title: reminderTitle,
+          body: reminderBody,
+          url: ctaLink,
+          tag: `homework_due_2h_${hw.id}`,
+          ctaText: 'Do Homework Now',
+          ctaLink,
+          importance: 'high' as const,
+          sound: 'default' as const,
+          channelId: 'class_updates',
+        }
+
+        await Promise.allSettled([
+          sendFcmToUsers(pendingRecipientIds, pushPayload),
+          sendPushToUsers(pendingRecipientIds, pushPayload),
+        ])
+      }
+
+      await logNotification({
+        category: 'HOMEWORK_DUE_REMINDER',
+        title: reminderTitle,
+        body: reminderBody,
+        courseId: hw.courseId,
+        courseName: hw.course?.name,
+        recipientCount: pendingRecipientIds.length,
+        metadata: { homeworkId: hw.id },
+      })
+    }
+  } catch (err) {
+    console.error('[Homework-Notification] Error processing homework due reminders:', err)
+  }
+}
+
+

@@ -336,12 +336,6 @@ export default function LivePage() {
             }}>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#ef4444" strokeWidth="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
             </div>
-          ) : isRescheduled ? (
-            <div style={{
-              width: '38px', height: '38px', borderRadius: '50%', flexShrink: 0, background: 'var(--surface-2)', boxShadow: '3px 3px 6px var(--neu-dark), -3px -3px 6px var(--neu-light)', display: 'flex', alignItems: 'center', justifyContent: 'center',
-            }}>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#d97706" strokeWidth="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.51"/></svg>
-            </div>
           ) : (session.isRecordedOnly || (session as any).enrollmentType === 'DEMO') && !(isManager || (!!session.instructorId && session.instructorId === userId)) ? (
             <button
               onClick={() => {
@@ -367,7 +361,7 @@ export default function LivePage() {
               Unlock to Join
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
             </button>
-          ) : session.streamProvider === 'AGORA' && (isLive || (!isCompleted && !isCancelled && !isRescheduled)) ? (
+          ) : session.streamProvider === 'AGORA' && (isLive || (!isCompleted && !isCancelled)) ? (
             (() => {
               const canHost = isManager || (!!session.instructorId && session.instructorId === userId)
               const streamLive = session.streamStatus === 'LIVE'
@@ -403,17 +397,23 @@ export default function LivePage() {
                 </Link>
               )
             })()
-          ) : (isLive || (!isCompleted && !isCancelled && !isRescheduled)) && session.meetLink ? (
+          ) : (isLive || (!isCompleted && !isCancelled)) && session.meetLink ? (
             <a href={normalizeMeetLink(session.meetLink) ?? '#'} target="_blank" rel="noopener noreferrer" style={{
               display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '10px 20px', borderRadius: '50px', flexShrink: 0,
-              background: isLive ? 'var(--success)' : 'var(--primary)', color: 'white', fontWeight: '600', fontSize: '14px', textDecoration: 'none',
-              boxShadow: isLive
+              background: (isLive || isRescheduled) ? 'var(--success)' : 'var(--primary)', color: 'white', fontWeight: '600', fontSize: '14px', textDecoration: 'none',
+              boxShadow: (isLive || isRescheduled)
                 ? '4px 4px 10px rgba(22,163,74,0.4), -2px -2px 6px var(--neu-glow)'
                 : '4px 4px 10px rgba(54,54,232,0.3), -2px -2px 6px var(--neu-glow)',
             }}>
-              {isLive ? 'Join Now' : 'Join'}
+              {isLive || isRescheduled ? 'Join Now' : 'Join'}
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
             </a>
+          ) : isRescheduled ? (
+            <div style={{
+              width: '38px', height: '38px', borderRadius: '50%', flexShrink: 0, background: 'var(--surface-2)', boxShadow: '3px 3px 6px var(--neu-dark), -3px -3px 6px var(--neu-light)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+            }}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#d97706" strokeWidth="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.51"/></svg>
+            </div>
           ) : session.isRecordedOnly ? (
             <button
               onClick={() => {

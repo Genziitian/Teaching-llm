@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import { processSyncQueue, cleanupOldSyncQueue } from '@/lib/sync-queue'
 import { processProgressQueue, cleanupOldProgressQueue } from '@/lib/progress-processor'
 import { processScheduledCampaigns } from '@/lib/campaign-processor'
-import { processScheduledClassStartAlerts, sendDailyScheduleNotification, processPendingLectureAlerts } from '@/lib/system-notifications'
+import { processScheduledClassStartAlerts, sendDailyScheduleNotification, processPendingLectureAlerts, processHomeworkDueReminders } from '@/lib/system-notifications'
 import { prisma } from '@/lib/db'
 import { syncAllExistingTopics } from '@/lib/fcm'
 import { autoCleanupCommunityAttachments } from '@/lib/community-cleanup'
@@ -43,6 +43,11 @@ export async function POST(req: Request) {
     // Process batched lecture notifications (15m debounce)
     await processPendingLectureAlerts().catch((err) =>
       console.error('[Sync Queue Scheduler] Error processing pending lecture alerts:', err)
+    )
+
+    // Process homework due reminders (2 hours left)
+    await processHomeworkDueReminders().catch((err) =>
+      console.error('[Sync Queue Scheduler] Error processing homework due reminders:', err)
     )
 
     // One-time FCM topics migration for existing database device tokens

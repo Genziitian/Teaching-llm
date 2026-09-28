@@ -3,6 +3,7 @@ import { prisma } from '@/lib/db'
 import { getSession, isAdminOrManager, getAccessibleCourseIds } from '@/lib/auth'
 import { logActivity, ACTION, MODULE } from '@/lib/activity-log'
 import { ensureHomeworkTables } from '@/lib/homework-schema-sync'
+import { sendHomeworkUpdatedNotification } from '@/lib/system-notifications'
 
 export async function GET(
   request: NextRequest,
@@ -108,6 +109,28 @@ export async function PUT(
         targetId: id,
       })
     } catch (_) {}
+
+    // Send notifications to enrolled students
+    try {
+      // If dueAt was updated, clear previous 2h reminder log so student gets reminder for new due date
+      if (updateData.dueAt) {
+        await prisma.notificationLog.deleteMany({
+          where: {
+            category: 'HOMEWORK_DUE_REMINDER',
+            metadata: { contains: id },
+          },
+        }).catch(() => {})
+      }
+
+      await sendHomeworkUpdatedNotification(
+        updated.courseId,
+        updated.title,
+        updated.dueAt,
+        updated.id
+      )
+    } catch (notiErr) {
+      console.error('[Homework] Failed to dispatch updated notification:', notiErr)
+    }
 
     return NextResponse.json(updated)
   } catch (error: any) {
