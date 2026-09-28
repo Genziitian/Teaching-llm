@@ -3,6 +3,7 @@ import { prisma } from '@/lib/db'
 import { getSession, isAdminOrManager, getAccessibleCourseIds } from '@/lib/auth'
 import { checkMagicBytes } from '@/lib/validation'
 import { createClient } from '@supabase/supabase-js'
+import { ensureHomeworkTables } from '@/lib/homework-schema-sync'
 import crypto from 'crypto'
 
 function getSupabaseAdmin() {
@@ -31,6 +32,8 @@ export async function POST(
     if (!session) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
+
+    await ensureHomeworkTables()
 
     const { id } = await params
     const homework = await prisma.homework.findUnique({

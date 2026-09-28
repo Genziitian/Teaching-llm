@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
 import {
   FileText,
   Upload,
@@ -867,16 +867,29 @@ function HomeworkFormModal({
   const isEditing = !!initialData
   const [title, setTitle] = useState(initialData?.title || '')
   const [description, setDescription] = useState(initialData?.description || '')
-  const [dueAt, setDueAt] = useState(() => {
+  const [days, setDays] = useState<number>(() => {
+    if (initialData?.dueAt) {
+      const diffMs = new Date(initialData.dueAt).getTime() - Date.now()
+      const d = Math.round(diffMs / (1000 * 60 * 60 * 24))
+      return Math.min(7, Math.max(1, d))
+    }
+    return 2 // default 2 days
+  })
+  const [dueTime, setDueTime] = useState<string>(() => {
     if (initialData?.dueAt) {
       const d = new Date(initialData.dueAt)
-      d.setMinutes(d.getMinutes() - d.getTimezoneOffset())
-      return d.toISOString().slice(0, 16)
+      return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
     }
-    const defaultDate = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000)
-    defaultDate.setMinutes(defaultDate.getMinutes() - defaultDate.getTimezoneOffset())
-    return defaultDate.toISOString().slice(0, 16)
+    return '23:59' // default 11:59 PM
   })
+
+  const computedDueAt = useMemo(() => {
+    const d = new Date()
+    d.setDate(d.getDate() + Number(days))
+    const [hh, mm] = (dueTime || '23:59').split(':').map(Number)
+    d.setHours(hh || 23, mm || 59, 0, 0)
+    return d
+  }, [days, dueTime])
 
   const [existingFileUrls, setExistingFileUrls] = useState<string[]>(initialData?.fileUrls || [])
   const [uploadingFiles, setUploadingFiles] = useState(false)
@@ -926,10 +939,6 @@ function HomeworkFormModal({
       setError('Please provide a homework title.')
       return
     }
-    if (!dueAt) {
-      setError('Please set a due date and time.')
-      return
-    }
 
     setLoading(true)
     setError(null)
@@ -946,7 +955,7 @@ function HomeworkFormModal({
           title: title.trim(),
           description: description.trim() || null,
           fileUrls: existingFileUrls,
-          dueAt: new Date(dueAt).toISOString()
+          dueAt: computedDueAt.toISOString()
         })
       })
 
@@ -1057,28 +1066,116 @@ function HomeworkFormModal({
             />
           </div>
 
-          {/* Due date & time */}
-          <div style={{ marginBottom: '16px' }}>
+          {/* Days and Time Selection */}
+          <div style={{ marginBottom: '18px' }}>
             <label style={{ display: 'block', fontSize: '13px', fontWeight: 700, marginBottom: '6px', color: 'var(--text-primary)' }}>
-              Due Date & Time *
+              Set Deadline (Days & Time) *
             </label>
-            <input
-              type="datetime-local"
-              required
-              value={dueAt}
-              onChange={e => setDueAt(e.target.value)}
-              style={{
-                width: '100%',
-                padding: '11px 14px',
-                borderRadius: '12px',
-                border: '1px solid var(--border)',
-                background: 'var(--surface-2)',
-                color: 'var(--text-primary)',
-                fontSize: '13.5px',
-                boxSizing: 'border-box'
-              }}
-            />
-            <span style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '4px', display: 'block' }}>
+
+            {/* Quick preset buttons */}
+            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '10px' }}>
+              {[1, 2, 3, 5, 7].map(d => (
+                <button
+                  key={d}
+                  type="button"
+                  onClick={() => setDays(d)}
+                  style={{
+                    padding: '6px 14px',
+                    borderRadius: '20px',
+                    border: days === d ? `1.5px solid ${courseColor}` : '1px solid var(--border)',
+                    background: days === d ? courseColor : 'var(--surface-2)',
+                    color: days === d ? '#fff' : 'var(--text-primary)',
+                    fontSize: '12px',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    transition: 'all 0.15s'
+                  }}
+                >
+                  {d} {d === 1 ? 'Day' : 'Days'}
+                </button>
+              ))}
+            </div>
+
+            {/* Manual Days input and Time selector */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+              <div>
+                <label style={{ display: 'block', fontSize: '11.5px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '4px' }}>
+                  Days (1 to max 7)
+                </label>
+                <input
+                  type="number"
+                  min={1}
+                  max={7}
+                  required
+                  value={days}
+                  onChange={e => {
+                    const val = parseInt(e.target.value, 10)
+                    if (!isNaN(val)) {
+                      setDays(Math.min(7, Math.max(1, val)))
+                    }
+                  }}
+                  style={{
+                    width: '100%',
+                    padding: '10px 12px',
+                    borderRadius: '12px',
+                    border: '1px solid var(--border)',
+                    background: 'var(--surface-2)',
+                    color: 'var(--text-primary)',
+                    fontSize: '13.5px',
+                    fontWeight: 700,
+                    boxSizing: 'border-box'
+                  }}
+                />
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '11.5px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '4px' }}>
+                  Submission Time
+                </label>
+                <input
+                  type="time"
+                  required
+                  value={dueTime}
+                  onChange={e => setDueTime(e.target.value)}
+                  style={{
+                    width: '100%',
+                    padding: '10px 12px',
+                    borderRadius: '12px',
+                    border: '1px solid var(--border)',
+                    background: 'var(--surface-2)',
+                    color: 'var(--text-primary)',
+                    fontSize: '13.5px',
+                    fontWeight: 600,
+                    boxSizing: 'border-box'
+                  }}
+                />
+              </div>
+            </div>
+
+            {/* Computed deadline display */}
+            <div style={{
+              marginTop: '10px',
+              padding: '10px 14px',
+              borderRadius: '12px',
+              background: 'var(--surface-2)',
+              border: '1px solid var(--border)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              flexWrap: 'wrap',
+              gap: '6px'
+            }}>
+              <span style={{ fontSize: '12.5px', color: 'var(--text-secondary)' }}>
+                Due on: <strong style={{ color: 'var(--text-primary)' }}>
+                  {computedDueAt.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })} at {computedDueAt.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}
+                </strong>
+              </span>
+              <span style={{ fontSize: '11px', color: courseColor, fontWeight: 800 }}>
+                ({days} {days === 1 ? 'day' : 'days'} from now)
+              </span>
+            </div>
+
+            <span style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '6px', display: 'block' }}>
               Submissions and homework are auto-deleted 7 days after this deadline.
             </span>
           </div>

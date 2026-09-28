@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { getSession, isAdminOrManager, getAccessibleCourseIds } from '@/lib/auth'
 import { logActivity, ACTION, MODULE } from '@/lib/activity-log'
+import { ensureHomeworkTables } from '@/lib/homework-schema-sync'
 
 export async function GET(
   request: NextRequest,
@@ -12,6 +13,8 @@ export async function GET(
     if (!session) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
+
+    await ensureHomeworkTables()
 
     const { id } = await params
     const homework = await prisma.homework.findUnique({

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { getSession, isAdminOrManager, getAccessibleCourseIds } from '@/lib/auth'
 import { logActivity, ACTION, MODULE } from '@/lib/activity-log'
+import { ensureHomeworkTables } from '@/lib/homework-schema-sync'
 
 export async function GET(request: NextRequest) {
   try {
@@ -9,6 +10,8 @@ export async function GET(request: NextRequest) {
     if (!session) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
+
+    await ensureHomeworkTables()
 
     const { searchParams } = new URL(request.url)
     const courseId = searchParams.get('courseId')
@@ -89,6 +92,8 @@ export async function POST(request: NextRequest) {
     if (!session || !isAdminOrManager(session.role)) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
+
+    await ensureHomeworkTables()
 
     const body = await request.json()
     const { courseId, title, description, fileUrls, dueAt } = body
