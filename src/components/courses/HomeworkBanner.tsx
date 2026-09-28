@@ -544,14 +544,13 @@ export default function HomeworkBanner({ courseId, isManager, courseColor = '#63
         }}>
           <button
             type="button"
-            onClick={() => openHomeworkDetail(previewHomework.id)}
             style={{
               flex: '1 1 280px',
               minWidth: 0,
               background: 'transparent',
               border: 'none',
               padding: 0,
-              cursor: 'pointer',
+              cursor: 'default',
               display: 'flex',
               alignItems: 'center',
               gap: '12px',
@@ -560,7 +559,7 @@ export default function HomeworkBanner({ courseId, isManager, courseColor = '#63
             }}
           >
             <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', color: '#d97706', fontSize: '12px', fontWeight: 900, textTransform: 'uppercase', flexShrink: 0 }}>
-              <Clock size={14} /> Open Homework #{getSerial(previewHomework.id)}
+              <Clock size={14} /> View Homework #{getSerial(previewHomework.id)}
             </span>
             <span style={{ color: 'var(--text-primary)', fontSize: '15px', fontWeight: 900, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 'min(420px, 100%)' }}>
               {previewHomework.title}
