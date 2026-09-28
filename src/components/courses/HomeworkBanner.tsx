@@ -18,7 +18,9 @@ import {
   Download,
   FileCheck,
   ChevronDown,
-  ChevronUp
+  ChevronUp,
+  Lock,
+  Unlock
 } from 'lucide-react'
 
 interface HomeworkItem {
@@ -38,6 +40,7 @@ interface HomeworkItem {
     submittedAt: string
   } | null
   isPastDue?: boolean
+  isOpen?: boolean
 }
 
 interface StudentSubmissionRecord {
@@ -105,6 +108,10 @@ export default function HomeworkBanner({ courseId, isManager, courseColor = '#63
   const [editingHomework, setEditingHomework] = useState<HomeworkItem | null>(null)
   const [submittingHomework, setSubmittingHomework] = useState<HomeworkItem | null>(null)
   const [viewingSubmissionsHw, setViewingSubmissionsHw] = useState<HomeworkItem | null>(null)
+  const [togglingId, setTogglingId] = useState<string | null>(null)
+  const [selectedHomeworkId, setSelectedHomeworkId] = useState<string | null>(null)
+  const [showAllHomework, setShowAllHomework] = useState(false)
+  const [showMaterialsMap, setShowMaterialsMap] = useState<Record<string, boolean>>({})
 
   const fetchHomework = useCallback(async () => {
     try {
@@ -138,10 +145,344 @@ export default function HomeworkBanner({ courseId, isManager, courseColor = '#63
     }
   }
 
+  const handleToggleSubmission = async (hw: HomeworkItem) => {
+    const nextIsOpen = !(hw.isOpen ?? true)
+    setTogglingId(hw.id)
+    try {
+      const res = await fetch(`/api/homework/${hw.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ isOpen: nextIsOpen })
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        throw new Error(data.error || 'Failed to update submission control')
+      }
+      setHomeworkList(prev => prev.map(item => item.id === hw.id ? { ...item, isOpen: nextIsOpen } : item))
+    } catch (err: any) {
+      alert(err.message || 'Error updating submission control')
+    } finally {
+      setTogglingId(null)
+    }
+  }
+
   if (loading) return null
 
   // If no homework and not a manager, render nothing
   if (homeworkList.length === 0 && !isManager) return null
+
+  const sortedHomework = [...homeworkList].sort((a, b) => {
+    const createdDiff = new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    if (createdDiff !== 0) return createdDiff
+    return new Date(a.dueAt).getTime() - new Date(b.dueAt).getTime()
+  })
+  const activeHomework = sortedHomework.filter(hw => (hw.isOpen ?? true) && !hw.isPastDue)
+  const previewHomework = activeHomework[0] || sortedHomework[0]
+  const selectedHomework = selectedHomeworkId ? sortedHomework.find(hw => hw.id === selectedHomeworkId) || null : null
+  const getSerial = (id: string) => Math.max(1, sortedHomework.findIndex(hw => hw.id === id) + 1)
+
+  const openHomeworkDetail = (id: string) => {
+    setSelectedHomeworkId(id)
+    setShowAllHomework(false)
+  }
+
+  const renderHomeworkDetail = (hw: HomeworkItem) => {
+    const serial = getSerial(hw.id)
+    const isSubmitted = !!hw.isSubmitted
+    const isPastDue = hw.isPastDue
+    const isOpen = hw.isOpen ?? true
+    const canSubmit = isOpen
+    const isExpanded = !!expandedDesc[hw.id]
+    const hasMaterials = hw.fileUrls && hw.fileUrls.length > 0
+    const showMaterials = !!showMaterialsMap[hw.id]
+
+    return (
+      <div
+        key={hw.id}
+        style={{
+          background: 'var(--surface)',
+          borderRadius: '12px',
+          border: `1px solid ${isSubmitted ? 'rgba(34, 197, 94, 0.4)' : isPastDue ? 'rgba(239, 68, 68, 0.4)' : 'rgba(245, 158, 11, 0.36)'}`,
+          boxShadow: '0 8px 24px rgba(0,0,0,0.04)',
+          overflow: 'hidden',
+          marginBottom: '14px',
+          position: 'relative'
+        }}
+      >
+        <div style={{
+          height: '3px',
+          background: isSubmitted
+            ? 'linear-gradient(90deg, #10b981, #059669)'
+            : isPastDue
+            ? 'linear-gradient(90deg, #ef4444, #dc2626)'
+            : 'linear-gradient(90deg, #f59e0b, #d97706)'
+        }} />
+
+        <div style={{ padding: '16px 20px' }}>
+          <div style={{
+            display: 'flex',
+            alignItems: 'flex-start',
+            justifyContent: 'space-between',
+            flexWrap: 'wrap',
+            gap: '10px'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+              <span style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '4px',
+                padding: '3px 10px',
+                borderRadius: '999px',
+                fontSize: '11px',
+                fontWeight: 800,
+                textTransform: 'uppercase',
+                letterSpacing: '0.04em',
+                background: isSubmitted
+                  ? 'rgba(34, 197, 94, 0.15)'
+                  : isPastDue
+                  ? 'rgba(239, 68, 68, 0.15)'
+                  : 'rgba(245, 158, 11, 0.15)',
+                color: isSubmitted ? '#10b981' : isPastDue ? '#ef4444' : '#d97706',
+                border: `1px solid ${isSubmitted ? 'rgba(34, 197, 94, 0.3)' : isPastDue ? 'rgba(239, 68, 68, 0.3)' : 'rgba(245, 158, 11, 0.3)'}`
+              }}>
+                #{serial} {isSubmitted ? <><CheckCircle2 size={13} /> Submitted</> : isPastDue ? <><AlertCircle size={13} /> Past Deadline</> : <><Clock size={13} /> Homework Pending</>}
+              </span>
+
+              {!isOpen && (
+                <span style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '4px',
+                  padding: '3px 10px',
+                  borderRadius: '999px',
+                  fontSize: '11px',
+                  fontWeight: 800,
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.04em',
+                  background: 'rgba(100, 116, 139, 0.14)',
+                  color: 'var(--text-secondary)',
+                  border: '1px solid rgba(100, 116, 139, 0.28)'
+                }}>
+                  <Lock size={12} /> Submissions Closed
+                </span>
+              )}
+
+              <span style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '5px',
+                fontSize: '12px',
+                color: 'var(--text-secondary)',
+                fontWeight: 600
+              }}>
+                <Calendar size={13} /> Due: {formatDate(hw.dueAt)}
+                <span style={{ fontWeight: 700, color: isPastDue ? '#ef4444' : '#d97706', marginLeft: '4px' }}>
+                  ({formatCountdown(hw.dueAt)})
+                </span>
+              </span>
+            </div>
+
+            {isManager && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+                <button
+                  onClick={() => handleToggleSubmission(hw)}
+                  disabled={togglingId === hw.id}
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '5px',
+                    padding: '5px 12px',
+                    borderRadius: '12px',
+                    border: `1px solid ${isOpen ? 'rgba(239, 68, 68, 0.24)' : 'rgba(34, 197, 94, 0.28)'}`,
+                    background: isOpen ? 'rgba(239, 68, 68, 0.08)' : 'rgba(34, 197, 94, 0.1)',
+                    color: isOpen ? '#ef4444' : '#10b981',
+                    fontSize: '12px',
+                    fontWeight: 800,
+                    cursor: togglingId === hw.id ? 'not-allowed' : 'pointer',
+                    opacity: togglingId === hw.id ? 0.7 : 1
+                  }}
+                  title={isOpen ? 'Close homework submissions' : 'Open homework submissions'}
+                >
+                  {isOpen ? <Lock size={14} /> : <Unlock size={14} />}
+                  {isOpen ? 'Close Submission' : 'Open Submission'}
+                </button>
+                <button
+                  onClick={() => setViewingSubmissionsHw(hw)}
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '5px',
+                    padding: '5px 12px',
+                    borderRadius: '12px',
+                    border: '1px solid var(--border)',
+                    background: 'var(--surface-2)',
+                    color: 'var(--text-primary)',
+                    fontSize: '12px',
+                    fontWeight: 700,
+                    cursor: 'pointer'
+                  }}
+                  title="View student submissions"
+                >
+                  <Users size={14} /> Submissions ({hw.submissionsCount || 0})
+                </button>
+                <button
+                  onClick={() => setEditingHomework(hw)}
+                  style={{ padding: '5px 8px', borderRadius: '10px', border: '1px solid var(--border)', background: 'var(--surface-2)', color: 'var(--text-primary)', cursor: 'pointer' }}
+                  title="Edit homework"
+                >
+                  <Edit2 size={13} />
+                </button>
+                <button
+                  onClick={() => handleDeleteHomework(hw.id, hw.title)}
+                  style={{ padding: '5px 8px', borderRadius: '10px', border: '1px solid rgba(239, 68, 68, 0.2)', background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', cursor: 'pointer' }}
+                  title="Delete homework"
+                >
+                  <Trash2 size={13} />
+                </button>
+              </div>
+            )}
+          </div>
+
+          <div style={{ marginTop: '10px' }}>
+            <h3 style={{ fontSize: '17px', fontWeight: 800, margin: '0 0 4px', color: 'var(--text-primary)' }}>
+              {hw.title}
+            </h3>
+            {hw.description && (
+              <div style={{ marginTop: '4px' }}>
+                <p style={{
+                  fontSize: '13.5px',
+                  color: 'var(--text-secondary)',
+                  lineHeight: 1.5,
+                  margin: 0,
+                  display: isExpanded ? 'block' : '-webkit-box',
+                  WebkitLineClamp: isExpanded ? 'unset' : 2,
+                  WebkitBoxOrient: 'vertical',
+                  overflow: 'hidden'
+                }}>
+                  {hw.description}
+                </p>
+                {hw.description.length > 120 && (
+                  <button
+                    onClick={() => setExpandedDesc(prev => ({ ...prev, [hw.id]: !prev[hw.id] }))}
+                    style={{ background: 'none', border: 'none', color: courseColor, fontSize: '12px', fontWeight: 700, cursor: 'pointer', padding: '2px 0', display: 'inline-flex', alignItems: 'center', gap: '2px' }}
+                  >
+                    {isExpanded ? <>Less <ChevronUp size={12} /></> : <>Read more <ChevronDown size={12} /></>}
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
+
+          {hasMaterials && (
+            <div style={{ marginTop: '12px' }}>
+              <button
+                type="button"
+                onClick={() => setShowMaterialsMap(prev => ({ ...prev, [hw.id]: !prev[hw.id] }))}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  padding: '7px 12px',
+                  borderRadius: '999px',
+                  border: '1px solid var(--border)',
+                  background: 'var(--surface-2)',
+                  color: 'var(--text-primary)',
+                  fontSize: '12px',
+                  fontWeight: 800,
+                  cursor: 'pointer'
+                }}
+              >
+                <FileText size={13} /> {showMaterials ? 'Hide Material' : `View Material (${hw.fileUrls.length})`}
+              </button>
+
+              {showMaterials && (
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '10px' }}>
+                  {hw.fileUrls.map((url, idx) => {
+                    const isImg = /\.(jpg|jpeg|png|webp)($|\?)/i.test(url)
+                    return (
+                      <a
+                        key={idx}
+                        href={url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '6px 12px', borderRadius: '10px', background: 'var(--surface-2)', border: '1px solid var(--border)', color: 'var(--text-primary)', fontSize: '12px', fontWeight: 600, textDecoration: 'none' }}
+                      >
+                        {isImg ? <Download size={13} style={{ color: courseColor }} /> : <FileText size={13} style={{ color: courseColor }} />}
+                        <span style={{ maxWidth: '160px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          {getFileName(url)}
+                        </span>
+                        <ExternalLink size={11} style={{ opacity: 0.6 }} />
+                      </a>
+                    )
+                  })}
+                </div>
+              )}
+            </div>
+          )}
+
+          <div style={{
+            marginTop: '16px',
+            paddingTop: '12px',
+            borderTop: '1px solid var(--border)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            flexWrap: 'wrap',
+            gap: '12px'
+          }}>
+            <div>
+              {isSubmitted && hw.mySubmission ? (
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <FileCheck size={16} style={{ color: '#10b981' }} />
+                  <span style={{ fontSize: '12.5px', color: 'var(--text-secondary)' }}>
+                    You submitted {hw.mySubmission.fileUrls.length} file(s) on {formatDate(hw.mySubmission.submittedAt)}
+                  </span>
+                </div>
+              ) : (
+                <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
+                  {canSubmit ? 'Submit before the deadline.' : 'Submission is currently closed by admin.'}
+                </span>
+              )}
+            </div>
+
+            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+              <button
+                onClick={() => setSubmittingHomework(hw)}
+                disabled={!canSubmit}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  padding: '8px 18px',
+                  borderRadius: '999px',
+                  border: isSubmitted ? '1px solid var(--border)' : 'none',
+                  background: !canSubmit ? 'var(--surface-2)' : isSubmitted ? 'var(--surface-2)' : courseColor,
+                  color: !canSubmit ? 'var(--text-muted)' : isSubmitted ? 'var(--text-primary)' : '#fff',
+                  boxShadow: isSubmitted || !canSubmit ? 'none' : '0 4px 12px rgba(0,0,0,0.15)',
+                  fontSize: '13px',
+                  fontWeight: 700,
+                  cursor: canSubmit ? 'pointer' : 'not-allowed',
+                  opacity: canSubmit ? 1 : 0.72
+                }}
+              >
+                <Upload size={14} />
+                {!canSubmit ? 'Submission Closed' : isSubmitted ? 'Update Submission' : 'Submit Homework'}
+              </button>
+
+              {isManager && (
+                <button
+                  onClick={() => setShowCreateModal(true)}
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', padding: '8px 14px', borderRadius: '999px', border: '1px solid var(--border)', background: 'var(--surface)', color: 'var(--text-primary)', fontSize: '12.5px', fontWeight: 600, cursor: 'pointer' }}
+                >
+                  <Plus size={14} /> Add Another
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div style={{ marginBottom: '20px', width: '100%' }}>
@@ -165,7 +506,7 @@ export default function HomeworkBanner({ courseId, isManager, courseColor = '#63
                 No active homework for this course
               </p>
               <p style={{ fontSize: '12px', margin: 0, color: 'var(--text-secondary)' }}>
-                Create assignments with photos, PDFs, and a 7-day auto cleanup period.
+                Create assignments with photos, PDFs, and submission tracking.
               </p>
             </div>
           </div>
@@ -190,325 +531,117 @@ export default function HomeworkBanner({ courseId, isManager, courseColor = '#63
         </div>
       )}
 
-      {/* Homework Banners */}
-      {homeworkList.map(hw => {
-        const isSubmitted = !!hw.isSubmitted
-        const isPastDue = hw.isPastDue
-        const isExpanded = !!expandedDesc[hw.id]
-
-        return (
-          <div
-            key={hw.id}
+      {previewHomework && !showAllHomework && !selectedHomework && (
+        <div style={{
+          border: '1px solid rgba(245, 158, 11, 0.28)',
+          borderLeft: '4px solid #f59e0b',
+          background: 'rgba(245, 158, 11, 0.07)',
+          borderRadius: '10px',
+          padding: '9px 12px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: '12px',
+          flexWrap: 'wrap'
+        }}>
+          <button
+            type="button"
+            onClick={() => openHomeworkDetail(previewHomework.id)}
             style={{
-              background: 'var(--surface)',
-              borderRadius: '18px',
-              border: `1.5px solid ${isSubmitted ? 'rgba(34, 197, 94, 0.4)' : isPastDue ? 'rgba(239, 68, 68, 0.4)' : 'rgba(245, 158, 11, 0.4)'}`,
-              boxShadow: '0 8px 24px rgba(0,0,0,0.04)',
-              overflow: 'hidden',
-              marginBottom: '14px',
-              position: 'relative'
+              flex: '1 1 280px',
+              minWidth: 0,
+              background: 'transparent',
+              border: 'none',
+              padding: 0,
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '10px',
+              textAlign: 'left'
             }}
           >
-            {/* Top color ribbon */}
-            <div style={{
-              height: '4px',
-              background: isSubmitted
-                ? 'linear-gradient(90deg, #10b981, #059669)'
-                : isPastDue
-                ? 'linear-gradient(90deg, #ef4444, #dc2626)'
-                : 'linear-gradient(90deg, #f59e0b, #d97706)'
-            }} />
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', color: '#d97706', fontSize: '12px', fontWeight: 900, textTransform: 'uppercase', flexShrink: 0 }}>
+              <Clock size={14} /> Open Homework #{getSerial(previewHomework.id)}
+            </span>
+            <span style={{ color: 'var(--text-primary)', fontSize: '13px', fontWeight: 800, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              {previewHomework.title}
+            </span>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', color: 'var(--text-secondary)', fontSize: '12px', fontWeight: 700, flexShrink: 0 }}>
+              <Calendar size={13} /> {formatDate(previewHomework.dueAt)}
+              <span style={{ color: '#d97706' }}>({formatCountdown(previewHomework.dueAt)})</span>
+            </span>
+          </button>
 
-            <div style={{ padding: '16px 20px' }}>
-              {/* Header row */}
-              <div style={{
-                display: 'flex',
-                alignItems: 'flex-start',
-                justifyContent: 'space-between',
-                flexWrap: 'wrap',
-                gap: '10px'
-              }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
-                  <span style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '4px',
-                    padding: '3px 10px',
-                    borderRadius: '20px',
-                    fontSize: '11px',
-                    fontWeight: 800,
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.04em',
-                    background: isSubmitted
-                      ? 'rgba(34, 197, 94, 0.15)'
-                      : isPastDue
-                      ? 'rgba(239, 68, 68, 0.15)'
-                      : 'rgba(245, 158, 11, 0.15)',
-                    color: isSubmitted ? '#10b981' : isPastDue ? '#ef4444' : '#d97706',
-                    border: `1px solid ${isSubmitted ? 'rgba(34, 197, 94, 0.3)' : isPastDue ? 'rgba(239, 68, 68, 0.3)' : 'rgba(245, 158, 11, 0.3)'}`
-                  }}>
-                    {isSubmitted ? (
-                      <>
-                        <CheckCircle2 size={13} /> Submitted
-                      </>
-                    ) : isPastDue ? (
-                      <>
-                        <AlertCircle size={13} /> Past Deadline
-                      </>
-                    ) : (
-                      <>
-                        <Clock size={13} /> Homework Pending
-                      </>
-                    )}
-                  </span>
-
-                  <span style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '5px',
-                    fontSize: '12px',
-                    color: 'var(--text-secondary)',
-                    fontWeight: 600
-                  }}>
-                    <Calendar size={13} /> Due: {formatDate(hw.dueAt)}
-                    <span style={{
-                      fontWeight: 700,
-                      color: isPastDue ? '#ef4444' : '#d97706',
-                      marginLeft: '4px'
-                    }}>
-                      ({formatCountdown(hw.dueAt)})
-                    </span>
-                  </span>
-                </div>
-
-                {/* Manager controls */}
-                {isManager && (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <button
-                      onClick={() => setViewingSubmissionsHw(hw)}
-                      style={{
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: '5px',
-                        padding: '5px 12px',
-                        borderRadius: '12px',
-                        border: '1px solid var(--border)',
-                        background: 'var(--surface-2)',
-                        color: 'var(--text-primary)',
-                        fontSize: '12px',
-                        fontWeight: 700,
-                        cursor: 'pointer'
-                      }}
-                      title="View student submissions"
-                    >
-                      <Users size={14} /> Submissions ({hw.submissionsCount || 0})
-                    </button>
-                    <button
-                      onClick={() => setEditingHomework(hw)}
-                      style={{
-                        padding: '5px 8px',
-                        borderRadius: '10px',
-                        border: '1px solid var(--border)',
-                        background: 'var(--surface-2)',
-                        color: 'var(--text-primary)',
-                        cursor: 'pointer'
-                      }}
-                      title="Edit homework"
-                    >
-                      <Edit2 size={13} />
-                    </button>
-                    <button
-                      onClick={() => handleDeleteHomework(hw.id, hw.title)}
-                      style={{
-                        padding: '5px 8px',
-                        borderRadius: '10px',
-                        border: '1px solid rgba(239, 68, 68, 0.2)',
-                        background: 'rgba(239, 68, 68, 0.1)',
-                        color: '#ef4444',
-                        cursor: 'pointer'
-                      }}
-                      title="Delete homework"
-                    >
-                      <Trash2 size={13} />
-                    </button>
-                  </div>
-                )}
-              </div>
-
-              {/* Title and description */}
-              <div style={{ marginTop: '10px' }}>
-                <h3 style={{
-                  fontSize: '17px',
-                  fontWeight: 800,
-                  margin: '0 0 4px',
-                  color: 'var(--text-primary)'
-                }}>
-                  {hw.title}
-                </h3>
-                {hw.description && (
-                  <div style={{ marginTop: '4px' }}>
-                    <p style={{
-                      fontSize: '13.5px',
-                      color: 'var(--text-secondary)',
-                      lineHeight: 1.5,
-                      margin: 0,
-                      display: isExpanded ? 'block' : '-webkit-box',
-                      WebkitLineClamp: isExpanded ? 'unset' : 2,
-                      WebkitBoxOrient: 'vertical',
-                      overflow: 'hidden'
-                    }}>
-                      {hw.description}
-                    </p>
-                    {hw.description.length > 120 && (
-                      <button
-                        onClick={() => setExpandedDesc(prev => ({ ...prev, [hw.id]: !prev[hw.id] }))}
-                        style={{
-                          background: 'none',
-                          border: 'none',
-                          color: courseColor,
-                          fontSize: '12px',
-                          fontWeight: 700,
-                          cursor: 'pointer',
-                          padding: '2px 0',
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: '2px'
-                        }}
-                      >
-                        {isExpanded ? <>Less <ChevronUp size={12} /></> : <>Read more <ChevronDown size={12} /></>}
-                      </button>
-                    )}
-                  </div>
-                )}
-              </div>
-
-              {/* Attached Files (Homework materials) */}
-              {hw.fileUrls && hw.fileUrls.length > 0 && (
-                <div style={{ marginTop: '12px' }}>
-                  <p style={{
-                    fontSize: '11px',
-                    fontWeight: 700,
-                    textTransform: 'uppercase',
-                    color: 'var(--text-muted)',
-                    margin: '0 0 6px',
-                    letterSpacing: '0.04em'
-                  }}>
-                    Attached Materials ({hw.fileUrls.length}):
-                  </p>
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-                    {hw.fileUrls.map((url, idx) => {
-                      const isImg = /\.(jpg|jpeg|png|webp)($|\?)/i.test(url)
-                      return (
-                        <a
-                          key={idx}
-                          href={url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          style={{
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            gap: '6px',
-                            padding: '6px 12px',
-                            borderRadius: '10px',
-                            background: 'var(--surface-2)',
-                            border: '1px solid var(--border)',
-                            color: 'var(--text-primary)',
-                            fontSize: '12px',
-                            fontWeight: 600,
-                            textDecoration: 'none',
-                            transition: 'all 0.15s'
-                          }}
-                        >
-                          {isImg ? <Download size={13} style={{ color: courseColor }} /> : <FileText size={13} style={{ color: courseColor }} />}
-                          <span style={{ maxWidth: '160px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                            {getFileName(url)}
-                          </span>
-                          <ExternalLink size={11} style={{ opacity: 0.6 }} />
-                        </a>
-                      )
-                    })}
-                  </div>
-                </div>
-              )}
-
-              {/* Student status & submit action */}
-              <div style={{
-                marginTop: '16px',
-                paddingTop: '12px',
-                borderTop: '1px solid var(--border)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                flexWrap: 'wrap',
-                gap: '12px'
-              }}>
-                <div>
-                  {isSubmitted && hw.mySubmission && (
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <FileCheck size={16} style={{ color: '#10b981' }} />
-                      <span style={{ fontSize: '12.5px', color: 'var(--text-secondary)' }}>
-                        You submitted {hw.mySubmission.fileUrls.length} file(s) on {formatDate(hw.mySubmission.submittedAt)}
-                      </span>
-                    </div>
-                  )}
-                  {!isSubmitted && (
-                    <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
-                      Auto-cleanup deletes submissions 7 days after the deadline.
-                    </span>
-                  )}
-                </div>
-
-                <div style={{ display: 'flex', gap: '8px' }}>
-                  <button
-                    onClick={() => setSubmittingHomework(hw)}
-                    style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '6px',
-                      padding: '8px 18px',
-                      borderRadius: '50px',
-                      border: 'none',
-                      background: isSubmitted ? 'var(--surface-2)' : courseColor,
-                      color: isSubmitted ? 'var(--text-primary)' : '#fff',
-                      boxShadow: isSubmitted ? 'none' : '0 4px 12px rgba(0,0,0,0.15)',
-                      fontSize: '13px',
-                      fontWeight: 700,
-                      cursor: 'pointer',
-                      borderWidth: isSubmitted ? '1px' : '0',
-                      borderStyle: 'solid',
-                      borderColor: 'var(--border)'
-                    }}
-                  >
-                    <Upload size={14} />
-                    {isSubmitted ? 'Update Submission' : 'Submit Homework'}
-                  </button>
-
-                  {isManager && (
-                    <button
-                      onClick={() => setShowCreateModal(true)}
-                      style={{
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: '4px',
-                        padding: '8px 14px',
-                        borderRadius: '50px',
-                        border: '1px solid var(--border)',
-                        background: 'var(--surface)',
-                        color: 'var(--text-primary)',
-                        fontSize: '12.5px',
-                        fontWeight: 600,
-                        cursor: 'pointer'
-                      }}
-                    >
-                      <Plus size={14} /> Add Another
-                    </button>
-                  )}
-                </div>
-              </div>
-            </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+            {sortedHomework.length > 1 && (
+              <button
+                type="button"
+                onClick={() => setShowAllHomework(true)}
+                style={{ border: '1px solid var(--border)', background: 'var(--surface)', color: 'var(--text-primary)', borderRadius: '999px', padding: '6px 12px', fontSize: '12px', fontWeight: 800, cursor: 'pointer' }}
+              >
+                View All Homework
+              </button>
+            )}
+            {isManager && (
+              <button
+                type="button"
+                onClick={() => setShowCreateModal(true)}
+                style={{ border: 'none', background: courseColor, color: '#fff', borderRadius: '999px', padding: '6px 12px', fontSize: '12px', fontWeight: 800, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+              >
+                <Plus size={13} /> New
+              </button>
+            )}
           </div>
-        )
-      })}
+        </div>
+      )}
+
+      {showAllHomework && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px', flexWrap: 'wrap' }}>
+            <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 900, color: 'var(--text-primary)' }}>All Homework</h3>
+            <button
+              type="button"
+              onClick={() => setShowAllHomework(false)}
+              style={{ border: '1px solid var(--border)', background: 'var(--surface-2)', color: 'var(--text-primary)', borderRadius: '999px', padding: '6px 12px', fontSize: '12px', fontWeight: 800, cursor: 'pointer' }}
+            >
+              Back
+            </button>
+          </div>
+          {sortedHomework.map(hw => {
+            const serial = getSerial(hw.id)
+            const isOpen = hw.isOpen ?? true
+            return (
+              <button
+                key={hw.id}
+                type="button"
+                onClick={() => openHomeworkDetail(hw.id)}
+                style={{ width: '100%', border: '1px solid var(--border)', background: 'var(--surface)', borderRadius: '10px', padding: '12px 14px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', flexWrap: 'wrap', textAlign: 'left' }}
+              >
+                <span style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0, flex: '1 1 260px' }}>
+                  <span style={{ color: isOpen ? '#d97706' : 'var(--text-muted)', fontSize: '12px', fontWeight: 900, flexShrink: 0 }}>#{serial}</span>
+                  <span style={{ color: 'var(--text-primary)', fontSize: '14px', fontWeight: 800, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{hw.title}</span>
+                </span>
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', color: 'var(--text-secondary)', fontSize: '12px', fontWeight: 700, flexShrink: 0 }}>
+                  {isOpen ? <Unlock size={13} /> : <Lock size={13} />} Due: {formatDate(hw.dueAt)}
+                </span>
+              </button>
+            )
+          })}
+        </div>
+      )}
+
+      {selectedHomework && (
+        <>
+          <button
+            type="button"
+            onClick={() => setSelectedHomeworkId(null)}
+            style={{ border: '1px solid var(--border)', background: 'var(--surface-2)', color: 'var(--text-primary)', borderRadius: '999px', padding: '6px 12px', fontSize: '12px', fontWeight: 800, cursor: 'pointer', marginBottom: '10px' }}
+          >
+            Back to Homework
+          </button>
+          {renderHomeworkDetail(selectedHomework)}
+        </>
+      )}
 
       {/* Modal: Student Homework Submit */}
       {submittingHomework && (
@@ -882,6 +1015,7 @@ function HomeworkFormModal({
     }
     return '23:59' // default 11:59 PM
   })
+  const [isOpen, setIsOpen] = useState<boolean>(initialData?.isOpen ?? true)
 
   const computedDueAt = useMemo(() => {
     const d = new Date()
@@ -955,7 +1089,8 @@ function HomeworkFormModal({
           title: title.trim(),
           description: description.trim() || null,
           fileUrls: existingFileUrls,
-          dueAt: computedDueAt.toISOString()
+          dueAt: computedDueAt.toISOString(),
+          isOpen
         })
       })
 
@@ -1176,8 +1311,51 @@ function HomeworkFormModal({
             </div>
 
             <span style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '6px', display: 'block' }}>
-              Submissions and homework are auto-deleted 7 days after this deadline.
+              Student upload files are cleaned after the retention period, while submission history remains visible.
             </span>
+          </div>
+
+          {/* Submission control */}
+          <div style={{
+            marginBottom: '16px',
+            padding: '12px 14px',
+            borderRadius: '14px',
+            border: '1px solid var(--border)',
+            background: 'var(--surface-2)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: '12px',
+            flexWrap: 'wrap'
+          }}>
+            <div style={{ minWidth: 0 }}>
+              <p style={{ margin: 0, fontSize: '13px', fontWeight: 800, color: 'var(--text-primary)' }}>
+                Submission Control
+              </p>
+              <p style={{ margin: '2px 0 0', fontSize: '11.5px', color: 'var(--text-secondary)' }}>
+                {isOpen ? 'Students can submit homework.' : 'Students can view homework but cannot submit.'}
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setIsOpen(prev => !prev)}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                padding: '8px 14px',
+                borderRadius: '999px',
+                border: `1px solid ${isOpen ? 'rgba(34, 197, 94, 0.28)' : 'rgba(239, 68, 68, 0.24)'}`,
+                background: isOpen ? 'rgba(34, 197, 94, 0.1)' : 'rgba(239, 68, 68, 0.08)',
+                color: isOpen ? '#10b981' : '#ef4444',
+                fontSize: '12px',
+                fontWeight: 800,
+                cursor: 'pointer'
+              }}
+            >
+              {isOpen ? <Unlock size={14} /> : <Lock size={14} />}
+              {isOpen ? 'Submission On' : 'Submission Off'}
+            </button>
           </div>
 
           {/* Description */}

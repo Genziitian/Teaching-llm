@@ -68,7 +68,7 @@ export async function PUT(
 
     const { id } = await params
     const body = await request.json()
-    const { title, description, fileUrls, dueAt } = body
+    const { title, description, fileUrls, dueAt, isOpen } = body
 
     const existing = await prisma.homework.findUnique({ where: { id } })
     if (!existing) {
@@ -76,6 +76,7 @@ export async function PUT(
     }
 
     const updateData: any = {}
+    if (isOpen !== undefined) updateData.isOpen = Boolean(isOpen)
     if (title !== undefined) updateData.title = title.trim()
     if (description !== undefined) updateData.description = description ? description.trim() : null
     if (fileUrls !== undefined && Array.isArray(fileUrls)) updateData.fileUrls = fileUrls

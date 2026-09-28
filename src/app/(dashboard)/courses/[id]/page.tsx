@@ -104,7 +104,7 @@ export default function CourseDetailPage() {
   const [purchasedCourse, setPurchasedCourse] = useState<any>(null)
   const [showForcedFeedback, setShowForcedFeedback] = useState(false)
   const [showFeedbackModal, setShowFeedbackModal] = useState(false)
-  const [activeSectionTab, setActiveSectionTab] = useState<'lectures' | 'materials' | 'about'>('lectures')
+  const [activeSectionTab, setActiveSectionTab] = useState<'lectures' | 'materials' | 'homework' | 'about'>('lectures')
   const [searchQuery, setSearchQuery] = useState('')
 
   const hasValidUpgradePrice = offering != null && (
@@ -863,13 +863,6 @@ export default function CourseDetailPage() {
         }
       `}} />
 
-      {/* Homework Banner */}
-      <HomeworkBanner
-        courseId={course.id}
-        isManager={isManager}
-        courseColor={coursePalette.accent}
-      />
-
       {/* Tab Navigation and Search/Filter Bar */}
       <div style={{
         display: 'flex',
@@ -883,7 +876,7 @@ export default function CourseDetailPage() {
       }}>
         {/* Tabs */}
         <div style={{ display: 'flex', gap: '32px', rowGap: 0, flexWrap: 'wrap', flex: '1 1 420px', minWidth: 0 }}>
-          {(['lectures', 'materials', 'community', 'help', 'about'] as const).map(tab => {
+          {(['lectures', 'materials', 'homework', 'community', 'help', 'about'] as const).map(tab => {
             const isActive = tab !== 'community' && activeSectionTab === tab;
             return (
               <button
@@ -915,14 +908,14 @@ export default function CourseDetailPage() {
                   zIndex: 2,
                 }}
               >
-                {tab === 'lectures' ? 'Lectures' : tab === 'materials' ? 'Materials' : tab === 'community' ? 'Community' : tab === 'help' ? 'Get Help' : 'About Course'}
+                {tab === 'lectures' ? 'Lectures' : tab === 'materials' ? 'Materials' : tab === 'homework' ? 'Homework' : tab === 'community' ? 'Community' : tab === 'help' ? 'Get Help' : 'About Course'}
               </button>
             );
           })}
         </div>
 
         {/* Search (only visible for Lectures/Materials tabs) */}
-        {activeSectionTab !== 'about' && (
+        {(activeSectionTab === 'lectures' || activeSectionTab === 'materials') && (
           <div style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap', flex: isNative ? 1 : '1 1 360px', minWidth: isNative ? '100%' : 'min(100%, 360px)', justifyContent: 'flex-end', paddingBottom: '8px' }}>
             <div style={{ position: 'relative', display: 'flex', alignItems: 'center', flex: '1 1 220px', minWidth: '180px', maxWidth: '320px' }}>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" strokeWidth="2.5" style={{ position: 'absolute', left: '12px', pointerEvents: 'none' }}>
@@ -951,7 +944,13 @@ export default function CourseDetailPage() {
       </div>
 
       {/* Main Content Render area based on selected tab */}
-      {activeSectionTab === 'about' ? (
+      {activeSectionTab === 'homework' ? (
+        <HomeworkBanner
+          courseId={course.id}
+          isManager={isManager}
+          courseColor={coursePalette.accent}
+        />
+      ) : activeSectionTab === 'about' ? (
         <div className="card" style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
           <div>
             <h3 style={{ fontSize: '18px', fontWeight: '800', color: 'var(--text-primary)', marginBottom: '14px' }}>About Course</h3>

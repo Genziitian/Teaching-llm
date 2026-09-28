@@ -76,6 +76,7 @@ export async function GET(request: NextRequest) {
         isSubmitted: !!mySubmission,
         mySubmission,
         isPastDue,
+        isOpen: hw.isOpen ?? true,
       }
     })
 
@@ -96,7 +97,7 @@ export async function POST(request: NextRequest) {
     await ensureHomeworkTables()
 
     const body = await request.json()
-    const { courseId, title, description, fileUrls, dueAt } = body
+    const { courseId, title, description, fileUrls, dueAt, isOpen } = body
 
     if (!courseId || !title || !dueAt) {
       return NextResponse.json({ error: 'courseId, title, and dueAt are required' }, { status: 400 })
@@ -114,6 +115,7 @@ export async function POST(request: NextRequest) {
         description: description ? description.trim() : null,
         fileUrls: Array.isArray(fileUrls) ? fileUrls : [],
         dueAt: dueDate,
+        isOpen: isOpen === undefined ? true : Boolean(isOpen),
         createdById: session.userId,
       },
       include: {

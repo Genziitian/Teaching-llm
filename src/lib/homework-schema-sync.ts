@@ -16,6 +16,7 @@ export async function ensureHomeworkTables() {
           "description" TEXT,
           "fileUrls" TEXT[] DEFAULT ARRAY[]::TEXT[],
           "dueAt" TIMESTAMP(3) NOT NULL,
+          "isOpen" BOOLEAN NOT NULL DEFAULT true,
           "createdById" TEXT NOT NULL,
           "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
           "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -24,6 +25,10 @@ export async function ensureHomeworkTables() {
           CONSTRAINT "Homework_createdById_fkey" FOREIGN KEY ("createdById") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE
         );
       `)
+
+      try {
+        await prisma.$executeRawUnsafe(`ALTER TABLE "Homework" ADD COLUMN IF NOT EXISTS "isOpen" BOOLEAN NOT NULL DEFAULT true;`)
+      } catch (_) {}
 
       await prisma.$executeRawUnsafe(`CREATE INDEX IF NOT EXISTS "Homework_classId_idx" ON "Homework"("classId");`)
       await prisma.$executeRawUnsafe(`CREATE INDEX IF NOT EXISTS "Homework_dueAt_idx" ON "Homework"("dueAt");`)

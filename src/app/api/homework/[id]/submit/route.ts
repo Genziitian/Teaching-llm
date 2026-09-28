@@ -38,11 +38,15 @@ export async function POST(
     const { id } = await params
     const homework = await prisma.homework.findUnique({
       where: { id },
-      select: { id: true, courseId: true, dueAt: true },
+      select: { id: true, courseId: true, dueAt: true, isOpen: true },
     })
 
     if (!homework) {
       return NextResponse.json({ error: 'Homework not found' }, { status: 404 })
+    }
+
+    if (!homework.isOpen && !isAdminOrManager(session.role)) {
+      return NextResponse.json({ error: 'Homework submissions are currently closed' }, { status: 403 })
     }
 
     // Verify course access

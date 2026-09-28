@@ -1628,6 +1628,7 @@ model Homework {
   description String?
   fileUrls    String[]             @default([])
   dueAt       DateTime
+  isOpen      Boolean              @default(true)
   createdById String
   createdAt   DateTime             @default(now())
   updatedAt   DateTime             @updatedAt
