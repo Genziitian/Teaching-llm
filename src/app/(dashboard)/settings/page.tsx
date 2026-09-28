@@ -15,10 +15,10 @@ function Toggle({ checked, onChange }: { checked: boolean; onChange: (v: boolean
       onClick={() => onChange(!checked)}
       style={{
         width: '46px', height: '26px', borderRadius: '13px', flexShrink: 0,
-        background: checked ? 'var(--primary)' : 'var(--neu-dark)',
+        background: checked ? 'var(--primary)' : '#4b5563',
         boxShadow: checked
           ? 'inset 2px 2px 5px rgba(0,0,0,0.2)'
-          : 'inset 2px 2px 4px var(--neu-dark), inset -2px -2px 4px var(--neu-dark)',
+          : 'inset 2px 2px 4px rgba(0,0,0,0.3), inset -2px -2px 4px rgba(255,255,255,0.05)',
         position: 'relative', cursor: 'pointer',
         transition: 'background 0.25s ease',
       }}
