@@ -287,7 +287,7 @@ export default function SecureWebPdfViewer({
           {isFullscreen ? (
             <button
               onClick={() => setIsFullscreen(false)}
-              style={iconBtnStyle}
+              style={iconBtnStyle(isFullscreen)}
               title="Exit Fullscreen (Esc)"
             >
               <Minimize2 size={16} />
@@ -295,7 +295,7 @@ export default function SecureWebPdfViewer({
             </button>
           ) : (
             onBack && (
-              <button onClick={onBack} style={iconBtnStyle}>
+              <button onClick={onBack} style={iconBtnStyle(isFullscreen)}>
                 <ChevronLeft size={16} />
                 <span style={{ fontSize: '12px', fontWeight: 700 }}>Back</span>
               </button>
@@ -327,14 +327,14 @@ export default function SecureWebPdfViewer({
         </div>
 
         {/* Center: View Mode & Zoom Controls */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', background: isFullscreen ? '#1e293b' : 'var(--surface)', padding: '4px 8px', borderRadius: '10px', border: '1px solid var(--border)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', background: isFullscreen ? 'rgba(30, 41, 59, 0.96)' : 'var(--surface)', padding: '4px 8px', borderRadius: '10px', border: isFullscreen ? '1px solid rgba(148, 163, 184, 0.22)' : '1px solid var(--border)' }}>
           {/* 1-Page / 2-Page Toggle */}
           <button
             onClick={() => setIsTwoPage(false)}
             style={{
               ...toggleBtnStyle,
               background: !isTwoPage ? 'var(--primary, #6366f1)' : 'transparent',
-              color: !isTwoPage ? '#ffffff' : 'var(--text-muted)',
+              color: !isTwoPage ? '#ffffff' : isFullscreen ? '#cbd5e1' : 'var(--text-muted)',
             }}
             title="Single Page View"
           >
@@ -346,7 +346,7 @@ export default function SecureWebPdfViewer({
             style={{
               ...toggleBtnStyle,
               background: isTwoPage ? 'var(--primary, #6366f1)' : 'transparent',
-              color: isTwoPage ? '#ffffff' : 'var(--text-muted)',
+              color: isTwoPage ? '#ffffff' : isFullscreen ? '#cbd5e1' : 'var(--text-muted)',
             }}
             title="Two Page Spread (Side-by-Side)"
           >
@@ -354,25 +354,25 @@ export default function SecureWebPdfViewer({
             <span style={{ fontSize: '11px', fontWeight: 700 }}>2 Pages</span>
           </button>
 
-          <div style={{ width: '1px', height: '18px', background: 'var(--border)', margin: '0 4px' }} />
+          <div style={{ width: '1px', height: '18px', background: isFullscreen ? 'rgba(148, 163, 184, 0.25)' : 'var(--border)', margin: '0 4px' }} />
 
           {/* Zoom Out */}
           <button
             onClick={() => setZoom(z => Math.max(0.5, Number((z - 0.1).toFixed(2))))}
-            style={actionBtnStyle}
+            style={actionBtnStyle(isFullscreen)}
             title="Zoom Out"
           >
             <ZoomOut size={14} />
           </button>
 
-          <span style={{ fontSize: '11px', fontWeight: 700, minWidth: '38px', textAlign: 'center', color: 'var(--text-primary)' }}>
+          <span style={{ fontSize: '11px', fontWeight: 700, minWidth: '38px', textAlign: 'center', color: isFullscreen ? '#f8fafc' : 'var(--text-primary)' }}>
             {Math.round(zoom * 100)}%
           </span>
 
           {/* Zoom In */}
           <button
             onClick={() => setZoom(z => Math.min(1.6, Number((z + 0.1).toFixed(2))))}
-            style={actionBtnStyle}
+            style={actionBtnStyle(isFullscreen)}
             title="Zoom In"
           >
             <ZoomIn size={14} />
@@ -381,7 +381,7 @@ export default function SecureWebPdfViewer({
           {/* Reset Zoom */}
           <button
             onClick={() => setZoom(0.85)}
-            style={actionBtnStyle}
+            style={actionBtnStyle(isFullscreen)}
             title="Fit to Screen"
           >
             <RotateCcw size={12} />
@@ -394,7 +394,7 @@ export default function SecureWebPdfViewer({
             <button
               onClick={handlePrev}
               disabled={pageNumber <= 1}
-              style={pagerArrowBtn(pageNumber <= 1)}
+              style={pagerArrowBtn(pageNumber <= 1, isFullscreen)}
               title="Previous (Left Arrow)"
             >
               <ChevronLeft size={18} />
@@ -403,7 +403,7 @@ export default function SecureWebPdfViewer({
             <button
               onClick={handleNext}
               disabled={isTwoPage ? pageNumber + 1 >= numPages : pageNumber >= numPages}
-              style={pagerArrowBtn(isTwoPage ? pageNumber + 1 >= numPages : pageNumber >= numPages)}
+              style={pagerArrowBtn(isTwoPage ? pageNumber + 1 >= numPages : pageNumber >= numPages, isFullscreen)}
               title="Next (Right Arrow)"
             >
               <ChevronRight size={18} />
@@ -413,8 +413,8 @@ export default function SecureWebPdfViewer({
           <button
             onClick={() => setIsFullscreen(f => !f)}
             style={{
-              ...iconBtnStyle,
-              background: isFullscreen ? 'rgba(99, 102, 241, 0.2)' : 'var(--surface)',
+              ...iconBtnStyle(isFullscreen),
+              background: isFullscreen ? 'rgba(99, 102, 241, 0.28)' : 'var(--surface)',
               borderColor: isFullscreen ? '#6366f1' : 'var(--border)',
             }}
             title={isFullscreen ? 'Exit Fullscreen' : 'Enter Fullscreen'}
@@ -627,17 +627,19 @@ export default function SecureWebPdfViewer({
   )
 }
 
-const iconBtnStyle: React.CSSProperties = {
+function iconBtnStyle(isFullscreen = false): React.CSSProperties {
+  return {
   display: 'inline-flex',
   alignItems: 'center',
   gap: '6px',
-  background: 'var(--surface)',
-  border: '1px solid var(--border)',
+  background: isFullscreen ? 'rgba(248, 250, 252, 0.96)' : 'var(--surface)',
+  border: isFullscreen ? '1px solid rgba(248, 250, 252, 0.22)' : '1px solid var(--border)',
   borderRadius: '8px',
   padding: '6px 12px',
-  color: 'var(--text-primary)',
+  color: isFullscreen ? '#0f172a' : 'var(--text-primary)',
   cursor: 'pointer',
   transition: 'all 0.15s ease',
+  }
 }
 
 const toggleBtnStyle: React.CSSProperties = {
@@ -651,24 +653,26 @@ const toggleBtnStyle: React.CSSProperties = {
   transition: 'all 0.15s ease',
 }
 
-const actionBtnStyle: React.CSSProperties = {
-  display: 'inline-flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  width: '26px',
-  height: '26px',
-  background: 'transparent',
-  border: 'none',
-  color: 'var(--text-primary)',
-  borderRadius: '4px',
-  cursor: 'pointer',
+function actionBtnStyle(isFullscreen = false): React.CSSProperties {
+  return {
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: '26px',
+    height: '26px',
+    background: isFullscreen ? 'rgba(248, 250, 252, 0.08)' : 'transparent',
+    border: 'none',
+    color: isFullscreen ? '#f8fafc' : 'var(--text-primary)',
+    borderRadius: '4px',
+    cursor: 'pointer',
+  }
 }
 
-function pagerArrowBtn(disabled: boolean): React.CSSProperties {
+function pagerArrowBtn(disabled: boolean, isFullscreen = false): React.CSSProperties {
   return {
-    background: 'var(--surface)',
-    color: disabled ? 'var(--text-muted)' : 'var(--text-primary)',
-    border: '1px solid var(--border)',
+    background: isFullscreen ? 'rgba(248, 250, 252, 0.94)' : 'var(--surface)',
+    color: disabled ? (isFullscreen ? '#64748b' : 'var(--text-muted)') : (isFullscreen ? '#0f172a' : 'var(--text-primary)'),
+    border: isFullscreen ? '1px solid rgba(248, 250, 252, 0.24)' : '1px solid var(--border)',
     borderRadius: '8px',
     width: '32px',
     height: '32px',

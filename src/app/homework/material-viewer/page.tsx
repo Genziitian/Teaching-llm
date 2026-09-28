@@ -92,6 +92,7 @@ export default async function HomeworkMaterialViewerPage({ searchParams }: PageP
           fallbackUrl={url}
           watermarkEmail={session.email}
           title={title}
+          initialFullscreen
         />
       </section>
     </main>
