@@ -89,14 +89,22 @@ export async function PUT(request: NextRequest) {
       ? ` Mobile changed from ${currentUser.mobileNumber} to ${cleanMobile} (old number archived for safety).`
       : ''
 
-    logActivity({
-      userId: session.userId,
-      userName: session.name,
-      userRole: session.role,
-      actionType: ACTION.PROFILE_UPDATED,
-      actionDescription: `${session.name} updated their progress for Sept '26 Term (Level: ${levelMatch}, Category: ${typeUpper}).${mobileAuditText}`,
-      moduleName: MODULE.PROFILE,
-    })
+    try {
+      await prisma.activityLog.create({
+        data: {
+          userId: session.userId,
+          userName: session.name,
+          userRole: session.role,
+          actionType: ACTION.PROFILE_UPDATED,
+          actionDescription: `${session.name} updated their progress for Sept '26 Term (Level: ${levelMatch}, Category: ${typeUpper}).${mobileAuditText}`,
+          moduleName: MODULE.PROFILE,
+          targetId: session.userId,
+          priority: 1,
+        },
+      })
+    } catch (logErr) {
+      console.error('Failed to log activity for Sept 26 progress:', logErr)
+    }
 
     return NextResponse.json({ success: true, user: updatedUser })
   } catch (error) {

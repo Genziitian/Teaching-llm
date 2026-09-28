@@ -1,21 +1,27 @@
 'use client'
 
 import React, { useState, useRef } from 'react'
+import { useRouter } from 'next/navigation'
 import type { FullSession } from '@/lib/auth'
 import { getDefaultAvatar } from '@/lib/avatar'
 import { triggerPartyPips } from '@/components/PartyPips'
+import SpringLeavesBackground from '@/components/SpringLeavesBackground'
 
 interface Sept26ProgressBlockerProps {
   user: FullSession
 }
 
 export default function Sept26ProgressBlocker({ user }: { user: any }) {
+  const router = useRouter()
   const fileInputRef = useRef<HTMLInputElement>(null)
+
+  // Verify if existing mobile number satisfies Indian standard (10 digits starting with 6,7,8,9)
+  const isInitialMobileValid = Boolean(user.mobileNumber && /^[6789]\d{9}$/.test(user.mobileNumber))
 
   const [formData, setFormData] = useState({
     iitmLevel: '',
     iitmUserType: '',
-    mobileNumber: user.mobileNumber || '',
+    mobileNumber: isInitialMobileValid ? user.mobileNumber : '',
     instagramUrl: user.instagramUrl || '',
     linkedinUrl: user.linkedinUrl || '',
   })
@@ -28,11 +34,12 @@ export default function Sept26ProgressBlocker({ user }: { user: any }) {
     photo: Boolean(user.avatar),
     level: false,
     category: false,
-    mobile: Boolean(user.mobileNumber && user.mobileNumber.length >= 10),
+    mobile: isInitialMobileValid,
   })
 
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [enteringDashboard, setEnteringDashboard] = useState(false)
   const [showCelebrationModal, setShowCelebrationModal] = useState(false)
 
   // Trigger celebration on a field
@@ -100,13 +107,23 @@ export default function Sept26ProgressBlocker({ user }: { user: any }) {
     markFieldCompleted('category', e)
   }
 
-  // Mobile Change
+  // Mobile Change — enforces Indian mobile rule: 10 digits starting with 6, 7, 8, or 9
   const handleMobileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const val = e.target.value.replace(/\D/g, '').slice(0, 10)
-    setFormData(prev => ({ ...prev, mobileNumber: val }))
+    const raw = e.target.value.replace(/\D/g, '').slice(0, 10)
+
+    // Reject first digit if not 6, 7, 8, or 9
+    if (raw.length > 0 && !/^[6789]/.test(raw)) {
+      setError('Mobile number must start with 6, 7, 8, or 9.')
+      return
+    }
+
     if (error) setError('')
-    if (val.length === 10) {
+    setFormData(prev => ({ ...prev, mobileNumber: raw }))
+
+    if (/^[6789]\d{9}$/.test(raw)) {
       markFieldCompleted('mobile', e.target as any)
+    } else {
+      setCompletedFields(prev => ({ ...prev, mobile: false }))
     }
   }
 
@@ -117,12 +134,14 @@ export default function Sept26ProgressBlocker({ user }: { user: any }) {
     }
   }
 
+  const isMobileValid = /^[6789]\d{9}$/.test(formData.mobileNumber)
+
   // Calculate Progress
   const totalRequired = 3 // Level, Category, Mobile
   const currentDoneCount =
     (formData.iitmLevel ? 1 : 0) +
     (formData.iitmUserType ? 1 : 0) +
-    (formData.mobileNumber.length === 10 ? 1 : 0)
+    (isMobileValid ? 1 : 0)
   const progressPercent = Math.round((currentDoneCount / totalRequired) * 100)
 
   // Submit
@@ -156,14 +175,14 @@ export default function Sept26ProgressBlocker({ user }: { user: any }) {
         throw new Error(data.error || 'Failed to save progress update.')
       }
 
-      // Trigger grand celebratory confetti
+      // Celebratory burst
       triggerPartyPips({ x: window.innerWidth * 0.3, y: window.innerHeight * 0.4 })
       setTimeout(() => {
         triggerPartyPips({ x: window.innerWidth * 0.7, y: window.innerHeight * 0.4 })
-      }, 200)
+      }, 150)
       setTimeout(() => {
         triggerPartyPips({ x: window.innerWidth * 0.5, y: window.innerHeight * 0.3 })
-      }, 400)
+      }, 300)
 
       setShowCelebrationModal(true)
     } catch (err: any) {
@@ -175,17 +194,22 @@ export default function Sept26ProgressBlocker({ user }: { user: any }) {
   }
 
   const handleProceedToDashboard = () => {
+    setEnteringDashboard(true)
     sessionStorage.setItem('sept26ProgressUpdated', 'true')
-    window.location.reload()
+    // Fast client-side refresh & instant transition
+    router.refresh()
+    setTimeout(() => {
+      window.location.replace('/dashboard')
+    }, 100)
   }
 
-  const isMobileChanged = user.mobileNumber && user.mobileNumber !== formData.mobileNumber
+  const isMobileChanged = isInitialMobileValid && user.mobileNumber !== formData.mobileNumber
 
   return (
     <div style={{
       position: 'fixed',
       inset: 0,
-      background: 'radial-gradient(circle at top right, #312e81 0%, #0f172a 100%)',
+      background: 'radial-gradient(circle at top right, #1e1b4b 0%, #0f172a 100%)',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
@@ -193,53 +217,122 @@ export default function Sept26ProgressBlocker({ user }: { user: any }) {
       padding: '16px',
       overflowY: 'auto',
     }}>
+      {/* ── Spring Falling Leaves Ambient Background ── */}
+      <SpringLeavesBackground />
+
+      {/* ── Main Blocker Card ── */}
       <div className="fade-in" style={{
+        position: 'relative',
+        zIndex: 2,
         background: 'var(--surface, #ffffff)',
         width: '100%',
         maxWidth: '640px',
         padding: '22px 26px',
         borderRadius: '24px',
-        boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.1)',
+        boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(255, 255, 255, 0.1)',
         margin: 'auto',
       }}>
 
-        {/* Term Badge & Header */}
-        <div style={{ textAlign: 'center', marginBottom: '12px' }}>
+        {/* ── Center Loading Overlay (Shown while saving) ── */}
+        {loading && (
+          <div style={{
+            position: 'absolute',
+            inset: 0,
+            borderRadius: '24px',
+            background: 'rgba(255, 255, 255, 0.94)',
+            backdropFilter: 'blur(6px)',
+            WebkitBackdropFilter: 'blur(6px)',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 10,
+            padding: '24px',
+            textAlign: 'center',
+          }}>
+            <div style={{
+              width: '52px',
+              height: '52px',
+              border: '3px solid #e0e7ff',
+              borderTop: '3px solid #4f46e5',
+              borderRadius: '50%',
+              animation: 'spin 0.8s linear infinite',
+              marginBottom: '16px',
+            }} />
+            <h3 style={{
+              fontSize: '18px',
+              fontWeight: 800,
+              color: '#0f172a',
+              margin: '0 0 6px 0',
+            }}>
+              Saving Your Progress...
+            </h3>
+            <p style={{
+              fontSize: '13px',
+              color: '#64748b',
+              margin: 0,
+              maxWidth: '320px',
+            }}>
+              Updating your academic profile for the Sept &apos;26 Term. Just a moment!
+            </p>
+            <style jsx>{`
+              @keyframes spin {
+                0% { transform: rotate(0deg); }
+                100% { transform: rotate(360deg); }
+              }
+            `}</style>
+          </div>
+        )}
+
+        {/* ── GenZ IITian Logo & Header ── */}
+        <div style={{ textAlign: 'center', marginBottom: '14px' }}>
+          <img
+            src="/mobile-login-logo.png"
+            alt="GenZ IITian Logo"
+            style={{
+              height: '32px',
+              width: 'auto',
+              margin: '0 auto 10px auto',
+              display: 'block',
+              objectFit: 'contain',
+            }}
+          />
+
           <div style={{
             display: 'inline-flex',
             alignItems: 'center',
             gap: '6px',
-            padding: '5px 14px',
+            padding: '4px 14px',
             borderRadius: '50px',
             background: 'linear-gradient(135deg, #e0e7ff 0%, #ede9fe 100%)',
             color: '#4f46e5',
-            fontSize: '12px',
+            fontSize: '11.5px',
             fontWeight: 800,
             letterSpacing: '0.04em',
             textTransform: 'uppercase',
-            marginBottom: '10px',
-            boxShadow: '0 2px 8px rgba(99, 102, 241, 0.15)'
+            marginBottom: '8px',
+            boxShadow: '0 2px 8px rgba(99, 102, 241, 0.12)'
           }}>
-            <span>✨</span> Welcome to Sept &apos;26 Term
+            Welcome to Sept &apos;26 Term
           </div>
 
           <h1 style={{
-            fontSize: '22px',
+            fontSize: '21px',
             fontWeight: 900,
             color: 'var(--text-primary, #0f172a)',
-            marginBottom: '0',
+            margin: 0,
             letterSpacing: '-0.02em',
           }}>
             Let&apos;s Update Your Progress!
           </h1>
         </div>
 
-        {/* Gamified Progress Bar */}
+        {/* ── Progress Bar ── */}
         <div style={{
           background: '#f1f5f9',
           borderRadius: '12px',
           padding: '10px 14px',
-          marginBottom: '12px',
+          marginBottom: '14px',
           display: 'flex',
           alignItems: 'center',
           gap: '12px',
@@ -260,21 +353,26 @@ export default function Sept26ProgressBlocker({ user }: { user: any }) {
               }} />
             </div>
           </div>
-          <div style={{
-            fontSize: '20px',
-            background: progressPercent === 100 ? '#d1fae5' : '#eff6ff',
-            borderRadius: '50%',
-            width: '32px',
-            height: '32px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}>
-            {progressPercent === 100 ? '🎉' : '🎯'}
-          </div>
+          {progressPercent === 100 && (
+            <div style={{
+              width: '26px',
+              height: '26px',
+              borderRadius: '50%',
+              background: '#d1fae5',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: '#059669',
+              flexShrink: 0,
+            }}>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="20 6 9 17 4 12" />
+              </svg>
+            </div>
+          )}
         </div>
 
-        {/* Error message */}
+        {/* ── Error message ── */}
         {error && (
           <div style={{
             background: 'var(--danger-light, #fee2e2)',
@@ -283,7 +381,7 @@ export default function Sept26ProgressBlocker({ user }: { user: any }) {
             borderRadius: '10px',
             fontSize: '13px',
             fontWeight: 600,
-            marginBottom: '16px',
+            marginBottom: '14px',
             display: 'flex',
             alignItems: 'center',
             gap: '8px',
@@ -301,8 +399,8 @@ export default function Sept26ProgressBlocker({ user }: { user: any }) {
           <div style={{
             display: 'flex',
             alignItems: 'center',
-            gap: '16px',
-            padding: '14px 18px',
+            gap: '14px',
+            padding: '12px 16px',
             borderRadius: '16px',
             background: 'var(--surface-2, #f8fafc)',
             border: '1px solid #e2e8f0',
@@ -319,8 +417,8 @@ export default function Sept26ProgressBlocker({ user }: { user: any }) {
               onClick={() => !uploadingAvatar && fileInputRef.current?.click()}
               style={{
                 position: 'relative',
-                width: '64px',
-                height: '64px',
+                width: '60px',
+                height: '60px',
                 borderRadius: '50%',
                 cursor: 'pointer',
                 border: '2.5px solid #6366f1',
@@ -427,12 +525,12 @@ export default function Sept26ProgressBlocker({ user }: { user: any }) {
                     type="button"
                     onClick={(e) => handleLevelSelect(level, e)}
                     style={{
-                      padding: '12px 6px',
+                      padding: '11px 4px',
                       borderRadius: '12px',
                       border: isSelected ? '2px solid #6366f1' : '2px solid #e2e8f0',
                       background: isSelected ? '#eff0fe' : 'var(--surface, #ffffff)',
                       color: isSelected ? '#4f46e5' : 'var(--text-secondary, #475569)',
-                      fontSize: '13px',
+                      fontSize: '12.5px',
                       fontWeight: 700,
                       cursor: 'pointer',
                       transition: 'all 0.15s ease',
@@ -466,7 +564,7 @@ export default function Sept26ProgressBlocker({ user }: { user: any }) {
               {[
                 { key: 'STANDALONE', label: 'Standalone' },
                 { key: 'DUAL DEGREE', label: 'Dual Degree' },
-                { key: 'WORKING PROFESSIONAL', label: 'Working Pro' },
+                { key: 'WORKING PROFESSIONAL', label: 'Working Professional' },
               ].map(type => {
                 const isSelected = formData.iitmUserType === type.key
                 return (
@@ -475,19 +573,25 @@ export default function Sept26ProgressBlocker({ user }: { user: any }) {
                     type="button"
                     onClick={(e) => handleCategorySelect(type.key, e)}
                     style={{
-                      padding: '12px 8px',
+                      padding: '11px 6px',
+                      minHeight: '44px',
                       borderRadius: '12px',
                       border: isSelected ? '2px solid #6366f1' : '2px solid #e2e8f0',
                       background: isSelected ? '#eff0fe' : 'var(--surface, #ffffff)',
                       color: isSelected ? '#4f46e5' : 'var(--text-secondary, #475569)',
-                      fontSize: '12.5px',
+                      fontSize: '11.5px',
+                      lineHeight: 1.25,
                       fontWeight: 700,
                       cursor: 'pointer',
                       transition: 'all 0.15s ease',
                       outline: 'none',
                       textAlign: 'center',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
                       transform: isSelected ? 'scale(1.02)' : 'scale(1)',
                       boxShadow: isSelected ? '0 4px 12px rgba(99, 102, 241, 0.2)' : 'none',
+                      wordBreak: 'normal',
                     }}
                   >
                     {type.label}
@@ -503,11 +607,15 @@ export default function Sept26ProgressBlocker({ user }: { user: any }) {
               <label style={{ fontWeight: 800, fontSize: '13.5px', color: 'var(--text-primary, #0f172a)' }}>
                 3. Mobile Number (Update if Changed)
               </label>
-              {formData.mobileNumber.length === 10 && (
+              {isMobileValid ? (
                 <span style={{ fontSize: '11px', fontWeight: 800, color: '#10b981' }}>
-                  10 Digits ✓
+                  Verified ✓
                 </span>
-              )}
+              ) : formData.mobileNumber.length > 0 ? (
+                <span style={{ fontSize: '11px', fontWeight: 700, color: '#6366f1' }}>
+                  {formData.mobileNumber.length}/10 digits
+                </span>
+              ) : null}
             </div>
 
             <div style={{ position: 'relative' }}>
@@ -526,15 +634,15 @@ export default function Sept26ProgressBlocker({ user }: { user: any }) {
                 type="tel"
                 value={formData.mobileNumber}
                 onChange={handleMobileChange}
-                placeholder="Enter 10-digit number"
+                placeholder="Enter 10-digit number (starts with 6-9)"
                 maxLength={10}
                 style={{
                   width: '100%',
-                  padding: '12px 14px 12px 50px',
+                  padding: '11px 14px 11px 50px',
                   borderRadius: '12px',
-                  border: formData.mobileNumber.length === 10 ? '2px solid #10b981' : '2px solid #e2e8f0',
+                  border: isMobileValid ? '2px solid #10b981' : '2px solid #e2e8f0',
                   background: 'var(--surface, #ffffff)',
-                  fontSize: '14.5px',
+                  fontSize: '14px',
                   fontWeight: 700,
                   outline: 'none',
                   color: 'var(--text-primary, #0f172a)',
@@ -545,8 +653,21 @@ export default function Sept26ProgressBlocker({ user }: { user: any }) {
             </div>
 
             {isMobileChanged && (
-              <p style={{ fontSize: '11px', color: '#d97706', marginTop: '6px', fontWeight: 600 }}>
-                ⚠️ Notice: Changing mobile number. Old number ({user.mobileNumber}) will be safely kept in audit records for security verification.
+              <p style={{
+                fontSize: '11px',
+                color: '#d97706',
+                marginTop: '6px',
+                fontWeight: 600,
+                display: 'flex',
+                alignItems: 'center',
+                gap: '5px'
+              }}>
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#d97706" strokeWidth="2">
+                  <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+                  <line x1="12" y1="9" x2="12" y2="13"/>
+                  <line x1="12" y1="17" x2="12.01" y2="17"/>
+                </svg>
+                Notice: Changing mobile number. Old number will be securely archived for audit.
               </p>
             )}
           </div>
@@ -554,7 +675,7 @@ export default function Sept26ProgressBlocker({ user }: { user: any }) {
           {/* ── Field 4: Optional Social Links ── */}
           <div style={{
             background: 'var(--surface-2, #f8fafc)',
-            padding: '14px 16px',
+            padding: '12px 14px',
             borderRadius: '16px',
             border: '1px solid #e2e8f0',
           }}>
@@ -567,7 +688,7 @@ export default function Sept26ProgressBlocker({ user }: { user: any }) {
               </span>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
               <div>
                 <label style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-secondary, #475569)', marginBottom: '4px', display: 'block' }}>
                   Instagram Profile Link
@@ -622,7 +743,7 @@ export default function Sept26ProgressBlocker({ user }: { user: any }) {
               width: '100%',
               padding: '13px',
               borderRadius: '14px',
-              fontSize: '15.5px',
+              fontSize: '15px',
               fontWeight: 800,
               background: 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)',
               color: '#ffffff',
@@ -638,12 +759,9 @@ export default function Sept26ProgressBlocker({ user }: { user: any }) {
             }}
           >
             {loading ? (
-              <span>Saving Sept &apos;26 Update...</span>
+              <span>Saving Progress...</span>
             ) : (
-              <>
-                <span>Save Progress & Enter Dashboard</span>
-                <span>🚀</span>
-              </>
+              <span>Save Progress & Enter Dashboard</span>
             )}
           </button>
         </form>
@@ -663,52 +781,73 @@ export default function Sept26ProgressBlocker({ user }: { user: any }) {
           backdropFilter: 'blur(8px)',
           WebkitBackdropFilter: 'blur(8px)',
         }}>
-          <div className="fade-in" style={{
+          <div style={{
             background: 'var(--surface, #ffffff)',
             borderRadius: '24px',
-            padding: '40px 32px',
+            padding: '36px 28px',
             maxWidth: '440px',
             width: '100%',
             boxShadow: '0 25px 50px -12px rgba(0,0,0,0.35)',
             textAlign: 'center',
             border: '1px solid rgba(255,255,255,0.8)',
+            animation: 'celebratePopIn 0.35s cubic-bezier(0.34, 1.56, 0.64, 1)',
           }}>
-            {/* Celebration Icon */}
+            {/* Animated Celebration Icon */}
             <div style={{
-              width: '72px',
-              height: '72px',
+              width: '68px',
+              height: '68px',
               borderRadius: '50%',
               background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              margin: '0 auto 20px',
-              boxShadow: '0 10px 20px rgba(16, 185, 129, 0.3)',
-              fontSize: '32px',
+              margin: '0 auto 18px',
+              boxShadow: '0 10px 25px rgba(16, 185, 129, 0.4)',
+              color: '#ffffff',
             }}>
-              🎉
+              <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="20 6 9 17 4 12" />
+              </svg>
             </div>
 
             <h2 style={{
-              fontSize: '23px',
+              fontSize: '22px',
               fontWeight: 900,
               color: 'var(--text-primary, #0f172a)',
-              marginBottom: '10px',
+              marginBottom: '12px',
               letterSpacing: '-0.02em',
             }}>
               You&apos;re All Set for Sept &apos;26!
             </h2>
+
+            {/* Line 1: Updated Status */}
             <p style={{
-              fontSize: '14.5px',
+              fontSize: '14px',
               color: 'var(--text-secondary, #64748b)',
-              lineHeight: 1.6,
-              marginBottom: '28px',
+              lineHeight: 1.5,
+              margin: '0 0 10px 0',
             }}>
-              Your current IITM Level has been updated to <strong style={{ color: '#4f46e5' }}>{formData.iitmLevel}</strong>. Best of luck for an incredible new term with GenZ IITian!
+              Your current IITM Level has been updated to <strong style={{ color: '#4f46e5' }}>{formData.iitmLevel}</strong>.
             </p>
+
+            {/* Line 2: Distinct highlighted text and color on next line */}
+            <div style={{
+              background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, rgba(99, 102, 241, 0.08) 100%)',
+              border: '1px solid rgba(16, 185, 129, 0.25)',
+              borderRadius: '12px',
+              padding: '10px 14px',
+              color: '#059669',
+              fontWeight: 700,
+              fontSize: '13.5px',
+              marginBottom: '24px',
+              letterSpacing: '0.01em',
+            }}>
+              Best of luck for an incredible new term with GenZ IITian!
+            </div>
 
             <button
               onClick={handleProceedToDashboard}
+              disabled={enteringDashboard}
               style={{
                 width: '100%',
                 padding: '14px',
@@ -718,13 +857,43 @@ export default function Sept26ProgressBlocker({ user }: { user: any }) {
                 background: 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)',
                 color: '#ffffff',
                 border: 'none',
-                cursor: 'pointer',
+                cursor: enteringDashboard ? 'not-allowed' : 'pointer',
                 boxShadow: '0 6px 18px rgba(99, 102, 241, 0.3)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '8px',
+                opacity: enteringDashboard ? 0.75 : 1,
               }}
             >
-              Continue to Dashboard →
+              {enteringDashboard ? (
+                <>
+                  <span style={{
+                    width: '16px',
+                    height: '16px',
+                    border: '2px solid rgba(255,255,255,0.4)',
+                    borderTop: '2px solid #ffffff',
+                    borderRadius: '50%',
+                    display: 'inline-block',
+                    animation: 'spin 0.6s linear infinite',
+                  }} />
+                  <span>Entering Dashboard...</span>
+                </>
+              ) : (
+                <span>Continue to Dashboard →</span>
+              )}
             </button>
           </div>
+          <style jsx>{`
+            @keyframes celebratePopIn {
+              0% { opacity: 0; transform: scale(0.85) translateY(16px); }
+              100% { opacity: 1; transform: scale(1) translateY(0); }
+            }
+            @keyframes spin {
+              0% { transform: rotate(0deg); }
+              100% { transform: rotate(360deg); }
+            }
+          `}</style>
         </div>
       )}
     </div>
