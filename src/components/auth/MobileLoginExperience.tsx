@@ -626,6 +626,9 @@ function LoginView({ onBackToOnboarding }: { onBackToOnboarding: () => void }) {
 
       <style jsx>{`
         @keyframes gSpin { to { transform: rotate(360deg); } }
+        :global([data-theme="dark"]) .mobile-login-logo-img {
+          filter: brightness(0) invert(1);
+        }
       `}</style>
     </div>
   )
