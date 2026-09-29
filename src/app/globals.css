@@ -352,17 +352,11 @@
   --community-item-shadow-dark: #000000;
 }
 
-/* Dark & Black mode logo: render as clean white silhouette on dark/black backgrounds */
+/* Dark & Black mode logo plate */
 :root[data-theme="dark"] .sidebar-logo-plate,
 :root[data-theme="black"] .sidebar-logo-plate {
   background: var(--surface-2) !important;
   box-shadow: none !important;
-}
-:root[data-theme="dark"] .sidebar-logo-img,
-:root[data-theme="dark"] .mobile-login-logo-img,
-:root[data-theme="black"] .sidebar-logo-img,
-:root[data-theme="black"] .mobile-login-logo-img {
-  filter: brightness(0) invert(1);
 }
 
 /* Community chat wallpaper */
@@ -3325,4 +3319,3 @@ tr:hover td {
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
-
