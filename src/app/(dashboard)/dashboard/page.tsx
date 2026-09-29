@@ -341,14 +341,12 @@ export default function DashboardPage() {
     getEventStatus(s.startTime, s.endTime, s.manualStatus || s.status) === 'live'
   )
   const liveNowCount = liveNow.length
-  const upNextSessions = liveSessions.filter((s: any) => {
-    const status = getEventStatus(s.startTime, s.endTime, s.manualStatus || s.status)
-    return status === 'upcoming'
-  }).slice(0, 2)
-  const upNextCount = liveSessions.filter((s: any) => {
-    const status = getEventStatus(s.startTime, s.endTime, s.manualStatus || s.status)
-    return status === 'upcoming'
-  }).length
+  const upNextSessions = liveSessions.filter((s: any) => 
+    getEventStatus(s.startTime, s.endTime, s.manualStatus || s.status) === 'upcoming'
+  ).slice(0, 2)
+  const upNextCount = liveSessions.filter((s: any) =>
+    getEventStatus(s.startTime, s.endTime, s.manualStatus || s.status) === 'upcoming'
+  ).length
 
   const recentViewedLecture = effectiveData?.recentViewedLecture || null
   const announcements = (effectiveData?.announcements || []).slice(0, 3)
@@ -1437,13 +1435,7 @@ export default function DashboardPage() {
                 </div>
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                  {upNextSessions.map((session, idx) => {
-                    const isRescheduled = session.status === 'rescheduled' || session.manualStatus === 'RESCHEDULED'
-                    const originalTime = session.originalStartTime
-                      ? new Date(session.originalStartTime).toLocaleTimeString('en-IN', { hour: 'numeric', minute: '2-digit', hour12: true })
-                      : null
-
-                    return (
+                  {upNextSessions.map((session, idx) => (
                     <Link
                       key={session.id}
                       href={session.isRecordedOnly ? '#' : '/live'}
@@ -1489,13 +1481,8 @@ export default function DashboardPage() {
                           <div style={{ fontSize: '13px', fontWeight: '600', color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                             {session.title}
                           </div>
-                          <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '2px', display: 'flex', alignItems: 'center', gap: '5px', flexWrap: 'wrap' }}>
-                            {isRescheduled && originalTime && (
-                              <span style={{ textDecoration: 'line-through', opacity: 0.72 }}>{originalTime}</span>
-                            )}
-                            <span style={{ color: isRescheduled ? 'var(--warning)' : 'var(--text-muted)', fontWeight: isRescheduled ? 800 : 500 }}>
-                              {session.date} · {isRescheduled ? `New ${session.time}` : session.time}
-                            </span>
+                          <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '2px' }}>
+                            {session.date} · {session.time}
                           </div>
                         </div>
                         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--neu-dark)" strokeWidth="2.5" style={{ flexShrink: 0 }}>
@@ -1503,8 +1490,7 @@ export default function DashboardPage() {
                         </svg>
                       </div>
                     </Link>
-                    )
-                  })}
+                  ))}
                 </div>
               )}
             </div>
@@ -1631,17 +1617,8 @@ export default function DashboardPage() {
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: '10px', fontWeight: 800, color: 'var(--accent)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '3px', display: 'flex', alignItems: 'center', gap: '5px', flexWrap: 'wrap' }}>
-                      {(upNextSessions[0].status === 'rescheduled' || upNextSessions[0].manualStatus === 'RESCHEDULED') && upNextSessions[0].originalStartTime ? (
-                        <>
-                          <span style={{ textDecoration: 'line-through', color: 'var(--text-muted)', opacity: 0.75 }}>
-                            {new Date(upNextSessions[0].originalStartTime).toLocaleTimeString('en-IN', { hour: 'numeric', minute: '2-digit', hour12: true })}
-                          </span>
-                          <span style={{ color: 'var(--warning)' }}>New {upNextSessions[0].time}</span>
-                        </>
-                      ) : (
-                        upNextSessions[0].time
-                      )}
+                    <div style={{ fontSize: '10px', fontWeight: 800, color: 'var(--accent)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '3px' }}>
+                      {upNextSessions[0].time}
                     </div>
                     <div style={{ fontSize: '15.5px', fontWeight: 800, color: 'var(--text-primary)', lineHeight: 1.25, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                       {upNextSessions[0].title}

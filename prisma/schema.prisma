@@ -405,7 +405,6 @@ model DailySessionSnapshot {
   description   String?
   startTime     DateTime
   endTime       DateTime
-  originalStartTime DateTime?
   meetLink      String?
   status        String   @default("SCHEDULED")
   courseId      String?  @map("classId")
@@ -1657,3 +1656,4 @@ model HomeworkSubmission {
   @@index([homeworkId])
   @@index([studentId])
 }
+

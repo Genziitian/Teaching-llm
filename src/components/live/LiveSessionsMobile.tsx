@@ -11,7 +11,6 @@ interface CourseEvent {
   description: string
   startTime: string
   endTime: string
-  originalStartTime?: string | null
   meetLink: string | null
   type: string
   status: string
@@ -427,10 +426,6 @@ function UpcomingSessionRow({ session, slotIdx }: { session: CourseEvent; slotId
   const instructor = session.course?.teacherName || session.instructor?.name || 'Faculty'
   const subject = session.course?.name || 'Class'
   const start = formatIST(session.startTime, { hour: 'numeric', minute: '2-digit', hour12: true })
-  const originalStart = session.originalStartTime
-    ? formatIST(session.originalStartTime, { hour: 'numeric', minute: '2-digit', hour12: true })
-    : null
-  const isRescheduled = session.status === 'rescheduled' || session.manualStatus === 'RESCHEDULED'
   const isToday = new Date(session.startTime).toDateString() === new Date().toDateString()
 
   return (
@@ -444,22 +439,14 @@ function UpcomingSessionRow({ session, slotIdx }: { session: CourseEvent; slotId
       borderLeft: '4.5px solid ' + slot.fg,
     }}>
       <div style={{
-        width: isRescheduled && originalStart ? '82px' : '68px',
-        minHeight: '52px',
+        width: '68px', minHeight: '52px',
         borderRadius: '12px',
         background: slot.bg,
         color: slot.fg,
         display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
         gap: '2px', flexShrink: 0,
       }}>
-        {isRescheduled && originalStart && (
-          <div style={{ fontSize: '9px', fontWeight: 800, letterSpacing: '-0.02em', opacity: 0.78, textDecoration: 'line-through' }}>
-            {originalStart}
-          </div>
-        )}
-        <div style={{ fontSize: '11px', fontWeight: 900, letterSpacing: '-0.02em' }}>
-          {isRescheduled ? `New ${start}` : start}
-        </div>
+        <div style={{ fontSize: '11px', fontWeight: 900, letterSpacing: '-0.02em' }}>{start}</div>
         {!isToday && (
           <div style={{ fontSize: '8.5px', fontWeight: 800, letterSpacing: '0.04em', opacity: 0.85 }}>
             {new Date(session.startTime).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' }).toUpperCase()}

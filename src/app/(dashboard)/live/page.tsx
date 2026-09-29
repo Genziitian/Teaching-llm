@@ -19,7 +19,6 @@ interface CourseEvent {
   description: string
   startTime: string
   endTime: string
-  originalStartTime?: string | null
   meetLink: string | null
   type: string
   status: string
@@ -231,12 +230,9 @@ export default function LivePage() {
     const isLive = session.status === 'live'
     const isCompleted = session.status === 'completed'
     const isCancelled = session.status === 'cancelled'
-    const isRescheduled = session.manualStatus === 'RESCHEDULED'
-    const hasRescheduleTime = isRescheduled && !!session.originalStartTime
+    const isRescheduled = session.status === 'rescheduled'
 
-    const statusCfg = isRescheduled && !isLive && !isCompleted && !isCancelled
-      ? STATUS_CONFIG.rescheduled
-      : (STATUS_CONFIG[session.status] || STATUS_CONFIG.upcoming)
+    const statusCfg = STATUS_CONFIG[session.status] || STATUS_CONFIG.upcoming
 
     const dotColor = isLive ? 'var(--success)' : isCancelled ? 'var(--danger)' : isRescheduled ? 'var(--warning)' : 'var(--neu-dark)'
     const dotFill = isLive ? 'var(--success)' : 'var(--surface-2)'
@@ -270,18 +266,11 @@ export default function LivePage() {
         }}>
           {/* Time block */}
           <div style={{ width: '120px', flexShrink: 0, overflow: 'hidden' }}>
-            {hasRescheduleTime && (
-              <div style={{ fontSize: '11px', fontWeight: '700', color: 'var(--text-muted)', textDecoration: 'line-through', whiteSpace: 'nowrap' }}>
-                {formatIST(session.originalStartTime!)}
-              </div>
-            )}
             <div style={{ fontSize: '13px', fontWeight: '600', color: isLive ? 'var(--success)' : isCompleted || isCancelled ? 'var(--text-muted)' : 'var(--text-secondary)', whiteSpace: 'nowrap' }}>
-              {hasRescheduleTime ? `New: ${formatIST(session.startTime)}` : formatIST(session.startTime)}
+              {formatIST(session.startTime)}
             </div>
             <div style={{ fontSize: '11px', marginTop: '3px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-              <span style={{ color: isRescheduled ? 'var(--warning)' : 'var(--text-muted)', fontWeight: isRescheduled ? 800 : 500 }}>
-                {formatISTDate(session.startTime)}
-              </span>
+              <span style={{ color: 'var(--text-muted)' }}>{formatISTDate(session.startTime)}</span>
             </div>
           </div>
 
@@ -411,12 +400,12 @@ export default function LivePage() {
           ) : (isLive || (!isCompleted && !isCancelled)) && session.meetLink ? (
             <a href={normalizeMeetLink(session.meetLink) ?? '#'} target="_blank" rel="noopener noreferrer" style={{
               display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '10px 20px', borderRadius: '50px', flexShrink: 0,
-              background: isLive ? 'var(--success)' : 'var(--primary)', color: 'white', fontWeight: '600', fontSize: '14px', textDecoration: 'none',
-              boxShadow: isLive
+              background: (isLive || isRescheduled) ? 'var(--success)' : 'var(--primary)', color: 'white', fontWeight: '600', fontSize: '14px', textDecoration: 'none',
+              boxShadow: (isLive || isRescheduled)
                 ? '4px 4px 10px rgba(22,163,74,0.4), -2px -2px 6px var(--neu-glow)'
                 : '4px 4px 10px rgba(54,54,232,0.3), -2px -2px 6px var(--neu-glow)',
             }}>
-              {isLive ? 'Join Now' : 'Join'}
+              {isLive || isRescheduled ? 'Join Now' : 'Join'}
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
             </a>
           ) : isRescheduled ? (
