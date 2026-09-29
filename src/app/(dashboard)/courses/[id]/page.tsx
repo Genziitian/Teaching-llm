@@ -105,6 +105,7 @@ export default function CourseDetailPage() {
   const [showForcedFeedback, setShowForcedFeedback] = useState(false)
   const [showFeedbackModal, setShowFeedbackModal] = useState(false)
   const [activeSectionTab, setActiveSectionTab] = useState<'lectures' | 'materials' | 'homework' | 'about'>('lectures')
+  const [selectedHomeworkId, setSelectedHomeworkId] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
 
   const hasValidUpgradePrice = offering != null && (
@@ -949,6 +950,8 @@ export default function CourseDetailPage() {
           courseId={course.id}
           isManager={isManager}
           courseColor={coursePalette.accent}
+          isHomePage={false}
+          initialHomeworkId={selectedHomeworkId}
         />
       ) : activeSectionTab === 'about' ? (
         <div className="card" style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
@@ -1018,6 +1021,11 @@ export default function CourseDetailPage() {
                     courseId={course.id}
                     isManager={isManager}
                     courseColor={coursePalette.accent}
+                    isHomePage={true}
+                    onNavigateToHomework={(hwId) => {
+                      if (hwId) setSelectedHomeworkId(hwId)
+                      setActiveSectionTab('homework')
+                    }}
                   />
                 )}
                 <div className="card empty-state" style={{ padding: '48px' }}>
@@ -1051,6 +1059,11 @@ export default function CourseDetailPage() {
                   courseId={course.id}
                   isManager={isManager}
                   courseColor={coursePalette.accent}
+                  isHomePage={true}
+                  onNavigateToHomework={(hwId) => {
+                    if (hwId) setSelectedHomeworkId(hwId)
+                    setActiveSectionTab('homework')
+                  }}
                 />
               )}
               {filteredTopics.map((topic, topicIdx) => {

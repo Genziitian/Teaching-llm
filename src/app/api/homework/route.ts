@@ -60,7 +60,7 @@ export async function GET(request: NextRequest) {
 
     const result = homeworkList.map((hw: any) => {
       const mySubmission = hw.submissions && hw.submissions.length > 0 ? hw.submissions[0] : null
-      const isPastDue = new Date(hw.dueAt).getTime() < Date.now()
+      const isPastDue = new Date(hw.dueAt).getTime() <= Date.now()
       return {
         id: hw.id,
         courseId: hw.courseId,
@@ -77,7 +77,7 @@ export async function GET(request: NextRequest) {
         isSubmitted: !!mySubmission,
         mySubmission,
         isPastDue,
-        isOpen: hw.isOpen ?? true,
+        isOpen: !isPastDue && (hw.isOpen ?? true),
       }
     })
 

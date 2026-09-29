@@ -80,7 +80,7 @@ interface Props {
   offering?: any
 }
 
-type TabKey = 'curriculum' | 'overview' | 'feedback'
+type TabKey = 'curriculum' | 'homework' | 'overview' | 'feedback'
 
 /* ───── 3-state cycle: NOT_STARTED → COMPLETED → REWATCH → NOT_STARTED ───── */
 function cycleStatus(current: string): string {
@@ -441,11 +441,15 @@ export default function MobileCourseDetail({
 
       {/* ──── CONTENT AREA ──── */}
       <div style={{ padding: '0 14px', marginTop: '14px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
-        <HomeworkBanner
-          courseId={course.id}
-          isManager={isManager}
-          courseColor={coursePalette.accent}
-        />
+        {tab === 'curriculum' && (
+          <HomeworkBanner
+            courseId={course.id}
+            isManager={isManager}
+            courseColor={coursePalette.accent}
+            isHomePage={true}
+            onNavigateToHomework={() => setTab('homework')}
+          />
+        )}
 
         {/* ──── Tabs ──── */}
         <div style={{
@@ -455,6 +459,7 @@ export default function MobileCourseDetail({
         }}>
           {([
             { key: 'curriculum' as TabKey, label: 'Curriculum', count: topics.length },
+            { key: 'homework' as TabKey, label: 'Homework' },
             { key: 'overview' as TabKey, label: 'Overview' },
             role === 'STUDENT' && { key: 'feedback' as TabKey, label: 'Feedback' },
           ].filter(Boolean) as any[]).map(t => {
@@ -492,6 +497,17 @@ export default function MobileCourseDetail({
         </div>
 
         {/* ──── Tab Content ──── */}
+        {tab === 'homework' && (
+          <div style={{ marginTop: '10px' }}>
+            <HomeworkBanner
+              courseId={course.id}
+              isManager={isManager}
+              courseColor={coursePalette.accent}
+              isHomePage={false}
+            />
+          </div>
+        )}
+
         {tab === 'curriculum' && (
           <CurriculumTab
             courseId={course.id}

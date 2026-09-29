@@ -62,6 +62,19 @@ interface HomeworkBannerProps {
   courseId: string
   isManager: boolean
   courseColor?: string
+  isHomePage?: boolean
+  initialHomeworkId?: string | null
+  onNavigateToHomework?: (homeworkId?: string) => void
+}
+
+function isHomeworkPastDue(hw: { dueAt: string; isPastDue?: boolean }) {
+  if (hw.isPastDue) return true
+  const due = new Date(hw.dueAt).getTime()
+  return !isNaN(due) && due <= Date.now()
+}
+
+function canSubmitHomework(hw: { dueAt: string; isPastDue?: boolean; isOpen?: boolean }) {
+  return (hw.isOpen ?? true) && !isHomeworkPastDue(hw)
 }
 
 function formatCountdown(dueAtStr: string) {
@@ -98,7 +111,14 @@ function getFileName(url: string) {
   }
 }
 
-export default function HomeworkBanner({ courseId, isManager, courseColor = '#6366f1' }: HomeworkBannerProps) {
+export default function HomeworkBanner({
+  courseId,
+  isManager,
+  courseColor = '#6366f1',
+  isHomePage = false,
+  initialHomeworkId = null,
+  onNavigateToHomework
+}: HomeworkBannerProps) {
   const [homeworkList, setHomeworkList] = useState<HomeworkItem[]>([])
   const [loading, setLoading] = useState(true)
   const [expandedDesc, setExpandedDesc] = useState<Record<string, boolean>>({})
@@ -109,10 +129,16 @@ export default function HomeworkBanner({ courseId, isManager, courseColor = '#63
   const [submittingHomework, setSubmittingHomework] = useState<HomeworkItem | null>(null)
   const [viewingSubmissionsHw, setViewingSubmissionsHw] = useState<HomeworkItem | null>(null)
   const [togglingId, setTogglingId] = useState<string | null>(null)
-  const [selectedHomeworkId, setSelectedHomeworkId] = useState<string | null>(null)
+  const [selectedHomeworkId, setSelectedHomeworkId] = useState<string | null>(initialHomeworkId)
   const [showAllHomework, setShowAllHomework] = useState(false)
   const [materialPickerHomework, setMaterialPickerHomework] = useState<HomeworkItem | null>(null)
   const [imagePreviewMaterial, setImagePreviewMaterial] = useState<{ url: string; label: string } | null>(null)
+
+  useEffect(() => {
+    if (initialHomeworkId) {
+      setSelectedHomeworkId(initialHomeworkId)
+    }
+  }, [initialHomeworkId])
 
   const fetchHomework = useCallback(async () => {
     try {
@@ -177,10 +203,15 @@ export default function HomeworkBanner({ courseId, isManager, courseColor = '#63
     if (createdDiff !== 0) return createdDiff
     return new Date(a.dueAt).getTime() - new Date(b.dueAt).getTime()
   })
-  const activeHomework = sortedHomework.filter(hw => (hw.isOpen ?? true) && !hw.isPastDue)
+  const activeHomework = sortedHomework.filter(hw => canSubmitHomework(hw))
   const previewHomework = activeHomework[0] || sortedHomework[0]
   const selectedHomework = selectedHomeworkId ? sortedHomework.find(hw => hw.id === selectedHomeworkId) || null : null
   const getSerial = (id: string) => Math.max(1, sortedHomework.findIndex(hw => hw.id === id) + 1)
+
+  // If on home page, do NOT show banner if no active homework exists (deadline passed or closed)
+  if (isHomePage && activeHomework.length === 0) {
+    return null
+  }
 
   const openHomeworkDetail = (id: string) => {
     setSelectedHomeworkId(id)
@@ -217,9 +248,9 @@ export default function HomeworkBanner({ courseId, isManager, courseColor = '#63
   const renderHomeworkDetail = (hw: HomeworkItem) => {
     const serial = getSerial(hw.id)
     const isSubmitted = !!hw.isSubmitted
-    const isPastDue = hw.isPastDue
-    const isOpen = hw.isOpen ?? true
-    const canSubmit = isOpen
+    const isPastDue = isHomeworkPastDue(hw)
+    const isOpen = (hw.isOpen ?? true) && !isPastDue
+    const canSubmit = isOpen && !isPastDue
     const isExpanded = !!expandedDesc[hw.id]
     const hasMaterials = hw.fileUrls && hw.fileUrls.length > 0
 
@@ -229,19 +260,27 @@ export default function HomeworkBanner({ courseId, isManager, courseColor = '#63
         style={{
           background: 'var(--surface)',
           borderRadius: '12px',
-          border: `1px solid ${isSubmitted ? 'rgba(34, 197, 94, 0.4)' : isPastDue ? 'rgba(239, 68, 68, 0.4)' : 'rgba(245, 158, 11, 0.36)'}`,
-          boxShadow: '0 8px 24px rgba(0,0,0,0.04)',
+          border: `1px solid ${
+            isPastDue
+              ? 'rgba(148, 163, 184, 0.28)'
+              : isSubmitted
+              ? 'rgba(34, 197, 94, 0.4)'
+              : 'rgba(245, 158, 11, 0.36)'
+          }`,
+          boxShadow: isPastDue ? 'none' : '0 8px 24px rgba(0,0,0,0.04)',
           overflow: 'hidden',
           marginBottom: '14px',
-          position: 'relative'
+          position: 'relative',
+          filter: isPastDue ? 'grayscale(0.92)' : 'none',
+          opacity: isPastDue ? 0.9 : 1
         }}
       >
         <div style={{
           height: '3px',
-          background: isSubmitted
+          background: isPastDue
+            ? 'linear-gradient(90deg, #64748b, #475569)'
+            : isSubmitted
             ? 'linear-gradient(90deg, #10b981, #059669)'
-            : isPastDue
-            ? 'linear-gradient(90deg, #ef4444, #dc2626)'
             : 'linear-gradient(90deg, #f59e0b, #d97706)'
         }} />
 
@@ -264,18 +303,30 @@ export default function HomeworkBanner({ courseId, isManager, courseColor = '#63
                 fontWeight: 800,
                 textTransform: 'uppercase',
                 letterSpacing: '0.04em',
-                background: isSubmitted
+                background: isPastDue
+                  ? 'rgba(148, 163, 184, 0.16)'
+                  : isSubmitted
                   ? 'rgba(34, 197, 94, 0.15)'
-                  : isPastDue
-                  ? 'rgba(239, 68, 68, 0.15)'
                   : 'rgba(245, 158, 11, 0.15)',
-                color: isSubmitted ? '#10b981' : isPastDue ? '#ef4444' : '#d97706',
-                border: `1px solid ${isSubmitted ? 'rgba(34, 197, 94, 0.3)' : isPastDue ? 'rgba(239, 68, 68, 0.3)' : 'rgba(245, 158, 11, 0.3)'}`
+                color: isPastDue ? '#94a3b8' : isSubmitted ? '#10b981' : '#d97706',
+                border: `1px solid ${
+                  isPastDue
+                    ? 'rgba(148, 163, 184, 0.3)'
+                    : isSubmitted
+                    ? 'rgba(34, 197, 94, 0.3)'
+                    : 'rgba(245, 158, 11, 0.3)'
+                }`
               }}>
-                #{serial} {isSubmitted ? <><CheckCircle2 size={13} /> Submitted</> : isPastDue ? <><AlertCircle size={13} /> Past Deadline</> : <><Clock size={13} /> Homework Pending</>}
+                #{serial} {
+                  isPastDue
+                    ? <><AlertCircle size={13} /> Past Deadline</>
+                    : isSubmitted
+                    ? <><CheckCircle2 size={13} /> Submitted</>
+                    : <><Clock size={13} /> Homework Pending</>
+                }
               </span>
 
-              {!isOpen && (
+              {!canSubmit && !isPastDue && (
                 <span style={{
                   display: 'inline-flex',
                   alignItems: 'center',
@@ -303,7 +354,7 @@ export default function HomeworkBanner({ courseId, isManager, courseColor = '#63
                 fontWeight: 600
               }}>
                 <Calendar size={13} /> Due: {formatDate(hw.dueAt)}
-                <span style={{ fontWeight: 700, color: isPastDue ? '#ef4444' : '#d97706', marginLeft: '4px' }}>
+                <span style={{ fontWeight: 700, color: isPastDue ? '#94a3b8' : '#d97706', marginLeft: '4px' }}>
                   ({formatCountdown(hw.dueAt)})
                 </span>
               </span>
@@ -413,14 +464,19 @@ export default function HomeworkBanner({ courseId, isManager, courseColor = '#63
             <div>
               {isSubmitted && hw.mySubmission ? (
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <FileCheck size={16} style={{ color: '#10b981' }} />
+                  <FileCheck size={16} style={{ color: isPastDue ? '#94a3b8' : '#10b981' }} />
                   <span style={{ fontSize: '12.5px', color: 'var(--text-secondary)' }}>
                     You submitted {hw.mySubmission.fileUrls.length} file(s) on {formatDate(hw.mySubmission.submittedAt)}
+                    {isPastDue && ' — Submissions closed'}
                   </span>
                 </div>
               ) : (
                 <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
-                  {canSubmit ? 'Submit before the deadline.' : 'Submission is currently closed by admin.'}
+                  {canSubmit
+                    ? 'Submit before the deadline.'
+                    : isPastDue
+                    ? 'Deadline has passed. Submissions are closed.'
+                    : 'Submission is currently closed by admin.'}
                 </span>
               )}
             </div>
@@ -448,7 +504,7 @@ export default function HomeworkBanner({ courseId, isManager, courseColor = '#63
                 </button>
               )}
               <button
-                onClick={() => setSubmittingHomework(hw)}
+                onClick={() => canSubmit && setSubmittingHomework(hw)}
                 disabled={!canSubmit}
                 style={{
                   display: 'inline-flex',
@@ -456,18 +512,40 @@ export default function HomeworkBanner({ courseId, isManager, courseColor = '#63
                   gap: '6px',
                   padding: '8px 18px',
                   borderRadius: '999px',
-                  border: isSubmitted ? '1px solid var(--border)' : 'none',
-                  background: !canSubmit ? 'var(--surface-2)' : isSubmitted ? 'var(--surface-2)' : courseColor,
-                  color: !canSubmit ? 'var(--text-muted)' : isSubmitted ? 'var(--text-primary)' : '#fff',
-                  boxShadow: isSubmitted || !canSubmit ? 'none' : '0 4px 12px rgba(0,0,0,0.15)',
+                  border: isPastDue
+                    ? '1px solid rgba(148, 163, 184, 0.25)'
+                    : isSubmitted
+                    ? '1px solid var(--border)'
+                    : 'none',
+                  background: isPastDue
+                    ? 'var(--surface-2)'
+                    : !canSubmit
+                    ? 'var(--surface-2)'
+                    : isSubmitted
+                    ? 'var(--surface-2)'
+                    : courseColor,
+                  color: isPastDue
+                    ? 'var(--text-muted)'
+                    : !canSubmit
+                    ? 'var(--text-muted)'
+                    : isSubmitted
+                    ? 'var(--text-primary)'
+                    : '#fff',
+                  boxShadow: isPastDue || isSubmitted || !canSubmit ? 'none' : '0 4px 12px rgba(0,0,0,0.15)',
                   fontSize: '13px',
                   fontWeight: 700,
                   cursor: canSubmit ? 'pointer' : 'not-allowed',
-                  opacity: canSubmit ? 1 : 0.72
+                  opacity: canSubmit ? 1 : 0.65
                 }}
               >
-                <Upload size={14} />
-                {!canSubmit ? 'Submission Closed' : isSubmitted ? 'Update Submission' : 'Submit Homework'}
+                {isPastDue ? <Lock size={14} /> : <Upload size={14} />}
+                {isPastDue
+                  ? 'Submission Closed'
+                  : !canSubmit
+                  ? 'Submission Closed'
+                  : isSubmitted
+                  ? 'Update Submission'
+                  : 'Submit Homework'}
               </button>
 
               {isManager && (
@@ -488,160 +566,240 @@ export default function HomeworkBanner({ courseId, isManager, courseColor = '#63
 
   return (
     <div style={{ marginBottom: '20px', width: '100%' }}>
-      {/* Manager "New Homework" trigger when no homework exists */}
-      {isManager && homeworkList.length === 0 && (
-        <div style={{
-          background: 'var(--surface)',
-          border: '1px dashed var(--border)',
-          borderRadius: '16px',
-          padding: '16px 20px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          flexWrap: 'wrap',
-          gap: '12px'
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <FileText size={20} style={{ color: courseColor }} />
-            <div>
-              <p style={{ fontWeight: 700, fontSize: '14px', margin: 0, color: 'var(--text-primary)' }}>
-                No active homework for this course
-              </p>
-              <p style={{ fontSize: '12px', margin: 0, color: 'var(--text-secondary)' }}>
-                Create assignments with photos, PDFs, and submission tracking.
-              </p>
+      {isHomePage ? (
+        /* HOME PAGE / LECTURES VIEW: Banner for active homework only */
+        activeHomework.length > 0 && (
+          <div style={{
+            border: '1px solid rgba(245, 158, 11, 0.28)',
+            borderLeft: '5px solid #f59e0b',
+            background: 'rgba(245, 158, 11, 0.07)',
+            borderRadius: '14px',
+            padding: '14px 16px',
+            minHeight: '72px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: '16px',
+            flexWrap: 'wrap'
+          }}>
+            <div
+              style={{
+                flex: '1 1 280px',
+                minWidth: 0,
+                display: 'flex',
+                alignItems: 'center',
+                gap: '12px',
+                flexWrap: 'wrap',
+                textAlign: 'left'
+              }}
+            >
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', color: '#d97706', fontSize: '12px', fontWeight: 900, textTransform: 'uppercase', flexShrink: 0 }}>
+                <Clock size={14} /> Homework #{getSerial(activeHomework[0].id)}
+              </span>
+              <span style={{ color: 'var(--text-primary)', fontSize: '15px', fontWeight: 900, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 'min(420px, 100%)' }}>
+                {activeHomework[0].title}
+              </span>
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', color: 'var(--text-secondary)', fontSize: '12px', fontWeight: 700, flexShrink: 0 }}>
+                <Calendar size={13} /> {formatDate(activeHomework[0].dueAt)}
+                <span style={{ color: '#d97706' }}>({formatCountdown(activeHomework[0].dueAt)})</span>
+              </span>
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+              <button
+                type="button"
+                onClick={() => {
+                  if (onNavigateToHomework) {
+                    onNavigateToHomework(activeHomework[0].id)
+                  } else {
+                    openHomeworkDetail(activeHomework[0].id)
+                  }
+                }}
+                style={{ border: 'none', background: courseColor, color: '#fff', borderRadius: '999px', padding: '9px 18px', fontSize: '13px', fontWeight: 900, cursor: 'pointer', boxShadow: '0 6px 14px rgba(0,0,0,0.14)' }}
+              >
+                View Homework
+              </button>
+              {activeHomework.length > 1 && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (onNavigateToHomework) {
+                      onNavigateToHomework()
+                    } else {
+                      setShowAllHomework(true)
+                    }
+                  }}
+                  style={{ border: '1px solid var(--border)', background: 'var(--surface)', color: 'var(--text-primary)', borderRadius: '999px', padding: '9px 14px', fontSize: '12px', fontWeight: 800, cursor: 'pointer' }}
+                >
+                  View All Homework
+                </button>
+              )}
+              {isManager && (
+                <button
+                  type="button"
+                  onClick={() => setShowCreateModal(true)}
+                  style={{ border: 'none', background: courseColor, color: '#fff', borderRadius: '999px', padding: '9px 14px', fontSize: '12px', fontWeight: 800, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+                >
+                  <Plus size={13} /> New Homework
+                </button>
+              )}
             </div>
           </div>
-          <button
-            onClick={() => setShowCreateModal(true)}
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '6px',
-              padding: '8px 16px',
-              borderRadius: '20px',
-              border: 'none',
-              background: courseColor,
-              color: '#fff',
-              fontSize: '13px',
-              fontWeight: 700,
-              cursor: 'pointer'
-            }}
-          >
-            <Plus size={16} /> New Homework
-          </button>
-        </div>
-      )}
-
-      {previewHomework && !showAllHomework && !selectedHomework && (
-        <div style={{
-          border: '1px solid rgba(245, 158, 11, 0.28)',
-          borderLeft: '5px solid #f59e0b',
-          background: 'rgba(245, 158, 11, 0.07)',
-          borderRadius: '14px',
-          padding: '14px 16px',
-          minHeight: '72px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          gap: '16px',
-          flexWrap: 'wrap'
-        }}>
-          <button
-            type="button"
-            style={{
-              flex: '1 1 280px',
-              minWidth: 0,
-              background: 'transparent',
-              border: 'none',
-              padding: 0,
-              cursor: 'default',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '12px',
-              flexWrap: 'wrap',
-              textAlign: 'left'
-            }}
-          >
-            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', color: '#d97706', fontSize: '12px', fontWeight: 900, textTransform: 'uppercase', flexShrink: 0 }}>
-              <Clock size={14} /> Homework #{getSerial(previewHomework.id)}
-            </span>
-            <span style={{ color: 'var(--text-primary)', fontSize: '15px', fontWeight: 900, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 'min(420px, 100%)' }}>
-              {previewHomework.title}
-            </span>
-            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', color: 'var(--text-secondary)', fontSize: '12px', fontWeight: 700, flexShrink: 0 }}>
-              <Calendar size={13} /> {formatDate(previewHomework.dueAt)}
-              <span style={{ color: '#d97706' }}>({formatCountdown(previewHomework.dueAt)})</span>
-            </span>
-          </button>
-
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-            <button
-              type="button"
-              onClick={() => openHomeworkDetail(previewHomework.id)}
-              style={{ border: 'none', background: courseColor, color: '#fff', borderRadius: '999px', padding: '9px 18px', fontSize: '13px', fontWeight: 900, cursor: 'pointer', boxShadow: '0 6px 14px rgba(0,0,0,0.14)' }}
-            >
-              View Homework
-            </button>
-            {sortedHomework.length > 1 && (
-              <button
-                type="button"
-                onClick={() => setShowAllHomework(true)}
-                style={{ border: '1px solid var(--border)', background: 'var(--surface)', color: 'var(--text-primary)', borderRadius: '999px', padding: '9px 14px', fontSize: '12px', fontWeight: 800, cursor: 'pointer' }}
-              >
-                View All Homework
-              </button>
-            )}
-            {isManager && (
-              <button
-                type="button"
-                onClick={() => setShowCreateModal(true)}
-                style={{ border: 'none', background: courseColor, color: '#fff', borderRadius: '999px', padding: '9px 14px', fontSize: '12px', fontWeight: 800, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
-              >
-                <Plus size={13} /> New Homework
-              </button>
-            )}
-          </div>
-        </div>
-      )}
-
-      {showAllHomework && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px', flexWrap: 'wrap' }}>
-            <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 900, color: 'var(--text-primary)' }}>All Homework</h3>
-            <button
-              type="button"
-              onClick={() => setShowAllHomework(false)}
-              style={{ border: '1px solid var(--border)', background: 'var(--surface-2)', color: 'var(--text-primary)', borderRadius: '999px', padding: '6px 12px', fontSize: '12px', fontWeight: 800, cursor: 'pointer' }}
-            >
-              Back
-            </button>
-          </div>
-          {sortedHomework.map(hw => {
-            const serial = getSerial(hw.id)
-            const isOpen = hw.isOpen ?? true
-            return (
-              <button
-                key={hw.id}
-                type="button"
-                onClick={() => openHomeworkDetail(hw.id)}
-                style={{ width: '100%', border: '1px solid var(--border)', background: 'var(--surface)', borderRadius: '10px', padding: '12px 14px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', flexWrap: 'wrap', textAlign: 'left' }}
-              >
-                <span style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0, flex: '1 1 260px' }}>
-                  <span style={{ color: isOpen ? '#d97706' : 'var(--text-muted)', fontSize: '12px', fontWeight: 900, flexShrink: 0 }}>#{serial}</span>
-                  <span style={{ color: 'var(--text-primary)', fontSize: '14px', fontWeight: 800, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{hw.title}</span>
-                </span>
-                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', color: 'var(--text-secondary)', fontSize: '12px', fontWeight: 700, flexShrink: 0 }}>
-                  {isOpen ? <Unlock size={13} /> : <Lock size={13} />} Due: {formatDate(hw.dueAt)}
-                </span>
-              </button>
+        )
+      ) : (
+        /* HOMEWORK TAB VIEW */
+        <div>
+          {/* Empty state when no homework exists */}
+          {homeworkList.length === 0 && (
+            isManager ? (
+              <div style={{
+                background: 'var(--surface)',
+                border: '1px dashed var(--border)',
+                borderRadius: '16px',
+                padding: '24px 20px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                flexWrap: 'wrap',
+                gap: '12px'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <FileText size={20} style={{ color: courseColor }} />
+                  <div>
+                    <p style={{ fontWeight: 700, fontSize: '14px', margin: 0, color: 'var(--text-primary)' }}>
+                      No active homework for this course
+                    </p>
+                    <p style={{ fontSize: '12px', margin: 0, color: 'var(--text-secondary)' }}>
+                      Create assignments with photos, PDFs, and submission tracking.
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setShowCreateModal(true)}
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    padding: '8px 16px',
+                    borderRadius: '20px',
+                    border: 'none',
+                    background: courseColor,
+                    color: '#fff',
+                    fontSize: '13px',
+                    fontWeight: 700,
+                    cursor: 'pointer'
+                  }}
+                >
+                  <Plus size={16} /> New Homework
+                </button>
+              </div>
+            ) : (
+              <div style={{
+                background: 'var(--surface)',
+                border: '1px dashed var(--border)',
+                borderRadius: '16px',
+                padding: '36px 20px',
+                textAlign: 'center'
+              }}>
+                <FileText size={36} style={{ color: 'var(--text-muted)', margin: '0 auto 8px', display: 'block' }} />
+                <p style={{ fontWeight: 800, fontSize: '15px', margin: '0 0 4px', color: 'var(--text-primary)' }}>
+                  No homework assigned yet
+                </p>
+                <p style={{ fontSize: '12.5px', margin: 0, color: 'var(--text-secondary)' }}>
+                  Assignments and project tasks will appear here.
+                </p>
+              </div>
             )
-          })}
-        </div>
-      )}
+          )}
 
-      {selectedHomework && (
-        renderHomeworkDetail(selectedHomework)
+          {/* When homework exist */}
+          {homeworkList.length > 0 && (
+            <div>
+              {selectedHomework ? (
+                <div>
+                  {sortedHomework.length > 1 && (
+                    <button
+                      type="button"
+                      onClick={() => setSelectedHomeworkId(null)}
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                        marginBottom: '14px',
+                        border: '1px solid var(--border)',
+                        background: 'var(--surface-2)',
+                        color: 'var(--text-primary)',
+                        borderRadius: '999px',
+                        padding: '6px 14px',
+                        fontSize: '12px',
+                        fontWeight: 800,
+                        cursor: 'pointer'
+                      }}
+                    >
+                      ← Back to All Homework
+                    </button>
+                  )}
+                  {renderHomeworkDetail(selectedHomework)}
+                </div>
+              ) : sortedHomework.length === 1 ? (
+                <div>
+                  {isManager && (
+                    <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '14px' }}>
+                      <button
+                        onClick={() => setShowCreateModal(true)}
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '6px',
+                          padding: '8px 16px',
+                          borderRadius: '20px',
+                          border: 'none',
+                          background: courseColor,
+                          color: '#fff',
+                          fontSize: '13px',
+                          fontWeight: 700,
+                          cursor: 'pointer'
+                        }}
+                      >
+                        <Plus size={16} /> New Homework
+                      </button>
+                    </div>
+                  )}
+                  {renderHomeworkDetail(sortedHomework[0])}
+                </div>
+              ) : (
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px', flexWrap: 'wrap', gap: '10px' }}>
+                    <h2 style={{ fontSize: '18px', fontWeight: 900, margin: 0, color: 'var(--text-primary)' }}>
+                      Homework Assignments ({sortedHomework.length})
+                    </h2>
+                    {isManager && (
+                      <button
+                        onClick={() => setShowCreateModal(true)}
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '6px',
+                          padding: '8px 16px',
+                          borderRadius: '20px',
+                          border: 'none',
+                          background: courseColor,
+                          color: '#fff',
+                          fontSize: '13px',
+                          fontWeight: 700,
+                          cursor: 'pointer'
+                        }}
+                      >
+                        <Plus size={16} /> New Homework
+                      </button>
+                    )}
+                  </div>
+                  {sortedHomework.map(hw => renderHomeworkDetail(hw))}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
       )}
 
       {/* Modal: Student Homework Submit */}
@@ -887,6 +1045,9 @@ function SubmitHomeworkModal({
   const [error, setError] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
+  const isPastDue = isHomeworkPastDue(homework)
+  const canSubmit = canSubmitHomework(homework)
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
       const filesArray = Array.from(e.target.files)
@@ -900,6 +1061,10 @@ function SubmitHomeworkModal({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (!canSubmit) {
+      setError(isPastDue ? 'Deadline has passed. Submissions are closed.' : 'Submissions are currently closed.')
+      return
+    }
     if (selectedFiles.length === 0 && !note.trim() && (!homework.mySubmission?.fileUrls || homework.mySubmission.fileUrls.length === 0)) {
       setError('Please select at least one photo/PDF or enter your note.')
       return
@@ -990,6 +1155,25 @@ function SubmitHomeworkModal({
         </div>
 
         <form onSubmit={handleSubmit} style={{ padding: '20px 24px', overflowY: 'auto', flex: 1 }}>
+          {!canSubmit && (
+            <div style={{
+              background: 'rgba(148, 163, 184, 0.12)',
+              border: '1px solid rgba(148, 163, 184, 0.28)',
+              borderRadius: '12px',
+              padding: '10px 14px',
+              color: 'var(--text-secondary)',
+              fontSize: '13px',
+              marginBottom: '16px',
+              fontWeight: 600,
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px'
+            }}>
+              <Lock size={15} style={{ color: '#94a3b8', flexShrink: 0 }} />
+              <span>{isPastDue ? 'The deadline has passed. Submissions are closed.' : 'Submissions are currently closed.'}</span>
+            </div>
+          )}
+
           {error && (
             <div style={{
               background: 'rgba(239, 68, 68, 0.1)',
@@ -1138,21 +1322,21 @@ function SubmitHomeworkModal({
             </button>
             <button
               type="submit"
-              disabled={loading}
+              disabled={loading || !canSubmit}
               style={{
                 flex: 1.5,
                 padding: '12px',
                 borderRadius: '50px',
-                border: 'none',
-                background: courseColor,
-                color: '#fff',
+                border: !canSubmit ? '1px solid var(--border)' : 'none',
+                background: !canSubmit ? 'var(--surface-2)' : courseColor,
+                color: !canSubmit ? 'var(--text-muted)' : '#fff',
                 fontSize: '13px',
                 fontWeight: 700,
-                cursor: loading ? 'not-allowed' : 'pointer',
-                opacity: loading ? 0.7 : 1
+                cursor: !canSubmit ? 'not-allowed' : loading ? 'not-allowed' : 'pointer',
+                opacity: !canSubmit ? 0.65 : loading ? 0.7 : 1
               }}
             >
-              {loading ? 'Uploading & Submitting...' : 'Confirm Submission'}
+              {!canSubmit ? 'Submission Closed' : loading ? 'Uploading & Submitting...' : 'Confirm Submission'}
             </button>
           </div>
         </form>

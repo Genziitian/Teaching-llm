@@ -43,13 +43,15 @@ export async function GET(
       }
     }
 
+    const isPastDue = new Date(homework.dueAt).getTime() <= Date.now()
     const mySubmission = homework.submissions && homework.submissions.length > 0 ? homework.submissions[0] : null
     return NextResponse.json({
       ...homework,
       isSubmitted: !!mySubmission,
       mySubmission,
       submissionsCount: homework._count.submissions,
-      isPastDue: new Date(homework.dueAt).getTime() < Date.now(),
+      isPastDue,
+      isOpen: !isPastDue && (homework.isOpen ?? true),
     })
   } catch (error: any) {
     console.error('Error fetching homework detail:', error)

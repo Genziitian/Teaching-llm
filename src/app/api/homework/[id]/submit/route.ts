@@ -45,8 +45,17 @@ export async function POST(
       return NextResponse.json({ error: 'Homework not found' }, { status: 404 })
     }
 
-    if (!homework.isOpen && !isAdminOrManager(session.role)) {
-      return NextResponse.json({ error: 'Homework submissions are currently closed' }, { status: 403 })
+    const isPastDue = new Date(homework.dueAt).getTime() <= Date.now()
+    if ((!homework.isOpen || isPastDue) && !isAdminOrManager(session.role)) {
+      if (isPastDue && homework.isOpen) {
+        prisma.homework.update({
+          where: { id },
+          data: { isOpen: false },
+        }).catch(() => {})
+      }
+      return NextResponse.json({
+        error: isPastDue ? 'Homework deadline has passed. Submissions are closed.' : 'Homework submissions are currently closed'
+      }, { status: 403 })
     }
 
     // Verify course access
