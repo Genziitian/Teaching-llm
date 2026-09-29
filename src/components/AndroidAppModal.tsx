@@ -3,8 +3,10 @@
 import { useEffect, useState } from 'react'
 import posthog from 'posthog-js'
 
-const PLAY_STORE_URL =
-  'https://play.google.com/store/apps/details?id=com.teaching.lms&referrer=utm_source%3Dmobile_web%26utm_medium%3Dandroid_modal'
+const PLAY_PACKAGE = 'com.teaching.lms'
+const PLAY_REFERRER = encodeURIComponent('utm_source=mobile_web&utm_medium=android_modal')
+const MARKET_URL = `market://details?id=${PLAY_PACKAGE}&referrer=${PLAY_REFERRER}`
+const PLAY_STORE_URL = `https://play.google.com/store/apps/details?id=${PLAY_PACKAGE}&referrer=${PLAY_REFERRER}`
 
 export interface DetectionParams {
   userAgent?: string
@@ -115,12 +117,19 @@ export default function AndroidAppModal() {
     setIsOpen(false)
   }
 
-  const handleDownloadClick = () => {
+  const handleDownloadClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
     try {
       posthog.capture('play_store_modal_download_clicked', {
         source: 'android_web_modal',
       })
     } catch {}
+
+    const isAndroid = /android/i.test(navigator.userAgent || navigator.vendor || '')
+    if (isAndroid) {
+      e.preventDefault()
+      // Opens the native Google Play Store app directly (not Chrome web)
+      window.location.href = MARKET_URL
+    }
   }
 
   return (
@@ -339,8 +348,6 @@ export default function AndroidAppModal() {
         {/* Download Now Button */}
         <a
           href={PLAY_STORE_URL}
-          target="_blank"
-          rel="noopener noreferrer"
           onClick={handleDownloadClick}
           className="play-modal-download-btn"
           style={{
