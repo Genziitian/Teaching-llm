@@ -112,7 +112,7 @@ export async function GET() {
 
     const filteredSessions = syncedSessions
 
-    const upcomingSessionsCount = filteredSessions.filter((session: any) => session.status === 'upcoming').length
+    const upcomingSessionsCount = filteredSessions.filter((session: any) => session.status === 'upcoming' || session.status === 'rescheduled').length
     const activeSessionsCount = filteredSessions.filter((session: any) => session.status === 'live').length
 
     // Calculate daysLeft from deadlineDate for examCountdown

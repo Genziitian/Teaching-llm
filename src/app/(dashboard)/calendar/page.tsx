@@ -14,6 +14,7 @@ interface CalEvent {
   date: string
   time: string
   endTime?: string
+  originalStartTime?: string | null
   type: string
   meetLink?: string | null
   streamProvider?: string | null
@@ -1805,6 +1806,16 @@ function CalendarPageContent() {
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                     {dayEvents.map(ev => {
                       const tc = TYPE_COLORS[ev.type] || TYPE_COLORS.class
+                      const isRescheduled = ev.internalStatus === 'RESCHEDULED'
+                      const originalStartLabel = ev.originalStartTime
+                        ? new Date(ev.originalStartTime).toLocaleString('en-IN', {
+                            day: '2-digit',
+                            month: 'short',
+                            hour: 'numeric',
+                            minute: '2-digit',
+                            hour12: true,
+                          })
+                        : null
                       return (
                         <div key={ev.id} style={{ 
                           border: `1px solid ${tc.bg}`, 
@@ -1823,8 +1834,15 @@ function CalendarPageContent() {
                                 <span className={`badge badge-${ev.type === 'exam' ? 'danger' : ev.type === 'assignment' ? 'warning' : 'primary'}`}>
                                   {tc.label}
                                 </span>
-                                <span style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text-secondary)' }}>
-                                  {ev.time ? `${formatTimeString12Hour(ev.time)}${ev.endTime ? ` - ${formatTimeString12Hour(ev.endTime)}` : ''}` : 'Time TBD'}
+                                <span style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text-secondary)', display: 'inline-flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+                                  {isRescheduled && originalStartLabel && (
+                                    <span style={{ textDecoration: 'line-through', color: 'var(--text-muted)', opacity: 0.78 }}>
+                                      {originalStartLabel}
+                                    </span>
+                                  )}
+                                  <span style={{ color: isRescheduled ? '#d97706' : 'var(--text-secondary)', fontWeight: isRescheduled ? 800 : 600 }}>
+                                    {ev.time ? `${isRescheduled ? 'New: ' : ''}${formatTimeString12Hour(ev.time)}${ev.endTime ? ` - ${formatTimeString12Hour(ev.endTime)}` : ''}` : 'Time TBD'}
+                                  </span>
                                 </span>
                               </div>
                               <h4 style={{ fontSize: '16px', fontWeight: '700', color: 'var(--text-primary)', margin: 0 }}>

@@ -142,7 +142,6 @@ export function getEventStatus(
   status: string = 'SCHEDULED'
 ) {
   if (status === 'CANCELLED') return 'cancelled';
-  if (status === 'RESCHEDULED') return 'rescheduled';
 
   const now = new Date();
   const start = typeof startTime === 'string' ? new Date(startTime) : startTime;

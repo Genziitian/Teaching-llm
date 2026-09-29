@@ -44,6 +44,7 @@ export async function syncTodaySessions(createdById: string) {
         description: event.description || null,
         startTime: event.startTime,
         endTime: event.endTime,
+        originalStartTime: event.originalStartTime,
         meetLink: event.meetLink || null,
         status: event.status,
         courseId: event.courseId,
@@ -155,6 +156,13 @@ export async function getTodaySessionSnapshots(session: SessionRole) {
       where: { id: { in: sourceEventIds } },
       select: {
         id: true,
+        title: true,
+        description: true,
+        startTime: true,
+        endTime: true,
+        originalStartTime: true,
+        meetLink: true,
+        status: true,
         instructorId: true,
         streamProvider: true,
         streamStatus: true,
@@ -174,22 +182,29 @@ export async function getTodaySessionSnapshots(session: SessionRole) {
     const isGlobal = snapshot.isGlobal
 
     // Managers see everything; for students, hide meetLink if RECORDED and not global
-    const effectiveMeetLink = (isRecordedOnly && !isGlobal) ? null : snapshot.meetLink
-
     const liveEvent = snapshot.sourceEventId ? sourceEventsById.get(snapshot.sourceEventId) : null
+    const effectiveStartTime = liveEvent?.startTime ?? snapshot.startTime
+    const effectiveEndTime = liveEvent?.endTime ?? snapshot.endTime
+    const effectiveStatus = liveEvent?.status ?? snapshot.status
+    const effectiveMeetLink = (isRecordedOnly && !isGlobal) ? null : (liveEvent?.meetLink ?? snapshot.meetLink)
 
     return {
       id: snapshot.id,
       sourceEventId: snapshot.sourceEventId,
-      title: snapshot.title,
-      description: snapshot.description,
-      startTime: snapshot.startTime.toISOString(),
-      endTime: snapshot.endTime.toISOString(),
-      date: formatISTDate(snapshot.startTime),
-      time: formatIST(snapshot.startTime, { hour: 'numeric', minute: '2-digit', hour12: true }),
+      title: liveEvent?.title ?? snapshot.title,
+      description: liveEvent?.description ?? snapshot.description,
+      startTime: effectiveStartTime.toISOString(),
+      endTime: effectiveEndTime.toISOString(),
+      originalStartTime: liveEvent?.originalStartTime
+        ? liveEvent.originalStartTime.toISOString()
+        : snapshot.originalStartTime
+        ? snapshot.originalStartTime.toISOString()
+        : null,
+      date: formatISTDate(effectiveStartTime),
+      time: formatIST(effectiveStartTime, { hour: 'numeric', minute: '2-digit', hour12: true }),
       meetLink: effectiveMeetLink,
-      status: getEventStatus(snapshot.startTime, snapshot.endTime, snapshot.status),
-      manualStatus: snapshot.status,
+      status: getEventStatus(effectiveStartTime, effectiveEndTime, effectiveStatus),
+      manualStatus: effectiveStatus,
       courseId: snapshot.courseId,
       course: snapshot.course,
       instructor: snapshot.instructor,
