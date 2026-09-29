@@ -64,7 +64,10 @@ export async function GET() {
           NOT: { pptUrl: "" }
         } 
       }),
-      getTodaySessionSnapshots(session),
+      getTodaySessionSnapshots(session).catch((err) => {
+        console.error('[DASHBOARD] getTodaySessionSnapshots error (falling back to empty list):', err?.message || err)
+        return []
+      }),
       prisma.lectureProgress.findFirst({
         where: {
           userId: session.userId,

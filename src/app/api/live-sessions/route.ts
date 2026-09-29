@@ -12,9 +12,12 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { searchParams } = new URL(request.url)
+    const searchParams = new URL(request.url).searchParams
     const status = searchParams.get('status')
-    const sessions = await getTodaySessionSnapshots(session)
+    const sessions = await getTodaySessionSnapshots(session).catch((err) => {
+      console.error('[LIVE-SESSIONS] getTodaySessionSnapshots error (falling back to empty list):', err?.message || err)
+      return []
+    })
 
     // Fetch today's mentorship bookings for this user
     const { startOfDay, endOfDay } = require('@/lib/date-utils').getISTDayBoundaries()
