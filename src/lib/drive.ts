@@ -178,6 +178,51 @@ export async function fetchDriveFileStream(fileId: string, rangeHeader: string |
   const defaultUrl = `https://drive.google.com/uc?export=download&id=${encodeURIComponent(fileId)}`
   const res = await fetch(defaultUrl, { headers: requestHeaders, redirect: 'follow' })
   if (!res.body) throw new Error('Drive public fetch returned no body')
+
+  const ct = res.headers.get('content-type') || ''
+  if (ct.includes('html')) {
+    // Google Drive often returns an HTML confirmation page for large files (virus scan warning)
+    const text = await res.text()
+    let confirmUrl: string | null = null
+    const linkMatch = text.match(/href="(\/uc\?export=download[^"]+confirm=[^"]+)"/i) ||
+      text.match(/href="(https:\/\/drive\.usercontent\.google\.com\/download[^"]+confirm=[^"]+)"/i)
+    if (linkMatch) {
+      confirmUrl = linkMatch[1].startsWith('/') ? `https://drive.google.com${linkMatch[1]}` : linkMatch[1]
+      confirmUrl = confirmUrl.replace(/&amp;/g, '&')
+    } else {
+      const actionMatch = text.match(/action="(https:\/\/drive\.usercontent\.google\.com\/download[^"]*|\/uc\?export=download[^"]*)"/i)
+      if (actionMatch) {
+        const baseAction = actionMatch[1].startsWith('/') ? `https://drive.google.com${actionMatch[1]}` : actionMatch[1]
+        const formInputs = Array.from(text.matchAll(/<input[^>]+name="([^"]+)"[^>]+value="([^"]*)"/gi))
+        const params = new URLSearchParams()
+        for (const input of formInputs) {
+          params.set(input[1], input[2])
+        }
+        if (!params.has('id')) params.set('id', fileId)
+        if (!params.has('export')) params.set('export', 'download')
+        confirmUrl = `${baseAction}?${params.toString()}`
+      }
+    }
+
+    if (confirmUrl) {
+      const setCookies = res.headers.get('set-cookie')
+      const confirmHeaders: Record<string, string> = { ...requestHeaders }
+      if (setCookies) confirmHeaders['Cookie'] = setCookies
+
+      const confirmRes = await fetch(confirmUrl, { headers: confirmHeaders, redirect: 'follow' })
+      const confirmCt = confirmRes.headers.get('content-type') || ''
+      if (confirmRes.ok && confirmRes.body && !confirmCt.includes('html')) {
+        return {
+          stream: confirmRes.body as ReadableStream<Uint8Array>,
+          status: confirmRes.status,
+          headers: pickHeadersFromHeaders(confirmRes.headers),
+        }
+      }
+    }
+
+    throw new Error('Google Drive file is restricted or requires authentication. Please set file sharing to "Anyone with the link".')
+  }
+
   return { stream: res.body as ReadableStream<Uint8Array>, status: res.status, headers: pickHeadersFromHeaders(res.headers) }
 }
 

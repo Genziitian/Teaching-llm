@@ -78,15 +78,37 @@ export async function GET(
       }
     }
 
+    const rangeHeader = request.headers.get('range')
     const fileId = extractDriveFileId(material.fileUrl)
+
     if (!fileId) {
+      if (material.fileUrl.startsWith('http://') || material.fileUrl.startsWith('https://')) {
+        try {
+          const directRes = await fetch(material.fileUrl, {
+            headers: rangeHeader ? { Range: rangeHeader } : undefined,
+          })
+          if (!directRes.ok) {
+            return NextResponse.json({ error: 'Failed to fetch material from direct link' }, { status: directRes.status })
+          }
+          const headers = new Headers()
+          directRes.headers.forEach((v, k) => {
+            if (['content-length', 'content-range', 'accept-ranges', 'etag', 'last-modified'].includes(k.toLowerCase())) {
+              headers.set(k, v)
+            }
+          })
+          headers.set('content-type', directRes.headers.get('content-type') || 'application/pdf')
+          headers.set('content-disposition', 'inline')
+          headers.set('cache-control', 'private, no-store')
+          return new Response(directRes.body, { status: directRes.status, headers })
+        } catch (fetchErr: any) {
+          return NextResponse.json({ error: fetchErr?.message || 'Failed to fetch direct material' }, { status: 502 })
+        }
+      }
       return NextResponse.json(
         { error: 'Could not extract a Drive file ID from fileUrl' },
         { status: 400 }
       )
     }
-
-    const rangeHeader = request.headers.get('range')
 
     let upstream
     try {
@@ -110,6 +132,13 @@ export async function GET(
     }
     const upstreamType = responseHeaders.get('content-type')
     if (upstreamType) responseHeaders.set('x-drive-content-type', upstreamType)
+    if (upstreamType && upstreamType.includes('text/html')) {
+      console.error('[drive-material] upstream returned HTML instead of PDF', { fileId, upstreamType })
+      return NextResponse.json(
+        { error: 'Google Drive returned an HTML page instead of PDF bytes. Please verify that the file sharing is set to "Anyone with the link can view".' },
+        { status: 502 }
+      )
+    }
     responseHeaders.set('content-type', 'application/pdf')
     responseHeaders.set('content-disposition', 'inline')
     if (!responseHeaders.has('accept-ranges')) {
