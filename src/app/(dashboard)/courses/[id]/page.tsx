@@ -869,14 +869,14 @@ export default function CourseDetailPage() {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
-        flexWrap: 'wrap',
+        flexWrap: isNative ? 'wrap' : 'nowrap',
         gap: '16px',
         marginBottom: '24px',
         borderBottom: '1px solid var(--border)',
         paddingBottom: '0px'
       }}>
         {/* Tabs */}
-        <div style={{ display: 'flex', gap: '32px', rowGap: 0, flexWrap: 'wrap', flex: '1 1 420px', minWidth: 0 }}>
+        <div style={{ display: 'flex', gap: '32px', rowGap: 0, flexWrap: 'nowrap', flex: '1 1 auto', minWidth: 0, overflowX: 'auto' }}>
           {(['lectures', 'materials', 'homework', 'community', 'help', 'about'] as const).map(tab => {
             const isActive = tab !== 'community' && activeSectionTab === tab;
             return (
@@ -907,6 +907,7 @@ export default function CourseDetailPage() {
                   borderBottom: isActive ? `3px solid ${coursePalette.accent}` : '3px solid transparent',
                   marginBottom: '-1px',
                   zIndex: 2,
+                  whiteSpace: 'nowrap',
                 }}
               >
                 {tab === 'lectures' ? 'Lectures' : tab === 'materials' ? 'Materials' : tab === 'homework' ? 'Homework' : tab === 'community' ? 'Community' : tab === 'help' ? 'Get Help' : 'About Course'}
@@ -917,8 +918,8 @@ export default function CourseDetailPage() {
 
         {/* Search (only visible for Lectures/Materials tabs) */}
         {(activeSectionTab === 'lectures' || activeSectionTab === 'materials') && (
-          <div style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap', flex: isNative ? 1 : '1 1 360px', minWidth: isNative ? '100%' : 'min(100%, 360px)', justifyContent: 'flex-end', paddingBottom: '8px' }}>
-            <div style={{ position: 'relative', display: 'flex', alignItems: 'center', flex: '1 1 220px', minWidth: '180px', maxWidth: '320px' }}>
+          <div style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap', flex: isNative ? 1 : '0 0 260px', minWidth: isNative ? '100%' : '220px', justifyContent: 'flex-end', paddingBottom: '8px' }}>
+            <div style={{ position: 'relative', display: 'flex', alignItems: 'center', flex: '1 1 220px', minWidth: '180px', maxWidth: '260px' }}>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" strokeWidth="2.5" style={{ position: 'absolute', left: '12px', pointerEvents: 'none' }}>
                 <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
               </svg>

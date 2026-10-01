@@ -64,8 +64,7 @@ export default function TransactionsPage() {
   const formatCourseList = (tx: Transaction) => {
     const courses = getTransactionCourses(tx)
     const names = courses.map(course => course.name).filter(Boolean)
-    if (names.length <= 2) return names.join(', ') || 'Unknown'
-    return `${names.slice(0, 2).join(', ')} +${names.length - 2} more`
+    return names.join(', ') || 'Unknown'
   }
 
   const fullCourseList = (tx: Transaction) => {
@@ -109,7 +108,7 @@ export default function TransactionsPage() {
         borderRadius: '20px', fontSize: '11px', fontWeight: '700',
         textTransform: 'uppercase', letterSpacing: '0.05em'
       }}>
-        {status}
+        {status === 'SUCCESS' ? '✓ ' : ''}{status}
       </span>
     )
   }
@@ -405,13 +404,13 @@ export default function TransactionsPage() {
                 <tbody>
                   {filteredTransactions.map((tx, i) => (
                     <tr key={tx.id} style={{ borderBottom: '1px solid var(--border)', background: i % 2 === 0 ? 'var(--surface)' : 'var(--surface-2)' }}>
-                      <td style={{ padding: '14px 20px', fontSize: '13px', fontWeight: '700', color: 'var(--accent)', fontFamily: 'monospace' }}>{tx.orderId}</td>
+                      <td style={{ padding: '14px 20px', fontSize: '11px', fontWeight: '700', color: 'var(--accent)', fontFamily: 'monospace', wordBreak: 'break-all' }}>{tx.orderId}</td>
                       <td style={{ padding: '14px 20px' }}>{sourceBadge(tx.isExternal)}</td>
                       <td style={{ padding: '14px 20px' }}>
                         <div style={{ fontSize: '13px', fontWeight: '700', color: 'var(--text-primary)' }}>{tx.user.name}</div>
                         <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>{tx.user.email}</div>
                       </td>
-                      <td title={fullCourseList(tx)} style={{ padding: '14px 20px', fontSize: '13px', color: 'var(--text-secondary)', fontWeight: '600', maxWidth: '280px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{formatCourseList(tx)}</td>
+                      <td title={fullCourseList(tx)} style={{ padding: '14px 20px', fontSize: '13px', color: 'var(--text-secondary)', fontWeight: '600', minWidth: '360px', whiteSpace: 'normal', lineHeight: 1.45 }}>{formatCourseList(tx)}</td>
                       <td style={{ padding: '14px 20px', fontSize: '14px', fontWeight: '800', color: 'var(--text-primary)' }}>₹{tx.amount.toLocaleString('en-IN')}</td>
                       <td style={{ padding: '14px 20px' }}>{statusBadge(tx.status)}</td>
                       <td style={{ padding: '14px 20px', fontSize: '12px', color: 'var(--text-secondary)' }}>
@@ -451,9 +450,9 @@ export default function TransactionsPage() {
 
                 <div>
                   <div style={{ fontSize: '14.5px', fontWeight: '800', color: 'var(--text-primary)', marginBottom: '2px' }}>
-                    {formatCourseList(tx)}
+                    {fullCourseList(tx) || 'Unknown'}
                   </div>
-                  <div style={{ fontSize: '11px', color: 'var(--accent)', fontWeight: '700', fontFamily: 'monospace' }}>
+                  <div style={{ fontSize: '10px', color: 'var(--accent)', fontWeight: '700', fontFamily: 'monospace', wordBreak: 'break-all' }}>
                     {tx.orderId}
                   </div>
                 </div>
