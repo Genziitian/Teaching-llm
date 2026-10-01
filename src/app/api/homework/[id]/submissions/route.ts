@@ -29,27 +29,6 @@ export async function GET(
       return NextResponse.json({ error: 'Homework not found' }, { status: 404 })
     }
 
-    // Get all enrolled students for this course
-    const enrollments = await prisma.enrollment.findMany({
-      where: {
-        courseId: homework.courseId,
-        user: { role: 'STUDENT', isTerminated: false },
-      },
-      include: {
-        user: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-            securityNumber: true,
-            mobileNumber: true,
-            avatar: true,
-          },
-        },
-      },
-      orderBy: { user: { name: 'asc' } },
-    })
-
     // Get all submissions for this homework
     const submissions = await prisma.homeworkSubmission.findMany({
       where: { homeworkId: id },
@@ -68,56 +47,25 @@ export async function GET(
       orderBy: { submittedAt: 'desc' },
     })
 
-    const submissionMap = new Map<string, any>()
-    submissions.forEach(sub => {
-      submissionMap.set(sub.studentId, sub)
-    })
-
-    const students = enrollments.map(e => {
-      const sub = submissionMap.get(e.userId)
-      return {
-        studentId: e.user.id,
-        name: e.user.name,
-        email: e.user.email,
-        securityNumber: e.user.securityNumber,
-        mobileNumber: e.user.mobileNumber,
-        avatar: e.user.avatar,
-        isSubmitted: !!sub,
-        submission: sub
-          ? {
-              id: sub.id,
-              fileUrls: sub.fileUrls,
-              note: sub.note,
-              submittedAt: sub.submittedAt,
-            }
-          : null,
-      }
-    })
-
-    // Also include any submissions from students whose enrollment might be special or demo
-    for (const sub of submissions) {
-      if (!students.some(s => s.studentId === sub.studentId)) {
-        students.push({
-          studentId: sub.student.id,
-          name: sub.student.name,
-          email: sub.student.email,
-          securityNumber: sub.student.securityNumber,
-          mobileNumber: sub.student.mobileNumber,
-          avatar: sub.student.avatar,
-          isSubmitted: true,
-          submission: {
-            id: sub.id,
-            fileUrls: sub.fileUrls,
-            note: sub.note,
-            submittedAt: sub.submittedAt,
-          },
-        })
-      }
-    }
+    const students = submissions.map(sub => ({
+      studentId: sub.student.id,
+      name: sub.student.name,
+      email: sub.student.email,
+      securityNumber: sub.student.securityNumber,
+      mobileNumber: sub.student.mobileNumber,
+      avatar: sub.student.avatar,
+      isSubmitted: true,
+      submission: {
+        id: sub.id,
+        fileUrls: sub.fileUrls,
+        note: sub.note,
+        submittedAt: sub.submittedAt,
+      },
+    }))
 
     const totalStudents = students.length
     const submittedCount = submissions.length
-    const pendingCount = Math.max(0, totalStudents - submittedCount)
+    const pendingCount = 0
 
     return NextResponse.json({
       homework: {

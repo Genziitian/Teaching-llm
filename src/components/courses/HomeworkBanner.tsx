@@ -2016,7 +2016,7 @@ function SubmissionsViewerModal({
             </p>
           ) : students.length === 0 ? (
             <p style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '24px 0', fontSize: '13px' }}>
-              No students found.
+              No submissions yet.
             </p>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
