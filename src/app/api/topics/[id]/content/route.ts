@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/db'
+import { createContent } from '@/lib/content-publisher'
 import { getSession, canManageContent } from '@/lib/auth'
 import { logActivity, ACTION, MODULE } from '@/lib/activity-log'
 
@@ -17,9 +17,7 @@ export async function POST(
 
     const { title, description, videoUrl, youtubeUrl, pptUrl, videoSource, isDemo, duration } = await request.json()
 
-    const count = await prisma.content.count({ where: { topicId: id } })
-    const content = await prisma.content.create({
-      data: {
+    const content = await createContent({
         topicId: id,
         title,
         description,
@@ -29,8 +27,6 @@ export async function POST(
         videoSource: videoSource || 'GOOGLE_DRIVE',
         isDemo: !!isDemo,
         duration: duration || null,
-        order: count,
-      },
     })
 
     logActivity({

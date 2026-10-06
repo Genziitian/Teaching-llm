@@ -72,3 +72,5 @@ android/.idea/
 # Android bugreports (large emulator dumps)
 bugreport-*.zip
 Teaching-llm.env
+
+!docs/CLASS_MATERIAL_AUTOMATION.md

@@ -75,11 +75,21 @@ function getServiceAccountClient(): drive_v3.Drive | null {
 /* Fetch a byte stream for the given file.
  * Automatically exports native Google Docs, Google Slides, and Google Sheets to PDF.
  */
-export async function fetchDriveFileStream(fileId: string, rangeHeader: string | null): Promise<{
+export async function fetchDriveFileStream(fileId: string, rangeHeader: string | null, strict = false): Promise<{
   stream: Readable | ReadableStream<Uint8Array>
   status: number
   headers: Record<string, string>
 }> {
+  if (strict) {
+    const drive = getServiceAccountClient()
+    if (!drive) throw new Error('Private Drive playback credentials are missing')
+    const meta = await drive.files.get({ fileId, fields: 'mimeType', supportsAllDrives: true })
+    const native = ['application/vnd.google-apps.document', 'application/vnd.google-apps.presentation', 'application/vnd.google-apps.spreadsheet'].includes(meta.data.mimeType || '')
+    const response = native
+      ? await drive.files.export({ fileId, mimeType: 'application/pdf' }, { responseType: 'stream' })
+      : await drive.files.get({ fileId, alt: 'media', supportsAllDrives: true }, { responseType: 'stream', headers: rangeHeader ? { Range: rangeHeader } : {} })
+    return { stream: response.data as unknown as Readable, status: response.status || 200, headers: pickHeaders(response.headers) }
+  }
   const mode = getDriveAuthMode()
   const requestHeaders: Record<string, string> = {}
   if (rangeHeader) requestHeaders['Range'] = rangeHeader

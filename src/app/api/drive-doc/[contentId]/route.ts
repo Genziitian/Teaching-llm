@@ -42,6 +42,7 @@ export async function GET(
       where: { id: contentId },
       select: {
         id: true,
+        strictDriveAccess: true,
         pptUrl: true,
         isDemo: true,
         topic: {
@@ -113,7 +114,7 @@ export async function GET(
 
     let upstream
     try {
-      upstream = await fetchDriveFileStream(fileId, rangeHeader)
+      upstream = await fetchDriveFileStream(fileId, rangeHeader, content.strictDriveAccess)
     } catch (e: any) {
       const msg = e?.errors?.[0]?.message || e?.message || 'Drive fetch failed'
       const code = e?.code === 404 ? 404 : 502

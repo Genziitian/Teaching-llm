@@ -436,6 +436,7 @@ model Topic {
 }
 
 model Content {
+  strictDriveAccess Boolean @default(false)
   id              String               @id @default(cuid())
   topicId         String
   title           String
@@ -1657,3 +1658,108 @@ model HomeworkSubmission {
   @@index([studentId])
 }
 
+
+// Historical IDs intentionally have no cascading relations: deleting timetable or
+// content must not delete the evidence required to prevent accidental recreation.
+model CourseAutomationConfig {
+  id String @id @default(cuid())
+  courseId String @unique
+  enabled Boolean @default(false)
+  notesFolderId String
+  destinationTopicId String
+  activationDate DateTime
+  recordingWatermark DateTime?
+  notesWatermark DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model AutomationRun {
+  id String @id @default(cuid())
+  trigger String
+  dryRun Boolean @default(false)
+  status String @default("RUNNING")
+  startedAt DateTime @default(now())
+  finishedAt DateTime?
+  phaseResults Json?
+  counts Json?
+  errorSummary String?
+  @@index([startedAt])
+}
+
+model AutomationLease {
+  name String @id
+  ownerRunId String
+  expiresAt DateTime
+  heartbeatAt DateTime
+}
+
+model ImportedSession {
+  id String @id @default(cuid())
+  sourceEventId String @unique
+  courseId String
+  title String
+  startTime DateTime
+  endTime DateTime
+  meetCode String
+  notesKey String
+  reviewState String @default("MATCHED")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@index([courseId, notesKey])
+}
+
+model RecordingImport {
+  id String @id @default(cuid())
+  googleRecordingName String @unique
+  conferenceName String
+  meetCode String
+  driveFileId String? @unique
+  startTime DateTime
+  endTime DateTime?
+  googleState String
+  sessionId String?
+  contentId String? @unique
+  state String @default("DISCOVERED")
+  matchMethod String @default("AUTOMATIC")
+  lastPublishedValues Json?
+  fileModifiedAt DateTime?
+  attemptCount Int @default(0)
+  nextAttemptAt DateTime?
+  errorCode String?
+  errorMessage String?
+  firstSeenAt DateTime @default(now())
+  lastSeenAt DateTime @default(now())
+  lastValidatedAt DateTime?
+  publishedAt DateTime?
+  @@index([state, nextAttemptAt])
+  @@index([sessionId, startTime])
+}
+
+model NoteImport {
+  id String @id @default(cuid())
+  driveFileId String @unique
+  courseId String
+  fileName String
+  mimeType String
+  fileModifiedAt DateTime?
+  notesKey String?
+  sessionId String?
+  contentId String?
+  attachmentRole String?
+  // Unique non-null value ensures only one primary note per session.
+  primarySessionId String? @unique
+  state String @default("DISCOVERED")
+  matchMethod String @default("AUTOMATIC")
+  lastPublishedValues Json?
+  attemptCount Int @default(0)
+  nextAttemptAt DateTime?
+  errorCode String?
+  errorMessage String?
+  firstSeenAt DateTime @default(now())
+  lastSeenAt DateTime @default(now())
+  lastValidatedAt DateTime?
+  attachedAt DateTime?
+  @@index([courseId, state])
+  @@index([sessionId])
+}

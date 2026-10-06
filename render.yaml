@@ -5,14 +5,31 @@ services:
     buildCommand: rm -rf .next && npm install && npm run build
     startCommand: npm start
 
-# ─── Automated Analytics Cron ───────────────────────────────────────
-# This will run automatically on Render every morning at 3 AM IST
-# Ensure CRON_SECRET is set in your Render dashboard environment
-# ───────────────────────────────────────────────────────────────────
-jobs:
+  # Courses remain disabled until Google authorization and folder mapping are complete.
+  - type: cron
+    name: class-material-import
+    runtime: node
+    schedule: "30 2 * * *"
+    buildCommand: npm ci && npx prisma generate
+    startCommand: npm run automation:import
+    envVars:
+      - key: DATABASE_URL
+        sync: false
+      - key: AUTOMATION_GOOGLE_CLIENT_ID
+        sync: false
+      - key: AUTOMATION_GOOGLE_CLIENT_SECRET
+        sync: false
+      - key: AUTOMATION_GOOGLE_REFRESH_TOKEN
+        sync: false
+      - key: GOOGLE_SERVICE_ACCOUNT_EMAIL
+        sync: false
+      - key: GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY
+        sync: false
+
+  # Existing analytics job, represented as a valid Render cron service.
   - type: cron
     name: analytics-compute-daily
     runtime: node
     schedule: "30 21 * * *"
-    command: "npm run analytics:compute"
-
+    buildCommand: npm ci && npx prisma generate
+    startCommand: npm run analytics:compute

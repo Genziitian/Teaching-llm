@@ -325,6 +325,7 @@ const NAV_ITEMS: NavItem[] = [
       </svg>
     ),
   },
+  { href: '/automation', label: 'Class Automation', roles: ['MANAGER'], icon: <span aria-hidden="true">↻</span> },
   {
     href: '/google-sync',
     label: 'Google Sync',
