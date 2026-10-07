@@ -17,7 +17,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    if (!['MANAGER', 'ADMIN'].includes(session.role)) {
+    if (!['MANAGER', 'ADMIN', 'MODERATOR'].includes(session.role)) {
       return NextResponse.json({ error: 'Access denied' }, { status: 403 })
     }
 

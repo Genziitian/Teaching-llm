@@ -107,7 +107,7 @@ export async function GET() {
       }),
       prisma.user.count({
         where: {
-          role: { in: ['MANAGER', 'ADMIN'] },
+          role: { in: ['MANAGER', 'ADMIN', 'MODERATOR'] },
           updatedAt: { gt: new Date(Date.now() - 5 * 60 * 1000) }
         }
       })

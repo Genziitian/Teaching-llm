@@ -67,7 +67,7 @@ export async function POST(request: NextRequest) {
       where: { id: managerId },
       select: { id: true, name: true, role: true, isTerminated: true },
     })
-    if (!manager || manager.isTerminated || !['MANAGER', 'ADMIN'].includes(manager.role)) {
+    if (!manager || manager.isTerminated || !['MANAGER', 'ADMIN', 'MODERATOR'].includes(manager.role)) {
       return NextResponse.json({ error: 'Manager not found' }, { status: 404 })
     }
 

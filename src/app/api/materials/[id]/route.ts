@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
-import { getSession, canManageContent } from '@/lib/auth'
+import { getSession, canManageContent, canEditCourseContent } from '@/lib/auth'
 import { logActivity, ACTION, MODULE } from '@/lib/activity-log'
 
 export async function PUT(
@@ -32,6 +32,15 @@ export async function PUT(
       term,
       sourceType,
     } = await request.json()
+
+    if (session.role !== 'MANAGER') {
+      const current = await prisma.material.findUnique({ where: { id }, select: { courseId: true, isGlobal: true } })
+      if (!current) return NextResponse.json({ error: 'Material not found' }, { status: 404 })
+      const scopeIds = courseId !== undefined ? [current.courseId, courseId] : [current.courseId]
+      if (current.isGlobal || isGlobal || !(await canEditCourseContent(session, scopeIds))) {
+        return NextResponse.json({ error: 'No access to this course' }, { status: 403 })
+      }
+    }
 
     const updatedMaterial = await prisma.material.update({
       where: { id },
@@ -85,7 +94,13 @@ export async function DELETE(
     const { id } = await params
 
 
-    const existing = await prisma.material.findUnique({ where: { id }, select: { title: true } })
+    const existing = await prisma.material.findUnique({ where: { id }, select: { title: true, courseId: true, isGlobal: true } })
+    if (session.role !== 'MANAGER') {
+      if (!existing) return NextResponse.json({ error: 'Material not found' }, { status: 404 })
+      if (existing.isGlobal || !(await canEditCourseContent(session, [existing.courseId]))) {
+        return NextResponse.json({ error: 'No access to this course' }, { status: 403 })
+      }
+    }
 
     await prisma.material.delete({ where: { id } })
 

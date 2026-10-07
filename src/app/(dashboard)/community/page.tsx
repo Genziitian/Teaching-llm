@@ -1043,7 +1043,7 @@ export default function CommunityPage() {
       selectedClass.name.toLowerCase().includes('general') || 
       selectedClass.name.toLowerCase().includes('demo')
     );
-    if (isDemoOrGeneral && userRole !== 'MANAGER' && userRole !== 'ADMIN') {
+    if (isDemoOrGeneral && userRole !== 'MANAGER' && (userRole !== 'ADMIN' && userRole !== 'MODERATOR')) {
       alert('Posting is restricted for Demo/General batch users.');
       return;
     }
@@ -1066,13 +1066,13 @@ export default function CommunityPage() {
     }
 
     if (isReply) {
-      if (tracking.replies >= 20 && userRole !== 'MANAGER' && userRole !== 'ADMIN') {
+      if (tracking.replies >= 20 && userRole !== 'MANAGER' && (userRole !== 'ADMIN' && userRole !== 'MODERATOR')) {
         alert('You have reached the maximum limit of 20 replies/comments per day.');
         return;
       }
       tracking.replies += 1;
     } else {
-      if (tracking.posts >= 5 && userRole !== 'MANAGER' && userRole !== 'ADMIN') {
+      if (tracking.posts >= 5 && userRole !== 'MANAGER' && (userRole !== 'ADMIN' && userRole !== 'MODERATOR')) {
         alert('You have reached the maximum limit of 5 posts per day.');
         return;
       }
@@ -1513,7 +1513,7 @@ export default function CommunityPage() {
   }
 
   const isDM = (cls: ClassItem | null) => cls?.isDirectChat === true
-  const isCommunityModerator = userRole === 'MANAGER' || userRole === 'ADMIN'
+  const isCommunityModerator = userRole === 'MANAGER' || (userRole === 'ADMIN' || userRole === 'MODERATOR')
   const isCourseCommunityChat = (cls: ClassItem | null) => !!cls && !isDM(cls) && cls.id !== 'general-discussion'
   const isWithinMessageActionWindow = (msg: CommMsg) => Date.now() - new Date(msg.createdAt).getTime() <= 24 * 60 * 60 * 1000
   const canShowChatMessageActions = (msg: CommMsg) => (
@@ -3762,7 +3762,7 @@ export default function CommunityPage() {
                   </button>
 
                   {/* Edit Button */}
-                  {(userRole === 'MANAGER' || userRole === 'ADMIN') && selectedMessage.sender.id === userId && !selectedMessage.isDeleted && !selectedMessage.id.startsWith('temp-') && (
+                  {(userRole === 'MANAGER' || (userRole === 'ADMIN' || userRole === 'MODERATOR')) && selectedMessage.sender.id === userId && !selectedMessage.isDeleted && !selectedMessage.id.startsWith('temp-') && (
                     <button
                       onClick={() => {
                         setEditingMessage(selectedMessage)
@@ -4735,7 +4735,7 @@ export default function CommunityPage() {
                 </div>
               )}
               {(() => {
-                const isDemo = selectedClass && ((selectedClass as any).isDemoEnrollment || (selectedClass as any).enrollmentType === 'DEMO') && userRole !== 'MANAGER' && userRole !== 'ADMIN';
+                const isDemo = selectedClass && ((selectedClass as any).isDemoEnrollment || (selectedClass as any).enrollmentType === 'DEMO') && userRole !== 'MANAGER' && (userRole !== 'ADMIN' && userRole !== 'MODERATOR');
                 if (isDemo) {
                   return (
                     <div style={{

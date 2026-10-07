@@ -11,7 +11,7 @@ import { ensureCourseColumns } from '@/lib/course-schema-sync'
 
 function isDM(courseId: string) { return courseId.startsWith('dm_') }
 function chatId(courseId: string) { return courseId.slice(3) }
-function canModerateCommunity(role: string) { return role === 'MANAGER' || role === 'ADMIN' }
+function canModerateCommunity(role: string) { return role === 'MANAGER' || (role === 'ADMIN' || role === 'MODERATOR') }
 
 async function getDMSession(chatId: string, userId: string, role: string) {
   const chat = await prisma.chatSession.findUnique({
@@ -102,7 +102,7 @@ export async function GET(
         select: { id: true }
       })
       if (!exists) {
-        const mgr = await prisma.user.findFirst({ where: { role: { in: ['MANAGER', 'ADMIN'] } } })
+        const mgr = await prisma.user.findFirst({ where: { role: { in: ['MANAGER', 'ADMIN', 'MODERATOR'] } } })
         if (mgr) {
           await prisma.course.create({
             data: {
@@ -137,7 +137,7 @@ export async function GET(
     const limit = parseInt(searchParams.get('limit') || '50')
 
     const whereClause: any = { courseId }
-    if (session.role !== 'MANAGER' && session.role !== 'ADMIN') {
+    if (session.role !== 'MANAGER' && (session.role !== 'ADMIN' && session.role !== 'MODERATOR')) {
       whereClause.isDeleted = false
       whereClause.isSystemDeleted = false
     }
@@ -426,7 +426,7 @@ export async function POST(
       // Find all non-terminated admins/managers
       const staff = await prisma.user.findMany({
         where: {
-          role: { in: ['ADMIN', 'MANAGER'] },
+          role: { in: ['ADMIN', 'MODERATOR', 'MANAGER'] },
           isTerminated: false,
         },
         select: { id: true, name: true },

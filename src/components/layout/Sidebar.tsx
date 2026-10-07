@@ -143,7 +143,7 @@ const NAV_ITEMS: NavItem[] = [
   {
     href: '/feedback',
     label: 'Feedback',
-    roles: ['MANAGER', 'ADMIN'],
+    roles: ['MANAGER', 'ADMIN', 'MODERATOR'],
     icon: (
       <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
@@ -167,7 +167,7 @@ const NAV_ITEMS: NavItem[] = [
   {
     href: '/manage',
     label: 'Manage',
-    roles: ['MANAGER'],
+    roles: ['MANAGER', 'MODERATOR'],
     icon: (
       <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <path d="M12 20h9"/>
@@ -202,7 +202,7 @@ const NAV_ITEMS: NavItem[] = [
   {
     href: '/manage/notifications',
     label: 'Notifications',
-    roles: ['MANAGER'],
+    roles: ['MANAGER', 'MODERATOR'],
     icon: (
       <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
@@ -213,7 +213,7 @@ const NAV_ITEMS: NavItem[] = [
   {
     href: '/announcements',
     label: 'Announcements',
-    roles: ['MANAGER'],
+    roles: ['MANAGER', 'MODERATOR'],
     icon: (
       <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <path d="M22 17H2a3 3 0 0 0 3-3V9a7 7 0 0 1 14 0v5a3 3 0 0 0 3 3zm-8.27 4a2 2 0 0 1-3.46 0"/>

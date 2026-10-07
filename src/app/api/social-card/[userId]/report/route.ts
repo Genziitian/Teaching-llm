@@ -116,7 +116,7 @@ export async function POST(
     if (!target || target.isTerminated) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 })
     }
-    if (target.role === 'MANAGER' || target.role === 'ADMIN') {
+    if (target.role === 'MANAGER' || (target.role === 'ADMIN' || target.role === 'MODERATOR')) {
       return NextResponse.json({ error: 'Managers cannot be reported from Social Cards' }, { status: 403 })
     }
 

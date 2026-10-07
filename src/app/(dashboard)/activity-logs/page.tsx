@@ -53,6 +53,7 @@ function getRoleBadgeStyle(role: string): React.CSSProperties {
   const colors: Record<string, { bg: string; color: string }> = {
     MANAGER: { bg: 'var(--primary-light)', color: 'var(--accent)' },
     ADMIN: { bg: 'var(--info-light)', color: 'var(--info)' },
+    MODERATOR: { bg: 'rgba(139, 92, 246, 0.12)', color: '#8b5cf6' },
     STUDENT: { bg: 'var(--success-light)', color: 'var(--success)' },
   }
   const c = colors[role] || { bg: 'var(--bg)', color: 'var(--text-secondary)' }
@@ -269,6 +270,7 @@ export default function ActivityLogPage() {
               <option value="">All Roles</option>
               <option value="MANAGER">Manager</option>
               <option value="ADMIN">Admin</option>
+              <option value="MODERATOR">Moderator</option>
               <option value="STUDENT">Student</option>
             </select>
             <select className="form-input" value={moduleFilter} onChange={e => setModuleFilter(e.target.value)} style={{ fontSize: '12px' }}>

@@ -301,8 +301,8 @@ export default function AnnouncementsPage() {
     }
   }
 
-  const isPowerUser = userRole === 'MANAGER' || userRole === 'ADMIN'
-  const canCreate = userRole === 'MANAGER'
+  const isPowerUser = userRole === 'MANAGER' || (userRole === 'ADMIN' || userRole === 'MODERATOR')
+  const canCreate = userRole === 'MANAGER' || userRole === 'MODERATOR'
 
   const filtered = announcements.filter(a => {
     if (activeTab === 'updates') return !a.classId
@@ -600,7 +600,7 @@ export default function AnnouncementsPage() {
                   </label>
                   <select value={classId} onChange={e => setClassId(e.target.value)}
                     style={{ ...neuInput, cursor: 'pointer', appearance: 'none' }}>
-                    <option value="">All Students (Global)</option>
+                    <option value="">{userRole === 'MODERATOR' ? 'Select course...' : 'All Students (Global)'}</option>
                     {classes.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                   </select>
                 </div>

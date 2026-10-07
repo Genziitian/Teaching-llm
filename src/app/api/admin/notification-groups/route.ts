@@ -19,7 +19,7 @@ import { getGoogleGroupMemberCounts, reconcileGoogleGroupMembers } from '@/lib/g
 export async function GET(request: Request) {
   try {
     const session = await getSession()
-    if (!session || (session.role !== 'MANAGER' && session.role !== 'ADMIN')) {
+    if (!session || (session.role !== 'MANAGER' && (session.role !== 'ADMIN' && session.role !== 'MODERATOR'))) {
       return NextResponse.json({ error: 'Unauthorized. Manager access required.' }, { status: 403 })
     }
 
@@ -37,7 +37,7 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     const session = await getSession()
-    if (!session || (session.role !== 'MANAGER' && session.role !== 'ADMIN')) {
+    if (!session || (session.role !== 'MANAGER' && (session.role !== 'ADMIN' && session.role !== 'MODERATOR'))) {
       return NextResponse.json({ error: 'Unauthorized. Manager access required.' }, { status: 403 })
     }
 

@@ -469,6 +469,7 @@ export default function AdminPage() {
   const roleColors: Record<string, { bg: string; color: string }> = {
     MANAGER: { bg: 'var(--primary-light)', color: 'var(--accent)' },
     ADMIN: { bg: 'var(--info-light)', color: 'var(--info)' },
+    MODERATOR: { bg: 'rgba(139, 92, 246, 0.12)', color: '#8b5cf6' },
     INSTRUCTOR: { bg: 'var(--warning-light)', color: 'var(--warning)' },
     STUDENT: { bg: 'var(--success-light)', color: 'var(--success)' },
   }
@@ -505,6 +506,7 @@ export default function AdminPage() {
     all: visibleUsers.length,
     MANAGER: visibleUsers.filter(u => u.role === 'MANAGER').length,
     ADMIN: visibleUsers.filter(u => u.role === 'ADMIN').length,
+    MODERATOR: visibleUsers.filter(u => u.role === 'MODERATOR').length,
     INSTRUCTOR: visibleUsers.filter(u => u.role === 'INSTRUCTOR').length,
     STUDENT: visibleUsers.filter(u => u.role === 'STUDENT').length,
     DELETION_REQUESTS: visibleUsers.filter(u => !!u.deletionRequestedAt).length,
@@ -519,6 +521,7 @@ export default function AdminPage() {
     ] : []),
     ...(userRole === 'MANAGER' ? [
       { label: 'Admins', key: 'ADMIN', color: 'var(--info)', bg: 'var(--info-light)' },
+      { label: 'Moderators', key: 'MODERATOR', color: '#8b5cf6', bg: 'rgba(139, 92, 246, 0.12)' },
     ] : []),
     { label: 'Students', key: 'STUDENT', color: 'var(--success)', bg: 'var(--success-light)' },
   ]
@@ -928,7 +931,7 @@ export default function AdminPage() {
                       )}
                     </div>
                     {/* Course badges for ADMIN/STUDENT users */}
-                    {(user.role === 'ADMIN' || user.role === 'STUDENT') && user.enrollments && user.enrollments.length > 0 && (
+                    {(user.role === 'ADMIN' || user.role === 'MODERATOR' || user.role === 'STUDENT') && user.enrollments && user.enrollments.length > 0 && (
                       <div style={{ display: 'flex', gap: '4px', marginTop: '6px', flexWrap: 'wrap' }}>
                         {user.enrollments.slice(0, 3).map(e => (
                           <span key={e.courseId} style={{
@@ -1299,6 +1302,7 @@ export default function AdminPage() {
                   <select className="form-input" value={form.role} onChange={e => setForm(p => ({ ...p, role: e.target.value, courseIds: [], bundleIds: [], assignedCourseIds: [] }))}>
                     <option value="STUDENT">Student</option>
                     <option value="ADMIN">Admin</option>
+                    <option value="MODERATOR">Moderator</option>
                     {managerCount < 2 && <option value="MANAGER">Manager</option>}
                   </select>
                 ) : (
@@ -1440,7 +1444,7 @@ export default function AdminPage() {
               </div>
               
               {/* Granular Permissions (MANAGER ONLY for ADMIN/INSTRUCTOR roles) */}
-              {userRole === 'MANAGER' && (form.role === 'ADMIN' || form.role === 'INSTRUCTOR') && (
+              {userRole === 'MANAGER' && (form.role === 'ADMIN' || form.role === 'MODERATOR' || form.role === 'INSTRUCTOR') && (
                 <div style={{
                   background: 'var(--surface)', padding: '12px', borderRadius: '10px',
                   border: '1px solid var(--border)', display: 'flex', flexDirection: 'column', gap: '10px'
@@ -1494,8 +1498,8 @@ export default function AdminPage() {
                   </label>
                 </div>
               )}
-              {/* Course assignment for ADMIN or STUDENT roles */}
-              {(form.role === 'ADMIN' || form.role === 'STUDENT') && (
+              {/* Course assignment for ADMIN, MODERATOR or STUDENT roles */}
+              {(form.role === 'ADMIN' || form.role === 'MODERATOR' || form.role === 'STUDENT') && (
                 <div className="form-group">
                   {bundles.length > 0 && (
                     <>

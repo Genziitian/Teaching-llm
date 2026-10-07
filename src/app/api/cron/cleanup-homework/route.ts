@@ -33,7 +33,7 @@ export async function GET(request: NextRequest) {
     )
 
     const session = await getSession()
-    const isManager = session?.role === 'MANAGER' || session?.role === 'ADMIN'
+    const isManager = session?.role === 'MANAGER' || (session?.role === 'ADMIN' || session?.role === 'MODERATOR')
 
     if (!isAuthorizedCron && !isManager) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })

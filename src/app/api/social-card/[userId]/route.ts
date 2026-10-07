@@ -63,7 +63,7 @@ export async function GET(
 
     const isSelf = session.userId === user.id
     const viewerIsStaff = isAdminOrManager(session.role)
-    const targetIsManager = user.role === 'MANAGER' || user.role === 'ADMIN'
+    const targetIsManager = user.role === 'MANAGER' || (user.role === 'ADMIN' || user.role === 'MODERATOR')
 
     const publicFields: { key: string; label: string; value: string | number }[] = []
     if (user.showStateOnSocialCard && user.state) {

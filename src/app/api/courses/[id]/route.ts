@@ -206,16 +206,22 @@ export async function PUT(
     const { id } = await params
     const { name, description, subject, color, icon, courseIconType, expiresAt, teacherName, isCommunityActive, isDisabled, googleGroupEmail, liveGoogleGroupEmail, liveUpgradePrice, requireFeedback, aboutUs, startDate, endDate, academicTerm, academicYear, examCycle } = await request.json()
 
-    if (isDisabled !== undefined && !isManagerOrSuperAdmin(session.role)) {
-      return NextResponse.json({ error: 'Only managers can enable or disable courses' }, { status: 403 })
-    }
-
     const existingCourse = await (prisma.course.findUnique as any)({
       where: { id },
-      select: { id: true, expiresAt: true },
+      select: { id: true, expiresAt: true, isDisabled: true },
     })
     if (!existingCourse) {
       return NextResponse.json({ error: 'Course not found' }, { status: 404 })
+    }
+
+    // Only managers can turn a course on or off. Edit forms send the current
+    // value along, so only reject when a non-manager actually tries to change it.
+    if (
+      isDisabled !== undefined &&
+      !!isDisabled !== !!existingCourse.isDisabled &&
+      !isManagerOrSuperAdmin(session.role)
+    ) {
+      return NextResponse.json({ error: 'Only managers can enable or disable courses' }, { status: 403 })
     }
 
     // Validate expiresAt if provided

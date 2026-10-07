@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
-import { getSession, canManageContent } from '@/lib/auth'
+import { getSession, canManageContent, canEditCourseContent } from '@/lib/auth'
 import { logActivity, ACTION, MODULE } from '@/lib/activity-log'
 import { sendNewLectureNotification } from '@/lib/system-notifications'
 
@@ -53,6 +53,12 @@ export async function PUT(
     const { courseId, title, description, videoUrl, notesUrl, duration, thumbnail } =
       await request.json()
 
+    const current = await prisma.lecture.findUnique({ where: { id }, select: { courseId: true } })
+    if (!current) return NextResponse.json({ error: 'Lecture not found' }, { status: 404 })
+    if (!(await canEditCourseContent(session, courseId ? [current.courseId, courseId] : [current.courseId]))) {
+      return NextResponse.json({ error: 'No access to this course' }, { status: 403 })
+    }
+
 
     const updatedLecture = await prisma.lecture.update({
       where: { id },
@@ -97,7 +103,11 @@ export async function DELETE(
     const { id } = await params
 
 
-    const existing = await prisma.lecture.findUnique({ where: { id }, select: { title: true } })
+    const existing = await prisma.lecture.findUnique({ where: { id }, select: { title: true, courseId: true } })
+    if (!existing) return NextResponse.json({ error: 'Lecture not found' }, { status: 404 })
+    if (!(await canEditCourseContent(session, [existing.courseId]))) {
+      return NextResponse.json({ error: 'No access to this course' }, { status: 403 })
+    }
 
     await prisma.lecture.delete({ where: { id } })
 

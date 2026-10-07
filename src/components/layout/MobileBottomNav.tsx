@@ -49,7 +49,7 @@ const TABS: Tab[] = [
   {
     href: '/support',
     label: 'Support',
-    hideForRoles: ['ADMIN'],
+    hideForRoles: ['ADMIN', 'MODERATOR'],
     match: p => p.startsWith('/support'),
     icon: (
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

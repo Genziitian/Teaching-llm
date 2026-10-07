@@ -5,7 +5,7 @@ import { getSession, getAccessibleCourseIds } from '@/lib/auth'
 export async function GET(request: NextRequest) {
   try {
     const session = await getSession()
-    if (!session || !['MANAGER', 'ADMIN'].includes(session.role)) {
+    if (!session || !['MANAGER', 'ADMIN', 'MODERATOR'].includes(session.role)) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
@@ -14,7 +14,7 @@ export async function GET(request: NextRequest) {
 
     let targetCourseIds: string[] = []
 
-    if (session.role === 'ADMIN') {
+    if ((session.role === 'ADMIN' || session.role === 'MODERATOR')) {
       const adminCourseIds = await getAccessibleCourseIds(session.userId, session.role) || []
 
       if (courseId) {
@@ -42,7 +42,7 @@ export async function GET(request: NextRequest) {
       })
     } else {
       // Filter by enrollments in targetCourseIds
-      if (targetCourseIds.length === 0 && session.role === 'ADMIN') {
+      if (targetCourseIds.length === 0 && (session.role === 'ADMIN' || session.role === 'MODERATOR')) {
         return NextResponse.json([])
       }
       

@@ -5,7 +5,7 @@ import { ensureCourseColumns } from '@/lib/course-schema-sync'
 import { getAcademicTerms } from '@/lib/academic-terms-config'
 
 function isAdminOrManager(role: string) {
-  return role === 'MANAGER' || role === 'ADMIN'
+  return role === 'MANAGER' || (role === 'ADMIN' || role === 'MODERATOR')
 }
 
 const SUCCESSFUL_ORDER_STATUSES = ['SUCCESS', 'PAID']

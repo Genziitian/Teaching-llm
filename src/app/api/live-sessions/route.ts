@@ -88,7 +88,7 @@ export async function POST(request: NextRequest) {
       await request.json()
 
     // Verify ADMIN has access to the target class
-    if (session.role === 'ADMIN') {
+    if ((session.role === 'ADMIN' || session.role === 'MODERATOR')) {
       const accessibleCourseIds = await getAccessibleCourseIds(session.userId, session.role)
       if (accessibleCourseIds !== null && !accessibleCourseIds.includes(courseId)) {
         return NextResponse.json({ error: 'No access to this class' }, { status: 403 })

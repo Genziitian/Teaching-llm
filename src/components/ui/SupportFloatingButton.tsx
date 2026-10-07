@@ -83,7 +83,7 @@ export default function SupportFloatingButton() {
     isMobileViewport !== false ||
     isHidden ||
     userRole === 'MANAGER' ||
-    userRole === 'ADMIN'
+    (userRole === 'ADMIN' || userRole === 'MODERATOR')
   ) return null
 
   return (

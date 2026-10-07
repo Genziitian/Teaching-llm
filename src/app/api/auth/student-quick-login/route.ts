@@ -32,7 +32,7 @@ export async function POST(_request: NextRequest) {
     const token = signToken({
       userId: user.id,
       email: user.email,
-      role: user.role as 'MANAGER' | 'ADMIN' | 'STUDENT',
+      role: user.role as 'MANAGER' | 'MODERATOR' | 'ADMIN' | 'STUDENT',
       name: user.name,
       canTerminate: user.canTerminate,
       canCreateStudents: user.canCreateStudents,

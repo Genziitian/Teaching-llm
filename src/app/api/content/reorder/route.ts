@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
-import { getSession } from '@/lib/auth'
+import { getSession, canManageContent, canEditCourseContent } from '@/lib/auth'
 
 export async function PUT(request: NextRequest) {
   try {
     const session = await getSession()
     // STRICTLY MANAGER ONLY
-    if (!session || session.role !== 'MANAGER') {
+    if (!session || !canManageContent(session.role)) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
@@ -24,6 +24,24 @@ export async function PUT(request: NextRequest) {
       where: { id: { in: ids } },
       select: { id: true, topicId: true }
     })
+
+    if (session.role !== 'MANAGER') {
+      // Every topic being reordered (own or imported-into) must be in an assigned course
+      const scopeTopicIds = Array.from(new Set(
+        items.map((i: any) => (i.isImported ? i.topicId : existing.find(e => e.id === i.id)?.topicId))
+      ))
+      if (scopeTopicIds.some(t => !t)) {
+        return NextResponse.json({ error: 'No access to this course' }, { status: 403 })
+      }
+      const scopeTopics = await prisma.topic.findMany({
+        where: { id: { in: scopeTopicIds as string[] } },
+        select: { courseId: true },
+      })
+      const scopeCourseIds = Array.from(new Set(scopeTopics.map(t => t.courseId)))
+      if (scopeTopics.length !== scopeTopicIds.length || !(await canEditCourseContent(session, scopeCourseIds))) {
+        return NextResponse.json({ error: 'No access to this course' }, { status: 403 })
+      }
+    }
     
     const existingMap = new Map(existing.map(e => [e.id, e.topicId]))
 

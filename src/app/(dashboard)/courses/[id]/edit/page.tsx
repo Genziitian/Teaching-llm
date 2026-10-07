@@ -55,25 +55,6 @@ interface MaterialItem {
   fileSize?: string
 }
 
-interface RecordingItem {
-  id: string
-  title: string
-  description?: string
-  videoUrl?: string
-  videoSource?: string
-  pptUrl?: string
-  createdAt?: string
-  topic?: {
-    id: string
-    title: string
-    course?: {
-      id: string
-      name: string
-      color?: string
-    }
-  }
-}
-
 const emptyForm: ContentForm = { title: '', description: '', videoUrl: '', youtubeUrl: '', videoSource: 'GOOGLE_DRIVE', isDemo: false }
 
 export default function CourseEditPage() {
@@ -106,11 +87,6 @@ export default function CourseEditPage() {
   const [materialLink, setMaterialLink] = useState('')
   const [selectedMaterial, setSelectedMaterial] = useState<MaterialItem | null>(null)
   const [uploadingMaterial, setUploadingMaterial] = useState(false)
-  const [recordings, setRecordings] = useState<RecordingItem[]>([])
-  const [recordingsModalOpen, setRecordingsModalOpen] = useState(false)
-  const [loadingRecordings, setLoadingRecordings] = useState(false)
-  const [recordingSearch, setRecordingSearch] = useState('')
-  const [recordingSort, setRecordingSort] = useState<'newest' | 'oldest'>('newest')
   const [orderDirty, setOrderDirty] = useState(false)
   const [savingOrder, setSavingOrder] = useState(false)
 
@@ -128,12 +104,12 @@ export default function CourseEditPage() {
       const role = meData.user?.role
       const accessibleCourseIds = meData.user?.accessibleCourseIds || []
 
-      if (role !== 'MANAGER') {
+      if (role !== 'MANAGER' && role !== 'MODERATOR') {
         router.replace(`/courses/${params.id}`)
         return
       }
 
-      if (role === 'ADMIN' && !accessibleCourseIds.includes(params.id as string)) {
+      if ((role === 'ADMIN' || role === 'MODERATOR') && !accessibleCourseIds.includes(params.id as string)) {
         router.replace('/dashboard')
         return
       }
@@ -157,19 +133,6 @@ export default function CourseEditPage() {
     const data = await res.json()
     setTopics(Array.isArray(data) ? data : [])
   }
-
-  const loadRecordings = useCallback(async () => {
-    setLoadingRecordings(true)
-    try {
-      const res = await fetch('/api/content?hasVideo=true')
-      const data = await res.json()
-      setRecordings(data.content || [])
-    } catch (e) {
-      console.error(e)
-    } finally {
-      setLoadingRecordings(false)
-    }
-  }, [])
 
   // ── Topic CRUD ───────────────────────────────────────────────────────────────
   const createTopic = async () => {
@@ -307,7 +270,6 @@ export default function CourseEditPage() {
     setMaterialSourceType('LINK')
     setMaterialLink('')
     setSelectedMaterial(null)
-    setRecordingSearch('')
   }
 
   const openEditContent = (topicId: string, item: ContentItem) => {
@@ -331,7 +293,6 @@ export default function CourseEditPage() {
       fileUrl: existingMaterialUrl,
       fileType: existingMaterialUrl.split('.').pop()?.toUpperCase() || 'FILE',
     } : null)
-    setRecordingSearch('')
   }
 
   const handleMaterialFileChange = async (file: File | null) => {
@@ -378,12 +339,6 @@ export default function CourseEditPage() {
     } finally {
       setUploadingMaterial(false)
     }
-  }
-
-  const openRecordingsModal = async () => {
-    setRecordingsModalOpen(true)
-    setRecordingSearch('')
-    await loadRecordings()
   }
 
   const saveContent = async () => {
@@ -572,109 +527,6 @@ export default function CourseEditPage() {
                   />
                 </div>
               </div>
-
-              <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
-                <button type="button" onClick={openRecordingsModal} className="btn btn-ghost">
-                  Import From Recording
-                </button>
-              </div>
-
-              {recordingsModalOpen && (
-                <div style={{
-                  position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.35)', zIndex: 1100,
-                  display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px',
-                }}
-                onClick={() => setRecordingsModalOpen(false)}
-                >
-                  <div
-                    style={{ background: 'var(--surface-2)', borderRadius: '16px', width: '100%', maxWidth: '760px', maxHeight: '80vh', overflow: 'auto', padding: '20px' }}
-                    onClick={e => e.stopPropagation()}
-                  >
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                      <h3 style={{ fontSize: '16px', fontWeight: '700', color: 'var(--text-primary)' }}>Import From Recording</h3>
-                      <button type="button" onClick={() => setRecordingsModalOpen(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '18px' }}>×</button>
-                    </div>
-
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 180px', gap: '12px', marginBottom: '12px' }}>
-                      <input
-                        value={recordingSearch}
-                        onChange={e => setRecordingSearch(e.target.value)}
-                        placeholder="Search recordings by lecture, topic, or course..."
-                        className="form-input"
-                        style={{ width: '100%' }}
-                      />
-                      <select
-                        value={recordingSort}
-                        onChange={e => setRecordingSort(e.target.value as 'newest' | 'oldest')}
-                        className="form-input"
-                        style={{ width: '100%' }}
-                      >
-                        <option value="newest">Newest to Oldest</option>
-                        <option value="oldest">Oldest to Newest</option>
-                      </select>
-                    </div>
-
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '420px', overflowY: 'auto' }}>
-                      {loadingRecordings ? (
-                        <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Loading recordings...</div>
-                      ) : recordings
-                        .filter(recording => {
-                          const query = recordingSearch.toLowerCase()
-                          return (
-                            recording.title.toLowerCase().includes(query) ||
-                            (recording.description || '').toLowerCase().includes(query) ||
-                            (recording.topic?.title || '').toLowerCase().includes(query) ||
-                            (recording.topic?.course?.name || '').toLowerCase().includes(query)
-                          )
-                        })
-                        .sort((a, b) => {
-                          const aTime = new Date(a.createdAt || 0).getTime()
-                          const bTime = new Date(b.createdAt || 0).getTime()
-                          return recordingSort === 'newest' ? bTime - aTime : aTime - bTime
-                        })
-                        .map(recording => (
-                          <button
-                            key={recording.id}
-                            type="button"
-                            onClick={() => {
-                              if (!contentModal) return
-                              fetch(`/api/topics/${contentModal.topicId}/shared-content`, {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({ contentId: recording.id }),
-                              })
-                                .then(async res => {
-                                  const data = await res.json()
-                                  if (!res.ok) {
-                                    throw new Error(data.error || 'Failed to import recording')
-                                  }
-                                  setRecordingsModalOpen(false)
-                                  setContentModal(null)
-                                  await refreshTopics()
-                                })
-                                .catch(err => {
-                                  alert(err instanceof Error ? err.message : 'Failed to import recording')
-                                })
-                            }}
-                            style={{
-                              textAlign: 'left', padding: '12px 14px', borderRadius: '12px', border: 'none',
-                              background: 'var(--surface)', boxShadow: '3px 3px 6px var(--neu-dark), -3px -3px 6px var(--neu-light)',
-                              cursor: 'pointer',
-                            }}
-                          >
-                            <div style={{ fontSize: '13px', fontWeight: '700', color: 'var(--text-primary)' }}>{recording.title}</div>
-                            <div style={{ fontSize: '11px', color: 'var(--text-secondary)', marginTop: '2px' }}>
-                              {recording.topic?.course?.name || 'Unknown Course'} • {recording.topic?.title || 'No Topic'}
-                            </div>
-                            <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '4px' }}>
-                              {recording.createdAt ? new Date(recording.createdAt).toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' }) : 'No date'}
-                            </div>
-                          </button>
-                        ))}
-                    </div>
-                  </div>
-                </div>
-              )}
 
               <div className="form-group">
                 <label style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text-secondary)', display: 'block', marginBottom: '6px' }}>

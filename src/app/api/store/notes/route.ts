@@ -58,7 +58,7 @@ export async function GET(req: Request) {
       orderBy: { createdAt: 'desc' }
     })
 
-    const isManager = session?.role === 'MANAGER' || session?.role === 'ADMIN'
+    const isManager = session?.role === 'MANAGER' || (session?.role === 'ADMIN' || session?.role === 'MODERATOR')
 
     const cleanNotes = notes.map(note => {
       const hasAccess = note.price === 0 || 

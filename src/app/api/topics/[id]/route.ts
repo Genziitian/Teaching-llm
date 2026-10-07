@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
-import { getSession, canManageContent } from '@/lib/auth'
+import { getSession, canManageContent, canEditCourseContent } from '@/lib/auth'
 import { logActivity, ACTION, MODULE } from '@/lib/activity-log'
 
 export async function PUT(
@@ -13,6 +13,12 @@ export async function PUT(
     if (!canManageContent(session.role)) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 
     const { id } = await params
+
+    const scopeTopic = await prisma.topic.findUnique({ where: { id }, select: { courseId: true } })
+    if (!scopeTopic) return NextResponse.json({ error: 'Topic not found' }, { status: 404 })
+    if (!(await canEditCourseContent(session, [scopeTopic.courseId]))) {
+      return NextResponse.json({ error: 'No access to this course' }, { status: 403 })
+    }
 
     const { title, order } = await request.json()
 
@@ -48,6 +54,12 @@ export async function DELETE(
     if (!canManageContent(session.role)) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 
     const { id } = await params
+
+    const scopeTopic = await prisma.topic.findUnique({ where: { id }, select: { courseId: true } })
+    if (!scopeTopic) return NextResponse.json({ error: 'Topic not found' }, { status: 404 })
+    if (!(await canEditCourseContent(session, [scopeTopic.courseId]))) {
+      return NextResponse.json({ error: 'No access to this course' }, { status: 403 })
+    }
 
     const topicToDelete = await prisma.topic.findUnique({
       where: { id },

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
-import { getSession } from '@/lib/auth'
+import { getSession, canCreateAnnouncements, canEditCourseContent } from '@/lib/auth'
 import { logActivity, ACTION, MODULE } from '@/lib/activity-log'
 import { validateLength, sanitizeInput } from '@/lib/validation'
 
@@ -14,8 +14,8 @@ export async function PUT(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    if (session.role !== 'MANAGER') {
-      return NextResponse.json({ error: 'Forbidden: Only managers can edit announcements' }, { status: 403 })
+    if (!canCreateAnnouncements(session.role)) {
+      return NextResponse.json({ error: 'Forbidden: Only managers and moderators can edit announcements' }, { status: 403 })
     }
 
     const id = params.id
@@ -25,6 +25,10 @@ export async function PUT(
     }
 
     const { title, content, type, courseId, imageUrl } = await request.json()
+
+    if (!(await canEditCourseContent(session, [existing.courseId, courseId]))) {
+      return NextResponse.json({ error: 'You can only manage your assigned courses' }, { status: 403 })
+    }
 
     if (title && !validateLength(title, 200)) {
       return NextResponse.json({ error: 'Title must be under 200 chars' }, { status: 400 })
@@ -75,14 +79,18 @@ export async function DELETE(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    if (session.role !== 'MANAGER') {
-      return NextResponse.json({ error: 'Forbidden: Only managers can delete announcements' }, { status: 403 })
+    if (!canCreateAnnouncements(session.role)) {
+      return NextResponse.json({ error: 'Forbidden: Only managers and moderators can delete announcements' }, { status: 403 })
     }
 
     const id = params.id
     const existing = await prisma.announcement.findUnique({ where: { id } })
     if (!existing) {
       return NextResponse.json({ error: 'Not found' }, { status: 404 })
+    }
+
+    if (!(await canEditCourseContent(session, [existing.courseId]))) {
+      return NextResponse.json({ error: 'You can only manage your assigned courses' }, { status: 403 })
     }
 
     // Delete related notifications and poll if any, then the announcement itself

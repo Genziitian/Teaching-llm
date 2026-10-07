@@ -507,8 +507,8 @@ export default function ProfilePage() {
             <p style={{ fontSize: '14px', color: 'var(--text-muted)', marginBottom: '6px' }}>{user.email}</p>
             <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap', justifyContent: isMobile ? 'center' : 'flex-start' }}>
               <span className="badge" style={{
-                background: user.role === 'MANAGER' ? 'var(--primary-light)' : user.role === 'ADMIN' ? 'var(--info-light)' : 'var(--success-light)',
-                color: user.role === 'MANAGER' ? 'var(--accent)' : user.role === 'ADMIN' ? 'var(--info)' : 'var(--success)',
+                background: user.role === 'MANAGER' ? 'var(--primary-light)' : (user.role === 'ADMIN' || user.role === 'MODERATOR') ? 'var(--info-light)' : 'var(--success-light)',
+                color: user.role === 'MANAGER' ? 'var(--accent)' : (user.role === 'ADMIN' || user.role === 'MODERATOR') ? 'var(--info)' : 'var(--success)',
                 padding: '4px 12px', fontSize: '12px',
               }}>
                 {roleLabel}
@@ -757,8 +757,8 @@ export default function ProfilePage() {
               <div style={insetRow}>
                 <span style={{ fontSize: '13px', color: 'var(--text-secondary)', fontWeight: '500' }}>Role</span>
                 <span className="badge" style={{
-                  background: user.role === 'MANAGER' ? 'var(--primary-light)' : user.role === 'ADMIN' ? 'var(--info-light)' : 'var(--success-light)',
-                  color: user.role === 'MANAGER' ? 'var(--accent)' : user.role === 'ADMIN' ? 'var(--info)' : 'var(--success)',
+                  background: user.role === 'MANAGER' ? 'var(--primary-light)' : (user.role === 'ADMIN' || user.role === 'MODERATOR') ? 'var(--info-light)' : 'var(--success-light)',
+                  color: user.role === 'MANAGER' ? 'var(--accent)' : (user.role === 'ADMIN' || user.role === 'MODERATOR') ? 'var(--info)' : 'var(--success)',
                   fontSize: '12px',
                 }}>
                   {roleLabel}

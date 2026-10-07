@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
-import { getSession, isManager } from '@/lib/auth'
+import { getSession, isManager, canManageEvents, canEditCourseContent } from '@/lib/auth'
 import { logActivity, ACTION, MODULE } from '@/lib/activity-log'
 import {
   sendLiveClassNotification,
@@ -49,7 +49,7 @@ export async function PUT(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    if (!isManager(session.role)) {
+    if (!canManageEvents(session.role)) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
@@ -72,6 +72,15 @@ export async function PUT(
 
     if (!existingEvent) {
       return NextResponse.json({ error: 'Event not found' }, { status: 404 })
+    }
+
+    // Moderators: the event must belong to an assigned course, and stay in one
+    if (session.role !== 'MANAGER') {
+      const scopeIds: Array<string | null> = [existingEvent.courseId]
+      if (courseId !== undefined || classId !== undefined) scopeIds.push(resolvedCourseId)
+      if (isGlobal || !(await canEditCourseContent(session, scopeIds))) {
+        return NextResponse.json({ error: 'You can only manage your assigned courses' }, { status: 403 })
+      }
     }
 
     const isStartTimeChanged = startTime !== undefined && new Date(startTime).getTime() !== new Date(existingEvent.startTime).getTime()
@@ -219,7 +228,7 @@ export async function DELETE(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    if (!isManager(session.role)) {
+    if (!canManageEvents(session.role)) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
@@ -232,6 +241,10 @@ export async function DELETE(
 
     if (!existingEvent) {
       return NextResponse.json({ error: 'Event not found' }, { status: 404 })
+    }
+
+    if (!(await canEditCourseContent(session, [existingEvent.courseId]))) {
+      return NextResponse.json({ error: 'You can only manage your assigned courses' }, { status: 403 })
     }
 
     if (existingEvent.courseId) {

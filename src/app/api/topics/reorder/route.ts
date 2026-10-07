@@ -1,13 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
-import { getSession } from '@/lib/auth'
+import { getSession, canManageContent, canEditCourseContent } from '@/lib/auth'
 import { logActivity, ACTION, MODULE } from '@/lib/activity-log'
 
 export async function PUT(request: NextRequest) {
   try {
     const session = await getSession()
     // strictly MANAGER
-    if (!session || session.role !== 'MANAGER') {
+    if (!session || !canManageContent(session.role)) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
@@ -16,6 +16,17 @@ export async function PUT(request: NextRequest) {
 
     if (!Array.isArray(items)) {
       return NextResponse.json({ error: 'Invalid payload' }, { status: 400 })
+    }
+
+    if (session.role !== 'MANAGER') {
+      const scopeTopics = await prisma.topic.findMany({
+        where: { id: { in: items.map((i: any) => i.id) } },
+        select: { courseId: true },
+      })
+      const scopeCourseIds = Array.from(new Set(scopeTopics.map(t => t.courseId)))
+      if (scopeTopics.length !== items.length || !(await canEditCourseContent(session, scopeCourseIds))) {
+        return NextResponse.json({ error: 'No access to this course' }, { status: 403 })
+      }
     }
 
     // Prepare transaction

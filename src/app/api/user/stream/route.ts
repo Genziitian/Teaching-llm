@@ -60,7 +60,7 @@ export async function GET(req: Request) {
         sseEmitter.on(`user:${userId}:unread`, handleUserUnread)
         sseEmitter.on('system:notify', handleSystemNotify)
 
-        if (role === 'MANAGER' || role === 'ADMIN') {
+        if (role === 'MANAGER' || (role === 'ADMIN' || role === 'MODERATOR')) {
            // Managers also need to know when a support ticket or support live-chat changes state
            sseEmitter.on('system:admin_unread', handleUserUnread)
         }

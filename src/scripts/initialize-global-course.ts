@@ -7,7 +7,7 @@ async function main() {
 
   // 1. Find or create the manager who will "own" the global course (the first manager)
   const manager = await prisma.user.findFirst({
-    where: { role: { in: ['MANAGER', 'ADMIN'] } }
+    where: { role: { in: ['MANAGER', 'ADMIN', 'MODERATOR'] } }
   })
 
   if (!manager) {

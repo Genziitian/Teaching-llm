@@ -522,12 +522,14 @@ img {
   color: var(--staff-role-badge-manager-icon);
 }
 
-.staff-role-badge--admin {
+.staff-role-badge--admin,
+.staff-role-badge--moderator {
   background: var(--staff-role-badge-admin-bg);
   border: 1px solid var(--staff-role-badge-admin-border);
   color: var(--staff-role-badge-admin-color);
 }
-.staff-role-badge--admin .staff-role-badge__icon {
+.staff-role-badge--admin .staff-role-badge__icon,
+.staff-role-badge--moderator .staff-role-badge__icon {
   color: var(--staff-role-badge-admin-icon);
 }
 
@@ -553,12 +555,14 @@ img {
   color: #4f46e5 !important;
 }
 
-.chat-msg-bubble .staff-role-badge--admin {
+.chat-msg-bubble .staff-role-badge--admin,
+.chat-msg-bubble .staff-role-badge--moderator {
   background: rgba(220, 38, 38, 0.07) !important;
   border-color: rgba(220, 38, 38, 0.22) !important;
   color: #dc2626 !important;
 }
-.chat-msg-bubble .staff-role-badge--admin .staff-role-badge__icon {
+.chat-msg-bubble .staff-role-badge--admin .staff-role-badge__icon,
+.chat-msg-bubble .staff-role-badge--moderator .staff-role-badge__icon {
   color: #dc2626 !important;
 }
 

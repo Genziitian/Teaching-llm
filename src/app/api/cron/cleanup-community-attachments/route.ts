@@ -17,7 +17,7 @@ export async function GET(request: NextRequest) {
     const providedSecret = secretParam || authHeader?.replace('Bearer ', '')
 
     const session = await getSession()
-    const isManager = session?.role === 'MANAGER' || session?.role === 'ADMIN'
+    const isManager = session?.role === 'MANAGER' || (session?.role === 'ADMIN' || session?.role === 'MODERATOR')
     const isAuthorizedCron = providedSecret === cronSecret
 
     if (!isAuthorizedCron && !isManager) {

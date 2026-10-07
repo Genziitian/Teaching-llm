@@ -312,7 +312,7 @@ export async function POST(request: NextRequest) {
       })
 
       // Auto-enroll the creating ADMIN so they have immediate access
-      if (session.role === 'ADMIN') {
+      if ((session.role === 'ADMIN' || session.role === 'MODERATOR')) {
         await tx.enrollment.create({
           data: { userId: session.userId, courseId: cls.id },
         })

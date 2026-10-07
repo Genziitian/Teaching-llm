@@ -1,11 +1,11 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
-import { getSession, isManagerOrSuperAdmin } from '@/lib/auth'
+import { getSession, isManagerOrSuperAdmin, canManageNotifications, getAccessibleCourseIds } from '@/lib/auth'
 
 export async function GET(req: Request) {
   try {
     const session = await getSession()
-    if (!session || !isManagerOrSuperAdmin(session.role)) {
+    if (!session || !canManageNotifications(session.role)) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
@@ -18,6 +18,14 @@ export async function GET(req: Request) {
     const where: Record<string, any> = {}
     if (category) where.category = category
     if (courseId) where.courseId = courseId
+
+    // Moderators only see logs for their assigned courses
+    if (session.role === 'MODERATOR') {
+      const accessible = await getAccessibleCourseIds(session.userId, session.role)
+      if (accessible !== null) {
+        where.courseId = courseId ? (accessible.includes(courseId) ? courseId : '__none__') : { in: accessible }
+      }
+    }
 
     const [logs, total] = await Promise.all([
       prisma.notificationLog.findMany({

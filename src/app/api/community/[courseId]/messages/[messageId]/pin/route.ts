@@ -27,7 +27,7 @@ export async function POST(
     }
 
     // Only managers/admins can pin/unpin/highlight messages
-    if (['pin', 'unpin', 'highlight', 'unhighlight'].includes(action) && session.role !== 'MANAGER' && session.role !== 'ADMIN') {
+    if (['pin', 'unpin', 'highlight', 'unhighlight'].includes(action) && session.role !== 'MANAGER' && (session.role !== 'ADMIN' && session.role !== 'MODERATOR')) {
       return NextResponse.json({ error: 'Only managers can manage message highlights or pins' }, { status: 403 })
     }
 

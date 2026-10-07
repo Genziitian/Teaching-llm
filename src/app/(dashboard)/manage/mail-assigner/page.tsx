@@ -8,7 +8,7 @@ const fetcher = (url: string) => fetch(url).then(r => r.json())
 export default function MailAssignerPage() {
   const { data: authData, isLoading } = useSWR('/api/auth/me', fetcher)
   const role = authData?.user?.role
-  const allowed = role === 'MANAGER' || role === 'ADMIN'
+  const allowed = role === 'MANAGER' || (role === 'ADMIN' || role === 'MODERATOR')
 
   if (isLoading) {
     return (

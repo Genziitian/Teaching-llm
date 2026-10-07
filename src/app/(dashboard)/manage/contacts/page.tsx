@@ -20,7 +20,7 @@ export default function ManageContactsPage() {
   const fetcher = (url: string) => fetch(url).then(r => r.json())
   const { data: authData } = useSWR('/api/auth/me', fetcher)
   const isManager = authData?.user?.role === 'MANAGER'
-  const canUseMailAssigner = authData?.user?.role === 'MANAGER' || authData?.user?.role === 'ADMIN'
+  const canUseMailAssigner = authData?.user?.role === 'MANAGER' || (authData?.user?.role === 'ADMIN' || authData?.user?.role === 'MODERATOR')
 
   const apiUrl = `/api/admin/contacts?search=${encodeURIComponent(search)}&studentId=${encodeURIComponent(studentFilter)}&page=${page}&limit=${limit}`
   const { data, error, isLoading, mutate } = useSWR(apiUrl, fetcher)

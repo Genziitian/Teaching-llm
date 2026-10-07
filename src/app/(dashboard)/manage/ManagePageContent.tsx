@@ -61,6 +61,13 @@ export function ManagePageInner({ forcedTab }: ManagePageInnerProps = {}) {
 
   const { data: authData, error: authError } = useSWR('/api/auth/me', fetcher)
   const userRole = authData?.user?.role || ''
+  // Moderators manage lectures and materials (for their assigned courses) alongside managers
+  const canManageCourseContent = userRole === 'MANAGER' || userRole === 'MODERATOR'
+
+  // Moderators have no Courses tab (course info is manager-only) — land them on Lectures
+  useEffect(() => {
+    if (!forcedTab && userRole === 'MODERATOR' && tab === 'courses') setTab('lectures')
+  }, [forcedTab, userRole, tab])
 
   // Courses & instructors always loaded — used in form dropdowns across all tabs
   const { data: coursesData, error: coursesError, isLoading: loadingCourses, mutate: mutateCourses } = useSWR('/api/courses', fetcher)
@@ -253,6 +260,13 @@ export function ManagePageInner({ forcedTab }: ManagePageInnerProps = {}) {
     category: 'PROMOTIONAL',
     priority: 'HIGH',
   })
+
+  // Moderators can only notify a specific assigned course
+  useEffect(() => {
+    if (userRole === 'MODERATOR' && inlineNotif.targetType !== 'COURSE') {
+      setInlineNotif(p => ({ ...p, targetType: 'COURSE', targetId: '' }))
+    }
+  }, [userRole, inlineNotif.targetType])
   
   const [notifSearch, setNotifSearch] = useState('')
   const [notifStatusFilter, setNotifStatusFilter] = useState<'ALL' | 'SENT' | 'PENDING'>('ALL')
@@ -833,9 +847,9 @@ export function ManagePageInner({ forcedTab }: ManagePageInnerProps = {}) {
     ...(userRole === 'MANAGER' ? [{ key: 'courses' as Tab, label: 'Courses', count: courses.length }] : []),
     ...(userRole === 'MANAGER' ? [{ key: 'offerings' as Tab, label: 'Course Offerings', count: offerings.length }] : []),
     ...(userRole === 'MANAGER' ? [{ key: 'bundles' as Tab, label: 'Course Bundles', count: bundles.length }] : []),
-    ...(userRole === 'MANAGER' ? [{ key: 'lectures' as Tab, label: 'Lectures', count: lectures.length }] : []),
+    ...(canManageCourseContent ? [{ key: 'lectures' as Tab, label: 'Lectures', count: lectures.length }] : []),
     { key: 'events',        label: 'Events',        count: events.length },
-    ...(userRole === 'MANAGER' ? [{ key: 'materials' as Tab, label: 'Materials', count: materials.length }] : []),
+    ...(canManageCourseContent ? [{ key: 'materials' as Tab, label: 'Materials', count: materials.length }] : []),
     { key: 'announcements', label: 'Announcements', count: announcements.length },
     ...(userRole === 'MANAGER' ? [{ key: 'faqs' as Tab, label: 'FAQs', count: faqs.length }] : []),
     ...(userRole === 'MANAGER' ? [{ key: 'queries' as Tab, label: 'Queries', count: queries.length }] : []),
@@ -1042,6 +1056,7 @@ export function ManagePageInner({ forcedTab }: ManagePageInnerProps = {}) {
                 <label className="ce-check">
                   <input
                     type="checkbox"
+                    disabled={userRole !== 'MANAGER'}
                     checked={!!f.isDisabled}
                     onChange={e => setFormData(p => ({ ...p, isDisabled: e.target.checked as any }))}
                   />
@@ -1432,6 +1447,7 @@ export function ManagePageInner({ forcedTab }: ManagePageInnerProps = {}) {
       case 'events':
         return (
           <>
+            {userRole !== 'MODERATOR' && (
             <div className="form-group" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <input 
                 type="checkbox" 
@@ -1441,6 +1457,7 @@ export function ManagePageInner({ forcedTab }: ManagePageInnerProps = {}) {
               />
               <label htmlFor="isGlobal" className="form-label" style={{ marginBottom: 0 }}>Global Event (Visible to everyone)</label>
             </div>
+            )}
             {!f.isGlobal && (
               <div className="form-group">
                 <label className="form-label">Course *</label>
@@ -1712,10 +1729,11 @@ export function ManagePageInner({ forcedTab }: ManagePageInnerProps = {}) {
               </div>
               <div className="form-group">
                 <label className="form-label">Target Audience *</label>
-                <select className="form-input" value={f.targetType || 'ALL'} onChange={e => { set('targetType', e.target.value); set('targetId', '') }}>
-                  <option value="ALL">All Students</option>
+                <select className="form-input" value={f.targetType || (userRole === 'MODERATOR' ? '' : 'ALL')} onChange={e => { set('targetType', e.target.value); set('targetId', '') }}>
+                  {userRole === 'MODERATOR' && <option value="">Select audience...</option>}
+                  {userRole !== 'MODERATOR' && <option value="ALL">All Students</option>}
                   <option value="COURSE">Course Batch</option>
-                  <option value="BUNDLE">Course Bundle</option>
+                  {userRole !== 'MODERATOR' && <option value="BUNDLE">Course Bundle</option>}
                 </select>
               </div>
               {f.targetType === 'COURSE' && (
@@ -2144,7 +2162,7 @@ export function ManagePageInner({ forcedTab }: ManagePageInnerProps = {}) {
               Academic Terms & Exam Cycles
             </button>
           )}
-          {tab !== 'notifications' && ((tab === 'events' || tab === 'announcements' || tab === 'home-slides' || tab === 'faqs' || tab === 'queries') || userRole === 'MANAGER' || userRole === 'ADMIN') && (
+          {tab !== 'notifications' && ((tab === 'events' || tab === 'announcements' || tab === 'home-slides' || tab === 'faqs' || tab === 'queries') || userRole === 'MANAGER' || (userRole === 'ADMIN' || userRole === 'MODERATOR')) && (
             <button
               onClick={() => {
                 if (tab === 'home-slides' && slides.length >= 10) {
@@ -2891,9 +2909,9 @@ export function ManagePageInner({ forcedTab }: ManagePageInnerProps = {}) {
                     value={inlineNotif.targetType}
                     onChange={e => setInlineNotif(p => ({ ...p, targetType: e.target.value as any, targetId: '' }))}
                   >
-                    <option value="ALL">All Registered Students</option>
+                    {userRole !== 'MODERATOR' && <option value="ALL">All Registered Students</option>}
                     <option value="COURSE">Specific Course Batch</option>
-                    <option value="BUNDLE">Specific Bundle Pack</option>
+                    {userRole !== 'MODERATOR' && <option value="BUNDLE">Specific Bundle Pack</option>}
                   </select>
                 </div>
 
@@ -3929,7 +3947,7 @@ export function ManagePageInner({ forcedTab }: ManagePageInnerProps = {}) {
                     )}
                   </div>
 
-                   {(userRole === 'MANAGER' || (tab !== 'courses' && tab !== 'lectures' && tab !== 'materials')) && (
+                   {(canManageCourseContent || (tab !== 'courses' && tab !== 'lectures' && tab !== 'materials')) && (
                      <div style={{ display: 'flex', gap: '4px', flexShrink: 0 }}>
                       {tab === 'courses' && !item.isDisabled && (
                         <button 
@@ -3949,7 +3967,7 @@ export function ManagePageInner({ forcedTab }: ManagePageInnerProps = {}) {
                           )}
                         </button>
                       )}
-                       {tab === 'courses' && (item.isDisabled || item.isExpired) && (
+                       {tab === 'courses' && userRole === 'MANAGER' && (item.isDisabled || item.isExpired) && (
                          <button
                            onClick={() => toggleCourseDisabled(item)}
                            className="btn btn-ghost btn-sm"
@@ -3977,7 +3995,7 @@ export function ManagePageInner({ forcedTab }: ManagePageInnerProps = {}) {
                            OFF
                          </button>
                        )}
-                       {tab === 'courses' && (
+                       {tab === 'courses' && userRole === 'MANAGER' && (
                          <button
                            onClick={() => handleDuplicate(item)}
                            disabled={saving}
@@ -3996,7 +4014,7 @@ export function ManagePageInner({ forcedTab }: ManagePageInnerProps = {}) {
                            </svg>
                          </button>
                        )}
-                       {tab === 'courses' && !item.isDemo && (
+                       {tab === 'courses' && userRole === 'MANAGER' && !item.isDemo && (
                          <button
                            onClick={() => setClearEnrollmentsCourse({ id: item.id, name: item.name })}
                            className="btn btn-ghost btn-sm"
@@ -4030,6 +4048,7 @@ export function ManagePageInner({ forcedTab }: ManagePageInnerProps = {}) {
                            <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
                          </svg>
                        </button>
+                        {(tab !== 'courses' || userRole === 'MANAGER') && (
                         <button 
                           onClick={() => handleDelete(item.id, item)} 
                          disabled={item.isDemo}
@@ -4047,6 +4066,7 @@ export function ManagePageInner({ forcedTab }: ManagePageInnerProps = {}) {
                            <path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/>
                          </svg>
                        </button>
+                        )}
                      </div>
                     )}
                 </div>

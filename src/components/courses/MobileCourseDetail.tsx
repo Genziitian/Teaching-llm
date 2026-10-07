@@ -165,7 +165,7 @@ export default function MobileCourseDetail({
   }, [course.expiresAt])
 
   const isRecorded = ['RECORDED', 'FREE'].includes(course.enrollmentType || '');
-  const isManager = role === 'ADMIN' || role === 'MANAGER'
+  const isManager = (role === 'ADMIN' || role === 'MODERATOR') || role === 'MANAGER'
   const heroBg = isRecorded
     ? 'linear-gradient(135deg, #4b5563 0%, #374151 50%, #111827 100%)'
     : coursePalette.isRefinedLightPalette

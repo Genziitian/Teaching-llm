@@ -54,7 +54,7 @@ export default function StudyResourcesPage() {
     dedupingInterval: 60000,
   })
   const userRole = userData?.user?.role || ''
-  const isManager = userRole === 'MANAGER' || userRole === 'ADMIN'
+  const isManager = userRole === 'MANAGER' || (userRole === 'ADMIN' || userRole === 'MODERATOR')
 
   const { data: materials, isLoading, mutate } = useSWR('/api/materials', fetcher, {
     revalidateOnFocus: false,

@@ -140,7 +140,7 @@ export async function GET(request: NextRequest) {
 
       const staffUsers = await prisma.user.findMany({
         where: {
-          role: { in: ['ADMIN', 'MANAGER', 'INSTRUCTOR'] },
+          role: { in: ['ADMIN', 'MODERATOR', 'MANAGER', 'INSTRUCTOR'] },
           ...notSoftDeleted,
         },
         select: userSelect,

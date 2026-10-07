@@ -412,7 +412,7 @@ export default function SupportPage() {
   useEffect(() => {
     fetch('/api/auth/me').then(r => r.json()).then(d => {
       const role = d.user?.role || 'STUDENT'
-      if (role === 'ADMIN') {
+      if ((role === 'ADMIN' || role === 'MODERATOR')) {
         router.replace('/dashboard')
         return
       }
@@ -1003,7 +1003,7 @@ export default function SupportPage() {
                   <circle cx="12" cy="12" r="10" /><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3" /><line x1="12" y1="17" x2="12.01" y2="17" strokeWidth="2.5" strokeLinecap="round" />
                 </svg>
               </div>
-              {(userRole === 'MANAGER' || userRole === 'ADMIN') && (
+              {(userRole === 'MANAGER' || (userRole === 'ADMIN' || userRole === 'MODERATOR')) && (
                 <div style={{ display: 'flex', gap: '8px' }}>
                   <button
                     onClick={async () => {
@@ -1051,7 +1051,7 @@ export default function SupportPage() {
                       >
                         <span style={{ fontSize: '13.5px', fontWeight: '700', color: 'var(--text-primary)' }}>{f.question}</span>
                         <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                          {(userRole === 'MANAGER' || userRole === 'ADMIN') && (
+                          {(userRole === 'MANAGER' || (userRole === 'ADMIN' || userRole === 'MODERATOR')) && (
                             <>
                               <button onClick={e => { e.stopPropagation(); setFaqForm({ question: f.question, answer: f.answer }); setEditingFaq(f); setShowFaqForm(true) }} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', padding: '4px' }}>
                                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" /><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" /></svg>
@@ -1094,7 +1094,7 @@ export default function SupportPage() {
                     Send a ticket for follow-up issues.
                   </div>
                 </div>
-                {(userRole === 'STUDENT' || userRole === 'ADMIN') ? (
+                {(userRole === 'STUDENT' || (userRole === 'ADMIN' || userRole === 'MODERATOR')) ? (
                   hasReachedActiveLimit ? (
                     <button 
                       disabled 
@@ -1170,7 +1170,7 @@ export default function SupportPage() {
             )}
 
             {/* Request a Feature Box */}
-            {userRole !== 'ADMIN' && (
+            {(userRole !== 'ADMIN' && userRole !== 'MODERATOR') && (
               <div className="ticket-box-pad" style={{ width: '100%', borderRadius: '24px', background: 'var(--surface-2)', border: '1.5px solid var(--border)', boxShadow: 'inset 0 1px 0 var(--neu-glow)', textAlign: 'left' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <div>
@@ -1317,7 +1317,7 @@ export default function SupportPage() {
             <span style={{ fontSize: '13px', color: 'var(--text-muted)', fontWeight: '600' }}>
               {featureRequests.length} feature request{featureRequests.length !== 1 ? 's' : ''}
             </span>
-            {(userRole === 'STUDENT' || userRole === 'ADMIN') && (
+            {(userRole === 'STUDENT' || (userRole === 'ADMIN' || userRole === 'MODERATOR')) && (
               <button onClick={() => setShowFeatureModal(true)} className="btn btn-primary btn-sm" style={{ background: 'linear-gradient(135deg, #8b5cf6, #6366f1)', border: 'none', borderRadius: '50px', padding: '8px 16px' }}>
                 + Request
               </button>
@@ -1493,7 +1493,7 @@ export default function SupportPage() {
   }
 
   if (view === 'userReports') {
-    const canManageReports = userRole === 'MANAGER' || userRole === 'ADMIN'
+    const canManageReports = userRole === 'MANAGER' || (userRole === 'ADMIN' || userRole === 'MODERATOR')
     return (
       <div className="page-container fade-in" style={{ maxHeight: isMobile ? 'calc(100vh - 72px)' : 'calc(100vh - 104px)', display: 'flex', flexDirection: 'column' }}>
         {confirmDialog}
@@ -1613,7 +1613,7 @@ export default function SupportPage() {
           <BackButton onClick={() => { if (isMobile && selected) { setSelected(null) } else { setView('home'); setSelected(null) } }} />
           <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
             <span style={{ fontSize: '13px', color: 'var(--text-muted)', fontWeight: '600' }}>{tickets.length} ticket{tickets.length !== 1 ? 's' : ''}</span>
-            {(userRole === 'STUDENT' || userRole === 'ADMIN') && (
+            {(userRole === 'STUDENT' || (userRole === 'ADMIN' || userRole === 'MODERATOR')) && (
               <button 
                 onClick={() => { if (!hasReachedActiveLimit) { setTicketError(null); setShowCreate(true) } }} 
                 disabled={hasReachedActiveLimit}
@@ -1634,7 +1634,7 @@ export default function SupportPage() {
               <div className="empty-state">
                 <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="1.5"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" /><polyline points="14 2 14 8 20 8" /></svg>
                 <p style={{ fontWeight: '700', fontSize: '15px', marginBottom: '4px' }}>No tickets</p>
-                <p style={{ fontSize: '13px', color: 'var(--text-muted)' }}>{(userRole === 'STUDENT' || userRole === 'ADMIN') ? 'Create a ticket to get help. If assigned tickets, they will appear here.' : 'No tickets have been raised.'}</p>
+                <p style={{ fontSize: '13px', color: 'var(--text-muted)' }}>{(userRole === 'STUDENT' || (userRole === 'ADMIN' || userRole === 'MODERATOR')) ? 'Create a ticket to get help. If assigned tickets, they will appear here.' : 'No tickets have been raised.'}</p>
               </div>
             ) : tickets.map(t => (
               <div key={t.id} onClick={() => setSelected(selected?.id === t.id ? null : t)}
@@ -1774,7 +1774,7 @@ export default function SupportPage() {
                   const isMe = r.sender.id === userId
                   const isAdmin = r.sender.role !== 'STUDENT'
                   const showAvatar = idx === 0 || selected.replies[idx - 1]?.sender.id !== r.sender.id
-                  const canManageReply = isMe && (userRole === 'MANAGER' || userRole === 'ADMIN')
+                  const canManageReply = isMe && (userRole === 'MANAGER' || (userRole === 'ADMIN' || userRole === 'MODERATOR'))
                   const isEditingThisReply = editingReplyId === r.id
 
                   return (

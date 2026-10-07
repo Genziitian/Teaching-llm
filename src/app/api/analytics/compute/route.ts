@@ -23,7 +23,7 @@ export async function POST(req: Request) {
       // Fallback: Check if request is manually triggered by a Manager
       const { getSession } = await import('@/lib/auth')
       const session = await getSession()
-      if (session && ['MANAGER', 'ADMIN'].includes(session.role)) {
+      if (session && ['MANAGER', 'ADMIN', 'MODERATOR'].includes(session.role)) {
         isAuthorized = true
       }
     }

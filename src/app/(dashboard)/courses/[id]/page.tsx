@@ -544,7 +544,7 @@ export default function CourseDetailPage() {
     )
   }
 
-  const isManager = ['MANAGER', 'ADMIN'].includes(role)
+  const isManager = ['MANAGER', 'ADMIN', 'MODERATOR'].includes(role)
   const canManage = isManager
   const NEW_CONTENT_WINDOW_MS = 24 * 60 * 60 * 1000
   const coursePalette = getCourseDisplayPalette(course.color, resolvedTheme)
@@ -757,7 +757,7 @@ export default function CourseDetailPage() {
               </div>
             </div>
 
-              {role === 'MANAGER' && (
+              {(role === 'MANAGER' || role === 'MODERATOR') && (
                 <button
                   onClick={() => router.push(`/courses/${params.id}/edit`)}
                   style={{

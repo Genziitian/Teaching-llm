@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
-import { getSession, canManageContent } from '@/lib/auth'
+import { getSession, isManager } from '@/lib/auth'
 import { logActivity, ACTION, MODULE } from '@/lib/activity-log'
 
 const VALID_CATEGORIES = new Set(['NOTE', 'PYQ', 'ASSIGNMENT', 'OTHER'])
@@ -57,7 +57,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    if (!canManageContent(session.role)) {
+    if (!isManager(session.role)) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 

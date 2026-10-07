@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
-import { getSession, canManageContent } from '@/lib/auth'
+import { getSession, canManageContent, canEditCourseContent } from '@/lib/auth'
 import { logActivity, ACTION, MODULE } from '@/lib/activity-log'
 import { sendNewLectureNotification } from '@/lib/system-notifications'
 
@@ -45,6 +45,10 @@ export async function POST(request: NextRequest) {
 
     const { courseId, title, description, videoUrl, notesUrl, duration, thumbnail } =
       await request.json()
+
+    if (!(await canEditCourseContent(session, [courseId]))) {
+      return NextResponse.json({ error: 'No access to this course' }, { status: 403 })
+    }
 
 
     const lecture = await prisma.lecture.create({

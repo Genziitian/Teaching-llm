@@ -18,7 +18,7 @@ function getJwtSecret(): string {
 export interface JWTPayload {
   userId: string
   email: string
-  role: 'MANAGER' | 'ADMIN' | 'STUDENT' | 'INSTRUCTOR'
+  role: 'MANAGER' | 'MODERATOR' | 'ADMIN' | 'STUDENT' | 'INSTRUCTOR'
   name: string
   canTerminate?: boolean
   canCreateStudents?: boolean
@@ -310,26 +310,58 @@ export function isManagerOrSuperAdmin(role: string) {
   return role === 'MANAGER'
 }
 
+// MODERATOR = everything an ADMIN can do, plus managing course content,
+// calendar events / live sessions, and announcements / notifications.
+export function isModerator(role: string) {
+  return role === 'MODERATOR'
+}
+
 export function isAdminOrManager(role: string) {
-  return role === 'MANAGER' || role === 'ADMIN'
+  return role === 'MANAGER' || role === 'ADMIN' || role === 'MODERATOR'
+}
+
+export function isManagerOrModerator(role: string) {
+  return role === 'MANAGER' || role === 'MODERATOR'
 }
 
 export function canCreateAnnouncements(role: string) {
-  return role === 'MANAGER'
+  return isManagerOrModerator(role)
 }
 
 export function canManageContent(role: string) {
-  return role === 'MANAGER'
+  return isManagerOrModerator(role)
 }
 
 export function canManageEvents(role: string) {
-  return role === 'MANAGER'
+  return isManagerOrModerator(role)
+}
+
+export function canManageNotifications(role: string) {
+  return isManagerOrModerator(role)
+}
+
+/**
+ * Course-scoped check for editing lectures / topics / materials, and for
+ * calendar events, announcements and notifications tied to a course.
+ * MANAGER: any course. MODERATOR: only courses they are assigned to.
+ * Every id passed must be a real, accessible course — a missing id fails.
+ */
+export async function canEditCourseContent(
+  session: { userId: string; role: string },
+  courseIds: Array<string | null | undefined>
+): Promise<boolean> {
+  if (session.role === 'MANAGER') return true
+  if (session.role !== 'MODERATOR') return false
+  if (courseIds.length === 0 || courseIds.some(id => !id)) return false
+  const accessible = await getAccessibleCourseIds(session.userId, session.role)
+  if (accessible === null) return true
+  return courseIds.every(id => accessible.includes(id as string))
 }
 
 /**
  * Returns the courseIds the user has access to via Enrollment and/or InstructorAssignment.
  * MANAGER: returns null (meaning "all courses, no filtering")
- * ADMIN/INSTRUCTOR/STUDENT: returns string[] of accessible courseIds (may be empty)
+ * ADMIN/MODERATOR/INSTRUCTOR/STUDENT: returns string[] of accessible courseIds (may be empty)
  */
 export async function getAccessibleCourseIds(
   userId: string,

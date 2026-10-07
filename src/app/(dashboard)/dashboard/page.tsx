@@ -334,7 +334,7 @@ export default function DashboardPage() {
   const examCountdown = effectiveData?.examCountdown || null
   const role = effectiveData?.user?.role || user?.role || (typeof window !== 'undefined' ? localStorage.getItem('cached_student_role') : '') || ''
   const isManager = role === 'MANAGER'
-  const isStudentView = role === 'STUDENT' || role === 'ADMIN'
+  const isStudentView = role === 'STUDENT' || (role === 'ADMIN' || role === 'MODERATOR')
 
   const liveSessions = effectiveData?.liveSessions || []
   const liveNow = liveSessions.filter((s: any) => 
@@ -499,7 +499,7 @@ export default function DashboardPage() {
   ]
   // Offline fallback if no effective data exists
   if (!effectiveData && (error || (typeof navigator !== 'undefined' && !navigator.onLine)) && offlineChecked) {
-    if (user?.role === 'MANAGER' || user?.role === 'ADMIN') {
+    if (user?.role === 'MANAGER' || (user?.role === 'ADMIN' || user?.role === 'MODERATOR')) {
       return (
         <div className="page-container fade-in" style={{ padding: '24px 16px' }}>
           <OfflinePageNotice

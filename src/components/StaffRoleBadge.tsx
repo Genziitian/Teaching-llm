@@ -4,6 +4,7 @@ export function getStaffRoleLabel(role?: string | null) {
   const normalizedRole = role?.toUpperCase()
   if (normalizedRole === 'MANAGER') return 'Manager'
   if (normalizedRole === 'ADMIN') return 'Admin'
+  if (normalizedRole === 'MODERATOR') return 'Moderator'
   return null
 }
 

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
-import { getSession, getFullSession, canManageContent, isAdminOrManager } from '@/lib/auth'
+import { getSession, getFullSession, canManageContent, isAdminOrManager, canEditCourseContent } from '@/lib/auth'
 import { logActivity, ACTION, MODULE } from '@/lib/activity-log'
 
 export async function GET(request: NextRequest) {
@@ -15,8 +15,9 @@ export async function GET(request: NextRequest) {
 
     const where: any = { isFree: false }
     
-    // If not manager/admin, restrict to global materials or enrolled courses
-    if (!isAdminOrManager(session.role)) {
+    // If not manager/admin, restrict to global materials or enrolled courses.
+    // Moderators also only see global materials plus their assigned courses.
+    if (!isAdminOrManager(session.role) || session.role === 'MODERATOR') {
       const allowedIds = session.accessibleCourseIds || []
       where.OR = [
         { isGlobal: true },
@@ -57,6 +58,11 @@ export async function POST(request: NextRequest) {
 
     const { courseId, title, description, fileUrl, fileType, fileSize, isGlobal, sourceType } =
       await request.json()
+
+    // Moderators can only add materials to their assigned courses (no global materials)
+    if (session.role !== 'MANAGER' && (isGlobal || !(await canEditCourseContent(session, [courseId])))) {
+      return NextResponse.json({ error: 'No access to this course' }, { status: 403 })
+    }
 
     // Validate sourceType
     const validSourceType = sourceType === 'LINK' ? 'LINK' : 'FILE'

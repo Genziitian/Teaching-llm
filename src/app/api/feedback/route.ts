@@ -25,7 +25,7 @@ export async function GET(request: NextRequest) {
       if (studentId) {
         where.studentId = studentId
       }
-    } else if (session.role === 'ADMIN' || session.role === 'INSTRUCTOR') {
+    } else if ((session.role === 'ADMIN' || session.role === 'MODERATOR') || session.role === 'INSTRUCTOR') {
       const accessibleCourseIds = await getAccessibleCourseIds(session.userId, session.role) || []
       if (courseId) {
         if (courseId === 'APP' || courseId === 'WEBSITE') {

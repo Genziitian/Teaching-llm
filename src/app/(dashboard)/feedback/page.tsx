@@ -54,7 +54,7 @@ export default function FeedbackPage() {
     return <ManagerFeedbackView />
   }
 
-  if (user.role === 'ADMIN' || user.role === 'INSTRUCTOR') {
+  if ((user.role === 'ADMIN' || user.role === 'MODERATOR') || user.role === 'INSTRUCTOR') {
     return <AdminFeedbackView user={user} />
   }
 

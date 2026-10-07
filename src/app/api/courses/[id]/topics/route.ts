@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
-import { getSession, canManageContent } from '@/lib/auth'
+import { getSession, canManageContent, canEditCourseContent } from '@/lib/auth'
 import { logActivity, ACTION, MODULE } from '@/lib/activity-log'
 import { isCourseEffectivelyDisabled } from '@/lib/course-state'
 
@@ -132,6 +132,9 @@ export async function POST(
     }
 
     if (!canManageContent(session.role)) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    if (!(await canEditCourseContent(session, [id]))) {
+      return NextResponse.json({ error: 'No access to this course' }, { status: 403 })
+    }
 
     const { title } = await request.json()
 

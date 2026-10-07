@@ -841,7 +841,7 @@ export default function SocialCardModal({ userId, onClose, onChatStarted, previe
         '--primary': '#818cf8',
         '--accent': '#6366f1',
       }
-    : cardData?.user.role === 'ADMIN'
+    : (cardData?.user.role === 'ADMIN' || cardData?.user.role === 'MODERATOR')
     ? {
         '--surface': '#1a0a0d',
         '--border': 'rgba(239, 68, 68, 0.24)',

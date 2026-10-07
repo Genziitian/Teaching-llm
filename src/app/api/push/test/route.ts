@@ -7,7 +7,7 @@ import webpush from 'web-push'
 export async function GET(request: NextRequest) {
   try {
     const session = await getSession()
-    if (!session || (session.role !== 'MANAGER' && session.role !== 'ADMIN')) {
+    if (!session || (session.role !== 'MANAGER' && (session.role !== 'ADMIN' && session.role !== 'MODERATOR'))) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 

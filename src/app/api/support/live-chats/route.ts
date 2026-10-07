@@ -28,7 +28,7 @@ export async function GET() {
 
     // ONLY show SUPPORT chats — never DIRECT (community DMs)
     let where: any = { type: 'SUPPORT' }
-    if (session.role === 'STUDENT' || session.role === 'ADMIN') {
+    if (session.role === 'STUDENT' || (session.role === 'ADMIN' || session.role === 'MODERATOR')) {
       where.studentId = session.userId
     } else {
       // Managers only see support chats that have at least one message
@@ -59,7 +59,7 @@ export async function POST(request: NextRequest) {
   try {
     const session = await getSession()
     if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    if (session.role !== 'STUDENT' && session.role !== 'ADMIN') {
+    if (session.role !== 'STUDENT' && (session.role !== 'ADMIN' && session.role !== 'MODERATOR')) {
       return NextResponse.json({ error: 'Only students and admins can start a chat' }, { status: 403 })
     }
 

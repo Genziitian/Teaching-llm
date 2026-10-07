@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
-import { getSession, isAdminOrManager, getAccessibleCourseIds, canCreateAnnouncements } from '@/lib/auth'
+import { getSession, isAdminOrManager, getAccessibleCourseIds, canCreateAnnouncements, canEditCourseContent } from '@/lib/auth'
 import { logActivity, ACTION, MODULE } from '@/lib/activity-log'
 import { sseEmitter } from '@/lib/sse'
 import { sendPushToUsers, sendPushToAllStudents } from '@/lib/push'
@@ -62,6 +62,11 @@ export async function POST(request: NextRequest) {
 
     if (!title || !content) {
       return NextResponse.json({ error: 'Title and content are required' }, { status: 400 })
+    }
+
+    // Moderators can only announce to their assigned courses (no global announcements)
+    if (!(await canEditCourseContent(session, [targetCourseId]))) {
+      return NextResponse.json({ error: 'You can only manage your assigned courses' }, { status: 403 })
     }
 
     const announcement = await prisma.announcement.create({

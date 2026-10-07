@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
-import { getSession, canManageContent, isStudentEnrolledInContent } from '@/lib/auth'
+import { getSession, canManageContent, isStudentEnrolledInContent, canEditCourseContent } from '@/lib/auth'
 import { logActivity, ACTION, MODULE } from '@/lib/activity-log'
 
 export async function GET(
@@ -159,6 +159,12 @@ export async function PUT(
 
     const { title, description, videoUrl, youtubeUrl, pptUrl, videoSource, isDemo, duration } = await request.json()
 
+    const scopeContent = await prisma.content.findUnique({ where: { id }, select: { topic: { select: { courseId: true } } } })
+    if (!scopeContent) return NextResponse.json({ error: 'Lecture not found' }, { status: 404 })
+    if (!(await canEditCourseContent(session, [scopeContent.topic?.courseId]))) {
+      return NextResponse.json({ error: 'No access to this course' }, { status: 403 })
+    }
+
     const content = await prisma.content.update({
       where: { id },
       data: {
@@ -211,6 +217,7 @@ export async function DELETE(
         topicId: true,
         videoUrl: true,
         isRecordingOnly: true,
+        topic: { select: { courseId: true } },
         sharedTopics: {
           select: { id: true, topicId: true },
         },
@@ -218,6 +225,19 @@ export async function DELETE(
     })
     if (!existing) {
       return NextResponse.json({ error: 'Lecture not found' }, { status: 404 })
+    }
+
+    // Moderators: removing an imported lecture from a topic only needs access to
+    // that topic's course; anything else needs access to the lecture's own course.
+    if (session.role !== 'MANAGER') {
+      let scopeCourseId: string | null | undefined = existing.topic?.courseId
+      if (!forceDelete && topicId && existing.topicId !== topicId) {
+        const sharedTopic = await prisma.topic.findUnique({ where: { id: topicId }, select: { courseId: true } })
+        scopeCourseId = sharedTopic?.courseId
+      }
+      if (!(await canEditCourseContent(session, [scopeCourseId]))) {
+        return NextResponse.json({ error: 'No access to this course' }, { status: 403 })
+      }
     }
 
     if (forceDelete) {

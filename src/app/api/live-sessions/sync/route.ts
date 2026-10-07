@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { getSession, isManager } from '@/lib/auth'
+import { getSession, isManager, canManageEvents } from '@/lib/auth'
 import { syncTodaySessions } from '@/lib/daily-session-sync'
 import { logActivity, ACTION, MODULE } from '@/lib/activity-log'
 import { prisma } from '@/lib/db'
@@ -12,7 +12,7 @@ export async function POST() {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    if (!isManager(session.role)) {
+    if (!canManageEvents(session.role)) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 

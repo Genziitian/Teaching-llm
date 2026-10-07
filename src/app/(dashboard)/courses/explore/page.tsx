@@ -4510,7 +4510,7 @@ export default function ExploreCoursesPage() {
               <label style={{ display: 'block', fontSize: '13px', fontWeight: '700', color: 'var(--text-secondary)', marginBottom: '6px' }}>Assign Mentor (Staff)</label>
               <select id="mentorIdInput" defaultValue={editingMentorship?.mentorId || ''} style={{ width: '100%', padding: '12px', borderRadius: '10px', border: '1.5px solid #dbeafe', fontSize: '14px', background: 'var(--surface)' }}>
                 <option value="">Select a Mentor...</option>
-                {staffData?.staff?.filter((s: any) => s.role === 'ADMIN' || s.role === 'MANAGER').map((s: any) => (
+                {staffData?.staff?.filter((s: any) => (s.role === 'ADMIN' || s.role === 'MODERATOR') || s.role === 'MANAGER').map((s: any) => (
                   <option key={s.id} value={s.id}>{s.name} ({s.role})</option>
                 ))}
               </select>

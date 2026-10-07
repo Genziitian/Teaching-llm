@@ -40,7 +40,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
     // 1. User is ADMIN or MANAGER
     // 2. The note is free (price = 0)
     // 3. User has a valid active purchase (within 30 days)
-    const isManager = user.role === 'MANAGER' || user.role === 'ADMIN'
+    const isManager = user.role === 'MANAGER' || (user.role === 'ADMIN' || user.role === 'MODERATOR')
     const isFree = note.price === 0
 
     let hasAccess = isManager || isFree

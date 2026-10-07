@@ -139,7 +139,8 @@ function CalendarPageContent() {
   const year = currentDate?.getFullYear() || new Date().getFullYear()
   const month = currentDate?.getMonth() ?? new Date().getMonth()
   const monthName = currentDate ? currentDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) : ''
-  const isManager = user?.role === 'MANAGER'
+  // Managers and moderators can add and edit calendar events / live sessions
+  const isManager = user?.role === 'MANAGER' || user?.role === 'MODERATOR'
   const [syncing, setSyncing] = useState(false)
 
   async function handleSyncLiveSessions() {
@@ -1330,7 +1331,8 @@ function CalendarPageContent() {
                   )}
                 </div>
 
-                {/* Global Toggle option */}
+                {/* Global Toggle option (moderators can only target assigned courses) */}
+                {user?.role !== 'MODERATOR' && (
                 <div
                   onClick={() => {
                     setIsGlobalCourse(!isGlobalCourse)
@@ -1364,6 +1366,7 @@ function CalendarPageContent() {
                     </div>
                   </div>
                 </div>
+                )}
 
                 {/* Course List with Multi-Select Checkboxes */}
                 {!isGlobalCourse && (

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
-import { getSession, isAdminOrManager } from '@/lib/auth'
+import { getSession, isAdminOrManager, canEditCourseContent, getAccessibleCourseIds } from '@/lib/auth'
 import { logActivity, ACTION, MODULE } from '@/lib/activity-log'
 import { sendNotificationCampaign, processScheduledCampaigns } from '@/lib/campaign-processor'
 
@@ -20,7 +20,15 @@ export async function GET() {
       console.error('[Failsafe Campaign Process] Error:', err)
     )
 
+    // Moderators only see campaigns sent to their assigned courses
+    let campaignWhere: Record<string, any> = {}
+    if (session.role === 'MODERATOR') {
+      const accessible = await getAccessibleCourseIds(session.userId, session.role)
+      if (accessible !== null) campaignWhere = { targetType: 'COURSE', targetId: { in: accessible } }
+    }
+
     const campaigns = await prisma.notificationCampaign.findMany({
+      where: campaignWhere,
       orderBy: { createdAt: 'desc' },
       include: {
         createdBy: { select: { name: true, email: true, avatar: true } },
@@ -62,6 +70,11 @@ export async function POST(request: NextRequest) {
 
     if (targetType && !['ALL', 'COURSE', 'BUNDLE'].includes(targetType)) {
       return NextResponse.json({ error: 'Invalid audience target type' }, { status: 400 })
+    }
+
+    // Moderators can only notify one of their assigned courses
+    if (session.role === 'MODERATOR' && (targetType !== 'COURSE' || !(await canEditCourseContent(session, [targetId])))) {
+      return NextResponse.json({ error: 'You can only manage your assigned courses' }, { status: 403 })
     }
 
     const scheduledDate = scheduledFor ? new Date(scheduledFor) : null

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
-import { getSession, isAdminOrManager, getAccessibleCourseIds, isManager } from '@/lib/auth'
+import { getSession, isAdminOrManager, getAccessibleCourseIds, isManager, canManageEvents, canEditCourseContent } from '@/lib/auth'
 import { logActivity, ACTION, MODULE } from '@/lib/activity-log'
 import { formatIST, getEventStatus } from '@/lib/date-utils'
 import { sendClassScheduledNotification, sendClassCanceledNotification } from '@/lib/system-notifications'
@@ -176,7 +176,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    if (!isManager(session.role)) {
+    if (!canManageEvents(session.role)) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
@@ -202,6 +202,11 @@ export async function POST(request: NextRequest) {
         const singleId = courseId ?? classId ?? null
         targetCourseIds = [singleId]
       }
+    }
+
+    // Moderators can only schedule events for their assigned courses (no global events)
+    if (!(await canEditCourseContent(session, targetCourseIds))) {
+      return NextResponse.json({ error: 'You can only manage your assigned courses' }, { status: 403 })
     }
 
     // Whitelist the stream provider; default to MEET so older clients keep working.
@@ -366,7 +371,7 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    if (!isManager(session.role)) {
+    if (!canManageEvents(session.role)) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
@@ -381,6 +386,10 @@ export async function DELETE(request: NextRequest) {
       where: { id: { in: eventIds } },
       select: { id: true, title: true, courseId: true, startTime: true },
     })
+
+    if (!(await canEditCourseContent(session, eventsToDelete.map(ev => ev.courseId)))) {
+      return NextResponse.json({ error: 'You can only manage your assigned courses' }, { status: 403 })
+    }
 
     if (notifyStudents) {
       for (const ev of eventsToDelete) {
