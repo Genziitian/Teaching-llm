@@ -31,6 +31,25 @@ final communityMessagesProvider =
   }
 });
 
+/// GET /api/community/[courseId]/messages/pinned → the message a manager
+/// pinned for this community, or null when nothing is pinned.
+final communityPinnedMessageProvider =
+    FutureProvider.family<Map<String, dynamic>?, String>((ref, courseId) async {
+  final api = ref.watch(apiClientProvider);
+  try {
+    final res =
+        await api.get<dynamic>('/api/community/$courseId/messages/pinned');
+    final data = res.data;
+    if (data is Map && data['pinnedMessage'] is Map) {
+      return Map<String, dynamic>.from(data['pinnedMessage'] as Map);
+    }
+    return null;
+  } catch (e) {
+    debugPrint('Error fetching pinned message for $courseId: $e');
+    return null;
+  }
+});
+
 class CommunityChatPage extends ConsumerStatefulWidget {
   const CommunityChatPage({super.key, required this.courseId});
   final String courseId;
@@ -45,6 +64,7 @@ class _CommunityChatPageState extends ConsumerState<CommunityChatPage> {
   final _scroll = ScrollController();
   final _focusNode = FocusNode();
   Timer? _pollTimer;
+  int _pollTick = 0;
   bool _sending = false;
   bool _uploadingAttachment = false;
   bool _isMuted = false;
@@ -58,6 +78,11 @@ class _CommunityChatPageState extends ConsumerState<CommunityChatPage> {
     _pollTimer = Timer.periodic(const Duration(seconds: 4), (_) {
       if (mounted) {
         ref.invalidate(communityMessagesProvider(widget.courseId));
+        // The pinned message changes rarely — re-check it every ~20s.
+        _pollTick++;
+        if (_pollTick % 5 == 0) {
+          ref.invalidate(communityPinnedMessageProvider(widget.courseId));
+        }
       }
     });
   }
@@ -338,6 +363,14 @@ class _CommunityChatPageState extends ConsumerState<CommunityChatPage> {
     final tokens = context.tokens;
     final isDark = context.isDark;
 
+    // Banner under the header: a manager's pinned message when there is one,
+    // otherwise the welcome note — but only while the group has no messages.
+    final pinnedMessage = ref
+        .watch(communityPinnedMessageProvider(widget.courseId))
+        .valueOrNull;
+    final loadedMsgs = messagesAsync.valueOrNull;
+    final groupIsEmpty = loadedMsgs != null && loadedMsgs.isEmpty;
+
     return Scaffold(
       backgroundColor: isDark ? tokens.bg : const Color(0xFFF7F5F0),
       body: SafeArea(
@@ -352,7 +385,10 @@ class _CommunityChatPageState extends ConsumerState<CommunityChatPage> {
               onMarkAsRead: _markAsRead,
               onToggleMute: _toggleMute,
             ),
-            const _PinnedBanner(),
+            if (pinnedMessage != null)
+              _PinnedBanner(message: pinnedMessage)
+            else if (groupIsEmpty)
+              const _PinnedBanner(),
             Expanded(
               child: Stack(
                 children: [
@@ -829,12 +865,35 @@ class _Header extends StatelessWidget {
 }
 
 class _PinnedBanner extends StatelessWidget {
-  const _PinnedBanner();
+  /// With [message] the banner shows that pinned message; without it, it shows
+  /// the default welcome note.
+  const _PinnedBanner({this.message});
+  final Map<String, dynamic>? message;
+
   @override
   Widget build(BuildContext context) {
     final isDark = context.isDark;
+    final textColor =
+        isDark ? const Color(0xFFFDE68A) : const Color(0xFF92400E);
 
-    return Container(
+    final msg = message;
+    String label = 'Pinned by mentor: ';
+    String body = 'Welcome to the community — say hi! 👋';
+    if (msg != null) {
+      final sender = msg['sender'];
+      final senderName =
+          sender is Map ? (sender['name'] as String?) ?? '' : '';
+      final cleaned =
+          _cleanMessageContent((msg['content'] as String?) ?? '');
+      final hasAttachment =
+          ((msg['imageUrl'] as String?) ?? '').isNotEmpty;
+      label = senderName.isNotEmpty ? 'Pinned · $senderName: ' : 'Pinned: ';
+      body = cleaned.isNotEmpty
+          ? cleaned
+          : (hasAttachment ? '📎 Attachment' : 'Pinned message');
+    }
+
+    final banner = Container(
       margin: const EdgeInsets.fromLTRB(16, 10, 16, 0),
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       decoration: BoxDecoration(
@@ -857,38 +916,66 @@ class _PinnedBanner extends StatelessWidget {
               TextSpan(
                 children: [
                   TextSpan(
-                    text: 'Pinned by mentor: ',
+                    text: label,
                     style: TextStyle(
-                      color: isDark
-                          ? const Color(0xFFFDE68A)
-                          : const Color(0xFF92400E),
+                      color: textColor,
                       fontSize: 11.5,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
                   TextSpan(
-                    text: 'Welcome to the community — say hi! 👋',
+                    text: body,
                     style: TextStyle(
-                      color: isDark
-                          ? const Color(0xFFFDE68A)
-                          : const Color(0xFF92400E),
+                      color: textColor,
                       fontSize: 11.5,
                       fontWeight: FontWeight.w800,
                     ),
                   ),
                 ],
               ),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
             ),
           ),
-          Icon(
-            Icons.chevron_right,
-            color: isDark
-                ? const Color(0xFFFDE68A)
-                : const Color(0xFF92400E),
-            size: 14,
-          ),
+          if (msg != null)
+            Icon(
+              Icons.chevron_right,
+              color: textColor,
+              size: 14,
+            ),
         ],
       ),
+    );
+
+    if (msg == null) return banner;
+
+    // Tap to read the whole pinned message (the banner shows two lines).
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: () {
+        showDialog<void>(
+          context: context,
+          builder: (ctx) => AlertDialog(
+            title: const Text(
+              'Pinned message',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
+            ),
+            content: SingleChildScrollView(
+              child: Text(
+                '$label$body',
+                style: const TextStyle(fontSize: 14, height: 1.45),
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: const Text('Close'),
+              ),
+            ],
+          ),
+        );
+      },
+      child: banner,
     );
   }
 }
@@ -1174,7 +1261,11 @@ class _Bubble extends StatelessWidget {
 
     final idx = (name.hashCode.abs()) % _palette.length;
     final tone = isMentor ? tokens.primaryAccent : _palette[idx][0];
-    final roleLabel = role == 'MANAGER' || role == 'ADMIN' ? 'ADMIN' : 'MENTOR';
+    final roleLabel = role == 'MANAGER'
+        ? 'MANAGER'
+        : role == 'ADMIN'
+            ? 'ADMIN'
+            : 'MENTOR';
 
     return Dismissible(
       key: ValueKey('msg_${message['id']}_${message['createdAt']}'),

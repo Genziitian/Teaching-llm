@@ -10,6 +10,7 @@ import '../../shared/widgets/app_avatar.dart';
 import '../../shared/widgets/bouncy_pressable.dart';
 import '../../theme/app_shadows.dart';
 import '../../theme/app_theme_tokens.dart';
+import '../updates/play_update.dart';
 
 /// Redesigned "More" tab matching the sleek card-list layout.
 class MorePage extends ConsumerWidget {
@@ -51,51 +52,8 @@ https://class.genziitian.in/download''';
   }
 
   void _checkForUpdates(BuildContext context) {
-    final tokens = context.tokens;
     HapticFeedback.mediumImpact();
-    showDialog(
-      context: context,
-      useRootNavigator: true,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: tokens.cardBg,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: Row(
-          children: [
-            Icon(Icons.check_circle_outline_rounded,
-                color: tokens.success, size: 24),
-            const SizedBox(width: 10),
-            Text(
-              'Up to Date',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w800,
-                color: tokens.textPrimary,
-              ),
-            ),
-          ],
-        ),
-        content: Text(
-          'You are running the latest version of Gen-Z IITian LMS (v2.6.0).\nNo updates available at this time.',
-          style: TextStyle(
-            fontSize: 13.5,
-            height: 1.45,
-            color: tokens.textSecondary,
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx, rootNavigator: true).pop(),
-            child: Text(
-              'OK',
-              style: TextStyle(
-                fontWeight: FontWeight.w700,
-                color: tokens.primaryAccent,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
+    checkPlayUpdateManually(context);
   }
 
   @override

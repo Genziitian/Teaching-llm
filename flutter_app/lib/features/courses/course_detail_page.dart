@@ -1395,6 +1395,34 @@ class _LectureGridCard extends ConsumerWidget {
 
     final uploadAge = _getUploadAge(createdAt);
 
+    // Card palette per appearance. On the dark and black themes the card is a
+    // soft off-white so lectures stand out from the dark page; on the light
+    // theme it is a plain white card.
+    final Color cardColor, thumbColor, cardBorder, titleColor, metaColor,
+        iconColor;
+    if (tokens.isBlack) {
+      cardColor = const Color(0xFFE8E8EA);
+      thumbColor = const Color(0xFFD7D7DB);
+      cardBorder = const Color(0xFFBFBFC5);
+      titleColor = const Color(0xFF111113);
+      metaColor = const Color(0xFF5B5B63);
+      iconColor = const Color(0xFF111113);
+    } else if (tokens.isDark) {
+      cardColor = const Color(0xFFE9ECF5);
+      thumbColor = const Color(0xFFD8DDEC);
+      cardBorder = const Color(0xFFC5CCE0);
+      titleColor = const Color(0xFF0F172A);
+      metaColor = const Color(0xFF5B6478);
+      iconColor = const Color(0xFF4F46E5);
+    } else {
+      cardColor = const Color(0xFFFFFFFF);
+      thumbColor = const Color(0xFFEEF1F8);
+      cardBorder = tokens.border;
+      titleColor = tokens.textPrimary;
+      metaColor = tokens.textSecondary;
+      iconColor = const Color(0xFF4F46E5);
+    }
+
     void handleClick() {
       if (isVideo) {
         final uri = Uri(
@@ -1439,9 +1467,9 @@ class _LectureGridCard extends ConsumerWidget {
       borderRadius: BorderRadius.circular(10),
       child: Container(
         decoration: BoxDecoration(
-          color: tokens.surfaceSecondary,
+          color: cardColor,
           borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: tokens.border),
+          border: Border.all(color: cardBorder),
         ),
         clipBehavior: Clip.antiAlias,
         child: Column(
@@ -1455,24 +1483,22 @@ class _LectureGridCard extends ConsumerWidget {
                 children: [
                   Container(
                     decoration: BoxDecoration(
-                      color: context.isDark
-                          ? const Color(0xFF1B223C)
-                          : const Color(0xFF94A3B8).withOpacity(0.32),
+                      color: thumbColor,
                       border: Border(
-                        bottom: BorderSide(color: tokens.border, width: 1),
+                        bottom: BorderSide(color: cardBorder, width: 1),
                       ),
                     ),
                     alignment: Alignment.center,
                     child: isVideo
-                        ? const Icon(
+                        ? Icon(
                             Icons.play_arrow_rounded,
                             size: 38,
-                            color: Color(0xFF6366F1),
+                            color: iconColor,
                           )
-                        : const Icon(
+                        : Icon(
                             Icons.description_outlined,
                             size: 30,
-                            color: Color(0xFF6366F1),
+                            color: iconColor,
                           ),
                   ),
                   if (isDownloaded)
@@ -1520,7 +1546,7 @@ class _LectureGridCard extends ConsumerWidget {
                     style: TextStyle(
                       fontSize: 12.5,
                       fontWeight: FontWeight.w800,
-                      color: tokens.textPrimary,
+                      color: titleColor,
                     ),
                   ),
                   const SizedBox(height: 3),
@@ -1529,7 +1555,7 @@ class _LectureGridCard extends ConsumerWidget {
                     style: TextStyle(
                       fontSize: 10.5,
                       fontWeight: FontWeight.w500,
-                      color: tokens.textMuted,
+                      color: metaColor,
                     ),
                   ),
                 ],

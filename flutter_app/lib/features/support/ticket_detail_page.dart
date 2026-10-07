@@ -7,6 +7,7 @@ import '../../config/api_config.dart';
 import '../../core/auth/auth_providers.dart';
 import '../../shared/widgets/sub_page_header.dart';
 import '../../theme/app_theme_tokens.dart';
+import '../community/community_file_upload.dart';
 import 'support_providers.dart';
 
 class TicketDetailPage extends ConsumerStatefulWidget {
@@ -23,6 +24,8 @@ class _TicketDetailPageState extends ConsumerState<TicketDetailPage>
   Timer? _timer;
   bool _busy = false;
   String? _error;
+  // Photo picked and uploaded, waiting to be sent with the next reply.
+  Map<String, String>? _attachment;
   String get _path =>
       '/api/support/tickets/${Uri.encodeComponent(widget.ticketId)}';
 
@@ -63,19 +66,40 @@ class _TicketDetailPageState extends ConsumerState<TicketDetailPage>
     ref.invalidate(supportTicketsProvider);
   }
 
-  Future<void> _send() async {
-    final content = _message.text.trim();
-    if (content.isEmpty || _busy) return;
+  Future<void> _pickPhoto() async {
+    if (_busy) return;
     setState(() {
       _busy = true;
       _error = null;
     });
     try {
-      await ref
-          .read(apiClientProvider)
-          .post('$_path/replies', body: {'content': content});
+      // Same rules as the web support page: JPG/PNG/WEBP photos up to 5 MB.
+      final picked = await pickCommunityAttachment(ref.read(apiClientProvider),
+          images: true, maxMb: 5);
+      if (mounted && picked != null) setState(() => _attachment = picked);
+    } catch (error) {
+      if (mounted) setState(() => _error = communityUploadError(error));
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  Future<void> _send() async {
+    final content = _message.text.trim();
+    final imageUrl = _attachment?['url'];
+    if ((content.isEmpty && imageUrl == null) || _busy) return;
+    setState(() {
+      _busy = true;
+      _error = null;
+    });
+    try {
+      await ref.read(apiClientProvider).post('$_path/replies', body: {
+        'content': content,
+        if (imageUrl != null) 'imageUrl': imageUrl,
+      });
       if (!mounted) return;
       _message.clear();
+      setState(() => _attachment = null);
       _refresh();
       // Refresh failure must not make a successful send look unsent.
       try {
@@ -324,7 +348,7 @@ class _TicketDetailPageState extends ConsumerState<TicketDetailPage>
                                 : 'Waiting for a manager to reply. You can add more details below.',
                             style: TextStyle(color: tokens.textSecondary))),
                   for (final reply in replies)
-                    _MessageCard(
+                    _ReplyBubble(
                       name:
                           '${reply['sender']?['name'] ?? 'User'}${reply['sender']?['role'] == 'MANAGER' ? ' · Manager' : ''}',
                       content: '${reply['content'] ?? ''}',
@@ -335,6 +359,10 @@ class _TicketDetailPageState extends ConsumerState<TicketDetailPage>
                           ? PopupMenuButton<String>(
                               enabled: !_busy,
                               tooltip: 'Reply options',
+                              padding: EdgeInsets.zero,
+                              icon: Icon(Icons.more_vert,
+                                  size: 18,
+                                  color: _onColor(tokens.primaryAccent)),
                               onSelected: (action) =>
                                   _manageReply(reply, action),
                               itemBuilder: (_) => [
@@ -361,9 +389,65 @@ class _TicketDetailPageState extends ConsumerState<TicketDetailPage>
                   child: closed
                       ? const Text(
                           'This ticket is closed. Create a new ticket from Support if you need more help.')
-                      : Row(
+                      : Column(mainAxisSize: MainAxisSize.min, children: [
+                          if (_attachment != null)
+                            Container(
+                              margin: const EdgeInsets.only(bottom: 10),
+                              padding: const EdgeInsets.fromLTRB(8, 8, 4, 8),
+                              decoration: BoxDecoration(
+                                  color: tokens.surfaceSecondary,
+                                  border: Border.all(color: tokens.border),
+                                  borderRadius: BorderRadius.circular(12)),
+                              child: Row(children: [
+                                ClipRRect(
+                                    borderRadius: BorderRadius.circular(8),
+                                    child: Image.network(
+                                        _resolveUrl(_attachment!['url'])
+                                                ?.toString() ??
+                                            '',
+                                        width: 48,
+                                        height: 48,
+                                        fit: BoxFit.cover,
+                                        errorBuilder: (_, __, ___) => SizedBox(
+                                            width: 48,
+                                            height: 48,
+                                            child: Icon(Icons.image_outlined,
+                                                color: tokens.textMuted)))),
+                                const SizedBox(width: 10),
+                                Expanded(
+                                    child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                      Text('Photo attached',
+                                          style: TextStyle(
+                                              fontWeight: FontWeight.w700,
+                                              color: tokens.textPrimary)),
+                                      Text(_attachment!['name'] ?? '',
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: TextStyle(
+                                              fontSize: 11.5,
+                                              color: tokens.textSecondary)),
+                                    ])),
+                                IconButton(
+                                    onPressed: _busy
+                                        ? null
+                                        : () =>
+                                            setState(() => _attachment = null),
+                                    icon: const Icon(Icons.close, size: 18),
+                                    tooltip: 'Remove photo'),
+                              ]),
+                            ),
+                          Row(
                           crossAxisAlignment: CrossAxisAlignment.end,
                           children: [
+                              IconButton(
+                                  onPressed: _busy ? null : _pickPhoto,
+                                  icon: const Icon(Icons.image_outlined),
+                                  color: tokens.primaryAccent,
+                                  tooltip: 'Attach photo'),
+                              const SizedBox(width: 4),
                               Expanded(
                                   child: TextField(
                                       controller: _message,
@@ -384,9 +468,127 @@ class _TicketDetailPageState extends ConsumerState<TicketDetailPage>
                                       backgroundColor: tokens.primaryAccent,
                                       foregroundColor: Colors.white)),
                             ]),
+                        ]),
                 )),
           ]);
         },
+      ),
+    );
+  }
+}
+
+/// Resolves a stored attachment path/URL against the API host.
+Uri? _resolveUrl(String? url) {
+  if (url == null || url.isEmpty) return null;
+  final uri = Uri.tryParse(ApiConfig.baseUrl)?.resolve(url);
+  return uri != null && ['http', 'https'].contains(uri.scheme) ? uri : null;
+}
+
+/// Readable text colour on top of [background].
+Color _onColor(Color background) =>
+    ThemeData.estimateBrightnessForColor(background) == Brightness.dark
+        ? Colors.white
+        : Colors.black;
+
+/// Chat-style reply: the viewer's own messages sit on the right in the accent
+/// colour, everyone else's on the left in a neutral bubble.
+class _ReplyBubble extends StatelessWidget {
+  const _ReplyBubble(
+      {required this.name,
+      required this.content,
+      required this.createdAt,
+      required this.mine,
+      this.imageUrl,
+      this.actions});
+  final String name, content, createdAt;
+  final bool mine;
+  final String? imageUrl;
+  final Widget? actions;
+
+  @override
+  Widget build(BuildContext context) {
+    final tokens = context.tokens;
+    final date = DateTime.tryParse(createdAt)?.toLocal();
+    final image = _resolveUrl(imageUrl);
+    final bubbleColor = mine ? tokens.primaryAccent : tokens.surfaceSecondary;
+    final fg = mine ? _onColor(bubbleColor) : tokens.textPrimary;
+    final subtle = mine ? fg.withOpacity(0.75) : tokens.textMuted;
+    return Align(
+      alignment: mine ? Alignment.centerRight : Alignment.centerLeft,
+      child: Container(
+        constraints: BoxConstraints(
+            maxWidth: MediaQuery.sizeOf(context).width * 0.78, minWidth: 96),
+        margin: const EdgeInsets.only(bottom: 10),
+        padding: const EdgeInsets.fromLTRB(12, 9, 12, 8),
+        decoration: BoxDecoration(
+            color: bubbleColor,
+            border: mine ? null : Border.all(color: tokens.border),
+            borderRadius: BorderRadius.only(
+              topLeft: const Radius.circular(16),
+              topRight: const Radius.circular(16),
+              bottomLeft: Radius.circular(mine ? 16 : 4),
+              bottomRight: Radius.circular(mine ? 4 : 16),
+            )),
+        child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              if (!mine || actions != null)
+                Row(mainAxisSize: MainAxisSize.min, children: [
+                  Flexible(
+                      child: Text(mine ? 'You' : name,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w800,
+                              color: mine ? fg : tokens.primaryAccent))),
+                  if (actions != null)
+                    SizedBox(width: 28, height: 24, child: actions!),
+                ]),
+              if (image != null) ...[
+                const SizedBox(height: 6),
+                InkWell(
+                    onTap: () => showDialog<void>(
+                        context: context,
+                        builder: (context) => Dialog(
+                                child: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                  Align(
+                                      alignment: Alignment.centerRight,
+                                      child: IconButton(
+                                          onPressed: () =>
+                                              Navigator.pop(context),
+                                          icon: const Icon(Icons.close))),
+                                  Flexible(
+                                      child: InteractiveViewer(
+                                          child: Image.network(
+                                              image.toString(),
+                                              errorBuilder: (_, __, ___) =>
+                                                  const Text(
+                                                      'Unable to load attachment'))))
+                                ]))),
+                    child: ClipRRect(
+                        borderRadius: BorderRadius.circular(10),
+                        child: Image.network(image.toString(),
+                            height: 180,
+                            fit: BoxFit.cover,
+                            errorBuilder: (_, __, ___) => Text(
+                                'Unable to load attachment',
+                                style: TextStyle(color: fg))))),
+              ],
+              if (content.isNotEmpty) ...[
+                const SizedBox(height: 4),
+                SelectableText(content,
+                    style: TextStyle(color: fg, height: 1.45, fontSize: 14.5)),
+              ],
+              if (date != null) ...[
+                const SizedBox(height: 4),
+                Text(DateFormat('d MMM, h:mm a').format(date),
+                    style: TextStyle(fontSize: 10.5, color: subtle)),
+              ],
+            ]),
       ),
     );
   }

@@ -43,6 +43,8 @@ dependencies:
 
   # External-link fallback for unembedabble YouTube videos
   url_launcher: ^6.3.0
+  # Google Play in-app updates: "Update available" popup on launch.
+  in_app_update: ^4.2.3
   share_plus: ^10.1.4
 
   # Direct WebView access for the custom YouTube player (modelled after

@@ -166,8 +166,6 @@ class _NewTicketSheetState extends ConsumerState<NewTicketSheet> {
                                 'What happened? Include the course or lesson and any error you saw.',
                             alignLabelWithHint: true,
                             border: OutlineInputBorder())),
-                    const Text(
-                        'After creating your ticket, you can read replies and add more details in the conversation.'),
                     if (hasReachedActiveLimit)
                       Container(
                         margin: const EdgeInsets.only(top: 12),

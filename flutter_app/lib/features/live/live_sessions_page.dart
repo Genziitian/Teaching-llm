@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
@@ -10,7 +11,6 @@ import '../../core/auth/auth_providers.dart';
 import '../../core/models/course_event.dart';
 import '../../shared/widgets/app_avatar.dart';
 import '../../shared/widgets/app_refresh.dart';
-import '../../shared/widgets/section_head.dart';
 import '../../shared/widgets/sub_page_header.dart';
 import '../../theme/app_shadows.dart';
 import '../../theme/app_theme_tokens.dart';
@@ -247,11 +247,6 @@ class _Body extends StatelessWidget {
           ),
           if (tab == 0) ...[
             if (live.isNotEmpty) ...[
-              SectionHead(
-                title: 'Live now',
-                subtitle:
-                    '${live.length} ${live.length == 1 ? 'session is' : 'sessions are'} happening',
-              ),
               const SizedBox(height: 14),
               for (final event in live) ...[
                 _LiveCard(event: event),
@@ -285,15 +280,14 @@ class _Body extends StatelessWidget {
                   title: 'No past sessions',
                   sub: 'Past classes that have ended will appear here.')
             else
-              SizedBox(
-                height: 200,
-                child: ListView.separated(
-                  scrollDirection: Axis.horizontal,
-                  padding: const EdgeInsets.only(top: 14),
-                  itemCount: recorded.length,
-                  separatorBuilder: (_, __) => const SizedBox(width: 12),
-                  itemBuilder: (_, i) => _RecordingCard(event: recorded[i]),
-                ),
+              Column(
+                children: [
+                  for (final event in recorded)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 14),
+                      child: _PastRow(event: event),
+                    ),
+                ],
               ),
           ],
         ],
@@ -378,39 +372,131 @@ class _Tabs extends StatelessWidget {
   }
 }
 
-class _LiveCard extends StatelessWidget {
+class _LiveCard extends StatefulWidget {
   const _LiveCard({required this.event});
   final CourseEvent event;
 
   @override
+  State<_LiveCard> createState() => _LiveCardState();
+}
+
+class _LiveCardState extends State<_LiveCard>
+    with SingleTickerProviderStateMixin {
+  // Drives the pulsing LIVE dot, the breathing glow and the drifting circle.
+  late final AnimationController _pulse = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 1600),
+  );
+  late final Animation<double> _breath =
+      CurvedAnimation(parent: _pulse, curve: Curves.easeInOut);
+  // Keeps the "Started 5 min ago" label current while the page stays open.
+  Timer? _clock;
+
+  @override
+  void initState() {
+    super.initState();
+    _clock = Timer.periodic(const Duration(seconds: 30), (_) {
+      if (mounted) setState(() {});
+    });
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Respect the system "remove animations" setting.
+    if (MediaQuery.of(context).disableAnimations) {
+      _pulse.stop();
+    } else if (!_pulse.isAnimating) {
+      _pulse.repeat(reverse: true);
+    }
+  }
+
+  @override
+  void dispose() {
+    _clock?.cancel();
+    _pulse.dispose();
+    super.dispose();
+  }
+
+  String _startedLabel() {
+    final minutes =
+        DateTime.now().difference(widget.event.startTime.toLocal()).inMinutes;
+    if (minutes < 0) return 'Starting now';
+    if (minutes < 1) return 'Started just now';
+    if (minutes < 60) return 'Started $minutes min ago';
+    final hours = minutes ~/ 60;
+    final rest = minutes % 60;
+    return rest == 0
+        ? 'Started ${hours}h ago'
+        : 'Started ${hours}h ${rest}m ago';
+  }
+
+  @override
   Widget build(BuildContext context) {
     final tokens = context.tokens;
+    final event = widget.event;
     final mentor = event.instructorName ?? 'Teacher not assigned';
     final subject = event.courseName ?? 'Live Class';
 
-    return Container(
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [tokens.danger, const Color(0xFFDC2626)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
+    final content = _buildContent(context, event, mentor, subject);
+
+    // Slide/fade in once, then keep a soft red glow breathing around the card.
+    return TweenAnimationBuilder<double>(
+      tween: Tween(begin: 0, end: 1),
+      duration: const Duration(milliseconds: 420),
+      curve: Curves.easeOutCubic,
+      builder: (context, t, child) => Opacity(
+        opacity: t,
+        child: Transform.translate(
+          offset: Offset(0, 14 * (1 - t)),
+          child: child,
         ),
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: AppShadows.lg,
       ),
-      child: Stack(
+      child: AnimatedBuilder(
+        animation: _breath,
+        child: content,
+        builder: (context, child) => Container(
+          padding: const EdgeInsets.all(18),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [tokens.danger, const Color(0xFFDC2626)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: [
+              ...AppShadows.lg,
+              BoxShadow(
+                color: const Color(0xFFDC2626)
+                    .withOpacity(0.18 + 0.27 * _breath.value),
+                blurRadius: 12 + 16 * _breath.value,
+                spreadRadius: 1.5 * _breath.value,
+              ),
+            ],
+          ),
+          child: child,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildContent(BuildContext context, CourseEvent event, String mentor,
+      String subject) {
+    return Stack(
         clipBehavior: Clip.hardEdge,
         children: [
           Positioned(
             right: -40,
             top: -40,
-            child: Container(
-              width: 160,
-              height: 160,
-              decoration: const BoxDecoration(
-                shape: BoxShape.circle,
-                color: Color(0x1AFFFFFF),
+            child: ScaleTransition(
+              scale: Tween<double>(begin: 1.0, end: 1.14).animate(_breath),
+              child: Container(
+                width: 160,
+                height: 160,
+                decoration: const BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Color(0x1AFFFFFF),
+                ),
               ),
             ),
           ),
@@ -429,15 +515,37 @@ class _LiveCard extends StatelessWidget {
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Container(
-                          width: 6,
-                          height: 6,
-                          decoration: const BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: Colors.white,
+                        // Dot with a ring that pulses outward.
+                        SizedBox(
+                          width: 12,
+                          height: 12,
+                          child: Stack(
+                            alignment: Alignment.center,
+                            children: [
+                              AnimatedBuilder(
+                                animation: _breath,
+                                builder: (context, _) => Container(
+                                  width: 6 + 6 * _breath.value,
+                                  height: 6 + 6 * _breath.value,
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    color: Colors.white.withOpacity(
+                                        0.45 * (1 - _breath.value)),
+                                  ),
+                                ),
+                              ),
+                              Container(
+                                width: 6,
+                                height: 6,
+                                decoration: const BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
-                        const SizedBox(width: 5),
+                        const SizedBox(width: 4),
                         const Text(
                           'LIVE',
                           style: TextStyle(
@@ -454,14 +562,49 @@ class _LiveCard extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 12),
-              Text(
-                event.title,
-                style: const TextStyle(
-                  fontSize: 19,
-                  fontWeight: FontWeight.w800,
-                  color: Colors.white,
-                  letterSpacing: -0.3,
-                ),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Expanded(
+                    child: Text(
+                      event.title,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontSize: 19,
+                        fontWeight: FontWeight.w800,
+                        color: Colors.white,
+                        letterSpacing: -0.3,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  // How long ago the class started, e.g. "Started 5 min ago".
+                  Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
+                    decoration: BoxDecoration(
+                      color: const Color(0x38FFFFFF),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(Icons.schedule_rounded,
+                            size: 12, color: Colors.white),
+                        const SizedBox(width: 4),
+                        Text(
+                          _startedLabel(),
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 11,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ),
               const SizedBox(height: 12),
               Row(
@@ -536,7 +679,6 @@ class _LiveCard extends StatelessWidget {
             ],
           ),
         ],
-      ),
     );
   }
 }
@@ -691,81 +833,104 @@ class _UpcomingRow extends StatelessWidget {
   }
 }
 
-class _RecordingCard extends StatelessWidget {
-  const _RecordingCard({required this.event});
+/// A finished session, shown as a plain full-width row (same shape as the
+/// Upcoming rows) rather than a video-style thumbnail card.
+class _PastRow extends StatelessWidget {
+  const _PastRow({required this.event});
   final CourseEvent event;
 
   @override
   Widget build(BuildContext context) {
     final tokens = context.tokens;
+    final dt = event.startTime.toLocal();
     final mentor = event.instructorName ?? 'Teacher not assigned';
     final subject = event.courseName ?? 'Class';
 
     return Container(
-      width: 220,
+      constraints: const BoxConstraints(minHeight: 96),
       decoration: BoxDecoration(
         color: tokens.cardBg,
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(20),
         border: Border.all(color: tokens.border),
+        boxShadow: AppShadows.sm,
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
+      padding: const EdgeInsets.fromLTRB(12, 14, 14, 14),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          ClipRRect(
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(14)),
-            child: Container(
-              height: 110,
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [
-                    tokens.primaryAccent,
-                    tokens.primaryAccent.withOpacity(0.78),
-                  ],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-              ),
-              alignment: Alignment.center,
-              child: Container(
-                width: 40,
-                height: 40,
-                decoration: const BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: Color(0xF2FFFFFF),
-                ),
-                child: Icon(
-                  Icons.play_arrow,
-                  color: tokens.primaryAccent,
-                  size: 18,
-                ),
-              ),
+          // Date block — same fixed column as the Upcoming time block.
+          Container(
+            width: 68,
+            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 10),
+            decoration: BoxDecoration(
+              color: tokens.textMuted.withOpacity(0.12),
+              borderRadius: BorderRadius.circular(14),
             ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(12),
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(
+                    DateFormat('d').format(dt),
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w800,
+                      color: tokens.textPrimary,
+                      fontFeatures: const [FontFeature.tabularFigures()],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 2),
                 Text(
-                  subject.toUpperCase(),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+                  DateFormat('MMM').format(dt).toUpperCase(),
                   style: TextStyle(
                     fontSize: 10,
                     fontWeight: FontWeight.w800,
-                    color: tokens.primaryAccent,
-                    letterSpacing: 0.4,
+                    color: tokens.textSecondary,
+                    letterSpacing: 0.6,
                   ),
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: 6),
+                FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(
+                    DateFormat('h:mm a').format(dt),
+                    style: TextStyle(
+                      fontSize: 9,
+                      fontWeight: FontWeight.w600,
+                      color: tokens.textSecondary,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
                 Text(
                   event.title,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w700,
+                    fontSize: 15,
+                    height: 1.3,
+                    fontWeight: FontWeight.w800,
                     color: tokens.textPrimary,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  subject,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 11.5,
+                    height: 1.35,
+                    fontWeight: FontWeight.w500,
+                    color: tokens.textSecondary,
                   ),
                 ),
                 const SizedBox(height: 4),
@@ -774,12 +939,29 @@ class _RecordingCard extends StatelessWidget {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w500,
-                    color: tokens.textSecondary,
+                    fontSize: 12,
+                    height: 1.35,
+                    fontWeight: FontWeight.w700,
+                    color: tokens.textPrimary,
                   ),
                 ),
               ],
+            ),
+          ),
+          const SizedBox(width: 8),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            decoration: BoxDecoration(
+              color: tokens.textMuted.withOpacity(0.12),
+              borderRadius: BorderRadius.circular(6),
+            ),
+            child: Text(
+              'Ended',
+              style: TextStyle(
+                fontSize: 10.5,
+                fontWeight: FontWeight.w700,
+                color: tokens.textSecondary,
+              ),
             ),
           ),
         ],

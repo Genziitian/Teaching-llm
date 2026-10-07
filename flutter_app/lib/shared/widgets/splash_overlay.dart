@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -5,6 +7,7 @@ import '../../core/facts/loading_fact_service.dart';
 import '../../core/facts/loading_facts_data.dart';
 import '../../features/launch/play_store_launch_overlay.dart';
 import '../../features/prompts/admin_messages_host.dart';
+import '../../features/updates/play_update.dart';
 import 'loading_fact_card.dart';
 
 /// Fullscreen launch splash overlay that matches Capacitor's SplashOverlay.tsx.
@@ -89,6 +92,14 @@ class _SplashOverlayState extends ConsumerState<SplashOverlay>
     final overlayVisible = _loaderVisible;
     final showingLaunch =
         playStoreLaunchApplies() && !ref.watch(playStoreLaunchSeenProvider);
+
+    // Once the splash / welcome is out of the way, ask Google Play whether a
+    // newer version exists (runs once per launch).
+    if (!_loaderVisible && !showingLaunch) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        unawaited(checkPlayUpdateOnLaunch());
+      });
+    }
 
     return Stack(
       children: [
