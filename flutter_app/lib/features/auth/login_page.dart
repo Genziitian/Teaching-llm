@@ -57,25 +57,25 @@ class LoginPage extends ConsumerWidget {
               physics: const BouncingScrollPhysics(),
               child: ConstrainedBox(
                 constraints: BoxConstraints(minHeight: constraints.maxHeight),
-                child: Center(
-                  child: ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: 480),
-                    child: IntrinsicHeight(
+                child: IntrinsicHeight(
+                  child: Center(
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 480),
                       child: Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 24),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
-                            const SizedBox(height: 24),
+                            const SizedBox(height: 20),
 
-                            // 1. Brand Logo
+                            // 1. Header: Brand Logo
                             Center(
                               child: _BrandLogo(isDark: isDark),
                             ),
 
-                            const Spacer(flex: 2),
+                            const Spacer(flex: 3),
 
-                            // 2. Main Content
+                            // 2. Center Content: Welcome & Sign In
                             Text(
                               'Welcome Back!',
                               textAlign: TextAlign.center,
@@ -154,7 +154,7 @@ class LoginPage extends ConsumerWidget {
                               },
                             ),
 
-                            const Spacer(flex: 2),
+                            const Spacer(flex: 4),
 
                             // 4. Divider
                             Padding(
@@ -190,9 +190,9 @@ class LoginPage extends ConsumerWidget {
                               ),
                             ),
 
-                            const SizedBox(height: 16),
+                            const SizedBox(height: 14),
 
-                            // 5. Explore Courses Action
+                            // 5. Explore Courses Action (Moved down)
                             Center(
                               child: BouncyPressable(
                                 onTap: () {
@@ -227,11 +227,11 @@ class LoginPage extends ConsumerWidget {
                               ),
                             ),
 
-                            const Spacer(flex: 1),
+                            const SizedBox(height: 16),
 
-                            // 6. Bottom Legal Section
+                            // 6. Bottom Legal Section (Pinned to bottom)
                             Padding(
-                              padding: const EdgeInsets.only(bottom: 12),
+                              padding: const EdgeInsets.only(bottom: 16),
                               child: Column(
                                 children: [
                                   Text(

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
@@ -20,26 +21,17 @@ class UpdateDialog extends StatefulWidget {
 }
 
 class _UpdateDialogState extends State<UpdateDialog> {
-  bool _saving = false;
-  String? _error;
+  bool _dismissed = false;
 
-  Future<void> _dismiss([String? link]) async {
-    if (_saving) return;
-    setState(() {
-      _saving = true;
-      _error = null;
-    });
+  void _dismiss([String? link]) {
+    if (_dismissed) return;
+    _dismissed = true;
+    // Dismiss immediately without waiting on network
+    if (mounted) Navigator.of(context).pop(link ?? '');
+    // Notify server asynchronously in background
     try {
-      await widget.onDismiss();
-      if (mounted) Navigator.of(context).pop(link ?? '');
-    } catch (_) {
-      if (mounted) {
-        setState(() {
-          _saving = false;
-          _error = 'Could not save. Check your connection and try again.';
-        });
-      }
-    }
+      unawaited(widget.onDismiss());
+    } catch (_) {}
   }
 
   @override
@@ -87,27 +79,69 @@ class _UpdateDialogState extends State<UpdateDialog> {
                             content: update['content']?.toString() ?? '',
                             onLink: (link) => _dismiss(link),
                           ),
-                          const SizedBox(height: 20),
-                          if (_error != null) ...[
-                            Text(_error!,
-                                style: TextStyle(color: context.tokens.danger)),
-                            const SizedBox(height: 12),
-                          ],
+                          const SizedBox(height: 24),
                           if (ctaText != null &&
                               ctaText.isNotEmpty &&
                               ctaLink != null &&
                               ctaLink.isNotEmpty)
-                            FilledButton(
-                                onPressed:
-                                    _saving ? null : () => _dismiss(ctaLink),
-                                child: Text(ctaText)),
-                          TextButton(
-                              onPressed: _saving ? null : _dismiss,
-                              child: Text(_saving ? 'Saving...' : 'Close')),
-                          if (_error != null)
+                            Row(
+                              children: [
+                                Expanded(
+                                  flex: 2,
+                                  child: OutlinedButton(
+                                    style: OutlinedButton.styleFrom(
+                                      padding: const EdgeInsets.symmetric(
+                                          vertical: 13),
+                                      side: BorderSide(
+                                          color: context.tokens.border),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius:
+                                            BorderRadius.circular(12),
+                                      ),
+                                    ),
+                                    onPressed: () => _dismiss(),
+                                    child: Text(
+                                      'Close',
+                                      style: TextStyle(
+                                        color: context.tokens.textSecondary,
+                                        fontWeight: FontWeight.w700,
+                                        fontSize: 14,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  flex: 3,
+                                  child: FilledButton(
+                                    style: FilledButton.styleFrom(
+                                      padding: const EdgeInsets.symmetric(
+                                          vertical: 13),
+                                      backgroundColor:
+                                          const Color(0xFF6366F1),
+                                      foregroundColor: Colors.white,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius:
+                                            BorderRadius.circular(12),
+                                      ),
+                                      elevation: 0,
+                                    ),
+                                    onPressed: () => _dismiss(ctaLink),
+                                    child: Text(
+                                      ctaText,
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.w800,
+                                        fontSize: 14.5,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            )
+                          else
                             TextButton(
-                              onPressed: () => Navigator.of(context).pop(),
-                              child: const Text('Not now'),
+                              onPressed: () => _dismiss(),
+                              child: const Text('Close'),
                             ),
                         ],
                       ),

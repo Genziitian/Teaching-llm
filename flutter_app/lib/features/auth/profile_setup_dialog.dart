@@ -526,23 +526,32 @@ class _ProfileSetupDialogState extends ConsumerState<ProfileSetupDialog> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      Text(
-                        'Welcome back to GenZ IITian!',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: 26,
-                          fontWeight: FontWeight.w900,
-                          color: tokens.textPrimary,
+                      FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Text(
+                          'Welcome back to GenZ IITian!',
+                          textAlign: TextAlign.center,
+                          maxLines: 1,
+                          style: TextStyle(
+                            fontSize: 22,
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: -0.4,
+                            color: tokens.textPrimary,
+                          ),
                         ),
                       ),
                       const SizedBox(height: 8),
-                      Text(
-                        'Please update your details so we can serve you better.',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: 14,
-                          height: 1.6,
-                          color: tokens.textSecondary,
+                      FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Text(
+                          'Please update your details so we can serve you better.',
+                          textAlign: TextAlign.center,
+                          maxLines: 1,
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: tokens.textSecondary,
+                            fontWeight: FontWeight.w500,
+                          ),
                         ),
                       ),
                       const SizedBox(height: 30),

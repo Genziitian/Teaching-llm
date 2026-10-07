@@ -490,39 +490,52 @@ class _IdentitySetupDialogState extends ConsumerState<IdentitySetupDialog> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Container(
-            width: 64,
-            height: 64,
-            decoration: BoxDecoration(
-              color: const Color(0xFF10B981).withOpacity(0.15),
-              shape: BoxShape.circle,
-            ),
-            child: const Icon(
-              Icons.check_circle_rounded,
-              color: Color(0xFF10B981),
-              size: 40,
+          TweenAnimationBuilder<double>(
+            tween: Tween<double>(begin: 0.0, end: 1.0),
+            duration: const Duration(milliseconds: 700),
+            curve: Curves.elasticOut,
+            builder: (context, scale, child) {
+              return Transform.scale(
+                scale: scale,
+                child: child,
+              );
+            },
+            child: Container(
+              width: 72,
+              height: 72,
+              decoration: BoxDecoration(
+                color: const Color(0xFF10B981).withOpacity(0.15),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.check_circle_rounded,
+                color: Color(0xFF10B981),
+                size: 46,
+              ),
             ),
           ),
           const SizedBox(height: 16),
           Text(
             'Thank You!',
             style: TextStyle(
-              fontSize: 20,
+              fontSize: 22,
               fontWeight: FontWeight.w900,
               color: tokens.textPrimary,
+              letterSpacing: -0.4,
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 10),
           RichText(
             textAlign: TextAlign.center,
             text: TextSpan(
               style: TextStyle(
                 fontSize: 13.5,
                 color: tokens.textSecondary,
-                height: 1.4,
+                height: 1.5,
               ),
               children: const [
-                TextSpan(text: 'Your identity has been updated. Welcome to '),
+                TextSpan(text: 'Your identity has been updated.\n'),
+                TextSpan(text: 'Welcome to '),
                 TextSpan(
                   text: 'GenZ IITian',
                   style: TextStyle(
