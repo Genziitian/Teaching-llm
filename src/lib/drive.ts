@@ -4,6 +4,9 @@
  * Auth resolution order:
  *   1. Service account (preferred) — uses GOOGLE_SERVICE_ACCOUNT_EMAIL + _PRIVATE_KEY
  *      with the `drive.readonly` scope. Files must be shared with the SA email.
+ *      If that fails and GOOGLE_WORKSPACE_ADMIN_EMAIL is set, the same service
+ *      account retries while impersonating that Workspace user (domain-wide
+ *      delegation), so files the admin can open need no extra sharing.
  *   2. API key — uses GOOGLE_DRIVE_API_KEY for files that are publicly shared
  *      ("Anyone with the link"). No per-user access control.
  *   3. Anonymous public download — last-resort fallback to
@@ -42,9 +45,34 @@ export function getDriveAuthMode(): DriveAuthMode {
   return 'public'
 }
 
-let cachedSAClient: drive_v3.Drive | null = null
-function getServiceAccountClient(): drive_v3.Drive | null {
-  if (cachedSAClient) return cachedSAClient
+/* Which Google identity the server uses when it talks to Drive.
+ *
+ *   service-account  — the service account itself. Only sees files that are
+ *                      shared directly with the SA email (or with a group the
+ *                      SA is a member of).
+ *   delegated-admin  — the same service account impersonating
+ *                      GOOGLE_WORKSPACE_ADMIN_EMAIL through domain-wide
+ *                      delegation (the mechanism Google Group sync already
+ *                      uses). Sees everything that Workspace user can see, so
+ *                      restricted files work without sharing each one with the
+ *                      SA. Requires the `drive.readonly` scope to be authorised
+ *                      for the SA's client ID in the Workspace Admin console.
+ *
+ * NOTE: a student's own Google account is never used here. Students sign in to
+ * the app with Google only to prove who they are; the video bytes are always
+ * fetched by the server. So "the student's email can open the file in Drive"
+ * does not help unless one of the two identities above can open it too.
+ */
+export type DriveIdentity = 'service-account' | 'delegated-admin'
+
+const DRIVE_SCOPE = 'https://www.googleapis.com/auth/drive.readonly'
+const driveClients: Partial<Record<DriveIdentity, drive_v3.Drive>> = {}
+// Identity that last worked for a file, so Range requests don't re-try the failing one.
+const fileIdentity = new Map<string, DriveIdentity>()
+// When delegation itself is refused (scope not authorised) skip it for a while.
+let delegationBlockedUntil = 0
+
+function readServiceAccountCredentials(): { email: string; key: string } | null {
   const email = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL
   let key = process.env.GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY
   if (!email || !key) return null
@@ -57,19 +85,144 @@ function getServiceAccountClient(): drive_v3.Drive | null {
     key = key.slice(1, -1)
   }
   key = key.replace(/\\n/g, '\n').replace(/\r\n/g, '\n')
+  return { email: email.trim(), key }
+}
+
+function getDriveClient(identity: DriveIdentity): drive_v3.Drive | null {
+  const cached = driveClients[identity]
+  if (cached) return cached
+  const creds = readServiceAccountCredentials()
+  if (!creds) return null
+
+  let subject: string | undefined
+  if (identity === 'delegated-admin') {
+    subject = process.env.GOOGLE_WORKSPACE_ADMIN_EMAIL?.trim()
+    if (!subject) return null
+  }
 
   try {
     const auth = new google.auth.JWT({
-      email,
-      key,
-      scopes: ['https://www.googleapis.com/auth/drive.readonly'],
+      email: creds.email,
+      key: creds.key,
+      subject,
+      scopes: [DRIVE_SCOPE],
     })
-    cachedSAClient = google.drive({ version: 'v3', auth })
-    return cachedSAClient
+    const client = google.drive({ version: 'v3', auth })
+    driveClients[identity] = client
+    return client
   } catch (err: any) {
-    console.warn('[drive] Failed to initialize Google Service Account client:', err?.message || err)
+    console.warn(`[drive] Failed to initialize Drive client (${identity}):`, err?.message || err)
     return null
   }
+}
+
+function identitiesFor(fileId: string): DriveIdentity[] {
+  const all: DriveIdentity[] = ['service-account']
+  if (process.env.GOOGLE_WORKSPACE_ADMIN_EMAIL && Date.now() >= delegationBlockedUntil) {
+    all.push('delegated-admin')
+  }
+  const known = fileIdentity.get(fileId)
+  if (known && all.includes(known)) return [known, ...all.filter(i => i !== known)]
+  return all
+}
+
+function rememberIdentity(fileId: string, identity: DriveIdentity) {
+  if (fileIdentity.size > 5000) fileIdentity.clear()
+  fileIdentity.set(fileId, identity)
+}
+
+/* Turn a googleapis error into something a human can act on. */
+function describeDriveError(err: any): { code: string; message: string; authFailure: boolean } {
+  const oauthError = err?.response?.data?.error
+  const authFailure =
+    typeof oauthError === 'string' && ['unauthorized_client', 'invalid_grant', 'access_denied', 'invalid_client'].includes(oauthError)
+  const code = String(authFailure ? oauthError : err?.code ?? err?.response?.status ?? 'unknown')
+  const message =
+    err?.response?.data?.error_description ||
+    err?.errors?.[0]?.message ||
+    (typeof oauthError === 'object' ? oauthError?.message : undefined) ||
+    err?.message ||
+    'Unknown Drive error'
+  return { code, message: String(message), authFailure }
+}
+
+function noteIdentityFailure(identity: DriveIdentity, fileId: string, err: any) {
+  const d = describeDriveError(err)
+  if (identity === 'delegated-admin' && d.authFailure) {
+    // Delegation is not authorised for the Drive scope — retrying on every
+    // Range request would only add latency.
+    delegationBlockedUntil = Date.now() + 10 * 60 * 1000
+  }
+  if (fileIdentity.get(fileId) === identity) fileIdentity.delete(fileId)
+  console.warn(`[drive] ${identity} could not read file ${fileId}: [${d.code}] ${d.message}`)
+}
+
+export type DriveDiagnosis = {
+  fileId: string
+  authMode: DriveAuthMode
+  serviceAccountEmail: string | null
+  delegatedAdminEmail: string | null
+  attempts: Array<{
+    identity: DriveIdentity
+    ok: boolean
+    fileName?: string
+    mimeType?: string
+    errorCode?: string
+    error?: string
+  }>
+  hint: string
+}
+
+/* Manager-only diagnostic: asks Drive, as each server identity, whether it can
+ * see the file, and reports Google's real answer instead of a generic 502.
+ */
+export async function diagnoseDriveAccess(fileId: string): Promise<DriveDiagnosis> {
+  const creds = readServiceAccountCredentials()
+  const adminEmail = process.env.GOOGLE_WORKSPACE_ADMIN_EMAIL?.trim() || null
+  const out: DriveDiagnosis = {
+    fileId,
+    authMode: getDriveAuthMode(),
+    serviceAccountEmail: creds?.email ?? null,
+    delegatedAdminEmail: adminEmail,
+    attempts: [],
+    hint: '',
+  }
+
+  if (!creds) {
+    out.hint =
+      'GOOGLE_SERVICE_ACCOUNT_EMAIL / GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY are not set on this server, so it can only download files shared as "Anyone with the link". Set both env vars on the hosting dashboard and redeploy.'
+    return out
+  }
+
+  const identities: DriveIdentity[] = adminEmail ? ['service-account', 'delegated-admin'] : ['service-account']
+  for (const identity of identities) {
+    const drive = getDriveClient(identity)
+    if (!drive) {
+      out.attempts.push({ identity, ok: false, errorCode: 'init', error: 'Could not build a Drive client (private key malformed?)' })
+      continue
+    }
+    try {
+      const meta = await drive.files.get({ fileId, fields: 'id, name, mimeType', supportsAllDrives: true })
+      out.attempts.push({ identity, ok: true, fileName: meta.data.name || undefined, mimeType: meta.data.mimeType || undefined })
+    } catch (err: any) {
+      const d = describeDriveError(err)
+      out.attempts.push({ identity, ok: false, errorCode: d.code, error: d.message })
+    }
+  }
+
+  if (out.attempts.some(a => a.ok)) {
+    out.hint = 'The server can read this file. If playback still fails the problem is elsewhere (network, file format, quota).'
+  } else {
+    const sa = out.attempts.find(a => a.identity === 'service-account')
+    const keyProblem = sa && ['invalid_grant', 'invalid_client', 'init'].includes(sa.errorCode || '')
+    out.hint = keyProblem
+      ? 'Google rejected the service account key itself (deleted, rotated or mangled). Create a new key for the service account and update GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY.'
+      : `No server identity can see this file. Share the file (or better, its parent folder / shared drive) with ${creds.email} as Viewer` +
+        (adminEmail
+          ? `, or authorise the scope ${DRIVE_SCOPE} for this service account under Admin console > Security > API controls > Domain-wide delegation so it can read as ${adminEmail}.`
+          : '.')
+  }
+  return out
 }
 
 /* Fetch a byte stream for the given file.
@@ -85,9 +238,10 @@ export async function fetchDriveFileStream(fileId: string, rangeHeader: string |
   if (rangeHeader) requestHeaders['Range'] = rangeHeader
 
   if (mode === 'service-account') {
-    const drive = getServiceAccountClient()
-    
-    if (drive) {
+    for (const identity of identitiesFor(fileId)) {
+      const drive = getDriveClient(identity)
+      if (!drive) continue
+
       // First, check file metadata to see if it's a native Google Doc/Slide/Sheet
       try {
         const meta = await drive.files.get({
@@ -109,6 +263,7 @@ export async function fetchDriveFileStream(fileId: string, rangeHeader: string |
           )
           const headers = pickHeaders((res as any).headers)
           headers['content-type'] = 'application/pdf'
+          rememberIdentity(fileId, identity)
           return {
             stream: res.data as unknown as Readable,
             status: (res as any).status || 200,
@@ -116,8 +271,15 @@ export async function fetchDriveFileStream(fileId: string, rangeHeader: string |
           }
         }
       } catch (metaErr: any) {
-        // If metadata check fails, fall through to media download attempt
-        console.warn('[drive] metadata check error, falling back to direct download:', metaErr?.message)
+        const d = describeDriveError(metaErr)
+        if (d.authFailure || d.code === '404') {
+          // This identity cannot authenticate / cannot see the file at all —
+          // the media download would fail the same way, so move on.
+          noteIdentityFailure(identity, fileId, metaErr)
+          continue
+        }
+        // Otherwise fall through to the media download attempt
+        console.warn(`[drive] metadata check error (${identity}), falling back to direct download:`, d.message)
       }
 
       try {
@@ -125,6 +287,7 @@ export async function fetchDriveFileStream(fileId: string, rangeHeader: string |
           { fileId, alt: 'media', supportsAllDrives: true },
           { responseType: 'stream', headers: requestHeaders }
         )
+        rememberIdentity(fileId, identity)
         return { stream: res.data as unknown as Readable, status: (res as any).status || 200, headers: pickHeaders((res as any).headers) }
       } catch (err: any) {
         // If Google rejects alt=media because it is a Google Doc, try export to PDF as fallback
@@ -136,6 +299,7 @@ export async function fetchDriveFileStream(fileId: string, rangeHeader: string |
             )
             const headers = pickHeaders((res as any).headers)
             headers['content-type'] = 'application/pdf'
+            rememberIdentity(fileId, identity)
             return {
               stream: res.data as unknown as Readable,
               status: (res as any).status || 200,
@@ -143,9 +307,10 @@ export async function fetchDriveFileStream(fileId: string, rangeHeader: string |
             }
           } catch (_) {}
         }
-        console.warn('[drive] service-account download failed, falling back to public/api-key download:', err?.message)
+        noteIdentityFailure(identity, fileId, err)
       }
     }
+    console.warn(`[drive] no server identity could read ${fileId}; falling back to public download (works only for "Anyone with the link" files)`)
   }
 
   if (mode === 'api-key') {
@@ -220,7 +385,11 @@ export async function fetchDriveFileStream(fileId: string, rangeHeader: string |
       }
     }
 
-    throw new Error('Google Drive file is restricted or requires authentication. Please set file sharing to "Anyone with the link".')
+    throw new Error(
+      process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL
+        ? 'Google Drive file is restricted and the server account has no access to it. A manager must share the file or its folder with the server service account.'
+        : 'Google Drive file is restricted and no service account is configured on the server. Configure the Google service account or set sharing to "Anyone with the link".'
+    )
   }
 
   return { stream: res.body as ReadableStream<Uint8Array>, status: res.status, headers: pickHeadersFromHeaders(res.headers) }

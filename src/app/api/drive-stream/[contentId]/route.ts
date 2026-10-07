@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { getSession, isAdminOrManager, verifyStreamToken, isStudentEnrolledInContent } from '@/lib/auth'
-import { extractDriveFileId, fetchDriveFileStream, getDriveAuthMode } from '@/lib/drive'
+import { diagnoseDriveAccess, extractDriveFileId, fetchDriveFileStream, getDriveAuthMode } from '@/lib/drive'
 
 // Node runtime — googleapis + Node streams aren't available on Edge
 export const runtime = 'nodejs'
@@ -110,6 +110,18 @@ export async function GET(
     const fileId = extractDriveFileId(sourceUrl)
     if (!fileId) {
       return NextResponse.json({ error: 'Could not extract a Drive file ID from videoUrl' }, { status: 400 })
+    }
+
+    // Manager-only diagnostic: /api/drive-stream/{contentId}?diagnose=1
+    // Reports which Google identity the server is using and Google's real
+    // answer for this file, instead of a generic 502.
+    if (request.nextUrl.searchParams.get('diagnose') === '1') {
+      if (!privileged) {
+        return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+      }
+      return NextResponse.json(await diagnoseDriveAccess(fileId), {
+        headers: { 'cache-control': 'private, no-store' },
+      })
     }
 
     const rangeHeader = request.headers.get('range')
