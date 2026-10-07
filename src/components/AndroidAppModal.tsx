@@ -1,7 +1,12 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { usePathname } from 'next/navigation'
 import posthog from 'posthog-js'
+import { detectDevice, type DeviceInfo } from '@/lib/device'
+
+// Report the block to analytics only once per page load
+let blockReported = false
 
 const PLAY_PACKAGE = 'com.teaching.lms'
 const PLAY_REFERRER = encodeURIComponent('utm_source=mobile_web&utm_medium=android_modal')
@@ -9,18 +14,18 @@ const MARKET_URL = `market://details?id=${PLAY_PACKAGE}&referrer=${PLAY_REFERRER
 const PLAY_STORE_URL = `https://play.google.com/store/apps/details?id=${PLAY_PACKAGE}&referrer=${PLAY_REFERRER}`
 
 export interface DetectionParams {
-  userAgent?: string
-  platform?: string
-  maxTouchPoints?: number
+  device: DeviceInfo
   isNativeCapacitor?: boolean
   pathname?: string
   search?: string
 }
 
+/**
+ * The website is blocked on Android PHONES only: they must use the Play Store
+ * app. Android tablets, iPads, iPhones and laptops keep using the website.
+ */
 export function shouldShowAndroidAppModal({
-  userAgent = '',
-  platform = '',
-  maxTouchPoints = 0,
+  device,
   isNativeCapacitor = false,
   pathname = '',
   search = '',
@@ -43,26 +48,15 @@ export function shouldShowAndroidAppModal({
     return false
   }
 
-  // Must not be iOS (iPhone, iPad, iPod, or iPadOS desktop UA)
-  const isIOS =
-    /iPad|iPhone|iPod/i.test(userAgent) ||
-    (platform === 'MacIntel' && maxTouchPoints > 1)
-  if (isIOS) {
-    return false
-  }
-
-  // Must be Android (covers mobile browser & home-screen shortcuts/PWAs)
-  const isAndroid = /android/i.test(userAgent)
-  if (!isAndroid) {
-    return false
-  }
-
-  return true
+  return device.isAndroidPhone
 }
 
 export default function AndroidAppModal() {
   const [isOpen, setIsOpen] = useState(false)
+  const pathname = usePathname()
 
+  // Re-checked on every route change so the block cannot be escaped by
+  // navigating inside the app (e.g. from /download to another page).
   useEffect(() => {
     if (typeof window === 'undefined') return
 
@@ -72,21 +66,34 @@ export default function AndroidAppModal() {
         document.documentElement.classList.contains('is-native')
     )
 
+    const device = detectDevice()
     const show = shouldShowAndroidAppModal({
-      userAgent: navigator.userAgent || navigator.vendor || '',
-      platform: navigator.platform || '',
-      maxTouchPoints: navigator.maxTouchPoints || 0,
+      device,
       isNativeCapacitor: isCapacitor,
       pathname: window.location.pathname,
       search: window.location.search,
     })
 
-    if (show) {
-      setIsOpen(true)
-    }
-  }, [])
+    setIsOpen(show)
 
-  // Lock body scroll while modal is visible
+    if (show && !blockReported) {
+      blockReported = true
+      try {
+        posthog.capture('android_phone_web_blocked', {
+          form_factor: device.formFactor,
+          desktop_site_mode: device.desktopSiteMode,
+          smallest_screen_side: device.smallestScreenSide,
+          ua_mobile_hint: device.signals.uaDataMobile ?? null,
+          ua_platform_hint: device.signals.uaDataPlatform ?? null,
+          platform: device.signals.platform,
+          max_touch_points: device.signals.maxTouchPoints,
+          path: window.location.pathname,
+        })
+      } catch {}
+    }
+  }, [pathname])
+
+  // Lock body scroll while the block screen is visible
   useEffect(() => {
     if (!isOpen) return
     const prevOverflow = document.body.style.overflow
@@ -96,26 +103,7 @@ export default function AndroidAppModal() {
     }
   }, [isOpen])
 
-  // Allow closing via Escape key
-  useEffect(() => {
-    if (!isOpen) return
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        setIsOpen(false)
-      }
-    }
-    window.addEventListener('keydown', handleKeyDown)
-    return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [isOpen])
-
   if (!isOpen) return null
-
-  const handleClose = () => {
-    try {
-      posthog.capture('play_store_modal_dismissed')
-    } catch {}
-    setIsOpen(false)
-  }
 
   const handleDownloadClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
     try {
@@ -146,12 +134,11 @@ export default function AndroidAppModal() {
         justifyContent: 'center',
         padding: '20px 16px calc(20px + env(safe-area-inset-bottom))',
         paddingTop: 'calc(20px + env(safe-area-inset-top))',
-        backgroundColor: 'rgba(5, 5, 15, 0.78)',
+        backgroundColor: '#05050f',
         backdropFilter: 'blur(10px)',
         WebkitBackdropFilter: 'blur(10px)',
         animation: 'playModalFadeIn 0.25s ease-out',
       }}
-      onClick={handleClose}
     >
       <style>{`
         @keyframes playModalFadeIn {
@@ -196,48 +183,7 @@ export default function AndroidAppModal() {
           alignItems: 'center',
           animation: 'playModalCardPop 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
         }}
-        onClick={(e) => e.stopPropagation()}
       >
-        {/* Cut button on top-right corner */}
-        <button
-          type="button"
-          onClick={handleClose}
-          aria-label="Close"
-          className="play-modal-cut-btn"
-          style={{
-            position: 'absolute',
-            top: '12px',
-            right: '12px',
-            width: '38px',
-            height: '38px',
-            borderRadius: '50%',
-            backgroundColor: 'rgba(255, 255, 255, 0.08)',
-            border: '1px solid rgba(255, 255, 255, 0.12)',
-            color: '#cbd5e1',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            cursor: 'pointer',
-            padding: 0,
-            transition: 'all 0.2s ease',
-            zIndex: 10,
-          }}
-        >
-          <svg
-            width="18"
-            height="18"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <line x1="18" y1="6" x2="6" y2="18" />
-            <line x1="6" y1="6" x2="18" y2="18" />
-          </svg>
-        </button>
-
         {/* Google Play Tag */}
         <div
           style={{
@@ -283,7 +229,7 @@ export default function AndroidAppModal() {
             color: '#ffffff',
           }}
         >
-          Our App is Live on Google Play Store!
+          This site is not made for mobile
         </h2>
 
         {/* Description */}
@@ -296,7 +242,7 @@ export default function AndroidAppModal() {
             maxWidth: '300px',
           }}
         >
-          Please download our official Android app for a smoother experience, instant class alerts, and better service.
+          Please use our app. Download the official GenZ IITian app from the Google Play Store to continue.
         </p>
 
         {/* Feature Pills */}
@@ -373,24 +319,6 @@ export default function AndroidAppModal() {
           <PlayGlyph size={18} />
           <span>Download Now</span>
         </a>
-
-        {/* Secondary Dismiss Action */}
-        <button
-          type="button"
-          onClick={handleClose}
-          style={{
-            marginTop: '12px',
-            background: 'none',
-            border: 'none',
-            color: '#64748b',
-            fontSize: '12.5px',
-            fontWeight: 500,
-            cursor: 'pointer',
-            padding: '4px 8px',
-          }}
-        >
-          Continue on web
-        </button>
       </div>
     </div>
   )

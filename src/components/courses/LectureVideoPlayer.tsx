@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { Play, AlertCircle } from 'lucide-react'
+import { detectDevice } from '@/lib/device'
 import SecureYouTubePlayer, {
   extractYouTubeId,
   isLikelyYouTubeLive,
@@ -49,9 +50,10 @@ export default function LectureVideoPlayer({
         Boolean(w.Capacitor?.isNativePlatform?.() || w.Capacitor?.isNative)
       setIsNativeApp(native)
 
-      // Detect Mobile browser (phone/tablet) via User Agent
-      const ua = navigator.userAgent || ''
-      const mobile = /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test(ua)
+      // Phones only. Tablets (iPad, Android tablets) are NOT treated as
+      // mobile: in a tablet browser the student can play whichever source the
+      // lecture has (Google Drive or YouTube), same as on a laptop.
+      const mobile = detectDevice().formFactor === 'phone'
       setIsMobileDevice(mobile)
     }
 
