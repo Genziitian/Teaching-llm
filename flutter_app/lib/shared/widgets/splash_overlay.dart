@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/auth/auth_providers.dart';
 import '../../core/facts/loading_fact_service.dart';
 import '../../core/facts/loading_facts_data.dart';
 import '../../features/launch/play_store_launch_overlay.dart';
@@ -69,6 +70,18 @@ class _SplashOverlayState extends ConsumerState<SplashOverlay>
 
     // Keep the branded loading state visible long enough to avoid a flash.
     await Future<void>.delayed(const Duration(milliseconds: 1500));
+    if (!mounted || !_loaderVisible) return;
+
+    // Keep the splash up until we know whether the saved login is valid, so a
+    // signed-in user never sees the login screen flash by. Capped so a dead
+    // connection can't hold the splash forever.
+    try {
+      await ref
+          .read(authStateProvider.future)
+          .timeout(const Duration(seconds: 10));
+    } catch (_) {}
+    // One more frame so the router has moved off /login before we reveal it.
+    await Future<void>.delayed(const Duration(milliseconds: 120));
     if (!mounted || !_loaderVisible) return;
     _dismissLoader();
   }
