@@ -117,7 +117,6 @@ model User {
   courseBundleAssignments UserCourseBundleAssignment[]
   communityMutePrefs      CommunityMutePreference[]
   scheduledNotifications  ScheduledUserNotification[]
-  syncedContacts          StudentContact[]
   featureRequests         FeatureRequest[]             @relation("FeatureRequestUser")
   badges                  UserBadge[]                  @relation("BadgeRecipient")
   assignedBadges          UserBadge[]                  @relation("BadgeAssigner")
@@ -1585,24 +1584,6 @@ model AccountDeletionEvent {
 
   @@index([requestId])
   @@index([eventType])
-  @@index([createdAt])
-}
-
-model StudentContact {
-  id          String   @id @default(cuid())
-  studentId   String
-  student     User     @relation(fields: [studentId], references: [id], onDelete: Cascade)
-  name        String?
-  phoneNumber String?
-  email       String?
-  source      String?  @default("APP") // "FLUTTER_APP" or "CAPACITOR_APP"
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  @@unique([studentId, phoneNumber])
-  @@index([studentId])
-  @@index([phoneNumber])
-  @@index([name])
   @@index([createdAt])
 }
 
