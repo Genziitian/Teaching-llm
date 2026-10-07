@@ -454,7 +454,7 @@ export default function DashboardPage() {
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
       ),
     }] : [
-      { label: t('dashboard.stats.upcomingSessions'), value: upNextCount, color: 'var(--warning)', bg: 'var(--warning-light)', icon: (
+      { label: t('dashboard.stats.upcomingSessions'), href: '/live', value: upNextCount, color: 'var(--warning)', bg: 'var(--warning-light)', icon: (
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" strokeWidth="2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
       )},
     ]),
@@ -755,21 +755,57 @@ export default function DashboardPage() {
         }
         .dashboard-video-announcements-row {
           display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: 20px;
+          grid-template-columns: 1fr;
+          gap: 16px;
           align-items: stretch;
           margin-bottom: 24px;
         }
         .dashboard-video-box {
           display: flex;
-          flex-direction: column;
-          justifyContent: space-between;
-          padding: 20px 24px;
-          border-radius: 20px;
+          align-items: center;
+          gap: 14px;
+          padding: 14px 16px;
+          border-radius: 14px;
           background: var(--surface);
-          border: 1px solid var(--border);
-          box-shadow: none;
-          overflow: hidden;
+          border: 1px solid color-mix(in srgb, var(--primary) 35%, transparent);
+          text-decoration: none;
+          cursor: pointer;
+          transition: border-color 0.15s ease, background 0.15s ease, transform 0.15s ease;
+        }
+        .dashboard-video-box:hover {
+          border-color: var(--primary);
+          background: color-mix(in srgb, var(--primary) 8%, var(--surface));
+        }
+        .dashboard-video-box:active {
+          transform: scale(0.995);
+        }
+        .dashboard-video-box:focus-visible {
+          outline: 2px solid var(--primary);
+          outline-offset: 2px;
+        }
+        .dashboard-video-box__icon {
+          width: 40px;
+          height: 40px;
+          border-radius: 10px;
+          background: var(--primary-light);
+          color: var(--primary);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          flex-shrink: 0;
+        }
+        .dashboard-video-box__cta {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          padding: 9px 16px;
+          border-radius: 10px;
+          background: var(--button-background, var(--primary));
+          color: var(--button-text, #ffffff);
+          font-size: 13px;
+          font-weight: 600;
+          white-space: nowrap;
+          flex-shrink: 0;
         }
         .dashboard-announcements-compact-card {
           display: flex;
@@ -818,12 +854,18 @@ export default function DashboardPage() {
       >
         {statCards.filter(c => !c.isSupport && c.label !== 'Active Sessions' && !isMobile).map((card) => {
           const mobileHero = isMobile && card.isTimer
+          const cardHref = (card as { href?: string }).href
           return (
           <div 
             key={card.label} 
             className="stat-card" 
+            role={cardHref ? 'link' : undefined}
+            tabIndex={cardHref ? 0 : undefined}
+            onKeyDown={cardHref ? (e) => { if (e.key === 'Enter') router.push(cardHref) } : undefined}
             onClick={() => {
-              if (card.label === 'Total Courses' || card.label === 'Lectures') {
+              if (cardHref) {
+                router.push(cardHref)
+              } else if (card.label === 'Total Courses' || card.label === 'Lectures') {
                 router.push('/courses')
               }
             }}
@@ -837,7 +879,7 @@ export default function DashboardPage() {
               border: mobileHero ? '1px solid rgba(99, 102, 241, 0.10)' : undefined,
               boxShadow: mobileHero ? '0 12px 30px -10px rgba(15, 23, 42, 0.12), 0 4px 10px -2px rgba(15, 23, 42, 0.04)' : undefined,
               position: 'relative', overflow: 'hidden',
-              cursor: 'default',
+              cursor: cardHref ? 'pointer' : 'default',
             } as React.CSSProperties}
           >
             {mobileHero && (
@@ -1421,8 +1463,16 @@ export default function DashboardPage() {
               )}
             </div>
 
-            {/* Up Next panel */}
-            <div className="card" style={{ padding: '20px', borderRadius: '20px', display: 'flex', flexDirection: 'column' }}>
+            {/* Up Next panel — clicking anywhere on it opens the Live tab */}
+            <div
+              className="card"
+              role="link"
+              tabIndex={0}
+              aria-label="Open live sessions"
+              onClick={(e) => { if (!e.defaultPrevented) router.push('/live') }}
+              onKeyDown={(e) => { if (e.key === 'Enter' && e.target === e.currentTarget) router.push('/live') }}
+              style={{ padding: '20px', borderRadius: '20px', display: 'flex', flexDirection: 'column', cursor: 'pointer' }}
+            >
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
                 <h3 style={{ fontSize: '15px', fontWeight: '700', color: 'var(--text-primary)' }}>{t('dashboard.upNext.title')}</h3>
                 <Link href="/live" style={{ fontSize: '12px', color: 'var(--accent)', fontWeight: '600', textDecoration: 'none' }}>
@@ -1871,100 +1921,35 @@ export default function DashboardPage() {
 
       {/* ── Row 3: Video Box (Left) + Announcements (Right) [Web View Grid] ── */}
       <div className="dashboard-video-announcements-row">
-        {/* Left: How to Use Me Video Box (Web View Only) */}
+        {/* How to Use Me — button that opens the walkthrough on YouTube (Web View Only) */}
         {!isMobile && (
-          <div className="card dashboard-video-box dashboard-video-box-web-only">
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <div style={{
-                  width: '34px', height: '34px', borderRadius: '10px',
-                  background: 'linear-gradient(135deg, rgba(99,102,241,0.18), rgba(168,85,247,0.18))',
-                  color: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center'
-                }}>
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                    <polygon points="5 3 19 12 5 21 5 3"/>
-                  </svg>
-                </div>
-                <div>
-                  <h3 style={{ fontSize: '16px', fontWeight: '700', color: 'var(--text-primary)', margin: 0 }}>
-                    How to Use Me
-                  </h3>
-                  <p style={{ fontSize: '12px', color: 'var(--text-muted)', margin: '2px 0 0 0' }}>
-                    Platform walkthrough &amp; student guide
-                  </p>
-                </div>
-              </div>
-              <span style={{
-                fontSize: '11px',
-                fontWeight: '700',
-                padding: '3px 10px',
-                borderRadius: '20px',
-                background: 'rgba(99, 102, 241, 0.1)',
-                color: 'var(--primary)',
-                letterSpacing: '0.04em',
-                textTransform: 'uppercase',
-              }}>
-                Tutorial
+          <a
+            className="dashboard-video-box dashboard-video-box-web-only"
+            href="https://youtu.be/kFu0yHDSeWM?si=PHHL4K3RLr5uoE6-"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="How to Use Me — view the platform walkthrough on YouTube"
+          >
+            <span className="dashboard-video-box__icon">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <polygon points="6 3 20 12 6 21 6 3"/>
+              </svg>
+            </span>
+            <span style={{ flex: 1, minWidth: 0 }}>
+              <span style={{ display: 'block', fontSize: '15.5px', fontWeight: 700, color: 'var(--text-primary)' }}>
+                How to Use Me
               </span>
-            </div>
-
-            <div style={{
-              position: 'relative',
-              width: '100%',
-              aspectRatio: '16/9',
-              borderRadius: '12px',
-              overflow: 'hidden',
-              background: '#0a0a14',
-              boxShadow: '0 4px 16px rgba(0, 0, 0, 0.12)',
-            }}>
-              <iframe
-                src="https://www.youtube-nocookie.com/embed/kFu0yHDSeWM?rel=0&amp;modestbranding=1"
-                title="How to Use GenZ IITian"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                allowFullScreen
-                loading="lazy"
-                style={{
-                  position: 'absolute',
-                  top: 0,
-                  left: 0,
-                  width: '100%',
-                  height: '100%',
-                  border: 'none',
-                }}
-              />
-            </div>
-
-            <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              marginTop: '12px',
-              paddingTop: '10px',
-              borderTop: '1px solid var(--border)',
-              fontSize: '12px',
-              color: 'var(--text-muted)',
-            }}>
-              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
-                <span>💡</span> Learn how to navigate courses, live classes &amp; doubts
+              <span style={{ display: 'block', fontSize: '12.5px', color: 'var(--text-secondary)', marginTop: '2px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                Platform walkthrough &amp; student guide
               </span>
-              <a
-                href="https://youtu.be/kFu0yHDSeWM?si=PHHL4K3RLr5uoE6-"
-                target="_blank"
-                rel="noopener noreferrer"
-                style={{
-                  color: 'var(--primary)',
-                  fontWeight: '600',
-                  textDecoration: 'none',
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '4px',
-                  fontSize: '11.5px',
-                }}
-              >
-                Watch on YouTube ↗
-              </a>
-            </div>
-          </div>
+            </span>
+            <span className="dashboard-video-box__cta">
+              View now
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="M7 17L17 7M8 7h9v9"/>
+              </svg>
+            </span>
+          </a>
         )}
 
         {/* Right: Announcements (Compact Square) */}

@@ -1041,9 +1041,20 @@ function SubmitHomeworkModal({
 }) {
   const [selectedFiles, setSelectedFiles] = useState<File[]>([])
   const [note, setNote] = useState(homework.mySubmission?.note || '')
-  const [loading, setLoading] = useState(false)
+  const [phase, setPhase] = useState<'idle' | 'uploading' | 'processing' | 'success'>('idle')
+  const [progress, setProgress] = useState(0)
   const [error, setError] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const xhrRef = useRef<XMLHttpRequest | null>(null)
+  const doneTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const loading = phase !== 'idle'
+  const totalBytes = selectedFiles.reduce((sum, f) => sum + f.size, 0)
+
+  // Stop an in-flight upload if the modal goes away
+  useEffect(() => () => {
+    xhrRef.current?.abort()
+    if (doneTimerRef.current) clearTimeout(doneTimerRef.current)
+  }, [])
 
   const isPastDue = isHomeworkPastDue(homework)
   const canSubmit = canSubmitHomework(homework)
@@ -1070,7 +1081,8 @@ function SubmitHomeworkModal({
       return
     }
 
-    setLoading(true)
+    setPhase(selectedFiles.length > 0 ? 'uploading' : 'processing')
+    setProgress(0)
     setError(null)
 
     try {
@@ -1080,22 +1092,52 @@ function SubmitHomeworkModal({
         formData.append('files', file)
       })
 
-      const res = await fetch(`/api/homework/${homework.id}/submit`, {
-        method: 'POST',
-        body: formData
+      // XMLHttpRequest (not fetch) so we get real upload progress
+      await new Promise<void>((resolve, reject) => {
+        const xhr = new XMLHttpRequest()
+        xhrRef.current = xhr
+        xhr.open('POST', `/api/homework/${homework.id}/submit`)
+        // Required by the CSRF check in middleware (fetch gets this automatically, XHR does not)
+        xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest')
+        xhr.upload.onprogress = (ev) => {
+          if (ev.lengthComputable && ev.total > 0) {
+            setProgress(Math.min(100, Math.round((ev.loaded / ev.total) * 100)))
+          }
+        }
+        xhr.upload.onload = () => {
+          setProgress(100)
+          setPhase('processing')
+        }
+        xhr.onload = () => {
+          let data: any = {}
+          try { data = JSON.parse(xhr.responseText) } catch {}
+          if (xhr.status >= 200 && xhr.status < 300) resolve()
+          else reject(new Error(data?.error || 'Failed to submit homework'))
+        }
+        xhr.onerror = () => reject(new Error('Network error. Please check your connection and try again.'))
+        xhr.onabort = () => reject(new DOMException('Upload cancelled', 'AbortError'))
+        xhr.send(formData)
       })
 
-      const data = await res.json()
-      if (!res.ok) {
-        throw new Error(data.error || 'Failed to submit homework')
-      }
-
-      onSuccess()
+      xhrRef.current = null
+      setProgress(100)
+      setPhase('success')
+      // Let the success animation play before the modal closes
+      doneTimerRef.current = setTimeout(() => {
+        doneTimerRef.current = null
+        onSuccess()
+      }, 1700)
     } catch (err: any) {
-      setError(err.message || 'Error submitting homework')
-    } finally {
-      setLoading(false)
+      xhrRef.current = null
+      setPhase('idle')
+      if (err?.name !== 'AbortError') {
+        setError(err.message || 'Error submitting homework')
+      }
     }
+  }
+
+  const cancelUpload = () => {
+    xhrRef.current?.abort()
   }
 
   return (
@@ -1122,8 +1164,110 @@ function SubmitHomeworkModal({
         overflow: 'hidden',
         display: 'flex',
         flexDirection: 'column',
-        maxHeight: '90vh'
+        maxHeight: '90vh',
+        position: 'relative'
       }}>
+        {phase !== 'idle' && (
+          <div
+            className="hw-upload-overlay"
+            role="status"
+            aria-live="polite"
+            style={{
+              position: 'absolute',
+              inset: 0,
+              zIndex: 2,
+              background: 'var(--surface)',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: '32px 28px',
+              textAlign: 'center'
+            }}
+          >
+            {phase === 'success' ? (
+              <>
+                <svg className="hw-success" width="84" height="84" viewBox="0 0 52 52" aria-hidden="true">
+                  <circle className="hw-success__ring" cx="26" cy="26" r="23" fill="none" stroke="var(--success)" strokeWidth="3" strokeLinecap="round" transform="rotate(-90 26 26)" />
+                  <path className="hw-success__check" d="M15 27l7.5 7.5L37 19" fill="none" stroke="var(--success)" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+                <h3 className="hw-rise" style={{ fontSize: '18px', fontWeight: 800, margin: '18px 0 4px', color: 'var(--text-primary)' }}>
+                  Homework submitted
+                </h3>
+                <p className="hw-rise" style={{ fontSize: '13px', color: 'var(--text-secondary)', margin: 0 }}>
+                  {selectedFiles.length > 0
+                    ? `${selectedFiles.length} file${selectedFiles.length !== 1 ? 's' : ''} uploaded successfully.`
+                    : 'Your submission has been saved.'}
+                </p>
+              </>
+            ) : (
+              <>
+                <div style={{
+                  width: '64px',
+                  height: '64px',
+                  borderRadius: '50%',
+                  background: `color-mix(in srgb, ${courseColor} 14%, transparent)`,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  marginBottom: '18px'
+                }}>
+                  <Upload className="hw-bob" size={26} style={{ color: courseColor }} />
+                </div>
+                <h3 style={{ fontSize: '17px', fontWeight: 800, margin: '0 0 4px', color: 'var(--text-primary)' }}>
+                  {selectedFiles.length === 0 ? 'Submitting' : phase === 'uploading' ? 'Uploading your files' : 'Finishing up'}
+                </h3>
+                <p style={{ fontSize: '12.5px', color: 'var(--text-secondary)', margin: '0 0 20px', maxWidth: '100%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  {selectedFiles.length === 0
+                    ? 'Saving your note'
+                    : selectedFiles.length === 1
+                      ? selectedFiles[0].name
+                      : `${selectedFiles.length} files`}
+                </p>
+
+                <div
+                  className={`hw-bar${phase === 'processing' ? ' hw-bar--indeterminate' : ''}`}
+                  role="progressbar"
+                  aria-valuemin={0}
+                  aria-valuemax={100}
+                  aria-valuenow={phase === 'uploading' ? progress : undefined}
+                  style={{ width: '100%', maxWidth: '360px', height: '8px', borderRadius: '99px', background: 'color-mix(in srgb, var(--text-primary) 10%, transparent)', overflow: 'hidden' }}
+                >
+                  <div className="hw-bar__fill" style={{ width: `${progress}%`, height: '100%', borderRadius: '99px', background: courseColor }} />
+                </div>
+
+                <div style={{ width: '100%', maxWidth: '360px', display: 'flex', justifyContent: 'space-between', marginTop: '8px', fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary)', fontVariantNumeric: 'tabular-nums' }}>
+                  <span>{phase === 'uploading' ? `${progress}%` : 'Saving your submission...'}</span>
+                  {selectedFiles.length > 0 && <span>{(totalBytes / 1024 / 1024).toFixed(2)} MB</span>}
+                </div>
+
+                <p style={{ fontSize: '12px', color: 'var(--text-secondary)', margin: '18px 0 0' }}>
+                  Please keep this window open until it finishes.
+                </p>
+
+                {phase === 'uploading' && (
+                  <button
+                    type="button"
+                    onClick={cancelUpload}
+                    style={{
+                      marginTop: '16px',
+                      padding: '9px 20px',
+                      borderRadius: '50px',
+                      border: '1px solid var(--border)',
+                      background: 'var(--surface-2)',
+                      color: 'var(--text-primary)',
+                      fontSize: '12.5px',
+                      fontWeight: 700,
+                      cursor: 'pointer'
+                    }}
+                  >
+                    Cancel upload
+                  </button>
+                )}
+              </>
+            )}
+          </div>
+        )}
         <div style={{
           padding: '20px 24px',
           borderBottom: '1px solid var(--border)',

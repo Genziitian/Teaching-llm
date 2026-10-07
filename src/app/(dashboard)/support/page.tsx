@@ -1606,140 +1606,175 @@ export default function SupportPage() {
   // ALL TICKETS VIEW
   // ══════════════════════════════════════════════════════════════════════════
   if (view === 'allTickets') {
+    const isStudent = userRole === 'STUDENT'
+    const canCreate = userRole === 'STUDENT' || userRole === 'ADMIN' || userRole === 'MODERATOR'
+    const line = 'color-mix(in srgb, var(--text-primary) 12%, transparent)'
+    const panel: React.CSSProperties = { background: 'var(--surface)', border: `1px solid ${line}`, borderRadius: '16px' }
+    const statusLabel = (s: string) => s === 'IN_PROGRESS' ? 'In progress' : s.charAt(0) + s.slice(1).toLowerCase()
+    const priorityLabel = (p: string) => `${p.charAt(0)}${p.slice(1).toLowerCase()} priority`
+    const chip = (c: string): React.CSSProperties => ({
+      display: 'inline-flex', alignItems: 'center', gap: '6px',
+      padding: '3px 10px', borderRadius: '6px',
+      background: `color-mix(in srgb, ${c} 14%, transparent)`, color: c,
+      fontSize: '11.5px', fontWeight: 600, lineHeight: '18px', whiteSpace: 'nowrap',
+    })
+    const neutralChip: React.CSSProperties = {
+      display: 'inline-flex', alignItems: 'center', gap: '6px',
+      padding: '3px 10px', borderRadius: '6px',
+      background: 'color-mix(in srgb, var(--text-primary) 7%, transparent)', color: 'var(--text-secondary)',
+      fontSize: '11.5px', fontWeight: 600, lineHeight: '18px', whiteSpace: 'nowrap',
+    }
+    const dot = (c: string): React.CSSProperties => ({ width: '6px', height: '6px', borderRadius: '50%', background: c, flexShrink: 0 })
+    const dayOf = (d: string) => formatIST(d, { day: '2-digit', month: 'short', year: 'numeric' })
+    const timeOf = (d: string) => formatIST(d, { hour: '2-digit', minute: '2-digit', hour12: true })
+    const classChip = (t: Ticket) => {
+      if (userRole === 'MANAGER' && t.type === 'GENERAL') return <span style={neutralChip}>General</span>
+      return t.class ? <span style={chip(t.class.color)}>{t.class.name}</span> : null
+    }
+    const sendDisabled = (!replyText.trim() && !pendingReplyImage) || uploadingImage
+
     return (
-      <div className="page-container fade-in" style={{ maxHeight: isMobile ? 'calc(100vh - 72px)' : 'calc(100vh - 104px)', display: 'flex', flexDirection: 'column' }}>
+      <div className="page-container fade-in" style={{ height: isMobile ? 'calc(100vh - 72px)' : 'calc(100vh - 104px)', display: 'flex', flexDirection: 'column' }}>
         {confirmDialog}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-          <BackButton onClick={() => { if (isMobile && selected) { setSelected(null) } else { setView('home'); setSelected(null) } }} />
-          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-            <span style={{ fontSize: '13px', color: 'var(--text-muted)', fontWeight: '600' }}>{tickets.length} ticket{tickets.length !== 1 ? 's' : ''}</span>
-            {(userRole === 'STUDENT' || (userRole === 'ADMIN' || userRole === 'MODERATOR')) && (
-              <button 
-                onClick={() => { if (!hasReachedActiveLimit) { setTicketError(null); setShowCreate(true) } }} 
-                disabled={hasReachedActiveLimit}
-                className="btn btn-primary btn-sm"
-                style={hasReachedActiveLimit ? { opacity: 0.6, cursor: 'not-allowed' } : {}}
-                title={hasReachedActiveLimit ? 'Active ticket limit reached (3/3). Wait for resolution or closure.' : undefined}
-              >
-                {hasReachedActiveLimit ? 'Limit Reached (3/3)' : '+ New Ticket'}
-              </button>
-            )}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px', marginBottom: '16px', flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', minWidth: 0 }}>
+            <button
+              className="st-icon-btn"
+              onClick={() => { if (isMobile && selected) { setSelected(null) } else { setView('home'); setSelected(null) } }}
+              aria-label="Back"
+              style={{ width: '36px', height: '36px', borderRadius: '10px', border: `1px solid ${line}`, background: 'var(--surface)', cursor: 'pointer', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5M12 5l-7 7 7 7" /></svg>
+            </button>
+            <div style={{ minWidth: 0 }}>
+              <div style={{ fontSize: '17px', fontWeight: 700, color: 'var(--text-primary)', lineHeight: 1.2 }}>{isStudent ? 'My tickets' : 'Tickets'}</div>
+              <div style={{ fontSize: '12.5px', color: 'var(--text-secondary)', marginTop: '2px' }}>
+                {tickets.length} ticket{tickets.length !== 1 ? 's' : ''}{isStudent ? ` · ${activeTicketsCount} of 3 active` : ''}
+              </div>
+            </div>
           </div>
+          {canCreate && (
+            <button
+              onClick={() => { if (!hasReachedActiveLimit) { setTicketError(null); setShowCreate(true) } }}
+              disabled={hasReachedActiveLimit}
+              className="btn btn-primary btn-sm"
+              style={{ borderRadius: '10px', padding: '9px 16px', fontSize: '13px', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '6px', ...(hasReachedActiveLimit ? { opacity: 0.6, cursor: 'not-allowed' } : {}) }}
+              title={hasReachedActiveLimit ? 'Active ticket limit reached (3/3). Wait for resolution or closure.' : undefined}
+            >
+              {!hasReachedActiveLimit && <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></svg>}
+              {hasReachedActiveLimit ? 'Limit reached (3/3)' : 'New ticket'}
+            </button>
+          )}
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : (selected ? '1fr 1.3fr' : '1fr'), gap: '20px', flex: 1, minHeight: 0 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'minmax(300px, 400px) minmax(0, 1fr)', gridTemplateRows: 'minmax(0, 1fr)', gap: '16px', flex: 1, minHeight: 0 }}>
           {/* Ticket list */}
-          <div style={{ display: (isMobile && selected) ? 'none' : 'flex', flexDirection: 'column', gap: '12px', overflowY: 'auto' }}>
+          <div style={{ display: (isMobile && selected) ? 'none' : 'flex', flexDirection: 'column', gap: '8px', overflowY: 'auto', minHeight: 0, paddingRight: isMobile ? 0 : '2px' }}>
             {tickets.length === 0 ? (
-              <div className="empty-state">
-                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="1.5"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" /><polyline points="14 2 14 8 20 8" /></svg>
-                <p style={{ fontWeight: '700', fontSize: '15px', marginBottom: '4px' }}>No tickets</p>
-                <p style={{ fontSize: '13px', color: 'var(--text-muted)' }}>{(userRole === 'STUDENT' || (userRole === 'ADMIN' || userRole === 'MODERATOR')) ? 'Create a ticket to get help. If assigned tickets, they will appear here.' : 'No tickets have been raised.'}</p>
+              <div style={{ ...panel, padding: '40px 24px', textAlign: 'center' }}>
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" style={{ marginBottom: '12px' }}><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" /></svg>
+                <p style={{ fontWeight: 700, fontSize: '15px', marginBottom: '4px', color: 'var(--text-primary)' }}>No tickets yet</p>
+                <p style={{ fontSize: '13px', color: 'var(--text-secondary)', lineHeight: 1.5 }}>{canCreate ? 'Create a ticket to get help. If assigned tickets, they will appear here.' : 'No tickets have been raised.'}</p>
               </div>
-            ) : tickets.map(t => (
-              <div key={t.id} onClick={() => setSelected(selected?.id === t.id ? null : t)}
-                style={{ padding: '14px 18px', borderRadius: '20px', cursor: 'pointer', transition: 'all 0.2s', ...neu, outline: selected?.id === t.id ? '2px solid #3636e8' : 'none' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '8px' }}>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: '14.5px', fontWeight: '700', color: 'var(--text-primary)', marginBottom: '4px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t.title}</div>
-                    <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', alignItems: 'center' }}>
-                      <span style={pill(STATUS_COLORS[t.status])}>{t.status.replace('_', ' ')}</span>
-                      <span style={pill(PRIORITY_COLORS[t.priority])}>{t.priority}</span>
-                      {userRole === 'MANAGER' ? (
-                        t.type === 'GENERAL' ? (
-                          <span style={pill('var(--info)')}>General</span>
-                        ) : (
-                          t.class && <span style={pill(t.class.color)}>{t.class.name}</span>
-                        )
-                      ) : (
-                        t.class && <span style={pill(t.class.color)}>{t.class.name}</span>
-                      )}
-                      {t.assignedTo && (
-                        <span style={{ ...pill('var(--primary)'), display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
-                          {t.assignedTo.name}
-                          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                        </span>
+            ) : tickets.map(t => {
+              const active = selected?.id === t.id
+              return (
+                <div key={t.id} className={`st-ticket${active ? ' st-ticket--active' : ''}`} onClick={() => setSelected(active ? null : t)}
+                  style={{ padding: '14px 16px', borderRadius: '14px', cursor: 'pointer', flexShrink: 0 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
+                    <span style={{ fontSize: '12px', color: 'var(--text-secondary)', fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}>#{shortId(t.id)}</span>
+                    <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexShrink: 0 }}>
+                      <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>{dayOf(t.createdAt)}, {timeOf(t.createdAt)}</span>
+                      {userRole === 'MANAGER' && (
+                        <button onClick={e => { e.stopPropagation(); deleteTicket(t.id) }}
+                          style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--danger)', padding: '2px', display: 'flex' }} title="Delete ticket" aria-label="Delete ticket">
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="3 6 5 6 21 6" /><path d="M19 6l-1 14H6L5 6" /><path d="M10 11v6M14 11v6" /><path d="M9 6V4h6v2" /></svg>
+                        </button>
                       )}
                     </div>
                   </div>
-                  <div style={{ display: 'flex', gap: '6px', alignItems: 'center', flexShrink: 0 }}>
-                    <span style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '2px' }}>{formatIST(t.createdAt, { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true })}</span>
-                    {userRole === 'MANAGER' && (
-                      <button onClick={e => { e.stopPropagation(); deleteTicket(t.id) }}
-                        style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--danger)', padding: '2px', display: 'flex' }} title="Delete ticket">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="3 6 5 6 21 6" /><path d="M19 6l-1 14H6L5 6" /><path d="M10 11v6M14 11v6" /><path d="M9 6V4h6v2" /></svg>
-                      </button>
-                    )}
+                  <div style={{ fontSize: '14.5px', fontWeight: 600, color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t.title}</div>
+                  <div style={{ fontSize: '13px', color: 'var(--text-secondary)', marginTop: '2px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t.description}</div>
+                  <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', alignItems: 'center', marginTop: '10px' }}>
+                    <span style={chip(STATUS_COLORS[t.status])}><span style={dot(STATUS_COLORS[t.status])} />{statusLabel(t.status)}</span>
+                    <span style={neutralChip}>{priorityLabel(t.priority)}</span>
+                    {classChip(t)}
+                    {t.assignedTo && <span style={neutralChip}>Assigned to {t.assignedTo.name}</span>}
+                    <span style={{ marginLeft: 'auto', display: 'inline-flex', alignItems: 'center', gap: '5px', fontSize: '12px', color: 'var(--text-secondary)', fontWeight: 600 }}>
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" /></svg>
+                      {t.replies.length} repl{t.replies.length !== 1 ? 'ies' : 'y'}
+                    </span>
                   </div>
+                  {!isStudent && (
+                    <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '8px' }}>
+                      Raised by <span
+                        onClick={(e) => {
+                          if (userRole === 'MANAGER') {
+                            e.stopPropagation()
+                            setSelectedUserDetailsId(t.user.id)
+                          }
+                        }}
+                        style={{
+                          cursor: userRole === 'MANAGER' ? 'pointer' : 'default',
+                          textDecoration: userRole === 'MANAGER' ? 'underline' : 'none',
+                          color: userRole === 'MANAGER' ? 'var(--primary)' : 'var(--text-primary)',
+                          fontWeight: 600
+                        }}
+                      >{t.user.name}</span>
+                    </div>
+                  )}
                 </div>
-                <div style={{ fontSize: '12.5px', color: 'var(--text-muted)', marginTop: '6px' }}>
-                  {t.replies.length} repl{t.replies.length !== 1 ? 'ies' : 'y'} · by <span 
-                    onClick={(e) => {
-                      if (userRole === 'MANAGER') {
-                        e.stopPropagation()
-                        setSelectedUserDetailsId(t.user.id)
-                      }
-                    }}
-                    style={{ 
-                      cursor: userRole === 'MANAGER' ? 'pointer' : 'default',
-                      textDecoration: userRole === 'MANAGER' ? 'underline' : 'none',
-                      color: userRole === 'MANAGER' ? 'var(--primary)' : 'inherit'
-                    }}
-                  >{t.user.name}</span>
-                </div>
-              </div>
-            ))}
+              )
+            })}
           </div>
 
+          {/* Empty conversation pane (desktop) */}
+          {!selected && !isMobile && (
+            <div style={{ ...panel, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', padding: '32px', minHeight: 0 }}>
+              <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ marginBottom: '14px' }}><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" /></svg>
+              <div style={{ fontSize: '15px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '4px' }}>{tickets.length === 0 ? 'Nothing to show yet' : 'Select a ticket'}</div>
+              <div style={{ fontSize: '13px', color: 'var(--text-secondary)', maxWidth: '320px', lineHeight: 1.5 }}>
+                {tickets.length === 0 ? 'Your conversations with the support team will appear here.' : 'Choose a ticket from the list to read the conversation and reply.'}
+              </div>
+            </div>
+          )}
           {/* Ticket thread */}
           {selected && (
-            <div style={{ borderRadius: '24px', ...neu, display: (isMobile && !selected) ? 'none' : 'flex', flexDirection: 'column', overflow: 'hidden', maxHeight: isMobile ? 'calc(100vh - 120px)' : 'calc(100vh - 200px)' }}>
-              <div style={{ padding: '16px 20px', borderBottom: '1.5px solid rgba(0,0,0,0.06)' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: '15px', fontWeight: '800', color: 'var(--text-primary)' }}>{selected.title}</div>
-                    <div style={{ display: 'flex', gap: '6px', marginTop: '6px', flexWrap: 'wrap' }}>
-                      <span style={pill(STATUS_COLORS[selected.status])}>{selected.status.replace('_', ' ')}</span>
-                      <span style={pill(PRIORITY_COLORS[selected.priority])}>{selected.priority}</span>
-                      {selected.assignedTo && (
-                        <span style={{ ...pill('var(--primary)'), display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
-                          → {selected.assignedTo.name}
-                          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                        </span>
-                      )}
-                      {userRole === 'MANAGER' ? (
-                        selected.type === 'GENERAL' ? (
-                          <span style={pill('var(--info)')}>📋 General</span>
-                        ) : (
-                          selected.class && <span style={pill(selected.class.color)}>📚 {selected.class.name}</span>
-                        )
-                      ) : (
-                        selected.class && <span style={pill(selected.class.color)}>📚 {selected.class.name}</span>
-                      )}
+            <div style={{ ...panel, display: 'flex', flexDirection: 'column', overflow: 'hidden', minHeight: 0 }}>
+              <div style={{ padding: '16px 20px', borderBottom: `1px solid ${line}` }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '12px' }}>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: '12px', color: 'var(--text-secondary)', fontWeight: 600, marginBottom: '4px', fontVariantNumeric: 'tabular-nums' }}>Ticket #{shortId(selected.id)}</div>
+                    <div style={{ fontSize: '17px', fontWeight: 700, color: 'var(--text-primary)', lineHeight: 1.3, wordBreak: 'break-word' }}>{selected.title}</div>
+                    <div style={{ display: 'flex', gap: '6px', marginTop: '10px', flexWrap: 'wrap' }}>
+                      <span style={chip(STATUS_COLORS[selected.status])}><span style={dot(STATUS_COLORS[selected.status])} />{statusLabel(selected.status)}</span>
+                      <span style={neutralChip}>{priorityLabel(selected.priority)}</span>
+                      {classChip(selected)}
+                      {selected.assignedTo && <span style={neutralChip}>Assigned to {selected.assignedTo.name}</span>}
                     </div>
                   </div>
-                  <button onClick={() => setSelected(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)' }}>
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
+                  <button className="st-icon-btn" onClick={() => setSelected(null)} aria-label="Close ticket view" title="Close" style={{ width: '32px', height: '32px', borderRadius: '8px', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
                   </button>
                 </div>
 
                 {/* Manager controls */}
                 {userRole === 'MANAGER' && (
                   <>
-                    <div style={{ display: 'flex', gap: '6px', marginTop: '10px', flexWrap: 'wrap' }}>
+                    <div style={{ display: 'flex', gap: '6px', marginTop: '12px', flexWrap: 'wrap' }}>
                       {['OPEN', 'IN_PROGRESS', 'RESOLVED', 'CLOSED'].map(s => (
-                        <button key={s} onClick={() => updateStatus(selected.id, s)} style={{ padding: '4px 10px', borderRadius: '50px', border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontSize: '11px', fontWeight: '700', background: selected.status === s ? STATUS_COLORS[s] : 'var(--surface-2)', color: selected.status === s ? '#fff' : 'var(--text-muted)', boxShadow: '3px 3px 6px var(--neu-dark), -3px -3px 6px var(--neu-light)' }}>
-                          {s.replace('_', ' ')}
+                        <button key={s} onClick={() => updateStatus(selected.id, s)} style={{ padding: '5px 12px', borderRadius: '8px', cursor: 'pointer', fontFamily: 'inherit', fontSize: '12px', fontWeight: 600, border: `1px solid ${selected.status === s ? STATUS_COLORS[s] : line}`, background: selected.status === s ? `color-mix(in srgb, ${STATUS_COLORS[s]} 16%, transparent)` : 'transparent', color: selected.status === s ? STATUS_COLORS[s] : 'var(--text-secondary)' }}>
+                          {statusLabel(s)}
                         </button>
                       ))}
                     </div>
                     {admins.length > 0 && (
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '10px' }}>
-                        <span style={{ fontSize: '12px', color: 'var(--text-secondary)', fontWeight: '600', flexShrink: 0 }}>Assign to:</span>
+                        <span style={{ fontSize: '12px', color: 'var(--text-secondary)', fontWeight: 600, flexShrink: 0 }}>Assign to</span>
                         <select
                           value={selected.assignedTo?.id || ''}
                           onChange={e => assignTicket(selected.id, e.target.value)}
-                          style={{ flex: 1, padding: '6px 10px', borderRadius: '10px', border: 'none', outline: 'none', fontFamily: 'inherit', fontSize: '12.5px', background: 'var(--surface-2)', boxShadow: '2px 2px 5px var(--neu-dark), -2px -2px 5px var(--neu-light)', color: 'var(--text-primary)', cursor: 'pointer' }}
+                          style={{ flex: 1, padding: '7px 10px', borderRadius: '8px', border: `1px solid ${line}`, outline: 'none', fontFamily: 'inherit', fontSize: '12.5px', background: 'var(--bg)', color: 'var(--text-primary)', cursor: 'pointer' }}
                         >
                           <option value="">Unassigned</option>
                           {admins.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
@@ -1748,116 +1783,73 @@ export default function SupportPage() {
                     )}
                   </>
                 )}
-
-
               </div>
 
-              <div style={{ padding: '14px 20px', borderBottom: '1.5px solid var(--border)', background: 'var(--surface-2)' }}>
-                <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '4px', fontWeight: '600' }}>
-                  Original request — <span 
-                    onClick={() => {
-                      if (userRole === 'MANAGER') setSelectedUserDetailsId(selected.user.id)
-                    }}
-                    style={{ 
-                      cursor: userRole === 'MANAGER' ? 'pointer' : 'default',
-                      textDecoration: userRole === 'MANAGER' ? 'underline' : 'none',
-                      color: userRole === 'MANAGER' ? 'var(--primary)' : 'inherit'
-                    }}
-                  >{selected.user.name}</span>
-                  {selected.createdAt && ` · Raised: ${formatIST(selected.createdAt, { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true })}`}
+              <div style={{ flex: 1, overflowY: 'auto', padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: '4px', minHeight: 0 }}>
+                {/* Original request */}
+                <div style={{ border: `1px solid ${line}`, borderRadius: '12px', padding: '12px 14px', background: 'var(--bg)', marginBottom: '12px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', gap: '8px', flexWrap: 'wrap', fontSize: '12px', color: 'var(--text-secondary)', marginBottom: '6px' }}>
+                    <span>
+                      <span style={{ fontWeight: 700, color: 'var(--text-primary)' }}>Original request</span> · <span
+                        onClick={() => {
+                          if (userRole === 'MANAGER') setSelectedUserDetailsId(selected.user.id)
+                        }}
+                        style={{
+                          cursor: userRole === 'MANAGER' ? 'pointer' : 'default',
+                          textDecoration: userRole === 'MANAGER' ? 'underline' : 'none',
+                          color: userRole === 'MANAGER' ? 'var(--primary)' : 'inherit'
+                        }}
+                      >{selected.user.id === userId ? 'You' : selected.user.name}</span>
+                    </span>
+                    {selected.createdAt && <span>{dayOf(selected.createdAt)}, {timeOf(selected.createdAt)}</span>}
+                  </div>
+                  <div style={{ fontSize: '14px', color: 'var(--text-primary)', lineHeight: 1.6, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{selected.description}</div>
                 </div>
-                <div style={{ fontSize: '13.5px', color: 'var(--text-primary)', lineHeight: '1.6' }}>{selected.description}</div>
-              </div>
 
-              <div style={{ flex: 1, overflowY: 'auto', padding: '14px 20px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                {selected.replies.length === 0 && (
+                  <div style={{ margin: 'auto', textAlign: 'center', fontSize: '13px', color: 'var(--text-secondary)', padding: '24px 12px', lineHeight: 1.5 }}>
+                    No replies yet.{isStudent && selected.status !== 'CLOSED' ? ' The support team will respond here.' : ''}
+                  </div>
+                )}
+
                 {selected.replies.map((r, idx) => {
                   const isMe = r.sender.id === userId
                   const isAdmin = r.sender.role !== 'STUDENT'
-                  const showAvatar = idx === 0 || selected.replies[idx - 1]?.sender.id !== r.sender.id
+                  const prev = selected.replies[idx - 1]
+                  const newDay = idx === 0 || dayOf(prev.createdAt) !== dayOf(r.createdAt)
+                  const showAvatar = newDay || prev?.sender.id !== r.sender.id
                   const canManageReply = isMe && (userRole === 'MANAGER' || (userRole === 'ADMIN' || userRole === 'MODERATOR'))
                   const isEditingThisReply = editingReplyId === r.id
+                  const mineStyled = isMe && !isEditingThisReply
 
                   return (
-                    <div key={r.id} style={{ display: 'flex', justifyContent: isMe ? 'flex-end' : 'flex-start', gap: '8px', alignItems: 'flex-start', marginBottom: showAvatar ? '8px' : '2px' }}>
-                      {!isMe && (
-                        <UserAvatar
-                          user={r.sender}
-                          size={28}
-                          onClick={() => userRole === 'MANAGER' && setSelectedUserDetailsId(r.sender.id)}
-                          style={{ display: showAvatar ? 'inline-flex' : 'none' }}
-                        />
+                    <div key={r.id}>
+                      {newDay && (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', margin: '10px 0 12px' }}>
+                          <div style={{ flex: 1, height: '1px', background: line }} />
+                          <span style={{ fontSize: '11.5px', color: 'var(--text-secondary)', fontWeight: 600 }}>{dayOf(r.createdAt)}</span>
+                          <div style={{ flex: 1, height: '1px', background: line }} />
+                        </div>
                       )}
-                      {!isMe && !showAvatar && <div style={{ width: '28px', flexShrink: 0 }} />}
-                      <div style={{ maxWidth: '78%', position: 'relative', display: 'flex', flexDirection: 'column', alignItems: isMe ? 'flex-end' : 'flex-start' }}>
-                        
-                        {canManageReply && !isEditingThisReply && (
-                          <div style={{ display: 'flex', gap: '4px', marginBottom: '2px', opacity: 0.85 }}>
-                            <button
-                              onClick={() => {
-                                setEditingReplyId(r.id)
-                                setEditReplyText(r.content)
-                              }}
-                              title="Edit reply"
-                              aria-label="Edit reply"
-                              style={{
-                                background: 'rgba(54,54,232,0.08)',
-                                border: 'none',
-                                cursor: 'pointer',
-                                color: 'var(--primary)',
-                                padding: '2px 6px',
-                                borderRadius: '4px',
-                                display: 'inline-flex',
-                                alignItems: 'center',
-                                gap: '3px',
-                                fontSize: '11px',
-                                fontWeight: '600',
-                                transition: 'all 0.15s ease'
-                              }}
-                            >
-                              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
-                              Edit
-                            </button>
-                            <button
-                              onClick={() => handleDeleteReply(r.id)}
-                              title="Delete reply"
-                              aria-label="Delete reply"
-                              style={{
-                                background: 'rgba(239,68,68,0.08)',
-                                border: 'none',
-                                cursor: 'pointer',
-                                color: '#ef4444',
-                                padding: '2px 6px',
-                                borderRadius: '4px',
-                                display: 'inline-flex',
-                                alignItems: 'center',
-                                gap: '3px',
-                                fontSize: '11px',
-                                fontWeight: '600',
-                                transition: 'all 0.15s ease'
-                              }}
-                            >
-                              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
-                              Delete
-                            </button>
-                          </div>
+                      <div style={{ display: 'flex', justifyContent: isMe ? 'flex-end' : 'flex-start', gap: '8px', alignItems: 'flex-start', marginTop: showAvatar && !newDay ? '10px' : '2px' }}>
+                        {!isMe && (
+                          <UserAvatar
+                            user={r.sender}
+                            size={28}
+                            onClick={() => userRole === 'MANAGER' && setSelectedUserDetailsId(r.sender.id)}
+                            style={{ display: showAvatar ? 'inline-flex' : 'none' }}
+                          />
                         )}
+                        {!isMe && !showAvatar && <div style={{ width: '28px', flexShrink: 0 }} />}
+                        <div style={{ maxWidth: isMobile ? '86%' : '72%', minWidth: 0, display: 'flex', flexDirection: 'column', alignItems: isMe ? 'flex-end' : 'flex-start' }}>
 
-                        <div className="chat-msg-bubble" style={{ 
-                          padding: isEditingThisReply ? '10px 12px' : r.imageUrl ? '6px 6px 20px 6px' : '8px 12px 20px 12px', 
-                          borderRadius: isMe ? '18px 18px 4px 18px' : '18px 18px 18px 4px', 
-                          background: isMe ? '#dcf8c6' : isAdmin ? '#e0e7ff' : '#ffffff', 
-                          boxShadow: '0 1px 2px rgba(0,0,0,0.1)', 
-                          color: '#1e1e3a',
-                          border: isMe ? 'none' : '1px solid var(--border)',
-                          minWidth: '60px'
-                        }}>
                           {!isMe && showAvatar && (
-                            <div style={{ display: 'flex', gap: '6px', alignItems: 'center', fontSize: '11px', fontWeight: '800', marginBottom: '4px', color: isAdmin ? 'var(--primary)' : '#888', textTransform: 'uppercase' }}>
-                              <span 
+                            <div style={{ display: 'flex', gap: '6px', alignItems: 'center', fontSize: '12px', fontWeight: 600, marginBottom: '4px', color: 'var(--text-primary)' }}>
+                              <span
                                 onClick={() => {
                                   if (userRole === 'MANAGER') setSelectedUserDetailsId(r.sender.id)
                                 }}
-                                style={{ 
+                                style={{
                                   cursor: userRole === 'MANAGER' ? 'pointer' : 'default',
                                   textDecoration: userRole === 'MANAGER' ? 'underline' : 'none'
                                 }}
@@ -1866,85 +1858,103 @@ export default function SupportPage() {
                             </div>
                           )}
 
-                          {isEditingThisReply ? (
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', minWidth: '220px' }}>
-                              <textarea
-                                value={editReplyText}
-                                onChange={(e) => setEditReplyText(e.target.value)}
-                                onKeyDown={(e) => {
-                                  if (e.key === 'Escape') {
-                                    setEditingReplyId(null)
-                                  }
-                                }}
-                                autoFocus
-                                style={{
-                                  width: '100%',
-                                  minHeight: '60px',
-                                  padding: '8px',
-                                  borderRadius: '8px',
-                                  border: '1.5px solid var(--primary)',
-                                  background: '#ffffff',
-                                  color: '#1e1e3a',
-                                  fontSize: '13.5px',
-                                  resize: 'vertical',
-                                  outline: 'none'
-                                }}
-                              />
-                              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '6px' }}>
-                                <button
-                                  onClick={() => setEditingReplyId(null)}
-                                  style={{
-                                    padding: '3px 10px',
-                                    fontSize: '12px',
-                                    borderRadius: '6px',
-                                    border: '1px solid #ccc',
-                                    background: 'transparent',
-                                    cursor: 'pointer',
-                                    fontWeight: '600',
-                                    color: '#475569'
+                          <div style={{
+                            padding: isEditingThisReply ? '10px 12px' : r.imageUrl ? '6px' : '9px 13px',
+                            borderRadius: isMe ? '14px 14px 4px 14px' : '14px 14px 14px 4px',
+                            background: mineStyled ? 'var(--button-background, var(--primary))' : 'color-mix(in srgb, var(--text-primary) 7%, var(--surface))',
+                            color: mineStyled ? 'var(--button-text, #ffffff)' : 'var(--text-primary)',
+                            border: mineStyled ? '1px solid transparent' : `1px solid ${line}`,
+                            maxWidth: '100%'
+                          }}>
+                            {isEditingThisReply ? (
+                              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', minWidth: isMobile ? '200px' : '280px' }}>
+                                <textarea
+                                  value={editReplyText}
+                                  onChange={(e) => setEditReplyText(e.target.value)}
+                                  onKeyDown={(e) => {
+                                    if (e.key === 'Escape') {
+                                      setEditingReplyId(null)
+                                    }
                                   }}
-                                >
-                                  Cancel
-                                </button>
-                                <button
-                                  onClick={() => handleEditReply(r.id, editReplyText)}
-                                  disabled={!editReplyText.trim() || savingReply}
+                                  autoFocus
                                   style={{
-                                    padding: '3px 12px',
-                                    fontSize: '12px',
-                                    borderRadius: '6px',
-                                    border: 'none',
-                                    background: 'var(--primary)',
-                                    color: '#ffffff',
-                                    cursor: editReplyText.trim() && !savingReply ? 'pointer' : 'default',
-                                    opacity: editReplyText.trim() && !savingReply ? 1 : 0.6,
-                                    fontWeight: '700'
+                                    width: '100%',
+                                    minHeight: '70px',
+                                    padding: '8px 10px',
+                                    borderRadius: '8px',
+                                    border: '1.5px solid var(--primary)',
+                                    background: 'var(--bg)',
+                                    color: 'var(--text-primary)',
+                                    fontFamily: 'inherit',
+                                    fontSize: '14px',
+                                    resize: 'vertical',
+                                    outline: 'none'
                                   }}
-                                >
-                                  {savingReply ? 'Saving...' : 'Save'}
-                                </button>
-                              </div>
-                            </div>
-                          ) : (
-                            <>
-                              {r.imageUrl && (
-                                <img
-                                  src={r.imageUrl}
-                                  alt="Attached image"
-                                  onClick={() => setLightboxUrl(r.imageUrl!)}
-                                  style={{ maxWidth: '100%', maxHeight: '200px', borderRadius: '10px', cursor: 'pointer', display: 'block', objectFit: 'cover', marginBottom: r.content ? '6px' : '0' }}
                                 />
-                              )}
-                              {r.content && <div style={{ fontSize: '13.5px', lineHeight: '1.5', whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{r.content}</div>}
-                              
-                              {/* Time inside bubble */}
-                              <div style={{ position: 'absolute', bottom: '4px', right: '8px', fontSize: '10px', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '3px' }}>
-                                {formatIST(r.createdAt, { hour: '2-digit', minute: '2-digit', hour12: true })}
-                                {isMe && (
-                                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#4fc3f7" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-                                )}
+                                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '6px' }}>
+                                  <button
+                                    onClick={() => setEditingReplyId(null)}
+                                    style={{ padding: '5px 12px', fontSize: '12px', borderRadius: '8px', border: `1px solid ${line}`, background: 'transparent', cursor: 'pointer', fontFamily: 'inherit', fontWeight: 600, color: 'var(--text-secondary)' }}
+                                  >
+                                    Cancel
+                                  </button>
+                                  <button
+                                    onClick={() => handleEditReply(r.id, editReplyText)}
+                                    disabled={!editReplyText.trim() || savingReply}
+                                    style={{
+                                      padding: '5px 14px', fontSize: '12px', borderRadius: '8px', border: 'none',
+                                      background: 'var(--button-background, var(--primary))',
+                                      color: 'var(--button-text, #ffffff)',
+                                      cursor: editReplyText.trim() && !savingReply ? 'pointer' : 'default',
+                                      opacity: editReplyText.trim() && !savingReply ? 1 : 0.6,
+                                      fontFamily: 'inherit', fontWeight: 600
+                                    }}
+                                  >
+                                    {savingReply ? 'Saving...' : 'Save'}
+                                  </button>
+                                </div>
                               </div>
-                            </>
+                            ) : (
+                              <>
+                                {r.imageUrl && (
+                                  <img
+                                    src={r.imageUrl}
+                                    alt="Attached image"
+                                    onClick={() => setLightboxUrl(r.imageUrl!)}
+                                    style={{ maxWidth: '100%', maxHeight: '220px', borderRadius: '9px', cursor: 'pointer', display: 'block', objectFit: 'cover' }}
+                                  />
+                                )}
+                                {r.content && <div style={{ fontSize: '14px', lineHeight: 1.5, whiteSpace: 'pre-wrap', wordBreak: 'break-word', padding: r.imageUrl ? '6px 7px 3px' : 0 }}>{r.content}</div>}
+                              </>
+                            )}
+                          </div>
+                          {!isEditingThisReply && (
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '4px', fontSize: '11.5px', color: 'var(--text-secondary)' }}>
+                              <span>{timeOf(r.createdAt)}</span>
+                              {canManageReply && (
+                                <>
+                                  <button
+                                    onClick={() => {
+                                      setEditingReplyId(r.id)
+                                      setEditReplyText(r.content)
+                                    }}
+                                    title="Edit reply"
+                                    aria-label="Edit reply"
+                                    style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: 'var(--primary)', fontFamily: 'inherit', fontSize: '11.5px', fontWeight: 600 }}
+                                  >
+                                    Edit
+                                  </button>
+                                  <button
+                                    onClick={() => handleDeleteReply(r.id)}
+                                    title="Delete reply"
+                                    aria-label="Delete reply"
+                                    style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: 'var(--danger)', fontFamily: 'inherit', fontSize: '11.5px', fontWeight: 600 }}
+                                  >
+                                    Delete
+                                  </button>
+                                </>
+                              )}
+                            </div>
                           )}
                         </div>
                       </div>
@@ -1954,23 +1964,32 @@ export default function SupportPage() {
                 <div ref={repliesEndRef} />
               </div>
 
-              {selected.status !== 'CLOSED' && (
-                <div style={{ padding: '12px 16px', borderTop: '1.5px solid rgba(0,0,0,0.06)' }}>
+              {selected.status === 'CLOSED' ? (
+                <div style={{ padding: '14px 20px', borderTop: `1px solid ${line}`, fontSize: '13px', color: 'var(--text-secondary)', textAlign: 'center' }}>
+                  This ticket is closed.{canCreate ? ' Raise a new ticket if you still need help.' : ''}
+                </div>
+              ) : (
+                <div style={{ padding: '12px 16px 14px', borderTop: `1px solid ${line}` }}>
                   {pendingReplyImagePreview && (
-                    <div style={{ marginBottom: '10px', position: 'relative', display: 'inline-flex', alignItems: 'flex-end', gap: '8px', padding: '10px 14px', borderRadius: '16px', background: 'var(--primary-light)', border: '2px solid #3636e830', boxShadow: '0 4px 12px rgba(54,54,232,0.1)' }}>
-                      <img src={pendingReplyImagePreview} alt="Preview" style={{ maxHeight: '80px', maxWidth: '160px', borderRadius: '10px', objectFit: 'cover' }} />
-                      <div style={{ fontSize: '11px', color: 'var(--primary)', fontWeight: '600' }}>📎 Ready to send</div>
-                      <button onClick={clearReplyImage} style={{ position: 'absolute', top: '-8px', right: '-8px', width: '24px', height: '24px', borderRadius: '50%', background: 'var(--danger)', color: '#fff', border: '2px solid var(--border)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: '800', boxShadow: '0 2px 8px rgba(239,68,68,0.3)' }}>✕</button>
+                    <div style={{ marginBottom: '10px', display: 'inline-flex', alignItems: 'center', gap: '10px', padding: '8px 12px 8px 8px', borderRadius: '12px', background: 'var(--bg)', border: `1px solid ${line}` }}>
+                      <img src={pendingReplyImagePreview} alt="Preview" style={{ height: '56px', maxWidth: '120px', borderRadius: '8px', objectFit: 'cover' }} />
+                      <div style={{ fontSize: '12px', color: 'var(--text-secondary)', fontWeight: 600 }}>Image attached</div>
+                      <button className="st-icon-btn" onClick={clearReplyImage} aria-label="Remove image" title="Remove image" style={{ width: '24px', height: '24px', borderRadius: '6px', background: 'none', color: 'var(--text-secondary)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
+                      </button>
                     </div>
                   )}
-                  {uploadingImage && <div style={{ marginBottom: '6px', fontSize: '12px', color: 'var(--primary)', fontWeight: '600' }}>Uploading...</div>}
-                  <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                  {uploadingImage && <div style={{ marginBottom: '6px', fontSize: '12px', color: 'var(--primary)', fontWeight: 600 }}>Uploading...</div>}
+                  <div className="st-composer" style={{ display: 'flex', gap: '6px', alignItems: 'center', padding: '6px', borderRadius: '12px', background: 'var(--bg)' }}>
                     <input type="file" accept="image/jpeg,image/png,image/webp" ref={replyImageRef} onChange={handleReplyImageSelect} style={{ display: 'none' }} />
-                    <button onClick={() => replyImageRef.current?.click()} disabled={uploadingImage} title="Attach image" style={{ width: '36px', height: '36px', borderRadius: '50%', border: 'none', cursor: 'pointer', background: pendingReplyImage ? 'var(--primary-light)' : 'var(--surface-2)', boxShadow: '3px 3px 6px var(--neu-dark), -3px -3px 6px var(--neu-light)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: pendingReplyImage ? 'var(--primary)' : 'var(--text-muted)', flexShrink: 0 }}>
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                    <button className="st-icon-btn" onClick={() => replyImageRef.current?.click()} disabled={uploadingImage} title="Attach image" aria-label="Attach image" style={{ width: '36px', height: '36px', borderRadius: '8px', border: 'none', cursor: 'pointer', background: pendingReplyImage ? 'var(--primary-light)' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--primary)', flexShrink: 0 }}>
+                      <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
                     </button>
-                    <input value={replyText} onChange={e => setReplyText(e.target.value)} onKeyDown={e => e.key === 'Enter' && !e.shiftKey && sendReply()} placeholder="Type your reply..." disabled={uploadingImage} style={{ flex: 1, padding: '10px 16px', borderRadius: '50px', border: 'none', outline: 'none', fontFamily: 'inherit', fontSize: '13.5px', ...neuInset, color: 'var(--text-primary)' }} />
-                    <button onClick={sendReply} disabled={(!replyText.trim() && !pendingReplyImage) || uploadingImage} className="btn btn-primary btn-sm" style={{ borderRadius: '50px', padding: '10px 18px', opacity: (!replyText.trim() && !pendingReplyImage) || uploadingImage ? 0.6 : 1 }}>Send</button>
+                    <input value={replyText} onChange={e => setReplyText(e.target.value)} onKeyDown={e => e.key === 'Enter' && !e.shiftKey && sendReply()} placeholder="Write a reply..." aria-label="Reply" disabled={uploadingImage} style={{ flex: 1, minWidth: 0, padding: '8px 6px', border: 'none', outline: 'none', background: 'transparent', fontFamily: 'inherit', fontSize: '14px', color: 'var(--text-primary)' }} />
+                    <button onClick={sendReply} disabled={sendDisabled} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', height: '36px', padding: '0 16px', borderRadius: '8px', border: 'none', fontFamily: 'inherit', fontSize: '13px', fontWeight: 600, background: 'var(--button-background, var(--primary))', color: 'var(--button-text, #ffffff)', cursor: sendDisabled ? 'not-allowed' : 'pointer', opacity: sendDisabled ? 0.5 : 1, flexShrink: 0 }}>
+                      Send
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><line x1="22" y1="2" x2="11" y2="13" /><polygon points="22 2 15 22 11 13 2 9 22 2" /></svg>
+                    </button>
                   </div>
                 </div>
               )}
