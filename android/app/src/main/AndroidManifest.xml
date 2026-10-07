@@ -4,7 +4,6 @@
         <package android:name="com.android.vending" />
     </queries>
 
-    <uses-permission android:name="android.permission.READ_CONTACTS" />
 
     <application
         android:allowBackup="true"

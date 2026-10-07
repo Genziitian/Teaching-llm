@@ -460,10 +460,10 @@ export default function MailAssignerPageContent() {
       >
         <div>
           <Link
-            href="/manage/contacts"
+            href="/manage"
             style={{ fontSize: 13, fontWeight: 600, color: 'var(--primary)', textDecoration: 'none' }}
           >
-            ← Back to Synced Contacts
+            ← Back to Management
           </Link>
           <div
             style={{

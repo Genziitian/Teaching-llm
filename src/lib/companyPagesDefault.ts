@@ -130,7 +130,7 @@ const PRIVACY_POLICY = `
 
 <p><strong>Application Data.</strong> If you use our application(s), we also may collect the following information if you choose to provide us with access or permission:</p>
 <ul>
-  <li><em>Mobile Device Access.</em> We may request access or permission to certain features from your mobile device, including your mobile device's contacts, storage, and other features. If you wish to change our access or permissions, you may do so in your device's settings.</li>
+  <li><em>Mobile Device Access.</em> We may request access or permission to certain features from your mobile device, including your mobile device's storage, and other features. If you wish to change our access or permissions, you may do so in your device's settings.</li>
 </ul>
 <p>This information is primarily needed to maintain the security and operation of our application(s), for troubleshooting, and for our internal analytics and reporting purposes.</p>
 

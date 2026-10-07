@@ -13,7 +13,6 @@ import '../../theme/theme_mode_provider.dart';
 import '../../core/l10n/language_provider.dart';
 import '../../core/l10n/app_translations.dart';
 import '../prompts/admin_message_session.dart';
-import '../../core/services/contact_sync_service.dart';
 import '../../shared/widgets/app_topbar.dart';
 import '../../shared/widgets/section_head.dart';
 import '../support/support_providers.dart' show canAccessSupport;
@@ -53,10 +52,6 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
 
     _checkedModals = true;
 
-    // Complete native permission requests before presenting admin messages.
-    if (mounted) {
-      await ContactSyncService.checkAndSyncContacts(ref.read(apiClientProvider));
-    }
     if (mounted && identical(messageSession, ref.read(adminMessageSessionProvider))) {
       messageSession.markReady();
     }

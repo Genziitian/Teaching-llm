@@ -293,7 +293,7 @@ class InAppDocPage extends ConsumerWidget {
               'Payment Data. We may collect data necessary to process your payment if you choose to make purchases, such as your payment instrument number, and the security code associated with your payment instrument. All payment data is handled and stored by RAZORPAY. You may find their privacy notice link(s) here: https://razorpay.com/privacy-policy/.\n\n'
               'WE USE PAYMENT IN OUR WEBSITE ONLY\n\n'
               'Application Data. If you use our application(s), we also may collect the following information if you choose to provide us with access or permission:\n'
-              '• Mobile Device Access. We may request access or permission to certain features from your mobile device, including your mobile device\'s contacts, storage, and other features. If you wish to change our access or permissions, you may do so in your device\'s settings.\n\n'
+              '• Mobile Device Access. We may request access or permission to certain features from your mobile device, including your mobile device\'s storage, and other features. If you wish to change our access or permissions, you may do so in your device\'s settings.\n\n'
               'This information is primarily needed to maintain the security and operation of our application(s), for troubleshooting, and for our internal analytics and reporting purposes.\n\n'
               'All personal information that you provide to us must be true, complete, and accurate, and you must notify us of any changes to such personal information.\n\n'
               'Information automatically collected\n'
