@@ -1056,30 +1056,6 @@ export default function CommunityPage() {
       return;
     }
 
-    // Rate Limit Enforcements (using LocalStorage as client-side tracker)
-    const today = new Date().toDateString();
-    const rateLimitKey = `rate_limit_${userId}_${today}`;
-    const trackingStr = localStorage.getItem(rateLimitKey);
-    let tracking = { posts: 0, replies: 0 };
-    if (trackingStr) {
-      try { tracking = JSON.parse(trackingStr); } catch (e) {}
-    }
-
-    if (isReply) {
-      if (tracking.replies >= 20 && userRole !== 'MANAGER' && (userRole !== 'ADMIN' && userRole !== 'MODERATOR')) {
-        alert('You have reached the maximum limit of 20 replies/comments per day.');
-        return;
-      }
-      tracking.replies += 1;
-    } else {
-      if (tracking.posts >= 5 && userRole !== 'MANAGER' && (userRole !== 'ADMIN' && userRole !== 'MODERATOR')) {
-        alert('You have reached the maximum limit of 5 posts per day.');
-        return;
-      }
-      tracking.posts += 1;
-    }
-    localStorage.setItem(rateLimitKey, JSON.stringify(tracking));
-
     // Cap comments count limit check
     if (isReply && messages.length >= 200) {
       alert('This post has reached the maximum capacity of 200 comments.');
@@ -1094,7 +1070,11 @@ export default function CommunityPage() {
       try {
         const formData = new FormData()
         formData.append('file', pendingImage)
-        const uploadRes = await fetch('/api/upload/chat-image', { method: 'POST', body: formData })
+        const uploadRes = await fetch('/api/upload/chat-image', {
+          method: 'POST',
+          headers: { 'X-Requested-With': 'XMLHttpRequest' },
+          body: formData,
+        })
         const uploadData = await uploadRes.json()
         if (!uploadRes.ok) throw new Error(uploadData.error || 'Upload failed')
         imageUrl = uploadData.url
@@ -1125,15 +1105,22 @@ export default function CommunityPage() {
     setShowEmojiPicker(false)
     clearPendingImage()
 
-    await fetch(`/api/community/${selectedClass.id}/messages`, {
+    const sendRes = await fetch(`/api/community/${selectedClass.id}/messages`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
       body: JSON.stringify({ 
         content: msgContent || '', 
         imageUrl,
         replyToId: replyingTo?.id 
       }),
     })
+    if (!sendRes.ok) {
+      setMessages(prev => prev.filter(message => message.id !== optimistic.id))
+      setInput(msgContent)
+      const errorData = await sendRes.json().catch(() => ({}))
+      alert(errorData.error || 'Failed to send message. Please try again.')
+      return
+    }
     setReplyingTo(null)
     loadMessages(selectedClass.id, { showLoading: false }).catch(console.error)
   }

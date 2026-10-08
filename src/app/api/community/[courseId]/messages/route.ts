@@ -332,7 +332,7 @@ export async function POST(
         )
       }
 
-      // Enforce posting rate limits for students (5 posts/day, 20 replies/day)
+      // Enforce posting rate limits for students (15 posts/day, 20 replies/day)
       const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000)
       if (isComment) {
         const repliesCount = await prisma.communityMessage.count({
@@ -353,8 +353,8 @@ export async function POST(
             createdAt: { gte: oneDayAgo }
           }
         })
-        if (postsCount >= 5) {
-          return NextResponse.json({ error: 'Daily post limit of 5 posts reached' }, { status: 429 })
+        if (postsCount >= 15) {
+          return NextResponse.json({ error: 'Daily post limit of 15 posts reached' }, { status: 429 })
         }
       }
 

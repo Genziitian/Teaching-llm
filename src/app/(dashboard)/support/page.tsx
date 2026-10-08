@@ -500,7 +500,7 @@ export default function SupportPage() {
     try {
       const res = await fetch('/api/support/tickets', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
         body: JSON.stringify(form),
       })
       const data = await res.json().catch(() => ({}))
@@ -524,7 +524,9 @@ export default function SupportPage() {
     try {
       let imageUrl: string | null = null
       if (pendingReplyImage) imageUrl = await uploadImage(pendingReplyImage)
-      await fetch(`/api/support/tickets/${selected.id}/replies`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ content: replyText, imageUrl }) })
+      const replyRes = await fetch(`/api/support/tickets/${selected.id}/replies`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }, body: JSON.stringify({ content: replyText, imageUrl }) })
+      const replyData = await replyRes.json().catch(() => ({}))
+      if (!replyRes.ok) throw new Error(replyData.error || 'Failed to send reply')
       setReplyText('')
       clearReplyImage()
       const fresh = await fetch('/api/support/tickets').then(r => r.json())
@@ -816,6 +818,7 @@ export default function SupportPage() {
       formData.append('type', 'announcements')
       
       xhr.open('POST', '/api/upload/chat-image')
+      xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest')
       xhr.send(formData)
     })
   }

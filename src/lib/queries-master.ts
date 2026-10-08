@@ -193,6 +193,18 @@ export const MASTER_QUERIES: Omit<PlatformQuery, 'id'>[] = [
     appliesTo: 'BOTH',
     order: 11,
   },
+  {
+    question: 'What are the homework submission limits, and are they the same in the App and on the website?',
+    answer:
+      `Students can submit or update homework while submissions are open and before the due date. Updating a submission replaces the student's previous files and note. There is no homework-specific daily submission count or file-count cap in the current submission flow.\n\n` +
+      `The upload restrictions differ by platform:\n` +
+      `• Website: up to 15 MB per file. The submission API accepts PDF, JPG/JPEG, PNG, DOC/DOCX, and ZIP. Multiple files can be selected; no maximum file count is set.\n` +
+      `• Android App: up to 20 MB per file. The picker accepts JPG/JPEG/PNG/WEBP photos and PDF, DOC/DOCX, PPT/PPTX, XLS/XLSX, and ZIP documents. Multiple files can be attached; no maximum file count is set.\n` +
+      `• The general API throttle still applies: up to 20 write requests per minute per account. App uploads use one request per file plus a submission request.`,
+    category: 'EXAMS_TESTS',
+    appliesTo: 'BOTH',
+    order: 12,
+  },
 
   // ── 5. Live Classes & Community ───────────────────────────────────────────
   {
@@ -204,7 +216,7 @@ export const MASTER_QUERIES: Omit<PlatformQuery, 'id'>[] = [
       `• Upcoming classes appear on the student dashboard in Indian Standard Time (IST). Live sessions trigger live pulse badges when active.`,
     category: 'LIVE_CLASSES',
     appliesTo: 'BOTH',
-    order: 12,
+    order: 13,
   },
   {
     question: 'How does real-time Community Chat work?',
@@ -215,7 +227,20 @@ export const MASTER_QUERIES: Omit<PlatformQuery, 'id'>[] = [
       `• Image attachments are supported with secure thumbnail previews and image modal zoom.`,
     category: 'LIVE_CLASSES',
     appliesTo: 'BOTH',
-    order: 13,
+    order: 14,
+  },
+  {
+    question: 'Are Community message and attachment limits the same in the App and on the website?',
+    answer:
+      `Yes. The App and website use the same server-side limits for course-specific communities, and activity is counted together across both platforms and all course channels for the same student:\n\n` +
+      `• Up to 15 new posts and 20 replies/comments in a rolling 24-hour period. Posts can contain up to 500 characters; replies can contain up to 300 characters.\n` +
+      `• Up to 10 community attachments in a rolling 24-hour period, with one attachment per message and a maximum file size of 20 MB. Supported formats include JPG, PNG, WEBP, PDF, Office documents, and ZIP.\n` +
+      `• General Discussion currently does not use those course-community daily post, reply, and attachment caps. Uploads still share the platform-wide upload allowance of 30 attachments per day across community, direct-chat, and support replies.\n` +
+      `• Support-ticket reply photos have a separate 5 MB limit and accept JPG, PNG, or WEBP on both App and website.\n` +
+      `• A separate platform throttle allows up to 20 write requests per minute per account. It applies to App and website API writes. These limits are server-enforced, so switching devices or platforms does not reset them.`,
+    category: 'LIVE_CLASSES',
+    appliesTo: 'BOTH',
+    order: 15,
   },
 
   // ── 6. Security & Device Limits ───────────────────────────────────────────
@@ -228,7 +253,7 @@ export const MASTER_QUERIES: Omit<PlatformQuery, 'id'>[] = [
       `3. Account Termination: If a user is flagged for abuse or sharing, a Manager can terminate the account (isTerminated: true). Edge Middleware instantly drops all requests from terminated users and routes them to /terminated.`,
     category: 'SECURITY_ACCOUNTS',
     appliesTo: 'BOTH',
-    order: 14,
+    order: 16,
   },
   {
     question: 'What is Maintenance Mode and how does it affect users?',
@@ -238,7 +263,7 @@ export const MASTER_QUERIES: Omit<PlatformQuery, 'id'>[] = [
       `• Critical Exception: Users with the MANAGER or ADMIN role completely bypass the maintenance wall, allowing administrators to inspect issues, run migrations, and test fixes without any downtime disruption to staff.`,
     category: 'SECURITY_ACCOUNTS',
     appliesTo: 'BOTH',
-    order: 15,
+    order: 17,
   },
 
   // ── 7. Platform & Operations ──────────────────────────────────────────────
@@ -250,7 +275,7 @@ export const MASTER_QUERIES: Omit<PlatformQuery, 'id'>[] = [
       `• While PostgreSQL stores timestamps in UTC, all business logic and frontend UI displays convert to IST automatically.`,
     category: 'PLATFORM_SYSTEM',
     appliesTo: 'BOTH',
-    order: 16,
+    order: 18,
   },
   {
     question: 'How do Support Tickets work?',
@@ -260,6 +285,6 @@ export const MASTER_QUERIES: Omit<PlatformQuery, 'id'>[] = [
       `• Managers can reply, attach screenshots, reassign priority (LOW, MEDIUM, HIGH), and update ticket status (OPEN, IN_PROGRESS, RESOLVED, CLOSED).`,
     category: 'PLATFORM_SYSTEM',
     appliesTo: 'BOTH',
-    order: 17,
+    order: 19,
   },
 ]

@@ -61,6 +61,30 @@ export async function GET() {
         })
       }
 
+      // Add newly introduced App/Web limits answers to existing installations
+      // without resetting manager-authored or edited query records.
+      const addedMasterQuestions = new Set([
+        'Are Community message and attachment limits the same in the App and on the website?',
+        'What are the homework submission limits, and are they the same in the App and on the website?',
+      ])
+      const missingAddedQueries = MASTER_QUERIES.filter(item =>
+        addedMasterQuestions.has(item.question) && !queries.some(query => query.question === item.question)
+      )
+      if (missingAddedQueries.length > 0) {
+        await prisma.platformQuery.createMany({
+          data: missingAddedQueries.map(item => ({
+            question: item.question,
+            answer: item.answer,
+            category: item.category,
+            appliesTo: item.appliesTo,
+            order: item.order,
+          })),
+        })
+        queries = await prisma.platformQuery.findMany({
+          orderBy: [{ order: 'asc' }, { createdAt: 'asc' }],
+        })
+      }
+
       return NextResponse.json(queries)
     } catch (dbError) {
       console.warn('[PlatformQuery] DB read failed, using fallback MASTER_QUERIES:', dbError)
