@@ -4,6 +4,64 @@ import { sendPushToUsers } from '@/lib/push'
 import { sseEmitter } from '@/lib/sse'
 
 /**
+ * Calendar edits are drafts until the manager syncs today's Live Sessions.
+ * Only send schedule notifications for snapshots that still match their
+ * current source event; pending edits, additions, and deletions stay quiet.
+ */
+async function getPublishedTodayClassSessions(startOfDay: Date) {
+  const snapshots = await prisma.dailySessionSnapshot.findMany({
+    where: { snapshotDate: startOfDay },
+  })
+  if (snapshots.length === 0) return []
+
+  const events = await prisma.courseEvent.findMany({
+    where: { id: { in: snapshots.map(snapshot => snapshot.sourceEventId) } },
+    select: {
+      id: true,
+      type: true,
+      title: true,
+      description: true,
+      startTime: true,
+      endTime: true,
+      meetLink: true,
+      status: true,
+      courseId: true,
+      isGlobal: true,
+      instructorId: true,
+      notified15mBefore: true,
+      notifiedAtStart: true,
+    },
+  })
+  const eventsById = new Map(events.map(event => [event.id, event]))
+
+  return snapshots.flatMap(snapshot => {
+    const event = eventsById.get(snapshot.sourceEventId)
+    const isStillPublished = event?.type === 'class' &&
+      event.title === snapshot.title &&
+      event.description === snapshot.description &&
+      event.startTime.getTime() === snapshot.startTime.getTime() &&
+      event.endTime.getTime() === snapshot.endTime.getTime() &&
+      event.meetLink === snapshot.meetLink &&
+      event.status === snapshot.status &&
+      event.courseId === snapshot.courseId &&
+      event.isGlobal === snapshot.isGlobal &&
+      event.instructorId === snapshot.instructorId
+
+    if (!event || !isStillPublished) return []
+    return [{
+      id: event.id,
+      courseId: snapshot.courseId,
+      title: snapshot.title,
+      meetLink: snapshot.meetLink,
+      startTime: snapshot.startTime,
+      status: snapshot.status,
+      notified15mBefore: event.notified15mBefore,
+      notifiedAtStart: event.notifiedAtStart,
+    }]
+  })
+}
+
+/**
  * Logs an outgoing notification to the NotificationLog table for manager audit history.
  */
 async function logNotification(data: {
@@ -877,30 +935,15 @@ export async function processScheduledClassStartAlerts() {
     const fortyMinutesFromNow = new Date(now.getTime() + 40 * 60 * 1000)
     const twentyMinutesAgo = new Date(now.getTime() - 20 * 60 * 1000)
 
-    const dueEvents = await prisma.courseEvent.findMany({
-      where: {
-        type: 'class',
-        status: { in: ['SCHEDULED', 'LIVE'] },
-        startTime: {
-          gte: twentyMinutesAgo,
-          lte: fortyMinutesFromNow,
-        },
-        OR: [
-          { notified15mBefore: false },
-          { notifiedAtStart: false },
-        ],
-      },
-      select: {
-        id: true,
-        courseId: true,
-        title: true,
-        meetLink: true,
-        startTime: true,
-        notified15mBefore: true,
-        notifiedAtStart: true,
-      },
-      take: 20, // process in small batches
-    })
+    const { startOfDay } = require('@/lib/date-utils').getISTDayBoundaries(now)
+    const dueEvents = (await getPublishedTodayClassSessions(startOfDay))
+      .filter(event =>
+        ['SCHEDULED', 'LIVE'].includes(event.status) &&
+        event.startTime >= twentyMinutesAgo &&
+        event.startTime <= fortyMinutesFromNow &&
+        (!event.notified15mBefore || !event.notifiedAtStart)
+      )
+      .slice(0, 20)
 
     if (dueEvents.length === 0) return
 
@@ -1051,24 +1094,12 @@ export async function processScheduledClassStartAlerts() {
  */
 export async function sendDailyScheduleNotification() {
   try {
-    const { startOfDay, endOfDay } = require('@/lib/date-utils').getISTDayBoundaries()
+    const { startOfDay } = require('@/lib/date-utils').getISTDayBoundaries()
 
-    // Find all today's non-cancelled classes
-    const todaysEvents = await prisma.courseEvent.findMany({
-      where: {
-        type: 'class',
-        startTime: { gte: startOfDay, lte: endOfDay },
-        status: { not: 'CANCELLED' },
-      },
-      select: {
-        id: true,
-        title: true,
-        startTime: true,
-        courseId: true,
-        isGlobal: true,
-      },
-      orderBy: { startTime: 'asc' },
-    })
+    // Publish schedule notices only from the manager-approved snapshots.
+    const todaysEvents = (await getPublishedTodayClassSessions(startOfDay))
+      .filter(event => event.status !== 'CANCELLED')
+      .sort((a, b) => a.startTime.getTime() - b.startTime.getTime())
 
     if (todaysEvents.length === 0) {
       console.log('[Daily-Schedule-Notification] No classes scheduled today.')
@@ -1397,5 +1428,3 @@ export async function processHomeworkDueReminders() {
     console.error('[Homework-Notification] Error processing homework due reminders:', err)
   }
 }
-
-

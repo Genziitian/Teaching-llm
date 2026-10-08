@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { getSession, isManagerOrSuperAdmin } from '@/lib/auth'
 import { eventIdToChannelName } from '@/lib/agora'
+import { getISTDayBoundaries } from '@/lib/date-utils'
 import { sendLiveClassNotification } from '@/lib/system-notifications'
 
 /**
@@ -35,6 +36,13 @@ export async function POST(request: NextRequest) {
         streamStatus: true,
         agoraChannelName: true,
         title: true,
+        description: true,
+        startTime: true,
+        endTime: true,
+        meetLink: true,
+        status: true,
+        isGlobal: true,
+        instructorId: true,
       },
     })
 
@@ -76,8 +84,29 @@ export async function POST(request: NextRequest) {
       select: { id: true, streamStatus: true, agoraChannelName: true, startedLiveAt: true },
     })
 
-    // Trigger push notification to enrolled students that the session is live
-    if (event.courseId) {
+    // A class may notify students only after its schedule has been synced.
+    const { startOfDay } = getISTDayBoundaries()
+    const snapshot = await prisma.dailySessionSnapshot.findUnique({
+      where: {
+        snapshotDate_sourceEventId: {
+          snapshotDate: startOfDay,
+          sourceEventId: event.id,
+        },
+      },
+    })
+    const eventIsSynced = snapshot &&
+      snapshot.title === event.title &&
+      snapshot.description === event.description &&
+      snapshot.startTime.getTime() === event.startTime.getTime() &&
+      snapshot.endTime.getTime() === event.endTime.getTime() &&
+      snapshot.meetLink === event.meetLink &&
+      snapshot.status === event.status &&
+      snapshot.courseId === event.courseId &&
+      snapshot.isGlobal === event.isGlobal &&
+      snapshot.instructorId === event.instructorId
+
+    // Trigger push notification only for the manager-published schedule.
+    if (event.courseId && eventIsSynced) {
       sendLiveClassNotification(event.courseId, event.title, null, event.id).catch(console.error)
     }
 
