@@ -2,11 +2,6 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { getSession, isManager, canManageEvents, canEditCourseContent } from '@/lib/auth'
 import { logActivity, ACTION, MODULE } from '@/lib/activity-log'
-import {
-  sendLiveClassNotification,
-  sendClassRescheduledNotification,
-  sendClassCanceledNotification,
-} from '@/lib/system-notifications'
 
 export async function GET(
   request: NextRequest,
@@ -84,7 +79,6 @@ export async function PUT(
     }
 
     const isStartTimeChanged = startTime !== undefined && new Date(startTime).getTime() !== new Date(existingEvent.startTime).getTime()
-    const isStatusChangedToCancelled = status === 'CANCELLED' && existingEvent.status !== 'CANCELLED'
     const isStatusChangedToRescheduled = status === 'RESCHEDULED' && existingEvent.status !== 'RESCHEDULED'
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -192,15 +186,6 @@ export async function PUT(
       })
     }
     
-    // Check if class status was transitioned to LIVE
-    if (updatedEvent && updatedEvent.status === 'LIVE' && existingEvent.status !== 'LIVE' && updatedEvent.courseId) {
-      await sendLiveClassNotification(updatedEvent.courseId, updatedEvent.title, updatedEvent.meetLink, updatedEvent.id)
-    } else if (updatedEvent && isStatusChangedToCancelled && updatedEvent.courseId) {
-      await sendClassCanceledNotification(updatedEvent.courseId, updatedEvent.title, updatedEvent.startTime, updatedEvent.id)
-    } else if (updatedEvent && (isStartTimeChanged || isStatusChangedToRescheduled) && updatedEvent.courseId) {
-      await sendClassRescheduledNotification(updatedEvent.courseId, updatedEvent.title, updatedEvent.startTime, updatedEvent.meetLink, updatedEvent.id)
-    }
-
     logActivity({
       userId: session.userId,
       userName: session.name,
@@ -236,7 +221,7 @@ export async function DELETE(
 
     const existingEvent = await prisma.courseEvent.findUnique({
       where: { id },
-      select: { title: true, courseId: true, startTime: true },
+      select: { title: true, courseId: true },
     })
 
     if (!existingEvent) {
@@ -245,10 +230,6 @@ export async function DELETE(
 
     if (!(await canEditCourseContent(session, [existingEvent.courseId]))) {
       return NextResponse.json({ error: 'You can only manage your assigned courses' }, { status: 403 })
-    }
-
-    if (existingEvent.courseId) {
-      await sendClassCanceledNotification(existingEvent.courseId, existingEvent.title, existingEvent.startTime, id)
     }
 
     await prisma.courseEvent.delete({ where: { id } })

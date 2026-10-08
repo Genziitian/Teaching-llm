@@ -3,7 +3,6 @@ import { prisma } from '@/lib/db'
 import { getSession, isAdminOrManager, getAccessibleCourseIds, isManager, canManageEvents, canEditCourseContent } from '@/lib/auth'
 import { logActivity, ACTION, MODULE } from '@/lib/activity-log'
 import { formatIST, getEventStatus } from '@/lib/date-utils'
-import { sendClassScheduledNotification, sendClassCanceledNotification } from '@/lib/system-notifications'
 
 function addDays(date: Date, days: number) {
   const next = new Date(date)
@@ -330,20 +329,6 @@ export async function POST(request: NextRequest) {
         }
       }
 
-      if (event.courseId && event.type === 'class' && event.status !== 'CANCELLED') {
-        try {
-          await sendClassScheduledNotification(
-            event.courseId,
-            event.title,
-            event.startTime,
-            event.meetLink,
-            event.id
-          )
-        } catch (notifErr) {
-          console.error('Failed to send class scheduled notification:', notifErr)
-        }
-      }
-
       createdEvents.push(event)
     }
 
@@ -376,7 +361,7 @@ export async function DELETE(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { eventIds, notifyStudents } = body
+    const { eventIds } = body
 
     if (!Array.isArray(eventIds) || eventIds.length === 0) {
       return NextResponse.json({ error: 'eventIds array is required' }, { status: 400 })
@@ -384,23 +369,11 @@ export async function DELETE(request: NextRequest) {
 
     const eventsToDelete = await prisma.courseEvent.findMany({
       where: { id: { in: eventIds } },
-      select: { id: true, title: true, courseId: true, startTime: true },
+      select: { courseId: true },
     })
 
     if (!(await canEditCourseContent(session, eventsToDelete.map(ev => ev.courseId)))) {
       return NextResponse.json({ error: 'You can only manage your assigned courses' }, { status: 403 })
-    }
-
-    if (notifyStudents) {
-      for (const ev of eventsToDelete) {
-        if (ev.courseId) {
-          try {
-            await sendClassCanceledNotification(ev.courseId, ev.title, ev.startTime, ev.id)
-          } catch (notifErr) {
-            console.error('Failed to send class cancelled notification for bulk delete:', notifErr)
-          }
-        }
-      }
     }
 
     const result = await prisma.courseEvent.deleteMany({
