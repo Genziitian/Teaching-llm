@@ -13,6 +13,8 @@ export default function CompanyPage() {
   const slug = params.slug as string
   
   const isAboutUs = slug === 'about-us'
+  const isPrivacyPolicy = slug === 'privacy-policy'
+  const isTermsAndConditions = slug === 'terms-and-conditions'
   const titleText = slug.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')
 
   const { data: userData } = useSWR('/api/auth/me', (url: string) => fetch(url).then(r => r.json()))
@@ -82,7 +84,9 @@ export default function CompanyPage() {
   }
 
   // If pageData hasn't arrived yet but we have a default for this slug, render the default immediately.
-  const displayContent = content || pageData?.content || getDefaultCompanyContent(slug)
+  const displayContent = isPrivacyPolicy || isTermsAndConditions
+    ? getDefaultCompanyContent(slug)
+    : content || pageData?.content || getDefaultCompanyContent(slug)
 
   return (
     <div className="dashboard-inner-page" style={{ padding: 'clamp(16px, 4vw, 24px) clamp(16px, 4vw, 32px) 48px', maxWidth: '1000px', margin: '0 auto' }}>
@@ -122,7 +126,7 @@ export default function CompanyPage() {
           </h1>
         </div>
 
-        {isManager && !isEditing && (
+        {isManager && !isEditing && !isPrivacyPolicy && !isTermsAndConditions && (
           <button 
             onClick={() => { setContent(pageData.content || ''); setIsEditing(true); }} 
             style={{ ...neuButton, display: 'flex', alignItems: 'center', gap: '8px' }}

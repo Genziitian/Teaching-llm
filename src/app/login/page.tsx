@@ -1,5 +1,7 @@
 'use client'
 
+import { PRIVACY_POLICY_HTML } from '@/lib/privacy-policy'
+import { TERMS_AND_CONDITIONS_HTML } from '@/lib/terms-and-conditions'
 import { useState, Suspense, useEffect, useRef } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import MobileLoginExperience from '@/components/auth/MobileLoginExperience'
@@ -388,65 +390,23 @@ function LoginContent() {
         { 
           show: showPrivacyPolicy, 
           close: () => setShowPrivacyPolicy(false), 
-          title: 'Privacy Policy', 
+          title: 'Privacy Policy',
           content: (
-            <div style={{ fontSize: '13.5px', color: 'var(--text-secondary)', lineHeight: '1.6', maxHeight: '60vh', overflowY: 'auto', paddingRight: '6px' }}>
-              <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '14px' }}>Last updated August 23, 2026</p>
-              
-              <p style={{ marginBottom: '12px' }}>
-                This Privacy Notice for <strong>GENZ IITIAN</strong> ("we," "us," or "our"), describes how and why we might access, collect, store, use, and/or share ("process") your personal information when you use our services ("Services").
-              </p>
-
-              <h4 style={{ color: 'var(--text-primary)', fontWeight: '700', fontSize: '14px', marginTop: '16px', marginBottom: '8px' }}>1. What Information Do We Collect?</h4>
-              <p style={{ marginBottom: '8px' }}>We collect personal information that you voluntarily provide to us when registering or interacting with the platform, including your name, email address, phone number, and authentication details. Payment data is processed securely by <strong>Razorpay</strong> and is never stored on our servers. <em>We use payment on our website only.</em></p>
-
-              <h4 style={{ color: 'var(--text-primary)', fontWeight: '700', fontSize: '14px', marginTop: '16px', marginBottom: '8px' }}>2. How Do We Process Your Information?</h4>
-              <p style={{ marginBottom: '8px' }}>We process your information to provide, improve, and administer our educational services, manage user accounts, enable student community interactions, provide support, maintain security, and comply with applicable laws.</p>
-
-              <h4 style={{ color: 'var(--text-primary)', fontWeight: '700', fontSize: '14px', marginTop: '16px', marginBottom: '8px' }}>3. When and With Whom Do We Share Your Information?</h4>
-              <p style={{ marginBottom: '8px' }}>We do not sell your personal information. We share data only with essential infrastructure providers: Supabase (data storage), Google Sign-In (authentication), Razorpay (payments), and PostHog (analytics).</p>
-
-              <h4 style={{ color: 'var(--text-primary)', fontWeight: '700', fontSize: '14px', marginTop: '16px', marginBottom: '8px' }}>4. How Long Do We Keep Your Information?</h4>
-              <p style={{ marginBottom: '8px' }}>We retain your personal information for as long as you maintain an active account with us or as required for legal and tax compliance.</p>
-
-              <h4 style={{ color: 'var(--text-primary)', fontWeight: '700', fontSize: '14px', marginTop: '16px', marginBottom: '8px' }}>5. How Do We Keep Your Information Safe?</h4>
-              <p style={{ marginBottom: '8px' }}>We implement adequate organizational and technical security measures designed to protect your personal data from unauthorized access or modification.</p>
-
-              <h4 style={{ color: 'var(--text-primary)', fontWeight: '700', fontSize: '14px', marginTop: '16px', marginBottom: '8px' }}>6. What Are Your Privacy Rights?</h4>
-              <p style={{ marginBottom: '8px' }}>You have the right to access, review, modify, or request deletion of your personal data. You can submit an account deletion request anytime under <strong>Settings &gt; Danger Zone</strong> or contact our support team.</p>
-
-              <h4 style={{ color: 'var(--text-primary)', fontWeight: '700', fontSize: '14px', marginTop: '16px', marginBottom: '8px' }}>7. Service Description &amp; Intellectual Property</h4>
-              <p style={{ marginBottom: '8px' }}>All courses, videos, and study materials on GENZ IITIAN are proprietary. Course access is non-transferable and intended for personal educational use only. Unauthorized redistribution or piracy will result in immediate termination of access and legal action.</p>
-
-              <h4 style={{ color: 'var(--text-primary)', fontWeight: '700', fontSize: '14px', marginTop: '16px', marginBottom: '8px' }}>8. Return &amp; Refund Policy</h4>
-              <p style={{ marginBottom: '8px' }}>At GenZ IITian, we provide 100% digital educational services. All purchases are final, and we do not offer refunds once a course has been purchased.</p>
-
-              <h4 style={{ color: 'var(--text-primary)', fontWeight: '700', fontSize: '14px', marginTop: '16px', marginBottom: '8px' }}>9. Contact Us</h4>
-              <p style={{ marginBottom: '4px' }}>Email: <a href="mailto:ADMIN@GENZIITIAN.ORG" style={{ color: 'var(--primary)' }}>ADMIN@GENZIITIAN.ORG</a>, <a href="mailto:GENZIITIAN@GMAIL.COM" style={{ color: 'var(--primary)' }}>GENZIITIAN@GMAIL.COM</a></p>
-              <p style={{ margin: 0 }}>GENZ IITIAN, Patna, Bihar 800001, India</p>
-            </div>
+            <div
+              style={{ fontSize: '13.5px', color: 'var(--text-secondary)', lineHeight: '1.6', maxHeight: '60vh', overflowY: 'auto', paddingRight: '6px' }}
+              dangerouslySetInnerHTML={{ __html: PRIVACY_POLICY_HTML }}
+            />
           )
         },
         { 
           show: showTermsConditions, 
           close: () => setShowTermsConditions(false), 
-          title: 'Terms & Conditions', 
+          title: 'Terms & Conditions',
           content: (
-            <div style={{ fontSize: '14px', color: 'var(--text-secondary)', lineHeight: '1.6' }}>
-              <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '16px' }}>Last Updated: April 2026</p>
-              <h4 style={{ color: 'var(--text-primary)', fontWeight: '600', marginBottom: '4px' }}>01 Service Description</h4>
-              <p style={{ marginBottom: '12px' }}>Gen-Z IITian provides access to premium digital educational courses designed specifically for students. Our services are delivered entirely online. Access to the courses is granted immediately upon successful completion of the payment process.</p>
-              <h4 style={{ color: 'var(--text-primary)', fontWeight: '600', marginBottom: '4px' }}>02 User Account & Security</h4>
-              <p style={{ marginBottom: '12px' }}>To access our courses, users must sign in via their Google account. You are solely responsible for maintaining the confidentiality of your account information and for all activities that occur under your account. We reserve the right to terminate accounts that violate our security protocols.</p>
-              <h4 style={{ color: 'var(--text-primary)', fontWeight: '600', marginBottom: '4px' }}>03 Course Access & Usage</h4>
-              <p style={{ marginBottom: '12px' }}>Access is granted exclusively to the email address used during the purchase.<br/>Course access is non-transferable and intended for personal use only.<br/>Sharing account credentials or course content with third parties is strictly prohibited.</p>
-              <h4 style={{ color: 'var(--text-primary)', fontWeight: '600', marginBottom: '4px' }}>04 Payment Terms</h4>
-              <p style={{ marginBottom: '12px' }}>All prices are clearly displayed before the final checkout. By proceeding with the payment, you agree to the price and terms of the specific course. All payments are processed through secure third-party payment gateways (Razorpay, Stripe, or Cashfree).</p>
-              <h4 style={{ color: 'var(--text-primary)', fontWeight: '600', marginBottom: '4px' }}>05 Prohibited Use & Copyright</h4>
-              <p style={{ marginBottom: '12px' }}>All content on this platform, including videos, documents, and code samples, is the intellectual property of Gen-Z IITian. Any form of piracy, unauthorized redistribution, or commercial use of our content will result in legal action and immediate termination of access without notice.</p>
-              <h4 style={{ color: 'var(--text-primary)', fontWeight: '600', marginBottom: '4px' }}>06 Limitation of Liability</h4>
-              <p>Gen-Z IITian is an educational platform. While we strive for excellence, we do not guarantee specific academic results or career outcomes. The platform is not responsible for any misuse of the information provided or for any technical issues arising from the user's internet connection or device.</p>
-            </div>
+            <div
+              style={{ fontSize: '14px', color: 'var(--text-secondary)', lineHeight: '1.6', maxHeight: '60vh', overflowY: 'auto', paddingRight: '6px' }}
+              dangerouslySetInnerHTML={{ __html: TERMS_AND_CONDITIONS_HTML }}
+            />
           )
         }
       ].map((modal, i) => modal.show && (
