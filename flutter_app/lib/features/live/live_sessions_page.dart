@@ -1,7 +1,8 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:dio/dio.dart';
-import 'package:flutter/material.dart';
+import 'package:material_symbols_icons/symbols.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -11,6 +12,7 @@ import '../../core/auth/auth_providers.dart';
 import '../../core/models/course_event.dart';
 import '../../shared/widgets/app_avatar.dart';
 import '../../shared/widgets/app_refresh.dart';
+import '../../shared/widgets/apple_pressable.dart';
 import '../../shared/widgets/sub_page_header.dart';
 import '../../theme/app_shadows.dart';
 import '../../theme/app_theme_tokens.dart';
@@ -157,14 +159,14 @@ class _LiveSessionsPageState extends ConsumerState<LiveSessionsPage> {
                   ),
                 )
               : CircleIconBtn(
-                  icon: Icons.sync,
+                  icon: Symbols.sync_rounded,
                   onTap: _syncLiveSessions,
                 ))
           : null,
       body: AppRefresh(
         onRefresh: () async => ref.invalidate(liveSessionsProvider),
         child: ListView(
-          padding: const EdgeInsets.fromLTRB(0, 16, 0, 24),
+          padding: const EdgeInsets.fromLTRB(0, 12, 0, 32),
           physics: const AlwaysScrollableScrollPhysics(),
           children: [
             sessions.when(
@@ -182,7 +184,7 @@ class _LiveSessionsPageState extends ConsumerState<LiveSessionsPage> {
                     const EdgeInsets.symmetric(vertical: 40, horizontal: 20),
                 child: Column(
                   children: [
-                    Icon(Icons.cloud_off, color: tokens.textMuted, size: 40),
+                    Icon(Symbols.cloud_off_rounded, color: tokens.textMuted, size: 40),
                     const SizedBox(height: 8),
                     Text(
                       'Could not load sessions',
@@ -232,7 +234,7 @@ class _Body extends StatelessWidget {
     final recorded = all.where((e) => !e.isLive && !e.isUpcoming).toList();
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
+      padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -309,65 +311,105 @@ class _Tabs extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final tokens = context.tokens;
+    final reduce = MediaQuery.of(context).disableAnimations;
+    final track =
+        tokens.isDark ? const Color(0xFF1C1C1E) : const Color(0xFFE3E3E8);
+    final thumb = tokens.isDark ? const Color(0xFF636366) : Colors.white;
 
     return Container(
-      padding: const EdgeInsets.all(4),
+      height: 40,
+      padding: const EdgeInsets.all(3),
       decoration: BoxDecoration(
-        color: tokens.cardBg,
+        color: track,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: tokens.border),
       ),
-      child: Row(
-        children: List.generate(entries.length, (i) {
-          final active = i == selected;
-          return Expanded(
-            child: InkWell(
-              onTap: () => onTap(i),
-              borderRadius: BorderRadius.circular(9),
+      child: LayoutBuilder(builder: (context, c) {
+        final w = c.maxWidth / entries.length;
+        return Stack(
+          children: [
+            AnimatedPositioned(
+              duration:
+                  reduce ? Duration.zero : const Duration(milliseconds: 260),
+              curve: kEaseOutStrong,
+              left: w * selected,
+              width: w,
+              top: 0,
+              bottom: 0,
               child: Container(
-                padding: const EdgeInsets.symmetric(vertical: 9),
                 decoration: BoxDecoration(
-                  color: active ? tokens.primaryAccent : Colors.transparent,
-                  borderRadius: BorderRadius.circular(9),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      entries[i].$1,
-                      style: TextStyle(
-                        fontSize: 12.5,
-                        color: active ? Colors.white : tokens.textSecondary,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    const SizedBox(width: 6),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 6, vertical: 1),
-                      decoration: BoxDecoration(
-                        color: active
-                            ? const Color(0x38FFFFFF)
-                            : tokens.surfaceSecondary,
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      child: Text(
-                        '${entries[i].$2}',
-                        style: TextStyle(
-                          fontSize: 10,
-                          color: active ? Colors.white : tokens.textMuted,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                    ),
-                  ],
+                  color: thumb,
+                  borderRadius: BorderRadius.circular(10),
+                  boxShadow: tokens.isDark
+                      ? null
+                      : const [
+                          BoxShadow(
+                            color: Color(0x1F000000),
+                            blurRadius: 4,
+                            offset: Offset(0, 1.5),
+                          ),
+                        ],
                 ),
               ),
             ),
-          );
-        }),
-      ),
+            Row(
+              children: List.generate(entries.length, (i) {
+                final active = i == selected;
+                return Expanded(
+                  child: GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTapDown: (_) {
+                      if (!active) onTap(i);
+                    },
+                    child: Center(
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            entries[i].$1,
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: active
+                                  ? tokens.textPrimary
+                                  : tokens.textSecondary,
+                              fontWeight:
+                                  active ? FontWeight.w600 : FontWeight.w500,
+                            ),
+                          ),
+                          if (entries[i].$2 > 0) ...[
+                            const SizedBox(width: 6),
+                            Container(
+                              constraints: const BoxConstraints(minWidth: 18),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 5, vertical: 1),
+                              decoration: BoxDecoration(
+                                color: active
+                                    ? tokens.primaryAccent
+                                    : tokens.textMuted.withValues(alpha: 0.25),
+                                borderRadius: BorderRadius.circular(9),
+                              ),
+                              child: Text(
+                                '${entries[i].$2}',
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  color: active
+                                      ? Colors.white
+                                      : tokens.textSecondary,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+                  ),
+                );
+              }),
+            ),
+          ],
+        );
+      }),
     );
   }
 }
@@ -463,9 +505,8 @@ class _LiveCardState extends State<_LiveCard>
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
-            borderRadius: BorderRadius.circular(20),
+            borderRadius: BorderRadius.circular(26),
             boxShadow: [
-              ...AppShadows.lg,
               BoxShadow(
                 color: const Color(0xFFDC2626)
                     .withOpacity(0.18 + 0.27 * _breath.value),
@@ -510,7 +551,7 @@ class _LiveCardState extends State<_LiveCard>
                         const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
                     decoration: BoxDecoration(
                       color: const Color(0x38FFFFFF),
-                      borderRadius: BorderRadius.circular(6),
+                      borderRadius: BorderRadius.circular(20),
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
@@ -571,10 +612,11 @@ class _LiveCardState extends State<_LiveCard>
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
-                        fontSize: 19,
-                        fontWeight: FontWeight.w800,
+                        fontSize: 22,
+                        height: 1.2,
+                        fontWeight: FontWeight.w700,
                         color: Colors.white,
-                        letterSpacing: -0.3,
+                        letterSpacing: -0.5,
                       ),
                     ),
                   ),
@@ -585,12 +627,12 @@ class _LiveCardState extends State<_LiveCard>
                         const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
                     decoration: BoxDecoration(
                       color: const Color(0x38FFFFFF),
-                      borderRadius: BorderRadius.circular(8),
+                      borderRadius: BorderRadius.circular(20),
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Icon(Icons.schedule_rounded,
+                        const Icon(Symbols.schedule_rounded,
                             size: 12, color: Colors.white),
                         const SizedBox(width: 4),
                         Text(
@@ -623,41 +665,32 @@ class _LiveCardState extends State<_LiveCard>
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
                         color: Colors.white,
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
                       ),
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 18),
               Row(
                 children: [
                   Expanded(
-                    child: Material(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(12),
-                      child: InkWell(
-                        onTap: () => _joinSession(context, event),
-                        borderRadius: BorderRadius.circular(12),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(vertical: 11),
-                          alignment: Alignment.center,
-                          child: const Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text(
-                                'Join class',
-                                style: TextStyle(
-                                  color: Color(0xFFDC2626),
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w800,
-                                ),
-                              ),
-                              SizedBox(width: 6),
-                              Icon(Icons.arrow_forward,
-                                  color: Color(0xFFDC2626), size: 14),
-                            ],
+                    child: ApplePressable(
+                      onTap: () => _joinSession(context, event),
+                      child: Container(
+                        height: 50,
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        alignment: Alignment.center,
+                        child: const Text(
+                          'Join class',
+                          style: TextStyle(
+                            color: Color(0xFFDC2626),
+                            fontSize: 17,
+                            fontWeight: FontWeight.w600,
                           ),
                         ),
                       ),
@@ -665,14 +698,14 @@ class _LiveCardState extends State<_LiveCard>
                   ),
                   const SizedBox(width: 8),
                   Container(
-                    width: 44,
-                    height: 44,
+                    width: 50,
+                    height: 50,
                     decoration: BoxDecoration(
                       color: const Color(0x33FFFFFF),
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(16),
                     ),
-                    child: const Icon(Icons.chat_outlined,
-                        color: Colors.white, size: 18),
+                    child: const Icon(Symbols.chat_bubble_rounded,
+                        fill: 1, color: Colors.white, size: 22),
                   ),
                 ],
               ),
@@ -707,125 +740,114 @@ class _UpcomingRow extends StatelessWidget {
     ];
     final accent = accents[slotIndex % accents.length];
 
-    return Container(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: AppShadows.sm,
-      ),
-      child: Material(
-        color: tokens.cardBg,
-        clipBehavior: Clip.antiAlias,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
-          side: BorderSide(color: tokens.border),
+    return ApplePressable(
+      onTap: () => _joinSession(context, event),
+      child: Container(
+        decoration: BoxDecoration(
+          color: tokens.cardBg,
+          borderRadius: BorderRadius.circular(22),
         ),
-        child: InkWell(
-          onTap: () => _joinSession(context, event),
-          child: Container(
-            constraints: const BoxConstraints(minHeight: 112),
-            decoration: BoxDecoration(
-              border: Border(left: BorderSide(color: accent, width: 4)),
-            ),
-            padding: const EdgeInsets.fromLTRB(12, 16, 12, 16),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Every time occupies exactly the same column, including 5:30.
-                Container(
-                  width: 68,
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 6, vertical: 10),
-                  decoration: BoxDecoration(
-                    color: accent.withOpacity(0.10),
-                    borderRadius: BorderRadius.circular(14),
-                  ),
+        clipBehavior: Clip.antiAlias,
+        child: IntrinsicHeight(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Container(width: 4, color: accent),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(14, 16, 0, 16),
+                child: SizedBox(
+                  width: 64,
                   child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       FittedBox(
                         fit: BoxFit.scaleDown,
                         child: Text(
                           DateFormat('h:mm').format(dt),
                           style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w800,
+                            fontSize: 22,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: -0.5,
                             color: accent,
                             fontFeatures: const [FontFeature.tabularFigures()],
                           ),
                         ),
                       ),
-                      const SizedBox(height: 2),
                       Text(
                         DateFormat('a').format(dt),
                         style: TextStyle(
-                            fontSize: 10,
-                            fontWeight: FontWeight.w800,
-                            color: accent,
-                            letterSpacing: 0.6),
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: accent,
+                        ),
                       ),
-                      const SizedBox(height: 6),
-                      FittedBox(
-                        fit: BoxFit.scaleDown,
-                        child: Text(
-                          isToday
-                              ? 'TODAY'
-                              : DateFormat('d MMM').format(dt).toUpperCase(),
-                          style: TextStyle(
-                              fontSize: 9,
-                              fontWeight: FontWeight.w600,
-                              color: tokens.textSecondary),
+                      const SizedBox(height: 4),
+                      Text(
+                        isToday
+                            ? 'Today'
+                            : DateFormat('d MMM').format(dt),
+                        style: TextStyle(
+                          fontSize: 12.5,
+                          color: tokens.textSecondary,
                         ),
                       ),
                     ],
                   ),
                 ),
-                const SizedBox(width: 14),
-                Expanded(
+              ),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(10, 16, 8, 16),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
                         event.title,
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
-                            fontSize: 15,
-                            height: 1.3,
-                            fontWeight: FontWeight.w800,
-                            color: tokens.textPrimary),
+                          fontSize: 17,
+                          height: 1.25,
+                          fontWeight: FontWeight.w600,
+                          letterSpacing: -0.3,
+                          color: tokens.textPrimary,
+                        ),
                       ),
-                      const SizedBox(height: 6),
+                      const SizedBox(height: 4),
                       Text(
                         subject,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
-                            fontSize: 11.5,
-                            height: 1.35,
-                            fontWeight: FontWeight.w500,
-                            color: tokens.textSecondary),
+                          fontSize: 14,
+                          color: tokens.textSecondary,
+                        ),
                       ),
-                      const SizedBox(height: 4),
+                      const SizedBox(height: 2),
                       Text(
                         mentor,
-                        maxLines: 2,
+                        maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
-                            fontSize: 12,
-                            height: 1.35,
-                            fontWeight: FontWeight.w700,
-                            color: tokens.textPrimary),
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                          color: tokens.textPrimary,
+                        ),
                       ),
                     ],
                   ),
                 ),
-                const SizedBox(width: 8),
-                Padding(
-                  padding: const EdgeInsets.only(top: 24),
-                  child: Icon(Icons.chevron_right_rounded,
-                      color: tokens.textMuted, size: 18),
+              ),
+              Padding(
+                padding: const EdgeInsets.only(right: 14),
+                child: Center(
+                  child: Icon(Symbols.arrow_forward_ios_rounded,
+                      weight: 700, color: tokens.textMuted, size: 13),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),
@@ -847,65 +869,54 @@ class _PastRow extends StatelessWidget {
     final subject = event.courseName ?? 'Class';
 
     return Container(
-      constraints: const BoxConstraints(minHeight: 96),
       decoration: BoxDecoration(
         color: tokens.cardBg,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: tokens.border),
-        boxShadow: AppShadows.sm,
+        borderRadius: BorderRadius.circular(22),
       ),
-      padding: const EdgeInsets.fromLTRB(12, 14, 14, 14),
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          // Date block — same fixed column as the Upcoming time block.
-          Container(
-            width: 68,
-            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 10),
-            decoration: BoxDecoration(
-              color: tokens.textMuted.withOpacity(0.12),
-              borderRadius: BorderRadius.circular(14),
-            ),
+          SizedBox(
+            width: 52,
             child: Column(
               children: [
-                FittedBox(
-                  fit: BoxFit.scaleDown,
-                  child: Text(
-                    DateFormat('d').format(dt),
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w800,
-                      color: tokens.textPrimary,
-                      fontFeatures: const [FontFeature.tabularFigures()],
-                    ),
+                Text(
+                  DateFormat('d').format(dt),
+                  style: TextStyle(
+                    fontSize: 26,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: -0.5,
+                    color: tokens.textPrimary,
+                    fontFeatures: const [FontFeature.tabularFigures()],
+                  ),
+                ),
+                Text(
+                  DateFormat('MMM').format(dt).toUpperCase(),
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: tokens.textSecondary,
+                    letterSpacing: 0.4,
                   ),
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  DateFormat('MMM').format(dt).toUpperCase(),
+                  DateFormat('h:mm a').format(dt),
                   style: TextStyle(
-                    fontSize: 10,
-                    fontWeight: FontWeight.w800,
-                    color: tokens.textSecondary,
-                    letterSpacing: 0.6,
-                  ),
-                ),
-                const SizedBox(height: 6),
-                FittedBox(
-                  fit: BoxFit.scaleDown,
-                  child: Text(
-                    DateFormat('h:mm a').format(dt),
-                    style: TextStyle(
-                      fontSize: 9,
-                      fontWeight: FontWeight.w600,
-                      color: tokens.textSecondary,
-                    ),
+                    fontSize: 11.5,
+                    color: tokens.textMuted,
                   ),
                 ),
               ],
             ),
           ),
-          const SizedBox(width: 14),
+          Container(
+            width: 0.5,
+            height: 56,
+            margin: const EdgeInsets.symmetric(horizontal: 14),
+            color: tokens.border,
+          ),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -915,33 +926,31 @@ class _PastRow extends StatelessWidget {
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
-                    fontSize: 15,
-                    height: 1.3,
-                    fontWeight: FontWeight.w800,
+                    fontSize: 17,
+                    height: 1.25,
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: -0.3,
                     color: tokens.textPrimary,
                   ),
                 ),
-                const SizedBox(height: 6),
+                const SizedBox(height: 4),
                 Text(
                   subject,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
-                    fontSize: 11.5,
-                    height: 1.35,
-                    fontWeight: FontWeight.w500,
+                    fontSize: 14,
                     color: tokens.textSecondary,
                   ),
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: 2),
                 Text(
                   mentor,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
-                    fontSize: 12,
-                    height: 1.35,
-                    fontWeight: FontWeight.w700,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
                     color: tokens.textPrimary,
                   ),
                 ),
@@ -950,16 +959,16 @@ class _PastRow extends StatelessWidget {
           ),
           const SizedBox(width: 8),
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
             decoration: BoxDecoration(
-              color: tokens.textMuted.withOpacity(0.12),
-              borderRadius: BorderRadius.circular(6),
+              color: tokens.textMuted.withOpacity(0.14),
+              borderRadius: BorderRadius.circular(20),
             ),
             child: Text(
               'Ended',
               style: TextStyle(
-                fontSize: 10.5,
-                fontWeight: FontWeight.w700,
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
                 color: tokens.textSecondary,
               ),
             ),
@@ -979,16 +988,18 @@ class _Empty extends StatelessWidget {
   Widget build(BuildContext context) {
     final tokens = context.tokens;
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 50),
+      padding: const EdgeInsets.symmetric(vertical: 72),
       child: Column(
         children: [
-          Icon(Icons.videocam_off_outlined, color: tokens.textMuted, size: 40),
-          const SizedBox(height: 8),
+          Icon(Symbols.videocam_off_rounded,
+              color: tokens.textMuted, size: 44),
+          const SizedBox(height: 12),
           Text(
             title,
             style: TextStyle(
-              fontSize: 15,
+              fontSize: 20,
               fontWeight: FontWeight.w700,
+              letterSpacing: -0.4,
               color: tokens.textPrimary,
             ),
           ),
@@ -996,7 +1007,7 @@ class _Empty extends StatelessWidget {
           Text(
             sub,
             style: TextStyle(
-              fontSize: 13,
+              fontSize: 15,
               color: tokens.textSecondary,
             ),
             textAlign: TextAlign.center,

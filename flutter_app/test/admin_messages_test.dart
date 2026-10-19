@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:dio/dio.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
@@ -61,7 +61,7 @@ class _Api extends ApiClient {
 
 Future<({ProviderContainer container, GoRouter router})> _mount(
     WidgetTester tester, _Api api, AdminMessageSession session,
-    {bool enabled = true}) async {
+    {bool enabled = true, AdminMessageSession Function()? sessionFactory}) async {
   final router = GoRouter(
     navigatorKey: rootNavigatorKey,
     observers: [rootModalObserver],
@@ -80,7 +80,7 @@ Future<({ProviderContainer container, GoRouter router})> _mount(
   final container = ProviderContainer(overrides: [
     apiClientProvider.overrideWithValue(api),
     routerProvider.overrideWithValue(router),
-    adminMessageSessionProvider.overrideWith((_) => session),
+    adminMessageSessionProvider.overrideWith((_) => sessionFactory?.call() ?? session),
   ]);
   await tester.pumpWidget(UncontrolledProviderScope(
     container: container,
@@ -244,16 +244,12 @@ void main() {
 
   testWidgets('session invalidation cancels an open message', (tester) async {
     final api = _Api()..updates.add(_update('one'));
-    final session = AdminMessageSession('student')..markReady();
-    final harness = await _mount(tester, api, session);
+    var session = AdminMessageSession('student')..markReady();
+    final harness = await _mount(tester, api, session,
+        sessionFactory: () => session);
     expect(find.text('Update one'), findsOneWidget);
     // Overrides return a new, not-yet-ready session just like an account change.
-    harness.container.updateOverrides([
-      apiClientProvider.overrideWithValue(api),
-      routerProvider.overrideWithValue(harness.router),
-      adminMessageSessionProvider
-          .overrideWith((_) => AdminMessageSession('other')),
-    ]);
+    session = AdminMessageSession('other');
     harness.container.invalidate(adminMessageSessionProvider);
     await tester.pumpAndSettle();
     expect(find.byType(UpdateDialog), findsNothing);

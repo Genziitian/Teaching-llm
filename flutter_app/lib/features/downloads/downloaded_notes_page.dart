@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
@@ -12,6 +12,7 @@ import '../../theme/app_colors.dart';
 import '../../theme/app_shadows.dart';
 import '../../theme/app_theme_tokens.dart';
 import '../../theme/app_typography.dart';
+import '../store/store_notes_data.dart';
 
 class DownloadedNotesPage extends ConsumerWidget {
   const DownloadedNotesPage({super.key});
@@ -180,6 +181,7 @@ class DownloadedNotesPage extends ConsumerWidget {
       ),
       body: AppRefresh(
         onRefresh: () async {
+          ref.invalidate(myStoreNotesProvider);
           ref.invalidate(downloadedNotesProvider);
           ref.invalidate(totalDownloadSizeProvider);
         },
@@ -211,7 +213,7 @@ class DownloadedNotesPage extends ConsumerWidget {
             ),
           ),
           data: (groups) {
-            if (groups.isEmpty) {
+            if (groups.isEmpty && ref.watch(expiredStoreNotesProvider).isEmpty) {
               return Center(
                 child: Padding(
                   padding: const EdgeInsets.all(32),
@@ -255,12 +257,15 @@ class DownloadedNotesPage extends ConsumerWidget {
               );
             }
 
-            final totalSize = totalSizeAsync.valueOrNull ?? 0;
+            final totalSize = totalSizeAsync.value ?? 0;
 
             return ListView(
               padding: const EdgeInsets.fromLTRB(16, 14, 16, 24),
               children: [
+                const _ExpiredNotesSection(),
+
                 // Total Storage Summary Card
+                if (groups.isNotEmpty)
                 Container(
                   padding:
                       const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -468,7 +473,7 @@ class _DownloadItemTile extends StatelessWidget {
                                 horizontal: 6, vertical: 1.5),
                             margin: const EdgeInsets.only(right: 6),
                             decoration: BoxDecoration(
-                              color: tokens.primaryAccent.withOpacity(0.12),
+                              color: tokens.textMuted.withValues(alpha: 0.14),
                               borderRadius: BorderRadius.circular(4),
                             ),
                             child: Text(
@@ -476,7 +481,7 @@ class _DownloadItemTile extends StatelessWidget {
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: TextStyle(
-                                color: tokens.primaryAccent,
+                                color: tokens.textSecondary,
                                 fontSize: 10,
                                 fontWeight: FontWeight.w700,
                               ),
@@ -526,6 +531,140 @@ class _DownloadItemTile extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+
+/// Premium Notes whose access ran out: removed from the device, listed here
+/// with Restore now (payment) and View details.
+class _ExpiredNotesSection extends ConsumerWidget {
+  const _ExpiredNotesSection();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final tokens = context.tokens;
+    final expired = ref.watch(expiredStoreNotesProvider);
+    if (expired.isEmpty) return const SizedBox.shrink();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(left: 4, bottom: 8),
+          child: Text(
+            'EXPIRED',
+            style: AppTypography.uppercase.copyWith(
+              letterSpacing: 1.2,
+              color: tokens.danger,
+              fontSize: 11,
+            ),
+          ),
+        ),
+        Container(
+          margin: const EdgeInsets.only(bottom: 18),
+          decoration: BoxDecoration(
+            color: tokens.cardBg,
+            borderRadius: BorderRadius.circular(18),
+          ),
+          child: Column(
+            children: [
+              for (var i = 0; i < expired.length; i++) ...[
+                if (i > 0)
+                  Divider(height: 0.5, thickness: 0.5, color: tokens.border),
+                Padding(
+                  padding: const EdgeInsets.all(14),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        expired[i].title,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w700,
+                          color: tokens.textPrimary,
+                        ),
+                      ),
+                      const SizedBox(height: 3),
+                      Text(
+                        expired[i].expiresAt == null
+                            ? 'Expired'
+                            : 'Expired on ${formatNoteDate(expired[i].expiresAt!)}',
+                        style: TextStyle(
+                          fontSize: 12.5,
+                          fontWeight: FontWeight.w600,
+                          color: tokens.danger,
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      Row(
+                        children: [
+                          Expanded(
+                            flex: 3,
+                            child: BouncyPressable(
+                              onTap: () => buyStoreNote(
+                                context,
+                                ref,
+                                noteId: expired[i].noteId,
+                                title: expired[i].title,
+                              ),
+                              child: Container(
+                                height: 38,
+                                alignment: Alignment.center,
+                                decoration: BoxDecoration(
+                                  color: tokens.warning,
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Text(
+                                  expired[i].price > 0
+                                      ? 'Restore now · ${formatNotePrice(expired[i].price)}'
+                                      : 'Restore now',
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 13.5,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            flex: 2,
+                            child: BouncyPressable(
+                              onTap: () => context
+                                  .push('/store/notes/${expired[i].noteId}'),
+                              child: Container(
+                                height: 38,
+                                alignment: Alignment.center,
+                                decoration: BoxDecoration(
+                                  color:
+                                      tokens.textMuted.withValues(alpha: 0.14),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Text(
+                                  'View details',
+                                  style: TextStyle(
+                                    color: tokens.textPrimary,
+                                    fontSize: 13.5,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
+      ],
     );
   }
 }

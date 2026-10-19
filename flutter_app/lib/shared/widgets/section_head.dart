@@ -1,4 +1,5 @@
-import 'package:flutter/material.dart';
+import 'package:material_symbols_icons/symbols.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../../theme/app_theme_tokens.dart';
 
@@ -41,10 +42,10 @@ class SectionHead extends StatelessWidget {
                     Text(
                       title,
                       style: TextStyle(
-                        fontSize: 18,
+                        fontSize: 21,
                         fontWeight: FontWeight.w800,
                         color: tokens.textPrimary,
-                        letterSpacing: -0.3,
+                        letterSpacing: -0.5,
                       ),
                     ),
                     if (subtitle != null) ...[
@@ -72,17 +73,16 @@ class SectionHead extends StatelessWidget {
                         Text(
                           right!,
                           style: TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w700,
+                            fontSize: 15,
+                            fontWeight: FontWeight.w500,
                             color: tokens.primaryAccent,
                           ),
                         ),
-                        const SizedBox(width: 4),
+                        const SizedBox(width: 3),
                         Icon(
-                          Icons.arrow_forward,
-                          size: 13,
-                          color: tokens.primaryAccent,
-                        ),
+                          Symbols.arrow_forward_ios_rounded,
+                          size: 12,
+                          color: tokens.primaryAccent, weight: 700,),
                       ],
                     ),
                   ),

@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
 import '../api/api_client.dart';
@@ -126,6 +126,78 @@ class RazorpayCheckoutService {
     } catch (e) {
       return RazorpayPaymentResult.failed(
           'Signature verification failed: $e');
+    }
+  }
+
+  /// Buys (or restores) a Premium Note. Same flow as [purchaseOffering]:
+  /// create-order → Razorpay WebView → verify. Free notes skip checkout.
+  Future<RazorpayPaymentResult> purchaseNote({
+    required BuildContext context,
+    required String noteId,
+  }) async {
+    final Map<String, dynamic> orderData;
+    try {
+      final res = await api.post<Map<String, dynamic>>(
+        '/api/store/notes/$noteId/create-order',
+      );
+      orderData = res.data ?? const <String, dynamic>{};
+    } catch (e) {
+      return RazorpayPaymentResult.failed(e.toString());
+    }
+
+    if (orderData['isFree'] == true) {
+      return RazorpayPaymentResult.success(
+          orderId: '', message: 'Added to your library');
+    }
+
+    final keyId = (orderData['keyId'] ?? orderData['key']) as String?;
+    final rzpOrderId = orderData['razorpayOrderId'] as String?;
+    final amount = (orderData['amount'] as num?)?.toInt();
+    if (keyId == null || rzpOrderId == null || amount == null) {
+      return RazorpayPaymentResult.failed(
+          'Payments are not set up for this note yet. Please try again later.');
+    }
+
+    if (!context.mounted) {
+      return RazorpayPaymentResult.failed('Context unmounted');
+    }
+    final raw = await Navigator.of(context).push<Map<String, dynamic>?>(
+      MaterialPageRoute(
+        fullscreenDialog: true,
+        builder: (_) => _RazorpayCheckoutPage(
+          keyId: keyId,
+          orderId: rzpOrderId,
+          amount: amount,
+          currency: (orderData['currency'] as String?) ?? 'INR',
+          description: (orderData['noteTitle'] as String?) ?? 'Premium Notes',
+          name: 'GenZ IITian',
+          userName: (orderData['userName'] as String?) ?? '',
+          userEmail: (orderData['userEmail'] as String?) ?? '',
+        ),
+      ),
+    );
+
+    if (raw == null) return RazorpayPaymentResult.failed('Checkout was cancelled.');
+    if (raw['error'] != null) {
+      return RazorpayPaymentResult.failed(raw['error'] as String);
+    }
+
+    try {
+      final verify = await api.post<Map<String, dynamic>>(
+        '/api/store/notes/$noteId/verify-payment',
+        body: {
+          'razorpay_payment_id': raw['razorpay_payment_id'],
+          'razorpay_order_id': raw['razorpay_order_id'],
+          'razorpay_signature': raw['razorpay_signature'],
+        },
+      );
+      final data = verify.data ?? const <String, dynamic>{};
+      return RazorpayPaymentResult.success(
+        orderId: (data['orderId'] as String?) ?? rzpOrderId,
+        message: (data['message'] as String?) ?? 'Purchase successful',
+      );
+    } catch (e) {
+      return RazorpayPaymentResult.failed('Signature verification failed: $e');
     }
   }
 

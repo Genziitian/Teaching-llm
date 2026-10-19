@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// Light "card lift" shadow recipes matching the design canvas. The redesign
 /// dropped the heavy neumorphic dual-shadow look in favour of single soft

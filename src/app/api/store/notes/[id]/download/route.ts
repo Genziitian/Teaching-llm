@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { getSession } from '@/lib/auth'
+import { accessState } from '@/lib/store-notes'
 import { createClient } from '@supabase/supabase-js'
 
 function getSupabaseAdmin() {
@@ -36,14 +37,20 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
       return NextResponse.json({ error: 'Note not found' }, { status: 404 })
     }
 
-    // Verify access permission:
-    // 1. User is ADMIN or MANAGER
-    // 2. The note is free (price = 0)
-    // 3. User has a valid active purchase (within 30 days)
+    // Verify access permission: staff, free note, or an active (non-expired) purchase.
     const isManager = user.role === 'MANAGER' || (user.role === 'ADMIN' || user.role === 'MODERATOR')
     const isFree = note.price === 0
 
     let hasAccess = isManager || isFree
+
+    if (!hasAccess) {
+      const purchaseAccess = await prisma.storeNoteAccess.findUnique({
+        where: { noteId_userId: { noteId: note.id, userId: user.id } }
+      })
+      if (accessState(purchaseAccess, note.validityDays) === 'ACTIVE') {
+        hasAccess = true
+      }
+    }
 
     if (!hasAccess) {
       const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
@@ -60,7 +67,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
     }
 
     if (!hasAccess) {
-      return NextResponse.json({ error: 'You do not have access to this note. Please purchase it first.' }, { status: 403 })
+      return NextResponse.json({ error: 'Access expired or not purchased. Buy or restore this note to open it.' }, { status: 403 })
     }
 
     const noteFile = note.files?.[0]
@@ -104,6 +111,12 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
           }
         }
       }
+    }
+
+    // The app asks for the signed URL as JSON so it can fetch the file
+    // without forwarding its auth header to the storage host.
+    if (req.nextUrl.searchParams.get('format') === 'json') {
+      return NextResponse.json({ url: redirectUrl })
     }
 
     return NextResponse.redirect(redirectUrl)

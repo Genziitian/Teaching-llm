@@ -1,5 +1,6 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/legacy.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -69,7 +70,7 @@ const _slides = <_Slide>[
     title: 'Made for BS Degree Aspirants',
     quote:
         '"By IITians who know your syllabus, your pace, and the exam pressure — because we have been through it ourselves."',
-    accent: Color(0xFF6366F1),
+    accent: Color(0xFF5856D6),
     icon: Icons.school_outlined,
   ),
   _Slide(
@@ -85,7 +86,7 @@ const _slides = <_Slide>[
     title: 'Your Complete BS Companion',
     quote:
         '"From Qualifier prep to Term-wise live batches — one focused platform from your first attempt to your final degree."',
-    accent: Color(0xFF10B981),
+    accent: Color(0xFF34C759),
     icon: Icons.workspace_premium_outlined,
   ),
 ];
@@ -131,12 +132,12 @@ class _WelcomePageState extends ConsumerState<WelcomePage> {
             Positioned(
               top: -80,
               left: -60,
-              child: _Blob(color: const Color(0xFF6366F1).withOpacity(0.18), size: 260),
+              child: _Blob(color: const Color(0xFF5856D6).withOpacity(0.18), size: 260),
             ),
             Positioned(
               bottom: -100,
               right: -80,
-              child: _Blob(color: const Color(0xFF8B5CF6).withOpacity(0.14), size: 320),
+              child: _Blob(color: const Color(0xFF6E6CF0).withOpacity(0.14), size: 320),
             ),
 
             Column(

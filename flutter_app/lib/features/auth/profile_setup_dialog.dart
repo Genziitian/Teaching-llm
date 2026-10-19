@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -108,10 +108,10 @@ class _ProfileSetupDialogState extends ConsumerState<ProfileSetupDialog> {
               leading: Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF8B5CF6).withOpacity(0.12),
+                  color: const Color(0xFF6E6CF0).withOpacity(0.12),
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: const Icon(Icons.camera_alt_outlined, color: Color(0xFF8B5CF6)),
+                child: const Icon(Icons.camera_alt_outlined, color: Color(0xFF6E6CF0)),
               ),
               title: Text('Click Photo', style: TextStyle(fontWeight: FontWeight.w700, color: tokens.textPrimary)),
               subtitle: Text('Take a photo with your camera', style: TextStyle(color: tokens.textSecondary, fontSize: 12)),
@@ -124,10 +124,10 @@ class _ProfileSetupDialogState extends ConsumerState<ProfileSetupDialog> {
               leading: Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF3B82F6).withOpacity(0.12),
+                  color: const Color(0xFF007AFF).withOpacity(0.12),
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: const Icon(Icons.photo_library_outlined, color: Color(0xFF3B82F6)),
+                child: const Icon(Icons.photo_library_outlined, color: Color(0xFF007AFF)),
               ),
               title: Text('Choose Image', style: TextStyle(fontWeight: FontWeight.w700, color: tokens.textPrimary)),
               subtitle: Text('Select from your device gallery', style: TextStyle(color: tokens.textSecondary, fontSize: 12)),
@@ -283,12 +283,12 @@ class _ProfileSetupDialogState extends ConsumerState<ProfileSetupDialog> {
               width: 60,
               height: 60,
               decoration: BoxDecoration(
-                color: isDark ? const Color(0x33F59E0B) : const Color(0xFFFFF8E1),
+                color: isDark ? const Color(0x33FF9500) : const Color(0xFFFFF8E1),
                 shape: BoxShape.circle,
               ),
               child: const Icon(
                 Icons.warning_amber_rounded,
-                color: Color(0xFFF59E0B),
+                color: Color(0xFFFF9500),
                 size: 28,
               ),
             ),
@@ -377,7 +377,7 @@ class _ProfileSetupDialogState extends ConsumerState<ProfileSetupDialog> {
                   child: ElevatedButton(
                     onPressed: () => Navigator.of(ctx).pop(true),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF6366F1),
+                      backgroundColor: const Color(0xFF5856D6),
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(vertical: 13),
                       shape: RoundedRectangleBorder(
@@ -596,7 +596,7 @@ class _ProfileSetupDialogState extends ConsumerState<ProfileSetupDialog> {
                                   gender: _selectedGender,
                                   size: 84,
                                   border: Border.all(
-                                    color: const Color(0xFF6366F1).withOpacity(0.35),
+                                    color: const Color(0xFF5856D6).withOpacity(0.35),
                                     width: 2.5,
                                   ),
                                 ),
@@ -606,7 +606,7 @@ class _ProfileSetupDialogState extends ConsumerState<ProfileSetupDialog> {
                                   child: Container(
                                     padding: const EdgeInsets.all(5),
                                     decoration: BoxDecoration(
-                                      color: const Color(0xFF6366F1),
+                                      color: const Color(0xFF5856D6),
                                       shape: BoxShape.circle,
                                       border: Border.all(
                                         color: tokens.cardBg,
@@ -866,7 +866,7 @@ class _ProfileSetupDialogState extends ConsumerState<ProfileSetupDialog> {
                                       borderRadius: BorderRadius.circular(12),
                                       border: Border.all(
                                         color: _selectedGender == g['key']
-                                            ? const Color(0xFF6366F1)
+                                            ? const Color(0xFF5856D6)
                                             : (isDark
                                                 ? tokens.border
                                                 : const Color(0xFFE0E3EA)),
@@ -895,13 +895,13 @@ class _ProfileSetupDialogState extends ConsumerState<ProfileSetupDialog> {
                         height: 52,
                         child: ElevatedButton(
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF6366F1),
+                            backgroundColor: const Color(0xFF5856D6),
                             foregroundColor: Colors.white,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(12),
                             ),
                             elevation: 0,
-                            shadowColor: const Color(0x4D6366F1),
+                            shadowColor: const Color(0x4D5856D6),
                           ),
                           onPressed: _saving ? null : _submit,
                           child: _saving
@@ -950,7 +950,7 @@ class _ProfileSetupDialogState extends ConsumerState<ProfileSetupDialog> {
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(10),
-        borderSide: const BorderSide(color: Color(0xFF6366F1), width: 1.5),
+        borderSide: const BorderSide(color: Color(0xFF5856D6), width: 1.5),
       ),
     );
   }

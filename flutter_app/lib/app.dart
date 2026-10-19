@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'core/auth/auth_providers.dart';
@@ -33,7 +33,7 @@ class TeachingLlmApp extends ConsumerWidget {
     final router = ref.watch(routerProvider);
     final isSignedIn = ref.watch(authStateProvider).value != null;
     final appThemeMode =
-        ref.watch(themeModeProvider).valueOrNull ?? AppThemeMode.system;
+        ref.watch(themeModeProvider).value ?? AppThemeMode.system;
 
     final ThemeData darkThemeData;
     final ThemeMode themeMode;
@@ -72,9 +72,11 @@ class TeachingLlmApp extends ConsumerWidget {
       scrollBehavior: const AppScrollBehavior(),
       // The Play Store welcome sits above the router and the loading splash,
       // so it is the first screen whether or not someone is signed in.
-      builder: (context, child) => PlayStoreLaunchOverlay(
-        child: SplashOverlay(
-          child: child ?? const SizedBox.shrink(),
+      builder: (context, child) => MaterialUiCompatibilityBridge(
+        child: PlayStoreLaunchOverlay(
+          child: SplashOverlay(
+            child: child ?? const SizedBox.shrink(),
+          ),
         ),
       ),
     );

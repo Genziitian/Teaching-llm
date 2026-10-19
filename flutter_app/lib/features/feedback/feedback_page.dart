@@ -1,5 +1,5 @@
 import 'dart:convert';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -76,14 +76,14 @@ class FeedbackPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final user = ref.watch(authStateProvider).valueOrNull;
+    final user = ref.watch(authStateProvider).value;
     final role = (user?.role ?? 'STUDENT').toUpperCase();
     final isStudent = role == 'STUDENT';
     final currentUserId = user?.id;
 
     final enrolledAsync = ref.watch(enrolledCoursesProvider);
     final mineAsync = ref.watch(myFeedbackProvider);
-    final allFeedback = mineAsync.valueOrNull ?? const [];
+    final allFeedback = mineAsync.value ?? const [];
     final tokens = context.tokens;
 
     // Filter out any legacy APP type feedback
@@ -99,7 +99,7 @@ class FeedbackPage extends ConsumerWidget {
       }
     }
 
-    final allCourses = enrolledAsync.valueOrNull ?? [];
+    final allCourses = enrolledAsync.value ?? [];
     // Only students have unrated pending courses
     final unrated = isStudent
         ? allCourses
@@ -344,7 +344,7 @@ class _CourseFeedbackRow extends StatelessWidget {
           color: tokens.cardBg,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: alreadyRated ? const Color(0xFF6366F1).withOpacity(0.35) : tokens.border,
+            color: alreadyRated ? const Color(0xFF5856D6).withOpacity(0.35) : tokens.border,
             width: alreadyRated ? 1.5 : 1,
           ),
         ),
@@ -354,12 +354,12 @@ class _CourseFeedbackRow extends StatelessWidget {
               width: 44,
               height: 44,
               decoration: BoxDecoration(
-                color: const Color(0xFF6366F1).withOpacity(0.12),
+                color: const Color(0xFF5856D6).withOpacity(0.12),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: const Icon(
                 Icons.star_rounded,
-                color: Color(0xFFF59E0B),
+                color: Color(0xFFFF9500),
                 size: 26,
               ),
             ),
@@ -418,7 +418,7 @@ class _CourseFeedbackRow extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF4F46E5),
+                  color: const Color(0xFF5856D6),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: const Text(
@@ -518,7 +518,7 @@ class _MyFeedbackRow extends StatelessWidget {
                     5,
                     (i) => Icon(
                       i < rating ? Icons.star_rounded : Icons.star_outline_rounded,
-                      color: const Color(0xFFF59E0B),
+                      color: const Color(0xFFFF9500),
                       size: 16,
                     ),
                   ),

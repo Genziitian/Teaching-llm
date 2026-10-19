@@ -1,10 +1,12 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:material_symbols_icons/symbols.dart';
 
 import '../../core/auth/auth_providers.dart';
 import '../../shared/widgets/drive/secure_drive_player.dart';
+import '../../shared/widgets/apple_pressable.dart';
 import '../../shared/widgets/secure_window.dart';
 import '../../shared/widgets/youtube/secure_youtube_player.dart';
 import '../../shared/widgets/youtube/youtube_utils.dart';
@@ -299,7 +301,7 @@ class _WatchPageState extends ConsumerState<WatchPage> {
           const SnackBar(
             content: Text('Lecture marked as completed!'),
             duration: Duration(seconds: 2),
-            backgroundColor: Color(0xFF10B981),
+            backgroundColor: Color(0xFF34C759),
           ),
         );
       }
@@ -427,9 +429,9 @@ class _WatchPageState extends ConsumerState<WatchPage> {
                               courseName!.toUpperCase(),
                               style: TextStyle(
                                 color: tokens.primaryAccent,
-                                fontSize: 11,
-                                fontWeight: FontWeight.w800,
-                                letterSpacing: 1.1,
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                                letterSpacing: 0.8,
                               ),
                             ),
                           if (courseName?.isNotEmpty == true)
@@ -438,8 +440,9 @@ class _WatchPageState extends ConsumerState<WatchPage> {
                             title,
                             style: TextStyle(
                               color: tokens.textPrimary,
-                              fontSize: 24,
-                              fontWeight: FontWeight.w900,
+                              fontSize: 26,
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: -0.7,
                               height: 1.15,
                             ),
                           ),
@@ -449,8 +452,8 @@ class _WatchPageState extends ConsumerState<WatchPage> {
                               topicTitle!,
                               style: TextStyle(
                                 color: tokens.textSecondary,
-                                fontSize: 13,
-                                fontWeight: FontWeight.w600,
+                                fontSize: 15,
+                                fontWeight: FontWeight.w500,
                               ),
                             ),
                           ],
@@ -460,8 +463,8 @@ class _WatchPageState extends ConsumerState<WatchPage> {
                               description!,
                               style: TextStyle(
                                 color: tokens.textSecondary,
-                                fontSize: 14,
-                                height: 1.55,
+                                fontSize: 15,
+                                height: 1.5,
                               ),
                             ),
                           ],
@@ -579,7 +582,7 @@ class _TopBar extends StatelessWidget {
               tooltip: isCompleted ? 'Completed' : 'Mark Completed',
               icon: Icon(
                 isCompleted ? Icons.check_circle : Icons.check_circle_outline,
-                color: isCompleted ? const Color(0xFF10B981) : Colors.white70,
+                color: isCompleted ? const Color(0xFF34C759) : Colors.white70,
                 size: 22,
               ),
               onPressed: onMarkCompleted,
@@ -589,7 +592,7 @@ class _TopBar extends StatelessWidget {
                 isLocked ? 'Unlock Screen Controls' : 'Lock Screen Controls',
             icon: Icon(
               isLocked ? Icons.lock : Icons.lock_open,
-              color: isLocked ? const Color(0xFFF59E0B) : Colors.white70,
+              color: isLocked ? const Color(0xFFFF9500) : Colors.white70,
               size: 22,
             ),
             onPressed: onToggleLock,
@@ -613,8 +616,7 @@ class _StudyMaterialsCard extends StatelessWidget {
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
         color: tokens.cardBg,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: tokens.border),
+        borderRadius: BorderRadius.circular(24),
         boxShadow: AppShadows.sm,
       ),
       child: Column(
@@ -624,23 +626,55 @@ class _StudyMaterialsCard extends StatelessWidget {
             'Study Materials',
             style: TextStyle(
               color: tokens.textPrimary,
-              fontSize: 18,
-              fontWeight: FontWeight.w800,
+              fontSize: 20,
+              fontWeight: FontWeight.w700,
+              letterSpacing: -0.4,
             ),
           ),
           const SizedBox(height: 14),
           if (hasMaterial)
-            Container(
-              padding: const EdgeInsets.all(14),
-              decoration: BoxDecoration(
-                color: tokens.surfaceSecondary,
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: tokens.border),
-              ),
-              child: FilledButton.icon(
-                onPressed: onOpen,
-                icon: const Icon(Icons.file_open_rounded, size: 18),
-                label: const Text('Download Notes'),
+            ApplePressable(
+              onTap: onOpen,
+              pressedScale: 0.98,
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                    horizontal: 14, vertical: 12),
+                decoration: BoxDecoration(
+                  color: tokens.surfaceSecondary,
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          colors: [Color(0xFF5856D6), Color(0xFF7D7AFF)],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: const Icon(Symbols.description_rounded,
+                          fill: 1, color: Colors.white, size: 22),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        'Download Notes',
+                        style: TextStyle(
+                          color: tokens.textPrimary,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          letterSpacing: -0.2,
+                        ),
+                      ),
+                    ),
+                    Icon(Symbols.arrow_forward_ios_rounded,
+                        weight: 700, size: 14, color: tokens.textMuted),
+                  ],
+                ),
               ),
             )
           else
@@ -649,7 +683,7 @@ class _StudyMaterialsCard extends StatelessWidget {
               child: Text(
                 'No material available for this lecture.',
                 textAlign: TextAlign.center,
-                style: TextStyle(color: tokens.textMuted, fontSize: 13),
+                style: TextStyle(color: tokens.textMuted, fontSize: 14),
               ),
             ),
         ],
@@ -684,8 +718,7 @@ class _DiscussionCard extends StatelessWidget {
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
         color: tokens.cardBg,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: tokens.border),
+        borderRadius: BorderRadius.circular(24),
         boxShadow: AppShadows.sm,
       ),
       child: Column(
@@ -693,16 +726,17 @@ class _DiscussionCard extends StatelessWidget {
         children: [
           Row(
             children: [
-              Icon(Icons.chat_bubble_outline_rounded,
-                  color: tokens.primaryAccent, size: 20),
+              Icon(Symbols.forum_rounded,
+                  fill: 1, color: tokens.primaryAccent, size: 22),
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
                   'Discussion & Q&A',
                   style: TextStyle(
                     color: tokens.textPrimary,
-                    fontSize: 18,
-                    fontWeight: FontWeight.w800,
+                    fontSize: 20,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: -0.4,
                   ),
                 ),
               ),
@@ -710,13 +744,13 @@ class _DiscussionCard extends StatelessWidget {
                 '${comments.length} Comment${comments.length == 1 ? '' : 's'}',
                 style: TextStyle(
                   color: tokens.textMuted,
-                  fontSize: 11,
-                  fontWeight: FontWeight.w600,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w500,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 18),
+          const SizedBox(height: 16),
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -728,15 +762,30 @@ class _DiscussionCard extends StatelessWidget {
                   children: [
                     TextField(
                       controller: controller,
-                      minLines: 3,
+                      minLines: 2,
                       maxLines: 5,
+                      style: TextStyle(
+                          color: tokens.textPrimary, fontSize: 16, height: 1.35),
                       decoration: InputDecoration(
                         hintText: 'Ask a question or share your thoughts...',
+                        hintStyle:
+                            TextStyle(color: tokens.textMuted, fontSize: 16),
                         filled: true,
                         fillColor: tokens.surfaceSecondary,
+                        contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 14, vertical: 12),
                         border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(color: tokens.border),
+                          borderRadius: BorderRadius.circular(16),
+                          borderSide: BorderSide.none,
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(16),
+                          borderSide: BorderSide.none,
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(16),
+                          borderSide: BorderSide(
+                              color: tokens.primaryAccent, width: 1.5),
                         ),
                       ),
                     ),
@@ -744,6 +793,11 @@ class _DiscussionCard extends StatelessWidget {
                     Align(
                       alignment: Alignment.centerRight,
                       child: FilledButton.icon(
+                        style: FilledButton.styleFrom(
+                          shape: const StadiumBorder(),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 18, vertical: 10),
+                        ),
                         onPressed: isPosting ? null : () => onPost(),
                         icon: isPosting
                             ? const SizedBox(
@@ -752,7 +806,7 @@ class _DiscussionCard extends StatelessWidget {
                                 child:
                                     CircularProgressIndicator(strokeWidth: 2),
                               )
-                            : const Icon(Icons.send_rounded, size: 16),
+                            : const Icon(Symbols.arrow_upward_rounded, weight: 700, size: 18),
                         label: const Text('Post'),
                       ),
                     ),
@@ -768,7 +822,7 @@ class _DiscussionCard extends StatelessWidget {
               child: Text(
                 'No comments yet. Be the first to start the discussion!',
                 textAlign: TextAlign.center,
-                style: TextStyle(color: tokens.textMuted, fontSize: 13),
+                style: TextStyle(color: tokens.textMuted, fontSize: 14),
               ),
             )
           else
@@ -844,8 +898,9 @@ class _CommentTile extends StatelessWidget {
                           name,
                           style: TextStyle(
                             color: tokens.textPrimary,
-                            fontWeight: FontWeight.w800,
-                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            fontSize: 15,
+                            letterSpacing: -0.2,
                           ),
                         ),
                         if (role == 'ADMIN' || role == 'MANAGER')
@@ -868,7 +923,7 @@ class _CommentTile extends StatelessWidget {
                         Text(
                           _dateLabel(comment['createdAt']),
                           style:
-                              TextStyle(color: tokens.textMuted, fontSize: 11),
+                              TextStyle(color: tokens.textMuted, fontSize: 12.5),
                         ),
                       ],
                     ),
@@ -887,7 +942,7 @@ class _CommentTile extends StatelessWidget {
                         padding: EdgeInsets.zero,
                         minimumSize: const Size(0, 32),
                       ),
-                      icon: const Icon(Icons.reply_rounded, size: 16),
+                      icon: const Icon(Symbols.reply_rounded, weight: 600, size: 18),
                       label: const Text('Reply'),
                     ),
                   ],
@@ -919,7 +974,7 @@ class _CommentAvatar extends StatelessWidget {
       child: Container(
         width: size,
         height: size,
-        color: tokens.surfaceSecondary,
+        color: tokens.primaryAccent.withValues(alpha: 0.14),
         alignment: Alignment.center,
         child: avatar?.trim().isNotEmpty == true
             ? Image.network(

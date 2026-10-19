@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'dart:math';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// Floating, slowly drifting anti-piracy watermark overlay for lecture videos.
 /// Displays student identifier, email, and security hash across the video surface.

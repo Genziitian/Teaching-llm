@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -117,8 +117,8 @@ class _NoInternetPageState extends ConsumerState<NoInternetPage>
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
                               color: isDark
-                                  ? const Color(0x334F46E5)
-                                  : const Color(0x1F4F46E5),
+                                  ? const Color(0x335856D6)
+                                  : const Color(0x1F5856D6),
                             ),
                           ),
                           Container(
@@ -130,14 +130,14 @@ class _NoInternetPageState extends ConsumerState<NoInternetPage>
                                   ? const Color(0xFF1E1B4B)
                                   : const Color(0xFFEEF2FF),
                               border: Border.all(
-                                color: const Color(0xFF6366F1),
+                                color: const Color(0xFF5856D6),
                                 width: 1.5,
                               ),
                             ),
                             child: const Icon(
                               Icons.wifi_off_rounded,
                               size: 36,
-                              color: Color(0xFF6366F1),
+                              color: Color(0xFF5856D6),
                             ),
                           ),
                         ],
@@ -179,11 +179,11 @@ class _NoInternetPageState extends ConsumerState<NoInternetPage>
                       height: 50,
                       width: double.infinity,
                       decoration: BoxDecoration(
-                        color: const Color(0xFF4F46E5),
+                        color: const Color(0xFF5856D6),
                         borderRadius: BorderRadius.circular(14),
                         boxShadow: const [
                           BoxShadow(
-                            color: Color(0x3D4F46E5),
+                            color: Color(0x3D5856D6),
                             blurRadius: 12,
                             offset: Offset(0, 4),
                           ),
@@ -264,7 +264,7 @@ class _NoInternetPageState extends ConsumerState<NoInternetPage>
                         height: 7,
                         decoration: const BoxDecoration(
                           shape: BoxShape.circle,
-                          color: Color(0xFFEF4444),
+                          color: Color(0xFFFF3B30),
                         ),
                       ),
                       const SizedBox(width: 8),

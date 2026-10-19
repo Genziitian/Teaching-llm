@@ -3,7 +3,7 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:dio/dio.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_pdfview/flutter_pdfview.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path_provider/path_provider.dart';
@@ -556,21 +556,24 @@ class _DownloadProgress extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             SizedBox(
-              width: 56,
-              height: 56,
+              width: 60,
+              height: 60,
               child: CircularProgressIndicator(
                 value: progress > 0 ? progress : null,
-                strokeWidth: 3,
-                color: AppColors.brand,
-                backgroundColor: tokens.border,
+                strokeWidth: 5,
+                strokeCap: StrokeCap.round,
+                color: tokens.primaryAccent,
+                backgroundColor: tokens.textMuted.withValues(alpha: 0.18),
               ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 20),
             Text(
               'Loading material',
-              style: AppTypography.title.copyWith(
+              style: TextStyle(
                 color: tokens.textPrimary,
-                fontSize: 14,
+                fontSize: 20,
+                fontWeight: FontWeight.w700,
+                letterSpacing: -0.4,
               ),
             ),
             const SizedBox(height: 4),
@@ -578,21 +581,22 @@ class _DownloadProgress extends StatelessWidget {
               size.isEmpty
                   ? '${pct.toStringAsFixed(0)}%'
                   : '${pct.toStringAsFixed(0)}% · $size',
-              style: AppTypography.bodyMuted.copyWith(
+              style: TextStyle(
                 color: tokens.textSecondary,
-                fontSize: 12,
+                fontSize: 15,
               ),
             ),
             if (title != null) ...[
-              const SizedBox(height: 10),
+              const SizedBox(height: 12),
               Text(
                 title!,
                 textAlign: TextAlign.center,
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
-                style: AppTypography.caption.copyWith(
+                style: TextStyle(
                   color: tokens.textMuted,
-                  fontSize: 11.5,
+                  fontSize: 13,
+                  height: 1.3,
                 ),
               ),
             ],

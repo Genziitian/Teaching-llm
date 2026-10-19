@@ -1,12 +1,16 @@
-import 'package:flutter/material.dart';
+import 'package:material_symbols_icons/symbols.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../core/auth/auth_providers.dart';
 import '../../shared/widgets/app_refresh.dart';
+import '../../shared/widgets/apple_pressable.dart';
+import '../../shared/widgets/share_link_sheet.dart';
+import '../downloads/download_button.dart' show startDownloadFlow;
 import '../../shared/widgets/sub_page_header.dart';
-import '../../theme/app_shadows.dart';
 import '../../theme/app_theme_tokens.dart';
 
 enum _Category { assignment, pyq, note }
@@ -37,11 +41,11 @@ extension on _Category {
   IconData get icon {
     switch (this) {
       case _Category.assignment:
-        return Icons.edit_note;
+        return Symbols.edit_note_rounded;
       case _Category.pyq:
-        return Icons.history_edu;
+        return Symbols.history_edu_rounded;
       case _Category.note:
-        return Icons.menu_book_outlined;
+        return Symbols.menu_book_rounded;
     }
   }
 }
@@ -94,72 +98,56 @@ class FreeMaterialsBrowsePage extends ConsumerStatefulWidget {
 }
 
 class _FreeMaterialsBrowsePageState
-    extends ConsumerState<FreeMaterialsBrowsePage>
-    with SingleTickerProviderStateMixin {
+    extends ConsumerState<FreeMaterialsBrowsePage> {
   String? _level;
   String? _subject;
-  late final TabController _tab;
+  int _tab = 0;
 
-  @override
-  void initState() {
-    super.initState();
-    _tab = TabController(length: 3, vsync: this);
-    _tab.addListener(() {
-      if (!_tab.indexIsChanging) setState(() {});
-    });
-  }
-
-  @override
-  void dispose() {
-    _tab.dispose();
-    super.dispose();
-  }
-
-  _Category get _activeCategory => _Category.values[_tab.index];
+  _Category get _activeCategory => _Category.values[_tab];
 
   @override
   Widget build(BuildContext context) {
     final optionsAsync = ref.watch(_optionsProvider);
-    final tokens = context.tokens;
 
-    return Scaffold(
-      backgroundColor: tokens.bg,
-      body: SafeArea(
-        bottom: false,
-        child: Column(
-          children: [
-            const SubPageHeader(
-              title: 'Free Materials',
-              subtitle: 'Notes · PYQs · Assignments',
+    return AppPageScaffold(
+      title: 'Free Materials',
+      subtitle: 'Notes · PYQs · Assignments',
+      showBack: true,
+      body: Column(
+        children: [
+          const SizedBox(height: 12),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: _LevelSubjectPicker(
+              options: optionsAsync.value ?? const {},
+              level: _level,
+              subject: _subject,
+              onLevel: (l) => setState(() {
+                _level = l;
+                _subject = null;
+              }),
+              onSubject: (s) => setState(() => _subject = s),
             ),
-            const SizedBox(height: 12),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: _LevelSubjectPicker(
-                options: optionsAsync.valueOrNull ?? const {},
+          ),
+          const SizedBox(height: 12),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: _TabBar(
+              index: _tab,
+              onChanged: (i) => setState(() => _tab = i),
+            ),
+          ),
+          const SizedBox(height: 8),
+          Expanded(
+            child: _MaterialList(
+              query: _MaterialQuery(
                 level: _level,
                 subject: _subject,
-                onLevel: (l) => setState(() {
-                  _level = l;
-                  _subject = null;
-                }),
-                onSubject: (s) => setState(() => _subject = s),
+                category: _activeCategory,
               ),
             ),
-            const SizedBox(height: 14),
-            _TabBar(controller: _tab),
-            const SizedBox(height: 8),
-            Expanded(
-              child: _MaterialList(
-                query: _MaterialQuery(
-                  level: _level,
-                  subject: _subject,
-                  category: _activeCategory,
-                ),
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -197,7 +185,7 @@ class _LevelSubjectPicker extends StatelessWidget {
         Expanded(
           child: _DropdownTile(
             label: 'Level',
-            icon: Icons.bar_chart_rounded,
+            icon: Symbols.bar_chart_rounded,
             value: level,
             options: levels,
             onChanged: onLevel,
@@ -208,7 +196,7 @@ class _LevelSubjectPicker extends StatelessWidget {
         Expanded(
           child: _DropdownTile(
             label: 'Subject',
-            icon: Icons.menu_book_outlined,
+            icon: Symbols.menu_book_rounded,
             value: subject,
             options: subjectsForLevel,
             onChanged: onSubject,
@@ -218,6 +206,120 @@ class _LevelSubjectPicker extends StatelessWidget {
       ],
     );
   }
+}
+
+const _anyValue = '__any__';
+
+Future<void> _pickOption(
+  BuildContext context, {
+  required String title,
+  required List<String> options,
+  required String? current,
+  required String anyLabel,
+  required ValueChanged<String?> onChanged,
+}) async {
+  final tokens = context.tokens;
+  final picked = await showModalBottomSheet<String>(
+    context: context,
+    useRootNavigator: true,
+    isScrollControlled: true,
+    backgroundColor: Colors.transparent,
+    builder: (ctx) {
+      final maxH = MediaQuery.of(ctx).size.height * 0.7;
+      Widget row(String label, String value, bool selected, bool last) {
+        return ApplePressable(
+          onTap: () => Navigator.of(ctx).pop(value),
+          pressedScale: 0.99,
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            color: Colors.transparent,
+            child: Container(
+              height: 52,
+              decoration: BoxDecoration(
+                border: last
+                    ? null
+                    : Border(
+                        bottom:
+                            BorderSide(color: tokens.border, width: 0.5)),
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      label,
+                      style: TextStyle(
+                        fontSize: 17,
+                        fontWeight:
+                            selected ? FontWeight.w600 : FontWeight.w400,
+                        color: tokens.textPrimary,
+                      ),
+                    ),
+                  ),
+                  if (selected)
+                    Icon(Symbols.check_rounded,
+                        weight: 700, size: 22, color: tokens.primaryAccent),
+                ],
+              ),
+            ),
+          ),
+        );
+      }
+
+      return Container(
+        constraints: BoxConstraints(maxHeight: maxH),
+        padding: EdgeInsets.only(bottom: MediaQuery.of(ctx).padding.bottom),
+        decoration: BoxDecoration(
+          color: tokens.cardBg,
+          borderRadius:
+              const BorderRadius.vertical(top: Radius.circular(28)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const SizedBox(height: 10),
+            Container(
+              width: 36,
+              height: 5,
+              decoration: BoxDecoration(
+                color: tokens.textMuted.withValues(alpha: 0.4),
+                borderRadius: BorderRadius.circular(3),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  title,
+                  style: TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: -0.5,
+                    color: tokens.textPrimary,
+                  ),
+                ),
+              ),
+            ),
+            Flexible(
+              child: ListView(
+                shrinkWrap: true,
+                padding: EdgeInsets.zero,
+                children: [
+                  row(anyLabel, _anyValue, current == null, options.isEmpty),
+                  for (var i = 0; i < options.length; i++)
+                    row(options[i], options[i], current == options[i],
+                        i == options.length - 1),
+                ],
+              ),
+            ),
+            const SizedBox(height: 8),
+          ],
+        ),
+      );
+    },
+  );
+  if (picked == null) return;
+  onChanged(picked == _anyValue ? null : picked);
 }
 
 class _DropdownTile extends StatelessWidget {
@@ -240,129 +342,140 @@ class _DropdownTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final tokens = context.tokens;
 
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      decoration: BoxDecoration(
-        color: tokens.cardBg,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: tokens.border),
+    return ApplePressable(
+      onTap: () => _pickOption(
+        context,
+        title: label,
+        options: options,
+        current: value,
+        anyLabel: emptyHint,
+        onChanged: onChanged,
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Row(
-            children: [
-              Icon(icon, size: 11, color: tokens.primaryAccent),
-              const SizedBox(width: 5),
-              Text(
-                label.toUpperCase(),
-                style: TextStyle(
-                  fontSize: 9.5,
-                  fontWeight: FontWeight.w800,
-                  color: tokens.textMuted,
-                  letterSpacing: 0.6,
-                ),
-              ),
-            ],
-          ),
-          DropdownButtonHideUnderline(
-            child: DropdownButton<String?>(
-              isExpanded: true,
-              dropdownColor: tokens.cardBg,
-              value: value,
-              hint: Text(
-                emptyHint,
-                style: TextStyle(
-                  fontSize: 13.5,
-                  fontWeight: FontWeight.w700,
-                  color: tokens.textMuted,
-                ),
-              ),
-              items: [
-                DropdownMenuItem<String?>(
-                  value: null,
-                  child: Text(
-                    emptyHint,
+      child: Container(
+        padding: const EdgeInsets.fromLTRB(14, 10, 12, 10),
+        decoration: BoxDecoration(
+          color: tokens.cardBg,
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    label,
                     style: TextStyle(
-                      fontSize: 13.5,
-                      fontWeight: FontWeight.w700,
-                      color: tokens.textMuted,
+                      fontSize: 12.5,
+                      color: tokens.textSecondary,
                     ),
                   ),
-                ),
-                for (final o in options)
-                  DropdownMenuItem<String?>(
-                    value: o,
-                    child: Text(
-                      o,
-                      style: TextStyle(
-                        fontSize: 13.5,
-                        fontWeight: FontWeight.w700,
-                        color: tokens.textPrimary,
-                      ),
+                  const SizedBox(height: 1),
+                  Text(
+                    value ?? emptyHint,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: -0.2,
+                      color: value == null
+                          ? tokens.textMuted
+                          : tokens.textPrimary,
                     ),
                   ),
-              ],
-              onChanged: onChanged,
+                ],
+              ),
             ),
-          ),
-        ],
+            Icon(Symbols.unfold_more_rounded,
+                size: 20, weight: 500, color: tokens.textMuted),
+          ],
+        ),
       ),
     );
   }
 }
 
 class _TabBar extends StatelessWidget {
-  const _TabBar({required this.controller});
-  final TabController controller;
+  const _TabBar({required this.index, required this.onChanged});
+  final int index;
+  final ValueChanged<int> onChanged;
 
   @override
   Widget build(BuildContext context) {
     final tokens = context.tokens;
+    final reduce = MediaQuery.of(context).disableAnimations;
+    final track =
+        tokens.isDark ? const Color(0xFF1C1C1E) : const Color(0xFFE3E3E8);
+    final thumb = tokens.isDark ? const Color(0xFF636366) : Colors.white;
+    const cats = _Category.values;
 
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 20),
+      height: 40,
+      padding: const EdgeInsets.all(3),
       decoration: BoxDecoration(
-        color: tokens.cardBg,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: tokens.border),
+        color: track,
+        borderRadius: BorderRadius.circular(12),
       ),
-      child: TabBar(
-        controller: controller,
-        labelColor: Colors.white,
-        unselectedLabelColor: tokens.textSecondary,
-        labelStyle: const TextStyle(
-          fontSize: 12.5,
-          fontWeight: FontWeight.w800,
-        ),
-        unselectedLabelStyle: const TextStyle(
-          fontSize: 12.5,
-          fontWeight: FontWeight.w700,
-        ),
-        labelPadding: EdgeInsets.zero,
-        indicatorSize: TabBarIndicatorSize.tab,
-        indicator: BoxDecoration(
-          color: tokens.primaryAccent,
-          borderRadius: BorderRadius.circular(10),
-        ),
-        indicatorPadding: const EdgeInsets.all(4),
-        splashBorderRadius: BorderRadius.circular(10),
-        dividerColor: Colors.transparent,
-        tabs: [
-          for (final c in _Category.values)
-            Tab(
-              height: 40,
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 6),
-                child: FittedBox(
-                  fit: BoxFit.scaleDown,
-                  child: Text(c.label),
+      child: LayoutBuilder(builder: (context, c) {
+        final w = c.maxWidth / cats.length;
+        return Stack(
+          children: [
+            AnimatedPositioned(
+              duration:
+                  reduce ? Duration.zero : const Duration(milliseconds: 260),
+              curve: kEaseOutStrong,
+              left: w * index,
+              width: w,
+              top: 0,
+              bottom: 0,
+              child: Container(
+                decoration: BoxDecoration(
+                  color: thumb,
+                  borderRadius: BorderRadius.circular(10),
+                  boxShadow: tokens.isDark
+                      ? null
+                      : const [
+                          BoxShadow(
+                            color: Color(0x1F000000),
+                            blurRadius: 4,
+                            offset: Offset(0, 1.5),
+                          ),
+                        ],
                 ),
               ),
             ),
-        ],
-      ),
+            Row(
+              children: [
+                for (var i = 0; i < cats.length; i++)
+                  Expanded(
+                    child: GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onTapDown: (_) {
+                        if (i != index) onChanged(i);
+                      },
+                      child: Center(
+                        child: Text(
+                          cats[i].label,
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: i == index
+                                ? FontWeight.w600
+                                : FontWeight.w500,
+                            color: i == index
+                                ? tokens.textPrimary
+                                : tokens.textSecondary,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ],
+        );
+      }),
     );
   }
 }
@@ -403,13 +516,14 @@ class _MaterialList extends ConsumerWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Icon(query.category.icon,
-                      color: tokens.textMuted, size: 36),
+                      color: tokens.textMuted, size: 44),
                   const SizedBox(height: 10),
                   Text(
                     'No ${query.category.label.toLowerCase()} yet',
                     style: TextStyle(
-                      fontSize: 16,
+                      fontSize: 20,
                       fontWeight: FontWeight.w700,
+                      letterSpacing: -0.4,
                       color: tokens.textPrimary,
                     ),
                   ),
@@ -420,7 +534,7 @@ class _MaterialList extends ConsumerWidget {
                         : 'Try a different level or subject above.',
                     textAlign: TextAlign.center,
                     style: TextStyle(
-                      fontSize: 12,
+                      fontSize: 15,
                       color: tokens.textSecondary,
                     ),
                   ),
@@ -429,7 +543,7 @@ class _MaterialList extends ConsumerWidget {
             );
           }
           return ListView.separated(
-            padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
             itemCount: list.length,
             separatorBuilder: (_, __) => const SizedBox(height: 10),
             itemBuilder: (_, i) => _MaterialRow(material: list[i]),
@@ -440,7 +554,7 @@ class _MaterialList extends ConsumerWidget {
   }
 }
 
-class _MaterialRow extends StatelessWidget {
+class _MaterialRow extends ConsumerWidget {
   const _MaterialRow({required this.material});
   final Map<String, dynamic> material;
 
@@ -478,130 +592,231 @@ class _MaterialRow extends StatelessWidget {
     }
   }
 
+  Future<void> _showMenu(BuildContext context, WidgetRef ref) async {
+    final tokens = context.tokens;
+    final id = material['id'] as String?;
+    final title = (material['title'] as String?) ?? 'Material';
+    HapticFeedback.selectionClick();
+
+    final action = await showModalBottomSheet<String>(
+      context: context,
+      useRootNavigator: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) {
+        Widget row(String label, IconData icon, String value, bool last) {
+          return ApplePressable(
+            onTap: () => Navigator.of(ctx).pop(value),
+            pressedScale: 0.99,
+            child: Container(
+              height: 56,
+              padding: const EdgeInsets.symmetric(horizontal: 18),
+              decoration: BoxDecoration(
+                border: last
+                    ? null
+                    : Border(
+                        bottom: BorderSide(color: tokens.border, width: 0.5)),
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      label,
+                      style: TextStyle(
+                        fontSize: 17,
+                        color: tokens.textPrimary,
+                      ),
+                    ),
+                  ),
+                  Icon(icon, size: 22, color: tokens.textSecondary),
+                ],
+              ),
+            ),
+          );
+        }
+
+        return Container(
+          padding: EdgeInsets.fromLTRB(
+              16, 10, 16, 16 + MediaQuery.of(ctx).padding.bottom),
+          decoration: BoxDecoration(
+            color: tokens.cardBg,
+            borderRadius:
+                const BorderRadius.vertical(top: Radius.circular(28)),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Center(
+                child: Container(
+                  width: 36,
+                  height: 5,
+                  decoration: BoxDecoration(
+                    color: tokens.textMuted.withValues(alpha: 0.4),
+                    borderRadius: BorderRadius.circular(3),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 4),
+                child: Text(
+                  title,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 17,
+                    height: 1.25,
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: -0.3,
+                    color: tokens.textPrimary,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 14),
+              Container(
+                decoration: BoxDecoration(
+                  color: tokens.isDark
+                      ? const Color(0xFF2C2C2E)
+                      : const Color(0xFFF2F2F7),
+                  borderRadius: BorderRadius.circular(18),
+                ),
+                clipBehavior: Clip.antiAlias,
+                child: Column(
+                  children: [
+                    row('Open', Symbols.open_in_new_rounded, 'open', false),
+                    if (id != null && id.isNotEmpty) ...[
+                      row('Share', Symbols.ios_share_rounded, 'share', false),
+                      row('Download', Symbols.download_rounded, 'download',
+                          true),
+                    ],
+                  ],
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+
+    if (action == null || !context.mounted) return;
+    switch (action) {
+      case 'open':
+        await _open(context);
+        break;
+      case 'share':
+        if (id == null) return;
+        await showShareLinkSheet(
+          context,
+          title: title,
+          message: 'Check out this free material on GenZ IITIAN: $title',
+          link: 'https://class.genziitian.in/free-resources/materials/$id/view',
+        );
+        break;
+      case 'download':
+        if (id == null) return;
+        await startDownloadFlow(
+          context,
+          ref,
+          contentId: id,
+          contentType: 'MATERIAL',
+          title: title,
+          courseName: (material['subject'] as String?) ?? 'Free Resources',
+        );
+        break;
+    }
+  }
+
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final tokens = context.tokens;
     final title = (material['title'] as String?) ?? 'Untitled';
     final term = (material['term'] as String?)?.trim();
     final subject = (material['subject'] as String?)?.trim();
     final level = (material['level'] as String?)?.trim();
-    final size = (material['fileSize'] as String?)?.trim();
     final fileType = (material['fileType'] as String?)?.trim();
     final isPdf = fileType == null || fileType.toLowerCase().contains('pdf');
 
-    return Material(
-      color: tokens.cardBg,
-      borderRadius: BorderRadius.circular(14),
-      child: InkWell(
-        onTap: () => _open(context),
-        borderRadius: BorderRadius.circular(14),
-        child: Container(
-          padding: const EdgeInsets.all(14),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: tokens.border),
-            boxShadow: AppShadows.sm,
-          ),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                width: 42,
-                height: 42,
-                decoration: BoxDecoration(
-                  color: isPdf
-                      ? tokens.danger.withOpacity(0.12)
-                      : tokens.primaryAccent.withOpacity(0.12),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Icon(
-                  isPdf ? Icons.picture_as_pdf : Icons.description_outlined,
-                  color: isPdf ? tokens.danger : tokens.primaryAccent,
-                  size: 20,
-                ),
+    final meta = [
+      if (subject != null && subject.isNotEmpty) subject,
+      if (level != null && level.isNotEmpty) level,
+      if (term != null && term.isNotEmpty) term,
+    ].join(' · ');
+
+    return ApplePressable(
+      onTap: () => _open(context),
+      pressedScale: 0.98,
+      child: Container(
+        padding: const EdgeInsets.fromLTRB(14, 14, 14, 14),
+        decoration: BoxDecoration(
+          color: tokens.cardBg,
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Container(
+              width: 48,
+              height: 48,
+              decoration: BoxDecoration(
+                color: isPdf
+                    ? tokens.danger.withValues(alpha: 0.12)
+                    : tokens.textMuted.withValues(alpha: 0.14),
+                borderRadius: BorderRadius.circular(14),
               ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
+              child: Icon(
+                isPdf
+                    ? Symbols.picture_as_pdf_rounded
+                    : Symbols.description_rounded,
+                fill: 1,
+                color: isPdf ? tokens.danger : tokens.textSecondary,
+                size: 24,
+              ),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    title,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 16,
+                      height: 1.25,
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: -0.3,
+                      color: tokens.textPrimary,
+                    ),
+                  ),
+                  if (meta.isNotEmpty) ...[
+                    const SizedBox(height: 3),
                     Text(
-                      title,
-                      maxLines: 2,
+                      meta,
+                      maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
                         fontSize: 13.5,
-                        fontWeight: FontWeight.w700,
-                        color: tokens.textPrimary,
+                        color: tokens.textSecondary,
                       ),
                     ),
-                    const SizedBox(height: 6),
-                    Wrap(
-                      spacing: 6,
-                      runSpacing: 6,
-                      children: [
-                        if (subject != null && subject.isNotEmpty)
-                          _MiniPill(
-                            label: subject,
-                            fg: tokens.primaryAccent,
-                            bg: tokens.primaryAccent.withOpacity(0.12),
-                          ),
-                        if (level != null && level.isNotEmpty)
-                          _MiniPill(
-                            label: level,
-                            fg: tokens.warning,
-                            bg: tokens.warning.withOpacity(0.12),
-                          ),
-                        if (term != null && term.isNotEmpty)
-                          _MiniPill(
-                            label: term,
-                            fg: tokens.success,
-                            bg: tokens.success.withOpacity(0.12),
-                          ),
-                        if (size != null && size.isNotEmpty)
-                          _MiniPill(
-                            label: size,
-                            fg: tokens.textMuted,
-                            bg: tokens.surfaceSecondary,
-                          ),
-                      ],
-                    ),
                   ],
-                ),
+                ],
               ),
-              Padding(
-                padding: const EdgeInsets.only(left: 6, top: 8),
-                child: Icon(Icons.chevron_right, color: tokens.textMuted),
+            ),
+            const SizedBox(width: 4),
+            ApplePressable(
+              onTap: () => _showMenu(context, ref),
+              pressedScale: 0.9,
+              child: SizedBox(
+                width: 40,
+                height: 40,
+                child: Icon(Symbols.more_horiz_rounded,
+                    weight: 600, size: 24, color: tokens.textSecondary),
               ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _MiniPill extends StatelessWidget {
-  const _MiniPill({required this.label, required this.fg, required this.bg});
-  final String label;
-  final Color fg;
-  final Color bg;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2.5),
-      decoration: BoxDecoration(
-        color: bg,
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Text(
-        label,
-        style: TextStyle(
-          fontSize: 10.5,
-          color: fg,
-          fontWeight: FontWeight.w700,
+            ),
+          ],
         ),
       ),
     );

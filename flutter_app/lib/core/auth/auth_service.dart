@@ -16,31 +16,34 @@ class AuthService {
     GoogleSignIn? googleSignIn,
   })  : _api = api ?? ApiClient(),
         _tokens = tokens ?? const TokenStorage(),
-        _google = googleSignIn ??
-            GoogleSignIn(
-              serverClientId: ApiConfig.googleWebClientId,
-              scopes: const ['email', 'profile'],
-            );
+        _google = googleSignIn ?? GoogleSignIn.instance;
 
   final ApiClient _api;
   final TokenStorage _tokens;
   final GoogleSignIn _google;
+  static Future<void>? _googleInitialization;
+
+  Future<void> _initializeGoogle() => _googleInitialization ??=
+      _google.initialize(serverClientId: ApiConfig.googleWebClientId);
 
   /// Returns the signed-in user on success. Throws on cancellation / failure.
   ///
-  /// Tries [GoogleSignIn.signInSilently] first — when the user has already
-  /// granted consent (which is true after their first sign-in on this
-  /// device) Google returns the cached account without showing the picker.
-  /// Cuts ~1-2 s off return-user sign-ins.
+  /// Restores the Google account before requesting interactive authentication.
   Future<User> signInWithGoogle() async {
-    GoogleSignInAccount? account = await _google.signInSilently(
-      suppressErrors: true,
-    );
-    account ??= await _google.signIn();
-    if (account == null) {
-      throw AuthException('Sign-in was cancelled.');
+    await _initializeGoogle();
+    GoogleSignInAccount? account =
+        await _google.attemptLightweightAuthentication();
+    try {
+      account ??= await _google.authenticate(
+        scopeHint: const ['email', 'profile'],
+      );
+    } on GoogleSignInException catch (e) {
+      if (e.code == GoogleSignInExceptionCode.canceled) {
+        throw AuthException('Sign-in was cancelled.');
+      }
+      rethrow;
     }
-    final auth = await account.authentication;
+    final auth = account.authentication;
     final idToken = auth.idToken;
     if (idToken == null || idToken.isEmpty) {
       throw AuthException('Google did not return an ID token.');
@@ -210,6 +213,7 @@ class AuthService {
   Future<void> signOut() async {
     await PushNotificationService.instance.unregisterCurrentToken();
     try {
+      await _initializeGoogle();
       await _google.signOut();
     } catch (_) {/* best effort */}
     try {

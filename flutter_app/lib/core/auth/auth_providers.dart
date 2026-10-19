@@ -50,7 +50,7 @@ class AuthState extends AsyncNotifier<User?> {
       final fresh = await ref.read(authServiceProvider).currentUser();
       // The user signed out (or the app is mid sign-in) while we were waiting:
       // leave that newer state alone.
-      if (state.isLoading || state.valueOrNull == null) return;
+      if (state.isLoading || state.value == null) return;
       final token = await ref.read(tokenStorageProvider).read();
       if (fresh != null && (token == null || token.isEmpty)) return;
       state = AsyncData<User?>(fresh);

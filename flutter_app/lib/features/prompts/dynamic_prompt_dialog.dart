@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../../theme/app_theme_tokens.dart';
 
@@ -148,7 +148,7 @@ class _DynamicPromptDialogState extends State<DynamicPromptDialog> {
                             height: 48,
                             decoration: BoxDecoration(
                               gradient: const LinearGradient(
-                                colors: [Color(0xFF6366F1), Color(0xFF4338CA)],
+                                colors: [Color(0xFF5856D6), Color(0xFF4338CA)],
                                 begin: Alignment.topLeft,
                                 end: Alignment.bottomRight,
                               ),
@@ -233,7 +233,7 @@ class _DynamicPromptDialogState extends State<DynamicPromptDialog> {
                       height: 48,
                       child: ElevatedButton(
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF4F46E5),
+                          backgroundColor: const Color(0xFF5856D6),
                           foregroundColor: Colors.white,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
@@ -311,7 +311,7 @@ class _DynamicPromptDialogState extends State<DynamicPromptDialog> {
                           borderRadius: BorderRadius.circular(12),
                           border: Border.all(
                             color: isSelected
-                                ? const Color(0xFF6366F1)
+                                ? const Color(0xFF5856D6)
                                 : tokens.border,
                             width: isSelected ? 2 : 1,
                           ),
@@ -356,7 +356,7 @@ class _DynamicPromptDialogState extends State<DynamicPromptDialog> {
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
                           color: isSelected
-                              ? const Color(0xFF6366F1)
+                              ? const Color(0xFF5856D6)
                               : tokens.border,
                           width: isSelected ? 2 : 1,
                         ),
@@ -382,7 +382,7 @@ class _DynamicPromptDialogState extends State<DynamicPromptDialog> {
                               width: 18,
                               height: 18,
                               decoration: const BoxDecoration(
-                                color: Color(0xFF6366F1),
+                                color: Color(0xFF5856D6),
                                 shape: BoxShape.circle,
                               ),
                               child: const Icon(

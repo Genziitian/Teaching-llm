@@ -1,4 +1,5 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
+import 'package:material_symbols_icons/symbols.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 
@@ -72,17 +73,17 @@ class SubPageHeader extends StatelessWidget {
                     },
                     scaleDown: 0.92,
                     child: Container(
-                      width: 40,
-                      height: 40,
+                      width: 38,
+                      height: 38,
                       decoration: BoxDecoration(
                         color: tokens.surfaceSecondary,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: tokens.border),
+                        shape: BoxShape.circle,
                       ),
                       alignment: Alignment.center,
                       child: Icon(
-                        Icons.chevron_left,
-                        size: 22,
+                        Symbols.arrow_back_ios_new_rounded,
+                        size: 17,
+                        weight: 600,
                         color: tokens.textPrimary,
                       ),
                     ),
@@ -99,11 +100,11 @@ class SubPageHeader extends StatelessWidget {
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
-                          fontSize: 26,
-                          fontWeight: FontWeight.w900,
+                          fontSize: 28,
+                          fontWeight: FontWeight.w800,
                           color: tokens.textPrimary,
-                          letterSpacing: -0.5,
-                          height: 1.15,
+                          letterSpacing: -0.7,
+                          height: 1.12,
                         ),
                       ),
                       if (subtitle != null && subtitle!.trim().isNotEmpty) ...[
@@ -113,8 +114,8 @@ class SubPageHeader extends StatelessWidget {
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: TextStyle(
-                            fontSize: 13.5,
-                            fontWeight: FontWeight.w500,
+                            fontSize: 15,
+                            fontWeight: FontWeight.w400,
                             color: tokens.textSecondary,
                           ),
                         ),
@@ -132,7 +133,7 @@ class SubPageHeader extends StatelessWidget {
           if (bottom != null) bottom!,
           if (showLine)
             Container(
-              height: 1,
+              height: 0.5,
               color: tokens.border,
             ),
         ],
@@ -233,7 +234,6 @@ class CircleIconBtn extends StatelessWidget {
         decoration: BoxDecoration(
           color: tokens.surfaceSecondary,
           shape: BoxShape.circle,
-          border: Border.all(color: tokens.border),
         ),
         child: Icon(icon, size: 18, color: iconColor),
       ),

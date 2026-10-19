@@ -1,7 +1,8 @@
 import 'package:dio/dio.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/legacy.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/auth/auth_providers.dart';
@@ -9,12 +10,12 @@ import '../../core/models/course.dart';
 import '../../theme/app_shadows.dart';
 import '../../theme/app_theme_tokens.dart';
 import '../../shared/widgets/app_refresh.dart';
-import '../../shared/widgets/bouncy_pressable.dart';
+import 'package:material_symbols_icons/symbols.dart';
+import '../../shared/widgets/apple_pressable.dart';
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../shared/widgets/shimmer_loading.dart';
 import '../../shared/widgets/sub_page_header.dart';
-import '../dashboard/dashboard_providers.dart';
 
 const _kCachedCoursesKey = 'cached_courses_payload';
 const _kPinnedCoursesKey = 'pinned_course_ids';
@@ -104,7 +105,7 @@ final coursesProvider = FutureProvider<List<Course>>((ref) async {
 });
 
 /// Redesigned My Courses screen — matches courses.jsx from the design canvas:
-/// page heading + filter button, search field, Continue-learning hero,
+/// page heading + filter button, search field,
 /// All-courses section with structured colour-banded cards.
 class CoursesPage extends ConsumerWidget {
   const CoursesPage({super.key});
@@ -113,16 +114,6 @@ class CoursesPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final async = ref.watch(coursesProvider);
     final count = async.value?.length ?? 0;
-    final dash = ref.watch(dashboardProvider).valueOrNull;
-    final recentLecture = dash?['recentViewedLecture'] as Map<String, dynamic>?;
-    final hasRecent = recentLecture != null &&
-        recentLecture.isNotEmpty &&
-        (recentLecture['content'] != null || recentLecture['id'] != null);
-    final String? recentCourseId = hasRecent
-        ? (((recentLecture['content'] as Map?)?['topic'] as Map?)?['courseId'] as String? ??
-            (recentLecture['content'] as Map?)?['courseId'] as String? ??
-            recentLecture['courseId'] as String?)
-        : null;
 
     return Scaffold(
       backgroundColor: context.tokens.bg,
@@ -138,16 +129,15 @@ class CoursesPage extends ConsumerWidget {
                 padding:
                     const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                 decoration: BoxDecoration(
-                  color: context.tokens.surfaceSecondary,
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: context.tokens.border),
+                  color: const Color(0xFF5856D6).withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(20),
                 ),
                 child: Text(
                   '$count Enrolled',
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w700,
-                    color: context.tokens.textSecondary,
+                  style: const TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFF5856D6),
                   ),
                 ),
               ),
@@ -208,20 +198,7 @@ class CoursesPage extends ConsumerWidget {
                           );
                         }
 
-                        // Only show Continue Learning if the user actually has an active (non-expired) in-progress course and not searching
-                        Course? continueCourse;
-                        if (query.isEmpty && recentCourseId != null && recentCourseId.isNotEmpty) {
-                          for (final c in courses) {
-                            if (c.id == recentCourseId && !c.isExpired) {
-                              continueCourse = c;
-                              break;
-                            }
-                          }
-                        }
-
-                        final remainingCourses = continueCourse != null
-                            ? courses.where((c) => c.id != continueCourse!.id).toList()
-                            : List<Course>.from(courses);
+                        final remainingCourses = List<Course>.from(courses);
 
                         // Sort remaining courses: pinned first, active courses next, expired courses last
                         remainingCourses.sort((a, b) {
@@ -239,10 +216,6 @@ class CoursesPage extends ConsumerWidget {
                         return Column(
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
-                            if (continueCourse != null) ...[
-                              const SizedBox(height: 14),
-                              _ContinueCard(course: continueCourse),
-                            ],
                             const SizedBox(height: 14),
                             if (isTablet)
                               LayoutBuilder(
@@ -293,15 +266,14 @@ class _SearchField extends ConsumerWidget {
     return Container(
       height: 46,
       decoration: BoxDecoration(
-        color: tokens.surfaceSecondary,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: tokens.border),
+        color: tokens.cardBg,
+        borderRadius: BorderRadius.circular(14),
       ),
       padding: const EdgeInsets.symmetric(horizontal: 14),
       child: Row(
         children: [
-          Icon(Icons.search, size: 18, color: tokens.textMuted),
-          const SizedBox(width: 10),
+          Icon(Symbols.search_rounded, size: 20, weight: 500, color: tokens.textMuted),
+          const SizedBox(width: 8),
           Expanded(
             child: TextField(
               onChanged: (val) {
@@ -312,12 +284,12 @@ class _SearchField extends ConsumerWidget {
                 border: InputBorder.none,
                 hintStyle: TextStyle(
                   color: tokens.textMuted,
-                  fontSize: 13.5,
+                  fontSize: 16,
                 ),
               ),
               style: TextStyle(
                 color: tokens.textPrimary,
-                fontSize: 13.5,
+                fontSize: 16,
               ),
             ),
           ),
@@ -354,125 +326,6 @@ Color _headerEndColor(Course course, Color accent) =>
             ? const Color(0xFF6B7280)
             : accent.withOpacity(0.78));
 
-class _ContinueCard extends StatelessWidget {
-  const _ContinueCard({required this.course});
-  final Course course;
-
-  @override
-  Widget build(BuildContext context) {
-    final accent = _accentOf(course);
-    final tokens = context.tokens;
-
-    return BouncyPressable(
-      onTap: () {
-        HapticFeedback.lightImpact();
-        context.push('/courses/${course.id}');
-      },
-      scaleDown: 0.98,
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: tokens.cardBg,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: tokens.border),
-          boxShadow: AppShadows.md,
-        ),
-        child: Row(
-          children: [
-            Container(
-              width: 92,
-              height: 92,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(14),
-                gradient: LinearGradient(
-                  colors: [accent, _headerEndColor(course, accent)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-              ),
-              alignment: Alignment.center,
-              child: Container(
-                width: 38,
-                height: 38,
-                decoration: BoxDecoration(
-                  color: const Color(0x59FFFFFF),
-                  borderRadius: BorderRadius.circular(19),
-                  border: Border.all(
-                      color: const Color(0x59FFFFFF), width: 1.5),
-                ),
-                child: const Icon(Icons.play_arrow,
-                    color: Colors.white, size: 18),
-              ),
-            ),
-            const SizedBox(width: 14),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'CONTINUE LEARNING',
-                    style: TextStyle(
-                      fontSize: 10,
-                      fontWeight: FontWeight.w800,
-                      color: tokens.primaryAccent,
-                      letterSpacing: 0.6,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    course.name,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w800,
-                      color: tokens.textPrimary,
-                      letterSpacing: -0.2,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    course.subject ?? course.teacherName ?? 'Mentor',
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w500,
-                      color: tokens.textSecondary,
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 12, vertical: 7),
-                    decoration: BoxDecoration(
-                      color: tokens.primaryAccent,
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: const Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(Icons.play_arrow, color: Colors.white, size: 12),
-                        SizedBox(width: 4),
-                        Text(
-                          'Resume',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.w700,
-                            fontSize: 12,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
 class _CourseCard extends ConsumerWidget {
   const _CourseCard({required this.course});
   final Course course;
@@ -502,24 +355,23 @@ class _CourseCard extends ConsumerWidget {
     final isPinned = ref.watch(pinnedCoursesProvider).contains(course.id);
     final isExpired = course.isExpired;
 
-    return BouncyPressable(
+    return ApplePressable(
       onTap: isExpired
           ? null
           : () {
               HapticFeedback.lightImpact();
               context.push('/courses/${course.id}');
             },
-      scaleDown: isExpired ? 1.0 : 0.98,
+      pressedScale: 0.98,
       child: Container(
         decoration: BoxDecoration(
           color: tokens.cardBg,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(
-            color: isPinned
-                ? tokens.primaryAccent.withOpacity(0.5)
-                : tokens.border,
-            width: isPinned ? 1.5 : 1.0,
-          ),
+          borderRadius: BorderRadius.circular(24),
+          border: isPinned
+              ? Border.all(
+                  color: tokens.primaryAccent.withValues(alpha: 0.5),
+                  width: 1.5)
+              : null,
           boxShadow: AppShadows.sm,
         ),
         child: Column(
@@ -528,9 +380,9 @@ class _CourseCard extends ConsumerWidget {
             // Coloured header band
             ClipRRect(
               borderRadius:
-                  const BorderRadius.vertical(top: Radius.circular(19)),
+                  const BorderRadius.vertical(top: Radius.circular(22)),
               child: Container(
-                padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
+                padding: const EdgeInsets.fromLTRB(18, 14, 18, 16),
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     colors: [accent, _headerEndColor(course, accent)],
@@ -563,7 +415,7 @@ class _CourseCard extends ConsumerWidget {
                                   horizontal: 9, vertical: 4),
                               decoration: BoxDecoration(
                                 color: const Color(0x33FFFFFF),
-                                borderRadius: BorderRadius.circular(6),
+                                borderRadius: BorderRadius.circular(20),
                               ),
                               child: Text(
                                 _batchLabel(),
@@ -582,13 +434,13 @@ class _CourseCard extends ConsumerWidget {
                                     horizontal: 8, vertical: 4),
                                 decoration: BoxDecoration(
                                   color: const Color(0x40FFFFFF),
-                                  borderRadius: BorderRadius.circular(6),
+                                  borderRadius: BorderRadius.circular(20),
                                 ),
                                 child: const Row(
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
-                                    Icon(Icons.push_pin_rounded,
-                                        size: 11, color: Colors.white),
+                                    Icon(Symbols.push_pin_rounded,
+                                        fill: 1, size: 12, color: Colors.white),
                                     SizedBox(width: 3),
                                     Text(
                                       'PINNED',
@@ -624,7 +476,7 @@ class _CourseCard extends ConsumerWidget {
                                     horizontal: 9, vertical: 4),
                                 decoration: BoxDecoration(
                                   color: const Color(0x2EFFFFFF),
-                                  borderRadius: BorderRadius.circular(6),
+                                  borderRadius: BorderRadius.circular(20),
                                 ),
                                 child: Text(
                                   tag,
@@ -639,16 +491,16 @@ class _CourseCard extends ConsumerWidget {
                             }),
                           ],
                         ),
-                        const SizedBox(height: 28),
+                        const SizedBox(height: 22),
                         Text(
                           course.name,
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                           style: const TextStyle(
                             color: Colors.white,
-                            fontSize: 18,
-                            fontWeight: FontWeight.w800,
-                            letterSpacing: -0.3,
+                            fontSize: 20,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: -0.4,
                           ),
                         ),
                         if (course.description != null) ...[
@@ -658,8 +510,8 @@ class _CourseCard extends ConsumerWidget {
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: const TextStyle(
-                              color: Color(0xD9FFFFFF),
-                              fontSize: 11.5,
+                              color: Color(0xE6FFFFFF),
+                              fontSize: 12.5,
                             ),
                           ),
                         ],
@@ -736,10 +588,10 @@ class _CourseCard extends ConsumerWidget {
                           padding: const EdgeInsets.symmetric(
                               horizontal: 8, vertical: 3),
                           decoration: BoxDecoration(
-                            color: const Color(0x1FF59E0B),
-                            borderRadius: BorderRadius.circular(6),
+                            color: const Color(0x1FFF9500),
+                            borderRadius: BorderRadius.circular(20),
                             border: Border.all(
-                                color: const Color(0x40F59E0B)),
+                                color: const Color(0x40FF9500)),
                           ),
                           child: Text(
                             'Ends in ${course.accessDays}d',
@@ -759,7 +611,7 @@ class _CourseCard extends ConsumerWidget {
                     padding: const EdgeInsets.all(4),
                     decoration: BoxDecoration(
                       color: tokens.surfaceSecondary,
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(14),
                     ),
                     child: Row(
                       children: [
@@ -770,7 +622,7 @@ class _CourseCard extends ConsumerWidget {
                           ),
                         ),
                         Container(
-                          width: 1,
+                          width: 0.5,
                           height: 28,
                           color: tokens.border,
                         ),
@@ -781,7 +633,7 @@ class _CourseCard extends ConsumerWidget {
                           ),
                         ),
                         Container(
-                          width: 1,
+                          width: 0.5,
                           height: 28,
                           color: tokens.border,
                         ),
@@ -801,15 +653,12 @@ class _CourseCard extends ConsumerWidget {
                     children: [
                       Expanded(
                         child: Container(
-                          height: 42,
+                          height: 46,
                           decoration: BoxDecoration(
                             color: isExpired
                                 ? tokens.surfaceSecondary
-                                : tokens.textPrimary,
-                            borderRadius: BorderRadius.circular(12),
-                            border: isExpired
-                                ? Border.all(color: tokens.border)
-                                : null,
+                                : accent,
+                            borderRadius: BorderRadius.circular(23),
                           ),
                           alignment: Alignment.center,
                           child: Row(
@@ -820,27 +669,30 @@ class _CourseCard extends ConsumerWidget {
                                 style: TextStyle(
                                   color: isExpired
                                       ? tokens.textSecondary
-                                      : tokens.bg,
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w800,
+                                      : Colors.white,
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w600,
+                                  letterSpacing: -0.2,
                                 ),
                               ),
                               const SizedBox(width: 6),
                               Icon(
                                 isExpired
-                                    ? Icons.lock_outline_rounded
-                                    : Icons.arrow_forward,
+                                    ? Symbols.lock_rounded
+                                    : Symbols.arrow_forward_rounded,
+                                weight: 700,
                                 color: isExpired
                                     ? tokens.textSecondary
-                                    : tokens.bg,
-                                size: isExpired ? 14 : 12,
+                                    : Colors.white,
+                                size: 16,
                               ),
                             ],
                           ),
                         ),
                       ),
                       const SizedBox(width: 8),
-                      BouncyPressable(
+                      ApplePressable(
+                        pressedScale: 0.9,
                         onTap: () {
                           HapticFeedback.mediumImpact();
                           final nowPinned = !isPinned;
@@ -861,24 +713,17 @@ class _CourseCard extends ConsumerWidget {
                           );
                         },
                         child: Container(
-                          width: 42,
-                          height: 42,
+                          width: 46,
+                          height: 46,
                           decoration: BoxDecoration(
                             color: isPinned
-                                ? tokens.primaryAccent.withOpacity(0.18)
+                                ? tokens.primaryAccent.withValues(alpha: 0.16)
                                 : tokens.surfaceSecondary,
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(
-                              color: isPinned
-                                  ? tokens.primaryAccent
-                                  : tokens.border,
-                              width: isPinned ? 1.5 : 1.0,
-                            ),
+                            shape: BoxShape.circle,
                           ),
                           child: Icon(
-                            isPinned
-                                ? Icons.push_pin_rounded
-                                : Icons.push_pin_outlined,
+                            Symbols.push_pin_rounded,
+                            fill: isPinned ? 1 : 0,
                             color: isPinned
                                 ? tokens.primaryAccent
                                 : tokens.textSecondary,
@@ -944,7 +789,7 @@ class _Empty extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 60),
       child: Column(
         children: [
-          Icon(Icons.menu_book_outlined, color: tokens.textMuted, size: 40),
+          Icon(Symbols.menu_book_rounded, color: tokens.textMuted, size: 40),
           const SizedBox(height: 8),
           Text(
             'No courses enrolled yet',
@@ -981,7 +826,7 @@ class _Error extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 60),
       child: Column(
         children: [
-          Icon(Icons.cloud_off, color: tokens.textMuted, size: 40),
+          Icon(Symbols.cloud_off_rounded, color: tokens.textMuted, size: 40),
           const SizedBox(height: 8),
           Text(
             'Could not load your courses',

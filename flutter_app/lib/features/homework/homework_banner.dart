@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../../theme/app_theme_tokens.dart';
@@ -105,10 +105,10 @@ class HomeworkCurriculumReminder extends ConsumerWidget {
         return Container(
           margin: const EdgeInsets.only(bottom: 12),
           decoration: BoxDecoration(
-            color: const Color(0xFFF59E0B).withOpacity(0.08),
+            color: const Color(0xFFFF9500).withOpacity(0.08),
             borderRadius: BorderRadius.circular(14),
             border: Border.all(
-              color: const Color(0xFFF59E0B).withOpacity(0.28),
+              color: const Color(0xFFFF9500).withOpacity(0.28),
               width: 1,
             ),
           ),
@@ -120,7 +120,7 @@ class HomeworkCurriculumReminder extends ConsumerWidget {
                   // Left 5px solid amber border
                   Container(
                     width: 5,
-                    color: const Color(0xFFF59E0B),
+                    color: const Color(0xFFFF9500),
                   ),
                   Expanded(
                     child: Padding(
@@ -402,16 +402,16 @@ class _HomeworkDetailCardState extends State<_HomeworkDetailCard> {
     final dateFormatted = _formatDate(dueAt);
 
     final statusColor = isSubmitted
-        ? const Color(0xFF10B981)
+        ? const Color(0xFF34C759)
         : isPastDue
-            ? const Color(0xFFEF4444)
-            : const Color(0xFFF59E0B);
+            ? const Color(0xFFFF3B30)
+            : const Color(0xFFFF9500);
 
     final statusGradient = isSubmitted
-        ? const [Color(0xFF10B981), Color(0xFF059669)]
+        ? const [Color(0xFF34C759), Color(0xFF059669)]
         : isPastDue
-            ? const [Color(0xFFEF4444), Color(0xFFDC2626)]
-            : const [Color(0xFFF59E0B), Color(0xFFD97706)];
+            ? const [Color(0xFFFF3B30), Color(0xFFDC2626)]
+            : const [Color(0xFFFF9500), Color(0xFFD97706)];
 
     return Container(
       margin: const EdgeInsets.only(bottom: 14),
@@ -644,7 +644,7 @@ class _HomeworkDetailCardState extends State<_HomeworkDetailCard> {
                             const Icon(
                               Icons.task_alt_rounded,
                               size: 15,
-                              color: Color(0xFF10B981),
+                              color: Color(0xFF34C759),
                             ),
                             const SizedBox(width: 6),
                             Expanded(

@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -7,6 +7,8 @@ import 'package:intl/intl.dart';
 import '../../core/auth/auth_providers.dart';
 import '../../core/downloads/download_providers.dart';
 import '../../shared/widgets/app_refresh.dart';
+import 'package:material_symbols_icons/symbols.dart';
+import '../../shared/widgets/apple_pressable.dart';
 import '../../shared/widgets/bouncy_pressable.dart';
 import '../../shared/widgets/shimmer_loading.dart';
 import '../../shared/widgets/youtube/youtube_utils.dart';
@@ -63,6 +65,9 @@ final courseProgressProvider =
   }
 });
 
+Color _endOf(Color accent) =>
+    Color.lerp(accent, Colors.white, 0.25) ?? accent;
+
 String _getUploadAge(String? createdAt) {
   if (createdAt == null || createdAt.isEmpty) return 'Today';
   final createdDate = DateTime.tryParse(createdAt)?.toLocal();
@@ -103,13 +108,13 @@ class _CourseDetailPageState extends ConsumerState<CourseDetailPage> {
             enrollmentType != 'DEMO');
     if (isRecorded) return const Color(0xFF4B5563);
     final hex = (course['color'] as String?)?.trim();
-    if (hex == null || hex.isEmpty) return const Color(0xFF10B981);
+    if (hex == null || hex.isEmpty) return const Color(0xFF34C759);
     final clean = hex.replaceAll('#', '');
     if (clean.length == 6) {
       final v = int.tryParse(clean, radix: 16);
       if (v != null) return Color(0xFF000000 | v);
     }
-    return const Color(0xFF10B981);
+    return const Color(0xFF34C759);
   }
 
   void _toggleTopic(String topicId) {
@@ -127,7 +132,7 @@ class _CourseDetailPageState extends ConsumerState<CourseDetailPage> {
     final detailAsync = ref.watch(courseDetailProvider(widget.courseId));
     final topicsAsync = ref.watch(courseTopicsProvider(widget.courseId));
     ref.watch(courseProgressProvider(widget.courseId));
-    final feedbacks = ref.watch(myFeedbackProvider).valueOrNull ?? const [];
+    final feedbacks = ref.watch(myFeedbackProvider).value ?? const [];
     final hasFeedback = feedbacks.any((f) {
       final cid = f['courseId'] ?? (f['course'] as Map?)?['id'];
       return cid == widget.courseId;
@@ -155,7 +160,7 @@ class _CourseDetailPageState extends ConsumerState<CourseDetailPage> {
                 })();
             final accent = _accentOf(course);
             final count = (course['_count'] as Map<String, dynamic>?) ?? {};
-            final topics = topicsAsync.valueOrNull ?? const [];
+            final topics = topicsAsync.value ?? const [];
             final topicsCount = (count['topics'] as int?) ?? topics.length;
             final lecturesCount = (count['lectures'] as int?) ??
                 topics.fold<int>(0, (sum, t) {
@@ -173,7 +178,7 @@ class _CourseDetailPageState extends ConsumerState<CourseDetailPage> {
             }
 
             final downloadedGroups =
-                ref.watch(downloadedNotesProvider).valueOrNull ?? const {};
+                ref.watch(downloadedNotesProvider).value ?? const {};
             final allDownloads =
                 downloadedGroups.values.expand((list) => list).toList();
             final courseName = (course['name'] as String?) ?? '';
@@ -479,6 +484,7 @@ class _CourseHero extends StatelessWidget {
     final title = (course['name'] as String?) ?? 'Course';
     final subject = (course['subject'] as String?)?.trim();
     final badge = _badgeText();
+    final teacher = (course['teacherName'] as String?) ?? '';
     final enrollmentType =
         (course['enrollmentType'] as String?)?.trim().toUpperCase();
     final isRecorded = enrollmentType == null ||
@@ -486,81 +492,69 @@ class _CourseHero extends StatelessWidget {
         (enrollmentType != 'LIVE' &&
             enrollmentType != 'FREE' &&
             enrollmentType != 'DEMO');
-
-    // Vibrant gradient background or muted slate for expired courses
-    final gradientColors = isExpired
-        ? const [Color(0xFF374151), Color(0xFF1F2937)]
-        : [
-            accent,
-            isRecorded
-                ? const Color(0xFF6B7280)
-                : Color.lerp(accent, const Color(0xFF047857), 0.3) ?? accent,
-          ];
+    final start = isExpired ? const Color(0xFF374151) : accent;
+    final end = isExpired
+        ? const Color(0xFF1F2937)
+        : (isRecorded
+            ? const Color(0xFF6B7280)
+            : Color.lerp(accent, const Color(0xFF047857), 0.3) ?? accent);
 
     return Container(
-      margin: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+      margin: const EdgeInsets.fromLTRB(16, 8, 16, 4),
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: gradientColors,
+          colors: [start, end],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(28),
         boxShadow: [
           BoxShadow(
-            color: isExpired
-                ? Colors.black.withOpacity(0.20)
-                : accent.withOpacity(0.24),
-            offset: const Offset(0, 6),
-            blurRadius: 16,
+            color: start.withValues(alpha: isExpired ? 0.18 : 0.28),
+            offset: const Offset(0, 10),
+            blurRadius: 24,
           ),
         ],
       ),
+      clipBehavior: Clip.antiAlias,
       child: Stack(
-        clipBehavior: Clip.hardEdge,
         children: [
-          // Decorative glass circles
           Positioned(
-            top: -20,
-            right: -20,
+            top: -50,
+            right: -40,
             child: Container(
-              width: 140,
-              height: 140,
+              width: 170,
+              height: 170,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: Colors.white.withOpacity(0.12),
+                color: Colors.white.withValues(alpha: 0.10),
               ),
             ),
           ),
-
-          // Content
           Padding(
-            padding: const EdgeInsets.all(18),
+            padding: const EdgeInsets.fromLTRB(16, 14, 18, 20),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Top Badge Row
                 Row(
                   children: [
-                    BouncyPressable(
+                    ApplePressable(
                       onTap: () => context.canPop()
                           ? context.pop()
                           : context.go('/courses'),
-                      scaleDown: 0.9,
+                      pressedScale: 0.9,
                       child: Container(
-                        width: 34,
-                        height: 34,
+                        width: 38,
+                        height: 38,
                         decoration: BoxDecoration(
-                          color: Colors.black.withOpacity(0.16),
+                          color: Colors.white.withValues(alpha: 0.22),
                           shape: BoxShape.circle,
-                          border: Border.all(
-                            color: Colors.white.withOpacity(0.24),
-                          ),
                         ),
                         child: const Icon(
-                          Icons.chevron_left_rounded,
+                          Symbols.arrow_back_ios_new_rounded,
+                          weight: 700,
                           color: Colors.white,
-                          size: 22,
+                          size: 16,
                         ),
                       ),
                     ),
@@ -570,28 +564,21 @@ class _CourseHero extends StatelessWidget {
                         padding: const EdgeInsets.symmetric(
                             horizontal: 10, vertical: 5),
                         decoration: BoxDecoration(
-                          color: const Color(0xFFDC2626),
-                          borderRadius: BorderRadius.circular(50),
-                          boxShadow: [
-                            BoxShadow(
-                              color: const Color(0xFFDC2626).withOpacity(0.4),
-                              blurRadius: 8,
-                              offset: const Offset(0, 2),
-                            ),
-                          ],
+                          color: const Color(0xFFFF3B30),
+                          borderRadius: BorderRadius.circular(20),
                         ),
                         child: const Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Icon(Icons.lock_rounded,
-                                size: 10.5, color: Colors.white),
+                            Icon(Symbols.lock_rounded,
+                                fill: 1, size: 12, color: Colors.white),
                             SizedBox(width: 4),
                             Text(
                               'EXPIRED',
                               style: TextStyle(
                                 color: Colors.white,
-                                fontSize: 9.5,
-                                fontWeight: FontWeight.w900,
+                                fontSize: 10.5,
+                                fontWeight: FontWeight.w700,
                                 letterSpacing: 0.6,
                               ),
                             ),
@@ -600,105 +587,96 @@ class _CourseHero extends StatelessWidget {
                       ),
                       const SizedBox(width: 8),
                     ],
-                    // Badge Pill
                     Container(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 12, vertical: 5),
+                          horizontal: 12, vertical: 6),
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.20),
-                        borderRadius: BorderRadius.circular(50),
-                        border: Border.all(
-                          color: Colors.white.withOpacity(0.28),
-                          width: 1,
-                        ),
+                        color: Colors.white.withValues(alpha: 0.22),
+                        borderRadius: BorderRadius.circular(20),
                       ),
                       child: Text(
                         badge,
                         style: const TextStyle(
                           color: Colors.white,
-                          fontSize: 9.5,
-                          fontWeight: FontWeight.w900,
+                          fontSize: 10.5,
+                          fontWeight: FontWeight.w700,
                           letterSpacing: 0.6,
                         ),
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 14),
-
-                // Subject Label (Small Bold Uppercase)
+                const SizedBox(height: 22),
                 if (subject != null && subject.isNotEmpty) ...[
-                  Text(
-                    subject.toUpperCase(),
-                    style: TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w900,
-                      color: Colors.white.withOpacity(0.85),
-                      letterSpacing: 1.1,
+                  Padding(
+                    padding: const EdgeInsets.only(left: 2),
+                    child: Text(
+                      subject.toUpperCase(),
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white.withValues(alpha: 0.85),
+                        letterSpacing: 0.9,
+                      ),
                     ),
                   ),
                   const SizedBox(height: 4),
                 ],
-
-                // Big Course Title
-                Text(
-                  title,
-                  style: const TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w900,
-                    color: Colors.white,
-                    letterSpacing: -0.3,
-                    height: 1.2,
+                Padding(
+                  padding: const EdgeInsets.only(left: 2),
+                  child: Text(
+                    title,
+                    style: const TextStyle(
+                      fontSize: 27,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.white,
+                      letterSpacing: -0.8,
+                      height: 1.12,
+                    ),
                   ),
                 ),
-
-                // Web Stats & Teacher Info Row
                 if ((topicsCount != null && topicsCount! > 0) ||
-                    (course['teacherName'] as String?)?.isNotEmpty == true) ...[
-                  const SizedBox(height: 8),
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 4,
-                    crossAxisAlignment: WrapCrossAlignment.center,
-                    children: [
-                      if (topicsCount != null && topicsCount! > 0)
-                        Text(
-                          '$topicsCount topics · ${lecturesCount ?? 0} lectures',
-                          style: TextStyle(
-                            fontSize: 11.5,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.white.withOpacity(0.9),
-                          ),
-                        ),
-                      if ((course['teacherName'] as String?)?.isNotEmpty == true) ...[
-                        Text(
-                          '·',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.white.withOpacity(0.6),
-                          ),
-                        ),
-                        Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              Icons.person_outline_rounded,
-                              size: 13,
-                              color: Colors.white.withOpacity(0.9),
+                    teacher.isNotEmpty) ...[
+                  const SizedBox(height: 12),
+                  Padding(
+                    padding: const EdgeInsets.only(left: 2),
+                    child: Wrap(
+                      spacing: 14,
+                      runSpacing: 6,
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      children: [
+                        if (topicsCount != null && topicsCount! > 0)
+                          Text(
+                            '$topicsCount topics · ${lecturesCount ?? 0} lectures',
+                            style: TextStyle(
+                              fontSize: 13.5,
+                              fontWeight: FontWeight.w500,
+                              color: Colors.white.withValues(alpha: 0.92),
                             ),
-                            const SizedBox(width: 4),
-                            Text(
-                              course['teacherName'] as String,
-                              style: TextStyle(
-                                fontSize: 11.5,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.white.withOpacity(0.9),
+                          ),
+                        if (teacher.isNotEmpty)
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                Symbols.person_rounded,
+                                fill: 1,
+                                size: 16,
+                                color: Colors.white.withValues(alpha: 0.92),
                               ),
-                            ),
-                          ],
-                        ),
+                              const SizedBox(width: 4),
+                              Text(
+                                teacher,
+                                style: TextStyle(
+                                  fontSize: 13.5,
+                                  fontWeight: FontWeight.w500,
+                                  color: Colors.white.withValues(alpha: 0.92),
+                                ),
+                              ),
+                            ],
+                          ),
                       ],
-                    ],
+                    ),
                   ),
                 ],
               ],
@@ -730,8 +708,6 @@ class _CourseTabBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final tokens = context.tokens;
-
     final tabs = [
       const _TabItem(title: 'Curriculum'),
       _TabItem(
@@ -750,13 +726,8 @@ class _CourseTabBar extends StatelessWidget {
       const _TabItem(title: 'Feedback'),
     ];
 
-    return Container(
-      margin: const EdgeInsets.only(top: 8),
-      decoration: BoxDecoration(
-        border: Border(
-          bottom: BorderSide(color: tokens.border, width: 1.2),
-        ),
-      ),
+    return Padding(
+      padding: const EdgeInsets.only(top: 12, bottom: 2),
       child: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -770,7 +741,7 @@ class _CourseTabBar extends StatelessWidget {
                 accent: accent,
                 onTap: () => onTabSelected(i),
               ),
-              if (i < tabs.length - 1) const SizedBox(width: 18),
+              if (i < tabs.length - 1) const SizedBox(width: 8),
             ],
           ],
         ),
@@ -801,18 +772,18 @@ class _TabButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final tokens = context.tokens;
+    final reduce = MediaQuery.of(context).disableAnimations;
 
-    return InkWell(
+    return ApplePressable(
       onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 4),
+      pressedScale: 0.95,
+      child: AnimatedContainer(
+        duration: reduce ? Duration.zero : const Duration(milliseconds: 220),
+        curve: kEaseOutStrong,
+        padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 9),
         decoration: BoxDecoration(
-          border: Border(
-            bottom: BorderSide(
-              color: isActive ? accent : Colors.transparent,
-              width: 2.5,
-            ),
-          ),
+          color: isActive ? accent : tokens.cardBg,
+          borderRadius: BorderRadius.circular(22),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
@@ -820,29 +791,29 @@ class _TabButton extends StatelessWidget {
             Text(
               tab.title,
               style: TextStyle(
-                fontSize: 13.5,
-                fontWeight: isActive ? FontWeight.w900 : FontWeight.w600,
-                color: isActive ? tokens.textPrimary : tokens.textMuted,
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                letterSpacing: -0.2,
+                color: isActive ? Colors.white : tokens.textSecondary,
               ),
             ),
             if (tab.count != null && tab.count! > 0) ...[
               const SizedBox(width: 6),
               Container(
                 padding:
-                    const EdgeInsets.symmetric(horizontal: 6, vertical: 1.5),
+                    const EdgeInsets.symmetric(horizontal: 7, vertical: 1.5),
                 decoration: BoxDecoration(
                   color: isActive
-                      ? const Color(0xFF10B981).withOpacity(0.12)
-                      : tokens.surfaceSecondary,
+                      ? Colors.white.withValues(alpha: 0.26)
+                      : accent.withValues(alpha: 0.14),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Text(
                   '${tab.count}',
                   style: TextStyle(
-                    fontSize: 10,
-                    fontWeight: FontWeight.w800,
-                    color:
-                        isActive ? const Color(0xFF10B981) : tokens.textMuted,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                    color: isActive ? Colors.white : accent,
                   ),
                 ),
               ),
@@ -934,7 +905,7 @@ class _DownloadedNotesTabContent extends ConsumerWidget {
             child: const Text(
               'Delete',
               style: TextStyle(
-                color: Color(0xFFEF4444),
+                color: Color(0xFFFF3B30),
                 fontWeight: FontWeight.bold,
               ),
             ),
@@ -1218,6 +1189,8 @@ class _TopicAccordion extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final tokens = context.tokens;
+    final reduce = MediaQuery.of(context).disableAnimations;
+    final dur = reduce ? Duration.zero : const Duration(milliseconds: 260);
     final title = (topic['title'] as String?) ?? 'Topic';
     final contents = (topic['content'] as List?) ?? const [];
     final count = contents.length;
@@ -1225,130 +1198,135 @@ class _TopicAccordion extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: tokens.cardBg,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: tokens.border),
+        borderRadius: BorderRadius.circular(22),
         boxShadow: AppShadows.sm,
       ),
       clipBehavior: Clip.antiAlias,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // Header Bar
-          InkWell(
-            onTap: onToggle,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
-              decoration: BoxDecoration(
-                border: Border(
-                  left: BorderSide(color: accent, width: 4),
-                  bottom: isOpen
-                      ? BorderSide(color: tokens.border, width: 1)
-                      : BorderSide.none,
-                ),
-              ),
-              child: Row(
-                children: [
-                  // Number Box (e.g. 01)
-                  Container(
-                    width: 32,
-                    height: 32,
-                    decoration: BoxDecoration(
-                      color: accent.withOpacity(0.12),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    alignment: Alignment.center,
-                    child: Text(
-                      index.toString().padLeft(2, '0'),
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w900,
-                        color: accent,
+          Material(
+            type: MaterialType.transparency,
+            child: InkWell(
+              onTap: onToggle,
+              splashFactory: NoSplash.splashFactory,
+              highlightColor: tokens.textPrimary.withValues(alpha: 0.06),
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(14, 12, 12, 12),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 36,
+                      height: 36,
+                      decoration: BoxDecoration(
+                        color: accent.withValues(alpha: 0.14),
+                        borderRadius: BorderRadius.circular(11),
+                      ),
+                      alignment: Alignment.center,
+                      child: Text(
+                        index.toString().padLeft(2, '0'),
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w700,
+                          color: accent,
+                        ),
                       ),
                     ),
-                  ),
-                  const SizedBox(width: 12),
-
-                  // Title & Lecture count
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          title,
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w800,
-                            color: tokens.textPrimary,
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            title,
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                              letterSpacing: -0.3,
+                              color: tokens.textPrimary,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          '$count lecture${count != 1 ? 's' : ''}',
-                          style: TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w600,
-                            color: tokens.textMuted,
+                          const SizedBox(height: 1),
+                          Text(
+                            '$count lecture${count != 1 ? 's' : ''}',
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: tokens.textSecondary,
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
-                  ),
-
-                  // Expansion Chevron
-                  Icon(
-                    isOpen
-                        ? Icons.keyboard_arrow_up
-                        : Icons.keyboard_arrow_down,
-                    color: tokens.textMuted,
-                    size: 20,
-                  ),
-                ],
+                    AnimatedRotation(
+                      turns: isOpen ? 0.5 : 0,
+                      duration: dur,
+                      curve: kEaseOutStrong,
+                      child: Icon(
+                        Symbols.expand_more_rounded,
+                        color: tokens.textMuted,
+                        weight: 600,
+                        size: 24,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
-
-          // Expanded 2-Column Grid
-          if (isOpen) ...[
-            if (contents.isEmpty)
-              Padding(
-                padding: const EdgeInsets.all(20),
-                child: Center(
-                  child: Text(
-                    'No lectures in this topic yet',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: tokens.textMuted,
-                    ),
-                  ),
-                ),
-              )
-            else
-              Padding(
-                padding: const EdgeInsets.all(12),
-                child: LayoutBuilder(
-                  builder: (context, constraints) {
-                    final width = (constraints.maxWidth - 12) / 2;
-                    return Wrap(
-                      spacing: 12,
-                      runSpacing: 12,
-                      children: [
-                        for (final item in contents)
-                          SizedBox(
-                            width: width,
-                            child: _LectureGridCard(
-                              item: item as Map<String, dynamic>,
-                              courseId: courseId,
-                              courseName: courseName,
+          AnimatedSize(
+            duration: dur,
+            curve: kEaseOutStrong,
+            alignment: Alignment.topCenter,
+            child: !isOpen
+                ? const SizedBox(width: double.infinity)
+                : Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Divider(
+                          height: 0.5, thickness: 0.5, color: tokens.border),
+                      if (contents.isEmpty)
+                        Padding(
+                          padding: const EdgeInsets.all(20),
+                          child: Center(
+                            child: Text(
+                              'No lectures in this topic yet',
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: tokens.textMuted,
+                              ),
                             ),
                           ),
-                      ],
-                    );
-                  },
-                ),
-              ),
-          ],
+                        )
+                      else
+                        Padding(
+                          padding: const EdgeInsets.all(12),
+                          child: LayoutBuilder(
+                            builder: (context, constraints) {
+                              final width = (constraints.maxWidth - 12) / 2;
+                              return Wrap(
+                                spacing: 12,
+                                runSpacing: 12,
+                                children: [
+                                  for (final item in contents)
+                                    SizedBox(
+                                      width: width,
+                                      child: _LectureGridCard(
+                                        item: item as Map<String, dynamic>,
+                                        courseId: courseId,
+                                        courseName: courseName,
+                                        accent: accent,
+                                      ),
+                                    ),
+                                ],
+                              );
+                            },
+                          ),
+                        ),
+                    ],
+                  ),
+          ),
         ],
       ),
     );
@@ -1363,10 +1341,12 @@ class _LectureGridCard extends ConsumerWidget {
     required this.item,
     required this.courseId,
     required this.courseName,
+    this.accent = const Color(0xFF5856D6),
   });
   final Map<String, dynamic> item;
   final String courseId;
   final String courseName;
+  final Color accent;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -1390,38 +1370,13 @@ class _LectureGridCard extends ConsumerWidget {
     final isDrive = youtubeSource == null;
 
     final isDownloaded = !isVideo && id != null
-        ? ref.watch(downloadStatusProvider(id)).valueOrNull != null
+        ? ref.watch(downloadStatusProvider(id)).value != null
         : false;
 
     final uploadAge = _getUploadAge(createdAt);
 
-    // Card palette per appearance. On the dark and black themes the card is a
-    // soft off-white so lectures stand out from the dark page; on the light
-    // theme it is a plain white card.
-    final Color cardColor, thumbColor, cardBorder, titleColor, metaColor,
-        iconColor;
-    if (tokens.isBlack) {
-      cardColor = const Color(0xFFE8E8EA);
-      thumbColor = const Color(0xFFD7D7DB);
-      cardBorder = const Color(0xFFBFBFC5);
-      titleColor = const Color(0xFF111113);
-      metaColor = const Color(0xFF5B5B63);
-      iconColor = const Color(0xFF111113);
-    } else if (tokens.isDark) {
-      cardColor = const Color(0xFFE9ECF5);
-      thumbColor = const Color(0xFFD8DDEC);
-      cardBorder = const Color(0xFFC5CCE0);
-      titleColor = const Color(0xFF0F172A);
-      metaColor = const Color(0xFF5B6478);
-      iconColor = const Color(0xFF4F46E5);
-    } else {
-      cardColor = const Color(0xFFFFFFFF);
-      thumbColor = const Color(0xFFEEF1F8);
-      cardBorder = tokens.border;
-      titleColor = tokens.textPrimary;
-      metaColor = tokens.textSecondary;
-      iconColor = const Color(0xFF4F46E5);
-    }
+    final Color titleColor = tokens.textPrimary;
+    final Color metaColor = tokens.textSecondary;
 
     void handleClick() {
       if (isVideo) {
@@ -1462,20 +1417,18 @@ class _LectureGridCard extends ConsumerWidget {
       }
     }
 
-    return InkWell(
+    return ApplePressable(
       onTap: handleClick,
-      borderRadius: BorderRadius.circular(10),
+      pressedScale: 0.97,
       child: Container(
         decoration: BoxDecoration(
-          color: cardColor,
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: cardBorder),
+          color: tokens.surfaceSecondary,
+          borderRadius: BorderRadius.circular(16),
         ),
         clipBehavior: Clip.antiAlias,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // 16:9 Thumbnail Box
             AspectRatio(
               aspectRatio: 16 / 9,
               child: Stack(
@@ -1483,22 +1436,36 @@ class _LectureGridCard extends ConsumerWidget {
                 children: [
                   Container(
                     decoration: BoxDecoration(
-                      color: thumbColor,
-                      border: Border(
-                        bottom: BorderSide(color: cardBorder, width: 1),
-                      ),
+                      gradient: isVideo
+                          ? LinearGradient(
+                              colors: [accent, _endOf(accent)],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                            )
+                          : null,
+                      color: isVideo ? null : accent.withValues(alpha: 0.14),
                     ),
                     alignment: Alignment.center,
                     child: isVideo
-                        ? Icon(
-                            Icons.play_arrow_rounded,
-                            size: 38,
-                            color: iconColor,
+                        ? Container(
+                            width: 36,
+                            height: 36,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: Colors.white.withValues(alpha: 0.28),
+                            ),
+                            child: const Icon(
+                              Symbols.play_arrow_rounded,
+                              fill: 1,
+                              size: 24,
+                              color: Colors.white,
+                            ),
                           )
                         : Icon(
-                            Icons.description_outlined,
+                            Symbols.description_rounded,
+                            fill: 1,
                             size: 30,
-                            color: iconColor,
+                            color: accent,
                           ),
                   ),
                   if (isDownloaded)
@@ -1507,22 +1474,23 @@ class _LectureGridCard extends ConsumerWidget {
                       right: 6,
                       child: Container(
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 5, vertical: 2),
+                            horizontal: 7, vertical: 3),
                         decoration: BoxDecoration(
-                          color: const Color(0xFF10B981),
-                          borderRadius: BorderRadius.circular(4),
+                          color: const Color(0xFF34C759),
+                          borderRadius: BorderRadius.circular(20),
                         ),
                         child: const Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Icon(Icons.check, size: 10, color: Colors.white),
+                            Icon(Symbols.check_rounded,
+                                weight: 700, size: 11, color: Colors.white),
                             SizedBox(width: 2),
                             Text(
                               'Offline',
                               style: TextStyle(
                                 color: Colors.white,
-                                fontSize: 9,
-                                fontWeight: FontWeight.w800,
+                                fontSize: 10,
+                                fontWeight: FontWeight.w700,
                               ),
                             ),
                           ],
@@ -1532,10 +1500,8 @@ class _LectureGridCard extends ConsumerWidget {
                 ],
               ),
             ),
-
-            // Info Footer
             Padding(
-              padding: const EdgeInsets.fromLTRB(9, 7, 9, 9),
+              padding: const EdgeInsets.fromLTRB(10, 8, 10, 10),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -1544,17 +1510,17 @@ class _LectureGridCard extends ConsumerWidget {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
-                      fontSize: 12.5,
-                      fontWeight: FontWeight.w800,
+                      fontSize: 13.5,
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: -0.2,
                       color: titleColor,
                     ),
                   ),
-                  const SizedBox(height: 3),
+                  const SizedBox(height: 2),
                   Text(
                     uploadAge,
                     style: TextStyle(
-                      fontSize: 10.5,
-                      fontWeight: FontWeight.w500,
+                      fontSize: 11.5,
                       color: metaColor,
                     ),
                   ),
@@ -1808,7 +1774,7 @@ class _FeedbackTabContent extends StatelessWidget {
               height: 56,
               decoration: const BoxDecoration(
                 shape: BoxShape.circle,
-                color: Color(0xFF10B981),
+                color: Color(0xFF34C759),
               ),
               alignment: Alignment.center,
               child: const Icon(Icons.check, color: Colors.white, size: 30),

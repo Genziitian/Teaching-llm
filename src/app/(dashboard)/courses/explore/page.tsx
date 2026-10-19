@@ -145,6 +145,8 @@ export default function ExploreCoursesPage() {
   const [showCreateBundleModal, setShowCreateBundleModal] = useState(false)
   const [showCreateNoteModal, setShowCreateNoteModal] = useState(false)
   const [editingNote, setEditingNote] = useState<any>(null)
+  const [detailNote, setDetailNote] = useState<any>(null)
+  const [noteFileLabel, setNoteFileLabel] = useState('')
   const [uploadingNoteFile, setUploadingNoteFile] = useState(false)
   const [showCreateMentorshipModal, setShowCreateMentorshipModal] = useState(false)
   const [editingMentorship, setEditingMentorship] = useState<any>(null)
@@ -357,6 +359,7 @@ export default function ExploreCoursesPage() {
         if (linkEl) {
           linkEl.value = json.url
         }
+        setNoteFileLabel(file.name)
       } else {
         const err = await res.json()
         alert(err.error || 'Failed to upload file')
@@ -405,7 +408,7 @@ export default function ExploreCoursesPage() {
               setSuccessOrderId(response.razorpay_order_id);
               setPurchasedCourse({ 
                 courseName: note.title, 
-                courseTier: '30-Day Access',
+                courseTier: `${note.validityDays || 90}-Day Access`,
                 type: 'note' 
               });
               setTimeout(() => { window.open(`/api/store/notes/${note.id}/download`, '_blank', 'noopener,noreferrer') }, 1500);
@@ -703,27 +706,27 @@ export default function ExploreCoursesPage() {
               {showCreateDropdown && (
                 <div style={{
                   position: 'absolute', top: 'calc(100% + 8px)', right: 0,
-                  background: 'var(--surface)', borderRadius: '12px', padding: '8px',
-                  boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)',
-                  zIndex: 100, minWidth: '160px',
+                  background: 'var(--surface)', borderRadius: '16px', padding: '6px',
+                  boxShadow: '0 0 0 0.5px var(--border), 0 12px 32px rgba(0,0,0,0.14)',
+                  zIndex: 100, minWidth: '170px',
                   display: 'flex', flexDirection: 'column', gap: '4px'
                 }}>
                   {[
-                    { label: '📚 Course', action: () => { setOfferingCategory(''); setShowCreateModal(true); setShowCreateDropdown(false) } },
-                    { label: '📦 Bundle', action: () => { setBundleCategory(''); setShowCreateBundleModal(true); setShowCreateDropdown(false) } },
-                    { label: '📝 Notes', action: () => { setNoteCategory('General'); setNoteSubject(''); setShowCreateNoteModal(true); setShowCreateDropdown(false) } },
-                    { label: '🤝 Mentorship', action: () => { setShowCreateMentorshipModal(true); setShowCreateDropdown(false) } }
+                    { label: 'Course', action: () => { setOfferingCategory(''); setShowCreateModal(true); setShowCreateDropdown(false) } },
+                    { label: 'Bundle', action: () => { setBundleCategory(''); setShowCreateBundleModal(true); setShowCreateDropdown(false) } },
+                    { label: 'Notes', action: () => { setNoteCategory('General'); setNoteSubject(''); setNoteFileLabel(''); setShowCreateNoteModal(true); setShowCreateDropdown(false) } },
+                    { label: 'Mentorship', action: () => { setShowCreateMentorshipModal(true); setShowCreateDropdown(false) } }
                   ].map((item, i) => (
                     <button
                       key={i}
                       onClick={item.action}
                       style={{
                         padding: '10px 12px', background: 'transparent', border: 'none',
-                        borderRadius: '8px', textAlign: 'left', fontSize: '13px',
-                        fontWeight: '600', color: 'var(--text-primary)', cursor: 'pointer',
+                        borderRadius: '10px', textAlign: 'left', fontSize: '14px',
+                        fontWeight: '500', color: 'var(--text-primary)', cursor: 'pointer',
                         transition: 'background 0.2s'
                       }}
-                      onMouseEnter={e => e.currentTarget.style.background = 'var(--surface)'}
+                      onMouseEnter={e => e.currentTarget.style.background = 'var(--surface-hover)'}
                       onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
                     >
                       {item.label}
@@ -781,22 +784,32 @@ export default function ExploreCoursesPage() {
 
       {/* STORE CATEGORY CARDS */}
       {!storeView && (
-        <div className="store-category-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(280px, 100%), 1fr))', gap: '24px', marginBottom: '32px' }}>
+        <div className="store-category-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(280px, 100%), 1fr))', gap: '20px', marginBottom: '32px' }}>
           {[
-            { key: 'courses' as const, title: 'Courses', subtitle: `${(offerings || []).length + (bundleOfferings || []).length} available`, icon: <BookOpen size={28} color="#fff" />, gradient: 'linear-gradient(135deg, #4f46e5, #0ea5e9)', shadow: 'rgba(79, 70, 229, 0.25)' },
-            { key: 'notes' as const, title: 'Premium Notes', subtitle: `${storeNotesData?.notes?.length || 0} notes`, icon: <FileText size={28} color="#fff" />, gradient: 'linear-gradient(135deg, #0d9488, #10b981)', shadow: 'rgba(13, 148, 136, 0.25)' },
-            { key: 'mentorship' as const, title: 'Book a Call with Mentor', subtitle: `${mentorshipsData?.mentorships?.length || 0} mentors`, icon: <Users size={28} color="#fff" />, gradient: 'linear-gradient(135deg, #f97316, #f59e0b)', shadow: 'rgba(249, 115, 22, 0.25)' },
+            { key: 'courses' as const, title: 'Courses', subtitle: `${(offerings || []).length + (bundleOfferings || []).length} available`, icon: <BookOpen size={26} color="#fff" strokeWidth={2.2} />, gradient: 'linear-gradient(135deg, #5ac8fa, #0a84ff)', comingSoon: false },
+            { key: 'notes' as const, title: 'Premium Notes', subtitle: `${storeNotesData?.notes?.length || 0} ${(storeNotesData?.notes?.length || 0) === 1 ? 'note' : 'notes'}`, icon: <FileText size={26} color="#fff" strokeWidth={2.2} />, gradient: 'linear-gradient(135deg, #34c759, #248a3d)', comingSoon: false },
+            { key: 'mentorship' as const, title: 'Book a Call with Mentor', subtitle: 'Coming soon', icon: <Users size={26} color="#fff" strokeWidth={2.2} />, gradient: 'linear-gradient(135deg, #a1a1a6, #7c7c80)', comingSoon: true },
           ].map(card => (
-            <div key={card.key} className="store-cat-card" onClick={() => setStoreView(card.key)} style={{ background: 'var(--surface)', borderRadius: '24px', padding: 'clamp(20px, 5vw, 32px)', cursor: 'pointer', boxShadow: '0 10px 30px rgba(15,23,42,0.06)', border: '1.5px solid var(--border)', transition: 'all 0.3s ease', position: 'relative', overflow: 'hidden', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}
-              onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-6px)'; e.currentTarget.style.borderColor = 'var(--accent)'; e.currentTarget.style.boxShadow = `0 20px 40px ${card.shadow}` }}
-              onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.boxShadow = '0 10px 30px rgba(15,23,42,0.06)' }}
+            <div key={card.key} className="store-cat-card" onClick={() => { if (!card.comingSoon) setStoreView(card.key) }}
+              style={{ background: 'var(--surface)', borderRadius: '28px', padding: 'clamp(22px, 5vw, 30px)', cursor: card.comingSoon ? 'default' : 'pointer', boxShadow: '0 1px 2px rgba(0,0,0,0.04), 0 8px 24px rgba(0,0,0,0.05)', border: '0.5px solid var(--border)', transition: 'transform 0.35s cubic-bezier(0.23,1,0.32,1), box-shadow 0.35s cubic-bezier(0.23,1,0.32,1)', position: 'relative', overflow: 'hidden', display: 'flex', flexDirection: 'column', alignItems: 'flex-start', textAlign: 'left', opacity: card.comingSoon ? 0.78 : 1 }}
+              onMouseEnter={e => { if (card.comingSoon) return; e.currentTarget.style.transform = 'scale(1.015)'; e.currentTarget.style.boxShadow = '0 2px 4px rgba(0,0,0,0.05), 0 18px 40px rgba(0,0,0,0.09)' }}
+              onMouseLeave={e => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.boxShadow = '0 1px 2px rgba(0,0,0,0.04), 0 8px 24px rgba(0,0,0,0.05)' }}
+              onMouseDown={e => { if (!card.comingSoon) e.currentTarget.style.transform = 'scale(0.98)' }}
+              onMouseUp={e => { if (!card.comingSoon) e.currentTarget.style.transform = 'scale(1.015)' }}
             >
-              <div className="store-cat-icon" style={{ width: '64px', height: '64px', borderRadius: '20px', background: card.gradient, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '20px', boxShadow: `0 8px 20px ${card.shadow}` }}>{card.icon}</div>
-              <h3 style={{ fontSize: 'clamp(18px, 4.4vw, 22px)', fontWeight: '900', color: 'var(--text-primary)', marginBottom: '6px' }}>{card.title}</h3>
-              <p className="store-cat-sub" style={{ fontSize: '14px', color: 'var(--text-secondary)', fontWeight: '600', marginBottom: '16px' }}>{card.subtitle}</p>
-              <div className="store-cat-explore" style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--accent)', fontSize: '13px', fontWeight: '700' }}>
-                Explore <ChevronRight size={16} strokeWidth={3} />
+              <div style={{ display: 'flex', width: '100%', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '28px' }}>
+                <div className="store-cat-icon" style={{ width: '56px', height: '56px', borderRadius: '17px', background: card.gradient, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{card.icon}</div>
+                {card.comingSoon && (
+                  <span style={{ fontSize: '12px', fontWeight: 700, padding: '5px 11px', borderRadius: '999px', background: 'var(--surface-hover)', color: 'var(--text-secondary)' }}>Coming soon</span>
+                )}
               </div>
+              <h3 style={{ fontSize: 'clamp(20px, 4.4vw, 24px)', fontWeight: 800, letterSpacing: '-0.5px', color: 'var(--text-primary)', margin: '0 0 4px' }}>{card.title}</h3>
+              <p className="store-cat-sub" style={{ fontSize: '15px', color: 'var(--text-secondary)', fontWeight: 500, margin: '0 0 18px' }}>{card.subtitle}</p>
+              {!card.comingSoon && (
+                <div className="store-cat-explore" style={{ display: 'flex', alignItems: 'center', gap: '4px', color: 'var(--accent)', fontSize: '15px', fontWeight: 600, marginTop: 'auto' }}>
+                  Explore <ChevronRight size={17} strokeWidth={2.6} />
+                </div>
+              )}
             </div>
           ))}
         </div>
@@ -844,9 +857,9 @@ export default function ExploreCoursesPage() {
       {/* Category options selection screen */}
       {storeView === 'courses' && !selectedStoreTab && visibleCategories.length > 0 && (
         <div style={{ padding: '20px 0' }}>
-          <h2 style={{ fontSize: '24px', fontWeight: '950', textAlign: 'center', marginBottom: '8px' }}>Select Level</h2>
+          <h2 style={{ fontSize: '28px', fontWeight: 800, letterSpacing: '-0.6px', textAlign: 'center', marginBottom: '6px' }}>Select Level</h2>
           <p style={{ fontSize: '15px', color: 'var(--text-secondary)', textAlign: 'center', marginBottom: '32px' }}>Choose a level to explore available courses</p>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '20px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(260px, 100%), 1fr))', gap: '14px', maxWidth: '860px', margin: '0 auto' }}>
             {visibleCategories.map(cat => {
               const courseCount = activeOfferings.filter((o: any) => (o.category || 'General') === cat).length;
               const bundleCount = activeBundles.filter((b: any) => (b.category || 'General') === cat).length;
@@ -856,34 +869,38 @@ export default function ExploreCoursesPage() {
                   onClick={() => setSelectedStoreTab(cat)}
                   style={{
                     background: 'var(--surface)',
-                    borderRadius: '24px',
-                    padding: '32px 24px',
-                    textAlign: 'center',
+                    borderRadius: '22px',
+                    padding: '16px 18px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '14px',
+                    textAlign: 'left',
                     cursor: 'pointer',
-                    boxShadow: '0 10px 30px rgba(15,23,42,0.06)',
-                    border: '1.5px solid var(--border)',
-                    transition: 'all 0.3s ease',
+                    boxShadow: '0 1px 2px rgba(0,0,0,0.04), 0 6px 18px rgba(0,0,0,0.04)',
+                    border: '0.5px solid var(--border)',
+                    transition: 'transform 0.3s cubic-bezier(0.23,1,0.32,1), box-shadow 0.3s cubic-bezier(0.23,1,0.32,1)',
                   }}
                   onMouseEnter={e => {
-                    e.currentTarget.style.transform = 'translateY(-4px)';
-                    e.currentTarget.style.borderColor = 'var(--accent)';
-                    e.currentTarget.style.boxShadow = '0 20px 40px rgba(99,102,241,0.1)';
+                    e.currentTarget.style.transform = 'scale(1.015)';
+                    e.currentTarget.style.boxShadow = '0 2px 4px rgba(0,0,0,0.05), 0 14px 32px rgba(0,0,0,0.08)';
                   }}
                   onMouseLeave={e => {
-                    e.currentTarget.style.transform = 'translateY(0)';
-                    e.currentTarget.style.borderColor = 'var(--border)';
-                    e.currentTarget.style.boxShadow = '0 10px 30px rgba(15,23,42,0.06)';
+                    e.currentTarget.style.transform = 'scale(1)';
+                    e.currentTarget.style.boxShadow = '0 1px 2px rgba(0,0,0,0.04), 0 6px 18px rgba(0,0,0,0.04)';
                   }}
                 >
-                  <div style={{ fontSize: '40px', marginBottom: '16px' }}>
-                    {cat === 'Re-attempt' ? '🔄' : cat === 'Foundation' ? '🌱' : cat === 'Diploma' ? '🎓' : '📚'}
+                  <div style={{ width: '46px', height: '46px', borderRadius: '14px', background: 'var(--surface-hover)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, color: 'var(--text-secondary)' }}>
+                    <BookOpen size={22} strokeWidth={2.2} />
                   </div>
-                  <h3 style={{ fontSize: '20px', fontWeight: '900', color: 'var(--text-primary)', marginBottom: '8px' }}>{cat}</h3>
-                  <p style={{ fontSize: '13px', color: 'var(--text-secondary)', fontWeight: '600' }}>
-                    {courseCount > 0 && `${courseCount} Course${courseCount > 1 ? 's' : ''}`}
-                    {courseCount > 0 && bundleCount > 0 && ' • '}
-                    {bundleCount > 0 && `${bundleCount} Bundle${bundleCount > 1 ? 's' : ''}`}
-                  </p>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <h3 style={{ fontSize: '17px', fontWeight: 700, letterSpacing: '-0.3px', color: 'var(--text-primary)', margin: '0 0 2px' }}>{cat}</h3>
+                    <p style={{ fontSize: '13px', color: 'var(--text-secondary)', fontWeight: 500, margin: 0 }}>
+                      {courseCount > 0 && `${courseCount} Course${courseCount > 1 ? 's' : ''}`}
+                      {courseCount > 0 && bundleCount > 0 && ' · '}
+                      {bundleCount > 0 && `${bundleCount} Bundle${bundleCount > 1 ? 's' : ''}`}
+                    </p>
+                  </div>
+                  <ChevronRight size={18} strokeWidth={2.4} color="var(--text-muted)" />
                 </div>
               );
             })}
@@ -914,7 +931,7 @@ export default function ExploreCoursesPage() {
             onMouseEnter={e => e.currentTarget.style.background = 'var(--surface-hover)'}
             onMouseLeave={e => e.currentTarget.style.background = 'var(--surface)'}
           >
-            🔄 Change Category
+            Change Category
           </button>
         </div>
       )}
@@ -933,28 +950,30 @@ export default function ExploreCoursesPage() {
                   minWidth: '320px', 
                   maxWidth: '350px',
                   background: 'var(--surface)', 
-                  borderRadius: '24px', 
-                  padding: '22px', 
-                  boxShadow: '0 10px 40px rgba(15,23,42,0.08)',
-                  border: '1px solid var(--border)',
+                  borderRadius: '26px', 
+                  padding: '20px', 
+                  boxShadow: '0 1px 2px rgba(0,0,0,0.04), 0 8px 24px rgba(0,0,0,0.05)',
+                  border: '0.5px solid var(--border)',
                   display: 'flex',
                   flexDirection: 'column',
-                  gap: '16px',
-                  transition: 'transform 0.3s ease',
+                  gap: '14px',
+                  transition: 'transform 0.35s cubic-bezier(0.23,1,0.32,1)',
                   cursor: 'default'
                 }}
-                  onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-4px)'}
-                  onMouseLeave={e => e.currentTarget.style.transform = 'translateY(0)'}
+                  onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.012)'}
+                  onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
                 >
                   <div style={{ flex: 1 }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '10px' }}>
-                      <div style={{ fontSize: '11px', fontWeight: '800', color: 'var(--accent)', textTransform: 'uppercase', letterSpacing: '0.05em', background: 'rgba(99,102,241,0.08)', padding: '4px 10px', borderRadius: '20px' }}>Bundle</div>
-                        <Sparkles size={14} /> {b.courses.length} Courses
+                      <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.06em', background: 'var(--surface-hover)', padding: '4px 10px', borderRadius: '20px' }}>Bundle</div>
+                        <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-secondary)' }}>{b.courses.length} Courses</span>
                     </div>
-                    <div style={{ fontSize: '20px', fontWeight: '900', color: 'var(--text-primary)', marginBottom: '8px' }}>{b.name}</div>
-                    <div style={{ fontSize: '13px', color: 'var(--text-secondary)', fontWeight: '500', lineHeight: '1.5', minHeight: '40px', overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
-                      {b.description || `Special curated bundle with ${b.courses.length} premium courses.`}
-                    </div>
+                    <div style={{ fontSize: '22px', fontWeight: 800, letterSpacing: '-0.4px', color: 'var(--text-primary)', marginBottom: '6px' }}>{b.name}</div>
+                    {b.description && (
+                      <div style={{ fontSize: '13px', color: 'var(--text-secondary)', fontWeight: '500', lineHeight: '1.5', overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
+                        {b.description}
+                      </div>
+                    )}
                     {/* Included Courses Tags */}
                     {b.courses && b.courses.length > 0 && (
                       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '12px' }}>
@@ -963,10 +982,10 @@ export default function ExploreCoursesPage() {
                             fontSize: '11px', 
                             fontWeight: '700', 
                             color: 'var(--text-secondary)', 
-                            background: 'var(--surface)', 
-                            padding: '4px 8px', 
-                            borderRadius: '6px',
-                            border: '1px solid var(--border)'
+                            background: 'var(--surface-hover)', 
+                            padding: '4px 9px', 
+                            borderRadius: '8px',
+                            border: 'none'
                           }}>
                             {c.course.name || c.course.subject || 'Course'}
                           </span>
@@ -975,11 +994,10 @@ export default function ExploreCoursesPage() {
                     )}
                   </div>
 
-                  <div style={{ background: 'var(--surface)', borderRadius: '20px', padding: '16px', border: '1px solid var(--border)' }}>
-                    <div style={{ fontSize: '11px', fontWeight: '800', color: 'var(--accent)', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.02em', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                      <Calendar size={12} /> {b.bannerText || 'Class starts from 1 June 2026'}
+                  <div style={{ background: 'var(--surface-hover)', borderRadius: '18px', padding: '14px 16px', border: 'none' }}>
+                    <div style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                      <Calendar size={13} /> {b.bannerText || 'Class starts from 1 June 2026'}
                     </div>
-                    <div style={{ fontSize: '12px', fontWeight: '700', color: 'var(--text-muted)', marginBottom: '4px' }}>{b.startingFromText || 'Courses start from'}</div>
                     <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px' }}>
                       <span style={{ fontSize: '14px', fontWeight: '800', color: 'var(--text-primary)' }}>₹</span>
                       <span style={{ fontSize: '28px', fontWeight: '950', color: 'var(--text-primary)', letterSpacing: '-0.02em' }}>{b.startingPrice || (bundlePriceLive || bundlePriceRecorded || 0)}</span>
@@ -1018,7 +1036,7 @@ export default function ExploreCoursesPage() {
                       setCouponCode('');
                       setCouponError('');
                       setShowBundleModal(true) 
-                    }} style={{ flex: 1, padding: '14px', borderRadius: '14px', background: 'linear-gradient(135deg,#6366f1,#8b5cf6)', color: '#fff', fontWeight: '900', fontSize: '15px', border: 'none', cursor: 'pointer', boxShadow: '0 8px 20px rgba(99,102,241,0.25)' }}>View / Buy</button>
+                    }} style={{ flex: 1, padding: '13px', borderRadius: '14px', background: 'var(--accent)', color: '#fff', fontWeight: 600, fontSize: '15px', border: 'none', cursor: 'pointer' }}>View / Buy</button>
                     
                     {(userData?.user?.role === 'MANAGER' || userData?.role === 'MANAGER') && (
                       <div style={{ display: 'flex', gap: '6px' }}>
@@ -1050,7 +1068,7 @@ export default function ExploreCoursesPage() {
                             courseHeadline: b.courseHeadline ?? 'Included Courses',
                             category: b.category || 'General'
                           }) 
-                        }} style={{ width: '44px', height: '44px', borderRadius: '14px', background: 'var(--surface)', border: '1px solid var(--border)', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}><Pencil size={18} /></button>
+                        }} style={{ width: '44px', height: '44px', borderRadius: '14px', background: 'var(--surface-hover)', border: 'none', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}><Pencil size={18} /></button>
                         <button onClick={async () => {
                           if (!confirm(`Delete bundle "${b.name}"? This cannot be undone.`)) return
                           try {
@@ -1058,7 +1076,7 @@ export default function ExploreCoursesPage() {
                             if (res.ok) window.location.reload()
                             else { const d = await res.json(); alert(d.error || 'Failed to delete') }
                           } catch { alert('Failed to delete bundle') }
-                        }} style={{ width: '44px', height: '44px', borderRadius: '14px', background: 'var(--danger-light)', border: '1px solid var(--border)', color: 'var(--danger)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}><Trash2 size={18} /></button>
+                        }} style={{ width: '44px', height: '44px', borderRadius: '14px', background: 'var(--danger-light)', border: 'none', color: 'var(--danger)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}><Trash2 size={18} /></button>
                       </div>
                     )}
                   </div>
@@ -1072,9 +1090,9 @@ export default function ExploreCoursesPage() {
       {/* Category options selection screen for Notes */}
       {storeView === 'notes' && !selectedNotesTab && visibleNotesCategories.length > 0 && (
         <div style={{ padding: '20px 0' }}>
-          <h2 style={{ fontSize: '24px', fontWeight: '950', textAlign: 'center', marginBottom: '8px' }}>Select Level</h2>
+          <h2 style={{ fontSize: '28px', fontWeight: 800, letterSpacing: '-0.6px', textAlign: 'center', marginBottom: '6px' }}>Select Level</h2>
           <p style={{ fontSize: '15px', color: 'var(--text-secondary)', textAlign: 'center', marginBottom: '32px' }}>Choose a level to explore available study notes</p>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '20px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(260px, 100%), 1fr))', gap: '14px', maxWidth: '860px', margin: '0 auto' }}>
             {visibleNotesCategories.map(cat => {
               const notesCount = activeNotes.filter((n: any) => (n.category || 'General') === cat).length;
               return (
@@ -1083,32 +1101,36 @@ export default function ExploreCoursesPage() {
                   onClick={() => setSelectedNotesTab(cat)}
                   style={{
                     background: 'var(--surface)',
-                    borderRadius: '24px',
-                    padding: '32px 24px',
-                    textAlign: 'center',
+                    borderRadius: '22px',
+                    padding: '16px 18px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '14px',
+                    textAlign: 'left',
                     cursor: 'pointer',
-                    boxShadow: '0 10px 30px rgba(15,23,42,0.06)',
-                    border: '1.5px solid var(--border)',
-                    transition: 'all 0.3s ease',
+                    boxShadow: '0 1px 2px rgba(0,0,0,0.04), 0 6px 18px rgba(0,0,0,0.04)',
+                    border: '0.5px solid var(--border)',
+                    transition: 'transform 0.3s cubic-bezier(0.23,1,0.32,1), box-shadow 0.3s cubic-bezier(0.23,1,0.32,1)',
                   }}
                   onMouseEnter={e => {
-                    e.currentTarget.style.transform = 'translateY(-4px)';
-                    e.currentTarget.style.borderColor = 'var(--success)';
-                    e.currentTarget.style.boxShadow = '0 20px 40px rgba(16,185,129,0.1)';
+                    e.currentTarget.style.transform = 'scale(1.015)';
+                    e.currentTarget.style.boxShadow = '0 2px 4px rgba(0,0,0,0.05), 0 14px 32px rgba(0,0,0,0.08)';
                   }}
                   onMouseLeave={e => {
-                    e.currentTarget.style.transform = 'translateY(0)';
-                    e.currentTarget.style.borderColor = 'var(--border)';
-                    e.currentTarget.style.boxShadow = '0 10px 30px rgba(15,23,42,0.06)';
+                    e.currentTarget.style.transform = 'scale(1)';
+                    e.currentTarget.style.boxShadow = '0 1px 2px rgba(0,0,0,0.04), 0 6px 18px rgba(0,0,0,0.04)';
                   }}
                 >
-                  <div style={{ fontSize: '40px', marginBottom: '16px' }}>
-                    {cat === 'Re-attempt' ? '🔄' : cat === 'Foundation' ? '🌱' : cat === 'Diploma' ? '🎓' : '📝'}
+                  <div style={{ width: '46px', height: '46px', borderRadius: '14px', background: 'var(--surface-hover)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, color: 'var(--text-secondary)' }}>
+                    <FileText size={22} strokeWidth={2.2} />
                   </div>
-                  <h3 style={{ fontSize: '20px', fontWeight: '900', color: 'var(--text-primary)', marginBottom: '8px' }}>{cat}</h3>
-                  <p style={{ fontSize: '13px', color: 'var(--text-secondary)', fontWeight: '600' }}>
-                    {notesCount > 0 ? `${notesCount} Note${notesCount > 1 ? 's' : ''}` : 'No notes'}
-                  </p>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <h3 style={{ fontSize: '17px', fontWeight: 700, letterSpacing: '-0.3px', color: 'var(--text-primary)', margin: '0 0 2px' }}>{cat}</h3>
+                    <p style={{ fontSize: '13px', color: 'var(--text-secondary)', fontWeight: 500, margin: 0 }}>
+                      {notesCount > 0 ? `${notesCount} Note${notesCount > 1 ? 's' : ''}` : 'No notes'}
+                    </p>
+                  </div>
+                  <ChevronRight size={18} strokeWidth={2.4} color="var(--text-muted)" />
                 </div>
               );
             })}
@@ -1142,7 +1164,7 @@ export default function ExploreCoursesPage() {
             onMouseEnter={e => e.currentTarget.style.background = 'var(--surface-hover)'}
             onMouseLeave={e => e.currentTarget.style.background = 'var(--surface)'}
           >
-            🔄 Change Category
+            Change Category
           </button>
         </div>
       )}
@@ -1195,20 +1217,21 @@ export default function ExploreCoursesPage() {
       {storeView === 'notes' && selectedNotesTab && filteredNotes.length > 0 && (
         <div style={{ marginBottom: '18px' }}>
           <h2 style={{ fontSize: '20px', fontWeight: '900', color: 'var(--text-primary)', margin: '6px 0 12px' }}>Study Notes</h2>
-          <div style={{ display: 'flex', gap: '12px', overflowX: 'auto', paddingBottom: '8px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(300px, 100%), 1fr))', gap: '14px', paddingBottom: '8px' }}>
             {filteredNotes.map((n: any) => {
               const currentUserId = userData?.user?.id
               const isManager = userData?.user?.role === 'MANAGER' || userData?.role === 'MANAGER'
-              const hasAccess = n.price === 0 || 
-                                isManager || 
-                                n.accesses?.some((acc: any) => acc.userId === currentUserId)
+              const hasAccess = !!n.hasAccess
+              const isExpired = n.myAccess?.state === 'EXPIRED'
 
               return (
-                <div key={n.id} style={{ minWidth: '320px', background: 'var(--surface)', borderRadius: '16px', padding: '16px', boxShadow: '0 8px 20px rgba(15,23,42,0.06)' }}>
-                  <div style={{ fontSize: '16px', fontWeight: '900', marginBottom: '6px' }}>{n.title}</div>
+                <div key={n.id} style={{ background: 'var(--surface)', borderRadius: '24px', padding: '20px', border: '0.5px solid var(--border)', boxShadow: '0 1px 2px rgba(0,0,0,0.04), 0 8px 24px rgba(0,0,0,0.05)', display: 'flex', flexDirection: 'column' }}>
+                  <div style={{ fontSize: '18px', fontWeight: 800, letterSpacing: '-0.3px', marginBottom: '6px' }}>{n.title}</div>
                   {n.description && <div style={{ fontSize: '13px', color: 'var(--text-secondary)', marginBottom: '12px' }}>{n.description}</div>}
                   <div style={{ display: 'flex', gap: '8px', marginBottom: '12px', alignItems: 'center' }}>
                     <div style={{ fontWeight: '800', color: n.price > 0 ? 'var(--text-primary)' : 'var(--success)' }}>{n.price > 0 ? `₹${n.price}` : 'Free'}</div>
+                    <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>· {n.validityDays} days access</div>
+                    {isExpired && <div style={{ fontSize: '12px', fontWeight: '800', color: 'var(--danger)' }}>Expired</div>}
                   </div>
                   <div style={{ display: 'flex', gap: '8px' }}>
                     <button
@@ -1221,16 +1244,22 @@ export default function ExploreCoursesPage() {
                       }}
                       style={{
                         flex: 1,
-                        padding: '10px 12px',
-                        borderRadius: '12px',
-                        background: hasAccess ? 'linear-gradient(135deg,#10b981,#059669)' : 'linear-gradient(135deg,#3b82f6,#2563eb)',
+                        padding: '11px 12px',
+                        borderRadius: '13px',
+                        background: hasAccess ? 'var(--success)' : isExpired ? 'var(--warning, #ff9f0a)' : 'var(--accent)',
                         color: '#fff',
-                        fontWeight: '800',
+                        fontWeight: 600,
                         border: 'none',
                         cursor: 'pointer'
                       }}
                     >
-                      {hasAccess ? 'Access Notes' : 'Get Now'}
+                      {hasAccess ? 'Access Notes' : isExpired ? 'Restore now' : 'Buy now'}
+                    </button>
+                    <button
+                      onClick={() => setDetailNote(n)}
+                      style={{ padding: '11px 16px', borderRadius: '13px', background: 'var(--surface-hover)', border: 'none', color: 'var(--text-primary)', fontWeight: 600, fontSize: '14px', cursor: 'pointer' }}
+                    >
+                      Details
                     </button>
                   {(userData?.user?.role === 'MANAGER' || userData?.role === 'MANAGER') && (
                     <>
@@ -1239,18 +1268,25 @@ export default function ExploreCoursesPage() {
                         setEditingNote(n)
                         setNoteCategory(n.category || 'General')
                         setNoteSubject(n.subject || '')
+                        setNoteFileLabel(n.files?.[0]?.fileUrl ? 'File attached. Upload to replace.' : '')
                         setShowCreateNoteModal(true)
                         setTimeout(() => {
                           const titleEl = document.getElementById('noteTitleInput') as HTMLInputElement
                           const descEl = document.getElementById('noteDescInput') as HTMLTextAreaElement
                           const linkEl = document.getElementById('noteLinkInput') as HTMLInputElement
                           const priceEl = document.getElementById('notePriceInput') as HTMLInputElement
+                          const validityEl = document.getElementById('noteValidityInput') as HTMLInputElement
+                          const hlEl = document.getElementById('noteHighlightsInput') as HTMLTextAreaElement
+                          const rulesEl = document.getElementById('noteRulesInput') as HTMLTextAreaElement
+                          if (validityEl) validityEl.value = String(n.validityDays || 90)
+                          if (hlEl) hlEl.value = n.highlightsRaw || ''
+                          if (rulesEl) rulesEl.value = n.extraRulesRaw || ''
                           if (titleEl) titleEl.value = n.title
                           if (descEl) descEl.value = n.description || ''
                           if (linkEl) linkEl.value = n.files?.[0]?.fileUrl || ''
                           if (priceEl) priceEl.value = n.price
                         }, 100)
-                      }} style={{ padding: '10px 12px', borderRadius: '12px', background: 'var(--surface)', border: '1px solid var(--border)', color: 'var(--text-secondary)', fontWeight: '800', fontSize: '13px' }}>Edit</button>
+                      }} style={{ padding: '11px 14px', borderRadius: '13px', background: 'var(--surface-hover)', border: 'none', color: 'var(--text-secondary)', fontWeight: 600, fontSize: '14px', cursor: 'pointer' }}>Edit</button>
                       <button onClick={async () => {
                         if (!confirm(`Delete note "${n.title}"?`)) return
                         try {
@@ -1258,7 +1294,7 @@ export default function ExploreCoursesPage() {
                           if (res.ok) window.location.reload()
                           else alert('Failed to delete')
                         } catch { alert('Failed to delete') }
-                      }} style={{ padding: '10px 12px', borderRadius: '12px', background: 'var(--danger-light)', border: '1px solid var(--border)', color: 'var(--danger)', fontWeight: '800', fontSize: '13px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Trash2 size={16} /></button>
+                      }} style={{ padding: '11px 13px', borderRadius: '13px', background: 'var(--danger-light)', border: 'none', color: 'var(--danger)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}><Trash2 size={16} /></button>
                     </>
                   )}
                 </div>
@@ -3554,7 +3590,7 @@ export default function ExploreCoursesPage() {
           display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1001,
           padding: '20px'
         }} onClick={() => setEditingBundle(null)}>
-          <div style={{
+          <div className="apple-modal" style={{
             background: 'var(--surface)', borderRadius: '32px', width: '100%', maxWidth: '600px',
             boxShadow: '0 0 100px var(--neu-glow), 0 25px 50px -12px rgba(0, 0, 0, 0.5)',
             padding: '40px',
@@ -3595,33 +3631,22 @@ export default function ExploreCoursesPage() {
               <input type="text" value={editBundleData.description ?? ''} onChange={e => setEditBundleData({...editBundleData, description: e.target.value})} style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1.5px solid var(--border)', fontSize: '14px', boxSizing: 'border-box' }} />
             </div>
 
-            <div style={{ marginBottom: '24px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+            <div style={{ marginBottom: '24px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
               <div>
-                <label style={{ fontSize: '13px', fontWeight: '700', color: 'var(--text-muted)', textTransform: 'uppercase', display: 'block', marginBottom: '8px' }}>Banner Text</label>
+                <label style={{ fontSize: '13px', fontWeight: '700', color: 'var(--text-muted)', display: 'block', marginBottom: '8px' }}>Banner Text</label>
                 <input type="text" value={editBundleData.bannerText ?? ''} onChange={e => setEditBundleData({...editBundleData, bannerText: e.target.value})} style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1.5px solid var(--border)', fontSize: '14px', boxSizing: 'border-box' }} />
               </div>
               <div>
-                <label style={{ fontSize: '13px', fontWeight: '700', color: 'var(--text-muted)', textTransform: 'uppercase', display: 'block', marginBottom: '8px' }}>Starting From Text</label>
-                <input type="text" value={editBundleData.startingFromText ?? ''} onChange={e => setEditBundleData({...editBundleData, startingFromText: e.target.value})} style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1.5px solid var(--border)', fontSize: '14px', boxSizing: 'border-box' }} />
+                <label style={{ fontSize: '13px', fontWeight: '700', color: 'var(--text-muted)', display: 'block', marginBottom: '8px' }}>Starting Price (₹)</label>
+                <input type="number" value={editBundleData.startingPrice ?? ''} onChange={e => setEditBundleData({...editBundleData, startingPrice: e.target.value})} style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1.5px solid var(--border)', fontSize: '14px', boxSizing: 'border-box' }} />
               </div>
             </div>
-
-            <div style={{ marginBottom: '24px' }}>
-              <label style={{ fontSize: '13px', fontWeight: '700', color: 'var(--text-muted)', textTransform: 'uppercase', display: 'block', marginBottom: '8px' }}>Course Section Headline</label>
-              <input type="text" value={editBundleData.courseHeadline ?? ''} onChange={e => setEditBundleData({...editBundleData, courseHeadline: e.target.value})} style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1.5px solid var(--border)', fontSize: '14px', boxSizing: 'border-box' }} />
-            </div>
-
-            <div style={{ marginBottom: '16px' }}>
-              <label style={{ fontSize: '13px', fontWeight: '700', color: 'var(--text-muted)', textTransform: 'uppercase', display: 'block', marginBottom: '8px' }}>Starting Price (₹)</label>
-              <input type="number" value={editBundleData.startingPrice ?? ''} onChange={e => setEditBundleData({...editBundleData, startingPrice: e.target.value})} style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1.5px solid var(--border)', fontSize: '14px', boxSizing: 'border-box' }} />
-            </div>
-
 
             {/* 1. Fixed Bundle Toggle - NOW AT TOP */}
             <div style={{ marginBottom: '24px', padding: '16px', borderRadius: '16px', background: 'var(--primary-light)', border: '1.5px solid #dbeafe' }}>
               <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer' }}>
                 <div>
-                  <div style={{ fontSize: '15px', fontWeight: '900', color: 'var(--text-primary)' }}>🔒 Fixed Bundle</div>
+                  <div style={{ fontSize: '15px', fontWeight: '900', color: 'var(--text-primary)' }}>Fixed Bundle</div>
                   <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '2px' }}>Users must buy all courses together (No individual selection)</div>
                 </div>
                 <input 
@@ -3659,7 +3684,7 @@ export default function ExploreCoursesPage() {
               // FIXED BUNDLE PRICING - SHOW ONLY GLOBAL PRICES
               <div style={{ marginBottom: '24px', padding: '20px', borderRadius: '20px', background: 'var(--success-light)', border: '1.5px solid var(--border)' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
-                  <span style={{ fontSize: '20px' }}>🏷️</span>
+                  
                   <label style={{ fontSize: '14px', fontWeight: '900', color: 'var(--success)', textTransform: 'uppercase' }}>Bundle Prices (Fixed Package)</label>
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
@@ -3998,7 +4023,7 @@ export default function ExploreCoursesPage() {
           display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000,
           padding: '20px'
         }} onClick={() => setShowCreateBundleModal(false)}>
-          <div style={{
+          <div className="apple-modal" style={{
             background: 'var(--surface)', borderRadius: '32px', width: '100%', maxWidth: '600px',
             boxShadow: '0 0 100px var(--neu-glow), 0 25px 50px -12px rgba(0, 0, 0, 0.5)',
             padding: '40px', maxHeight: '90vh', overflowY: 'auto',
@@ -4007,7 +4032,7 @@ export default function ExploreCoursesPage() {
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '24px' }}>
               <div>
                 <h2 style={{ fontSize: '28px', fontWeight: '900', color: 'var(--text-primary)', marginBottom: '8px', letterSpacing: '-0.02em' }}>
-                  Create Bundle 📦
+                  Create Bundle
                 </h2>
                 <p style={{ fontSize: '15px', color: 'var(--text-secondary)', fontWeight: '500', lineHeight: '1.5' }}>
                   Group multiple courses into a single package.
@@ -4048,27 +4073,16 @@ export default function ExploreCoursesPage() {
               <input type="number" value={bundleStartingPrice} onChange={e => setBundleStartingPrice(e.target.value)} placeholder="E.g., 499" style={{ width: '100%', padding: '12px', borderRadius: '10px', border: '1.5 solid #dbeafe', fontSize: '14px' }} />
             </div>
 
-            <div style={{ marginBottom: '24px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-              <div>
-                <label style={{ display: 'block', fontSize: '13px', fontWeight: '700', color: 'var(--text-secondary)', marginBottom: '6px' }}>Banner Text</label>
-                <input value={bundleBannerText} onChange={e => setBundleBannerText(e.target.value)} placeholder="Class starts from..." style={{ width: '100%', padding: '12px', borderRadius: '10px', border: '1.5px solid #dbeafe', fontSize: '14px' }} />
-              </div>
-              <div>
-                <label style={{ display: 'block', fontSize: '13px', fontWeight: '700', color: 'var(--text-secondary)', marginBottom: '6px' }}>Starting From Text</label>
-                <input value={bundleStartingFromText} onChange={e => setBundleStartingFromText(e.target.value)} placeholder="Courses start from..." style={{ width: '100%', padding: '12px', borderRadius: '10px', border: '1.5px solid #dbeafe', fontSize: '14px' }} />
-              </div>
-            </div>
-
             <div style={{ marginBottom: '24px' }}>
-              <label style={{ display: 'block', fontSize: '13px', fontWeight: '700', color: 'var(--text-secondary)', marginBottom: '6px' }}>Course Section Headline</label>
-              <input value={bundleCourseHeadline} onChange={e => setBundleCourseHeadline(e.target.value)} placeholder="Included Courses" style={{ width: '100%', padding: '12px', borderRadius: '10px', border: '1.5px solid #dbeafe', fontSize: '14px' }} />
+              <label style={{ display: 'block', fontSize: '13px', fontWeight: '700', color: 'var(--text-secondary)', marginBottom: '6px' }}>Banner Text</label>
+              <input value={bundleBannerText} onChange={e => setBundleBannerText(e.target.value)} placeholder="Class starts from..." style={{ width: '100%', padding: '12px', borderRadius: '10px', border: '1.5px solid #dbeafe', fontSize: '14px' }} />
             </div>
 
             {/* Fixed Bundle Toggle - AT TOP */}
             <div style={{ marginBottom: '24px', padding: '16px', borderRadius: '16px', background: 'var(--primary-light)', border: '1.5px solid #dbeafe' }}>
               <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer' }}>
                 <div>
-                  <div style={{ fontSize: '15px', fontWeight: '900', color: 'var(--text-primary)' }}>🔒 Fixed Bundle</div>
+                  <div style={{ fontSize: '15px', fontWeight: '900', color: 'var(--text-primary)' }}>Fixed Bundle</div>
                   <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '2px' }}>Users must buy all courses together (No individual selection)</div>
                 </div>
                 <input 
@@ -4106,7 +4120,7 @@ export default function ExploreCoursesPage() {
                 // FIXED BUNDLE — just two price inputs
                 <div style={{ marginBottom: '24px', padding: '20px', borderRadius: '20px', background: 'var(--success-light)', border: '1.5px solid var(--border)' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
-                    <span style={{ fontSize: '20px' }}>🏷️</span>
+                    
                     <label style={{ fontSize: '14px', fontWeight: '900', color: 'var(--success)', textTransform: 'uppercase' }}>Bundle Prices (Fixed Package)</label>
                   </div>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
@@ -4237,7 +4251,7 @@ export default function ExploreCoursesPage() {
             <div style={{ marginBottom: '24px', padding: '14px', borderRadius: '12px', background: 'var(--surface)', border: '1px solid var(--border)' }}>
               <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer', marginBottom: '16px' }}>
                 <div>
-                  <div style={{ fontSize: '14px', fontWeight: '700', color: 'var(--text-primary)' }}>🔒 Fixed Bundle</div>
+                  <div style={{ fontSize: '14px', fontWeight: '700', color: 'var(--text-primary)' }}>Fixed Bundle</div>
                   <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '2px' }}>Users must buy all courses together</div>
                 </div>
                 <input type="checkbox" checked={!bundleAllowIndividualPurchase} onChange={e => setBundleAllowIndividualPurchase(!e.target.checked)} style={{ width: '18px', height: '18px', accentColor: 'var(--accent)' }} />
@@ -4320,6 +4334,75 @@ export default function ExploreCoursesPage() {
         </div>
       )}
 
+      <style>{`
+        .apple-modal{padding:26px 26px 22px !important;border-radius:28px !important;max-width:540px !important;box-shadow:0 0 0 0.5px var(--border),0 30px 80px rgba(0,0,0,0.28) !important}
+        .apple-modal > div{margin-bottom:14px !important}
+        .apple-modal h2{font-size:22px !important;font-weight:800 !important;letter-spacing:-0.4px !important;margin-bottom:2px !important}
+        .apple-modal p{font-size:13.5px !important;margin-bottom:0 !important}
+        .apple-modal label{font-size:12px !important;font-weight:600 !important;text-transform:none !important;letter-spacing:0 !important;color:var(--text-secondary) !important;margin-bottom:5px !important}
+        .apple-modal input:not([type=checkbox]):not([type=file]):not([type=hidden]),.apple-modal select,.apple-modal textarea{padding:10px 12px !important;border-radius:12px !important;border:0.5px solid var(--border) !important;background:var(--surface-hover) !important;font-size:14px !important;box-sizing:border-box !important;outline:none}
+        .apple-modal input:focus,.apple-modal select:focus,.apple-modal textarea:focus{box-shadow:0 0 0 3px rgba(10,132,255,0.22) !important}
+      `}</style>
+
+      {/* NOTE DETAILS MODAL */}
+      {detailNote && (() => {
+        const n = detailNote
+        const hasAccess = !!n.hasAccess
+        const isExpired = n.myAccess?.state === 'EXPIRED'
+        const fmt = (d: string) => new Date(d).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })
+        return (
+          <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px' }} onClick={() => setDetailNote(null)}>
+            <div style={{ background: 'var(--surface)', borderRadius: '24px', width: '100%', maxWidth: '560px', maxHeight: '90vh', overflowY: 'auto', padding: '28px' }} onClick={(e) => e.stopPropagation()}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', alignItems: 'flex-start' }}>
+                <div>
+                  <div style={{ fontSize: '12px', fontWeight: '800', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>{[n.category, n.subject].filter(Boolean).join(' · ')}</div>
+                  <h2 style={{ fontSize: '24px', fontWeight: '900', margin: '6px 0 0' }}>{n.title}</h2>
+                </div>
+                <button onClick={() => setDetailNote(null)} style={{ background: 'var(--surface-hover)', border: 'none', width: '36px', height: '36px', borderRadius: '18px', cursor: 'pointer', color: 'var(--text-secondary)', flexShrink: 0 }}>✕</button>
+              </div>
+
+              <div style={{ display: 'flex', gap: '12px', alignItems: 'baseline', margin: '14px 0' }}>
+                <div style={{ fontSize: '28px', fontWeight: '900', color: n.price > 0 ? 'var(--text-primary)' : 'var(--success)' }}>{n.price > 0 ? `₹${n.price}` : 'Free'}</div>
+                {n.originalPrice > n.price && <div style={{ textDecoration: 'line-through', color: 'var(--text-secondary)' }}>₹{n.originalPrice}</div>}
+                <div style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>{n.validityDays} days access</div>
+              </div>
+
+              {n.myAccess && (
+                <div style={{ padding: '10px 14px', borderRadius: '12px', marginBottom: '14px', fontSize: '13px', fontWeight: '700', background: isExpired ? 'var(--danger-light)' : 'var(--success-light, #ecfdf5)', color: isExpired ? 'var(--danger)' : 'var(--success)' }}>
+                  {isExpired ? `Expired on ${fmt(n.myAccess.expiresAt)}` : `Active · expires on ${fmt(n.myAccess.expiresAt)}`}
+                </div>
+              )}
+
+              {n.description && <p style={{ fontSize: '14px', lineHeight: 1.6, color: 'var(--text-secondary)', margin: '0 0 16px', whiteSpace: 'pre-wrap' }}>{n.description}</p>}
+
+              {n.highlights?.length > 0 && (
+                <>
+                  <h3 style={{ fontSize: '16px', fontWeight: '900', margin: '8px 0' }}>What&apos;s inside</h3>
+                  <ul style={{ margin: '0 0 16px', paddingLeft: '20px', fontSize: '14px', lineHeight: 1.7 }}>
+                    {n.highlights.map((h: string, i: number) => <li key={i}>{h}</li>)}
+                  </ul>
+                </>
+              )}
+
+              <h3 style={{ fontSize: '16px', fontWeight: '900', margin: '8px 0' }}>Rules &amp; validity</h3>
+              <ul style={{ margin: '0 0 20px', paddingLeft: '20px', fontSize: '14px', lineHeight: 1.7 }}>
+                {(n.rules || []).map((r: string, i: number) => <li key={i}>{r}</li>)}
+              </ul>
+
+              <button
+                onClick={() => {
+                  if (hasAccess) window.open(`/api/store/notes/${n.id}/download`, '_blank')
+                  else { setDetailNote(null); handleNotePurchase(n) }
+                }}
+                style={{ width: '100%', padding: '14px', borderRadius: '14px', border: 'none', color: '#fff', fontWeight: '800', fontSize: '15px', cursor: 'pointer', background: hasAccess ? 'linear-gradient(135deg,#10b981,#059669)' : isExpired ? 'linear-gradient(135deg,#f59e0b,#d97706)' : 'linear-gradient(135deg,#3b82f6,#2563eb)' }}
+              >
+                {hasAccess ? 'Access Notes' : isExpired ? `Restore now${n.price > 0 ? ` · ₹${n.price}` : ''}` : n.price > 0 ? `Buy now · ₹${n.price}` : 'Get free'}
+              </button>
+            </div>
+          </div>
+        )
+      })()}
+
       {/* CREATE NOTE MODAL */}
       {showCreateNoteModal && (
         <div style={{
@@ -4328,7 +4411,7 @@ export default function ExploreCoursesPage() {
           display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000,
           padding: '20px'
         }} onClick={() => setShowCreateNoteModal(false)}>
-          <div style={{
+          <div className="apple-modal" style={{
             background: 'var(--surface)', borderRadius: '32px', width: '100%', maxWidth: '500px',
             boxShadow: '0 0 100px var(--neu-glow), 0 25px 50px -12px rgba(0, 0, 0, 0.5)',
             padding: '40px', maxHeight: '90vh', overflowY: 'auto',
@@ -4337,10 +4420,10 @@ export default function ExploreCoursesPage() {
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '24px' }}>
               <div>
                 <h2 style={{ fontSize: '28px', fontWeight: '900', color: 'var(--text-primary)', marginBottom: '8px', letterSpacing: '-0.02em' }}>
-                  {editingNote ? 'Edit Notes 📝' : 'Add Notes 📝'}
+                  {editingNote ? 'Edit Notes' : 'Add Notes'}
                 </h2>
                 <p style={{ fontSize: '15px', color: 'var(--text-secondary)', fontWeight: '500', lineHeight: '1.5' }}>
-                  Upload notes or provide a link for students to access.
+                  Upload the notes file for students to access.
                 </p>
               </div>
               <button onClick={() => { setShowCreateNoteModal(false); setEditingNote(null) }} style={{ background: 'var(--surface)', border: 'none', width: '36px', height: '36px', borderRadius: '18px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'var(--text-secondary)' }}>
@@ -4393,38 +4476,22 @@ export default function ExploreCoursesPage() {
 
             <div style={{ marginBottom: '20px' }}>
               <label style={{ display: 'block', fontSize: '13px', fontWeight: '700', color: 'var(--text-secondary)', marginBottom: '6px' }}>Description (Optional)</label>
-              <textarea id="noteDescInput" rows={3} placeholder="Brief description of these notes..." style={{ width: '100%', padding: '12px', borderRadius: '10px', border: '1.5px solid #dbeafe', fontSize: '14px', resize: 'vertical' }} />
+              <textarea id="noteDescInput" rows={2} placeholder="Brief description of these notes..." style={{ width: '100%', padding: '12px', borderRadius: '10px', border: '1.5px solid #dbeafe', fontSize: '14px', resize: 'vertical' }} />
             </div>
 
             <div style={{ marginBottom: '20px' }}>
-              <label style={{ display: 'block', fontSize: '13px', fontWeight: '700', color: 'var(--text-secondary)', marginBottom: '6px' }}>Link (Google Drive, Notion, etc.)</label>
-              <div style={{ display: 'flex', gap: '8px' }}>
-                <input id="noteLinkInput" type="url" placeholder="https://..." style={{ flex: 1, padding: '12px', borderRadius: '10px', border: '1.5px solid #dbeafe', fontSize: '14px' }} />
-                <label style={{
-                  padding: '12px 16px',
-                  borderRadius: '10px',
-                  background: 'var(--surface-hover)',
-                  border: '1.5px dashed var(--border)',
-                  fontSize: '13px',
-                  fontWeight: '700',
-                  color: 'var(--text-primary)',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                  whiteSpace: 'nowrap'
-                }}>
-                  <Upload size={16} />
-                  {uploadingNoteFile ? 'Uploading...' : 'Upload Notes'}
-                  <input
-                    type="file"
-                    accept=".pdf,.png,.jpg,.jpeg,.zip"
-                    style={{ display: 'none' }}
-                    onChange={handleFileUpload}
-                    disabled={uploadingNoteFile}
-                  />
-                </label>
+              <label style={{ display: 'block', fontSize: '13px', fontWeight: '700', color: 'var(--text-secondary)', marginBottom: '6px' }}>Notes file *</label>
+              <div
+                onClick={() => { if (!uploadingNoteFile) document.getElementById('noteFileUpload')?.click() }}
+                style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '14px', borderRadius: '14px', background: 'var(--surface-hover)', border: '1px dashed var(--border)', cursor: 'pointer', color: 'var(--text-primary)', fontSize: '14px', fontWeight: 500 }}
+              >
+                <Upload size={18} />
+                <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  {uploadingNoteFile ? 'Uploading...' : (noteFileLabel || 'Choose a PDF to upload')}
+                </span>
               </div>
+              <input id="noteFileUpload" type="file" accept=".pdf,.png,.jpg,.jpeg,.zip" style={{ display: 'none' }} onChange={handleFileUpload} disabled={uploadingNoteFile} />
+              <input id="noteLinkInput" type="hidden" />
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '28px' }}>
@@ -4432,17 +4499,35 @@ export default function ExploreCoursesPage() {
                 <label style={{ display: 'block', fontSize: '13px', fontWeight: '700', color: 'var(--text-secondary)', marginBottom: '6px' }}>Price (₹)</label>
                 <input id="notePriceInput" type="number" min={0} placeholder="0 for Free" style={{ width: '100%', padding: '12px', borderRadius: '10px', border: '1.5px solid #dbeafe', fontSize: '14px' }} />
               </div>
+              <div>
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: '700', color: 'var(--text-secondary)', marginBottom: '6px' }}>Validity (days)</label>
+                <input id="noteValidityInput" type="number" min={1} defaultValue={90} placeholder="90" style={{ width: '100%', padding: '12px', borderRadius: '10px', border: '1.5px solid #dbeafe', fontSize: '14px' }} />
+              </div>
+            </div>
+
+            <div style={{ marginBottom: '20px' }}>
+              <label style={{ display: 'block', fontSize: '13px', fontWeight: '700', color: 'var(--text-secondary)', marginBottom: '6px' }}>What&apos;s inside — your points (one per line)</label>
+              <textarea id="noteHighlightsInput" rows={3} placeholder={'Chapter-wise solved PYQs\nShort tricks for numericals'} style={{ width: '100%', padding: '12px', borderRadius: '10px', border: '1.5px solid #dbeafe', fontSize: '14px', resize: 'vertical' }} />
+            </div>
+
+            <div style={{ marginBottom: '28px' }}>
+              <label style={{ display: 'block', fontSize: '13px', fontWeight: '700', color: 'var(--text-secondary)', marginBottom: '6px' }}>Extra rules for this note (one per line)</label>
+              <textarea id="noteRulesInput" rows={2} placeholder="Shown after the standard rules (validity, web + app access, expiry). Optional." style={{ width: '100%', padding: '12px', borderRadius: '10px', border: '1.5px solid #dbeafe', fontSize: '14px', resize: 'vertical' }} />
+              <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '6px' }}>The standard rules are added automatically and shown identically on the website and in the app.</div>
             </div>
 
             <div style={{ display: 'flex', gap: '12px' }}>
-              <button onClick={() => { setShowCreateNoteModal(false); setEditingNote(null) }} style={{ flex: 1, padding: '14px', borderRadius: '12px', border: '2px solid var(--border)', background: 'var(--surface)', color: 'var(--text-primary)', fontWeight: '700', fontSize: '14px', cursor: 'pointer' }}>Cancel</button>
+              <button onClick={() => { setShowCreateNoteModal(false); setEditingNote(null) }} style={{ flex: 1, padding: '13px', borderRadius: '14px', border: 'none', background: 'var(--surface-hover)', color: 'var(--text-primary)', fontWeight: 600, fontSize: '15px', cursor: 'pointer' }}>Cancel</button>
               <button
                 onClick={async () => {
                   const title = (document.getElementById('noteTitleInput') as HTMLInputElement).value
                   const desc = (document.getElementById('noteDescInput') as HTMLTextAreaElement).value
                   const link = (document.getElementById('noteLinkInput') as HTMLInputElement).value
                   const price = (document.getElementById('notePriceInput') as HTMLInputElement).value
-                  if (!title || !link) { alert('Title and Link are required'); return }
+                  const validityDays = (document.getElementById('noteValidityInput') as HTMLInputElement).value
+                  const highlights = (document.getElementById('noteHighlightsInput') as HTMLTextAreaElement).value
+                  const extraRules = (document.getElementById('noteRulesInput') as HTMLTextAreaElement).value
+                  if (!title || !link) { alert('Title and an uploaded file are required'); return }
                   if ((noteCategory === 'Foundation' || noteCategory === 'Re-attempt') && !noteSubject) {
                     alert('Subject is required for the selected Level')
                     return
@@ -4460,7 +4545,10 @@ export default function ExploreCoursesPage() {
                         fileUrl: link, 
                         price: Number(price) || 0,
                         category: noteCategory,
-                        subject: noteSubject || null
+                        subject: noteSubject || null,
+                        validityDays: Number(validityDays) || 90,
+                        highlights,
+                        extraRules
                       })
                     })
                     if (res.ok) { window.location.reload() }
@@ -4468,7 +4556,7 @@ export default function ExploreCoursesPage() {
                   } catch { alert('Error saving notes') }
                   finally { setCreating(false) }
                 }}
-                style={{ flex: 1, padding: '14px', borderRadius: '12px', border: 'none', background: 'linear-gradient(135deg, #10b981, #059669)', color: '#fff', fontWeight: '700', fontSize: '14px', cursor: 'pointer' }}
+                style={{ flex: 1, padding: '13px', borderRadius: '14px', border: 'none', background: 'var(--accent)', color: '#fff', fontWeight: 600, fontSize: '15px', cursor: 'pointer' }}
               >
                 {editingNote ? 'Save Changes' : 'Create Notes'}
               </button>
@@ -4494,7 +4582,7 @@ export default function ExploreCoursesPage() {
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '24px' }}>
               <div>
                 <h2 style={{ fontSize: '28px', fontWeight: '900', color: 'var(--text-primary)', marginBottom: '8px', letterSpacing: '-0.02em' }}>
-                  {editingMentorship ? 'Edit Mentorship 🤝' : 'Create Mentorship 🤝'}
+                  {editingMentorship ? 'Edit Mentorship' : 'Create Mentorship'}
                 </h2>
                 <p style={{ fontSize: '15px', color: 'var(--text-secondary)', fontWeight: '500', lineHeight: '1.5' }}>
                   Set up 1-on-1 mentorship slots for students to book.

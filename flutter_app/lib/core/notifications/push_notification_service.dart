@@ -52,7 +52,7 @@ class PushNotificationService {
         android: AndroidInitializationSettings('@mipmap/ic_launcherh'),
       );
       await _localNotifications.initialize(
-        initializationSettings,
+        settings: initializationSettings,
         onDidReceiveNotificationResponse: (response) {
           final payload = response.payload;
           if (payload == null || payload.isEmpty) return;
@@ -166,10 +166,10 @@ class PushNotificationService {
     if (notification == null) return;
 
     await _localNotifications.show(
-      message.messageId?.hashCode ?? DateTime.now().millisecondsSinceEpoch,
-      notification.title ?? 'Gen-Z IITian',
-      notification.body ?? 'You have a new update.',
-      const NotificationDetails(
+      id: message.messageId?.hashCode ?? DateTime.now().millisecondsSinceEpoch,
+      title: notification.title ?? 'Gen-Z IITian',
+      body: notification.body ?? 'You have a new update.',
+      notificationDetails: const NotificationDetails(
         android: AndroidNotificationDetails(
           'class_updates',
           'Class Updates (Urgent)',

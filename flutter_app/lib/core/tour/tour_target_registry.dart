@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// Global registry mapping tour target string IDs (e.g. 'dashboard_hero', 'nav_courses')
 /// to GlobalKeys mounted in the active Flutter widget tree.

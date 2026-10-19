@@ -1,11 +1,15 @@
 import 'dart:async';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
+import 'package:material_symbols_icons/symbols.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import '../../config/api_config.dart';
 import '../../core/auth/auth_providers.dart';
+import '../../shared/widgets/apple_alert.dart';
+import '../../shared/widgets/apple_pressable.dart';
 import '../../shared/widgets/sub_page_header.dart';
+import '../../shared/widgets/apple_input.dart';
 import '../../theme/app_theme_tokens.dart';
 import '../community/community_file_upload.dart';
 import 'support_providers.dart';
@@ -140,19 +144,14 @@ class _TicketDetailPageState extends ConsumerState<TicketDetailPage>
   }
 
   Future<bool> _confirm(String title, String description) async =>
-      await showDialog<bool>(
-        context: context,
-        builder: (context) => AlertDialog(
-            title: Text(title),
-            content: Text(description),
-            actions: [
-              TextButton(
-                  onPressed: () => Navigator.pop(context, false),
-                  child: const Text('Cancel')),
-              FilledButton(
-                  onPressed: () => Navigator.pop(context, true),
-                  child: const Text('Delete')),
-            ]),
+      await showAppleAlert<bool>(
+        context,
+        title: title,
+        message: description,
+        actions: const [
+          AppleAlertAction(label: 'Cancel', value: false, isDefault: true),
+          AppleAlertAction(label: 'Delete', value: true, isDestructive: true),
+        ],
       ) ??
       false;
 
@@ -213,11 +212,11 @@ class _TicketDetailPageState extends ConsumerState<TicketDetailPage>
     final manager = session.role == 'MANAGER';
     final ticket = ref.watch(supportTicketProvider(widget.ticketId));
     return AppPageScaffold(
-      title: 'Ticket conversation',
+      title: 'Ticket',
       onBack: () => context.canPop() ? context.pop() : context.go('/support'),
       right: IconButton(
           onPressed: _busy ? null : _refresh,
-          icon: const Icon(Icons.refresh),
+          icon: const Icon(Symbols.refresh_rounded, weight: 600),
           tooltip: 'Refresh conversation'),
       body: ticket.when(
         loading: () => const Center(child: CircularProgressIndicator()),
@@ -250,24 +249,44 @@ class _TicketDetailPageState extends ConsumerState<TicketDetailPage>
                 children: [
                   Text('${data['title']}',
                       style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.w800,
+                          fontSize: 28,
+                          height: 1.1,
+                          letterSpacing: -0.7,
+                          fontWeight: FontWeight.w700,
                           color: tokens.textPrimary)),
-                  const SizedBox(height: 8),
-                  Text(ticketStatusLabel(data['status']),
-                      style: TextStyle(
-                          color: tokens.primaryAccent,
-                          fontWeight: FontWeight.w700)),
-                  if (data['course'] != null)
-                    Text('Course: ${data['course']['name']}'),
-                  if (data['assignedTo'] != null)
-                    Text('Assigned to: ${data['assignedTo']['name']}',
-                        style: TextStyle(color: tokens.textSecondary)),
+                  const SizedBox(height: 12),
+                  Wrap(spacing: 8, runSpacing: 8, children: [
+                    _StatusPill(status: '${data['status']}'),
+                    if (data['course'] != null)
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 12, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: tokens.cardBg,
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Row(mainAxisSize: MainAxisSize.min, children: [
+                          Icon(Symbols.menu_book_rounded,
+                              fill: 1, size: 15, color: tokens.textSecondary),
+                          const SizedBox(width: 5),
+                          Text('${data['course']['name']}',
+                              style: TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600,
+                                  color: tokens.textSecondary)),
+                        ]),
+                      ),
+                  ]),
                   if (manager) ...[
                     const SizedBox(height: 12),
                     ExpansionTile(
                         tilePadding: EdgeInsets.zero,
+                        shape: const Border(),
+                        collapsedShape: const Border(),
                         title: const Text('Manage ticket'),
+                        subtitle: data['assignedTo'] != null
+                            ? Text('${data['assignedTo']['name']}')
+                            : null,
                         children: [
                           Wrap(spacing: 8, children: [
                             for (final status in [
@@ -279,6 +298,16 @@ class _TicketDetailPageState extends ConsumerState<TicketDetailPage>
                               ChoiceChip(
                                   label: Text(ticketStatusLabel(status)),
                                   selected: data['status'] == status,
+                                  showCheckmark: false,
+                                  side: BorderSide.none,
+                                  shape: const StadiumBorder(),
+                                  backgroundColor: tokens.surfaceSecondary,
+                                  selectedColor: tokens.primaryAccent,
+                                  labelStyle: TextStyle(
+                                      fontWeight: FontWeight.w600,
+                                      color: data['status'] == status
+                                          ? Colors.white
+                                          : tokens.textPrimary),
                                   onSelected: _busy
                                       ? null
                                       : (_) => _update({'status': status})),
@@ -300,9 +329,8 @@ class _TicketDetailPageState extends ConsumerState<TicketDetailPage>
                                       ? data['assignedToId'] as String
                                       : '',
                                   isExpanded: true,
-                                  decoration: const InputDecoration(
-                                      labelText: 'Assign to',
-                                      border: OutlineInputBorder()),
+                                  decoration: appleInputDecoration(context,
+                                      label: 'Assign to'),
                                   items: [
                                     const DropdownMenuItem(
                                         value: '', child: Text('Unassigned')),
@@ -320,33 +348,18 @@ class _TicketDetailPageState extends ConsumerState<TicketDetailPage>
                               ),
                           TextButton.icon(
                               onPressed: _busy ? null : _deleteTicket,
-                              icon: Icon(Icons.delete_outline,
+                              icon: Icon(Symbols.delete_rounded,
                                   color: tokens.danger),
                               label: Text('Delete ticket',
                                   style: TextStyle(color: tokens.danger))),
                         ]),
                   ],
-                  const SizedBox(height: 18),
-                  _MessageCard(
-                      name:
-                          '${data['user']?['name'] ?? 'Student'} · Original request',
+                  const SizedBox(height: 22),
+                  _ReplyBubble(
+                      name: '${data['user']?['name'] ?? 'Student'}',
                       content: '${data['description'] ?? ''}',
                       createdAt: '${data['createdAt']}',
                       mine: data['studentId'] == session.id),
-                  const SizedBox(height: 18),
-                  Text('Conversation',
-                      style: TextStyle(
-                          fontWeight: FontWeight.w800,
-                          color: tokens.textPrimary)),
-                  const SizedBox(height: 12),
-                  if (replies.isEmpty)
-                    Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        child: Text(
-                            manager
-                                ? 'No replies yet. Send a message below.'
-                                : 'Waiting for a manager to reply. You can add more details below.',
-                            style: TextStyle(color: tokens.textSecondary))),
                   for (final reply in replies)
                     _ReplyBubble(
                       name:
@@ -360,8 +373,8 @@ class _TicketDetailPageState extends ConsumerState<TicketDetailPage>
                               enabled: !_busy,
                               tooltip: 'Reply options',
                               padding: EdgeInsets.zero,
-                              icon: Icon(Icons.more_vert,
-                                  size: 18,
+                              icon: Icon(Symbols.more_horiz_rounded,
+                                  size: 20,
                                   color: _onColor(tokens.primaryAccent)),
                               onSelected: (action) =>
                                   _manageReply(reply, action),
@@ -382,25 +395,41 @@ class _TicketDetailPageState extends ConsumerState<TicketDetailPage>
               Padding(
                   padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
                   child: Text(_error!, style: TextStyle(color: tokens.danger))),
-            SafeArea(
+            Container(
+              decoration: BoxDecoration(
+                color: tokens.cardBg,
+                border:
+                    Border(top: BorderSide(color: tokens.border, width: 0.5)),
+              ),
+              child: SafeArea(
                 top: false,
                 child: Padding(
-                  padding: const EdgeInsets.all(16),
+                  padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
                   child: closed
-                      ? const Text(
-                          'This ticket is closed. Create a new ticket from Support if you need more help.')
+                      ? Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 8),
+                          child: Center(
+                            child: Text(
+                              'This ticket is closed. Create a new ticket from Support if you need more help.',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                  fontSize: 14,
+                                  height: 1.35,
+                                  color: tokens.textSecondary),
+                            ),
+                          ),
+                        )
                       : Column(mainAxisSize: MainAxisSize.min, children: [
                           if (_attachment != null)
                             Container(
                               margin: const EdgeInsets.only(bottom: 10),
-                              padding: const EdgeInsets.fromLTRB(8, 8, 4, 8),
+                              padding: const EdgeInsets.fromLTRB(8, 8, 6, 8),
                               decoration: BoxDecoration(
                                   color: tokens.surfaceSecondary,
-                                  border: Border.all(color: tokens.border),
-                                  borderRadius: BorderRadius.circular(12)),
+                                  borderRadius: BorderRadius.circular(16)),
                               child: Row(children: [
                                 ClipRRect(
-                                    borderRadius: BorderRadius.circular(8),
+                                    borderRadius: BorderRadius.circular(10),
                                     child: Image.network(
                                         _resolveUrl(_attachment!['url'])
                                                 ?.toString() ??
@@ -411,65 +440,103 @@ class _TicketDetailPageState extends ConsumerState<TicketDetailPage>
                                         errorBuilder: (_, __, ___) => SizedBox(
                                             width: 48,
                                             height: 48,
-                                            child: Icon(Icons.image_outlined,
+                                            child: Icon(Symbols.image_rounded,
                                                 color: tokens.textMuted)))),
                                 const SizedBox(width: 10),
                                 Expanded(
-                                    child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                      Text('Photo attached',
-                                          style: TextStyle(
-                                              fontWeight: FontWeight.w700,
-                                              color: tokens.textPrimary)),
-                                      Text(_attachment!['name'] ?? '',
-                                          maxLines: 1,
-                                          overflow: TextOverflow.ellipsis,
-                                          style: TextStyle(
-                                              fontSize: 11.5,
-                                              color: tokens.textSecondary)),
-                                    ])),
+                                    child: Text(_attachment!['name'] ?? '',
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: TextStyle(
+                                            fontSize: 14,
+                                            color: tokens.textPrimary))),
                                 IconButton(
                                     onPressed: _busy
                                         ? null
                                         : () =>
                                             setState(() => _attachment = null),
-                                    icon: const Icon(Icons.close, size: 18),
+                                    icon: Icon(Symbols.cancel_rounded,
+                                        fill: 1,
+                                        size: 22,
+                                        color: tokens.textMuted),
                                     tooltip: 'Remove photo'),
                               ]),
                             ),
                           Row(
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          children: [
-                              IconButton(
-                                  onPressed: _busy ? null : _pickPhoto,
-                                  icon: const Icon(Icons.image_outlined),
-                                  color: tokens.primaryAccent,
-                                  tooltip: 'Attach photo'),
-                              const SizedBox(width: 4),
-                              Expanded(
-                                  child: TextField(
-                                      controller: _message,
-                                      enabled: !_busy,
-                                      minLines: 1,
-                                      maxLines: 5,
-                                      maxLength: 10000,
-                                      decoration: const InputDecoration(
-                                          hintText: 'Add a message…',
-                                          counterText: '',
-                                          border: OutlineInputBorder()))),
-                              const SizedBox(width: 8),
-                              IconButton.filled(
-                                  onPressed: _busy ? null : _send,
-                                  icon: const Icon(Icons.send_rounded),
-                                  tooltip: 'Send reply',
-                                  style: IconButton.styleFrom(
-                                      backgroundColor: tokens.primaryAccent,
-                                      foregroundColor: Colors.white)),
-                            ]),
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: [
+                                Padding(
+                                  padding: const EdgeInsets.only(bottom: 4),
+                                  child: ApplePressable(
+                                    onTap: _busy ? null : _pickPhoto,
+                                    pressedScale: 0.9,
+                                    child: Container(
+                                      width: 36,
+                                      height: 36,
+                                      decoration: BoxDecoration(
+                                          color: tokens.surfaceSecondary,
+                                          shape: BoxShape.circle),
+                                      child: Icon(Symbols.add_rounded,
+                                          weight: 600,
+                                          size: 22,
+                                          color: tokens.primaryAccent),
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                    child: TextField(
+                                        controller: _message,
+                                        enabled: !_busy,
+                                        minLines: 1,
+                                        maxLines: 5,
+                                        maxLength: 10000,
+                                        decoration: appleInputDecoration(
+                                            context,
+                                            hint: 'Add a message…',
+                                            counterText: '',
+                                            fill: tokens.surfaceSecondary,
+                                            radius: 22))),
+                                const SizedBox(width: 8),
+                                Padding(
+                                  padding: const EdgeInsets.only(bottom: 4),
+                                  child: ValueListenableBuilder<TextEditingValue>(
+                                    valueListenable: _message,
+                                    builder: (context, v, _) {
+                                      final can = (v.text.trim().isNotEmpty ||
+                                              _attachment != null) &&
+                                          !_busy;
+                                      return ApplePressable(
+                                        onTap: can ? _send : null,
+                                        pressedScale: 0.9,
+                                        child: AnimatedContainer(
+                                          duration: const Duration(
+                                              milliseconds: 160),
+                                          curve: kEaseOutStrong,
+                                          width: 36,
+                                          height: 36,
+                                          decoration: BoxDecoration(
+                                              color: can
+                                                  ? tokens.primaryAccent
+                                                  : tokens.surfaceSecondary,
+                                              shape: BoxShape.circle),
+                                          child: Icon(
+                                              Symbols.arrow_upward_rounded,
+                                              weight: 700,
+                                              size: 21,
+                                              color: can
+                                                  ? Colors.white
+                                                  : tokens.textMuted),
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                ),
+                              ]),
                         ]),
-                )),
+                ),
+              ),
+            ),
           ]);
         },
       ),
@@ -519,15 +586,14 @@ class _ReplyBubble extends StatelessWidget {
         constraints: BoxConstraints(
             maxWidth: MediaQuery.sizeOf(context).width * 0.78, minWidth: 96),
         margin: const EdgeInsets.only(bottom: 10),
-        padding: const EdgeInsets.fromLTRB(12, 9, 12, 8),
+        padding: const EdgeInsets.fromLTRB(14, 10, 14, 9),
         decoration: BoxDecoration(
             color: bubbleColor,
-            border: mine ? null : Border.all(color: tokens.border),
             borderRadius: BorderRadius.only(
-              topLeft: const Radius.circular(16),
-              topRight: const Radius.circular(16),
-              bottomLeft: Radius.circular(mine ? 16 : 4),
-              bottomRight: Radius.circular(mine ? 4 : 16),
+              topLeft: const Radius.circular(20),
+              topRight: const Radius.circular(20),
+              bottomLeft: Radius.circular(mine ? 20 : 6),
+              bottomRight: Radius.circular(mine ? 6 : 20),
             )),
         child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -540,8 +606,8 @@ class _ReplyBubble extends StatelessWidget {
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w800,
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
                               color: mine ? fg : tokens.primaryAccent))),
                   if (actions != null)
                     SizedBox(width: 28, height: 24, child: actions!),
@@ -581,12 +647,12 @@ class _ReplyBubble extends StatelessWidget {
               if (content.isNotEmpty) ...[
                 const SizedBox(height: 4),
                 SelectableText(content,
-                    style: TextStyle(color: fg, height: 1.45, fontSize: 14.5)),
+                    style: TextStyle(color: fg, height: 1.4, fontSize: 16)),
               ],
               if (date != null) ...[
                 const SizedBox(height: 4),
                 Text(DateFormat('d MMM, h:mm a').format(date),
-                    style: TextStyle(fontSize: 10.5, color: subtle)),
+                    style: TextStyle(fontSize: 11.5, color: subtle)),
               ],
             ]),
       ),
@@ -594,75 +660,33 @@ class _ReplyBubble extends StatelessWidget {
   }
 }
 
-class _MessageCard extends StatelessWidget {
-  const _MessageCard(
-      {required this.name,
-      required this.content,
-      required this.createdAt,
-      required this.mine,
-      this.imageUrl,
-      this.actions});
-  final String name, content, createdAt;
-  final bool mine;
-  final String? imageUrl;
-  final Widget? actions;
+class _StatusPill extends StatelessWidget {
+  const _StatusPill({required this.status});
+  final String status;
+
   @override
   Widget build(BuildContext context) {
-    final tokens = context.tokens;
-    final date = DateTime.tryParse(createdAt)?.toLocal();
-    final image = imageUrl == null
-        ? null
-        : Uri.tryParse(ApiConfig.baseUrl)?.resolve(imageUrl!);
+    final color = switch (status) {
+      'IN_PROGRESS' => const Color(0xFF007AFF),
+      'RESOLVED' => const Color(0xFF34C759),
+      'CLOSED' => const Color(0xFF8E8E93),
+      _ => const Color(0xFFFF9500),
+    };
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
-          color: mine ? tokens.primaryAccent.withOpacity(0.08) : tokens.cardBg,
-          border: Border.all(color: tokens.border),
-          borderRadius: BorderRadius.circular(14)),
-      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Row(children: [
-          Expanded(
-              child: Text(name,
-                  style: TextStyle(
-                      fontWeight: FontWeight.w700, color: tokens.textPrimary))),
-          if (actions != null) actions!
-        ]),
-        if (content.isNotEmpty) ...[
-          const SizedBox(height: 8),
-          SelectableText(content,
-              style: TextStyle(color: tokens.textPrimary, height: 1.5))
-        ],
-        if (image != null && ['http', 'https'].contains(image.scheme)) ...[
-          const SizedBox(height: 10),
-          InkWell(
-              onTap: () => showDialog<void>(
-                  context: context,
-                  builder: (context) => Dialog(
-                          child:
-                              Column(mainAxisSize: MainAxisSize.min, children: [
-                        Align(
-                            alignment: Alignment.centerRight,
-                            child: IconButton(
-                                onPressed: () => Navigator.pop(context),
-                                icon: const Icon(Icons.close))),
-                        Flexible(
-                            child: InteractiveViewer(
-                                child: Image.network(image.toString(),
-                                    errorBuilder: (_, __, ___) => const Text(
-                                        'Unable to load attachment'))))
-                      ]))),
-              child: Image.network(image.toString(),
-                  height: 180,
-                  fit: BoxFit.contain,
-                  errorBuilder: (_, __, ___) =>
-                      const Text('Unable to load attachment'))),
-        ],
-        if (date != null) ...[
-          const SizedBox(height: 8),
-          Text(DateFormat('d MMM, h:mm a').format(date),
-              style: TextStyle(fontSize: 11, color: tokens.textMuted))
-        ],
+        color: color.withValues(alpha: 0.15),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Row(mainAxisSize: MainAxisSize.min, children: [
+        Container(
+            width: 7,
+            height: 7,
+            decoration: BoxDecoration(color: color, shape: BoxShape.circle)),
+        const SizedBox(width: 6),
+        Text(ticketStatusLabel(status),
+            style: TextStyle(
+                fontSize: 13, fontWeight: FontWeight.w600, color: color)),
       ]),
     );
   }

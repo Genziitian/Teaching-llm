@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// Responsive breakpoints matching Material Design guidelines.
 /// Phone: < 600dp, Tablet: 600-899dp, Large Tablet/Desktop: >= 900dp.

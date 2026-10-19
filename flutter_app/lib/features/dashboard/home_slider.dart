@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -10,7 +10,6 @@ import '../../core/auth/auth_providers.dart';
 import '../../shared/widgets/bouncy_pressable.dart';
 import '../../shared/widgets/shimmer_loading.dart';
 import '../../theme/app_colors.dart';
-import '../../theme/app_shadows.dart';
 import '../../theme/app_typography.dart';
 
 const _kDefaultSlides = <Map<String, dynamic>>[
@@ -125,11 +124,10 @@ class _HomeSliderState extends ConsumerState<HomeSlider> {
                       onTap: () => _open(context, href),
                       scaleDown: 0.98,
                       child: ClipRRect(
-                        borderRadius: BorderRadius.circular(22),
+                        borderRadius: BorderRadius.circular(20),
                         child: Container(
                           decoration: const BoxDecoration(
                             color: AppColors.brand,
-                            boxShadow: AppShadows.lg,
                           ),
                           child: asset != null
                               ? Image.asset(
@@ -168,11 +166,11 @@ class _HomeSliderState extends ConsumerState<HomeSlider> {
                   return AnimatedContainer(
                     duration: const Duration(milliseconds: 220),
                     margin: const EdgeInsets.symmetric(horizontal: 3),
-                    width: active ? 18 : 6,
-                    height: 6,
+                    width: 7,
+                    height: 7,
                     decoration: BoxDecoration(
-                      color: active ? AppColors.brand : AppColors.line2,
-                      borderRadius: BorderRadius.circular(3),
+                      color: active ? AppColors.ink2 : AppColors.line2,
+                      borderRadius: BorderRadius.circular(3.5),
                     ),
                   );
                 }),
@@ -193,7 +191,7 @@ class _Placeholder extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         gradient: const LinearGradient(
-          colors: [AppColors.brand, Color(0xFF7C3AED)],
+          colors: [AppColors.brand, Color(0xFF5E5CE6)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),

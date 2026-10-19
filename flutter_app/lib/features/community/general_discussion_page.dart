@@ -1,5 +1,7 @@
 import 'dart:convert';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
+import 'package:material_symbols_icons/symbols.dart';
+import '../../shared/widgets/apple_pressable.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -391,7 +393,7 @@ class _GeneralDiscussionPageState extends ConsumerState<GeneralDiscussionPage> {
         ref.watch(communityMessagesProvider('general-discussion'));
 
     return Scaffold(
-      backgroundColor: isDark ? tokens.bg : const Color(0xFFF1F5F9),
+      backgroundColor: tokens.bg,
       body: SafeArea(
         bottom: false,
         child: Column(
@@ -402,7 +404,7 @@ class _GeneralDiscussionPageState extends ConsumerState<GeneralDiscussionPage> {
               decoration: BoxDecoration(
                 color: tokens.cardBg,
                 border: Border(
-                  bottom: BorderSide(color: tokens.border, width: 1),
+                  bottom: BorderSide(color: tokens.border, width: 0.5),
                 ),
               ),
               child: Row(
@@ -423,12 +425,12 @@ class _GeneralDiscussionPageState extends ConsumerState<GeneralDiscussionPage> {
                       height: 38,
                       decoration: BoxDecoration(
                         color: tokens.surfaceSecondary,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: tokens.border),
+                        borderRadius: BorderRadius.circular(19),
                       ),
                       child: Icon(
-                        Icons.arrow_back,
-                        size: 20,
+                        Symbols.arrow_back_ios_new_rounded,
+                        weight: 600,
+                        size: 18,
                         color: tokens.textPrimary,
                       ),
                     ),
@@ -440,13 +442,14 @@ class _GeneralDiscussionPageState extends ConsumerState<GeneralDiscussionPage> {
                     width: 38,
                     height: 38,
                     decoration: BoxDecoration(
-                      color: const Color(0xFF6366F1).withOpacity(0.12),
-                      borderRadius: BorderRadius.circular(12),
+                      color: const Color(0xFF5856D6),
+                      borderRadius: BorderRadius.circular(11),
                     ),
                     child: const Icon(
-                      Icons.chat_bubble_outline_rounded,
-                      size: 20,
-                      color: Color(0xFF6366F1),
+                      Symbols.chat_bubble_rounded,
+                      size: 21,
+                      fill: 1,
+                      color: Colors.white,
                     ),
                   ),
                   const SizedBox(width: 10),
@@ -456,10 +459,10 @@ class _GeneralDiscussionPageState extends ConsumerState<GeneralDiscussionPage> {
                     child: Text(
                       'General Discussion',
                       style: TextStyle(
-                        fontSize: 17,
-                        fontWeight: FontWeight.w800,
+                        fontSize: 20,
+                        fontWeight: FontWeight.w700,
                         color: tokens.textPrimary,
-                        letterSpacing: -0.3,
+                        letterSpacing: -0.5,
                       ),
                     ),
                   ),
@@ -472,21 +475,21 @@ class _GeneralDiscussionPageState extends ConsumerState<GeneralDiscussionPage> {
                       padding: const EdgeInsets.symmetric(
                           horizontal: 10, vertical: 6),
                       decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(10),
-                        border: Border.all(color: tokens.border, width: 1.2),
+                        borderRadius: BorderRadius.circular(50),
+                        color: const Color(0xFF5856D6).withValues(alpha: 0.12),
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(Icons.description_outlined,
-                              size: 14, color: tokens.textSecondary),
-                          const SizedBox(width: 4),
-                          Text(
+                          const Icon(Symbols.description_rounded,
+                              size: 16, fill: 1, color: Color(0xFF5856D6)),
+                          const SizedBox(width: 5),
+                          const Text(
                             'Guidelines',
                             style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w700,
-                              color: tokens.textSecondary,
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                              color: Color(0xFF5856D6),
                             ),
                           ),
                         ],
@@ -513,9 +516,7 @@ class _GeneralDiscussionPageState extends ConsumerState<GeneralDiscussionPage> {
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
                         color: tokens.cardBg,
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(color: tokens.border),
-                        boxShadow: AppShadows.sm,
+                        borderRadius: BorderRadius.circular(22),
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -555,7 +556,7 @@ class _GeneralDiscussionPageState extends ConsumerState<GeneralDiscussionPage> {
                                         hintText:
                                             "What's happening in your class? Ask a question or share updates...",
                                         hintStyle: TextStyle(
-                                          fontSize: 13.5,
+                                          fontSize: 15.5,
                                           color: tokens.textMuted,
                                           fontWeight: FontWeight.w400,
                                         ),
@@ -564,9 +565,9 @@ class _GeneralDiscussionPageState extends ConsumerState<GeneralDiscussionPage> {
                                         contentPadding: EdgeInsets.zero,
                                       ),
                                       style: TextStyle(
-                                        fontSize: 14,
+                                        fontSize: 15.5,
                                         color: tokens.textPrimary,
-                                        fontWeight: FontWeight.w500,
+                                        fontWeight: FontWeight.w400,
                                         height: 1.4,
                                       ),
                                     ),
@@ -646,9 +647,17 @@ class _GeneralDiscussionPageState extends ConsumerState<GeneralDiscussionPage> {
                           // Composer Footer Buttons
                           Row(
                             children: [
+                              // Tools shrink to fit on narrow screens
+                              Expanded(
+                                child: FittedBox(
+                                  fit: BoxFit.scaleDown,
+                                  alignment: Alignment.centerLeft,
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
                               // Image Picker
                               _ComposerToolBtn(
-                                icon: Icons.image_outlined,
+                                icon: Symbols.image_rounded,
                                 label: 'Image',
                                 onTap: () => _pickAttachment(true),
                               ),
@@ -656,7 +665,7 @@ class _GeneralDiscussionPageState extends ConsumerState<GeneralDiscussionPage> {
 
                               // Document Picker
                               _ComposerToolBtn(
-                                icon: Icons.attach_file_rounded,
+                                icon: Symbols.attach_file_rounded,
                                 label: 'Document',
                                 onTap: () => _pickAttachment(false),
                               ),
@@ -664,12 +673,16 @@ class _GeneralDiscussionPageState extends ConsumerState<GeneralDiscussionPage> {
 
                               // Emoji Picker
                               _ComposerToolBtn(
-                                icon: Icons.sentiment_satisfied_rounded,
+                                icon: Symbols.sentiment_satisfied_rounded,
                                 label: 'Emoji',
                                 onTap: _showEmojiSheet,
                               ),
 
-                              const Spacer(),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 10),
 
                               // Post Button (Purple Pill)
                               BouncyPressable(
@@ -677,9 +690,9 @@ class _GeneralDiscussionPageState extends ConsumerState<GeneralDiscussionPage> {
                                 scaleDown: 0.96,
                                 child: Container(
                                   padding: const EdgeInsets.symmetric(
-                                      horizontal: 20, vertical: 8),
+                                      horizontal: 22, vertical: 10),
                                   decoration: BoxDecoration(
-                                    color: const Color(0xFF7C3AED),
+                                    color: const Color(0xFF5856D6),
                                     borderRadius: BorderRadius.circular(50),
                                   ),
                                   child: _isPosting
@@ -695,8 +708,8 @@ class _GeneralDiscussionPageState extends ConsumerState<GeneralDiscussionPage> {
                                           'Post',
                                           style: TextStyle(
                                             color: Colors.white,
-                                            fontSize: 13.5,
-                                            fontWeight: FontWeight.w700,
+                                            fontSize: 15,
+                                            fontWeight: FontWeight.w600,
                                           ),
                                         ),
                                 ),
@@ -938,21 +951,25 @@ class _ComposerToolBtn extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final tokens = context.tokens;
-    return InkWell(
+    return ApplePressable(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(8),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+      pressedScale: 0.95,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+        decoration: BoxDecoration(
+          color: tokens.surfaceSecondary,
+          borderRadius: BorderRadius.circular(50),
+        ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, size: 16, color: tokens.textSecondary),
-            const SizedBox(width: 4),
+            Icon(icon, size: 18, color: tokens.textSecondary, weight: 500),
+            const SizedBox(width: 5),
             Text(
               label,
               style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w700,
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
                 color: tokens.textSecondary,
               ),
             ),
@@ -976,25 +993,23 @@ class _FilterPill extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final tokens = context.tokens;
-    return InkWell(
+    return ApplePressable(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(50),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+      pressedScale: 0.95,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 160),
+        curve: kEaseOutStrong,
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         decoration: BoxDecoration(
-          color: isSelected
-              ? const Color(0xFF6366F1).withOpacity(0.12)
-              : Colors.transparent,
+          color: isSelected ? const Color(0xFF5856D6) : tokens.cardBg,
           borderRadius: BorderRadius.circular(50),
         ),
         child: Text(
           label,
           style: TextStyle(
-            fontSize: 12.5,
-            fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
-            color: isSelected
-                ? const Color(0xFF6366F1)
-                : tokens.textSecondary,
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            color: isSelected ? Colors.white : tokens.textSecondary,
           ),
         ),
       ),
@@ -1085,16 +1100,15 @@ class _PostCard extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: isHighlighted
-            ? const Color(0xFFF59E0B).withOpacity(0.08)
+            ? const Color(0xFFFF9500).withOpacity(0.08)
             : tokens.cardBg,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: isHighlighted
-              ? const Color(0xFFF59E0B).withOpacity(0.5)
-              : tokens.border,
-          width: isHighlighted ? 1.5 : 1,
-        ),
-        boxShadow: AppShadows.sm,
+        borderRadius: BorderRadius.circular(22),
+        border: isHighlighted
+            ? Border.all(
+                color: const Color(0xFFFF9500).withValues(alpha: 0.5),
+                width: 1.5,
+              )
+            : null,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -1131,9 +1145,10 @@ class _PostCard extends StatelessWidget {
                           child: Text(
                             senderName,
                             style: const TextStyle(
-                              fontSize: 13.5,
-                              fontWeight: FontWeight.w800,
-                              color: Color(0xFF6366F1),
+                              fontSize: 15,
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: -0.2,
+                              color: Color(0xFF5856D6),
                             ),
                           ),
                         ),
@@ -1144,25 +1159,25 @@ class _PostCard extends StatelessWidget {
                             padding: const EdgeInsets.symmetric(
                                 horizontal: 6, vertical: 1.5),
                             decoration: BoxDecoration(
-                              color: const Color(0xFF6366F1).withOpacity(0.12),
+                              color: const Color(0xFF5856D6).withOpacity(0.12),
                               borderRadius: BorderRadius.circular(4),
                               border: Border.all(
                                 color:
-                                    const Color(0xFF6366F1).withOpacity(0.3),
+                                    const Color(0xFF5856D6).withOpacity(0.3),
                               ),
                             ),
                             child: const Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                Icon(Icons.shield_outlined,
-                                    size: 10, color: Color(0xFF6366F1)),
+                                Icon(Symbols.shield_rounded,
+                                    size: 11, fill: 1, color: Color(0xFF5856D6)),
                                 SizedBox(width: 3),
                                 Text(
                                   'Manager',
                                   style: TextStyle(
                                     fontSize: 9.5,
                                     fontWeight: FontWeight.w800,
-                                    color: Color(0xFF6366F1),
+                                    color: Color(0xFF5856D6),
                                   ),
                                 ),
                               ],
@@ -1173,11 +1188,11 @@ class _PostCard extends StatelessWidget {
                             padding: const EdgeInsets.symmetric(
                                 horizontal: 6, vertical: 1.5),
                             decoration: BoxDecoration(
-                              color: const Color(0xFFF59E0B).withOpacity(0.14),
+                              color: const Color(0xFFFF9500).withOpacity(0.14),
                               borderRadius: BorderRadius.circular(50),
                               border: Border.all(
                                 color:
-                                    const Color(0xFFF59E0B).withOpacity(0.4),
+                                    const Color(0xFFFF9500).withOpacity(0.4),
                               ),
                             ),
                             child: const Text(
@@ -1216,9 +1231,9 @@ class _PostCard extends StatelessWidget {
                     Text(
                       formattedDate,
                       style: TextStyle(
-                        fontSize: 11,
+                        fontSize: 12.5,
                         color: tokens.textMuted,
-                        fontWeight: FontWeight.w500,
+                        fontWeight: FontWeight.w400,
                       ),
                     ),
                   ],
@@ -1228,8 +1243,8 @@ class _PostCard extends StatelessWidget {
               // Options Menu
               if (canManage || isAuthor)
                 PopupMenuButton<String>(
-                  icon: Icon(Icons.more_horiz_rounded,
-                      size: 18, color: tokens.textMuted),
+                  icon: Icon(Symbols.more_horiz_rounded,
+                      size: 22, weight: 600, color: tokens.textMuted),
                   onSelected: (val) {
                     if (val == 'pin') onTogglePin();
                     if (val == 'highlight') onToggleHighlight();
@@ -1265,7 +1280,7 @@ class _PostCard extends StatelessWidget {
           Text(
             content,
             style: TextStyle(
-              fontSize: 13.5,
+              fontSize: 15.5,
               color: tokens.textPrimary,
               height: 1.45,
               fontWeight: FontWeight.w400,
@@ -1292,7 +1307,6 @@ class _PostCard extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: tokens.surfaceSecondary,
                   borderRadius: BorderRadius.circular(50),
-                  border: Border.all(color: tokens.border),
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
@@ -1314,7 +1328,7 @@ class _PostCard extends StatelessWidget {
           ],
 
           const SizedBox(height: 10),
-          Divider(color: tokens.borderLight, height: 1),
+          Divider(color: tokens.border, thickness: 0.5, height: 1),
           const SizedBox(height: 6),
 
           // ── Post Actions Row ──────────────────────────────────
@@ -1330,22 +1344,21 @@ class _PostCard extends StatelessWidget {
                   child: Row(
                     children: [
                       Icon(
-                        hasLiked
-                            ? Icons.favorite_rounded
-                            : Icons.favorite_border_rounded,
-                        size: 16,
+                        Symbols.favorite_rounded,
+                        fill: hasLiked ? 1 : 0,
+                        size: 19,
                         color: hasLiked
-                            ? Colors.red
+                            ? const Color(0xFFFF3B30)
                             : tokens.textSecondary,
                       ),
                       const SizedBox(width: 5),
                       Text(
                         'Like',
                         style: TextStyle(
-                          fontSize: 12.5,
-                          fontWeight: FontWeight.w700,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
                           color: hasLiked
-                              ? Colors.red
+                              ? const Color(0xFFFF3B30)
                               : tokens.textSecondary,
                         ),
                       ),
@@ -1365,14 +1378,14 @@ class _PostCard extends StatelessWidget {
                       horizontal: 8, vertical: 6),
                   child: Row(
                     children: [
-                      Icon(Icons.chat_bubble_outline_rounded,
-                          size: 15, color: tokens.textSecondary),
+                      Icon(Symbols.chat_bubble_rounded,
+                          size: 18, color: tokens.textSecondary),
                       const SizedBox(width: 5),
                       Text(
                         'Comments ($commentsCount)',
                         style: TextStyle(
-                          fontSize: 12.5,
-                          fontWeight: FontWeight.w700,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
                           color: tokens.textSecondary,
                         ),
                       ),
@@ -1448,7 +1461,7 @@ class _PostCard extends StatelessWidget {
                                       padding: const EdgeInsets.symmetric(
                                           horizontal: 4, vertical: 1),
                                       decoration: BoxDecoration(
-                                        color: const Color(0xFF6366F1)
+                                        color: const Color(0xFF5856D6)
                                             .withOpacity(0.12),
                                         borderRadius:
                                             BorderRadius.circular(3),
@@ -1458,7 +1471,7 @@ class _PostCard extends StatelessWidget {
                                         style: TextStyle(
                                           fontSize: 8.5,
                                           fontWeight: FontWeight.w800,
-                                          color: Color(0xFF6366F1),
+                                          color: Color(0xFF5856D6),
                                         ),
                                       ),
                                     ),
@@ -1535,7 +1548,7 @@ class _PostCard extends StatelessWidget {
                     width: 34,
                     height: 34,
                     decoration: const BoxDecoration(
-                      color: Color(0xFF7C3AED),
+                      color: Color(0xFF5856D6),
                       shape: BoxShape.circle,
                     ),
                     alignment: Alignment.center,
@@ -1549,9 +1562,10 @@ class _PostCard extends StatelessWidget {
                             ),
                           )
                         : const Icon(
-                            Icons.send_rounded,
+                            Symbols.arrow_upward_rounded,
                             color: Colors.white,
-                            size: 15,
+                            weight: 700,
+                            size: 18,
                           ),
                   ),
                 ),

@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -186,7 +186,7 @@ class TabletNavRail extends ConsumerWidget {
             BouncyPressable(
               onTap: () {
                 HapticFeedback.lightImpact();
-                final currentMode = ref.read(themeModeProvider).valueOrNull ??
+                final currentMode = ref.read(themeModeProvider).value ??
                     AppThemeMode.system;
                 final AppThemeMode nextMode;
                 if (currentMode == AppThemeMode.light) {
@@ -219,7 +219,7 @@ class TabletNavRail extends ConsumerWidget {
                   color: isBlack
                       ? Colors.white
                       : (isDark
-                          ? const Color(0xFFF59E0B)
+                          ? const Color(0xFFFF9500)
                           : const Color(0xFF475569)),
                 ),
               ),
@@ -253,13 +253,13 @@ class _RailItem extends StatelessWidget {
     final activeBg = isAcademics
         ? (isBlack
             ? const Color(0xFF27272A)
-            : const Color(0xFF6366F1).withOpacity(0.18))
+            : const Color(0xFF5856D6).withOpacity(0.18))
         : (isBlack
             ? const Color(0xFF1E1E24)
             : primaryAccent.withOpacity(0.12));
 
     final iconColor = active
-        ? (isAcademics ? const Color(0xFF8B5CF6) : primaryAccent)
+        ? (isAcademics ? const Color(0xFF6E6CF0) : primaryAccent)
         : tokens.textMuted;
 
     return BouncyPressable(
@@ -281,7 +281,7 @@ class _RailItem extends StatelessWidget {
           border: active
               ? Border.all(
                   color: (isAcademics
-                          ? const Color(0xFF8B5CF6)
+                          ? const Color(0xFF6E6CF0)
                           : primaryAccent)
                       .withOpacity(0.3),
                   width: 1,
@@ -310,7 +310,7 @@ class _RailItem extends StatelessWidget {
                 fontWeight: active ? FontWeight.w700 : FontWeight.w500,
                 color: active
                     ? (isAcademics
-                        ? const Color(0xFF8B5CF6)
+                        ? const Color(0xFF6E6CF0)
                         : (isDark ? Colors.white : tokens.textPrimary))
                     : tokens.textMuted,
                 fontFamily: 'Manrope',

@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -116,13 +116,13 @@ class _TxnCard extends StatelessWidget {
             width: 44,
             height: 44,
             decoration: BoxDecoration(
-              color: tokens.primaryAccent.withOpacity(0.12),
+              color: tokens.textMuted.withValues(alpha: 0.14),
               borderRadius: BorderRadius.circular(14),
             ),
             alignment: Alignment.center,
             child: Icon(
               _typeIcons[type] ?? Icons.receipt_long,
-              color: tokens.primaryAccent,
+              color: tokens.textSecondary,
               size: 20,
             ),
           ),

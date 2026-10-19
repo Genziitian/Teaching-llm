@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import crypto from 'crypto'
 import { getSession } from '@/lib/auth'
+import { addDays } from '@/lib/store-notes'
 import { logActivity, MODULE, ACTION } from '@/lib/activity-log'
 import { sendEmailNotification } from '@/lib/email-service'
 
@@ -33,13 +34,15 @@ export async function POST(req: Request, { params }: { params: { id: string } })
       return NextResponse.json({ error: 'Invalid signature' }, { status: 400 })
     }
 
-    // Create Note Access record after successful payment
-    const access = await prisma.storeNoteAccess.create({
-      data: {
-        noteId: params.id,
-        userId: user.id,
-        orderId: razorpay_payment_id
-      },
+    const noteForAccess = await prisma.storeNote.findUnique({ where: { id: params.id } })
+    if (!noteForAccess) return NextResponse.json({ error: 'Note not found' }, { status: 404 })
+
+    // Grant (or restore) access: fresh validity window from today.
+    const expiresAt = addDays(new Date(), noteForAccess.validityDays)
+    const access = await prisma.storeNoteAccess.upsert({
+      where: { noteId_userId: { noteId: params.id, userId: user.id } },
+      create: { noteId: params.id, userId: user.id, orderId: razorpay_payment_id, expiresAt },
+      update: { orderId: razorpay_payment_id, createdAt: new Date(), expiresAt },
       include: { note: true }
     })
 
@@ -71,7 +74,7 @@ export async function POST(req: Request, { params }: { params: { id: string } })
       dashboardUrl: `${process.env.NEXT_PUBLIC_APP_URL || ''}/purchased`
     }).catch(console.error)
 
-    return NextResponse.json({ success: true })
+    return NextResponse.json({ success: true, expiresAt, message: 'Purchase successful' })
   } catch (error: any) {
     console.error('Note payment verification error:', error)
     return NextResponse.json({ error: error.message }, { status: 500 })

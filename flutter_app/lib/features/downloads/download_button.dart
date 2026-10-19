@@ -1,12 +1,14 @@
 import 'dart:async';
 import 'dart:math';
 
-import 'package:flutter/material.dart';
+import 'package:material_symbols_icons/symbols.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/auth/auth_providers.dart';
 import '../../core/downloads/download_providers.dart';
+import '../../shared/widgets/apple_pressable.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_theme_tokens.dart';
 import '../../theme/app_typography.dart';
@@ -36,59 +38,16 @@ class DownloadButton extends ConsumerWidget {
   final String? courseName;
   final bool compact;
 
-  Future<void> _startDownload(BuildContext context, WidgetRef ref) async {
-    final user = ref.read(authStateProvider).value;
-    if (user == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please log in to download notes.')),
-      );
-      return;
-    }
-
-    final manager = ref.read(downloadManagerProvider);
-    final stream = manager
-        .download(
-          userId: user.id,
-          contentId: contentId,
-          contentType: contentType,
-          title: title,
-          courseId: courseId,
-          courseName: courseName,
-        )
-        .asBroadcastStream();
-
-    ref.read(activeDownloadProvider(contentId).notifier).start(stream);
-
-    // Watch stream completion to invalidate providers
-    stream.listen(
-      (p) {
-        if (p.done) {
-          ref.invalidate(downloadStatusProvider(contentId));
-          ref.invalidate(downloadedNotesProvider);
-          ref.invalidate(totalDownloadSizeProvider);
-        }
-      },
-      onError: (e) {
-        if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Download failed: $e')),
-          );
-        }
-      },
-    );
-
-    final completedAction = await showDialog<String>(
-      context: context,
-      barrierDismissible: false,
-      builder: (_) => _DownloadProgressDialog(
+  Future<void> _startDownload(BuildContext context, WidgetRef ref) =>
+      startDownloadFlow(
+        context,
+        ref,
         contentId: contentId,
+        contentType: contentType,
         title: title,
-      ),
-    );
-    if (completedAction == 'view' && context.mounted) {
-      context.push('/downloads');
-    }
-  }
+        courseId: courseId,
+        courseName: courseName,
+      );
 
   void _showDownloadedOptions(
       BuildContext context, WidgetRef ref, String localPath) {
@@ -341,7 +300,7 @@ class DownloadButton extends ConsumerWidget {
     }
 
     // 2. Downloaded check
-    final localPath = statusAsync.valueOrNull;
+    final localPath = statusAsync.value;
     if (localPath != null && localPath.isNotEmpty) {
       if (compact) {
         return IconButton(
@@ -500,100 +459,174 @@ class _DownloadProgressDialogState
     final error = progress?.error;
     final display = complete ? 1.0 : _shownProgress;
 
-    return AlertDialog(
+    Widget button(String label, VoidCallback onTap,
+        {bool primary = false}) {
+      return ApplePressable(
+        onTap: onTap,
+        child: Container(
+          height: 50,
+          decoration: BoxDecoration(
+            color: primary
+                ? tokens.primaryAccent
+                : tokens.textMuted.withValues(alpha: 0.14),
+            borderRadius: BorderRadius.circular(16),
+          ),
+          alignment: Alignment.center,
+          child: Text(
+            label,
+            style: TextStyle(
+              fontSize: 17,
+              fontWeight: FontWeight.w600,
+              color: primary ? Colors.white : tokens.textPrimary,
+            ),
+          ),
+        ),
+      );
+    }
+
+    final Widget indicator = complete
+        ? const Icon(Symbols.check_circle_rounded,
+            fill: 1, color: AppColors.green, size: 64)
+        : error != null
+            ? const Icon(Symbols.error_rounded,
+                fill: 1, color: AppColors.red, size: 60)
+            : CircularProgressIndicator(
+                value: display,
+                strokeWidth: 6,
+                strokeCap: StrokeCap.round,
+                color: tokens.primaryAccent,
+                backgroundColor: tokens.textMuted.withValues(alpha: 0.18),
+              );
+
+    return Dialog(
       backgroundColor: tokens.cardBg,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22)),
-      contentPadding: const EdgeInsets.fromLTRB(24, 28, 24, 18),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          SizedBox(
-            width: 64,
-            height: 64,
-            child: complete
-                ? const Icon(Icons.check_circle_rounded,
-                    color: AppColors.green, size: 62)
-                : error != null
-                    ? const Icon(Icons.error_outline_rounded,
-                        color: AppColors.red, size: 58)
-                    : CircularProgressIndicator(
-                        value: display,
-                        strokeWidth: 5,
-                        color: AppColors.brand,
-                        backgroundColor: tokens.border,
-                      ),
-          ),
-          const SizedBox(height: 18),
-          Text(
-            complete
-                ? 'Download Complete'
-                : error != null
-                    ? 'Download Failed'
-                    : 'Downloading Notes',
-            textAlign: TextAlign.center,
-            style: AppTypography.title.copyWith(
-              color: tokens.textPrimary,
-              fontSize: 18,
+      elevation: 0,
+      insetPadding: const EdgeInsets.symmetric(horizontal: 36),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(20, 28, 20, 20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Center(child: SizedBox(width: 64, height: 64, child: indicator)),
+            const SizedBox(height: 20),
+            Text(
+              complete
+                  ? 'Download Complete'
+                  : error != null
+                      ? 'Download Failed'
+                      : 'Downloading Notes',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 21,
+                fontWeight: FontWeight.w700,
+                letterSpacing: -0.5,
+                color: tokens.textPrimary,
+              ),
             ),
-          ),
-          const SizedBox(height: 6),
-          Text(
-            error ??
-                (complete
-                    ? '${widget.title} is ready offline.'
-                    : '${(display * 100).floor()}% · Please keep the app open'),
-            textAlign: TextAlign.center,
-            style: AppTypography.bodyMuted.copyWith(
-              color: tokens.textSecondary,
-              fontSize: 13,
+            const SizedBox(height: 6),
+            Text(
+              error ??
+                  (complete
+                      ? '${widget.title} is ready offline.'
+                      : '${(display * 100).floor()}% · Please keep the app open'),
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 15,
+                height: 1.35,
+                color: tokens.textSecondary,
+              ),
             ),
-          ),
-          const SizedBox(height: 22),
-          Row(
-            children: [
-              if (!complete && error == null)
-                Expanded(
-                  child: OutlinedButton(
-                    onPressed: () {
-                      ref
-                          .read(downloadManagerProvider)
-                          .cancel(widget.contentId);
-                      ref
-                          .read(
-                              activeDownloadProvider(widget.contentId).notifier)
-                          .reset();
-                      Navigator.of(context).pop();
-                    },
-                    child: const Text('Cancel'),
-                  ),
-                ),
-              if (complete) ...[
-                Expanded(
-                  child: OutlinedButton(
-                    onPressed: () => Navigator.of(context).pop('done'),
-                    child: const Text('Done'),
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: FilledButton(
-                    onPressed: () => Navigator.of(context).pop('view'),
-                    child: const Text('View Downloads'),
-                  ),
-                ),
-              ],
-              if (error != null) ...[
-                Expanded(
-                  child: FilledButton(
-                    onPressed: () => Navigator.of(context).pop(),
-                    child: const Text('Close'),
-                  ),
-                ),
-              ],
+            const SizedBox(height: 24),
+            if (!complete && error == null)
+              button('Cancel', () {
+                ref.read(downloadManagerProvider).cancel(widget.contentId);
+                ref
+                    .read(activeDownloadProvider(widget.contentId).notifier)
+                    .reset();
+                Navigator.of(context).pop();
+              }),
+            if (complete) ...[
+              button('View Downloads',
+                  () => Navigator.of(context).pop('view'),
+                  primary: true),
+              const SizedBox(height: 10),
+              button('Done', () => Navigator.of(context).pop('done')),
             ],
-          ),
-        ],
+            if (error != null)
+              button('Close', () => Navigator.of(context).pop(),
+                  primary: true),
+          ],
+        ),
       ),
     );
   }
 }
+
+/// Starts a download with the standard progress dialog. Shared by the
+/// download button and the material list menus.
+Future<void> startDownloadFlow(
+BuildContext context,
+WidgetRef ref, {
+required String contentId,
+String contentType = 'CONTENT',
+required String title,
+String? courseId,
+String? courseName,
+String? version,
+}) async {
+  final user = ref.read(authStateProvider).value;
+  if (user == null) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Please log in to download notes.')),
+    );
+    return;
+  }
+
+  final manager = ref.read(downloadManagerProvider);
+  final stream = manager
+      .download(
+        userId: user.id,
+        contentId: contentId,
+        contentType: contentType,
+        title: title,
+        courseId: courseId,
+        courseName: courseName,
+        version: version,
+      )
+      .asBroadcastStream();
+
+  ref.read(activeDownloadProvider(contentId).notifier).start(stream);
+
+  // Watch stream completion to invalidate providers
+  stream.listen(
+    (p) {
+      if (p.done) {
+        ref.invalidate(downloadStatusProvider(contentId));
+        ref.invalidate(downloadedNotesProvider);
+        ref.invalidate(totalDownloadSizeProvider);
+      }
+    },
+    onError: (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Download failed: $e')),
+        );
+      }
+    },
+  );
+
+  final completedAction = await showDialog<String>(
+    context: context,
+    barrierDismissible: false,
+    builder: (_) => _DownloadProgressDialog(
+      contentId: contentId,
+      title: title,
+    ),
+  );
+  if (completedAction == 'view' && context.mounted) {
+    context.push('/downloads');
+  }
+}
+

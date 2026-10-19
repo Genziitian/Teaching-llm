@@ -1,5 +1,5 @@
 import 'dart:math';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// Lightweight, zero-dependency confetti particle burst matching the web Party Pips.
 /// Spawns physics-based particles that burst outwards and gently drift down with gravity.
@@ -7,14 +7,14 @@ class PartyPips {
   PartyPips._();
 
   static const List<Color> _palette = [
-    Color(0xFF6366F1), // Indigo
-    Color(0xFF8B5CF6), // Violet
+    Color(0xFF5856D6), // Indigo
+    Color(0xFF6E6CF0), // Violet
     Color(0xFFEC4899), // Pink
-    Color(0xFFF59E0B), // Amber
-    Color(0xFF10B981), // Emerald
+    Color(0xFFFF9500), // Amber
+    Color(0xFF34C759), // Emerald
     Color(0xFF06B6D4), // Cyan
     Color(0xFFF97316), // Orange
-    Color(0xFFEF4444), // Red
+    Color(0xFFFF3B30), // Red
   ];
 
   /// Pop confetti particles centered on [origin] or in the screen center.

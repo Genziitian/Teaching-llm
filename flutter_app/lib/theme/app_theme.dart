@@ -1,5 +1,6 @@
-import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
+import 'package:cupertino_ui/cupertino_ui.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:material_ui/material_ui.dart';
 
 import 'app_theme_tokens.dart';
 import 'app_typography.dart';
@@ -14,6 +15,61 @@ class AppTheme {
       TargetPlatform.macOS: CupertinoPageTransitionsBuilder(),
     },
   );
+
+
+  // ── Apple-style buttons: flat, rounded, semibold, dim on press ────────
+  static final _shape =
+      RoundedRectangleBorder(borderRadius: BorderRadius.circular(14));
+  static final _label =
+      GoogleFonts.manrope(fontSize: 15, fontWeight: FontWeight.w600);
+
+  static WidgetStateProperty<Color?> _pressDim(Color c) =>
+      WidgetStateProperty.resolveWith((s) {
+        if (s.contains(WidgetState.disabled)) return c.withValues(alpha: 0.35);
+        if (s.contains(WidgetState.pressed)) return c.withValues(alpha: 0.78);
+        return c;
+      });
+
+  static FilledButtonThemeData _filledButton(Color bg, Color fg) =>
+      FilledButtonThemeData(
+        style: ButtonStyle(
+          backgroundColor: _pressDim(bg),
+          foregroundColor: WidgetStatePropertyAll(fg),
+          elevation: const WidgetStatePropertyAll(0),
+          shape: WidgetStatePropertyAll(_shape),
+          textStyle: WidgetStatePropertyAll(_label),
+        ),
+      );
+
+  static ElevatedButtonThemeData _elevatedButton(Color bg, Color fg) =>
+      ElevatedButtonThemeData(
+        style: ButtonStyle(
+          backgroundColor: _pressDim(bg),
+          foregroundColor: WidgetStatePropertyAll(fg),
+          elevation: const WidgetStatePropertyAll(0),
+          shadowColor: const WidgetStatePropertyAll(Colors.transparent),
+          shape: WidgetStatePropertyAll(_shape),
+          textStyle: WidgetStatePropertyAll(_label),
+        ),
+      );
+
+  static OutlinedButtonThemeData _outlinedButton(Color fg, Color line) =>
+      OutlinedButtonThemeData(
+        style: ButtonStyle(
+          foregroundColor: _pressDim(fg),
+          side: WidgetStatePropertyAll(BorderSide(color: line)),
+          shape: WidgetStatePropertyAll(_shape),
+          textStyle: WidgetStatePropertyAll(_label),
+        ),
+      );
+
+  static TextButtonThemeData _textButton(Color fg) => TextButtonThemeData(
+        style: ButtonStyle(
+          foregroundColor: _pressDim(fg),
+          overlayColor: const WidgetStatePropertyAll(Colors.transparent),
+          textStyle: WidgetStatePropertyAll(_label),
+        ),
+      );
 
   static ThemeData light() {
     final base = ThemeData.light(useMaterial3: true);
@@ -47,9 +103,13 @@ class AppTheme {
         AppThemeTokens.light,
       ],
       pageTransitionsTheme: _pageTransitionsTheme,
-      splashFactory: InkRipple.splashFactory,
-      highlightColor: const Color(0x0A4F46E5),
-      splashColor: const Color(0x144F46E5),
+      splashFactory: NoSplash.splashFactory,
+      highlightColor: const Color(0x0F5856D6),
+      splashColor: Colors.transparent,
+      filledButtonTheme: _filledButton(tokens.primaryAccent, Colors.white),
+      elevatedButtonTheme: _elevatedButton(tokens.primaryAccent, Colors.white),
+      outlinedButtonTheme: _outlinedButton(tokens.primaryAccent, tokens.border),
+      textButtonTheme: _textButton(tokens.primaryAccent),
     );
   }
 
@@ -85,9 +145,13 @@ class AppTheme {
         AppThemeTokens.dark,
       ],
       pageTransitionsTheme: _pageTransitionsTheme,
-      splashFactory: InkRipple.splashFactory,
+      splashFactory: NoSplash.splashFactory,
       highlightColor: const Color(0x14FFFFFF),
-      splashColor: const Color(0x1A4F46E5),
+      splashColor: Colors.transparent,
+      filledButtonTheme: _filledButton(tokens.primaryAccent, Colors.white),
+      elevatedButtonTheme: _elevatedButton(tokens.primaryAccent, Colors.white),
+      outlinedButtonTheme: _outlinedButton(tokens.primaryAccent, tokens.border),
+      textButtonTheme: _textButton(tokens.primaryAccent),
     );
   }
 
@@ -123,9 +187,13 @@ class AppTheme {
         AppThemeTokens.black,
       ],
       pageTransitionsTheme: _pageTransitionsTheme,
-      splashFactory: InkRipple.splashFactory,
+      splashFactory: NoSplash.splashFactory,
       highlightColor: const Color(0x14FFFFFF),
-      splashColor: const Color(0x1AFFFFFF),
+      splashColor: Colors.transparent,
+      filledButtonTheme: _filledButton(tokens.primaryAccent, Colors.black),
+      elevatedButtonTheme: _elevatedButton(tokens.primaryAccent, Colors.black),
+      outlinedButtonTheme: _outlinedButton(tokens.primaryAccent, tokens.border),
+      textButtonTheme: _textButton(tokens.primaryAccent),
     );
   }
 }

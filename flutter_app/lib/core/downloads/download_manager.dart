@@ -48,6 +48,7 @@ class DownloadManager {
     required String title,
     String? courseId,
     String? courseName,
+    String? version,
   }) async* {
     if (_active.containsKey(contentId)) return;
 
@@ -108,8 +109,39 @@ class DownloadManager {
     try {
       yield const DownloadProgress(received: 0, total: null);
 
-      final downloadFuture = dio.download(
-        url,
+      // Store notes live in private storage: ask our API for a short-lived
+      // signed URL (this also enforces purchase + expiry), then fetch the
+      // file from it with a plain client that carries no auth header.
+      var fetchUrl = url;
+      var client = dio;
+      if (contentType.toUpperCase() == UrlResolver.typeStoreNote) {
+        final meta = await dio.get<dynamic>(
+          url,
+          queryParameters: {'format': 'json'},
+          options: Options(
+            responseType: ResponseType.json,
+            headers: {'Accept': 'application/json'},
+          ),
+        );
+        final data = meta.data;
+        final signed = data is Map ? data['url'] as String? : null;
+        if (meta.statusCode != 200 || signed == null || signed.isEmpty) {
+          _active.remove(contentId);
+          final msg = data is Map ? data['error'] as String? : null;
+          yield DownloadProgress.failed(
+              msg ?? 'This note is not available. It may have expired.');
+          return;
+        }
+        fetchUrl = signed;
+        client = Dio(BaseOptions(
+          connectTimeout: const Duration(seconds: 30),
+          receiveTimeout: const Duration(minutes: 10),
+          validateStatus: (_) => true,
+        ));
+      }
+
+      final downloadFuture = client.download(
+        fetchUrl,
         tmpPath,
         cancelToken: cancelToken,
         onReceiveProgress: (received, total) {
@@ -173,6 +205,7 @@ class DownloadManager {
         localPath: finalPath,
         originalUrl: url,
         fileSize: fileSize,
+        version: version,
       );
 
       yield DownloadProgress(
@@ -215,6 +248,33 @@ class DownloadManager {
     // File was removed externally. Remove stale row.
     await _db.delete(userId, contentId);
     return null;
+  }
+
+  // ─── EXPIRY ────────────────────────────────────────────────────────
+
+  /// Removes downloaded Premium Notes whose access has expired. A note is
+  /// expired when the expiry saved at download time has passed (works
+  /// offline) or the server reports it in [expiredIds]. Returns the ids
+  /// that were removed.
+  Future<List<String>> purgeExpiredStoreNotes(
+    String userId, {
+    Set<String> expiredIds = const {},
+  }) async {
+    final rows = await _db.listForUser(userId);
+    final now = DateTime.now();
+    final removed = <String>[];
+    for (final row in rows) {
+      if ((row['contentType'] as String?) != UrlResolver.typeStoreNote) {
+        continue;
+      }
+      final id = row['contentId'] as String;
+      final until = DateTime.tryParse((row['version'] as String?) ?? '');
+      if (expiredIds.contains(id) || (until != null && until.isBefore(now))) {
+        await deleteDownload(userId, id);
+        removed.add(id);
+      }
+    }
+    return removed;
   }
 
   // ─── DELETE ────────────────────────────────────────────────────────

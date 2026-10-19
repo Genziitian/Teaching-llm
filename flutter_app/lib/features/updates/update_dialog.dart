@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:math' as math;
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../../shared/utils/admin_content_url.dart';
 import '../../theme/app_theme_tokens.dart';
@@ -118,7 +118,7 @@ class _UpdateDialogState extends State<UpdateDialog> {
                                       padding: const EdgeInsets.symmetric(
                                           vertical: 13),
                                       backgroundColor:
-                                          const Color(0xFF6366F1),
+                                          const Color(0xFF5856D6),
                                       foregroundColor: Colors.white,
                                       shape: RoundedRectangleBorder(
                                         borderRadius:

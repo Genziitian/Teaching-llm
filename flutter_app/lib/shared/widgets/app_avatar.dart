@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import '../../config/api_config.dart';
 
 /// Reusable user avatar widget matching Capacitor / Web UserAvatar.tsx.
@@ -36,7 +36,7 @@ class AppAvatar extends StatelessWidget {
       decoration: const BoxDecoration(
         shape: BoxShape.circle,
         gradient: LinearGradient(
-          colors: [Color(0xFF6366F1), Color(0xFF8B5CF6)],
+          colors: [Color(0xFF5856D6), Color(0xFF6E6CF0)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
@@ -125,7 +125,7 @@ class AppAvatar extends StatelessWidget {
       height: size,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        color: backgroundColor ?? const Color(0xFF6366F1).withOpacity(0.15),
+        color: backgroundColor ?? const Color(0xFF5856D6).withOpacity(0.15),
         border: border,
       ),
       child: ClipOval(child: imageWidget),

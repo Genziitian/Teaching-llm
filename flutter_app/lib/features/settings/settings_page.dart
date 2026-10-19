@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -8,9 +8,10 @@ import '../../core/auth/auth_providers.dart';
 import '../../theme/theme_mode_provider.dart';
 import '../../core/l10n/language_provider.dart';
 import '../../core/l10n/app_translations.dart';
-import '../../shared/widgets/bouncy_pressable.dart';
+import 'package:material_symbols_icons/symbols.dart';
+import '../../shared/widgets/apple_alert.dart';
+import '../../shared/widgets/apple_pressable.dart';
 import '../../shared/widgets/sub_page_header.dart';
-import '../../theme/app_shadows.dart';
 import '../../theme/app_theme_tokens.dart';
 import 'notification_settings_page.dart';
 
@@ -95,9 +96,17 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
   }
 
   Future<void> _openCancelConfirmation(Map<String, dynamic> req) async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => const _CancelConfirmDialog(),
+    final confirmed = await showAppleAlert<bool>(
+      context,
+      icon: Symbols.shield_rounded,
+      title: 'Keep your account?',
+      message:
+          'Cancelling will stop the current account deletion request and restore full normal account access immediately.',
+      actions: const [
+        AppleAlertAction(label: 'Continue With Deletion', value: false),
+        AppleAlertAction(
+            label: 'Keep My Account', value: true, isDefault: true),
+      ],
     );
 
     if (confirmed == true && mounted) {
@@ -109,7 +118,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Your account deletion request has been cancelled.'),
-            backgroundColor: Color(0xFF10B981),
+            backgroundColor: Color(0xFF34C759),
             behavior: SnackBarBehavior.floating,
           ),
         );
@@ -128,12 +137,12 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
   @override
   Widget build(BuildContext context) {
     final currentThemeMode =
-        ref.watch(themeModeProvider).valueOrNull ?? AppThemeMode.system;
+        ref.watch(themeModeProvider).value ?? AppThemeMode.system;
 
     final currentLanguage = ref.watch(languageProvider).value ?? 'en';
 
     final notifAsync = ref.watch(notificationPrefsProvider);
-    final prefs = notifAsync.valueOrNull ??
+    final prefs = notifAsync.value ??
         const NotificationPrefs(announcements: true, community: true);
 
     final tokens = context.tokens;
@@ -154,228 +163,103 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
         children: [
 
             // ── 1. APPEARANCE (THEME) ──────────────────────────────
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: _SectionHeader(title: AppTranslations.t('settings.appearance', currentLanguage), color: textSecondary),
-            ),
-            const SizedBox(height: 10),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: Container(
-                padding: const EdgeInsets.all(6),
-                decoration: BoxDecoration(
-                  color: cardBg,
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: borderColor),
-                  boxShadow: AppShadows.sm,
-                ),
-                child: Row(
-                  children: [
-                    _ThemeTab(
-                      label: AppTranslations.t('settings.theme.system', currentLanguage),
-                      icon: Icons.brightness_auto_rounded,
-                      isSelected: currentThemeMode == AppThemeMode.system,
-                      onTap: () {
-                        HapticFeedback.lightImpact();
-                        ref
-                            .read(themeModeProvider.notifier)
-                            .set(AppThemeMode.system);
-                      },
-                    ),
-                    _ThemeTab(
-                      label: AppTranslations.t('settings.theme.light', currentLanguage),
-                      icon: Icons.light_mode_rounded,
-                      isSelected: currentThemeMode == AppThemeMode.light,
-                      onTap: () {
-                        HapticFeedback.lightImpact();
-                        ref
-                            .read(themeModeProvider.notifier)
-                            .set(AppThemeMode.light);
-                      },
-                    ),
-                    _ThemeTab(
-                      label: AppTranslations.t('settings.theme.dark', currentLanguage),
-                      icon: Icons.dark_mode_rounded,
-                      isSelected: currentThemeMode == AppThemeMode.dark,
-                      onTap: () {
-                        HapticFeedback.lightImpact();
-                        ref
-                            .read(themeModeProvider.notifier)
-                            .set(AppThemeMode.dark);
-                      },
-                    ),
-                    _ThemeTab(
-                      label: AppTranslations.t('settings.theme.black', currentLanguage),
-                      icon: Icons.contrast_rounded,
-                      isSelected: currentThemeMode == AppThemeMode.black,
-                      onTap: () {
-                        HapticFeedback.lightImpact();
-                        ref
-                            .read(themeModeProvider.notifier)
-                            .set(AppThemeMode.black);
-                      },
-                    ),
-                  ],
-                ),
-              ),
+            _SectionHeader(
+                title: AppTranslations.t('settings.appearance', currentLanguage),
+                color: textSecondary),
+            _Segmented(
+              selected: switch (currentThemeMode) {
+                AppThemeMode.system => 0,
+                AppThemeMode.light => 1,
+                AppThemeMode.dark => 2,
+                AppThemeMode.black => 3,
+              },
+              items: [
+                _SegItem(
+                    AppTranslations.t('settings.theme.system', currentLanguage),
+                    Symbols.brightness_auto_rounded),
+                _SegItem(
+                    AppTranslations.t('settings.theme.light', currentLanguage),
+                    Symbols.light_mode_rounded),
+                _SegItem(
+                    AppTranslations.t('settings.theme.dark', currentLanguage),
+                    Symbols.dark_mode_rounded),
+                _SegItem(
+                    AppTranslations.t('settings.theme.black', currentLanguage),
+                    Symbols.contrast_rounded),
+              ],
+              onChanged: (i) {
+                HapticFeedback.selectionClick();
+                ref.read(themeModeProvider.notifier).set(const [
+                  AppThemeMode.system,
+                  AppThemeMode.light,
+                  AppThemeMode.dark,
+                  AppThemeMode.black,
+                ][i]);
+              },
             ),
 
-            const SizedBox(height: 24),
+            const SizedBox(height: 28),
 
             // ── 1.5 LANGUAGE ─────────────────────────────────────────
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: _SectionHeader(title: AppTranslations.t('settings.language', currentLanguage), color: textSecondary),
+            _SectionHeader(
+                title: AppTranslations.t('settings.language', currentLanguage),
+                color: textSecondary),
+            _Segmented(
+              selected: currentLanguage == 'hi' ? 1 : 0,
+              items: const [
+                _SegItem('English', Symbols.language_rounded),
+                _SegItem('हिंदी', Symbols.translate_rounded),
+              ],
+              onChanged: (i) {
+                HapticFeedback.selectionClick();
+                ref.read(languageProvider.notifier).set(i == 1 ? 'hi' : 'en');
+              },
             ),
-            const SizedBox(height: 10),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: Container(
-                padding: const EdgeInsets.all(6),
-                decoration: BoxDecoration(
-                  color: cardBg,
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: borderColor),
-                  boxShadow: AppShadows.sm,
-                ),
-                child: Row(
-                  children: [
-                    _ThemeTab(
-                      label: 'English',
-                      icon: Icons.language_rounded,
-                      isSelected: currentLanguage == 'en',
-                      onTap: () {
-                        HapticFeedback.lightImpact();
-                        ref.read(languageProvider.notifier).set('en');
-                      },
-                    ),
-                    _ThemeTab(
-                      label: 'हिंदी',
-                      icon: Icons.language_rounded,
-                      isSelected: currentLanguage == 'hi',
-                      onTap: () {
-                        HapticFeedback.lightImpact();
-                        ref.read(languageProvider.notifier).set('hi');
-                      },
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            
-            const SizedBox(height: 24),
+
+            const SizedBox(height: 28),
 
             // ── 2. PUSH NOTIFICATIONS ──────────────────────────────
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: _SectionHeader(
-                  title: AppTranslations.t('settings.pushNotifications', currentLanguage), color: textSecondary),
-            ),
-            const SizedBox(height: 10),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: Container(
-                decoration: BoxDecoration(
-                  color: cardBg,
-                  borderRadius: BorderRadius.circular(18),
-                  border: Border.all(color: borderColor),
-                  boxShadow: AppShadows.sm,
+            _SectionHeader(
+                title: AppTranslations.t('settings.pushNotifications', currentLanguage),
+                color: textSecondary),
+            _Group(
+              children: [
+                _SwitchRow(
+                  icon: Symbols.campaign_rounded,
+                  tile: const Color(0xFF5856D6),
+                  title: AppTranslations.t('settings.notif.announcements', currentLanguage),
+                  subtitle: AppTranslations.t('settings.notif.announcements.sub', currentLanguage),
+                  value: prefs.announcements,
+                  onChanged: (v) => ref
+                      .read(notificationPrefsProvider.notifier)
+                      .setAnnouncements(v),
                 ),
-                child: Column(
-                  children: [
-                    SwitchListTile(
-                      contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 16, vertical: 4),
-                      secondary: Container(
-                        width: 38,
-                        height: 38,
-                        decoration: BoxDecoration(
-                          color: tokens.primaryAccent.withOpacity(0.12),
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: Icon(Icons.campaign_outlined,
-                            color: tokens.primaryAccent, size: 20),
-                      ),
-                      title: Text(
-                        AppTranslations.t('settings.notif.announcements', currentLanguage),
-                        style: TextStyle(
-                            fontSize: 14.5,
-                            fontWeight: FontWeight.w600,
-                            color: textPrimary),
-                      ),
-                      subtitle: Text(
-                        AppTranslations.t('settings.notif.announcements.sub', currentLanguage),
-                        style: TextStyle(fontSize: 12, color: textSecondary),
-                      ),
-                      value: prefs.announcements,
-                      activeColor: tokens.primaryAccent,
-                      onChanged: (v) {
-                        ref
-                            .read(notificationPrefsProvider.notifier)
-                            .setAnnouncements(v);
-                      },
-                    ),
-                    Divider(
-                      height: 1,
-                      color: tokens.borderLight,
-                    ),
-                    SwitchListTile(
-                      contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 16, vertical: 4),
-                      secondary: Container(
-                        width: 38,
-                        height: 38,
-                        decoration: BoxDecoration(
-                          color: tokens.success.withOpacity(0.12),
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: Icon(Icons.forum_outlined,
-                            color: tokens.success, size: 20),
-                      ),
-                      title: Text(
-                        AppTranslations.t('settings.notif.community', currentLanguage),
-                        style: TextStyle(
-                            fontSize: 14.5,
-                            fontWeight: FontWeight.w600,
-                            color: textPrimary),
-                      ),
-                      subtitle: Text(
-                        AppTranslations.t('settings.notif.community.sub', currentLanguage),
-                        style: TextStyle(fontSize: 12, color: textSecondary),
-                      ),
-                      value: prefs.community,
-                      activeColor: tokens.success,
-                      onChanged: (v) {
-                        ref
-                            .read(notificationPrefsProvider.notifier)
-                            .setCommunity(v);
-                      },
-                    ),
-                  ],
+                _SwitchRow(
+                  icon: Symbols.forum_rounded,
+                  tile: const Color(0xFF34C759),
+                  title: AppTranslations.t('settings.notif.community', currentLanguage),
+                  subtitle: AppTranslations.t('settings.notif.community.sub', currentLanguage),
+                  value: prefs.community,
+                  isLast: true,
+                  onChanged: (v) => ref
+                      .read(notificationPrefsProvider.notifier)
+                      .setCommunity(v),
                 ),
-              ),
+              ],
             ),
 
             const SizedBox(height: 28),
 
             // ── 3. DANGER ZONE (ACCOUNT DELETION) ──────────────────
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: _SectionHeader(
-                  title: 'DANGER ZONE', color: tokens.danger),
-            ),
-            const SizedBox(height: 10),
+            _SectionHeader(title: 'DANGER ZONE', color: tokens.danger),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
               child: hasRequested && deletionReq != null
                   ? Container(
                       padding: const EdgeInsets.all(18),
                       decoration: BoxDecoration(
-                        color: tokens.danger.withOpacity(0.06),
-                        borderRadius: BorderRadius.circular(18),
-                        border: Border.all(
-                            color: tokens.danger.withOpacity(0.35), width: 1.5),
-                        boxShadow: AppShadows.sm,
+                        color: tokens.danger.withOpacity(0.08),
+                        borderRadius: BorderRadius.circular(22),
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -387,7 +271,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                                     horizontal: 8, vertical: 3),
                                 decoration: BoxDecoration(
                                   color: deletionReq['status'] == 'APPROVED'
-                                      ? const Color(0xFF3B82F6).withOpacity(0.15)
+                                      ? const Color(0xFF007AFF).withOpacity(0.15)
                                       : tokens.danger.withOpacity(0.15),
                                   borderRadius: BorderRadius.circular(12),
                                 ),
@@ -399,7 +283,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                                     fontSize: 10.5,
                                     fontWeight: FontWeight.w800,
                                     color: deletionReq['status'] == 'APPROVED'
-                                        ? const Color(0xFF3B82F6)
+                                        ? const Color(0xFF007AFF)
                                         : tokens.danger,
                                     letterSpacing: 0.5,
                                   ),
@@ -436,10 +320,10 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                               padding: const EdgeInsets.symmetric(
                                   horizontal: 12, vertical: 8),
                               decoration: BoxDecoration(
-                                color: const Color(0xFFF59E0B).withOpacity(0.1),
+                                color: const Color(0xFFFF9500).withOpacity(0.1),
                                 borderRadius: BorderRadius.circular(10),
                                 border: Border.all(
-                                    color: const Color(0xFFF59E0B).withOpacity(0.3)),
+                                    color: const Color(0xFFFF9500).withOpacity(0.3)),
                               ),
                               child: Row(
                                 children: [
@@ -524,50 +408,28 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                         ],
                       ),
                     )
-                  : Container(
-                      decoration: BoxDecoration(
-                        color: cardBg,
-                        borderRadius: BorderRadius.circular(18),
-                        border: Border.all(color: tokens.danger.withOpacity(0.25)),
-                        boxShadow: AppShadows.sm,
-                      ),
-                      child: ListTile(
-                        contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 16, vertical: 6),
-                        leading: Container(
-                          width: 38,
-                          height: 38,
-                          decoration: BoxDecoration(
-                            color: tokens.danger.withOpacity(0.12),
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          child: Icon(Icons.delete_forever_rounded,
-                              color: tokens.danger, size: 22),
+                  : _Group(
+                      margin: EdgeInsets.zero,
+                      children: [
+                        _SettingsRow(
+                          icon: Symbols.delete_forever_rounded,
+                          tile: tokens.danger,
+                          title: AppTranslations.t('settings.deleteAccount', currentLanguage),
+                          titleColor: tokens.danger,
+                          subtitle: 'Permanently delete your account and access',
+                          isLast: true,
+                          onTap: () async {
+                            HapticFeedback.mediumImpact();
+                            final submitted = await showDialog<bool>(
+                              context: context,
+                              builder: (ctx) => _DeleteAccountDialog(ref: ref),
+                            );
+                            if (submitted == true && mounted) {
+                              _fetchDeletionStatus();
+                            }
+                          },
                         ),
-                        title: Text(
-                          AppTranslations.t('settings.deleteAccount', currentLanguage),
-                          style: TextStyle(
-                              fontSize: 14.5,
-                              fontWeight: FontWeight.w600,
-                              color: tokens.danger),
-                        ),
-                        subtitle: Text(
-                          'Permanently delete your account and access',
-                          style: TextStyle(fontSize: 12, color: textSecondary),
-                        ),
-                        trailing: const Icon(Icons.chevron_right_rounded,
-                            color: Colors.grey, size: 22),
-                        onTap: () async {
-                          HapticFeedback.mediumImpact();
-                          final submitted = await showDialog<bool>(
-                            context: context,
-                            builder: (ctx) => _DeleteAccountDialog(ref: ref),
-                          );
-                          if (submitted == true && mounted) {
-                            _fetchDeletionStatus();
-                          }
-                        },
-                      ),
+                      ],
                     ),
             ),
           ],
@@ -583,65 +445,353 @@ class _SectionHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Text(
-      title,
-      style: TextStyle(
-        fontSize: 11.5,
-        fontWeight: FontWeight.w800,
-        letterSpacing: 1.2,
-        color: color,
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(36, 0, 20, 8),
+      child: Text(
+        title,
+        style: TextStyle(
+          fontSize: 13,
+          fontWeight: FontWeight.w600,
+          letterSpacing: 0.3,
+          color: color,
+        ),
       ),
     );
   }
 }
 
-class _ThemeTab extends StatelessWidget {
-  const _ThemeTab({
-    required this.label,
-    required this.icon,
-    required this.isSelected,
-    required this.onTap,
-  });
+/// Inset grouped list surface.
+class _Group extends StatelessWidget {
+  const _Group({required this.children, this.margin});
+  final List<Widget> children;
+  final EdgeInsetsGeometry? margin;
 
-  final String label;
-  final IconData icon;
-  final bool isSelected;
-  final VoidCallback onTap;
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: margin ?? const EdgeInsets.symmetric(horizontal: 20),
+      child: Container(
+        decoration: BoxDecoration(
+          color: context.tokens.cardBg,
+          borderRadius: BorderRadius.circular(18),
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: Column(children: children),
+      ),
+    );
+  }
+}
+
+/// Row shell: highlights on touch-down, inset hairline separator.
+class _RowShell extends StatefulWidget {
+  const _RowShell({required this.child, this.onTap, this.isLast = false});
+  final Widget child;
+  final VoidCallback? onTap;
+  final bool isLast;
+
+  @override
+  State<_RowShell> createState() => _RowShellState();
+}
+
+class _RowShellState extends State<_RowShell> {
+  bool _down = false;
 
   @override
   Widget build(BuildContext context) {
     final tokens = context.tokens;
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTapDown: widget.onTap == null ? null : (_) => setState(() => _down = true),
+      onTapUp: (_) => setState(() => _down = false),
+      onTapCancel: () => setState(() => _down = false),
+      onTap: widget.onTap,
+      child: Container(
+        color: _down ? tokens.surfaceSecondary : Colors.transparent,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            widget.child,
+            if (!widget.isLast)
+              Padding(
+                padding: const EdgeInsets.only(left: 62),
+                child: Divider(
+                    height: 0.5, thickness: 0.5, color: tokens.border),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}
 
-    return Expanded(
-      child: BouncyPressable(
-        onTap: onTap,
-        scaleDown: 0.96,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
-          padding: const EdgeInsets.symmetric(vertical: 10),
-          decoration: BoxDecoration(
-            color: isSelected ? tokens.surfaceSecondary : Colors.transparent,
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                icon,
-                size: 16,
-                color: isSelected ? tokens.primaryAccent : tokens.textMuted,
+Widget _tile(IconData icon, Color color) => Container(
+      width: 32,
+      height: 32,
+      decoration: BoxDecoration(
+        color: color,
+        borderRadius: BorderRadius.circular(9),
+      ),
+      child: Icon(icon, fill: 1, color: Colors.white, size: 19),
+    );
+
+class _SettingsRow extends StatelessWidget {
+  const _SettingsRow({
+    required this.icon,
+    required this.tile,
+    required this.title,
+    required this.subtitle,
+    required this.onTap,
+    this.titleColor,
+    this.isLast = false,
+  });
+
+  final IconData icon;
+  final Color tile;
+  final String title;
+  final String subtitle;
+  final VoidCallback onTap;
+  final Color? titleColor;
+  final bool isLast;
+
+  @override
+  Widget build(BuildContext context) {
+    final tokens = context.tokens;
+    return _RowShell(
+      onTap: onTap,
+      isLast: isLast,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        child: Row(
+          children: [
+            _tile(icon, tile),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: -0.2,
+                      color: titleColor ?? tokens.textPrimary,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    subtitle,
+                    style: TextStyle(
+                        fontSize: 13, height: 1.3, color: tokens.textSecondary),
+                  ),
+                ],
               ),
-              const SizedBox(width: 6),
-              Text(
-                label,
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                  color: isSelected ? tokens.primaryAccent : tokens.textMuted,
+            ),
+            const SizedBox(width: 8),
+            Icon(Symbols.arrow_forward_ios_rounded,
+                weight: 700, size: 13, color: tokens.textMuted),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _SwitchRow extends StatelessWidget {
+  const _SwitchRow({
+    required this.icon,
+    required this.tile,
+    required this.title,
+    required this.subtitle,
+    required this.value,
+    required this.onChanged,
+    this.isLast = false,
+  });
+
+  final IconData icon;
+  final Color tile;
+  final String title;
+  final String subtitle;
+  final bool value;
+  final ValueChanged<bool> onChanged;
+  final bool isLast;
+
+  @override
+  Widget build(BuildContext context) {
+    final tokens = context.tokens;
+    return _RowShell(
+      onTap: () {
+        HapticFeedback.selectionClick();
+        onChanged(!value);
+      },
+      isLast: isLast,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 12, 14, 12),
+        child: Row(
+          children: [
+            _tile(icon, tile),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: -0.2,
+                      color: tokens.textPrimary,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    subtitle,
+                    style: TextStyle(
+                        fontSize: 13, height: 1.3, color: tokens.textSecondary),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 10),
+            Switch(
+              value: value,
+              onChanged: (v) {
+                HapticFeedback.selectionClick();
+                onChanged(v);
+              },
+              thumbColor: const WidgetStatePropertyAll(Colors.white),
+              trackColor: WidgetStateProperty.resolveWith((st) =>
+                  st.contains(WidgetState.selected)
+                      ? const Color(0xFF34C759)
+                      : (tokens.isDark
+                          ? const Color(0xFF39393D)
+                          : const Color(0xFFE9E9EA))),
+              trackOutlineColor:
+                  const WidgetStatePropertyAll(Colors.transparent),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _SegItem {
+  const _SegItem(this.label, this.icon);
+  final String label;
+  final IconData icon;
+}
+
+/// iOS-style segmented control: the thumb slides (ease-out, no bounce) and
+/// every segment responds on press-down.
+class _Segmented extends StatelessWidget {
+  const _Segmented({
+    required this.selected,
+    required this.items,
+    required this.onChanged,
+  });
+
+  final int selected;
+  final List<_SegItem> items;
+  final ValueChanged<int> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final tokens = context.tokens;
+    final reduce = MediaQuery.of(context).disableAnimations;
+    final track = tokens.isDark
+        ? const Color(0xFF1C1C1E)
+        : const Color(0xFFE3E3E8);
+    final thumb = tokens.isDark ? const Color(0xFF636366) : Colors.white;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: Container(
+        height: 44,
+        padding: const EdgeInsets.all(3),
+        decoration: BoxDecoration(
+          color: track,
+          borderRadius: BorderRadius.circular(13),
+        ),
+        child: LayoutBuilder(
+          builder: (context, c) {
+            final w = c.maxWidth / items.length;
+            return Stack(
+              children: [
+                AnimatedPositioned(
+                  duration: reduce
+                      ? Duration.zero
+                      : const Duration(milliseconds: 260),
+                  curve: kEaseOutStrong,
+                  left: selected * w,
+                  width: w,
+                  top: 0,
+                  bottom: 0,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: thumb,
+                      borderRadius: BorderRadius.circular(10),
+                      boxShadow: tokens.isDark
+                          ? null
+                          : const [
+                              BoxShadow(
+                                color: Color(0x1F000000),
+                                blurRadius: 4,
+                                offset: Offset(0, 1.5),
+                              ),
+                            ],
+                    ),
+                  ),
                 ),
-              ),
-            ],
-          ),
+                Row(
+                  children: [
+                    for (var i = 0; i < items.length; i++)
+                      Expanded(
+                        child: GestureDetector(
+                          behavior: HitTestBehavior.opaque,
+                          onTapDown: (_) {
+                            if (i != selected) onChanged(i);
+                          },
+                          child: Center(
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  items[i].icon,
+                                  fill: i == selected ? 1 : 0,
+                                  size: 17,
+                                  color: i == selected
+                                      ? tokens.primaryAccent
+                                      : tokens.textSecondary,
+                                ),
+                                const SizedBox(width: 5),
+                                Flexible(
+                                  child: Text(
+                                    items[i].label,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(
+                                      fontSize: 13.5,
+                                      fontWeight: i == selected
+                                          ? FontWeight.w600
+                                          : FontWeight.w500,
+                                      color: i == selected
+                                          ? tokens.textPrimary
+                                          : tokens.textSecondary,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+              ],
+            );
+          },
         ),
       ),
     );
@@ -725,12 +875,12 @@ class _DeleteAccountDialogState extends State<_DeleteAccountDialog> {
 
     return Dialog(
       backgroundColor: tokens.cardBg,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
       insetPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 24),
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 480),
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(22),
+          padding: const EdgeInsets.fromLTRB(20, 22, 20, 14),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -745,11 +895,11 @@ class _DeleteAccountDialogState extends State<_DeleteAccountDialog> {
                         width: 40,
                         height: 40,
                         decoration: BoxDecoration(
-                          color: tokens.danger.withOpacity(0.12),
+                          color: tokens.danger,
                           borderRadius: BorderRadius.circular(12),
                         ),
-                        child: Icon(Icons.warning_amber_rounded,
-                            color: tokens.danger, size: 24),
+                        child: const Icon(Symbols.warning_rounded,
+                            fill: 1, color: Colors.white, size: 24),
                       ),
                       const SizedBox(width: 12),
                       Column(
@@ -758,15 +908,16 @@ class _DeleteAccountDialogState extends State<_DeleteAccountDialog> {
                           Text(
                             'Delete Your Account',
                             style: TextStyle(
-                              fontSize: 17,
+                              fontSize: 19,
                               fontWeight: FontWeight.w700,
+                              letterSpacing: -0.4,
                               color: tokens.textPrimary,
                             ),
                           ),
                           Text(
                             'Step $_step of 3',
                             style: TextStyle(
-                              fontSize: 12,
+                              fontSize: 13,
                               color: tokens.textSecondary,
                             ),
                           ),
@@ -779,8 +930,8 @@ class _DeleteAccountDialogState extends State<_DeleteAccountDialog> {
                     children: [1, 2, 3].map((s) {
                       return Container(
                         margin: const EdgeInsets.only(left: 4),
-                        width: 18,
-                        height: 5,
+                        width: 16,
+                        height: 4,
                         decoration: BoxDecoration(
                           color: _step >= s ? tokens.danger : tokens.border,
                           borderRadius: BorderRadius.circular(3),
@@ -797,10 +948,11 @@ class _DeleteAccountDialogState extends State<_DeleteAccountDialog> {
                 Text(
                   'You are about to permanently delete your account from our platform.',
                   style: TextStyle(
-                    fontSize: 14,
+                    fontSize: 16,
                     fontWeight: FontWeight.w600,
+                    letterSpacing: -0.2,
                     color: tokens.textPrimary,
-                    height: 1.4,
+                    height: 1.35,
                   ),
                 ),
                 const SizedBox(height: 14),
@@ -808,8 +960,7 @@ class _DeleteAccountDialogState extends State<_DeleteAccountDialog> {
                   padding: const EdgeInsets.all(14),
                   decoration: BoxDecoration(
                     color: tokens.surfaceSecondary,
-                    borderRadius: BorderRadius.circular(14),
-                    border: Border.all(color: tokens.border),
+                    borderRadius: BorderRadius.circular(18),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -817,8 +968,8 @@ class _DeleteAccountDialogState extends State<_DeleteAccountDialog> {
                       Text(
                         'Please note:',
                         style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w700,
+                          fontSize: 15,
+                          fontWeight: FontWeight.w600,
                           color: tokens.textPrimary,
                         ),
                       ),
@@ -834,7 +985,7 @@ class _DeleteAccountDialogState extends State<_DeleteAccountDialog> {
                 Text(
                   'We’re sorry to see you go. If you are sure you want to proceed, tap Continue.',
                   style: TextStyle(
-                    fontSize: 13,
+                    fontSize: 14,
                     color: tokens.textSecondary,
                     height: 1.4,
                   ),
@@ -857,67 +1008,66 @@ class _DeleteAccountDialogState extends State<_DeleteAccountDialog> {
                   style: TextStyle(fontSize: 12.5, color: tokens.textSecondary),
                 ),
                 const SizedBox(height: 12),
-                Column(
-                  children: _kDeletionReasons.map((r) {
-                    final isSelected = _selectedReasonCodes.contains(r['code']);
-                    return Padding(
-                      padding: const EdgeInsets.only(bottom: 6),
-                      child: InkWell(
-                        onTap: () {
-                          HapticFeedback.selectionClick();
-                          setState(() {
-                            if (isSelected) {
-                              _selectedReasonCodes.remove(r['code']);
-                            } else {
-                              _selectedReasonCodes.add(r['code']!);
-                            }
-                          });
-                        },
-                        borderRadius: BorderRadius.circular(12),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                          decoration: BoxDecoration(
-                            color: isSelected
-                                ? tokens.danger.withOpacity(0.08)
-                                : tokens.surfaceSecondary,
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(
-                              color: isSelected ? tokens.danger : tokens.border,
-                              width: isSelected ? 1.5 : 1,
-                            ),
-                          ),
-                          child: Row(
-                            children: [
-                              Checkbox(
-                                value: isSelected,
-                                activeColor: tokens.danger,
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
-                                onChanged: (v) {
-                                  setState(() {
-                                    if (v == true) {
-                                      _selectedReasonCodes.add(r['code']!);
-                                    } else {
-                                      _selectedReasonCodes.remove(r['code']);
-                                    }
-                                  });
-                                },
+                Container(
+                  decoration: BoxDecoration(
+                    color: tokens.surfaceSecondary,
+                    borderRadius: BorderRadius.circular(18),
+                  ),
+                  clipBehavior: Clip.antiAlias,
+                  child: Column(
+                    children: [
+                      for (var i = 0; i < _kDeletionReasons.length; i++)
+                        Builder(builder: (context) {
+                          final r = _kDeletionReasons[i];
+                          final isSelected =
+                              _selectedReasonCodes.contains(r['code']);
+                          return InkWell(
+                            splashFactory: NoSplash.splashFactory,
+                            highlightColor:
+                                tokens.textPrimary.withValues(alpha: 0.06),
+                            onTap: () {
+                              HapticFeedback.selectionClick();
+                              setState(() {
+                                if (isSelected) {
+                                  _selectedReasonCodes.remove(r['code']);
+                                } else {
+                                  _selectedReasonCodes.add(r['code']!);
+                                }
+                              });
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 14, vertical: 12),
+                              decoration: BoxDecoration(
+                                border: i == _kDeletionReasons.length - 1
+                                    ? null
+                                    : Border(
+                                        bottom: BorderSide(
+                                            color: tokens.border, width: 0.5)),
                               ),
-                              Expanded(
-                                child: Text(
-                                  r['label']!,
-                                  style: TextStyle(
-                                    fontSize: 13,
-                                    fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                                    color: tokens.textPrimary,
+                              child: Row(
+                                children: [
+                                  _RoundCheck(
+                                      selected: isSelected,
+                                      color: tokens.danger),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: Text(
+                                      r['label']!,
+                                      style: TextStyle(
+                                        fontSize: 15,
+                                        fontWeight: FontWeight.w500,
+                                        color: tokens.textPrimary,
+                                      ),
+                                    ),
                                   ),
-                                ),
+                                ],
                               ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    );
-                  }).toList(),
+                            ),
+                          );
+                        }),
+                    ],
+                  ),
                 ),
               ],
 
@@ -941,15 +1091,24 @@ class _DeleteAccountDialogState extends State<_DeleteAccountDialog> {
                   controller: _commentController,
                   maxLines: 3,
                   maxLength: 1000,
-                  style: TextStyle(fontSize: 13, color: tokens.textPrimary),
+                  style: TextStyle(fontSize: 15, color: tokens.textPrimary),
                   decoration: InputDecoration(
                     hintText: 'Tell us what made you decide to leave...',
-                    hintStyle: TextStyle(fontSize: 13, color: tokens.textMuted),
+                    hintStyle: TextStyle(fontSize: 15, color: tokens.textMuted),
                     filled: true,
                     fillColor: tokens.surfaceSecondary,
                     border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: tokens.border),
+                      borderRadius: BorderRadius.circular(16),
+                      borderSide: BorderSide.none,
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(16),
+                      borderSide: BorderSide.none,
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(16),
+                      borderSide:
+                          BorderSide(color: tokens.danger, width: 1.5),
                     ),
                   ),
                 ),
@@ -958,11 +1117,10 @@ class _DeleteAccountDialogState extends State<_DeleteAccountDialog> {
                 // Selected reasons summary
                 Container(
                   width: double.infinity,
-                  padding: const EdgeInsets.all(12),
+                  padding: const EdgeInsets.all(14),
                   decoration: BoxDecoration(
                     color: tokens.surfaceSecondary,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: tokens.border),
+                    borderRadius: BorderRadius.circular(16),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -998,37 +1156,32 @@ class _DeleteAccountDialogState extends State<_DeleteAccountDialog> {
                 ),
                 const SizedBox(height: 14),
 
-                // Confirmation Checkbox
+                // Confirmation
                 InkWell(
                   onTap: () {
                     HapticFeedback.selectionClick();
                     setState(() => _agreed = !_agreed);
                   },
-                  borderRadius: BorderRadius.circular(12),
+                  splashFactory: NoSplash.splashFactory,
+                  borderRadius: BorderRadius.circular(16),
                   child: Container(
-                    padding: const EdgeInsets.all(10),
+                    padding: const EdgeInsets.all(14),
                     decoration: BoxDecoration(
-                      color: _agreed ? tokens.danger.withOpacity(0.08) : tokens.surfaceSecondary,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                        color: _agreed ? tokens.danger : tokens.border,
-                        width: 1.5,
-                      ),
+                      color: _agreed
+                          ? tokens.danger.withOpacity(0.10)
+                          : tokens.surfaceSecondary,
+                      borderRadius: BorderRadius.circular(16),
                     ),
                     child: Row(
                       children: [
-                        Checkbox(
-                          value: _agreed,
-                          activeColor: tokens.danger,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
-                          onChanged: (v) => setState(() => _agreed = v ?? false),
-                        ),
+                        _RoundCheck(selected: _agreed, color: tokens.danger),
+                        const SizedBox(width: 12),
                         Expanded(
                           child: Text(
                             'I understand I have 24 hours to cancel before deletion processing.',
                             style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
                               color: tokens.textPrimary,
                               height: 1.3,
                             ),
@@ -1050,7 +1203,7 @@ class _DeleteAccountDialogState extends State<_DeleteAccountDialog> {
                       onPressed: _loading ? null : () => setState(() => _step--),
                       child: Text(
                         '← Back',
-                        style: TextStyle(fontSize: 13.5, color: tokens.textSecondary),
+                        style: TextStyle(fontSize: 16, color: tokens.textSecondary),
                       ),
                     )
                   else
@@ -1058,7 +1211,7 @@ class _DeleteAccountDialogState extends State<_DeleteAccountDialog> {
                       onPressed: _loading ? null : () => Navigator.of(context, rootNavigator: true).pop(false),
                       child: Text(
                         'Cancel',
-                        style: TextStyle(fontSize: 13.5, color: tokens.textSecondary),
+                        style: TextStyle(fontSize: 16, color: tokens.textSecondary),
                       ),
                     ),
 
@@ -1070,12 +1223,12 @@ class _DeleteAccountDialogState extends State<_DeleteAccountDialog> {
                       style: ElevatedButton.styleFrom(
                         backgroundColor: tokens.danger,
                         foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 11),
+                        shape: const StadiumBorder(),
+                        padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 13),
                       ),
                       child: const Text(
                         'Continue →',
-                        style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.w700),
+                        style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
                       ),
                     )
                   else
@@ -1086,8 +1239,8 @@ class _DeleteAccountDialogState extends State<_DeleteAccountDialog> {
                         disabledBackgroundColor: tokens.border,
                         foregroundColor: Colors.white,
                         disabledForegroundColor: tokens.textMuted,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 11),
+                        shape: const StadiumBorder(),
+                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 13),
                       ),
                       child: _loading
                           ? const SizedBox(
@@ -1100,7 +1253,7 @@ class _DeleteAccountDialogState extends State<_DeleteAccountDialog> {
                             )
                           : const Text(
                               'Request Account Deletion',
-                              style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.w700),
+                              style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
                             ),
                     ),
                 ],
@@ -1135,65 +1288,31 @@ class _DeleteAccountDialogState extends State<_DeleteAccountDialog> {
   }
 }
 
-class _CancelConfirmDialog extends StatelessWidget {
-  const _CancelConfirmDialog();
+class _RoundCheck extends StatelessWidget {
+  const _RoundCheck({required this.selected, required this.color});
+  final bool selected;
+  final Color color;
 
   @override
   Widget build(BuildContext context) {
-    final tokens = context.tokens;
-
-    return Dialog(
-      backgroundColor: tokens.cardBg,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-      child: Padding(
-        padding: const EdgeInsets.all(22),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Keep your account?',
-              style: TextStyle(
-                fontSize: 17,
-                fontWeight: FontWeight.w700,
-                color: tokens.textPrimary,
-              ),
-            ),
-            const SizedBox(height: 10),
-            Text(
-              'Cancelling will stop the current account deletion request and restore full normal account access immediately.',
-              style: TextStyle(
-                fontSize: 13.5,
-                color: tokens.textSecondary,
-                height: 1.4,
-              ),
-            ),
-            const SizedBox(height: 20),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                TextButton(
-                  onPressed: () => Navigator.of(context).pop(false),
-                  child: Text(
-                    'Continue With Deletion',
-                    style: TextStyle(color: tokens.textSecondary, fontSize: 13),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                ElevatedButton(
-                  onPressed: () => Navigator.of(context).pop(true),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: tokens.primaryAccent,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                  ),
-                  child: const Text('Keep My Account'),
-                ),
-              ],
-            ),
-          ],
+    final reduce = MediaQuery.of(context).disableAnimations;
+    return AnimatedContainer(
+      duration: reduce ? Duration.zero : const Duration(milliseconds: 160),
+      curve: kEaseOutStrong,
+      width: 24,
+      height: 24,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: selected ? color : Colors.transparent,
+        border: Border.all(
+          color: selected ? color : context.tokens.textMuted,
+          width: 1.5,
         ),
       ),
+      child: selected
+          ? const Icon(Symbols.check_rounded,
+              weight: 700, size: 16, color: Colors.white)
+          : null,
     );
   }
 }

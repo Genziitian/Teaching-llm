@@ -17,7 +17,7 @@ export default function PurchasedMaterialsPage() {
           Back to Free Resources
         </Link>
         <h1 style={{ fontSize: '32px', fontWeight: '900', color: 'var(--text-primary)', margin: 0, letterSpacing: '-0.5px' }}>Purchased Materials</h1>
-        <p style={{ color: 'var(--text-secondary)', fontSize: '16px', marginTop: '8px' }}>Access your purchased study notes. Note: Access expires 30 days after purchase.</p>
+        <p style={{ color: 'var(--text-secondary)', fontSize: '16px', marginTop: '8px' }}>Access your purchased study notes. Each note stays available until its expiry date shown below.</p>
       </div>
 
       {isLoading ? (

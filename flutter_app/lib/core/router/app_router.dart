@@ -1,6 +1,6 @@
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -21,6 +21,9 @@ import '../../features/community/community_page.dart';
 import '../../features/community/general_discussion_page.dart';
 import '../../features/courses/course_detail_page.dart';
 import '../../features/downloads/downloaded_notes_page.dart';
+import '../../features/store/store_note_detail_page.dart';
+import '../../features/store/store_notes_page.dart';
+import '../../features/store/store_page.dart';
 import '../../features/courses/courses_page.dart';
 import '../../features/dashboard/dashboard_page.dart';
 import '../../features/feedback/feedback_page.dart';
@@ -243,6 +246,7 @@ final routerProvider = Provider<GoRouter>((ref) {
     },
     routes: [
       GoRoute(
+        caseSensitive: false,
         path: '/courses/:id/lectures/:lectureId/play',
         builder: (_, state) => LinkedLecturePage(
           contentId: state.pathParameters['lectureId']!,
@@ -252,6 +256,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         ),
       ),
       GoRoute(
+        caseSensitive: false,
         path: '/courses/:id/lectures/:lectureId',
         builder: (_, state) => LinkedLecturePage(
           contentId: state.pathParameters['lectureId']!,
@@ -260,6 +265,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         ),
       ),
       GoRoute(
+        caseSensitive: false,
         path: '/welcome',
         pageBuilder: (context, state) => _buildSmoothPage(
           key: state.pageKey,
@@ -267,6 +273,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         ),
       ),
       GoRoute(
+        caseSensitive: false,
         path: '/login',
         pageBuilder: (context, state) => _buildSmoothPage(
           key: state.pageKey,
@@ -274,6 +281,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         ),
       ),
       GoRoute(
+        caseSensitive: false,
         path: '/profile-setup',
         pageBuilder: (context, state) => _buildSmoothPage(
           key: state.pageKey,
@@ -281,6 +289,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         ),
       ),
       GoRoute(
+        caseSensitive: false,
         path: '/identity-setup',
         pageBuilder: (context, state) => _buildSmoothPage(
           key: state.pageKey,
@@ -288,6 +297,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         ),
       ),
       GoRoute(
+        caseSensitive: false,
         path: '/sept26-progress',
         pageBuilder: (context, state) => _buildSmoothPage(
           key: state.pageKey,
@@ -296,6 +306,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       // Fullscreen video — no bottom nav, hence not inside the ShellRoute.
       GoRoute(
+        caseSensitive: false,
         path: '/watch',
         pageBuilder: (context, state) => _buildSlideUpPage(
           key: state.pageKey,
@@ -305,6 +316,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       // Fullscreen PDF / material viewer.
       GoRoute(
+        caseSensitive: false,
         path: '/material',
         pageBuilder: (context, state) => _buildSlideUpPage(
           key: state.pageKey,
@@ -317,6 +329,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       // They have their own Scaffold + AppBar so they live outside the
       // bottom-nav shell.
       GoRoute(
+        caseSensitive: false,
         path: '/profile',
         pageBuilder: (context, state) => _buildSmoothPage(
           key: state.pageKey,
@@ -324,6 +337,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         ),
       ),
       GoRoute(
+        caseSensitive: false,
         path: '/downloads',
         pageBuilder: (context, state) => _buildSmoothPage(
           key: state.pageKey,
@@ -331,6 +345,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         ),
       ),
       GoRoute(
+        caseSensitive: false,
         path: '/downloaded-notes',
         pageBuilder: (context, state) => _buildSmoothPage(
           key: state.pageKey,
@@ -338,6 +353,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         ),
       ),
       GoRoute(
+        caseSensitive: false,
         path: '/transactions',
         pageBuilder: (context, state) => _buildSmoothPage(
           key: state.pageKey,
@@ -345,6 +361,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         ),
       ),
       GoRoute(
+        caseSensitive: false,
         path: '/faq',
         pageBuilder: (context, state) => _buildSmoothPage(
           key: state.pageKey,
@@ -352,6 +369,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         ),
       ),
       GoRoute(
+        caseSensitive: false,
         path: '/notifications',
         pageBuilder: (context, state) => _buildSmoothPage(
           key: state.pageKey,
@@ -359,6 +377,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         ),
       ),
       GoRoute(
+        caseSensitive: false,
         path: '/settings/notifications',
         pageBuilder: (context, state) => _buildSmoothPage(
           key: state.pageKey,
@@ -366,6 +385,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         ),
       ),
       GoRoute(
+        caseSensitive: false,
         path: '/settings',
         pageBuilder: (context, state) => _buildSmoothPage(
           key: state.pageKey,
@@ -373,6 +393,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         ),
       ),
       GoRoute(
+        caseSensitive: false,
         path: '/about-us',
         pageBuilder: (context, state) => _buildSmoothPage(
           key: state.pageKey,
@@ -380,6 +401,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         ),
       ),
       GoRoute(
+        caseSensitive: false,
         path: '/privacy-policy',
         pageBuilder: (context, state) => _buildSmoothPage(
           key: state.pageKey,
@@ -387,6 +409,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         ),
       ),
       GoRoute(
+        caseSensitive: false,
         path: '/refund-policy',
         pageBuilder: (context, state) => _buildSmoothPage(
           key: state.pageKey,
@@ -394,6 +417,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         ),
       ),
       GoRoute(
+        caseSensitive: false,
         path: '/terms-and-conditions',
         pageBuilder: (context, state) => _buildSmoothPage(
           key: state.pageKey,
@@ -401,6 +425,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         ),
       ),
       GoRoute(
+        caseSensitive: false,
         path: '/terms',
         pageBuilder: (context, state) => _buildSmoothPage(
           key: state.pageKey,
@@ -408,6 +433,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         ),
       ),
       GoRoute(
+        caseSensitive: false,
         path: '/copyright-policy',
         pageBuilder: (context, state) => _buildSmoothPage(
           key: state.pageKey,
@@ -415,6 +441,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         ),
       ),
       GoRoute(
+        caseSensitive: false,
         path: '/copyright',
         pageBuilder: (context, state) => _buildSmoothPage(
           key: state.pageKey,
@@ -422,6 +449,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         ),
       ),
       GoRoute(
+        caseSensitive: false,
         path: '/contact-us',
         pageBuilder: (context, state) => _buildSmoothPage(
           key: state.pageKey,
@@ -429,6 +457,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         ),
       ),
       GoRoute(
+        caseSensitive: false,
         path: '/company/:slug',
         pageBuilder: (context, state) {
           final slug = state.pathParameters['slug'] ?? '';
@@ -453,6 +482,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         },
       ),
       GoRoute(
+        caseSensitive: false,
         path: '/courses/:id',
         pageBuilder: (context, state) => _buildSmoothPage(
           key: state.pageKey,
@@ -462,6 +492,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         ),
       ),
       GoRoute(
+        caseSensitive: false,
         path: '/offline',
         pageBuilder: (context, state) => _buildSmoothPage(
           key: state.pageKey,
@@ -470,18 +501,45 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       // ── Full-Screen Sub-Pages (Render on root navigator without bottom nav) ──
       GoRoute(
+        caseSensitive: false,
         path: '/store',
-        redirect: (context, state) => '/dashboard',
+        pageBuilder: (context, state) => _buildSmoothPage(
+          key: state.pageKey,
+          child: const StorePage(),
+        ),
+        routes: [
+          GoRoute(
+            caseSensitive: false,
+            path: 'notes',
+            pageBuilder: (context, state) => _buildSmoothPage(
+              key: state.pageKey,
+              child: const StoreNotesPage(),
+            ),
+            routes: [
+              GoRoute(
+                caseSensitive: false,
+                path: ':id',
+                pageBuilder: (context, state) => _buildSmoothPage(
+                  key: state.pageKey,
+                  child: StoreNoteDetailPage(noteId: state.pathParameters['id']!),
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
       GoRoute(
+        caseSensitive: false,
         path: '/store/courses',
         redirect: (context, state) => '/dashboard',
       ),
       GoRoute(
+        caseSensitive: false,
         path: '/store/courses/:id',
         redirect: (context, state) => '/dashboard',
       ),
       GoRoute(
+        caseSensitive: false,
         path: '/calendar',
         pageBuilder: (context, state) => _buildSmoothPage(
           key: state.pageKey,
@@ -489,6 +547,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         ),
       ),
       GoRoute(
+        caseSensitive: false,
         path: '/free-resources',
         pageBuilder: (context, state) => _buildSmoothPage(
           key: state.pageKey,
@@ -496,13 +555,17 @@ final routerProvider = Provider<GoRouter>((ref) {
         ),
         routes: [
           GoRoute(
+            caseSensitive: false,
             path: 'courses',
             pageBuilder: (context, state) => _buildSmoothPage(
               key: state.pageKey,
-              child: const FreeCoursesPage(),
+              child: FreeCoursesPage(
+                highlightCourseId: state.uri.queryParameters['course'],
+              ),
             ),
           ),
           GoRoute(
+            caseSensitive: false,
             path: 'materials',
             pageBuilder: (context, state) => _buildSmoothPage(
               key: state.pageKey,
@@ -510,6 +573,7 @@ final routerProvider = Provider<GoRouter>((ref) {
             ),
           ),
           GoRoute(
+            caseSensitive: false,
             path: 'purchased',
             pageBuilder: (context, state) => _buildSmoothPage(
               key: state.pageKey,
@@ -519,6 +583,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         ],
       ),
       GoRoute(
+        caseSensitive: false,
         path: '/announcements',
         pageBuilder: (context, state) => _buildSmoothPage(
           key: state.pageKey,
@@ -526,6 +591,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         ),
       ),
       GoRoute(
+        caseSensitive: false,
         path: '/feedback',
         pageBuilder: (context, state) => _buildSmoothPage(
           key: state.pageKey,
@@ -533,6 +599,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         ),
       ),
       GoRoute(
+        caseSensitive: false,
         path: '/live',
         pageBuilder: (context, state) => _buildSmoothPage(
           key: state.pageKey,
@@ -540,6 +607,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         ),
       ),
       GoRoute(
+        caseSensitive: false,
         path: '/support',
         pageBuilder: (context, state) => _buildSmoothPage(
           key: state.pageKey,
@@ -547,6 +615,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         ),
       ),
       GoRoute(
+        caseSensitive: false,
         path: '/support/tickets/:id',
         pageBuilder: (context, state) => _buildSmoothPage(
           key: state.pageKey,
@@ -554,6 +623,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         ),
       ),
       GoRoute(
+        caseSensitive: false,
         path: '/support/feature-requests',
         pageBuilder: (context, state) => _buildSmoothPage(
           key: state.pageKey,
@@ -561,6 +631,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         ),
       ),
       GoRoute(
+        caseSensitive: false,
         path: '/support/user-reports',
         pageBuilder: (context, state) => _buildSmoothPage(
           key: state.pageKey,
@@ -568,6 +639,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         ),
       ),
       GoRoute(
+        caseSensitive: false,
         path: '/community/general-discussion',
         pageBuilder: (context, state) => _buildSmoothPage(
           key: state.pageKey,
@@ -577,6 +649,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         ),
       ),
       GoRoute(
+        caseSensitive: false,
         path: '/community/:courseId',
         pageBuilder: (context, state) => _buildSmoothPage(
           key: state.pageKey,
@@ -588,6 +661,7 @@ final routerProvider = Provider<GoRouter>((ref) {
 
       // ── Main Tab Shell (Bottom navigation ONLY on primary root tabs) ──
       ShellRoute(
+        notifyRootObserver: false,
         navigatorKey: shellNavigatorKey,
         builder: (context, state, child) => AppScaffold(
           currentLocation: state.matchedLocation,
@@ -595,6 +669,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         ),
         routes: [
           GoRoute(
+            caseSensitive: false,
             path: '/dashboard',
             pageBuilder: (context, state) => NoTransitionPage(
               key: state.pageKey,
@@ -602,6 +677,7 @@ final routerProvider = Provider<GoRouter>((ref) {
             ),
           ),
           GoRoute(
+            caseSensitive: false,
             path: '/courses',
             pageBuilder: (context, state) => NoTransitionPage(
               key: state.pageKey,
@@ -609,6 +685,7 @@ final routerProvider = Provider<GoRouter>((ref) {
             ),
           ),
           GoRoute(
+            caseSensitive: false,
             path: '/academics',
             pageBuilder: (context, state) => NoTransitionPage(
               key: state.pageKey,
@@ -616,6 +693,7 @@ final routerProvider = Provider<GoRouter>((ref) {
             ),
           ),
           GoRoute(
+            caseSensitive: false,
             path: '/community',
             pageBuilder: (context, state) => NoTransitionPage(
               key: state.pageKey,
@@ -623,6 +701,7 @@ final routerProvider = Provider<GoRouter>((ref) {
             ),
           ),
           GoRoute(
+            caseSensitive: false,
             path: '/more',
             pageBuilder: (context, state) => NoTransitionPage(
               key: state.pageKey,

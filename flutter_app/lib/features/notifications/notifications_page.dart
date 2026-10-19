@@ -1,9 +1,10 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
+import 'package:material_symbols_icons/symbols.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/auth/auth_providers.dart';
-import '../../theme/app_shadows.dart';
+import '../../shared/widgets/apple_pressable.dart' show kEaseOutStrong;
 import '../../theme/app_theme_tokens.dart';
 import '../../shared/widgets/app_refresh.dart';
 import '../../shared/utils/cta_navigation.dart';
@@ -108,9 +109,18 @@ class _NotificationsPageState extends ConsumerState<NotificationsPage> {
   }
 }
 
-class _NotificationTile extends StatelessWidget {
+class _NotificationTile extends StatefulWidget {
   const _NotificationTile({required this.n});
   final Map<String, dynamic> n;
+
+  @override
+  State<_NotificationTile> createState() => _NotificationTileState();
+}
+
+class _NotificationTileState extends State<_NotificationTile> {
+  bool _expanded = false;
+
+  Map<String, dynamic> get n => widget.n;
 
   String _rel(String? iso) {
     if (iso == null) return '';
@@ -142,17 +152,30 @@ class _NotificationTile extends StatelessWidget {
     switch (type) {
       case 'COURSE':
       case 'LECTURE':
-        return Icons.menu_book_outlined;
+        return Symbols.menu_book_rounded;
       case 'LIVE':
       case 'SESSION':
-        return Icons.live_tv_outlined;
+        return Symbols.live_tv_rounded;
       case 'ANNOUNCEMENT':
-        return Icons.campaign_outlined;
+        return Symbols.campaign_rounded;
       case 'PAYMENT':
-        return Icons.payments_outlined;
+        return Symbols.payments_rounded;
       default:
-        return Icons.notifications_outlined;
+        return Symbols.notifications_rounded;
     }
+  }
+
+  bool _overflows(String text, TextStyle style, double width, int maxLines) {
+    if (text.isEmpty || width <= 0) return false;
+    final tp = TextPainter(
+      text: TextSpan(text: text, style: style),
+      maxLines: maxLines,
+      textDirection: TextDirection.ltr,
+      textScaler: MediaQuery.textScalerOf(context),
+    )..layout(maxWidth: width);
+    final over = tp.didExceedMaxLines;
+    tp.dispose();
+    return over;
   }
 
   @override
@@ -170,12 +193,24 @@ class _NotificationTile extends StatelessWidget {
     final type = n['type'] as String?;
     final created = n['createdAt'] as String?;
 
+    final titleStyle = TextStyle(
+      fontSize: 15,
+      letterSpacing: -0.2,
+      fontWeight: isRead ? FontWeight.w600 : FontWeight.w700,
+      color: isRead ? tokens.textSecondary : tokens.textPrimary,
+    );
+    final bodyStyle = TextStyle(
+      fontSize: 14,
+      height: 1.4,
+      color: tokens.textSecondary,
+    );
+    final accent = tokens.primaryAccent;
+
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: tokens.cardBg,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: tokens.border),
+        borderRadius: BorderRadius.circular(20),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -184,58 +219,94 @@ class _NotificationTile extends StatelessWidget {
             width: 40,
             height: 40,
             decoration: BoxDecoration(
-              color: tokens.primaryAccent.withOpacity(isRead ? 0.08 : 0.16),
-              borderRadius: BorderRadius.circular(12),
-              boxShadow:
-                  isRead ? null : AppShadows.pillGlow(tokens.primaryAccent),
+              color: isRead ? accent.withValues(alpha: 0.12) : accent,
+              borderRadius: BorderRadius.circular(11),
             ),
             alignment: Alignment.center,
-            child: Icon(_icon(type), color: tokens.primaryAccent, size: 18),
+            child: Icon(
+              _icon(type),
+              color: isRead ? accent : Colors.white,
+              size: 22,
+              fill: 1,
+              weight: 500,
+            ),
           ),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        title,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight:
-                              isRead ? FontWeight.w600 : FontWeight.w800,
-                          color: isRead
-                              ? tokens.textSecondary
-                              : tokens.textPrimary,
+                LayoutBuilder(
+                  builder: (context, c) {
+                    final canExpand =
+                        _overflows(title, titleStyle, c.maxWidth - 64, 1) ||
+                            _overflows(message, bodyStyle, c.maxWidth, 3);
+                    return GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onTap: canExpand
+                          ? () => setState(() => _expanded = !_expanded)
+                          : null,
+                      child: AnimatedSize(
+                        duration: const Duration(milliseconds: 220),
+                        curve: kEaseOutStrong,
+                        alignment: Alignment.topCenter,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    title,
+                                    maxLines: _expanded ? null : 1,
+                                    overflow: _expanded
+                                        ? TextOverflow.visible
+                                        : TextOverflow.ellipsis,
+                                    style: titleStyle,
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                Padding(
+                                  padding: const EdgeInsets.only(top: 2),
+                                  child: Text(
+                                    _rel(created),
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: tokens.textMuted,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            if (message.isNotEmpty) ...[
+                              const SizedBox(height: 4),
+                              Text(
+                                message,
+                                maxLines: _expanded ? null : 3,
+                                overflow: _expanded
+                                    ? TextOverflow.visible
+                                    : TextOverflow.ellipsis,
+                                style: bodyStyle,
+                              ),
+                            ],
+                            if (canExpand) ...[
+                              const SizedBox(height: 6),
+                              Text(
+                                _expanded ? 'See less' : 'See more',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                  color: accent,
+                                ),
+                              ),
+                            ],
+                          ],
                         ),
                       ),
-                    ),
-                    Text(
-                      _rel(created),
-                      style: TextStyle(
-                        fontSize: 11,
-                        color: tokens.textMuted,
-                      ),
-                    ),
-                  ],
+                    );
+                  },
                 ),
-                if (message.isNotEmpty) ...[
-                  const SizedBox(height: 4),
-                  Text(
-                    message,
-                    maxLines: 3,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      fontSize: 12.5,
-                      height: 1.4,
-                      color: tokens.textSecondary,
-                    ),
-                  ),
-                ],
                 if (hasCta) ...[
                   const SizedBox(height: 10),
                   Align(
@@ -243,23 +314,24 @@ class _NotificationTile extends StatelessWidget {
                     child: FilledButton.icon(
                       onPressed: () => openCtaLink(context, ctaLink),
                       style: FilledButton.styleFrom(
-                        backgroundColor: tokens.primaryAccent,
+                        backgroundColor: accent,
                         foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 8,
+                          horizontal: 14,
+                          vertical: 9,
                         ),
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(9),
+                          borderRadius: BorderRadius.circular(12),
                         ),
                       ),
                       iconAlignment: IconAlignment.end,
-                      icon: const Icon(Icons.arrow_forward_rounded, size: 15),
+                      icon: const Icon(Symbols.arrow_forward_rounded,
+                          size: 16, weight: 600),
                       label: Text(
                         ctaText,
                         style: const TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w700,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
                     ),
@@ -283,7 +355,7 @@ class _Empty extends StatelessWidget {
     return ListView(
       padding: const EdgeInsets.all(40),
       children: [
-        Icon(Icons.notifications_none_outlined,
+        Icon(Symbols.notifications_rounded,
             color: tokens.textMuted, size: 40),
         const SizedBox(height: 8),
         Text(
@@ -319,7 +391,7 @@ class _Error extends StatelessWidget {
     return ListView(
       padding: const EdgeInsets.all(40),
       children: [
-        Icon(Icons.cloud_off, color: tokens.textMuted, size: 40),
+        Icon(Symbols.cloud_off_rounded, color: tokens.textMuted, size: 40),
         const SizedBox(height: 8),
         Text(
           'Could not load notifications',

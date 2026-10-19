@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -6,13 +6,14 @@ import 'package:share_plus/share_plus.dart';
 
 import '../../core/auth/auth_providers.dart';
 import '../../core/tour/app_tour_controller.dart';
+import 'package:material_symbols_icons/symbols.dart';
 import '../../shared/widgets/app_avatar.dart';
-import '../../shared/widgets/bouncy_pressable.dart';
-import '../../theme/app_shadows.dart';
+import '../../shared/widgets/apple_alert.dart';
 import '../../theme/app_theme_tokens.dart';
 import '../updates/play_update.dart';
 
-/// Redesigned "More" tab matching the sleek card-list layout.
+/// "More" tab in Apple Settings style: large title, inset grouped lists,
+/// solid colored icon tiles, flat surfaces, and a centered destructive row.
 class MorePage extends ConsumerWidget {
   const MorePage({super.key});
 
@@ -56,6 +57,23 @@ https://class.genziitian.in/download''';
     checkPlayUpdateManually(context);
   }
 
+  Future<void> _confirmSignOut(
+      BuildContext context, WidgetRef ref, AppThemeTokens tokens) async {
+    HapticFeedback.mediumImpact();
+    final confirm = await showAppleAlert<bool>(
+      context,
+      title: 'Sign out?',
+      message: 'Are you sure you want to log out of your account?',
+      actions: const [
+        AppleAlertAction(label: 'Cancel', value: false, isDefault: true),
+        AppleAlertAction(label: 'Sign out', value: true, isDestructive: true),
+      ],
+    );
+    if (confirm == true) {
+      await ref.read(authStateProvider.notifier).signOut();
+    }
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final user = ref.watch(authStateProvider).value;
@@ -63,8 +81,6 @@ https://class.genziitian.in/download''';
     final role = (user?.role ?? 'STUDENT').toUpperCase();
 
     final tokens = context.tokens;
-    final cardBg = tokens.cardBg;
-    final borderColor = tokens.border;
     final textPrimary = tokens.textPrimary;
     final textSecondary = tokens.textSecondary;
 
@@ -72,140 +88,116 @@ https://class.genziitian.in/download''';
       bottom: false,
       child: ListView(
         physics: const AlwaysScrollableScrollPhysics(),
-        padding: const EdgeInsets.fromLTRB(20, 16, 20, 110),
+        padding: const EdgeInsets.fromLTRB(16, 16, 16, 120),
         children: [
-          // ── 1. Top Profile Hero Card ──────────────────────────────
-          BouncyPressable(
-            onTap: () => context.push('/profile'),
-            scaleDown: 0.98,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [Color(0xFF4F46E5), Color(0xFF6366F1)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
+          // ── Profile row (flat, like the Apple ID row) ─────────────
+          _ActionCard(
+            children: [
+              _PressRow(
+                onTap: () => context.push('/profile'),
+                isLast: true,
+                separatorInset: 0,
+                child: Padding(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                  child: Row(
+                    children: [
+                      AppAvatar(
+                        avatarUrl: user?.avatar,
+                        gender: user?.gender,
+                        size: 60,
+                        border: Border.all(color: tokens.border, width: 0.5),
+                      ),
+                      const SizedBox(width: 14),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              name,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                fontSize: 19,
+                                fontWeight: FontWeight.w700,
+                                letterSpacing: -0.2,
+                                color: textPrimary,
+                                              ),
+                            ),
+                            const SizedBox(height: 3),
+                            Text(
+                              '$role · View Profile',
+                              style: TextStyle(
+                                fontSize: 13.5,
+                                fontWeight: FontWeight.w500,
+                                color: textSecondary,
+                                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const _Chevron(),
+                    ],
+                  ),
                 ),
-                borderRadius: BorderRadius.circular(20),
-                boxShadow: const [
-                  BoxShadow(
-                    color: Color(0x4D4F46E5),
-                    offset: Offset(0, 8),
-                    blurRadius: 20,
-                  ),
-                ],
               ),
-              child: Row(
-                children: [
-                  AppAvatar(
-                    avatarUrl: user?.avatar,
-                    gender: user?.gender,
-                    size: 52,
-                    border: Border.all(color: Colors.white, width: 2),
-                  ),
-                  const SizedBox(width: 14),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          name.toUpperCase(),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
-                            fontSize: 16.5,
-                            fontWeight: FontWeight.w800,
-                            color: Colors.white,
-                            letterSpacing: 0.2,
-                          ),
-                        ),
-                        const SizedBox(height: 3),
-                        Text(
-                          '$role · View Profile',
-                          style: TextStyle(
-                            fontSize: 12.5,
-                            fontWeight: FontWeight.w500,
-                            color: Colors.white.withOpacity(0.85),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const Icon(
-                    Icons.chevron_right_rounded,
-                    color: Colors.white,
-                    size: 22,
-                  ),
-                ],
-              ),
-            ),
+            ],
           ),
 
-          const SizedBox(height: 24),
+          const SizedBox(height: 28),
 
-          // ── 2. GENERAL Section ────────────────────────────────────
+          // ── GENERAL ───────────────────────────────────────────────
           _SectionLabel(title: 'GENERAL', color: textSecondary),
-          const SizedBox(height: 10),
-
           _ActionCard(
-            cardBg: cardBg,
-            borderColor: borderColor,
             children: [
               _ActionRow(
-                icon: Icons.download_done_rounded,
-                iconColor: const Color(0xFF10B981),
-                iconBg: const Color(0xFF10B981).withOpacity(0.12),
+                icon: Symbols.download_done_rounded,
+                tile: const Color(0xFF34C759),
                 title: 'Downloads',
                 textColor: textPrimary,
                 onTap: () => context.push('/downloads'),
               ),
               if (role == 'STUDENT' || role == 'MANAGER')
                 _ActionRow(
-                  icon: Icons.headset_mic_outlined,
-                  iconColor: const Color(0xFF0EA5E9),
-                  iconBg: const Color(0xFF0EA5E9).withOpacity(0.12),
+                  icon: Symbols.headset_mic_rounded,
+                  tile: const Color(0xFF007AFF),
                   title: 'Support',
                   textColor: textPrimary,
                   onTap: () => context.push('/support'),
                 ),
               if (role == 'STUDENT' || role == 'MANAGER')
                 _ActionRow(
-                  icon: Icons.lightbulb_outline_rounded,
-                  iconColor: const Color(0xFF8B5CF6),
-                  iconBg: const Color(0xFF8B5CF6).withOpacity(0.12),
+                  icon: Symbols.lightbulb_rounded,
+                  tile: const Color(0xFFFF9500),
                   title: 'Request a Feature',
                   textColor: textPrimary,
                   onTap: () => context.push('/support/feature-requests'),
                 ),
               if (role == 'MANAGER')
                 _ActionRow(
-                  icon: Icons.flag_outlined,
-                  iconColor: const Color(0xFFEF4444),
-                  iconBg: const Color(0xFFEF4444).withOpacity(0.12),
+                  icon: Symbols.flag_rounded,
+                  tile: const Color(0xFFFF3B30),
                   title: 'User Reports',
                   textColor: textPrimary,
                   onTap: () => context.push('/support/user-reports'),
                 ),
               _ActionRow(
-                icon: Icons.star_outline_rounded,
-                iconColor: tokens.warning,
-                iconBg: tokens.warning.withOpacity(0.12),
+                icon: Symbols.star_rounded,
+                tile: const Color(0xFFFFCC00),
                 title: 'Course Feedback',
                 textColor: textPrimary,
                 onTap: () => context.push('/feedback'),
               ),
               _ActionRow(
-                icon: Icons.settings_outlined,
-                iconColor: const Color(0xFF3B82F6),
-                iconBg: const Color(0xFF3B82F6).withOpacity(0.12),
+                icon: Symbols.settings_rounded,
+                tile: const Color(0xFF8E8E93),
                 title: 'Settings',
                 textColor: textPrimary,
                 onTap: () => context.push('/settings'),
               ),
               _ActionRow(
-                icon: Icons.explore_outlined,
-                iconColor: tokens.primaryAccent,
-                iconBg: tokens.primaryAccent.withOpacity(0.12),
+                icon: Symbols.explore_rounded,
+                tile: const Color(0xFF5856D6),
                 title: 'Take App Tour',
                 textColor: textPrimary,
                 onTap: () {
@@ -217,17 +209,15 @@ https://class.genziitian.in/download''';
                 },
               ),
               _ActionRow(
-                icon: Icons.share_outlined,
-                iconColor: const Color(0xFFEC4899),
-                iconBg: const Color(0xFFEC4899).withOpacity(0.12),
+                icon: Symbols.ios_share_rounded,
+                tile: const Color(0xFFFF2D55),
                 title: 'Share App',
                 textColor: textPrimary,
                 onTap: () => _shareApp(context),
               ),
               _ActionRow(
-                icon: Icons.cloud_download_outlined,
-                iconColor: const Color(0xFF06B6D4),
-                iconBg: const Color(0xFF06B6D4).withOpacity(0.12),
+                icon: Symbols.cloud_download_rounded,
+                tile: const Color(0xFF32ADE6),
                 title: 'Check for Updates',
                 textColor: textPrimary,
                 isLast: true,
@@ -236,52 +226,43 @@ https://class.genziitian.in/download''';
             ],
           ),
 
-          const SizedBox(height: 24),
+          const SizedBox(height: 28),
 
-          // ── 3. INFORMATION Section ────────────────────────────────
+          // ── INFORMATION ───────────────────────────────────────────
           _SectionLabel(title: 'INFORMATION', color: textSecondary),
-          const SizedBox(height: 10),
-
           _ActionCard(
-            cardBg: cardBg,
-            borderColor: borderColor,
             children: [
               _ActionRow(
-                icon: Icons.info_outline,
-                iconColor: tokens.primaryAccent,
-                iconBg: tokens.primaryAccent.withOpacity(0.12),
+                icon: Symbols.info_rounded,
+                tile: const Color(0xFF007AFF),
                 title: 'About Us',
                 textColor: textPrimary,
                 onTap: () => context.push('/about-us'),
               ),
               _ActionRow(
-                icon: Icons.gavel_outlined,
-                iconColor: const Color(0xFF6366F1),
-                iconBg: const Color(0xFF6366F1).withOpacity(0.12),
+                icon: Symbols.gavel_rounded,
+                tile: const Color(0xFF8E8E93),
                 title: 'Terms & Conditions',
                 textColor: textPrimary,
                 onTap: () => context.push('/terms-and-conditions'),
               ),
               _ActionRow(
-                icon: Icons.shield_outlined,
-                iconColor: tokens.success,
-                iconBg: tokens.success.withOpacity(0.12),
+                icon: Symbols.shield_rounded,
+                tile: const Color(0xFF34C759),
                 title: 'Privacy Policy',
                 textColor: textPrimary,
                 onTap: () => context.push('/privacy-policy'),
               ),
               _ActionRow(
-                icon: Icons.replay_outlined,
-                iconColor: tokens.warning,
-                iconBg: tokens.warning.withOpacity(0.12),
+                icon: Symbols.replay_rounded,
+                tile: const Color(0xFFFF9500),
                 title: 'Return & Refund Policy',
                 textColor: textPrimary,
                 onTap: () => context.push('/refund-policy'),
               ),
               _ActionRow(
-                icon: Icons.copyright_rounded,
-                iconColor: const Color(0xFF8B5CF6),
-                iconBg: const Color(0xFF8B5CF6).withOpacity(0.12),
+                icon: Symbols.copyright_rounded,
+                tile: const Color(0xFFAF52DE),
                 title: 'Copyright Policy',
                 textColor: textPrimary,
                 isLast: true,
@@ -290,106 +271,30 @@ https://class.genziitian.in/download''';
             ],
           ),
 
-          const SizedBox(height: 16),
+          const SizedBox(height: 28),
 
-          // ── 4. Sign Out Button ────────────────────────────────────
-          BouncyPressable(
-            onTap: () async {
-              HapticFeedback.mediumImpact();
-              final confirm = await showDialog<bool>(
-                context: context,
-                useRootNavigator: true,
-                builder: (ctx) => AlertDialog(
-                  backgroundColor: tokens.cardBg,
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(20)),
-                  title: Text(
-                    'Sign out?',
-                    style: TextStyle(
-                      fontSize: 17,
-                      fontWeight: FontWeight.w800,
-                      color: tokens.textPrimary,
-                    ),
-                  ),
-                  content: Text(
-                    'Are you sure you want to log out of your account?',
-                    style: TextStyle(
-                      fontSize: 13.5,
-                      color: tokens.textSecondary,
-                    ),
-                  ),
-                  actions: [
-                    TextButton(
-                      onPressed: () =>
-                          Navigator.of(ctx, rootNavigator: true).pop(false),
-                      child: Text(
-                        'Cancel',
-                        style: TextStyle(
-                          fontWeight: FontWeight.w600,
-                          color: tokens.textMuted,
-                        ),
-                      ),
-                    ),
-                    ElevatedButton(
-                      onPressed: () =>
-                          Navigator.of(ctx, rootNavigator: true).pop(true),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: tokens.danger,
-                        foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10)),
-                        elevation: 0,
-                      ),
-                      child: const Text(
-                        'Sign out',
-                        style: TextStyle(fontWeight: FontWeight.w700),
-                      ),
-                    ),
-                  ],
-                ),
-              );
-              if (confirm == true) {
-                await ref.read(authStateProvider.notifier).signOut();
-              }
-            },
-            scaleDown: 0.98,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 15),
-              decoration: BoxDecoration(
-                color: tokens.danger.withOpacity(0.12),
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(
-                  color: tokens.danger.withOpacity(0.3),
-                ),
-              ),
-              child: Row(
-                children: [
-                  Container(
-                    width: 36,
-                    height: 36,
-                    decoration: BoxDecoration(
-                      color: tokens.danger.withOpacity(0.15),
-                      borderRadius: const BorderRadius.all(Radius.circular(10)),
-                    ),
-                    child: Icon(Icons.logout_rounded,
-                        color: tokens.danger, size: 18),
-                  ),
-                  const SizedBox(width: 14),
-                  Expanded(
+          // ── Sign out: its own group, centered destructive text ────
+          _ActionCard(
+            children: [
+              _PressRow(
+                onTap: () => _confirmSignOut(context, ref, tokens),
+                isLast: true,
+                separatorInset: 0,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 15),
+                  child: Center(
                     child: Text(
                       'Sign out',
                       style: TextStyle(
-                        fontSize: 14.5,
-                        fontWeight: FontWeight.w700,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
                         color: tokens.danger,
-                      ),
+                              ),
                     ),
                   ),
-                  Icon(Icons.chevron_right_rounded,
-                      color: tokens.danger, size: 20),
-                ],
+                ),
               ),
-            ),
+            ],
           ),
 
           const SizedBox(height: 24),
@@ -398,9 +303,9 @@ https://class.genziitian.in/download''';
             child: Text(
               'Gen-Z IITian · v2.6.0',
               style: TextStyle(
-                fontSize: 11,
-                fontWeight: FontWeight.w600,
-                color: textSecondary.withOpacity(0.7),
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
+                color: tokens.textMuted,
               ),
             ),
           ),
@@ -417,42 +322,106 @@ class _SectionLabel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Text(
-      title,
-      style: TextStyle(
-        fontSize: 11.5,
-        fontWeight: FontWeight.w800,
-        letterSpacing: 1.2,
-        color: color,
+    // Apple section header: small, secondary, inset to align with row content.
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+      child: Text(
+        title,
+        style: TextStyle(
+          fontSize: 12.5,
+          fontWeight: FontWeight.w600,
+          letterSpacing: 0.3,
+          color: color,
+        ),
       ),
     );
   }
 }
 
+/// Inset grouped list: flat rounded surface, no border, no shadow.
 class _ActionCard extends StatelessWidget {
-  const _ActionCard({
-    required this.cardBg,
-    required this.borderColor,
-    required this.children,
-  });
-
-  final Color cardBg;
-  final Color borderColor;
+  const _ActionCard({required this.children});
   final List<Widget> children;
 
   @override
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: cardBg,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: borderColor, width: 1),
-        boxShadow: AppShadows.sm,
+        color: context.tokens.cardBg,
+        borderRadius: BorderRadius.circular(14),
       ),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(14),
+        child: Column(children: children),
+      ),
+    );
+  }
+}
+
+class _Chevron extends StatelessWidget {
+  const _Chevron();
+
+  @override
+  Widget build(BuildContext context) => Icon(
+        Symbols.arrow_forward_ios_rounded,
+        weight: 700,
+        color: context.tokens.textMuted.withValues(alpha: 0.7),
+        size: 13,
+      );
+}
+
+/// A row that highlights the instant it is touched (on press-down) and
+/// draws an inset hairline separator, like a UITableView cell.
+class _PressRow extends StatefulWidget {
+  const _PressRow({
+    required this.child,
+    required this.onTap,
+    this.isLast = false,
+    this.separatorInset = 58,
+  });
+
+  final Widget child;
+  final VoidCallback onTap;
+  final bool isLast;
+  final double separatorInset;
+
+  @override
+  State<_PressRow> createState() => _PressRowState();
+}
+
+class _PressRowState extends State<_PressRow> {
+  bool _down = false;
+
+  void _set(bool v) {
+    if (_down != v) setState(() => _down = v);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final tokens = context.tokens;
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTapDown: (_) => _set(true),
+      onTapUp: (_) => _set(false),
+      onTapCancel: () => _set(false),
+      onTap: widget.onTap,
+      child: Container(
+        // instant highlight on touch-down, eased fade on release
+        color: _down ? tokens.surfaceSecondary : Colors.transparent,
         child: Column(
-          children: children,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            widget.child,
+            if (!widget.isLast)
+              Padding(
+                padding: EdgeInsets.only(left: widget.separatorInset),
+                child: Divider(
+                  height: 0.5,
+                  thickness: 0.5,
+                  color: tokens.border,
+                ),
+              ),
+          ],
         ),
       ),
     );
@@ -462,8 +431,7 @@ class _ActionCard extends StatelessWidget {
 class _ActionRow extends StatelessWidget {
   const _ActionRow({
     required this.icon,
-    required this.iconColor,
-    required this.iconBg,
+    required this.tile,
     required this.title,
     required this.textColor,
     required this.onTap,
@@ -471,8 +439,7 @@ class _ActionRow extends StatelessWidget {
   });
 
   final IconData icon;
-  final Color iconColor;
-  final Color iconBg;
+  final Color tile; // solid tile color; glyph is white
   final String title;
   final Color textColor;
   final VoidCallback onTap;
@@ -480,48 +447,35 @@ class _ActionRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final tokens = context.tokens;
-
-    return BouncyPressable(
+    return _PressRow(
       onTap: onTap,
-      scaleDown: 0.99,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-        decoration: BoxDecoration(
-          border: Border(
-            bottom: isLast
-                ? BorderSide.none
-                : BorderSide(color: tokens.borderLight, width: 1),
-          ),
-        ),
+      isLast: isLast,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 11),
         child: Row(
           children: [
             Container(
-              width: 38,
-              height: 38,
+              width: 30,
+              height: 30,
               decoration: BoxDecoration(
-                color: iconBg,
-                borderRadius: BorderRadius.circular(10),
+                color: tile,
+                borderRadius: BorderRadius.circular(8),
               ),
-              child: Icon(icon, color: iconColor, size: 20),
+              child: Icon(icon, fill: 1, color: Colors.white, size: 19),
             ),
-            const SizedBox(width: 14),
+            const SizedBox(width: 12),
             Expanded(
               child: Text(
                 title,
                 style: TextStyle(
-                  fontSize: 14.5,
-                  fontWeight: FontWeight.w600,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                  letterSpacing: -0.2,
                   color: textColor,
-                  fontFamily: 'Manrope',
-                ),
+                  ),
               ),
             ),
-            Icon(
-              Icons.chevron_right_rounded,
-              color: tokens.textMuted,
-              size: 20,
-            ),
+            const _Chevron(),
           ],
         ),
       ),

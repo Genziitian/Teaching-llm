@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/auth/auth_providers.dart';
 import '../../theme/app_theme_tokens.dart';
@@ -123,7 +123,7 @@ class _HomeworkSubmitSheetState extends ConsumerState<HomeworkSubmitSheet> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Homework submitted successfully! 🎉'),
-            backgroundColor: Color(0xFF10B981),
+            backgroundColor: Color(0xFF34C759),
           ),
         );
       }

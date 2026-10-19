@@ -1,5 +1,5 @@
 import 'package:dio/dio.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -118,11 +118,11 @@ class _Sept26ProgressDialogState extends ConsumerState<Sept26ProgressDialog> {
               leading: Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF8B5CF6).withOpacity(0.12),
+                  color: const Color(0xFF6E6CF0).withOpacity(0.12),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: const Icon(Icons.camera_alt_outlined,
-                    color: Color(0xFF8B5CF6)),
+                    color: Color(0xFF6E6CF0)),
               ),
               title: Text('Click Photo',
                   style: TextStyle(
@@ -138,11 +138,11 @@ class _Sept26ProgressDialogState extends ConsumerState<Sept26ProgressDialog> {
               leading: Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF3B82F6).withOpacity(0.12),
+                  color: const Color(0xFF007AFF).withOpacity(0.12),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: const Icon(Icons.photo_library_outlined,
-                    color: Color(0xFF3B82F6)),
+                    color: Color(0xFF007AFF)),
               ),
               title: Text('Choose Image',
                   style: TextStyle(
@@ -401,7 +401,7 @@ class _Sept26ProgressDialogState extends ConsumerState<Sept26ProgressDialog> {
                             child: const Text(
                               "WELCOME TO SEPT '26 TERM",
                               style: TextStyle(
-                                color: Color(0xFF4F46E5),
+                                color: Color(0xFF5856D6),
                                 fontSize: 11.5,
                                 fontWeight: FontWeight.w800,
                                 letterSpacing: 0.4,
@@ -457,8 +457,8 @@ class _Sept26ProgressDialogState extends ConsumerState<Sept26ProgressDialog> {
                                             fontSize: 11,
                                             fontWeight: FontWeight.w800,
                                             color: _progressPercent == 1.0
-                                                ? const Color(0xFF10B981)
-                                                : const Color(0xFF6366F1),
+                                                ? const Color(0xFF34C759)
+                                                : const Color(0xFF5856D6),
                                           ),
                                         ),
                                       ],
@@ -474,8 +474,8 @@ class _Sept26ProgressDialogState extends ConsumerState<Sept26ProgressDialog> {
                                             : const Color(0xFFE2E8F0),
                                         valueColor: AlwaysStoppedAnimation<Color>(
                                           _progressPercent == 1.0
-                                              ? const Color(0xFF10B981)
-                                              : const Color(0xFF6366F1),
+                                              ? const Color(0xFF34C759)
+                                              : const Color(0xFF5856D6),
                                         ),
                                       ),
                                     ),
@@ -551,7 +551,7 @@ class _Sept26ProgressDialogState extends ConsumerState<Sept26ProgressDialog> {
                                       gender: user?.gender,
                                       size: 56,
                                       border: Border.all(
-                                        color: const Color(0xFF6366F1),
+                                        color: const Color(0xFF5856D6),
                                         width: 2.5,
                                       ),
                                     ),
@@ -561,7 +561,7 @@ class _Sept26ProgressDialogState extends ConsumerState<Sept26ProgressDialog> {
                                       child: Container(
                                         padding: const EdgeInsets.all(3),
                                         decoration: const BoxDecoration(
-                                          color: Color(0xFF6366F1),
+                                          color: Color(0xFF5856D6),
                                           shape: BoxShape.circle,
                                         ),
                                         child: const Icon(
@@ -601,7 +601,7 @@ class _Sept26ProgressDialogState extends ConsumerState<Sept26ProgressDialog> {
                                             style: TextStyle(
                                               fontSize: 10.5,
                                               fontWeight: FontWeight.w700,
-                                              color: Color(0xFF6366F1),
+                                              color: Color(0xFF5856D6),
                                             ),
                                           ),
                                         ),
@@ -622,7 +622,7 @@ class _Sept26ProgressDialogState extends ConsumerState<Sept26ProgressDialog> {
                                         ElevatedButton(
                                           onPressed: _showPhotoSheet,
                                           style: ElevatedButton.styleFrom(
-                                            backgroundColor: const Color(0xFF6366F1),
+                                            backgroundColor: const Color(0xFF5856D6),
                                             foregroundColor: Colors.white,
                                             elevation: 0,
                                             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
@@ -691,7 +691,7 @@ class _Sept26ProgressDialogState extends ConsumerState<Sept26ProgressDialog> {
                                 style: const TextStyle(
                                   fontSize: 11,
                                   fontWeight: FontWeight.w800,
-                                  color: Color(0xFF6366F1),
+                                  color: Color(0xFF5856D6),
                                 ),
                               ),
                           ],
@@ -718,13 +718,13 @@ class _Sept26ProgressDialogState extends ConsumerState<Sept26ProgressDialog> {
                                   color: isSelected ? const Color(0xFFEFF0FE) : tokens.surface,
                                   borderRadius: BorderRadius.circular(12),
                                   border: Border.all(
-                                    color: isSelected ? const Color(0xFF6366F1) : tokens.border,
+                                    color: isSelected ? const Color(0xFF5856D6) : tokens.border,
                                     width: 2,
                                   ),
                                   boxShadow: isSelected
                                       ? [
                                           BoxShadow(
-                                            color: const Color(0xFF6366F1).withOpacity(0.2),
+                                            color: const Color(0xFF5856D6).withOpacity(0.2),
                                             blurRadius: 8,
                                             offset: const Offset(0, 3),
                                           ),
@@ -736,7 +736,7 @@ class _Sept26ProgressDialogState extends ConsumerState<Sept26ProgressDialog> {
                                   style: TextStyle(
                                     fontSize: 12.5,
                                     fontWeight: FontWeight.w700,
-                                    color: isSelected ? const Color(0xFF4F46E5) : tokens.textSecondary,
+                                    color: isSelected ? const Color(0xFF5856D6) : tokens.textSecondary,
                                   ),
                                 ),
                               ),
@@ -763,7 +763,7 @@ class _Sept26ProgressDialogState extends ConsumerState<Sept26ProgressDialog> {
                                 style: TextStyle(
                                   fontSize: 11,
                                   fontWeight: FontWeight.w800,
-                                  color: Color(0xFF6366F1),
+                                  color: Color(0xFF5856D6),
                                 ),
                               ),
                           ],
@@ -815,7 +815,7 @@ class _Sept26ProgressDialogState extends ConsumerState<Sept26ProgressDialog> {
                                 style: TextStyle(
                                   fontSize: 11,
                                   fontWeight: FontWeight.w800,
-                                  color: Color(0xFF10B981),
+                                  color: Color(0xFF34C759),
                                 ),
                               )
                             else if (_mobileController.text.isNotEmpty)
@@ -824,7 +824,7 @@ class _Sept26ProgressDialogState extends ConsumerState<Sept26ProgressDialog> {
                                 style: const TextStyle(
                                   fontSize: 11,
                                   fontWeight: FontWeight.w700,
-                                  color: Color(0xFF6366F1),
+                                  color: Color(0xFF5856D6),
                                 ),
                               ),
                           ],
@@ -837,7 +837,7 @@ class _Sept26ProgressDialogState extends ConsumerState<Sept26ProgressDialog> {
                             border: Border.all(
                               color: (_mobileController.text.trim().length == 10 &&
                                       RegExp(r'^[6789]\d{9}$').hasMatch(_mobileController.text.trim()))
-                                  ? const Color(0xFF10B981)
+                                  ? const Color(0xFF34C759)
                                   : tokens.border,
                               width: 2,
                             ),
@@ -947,7 +947,7 @@ class _Sept26ProgressDialogState extends ConsumerState<Sept26ProgressDialog> {
                                       style: TextStyle(
                                         fontSize: 10.5,
                                         fontWeight: FontWeight.w700,
-                                        color: Color(0xFF6366F1),
+                                        color: Color(0xFF5856D6),
                                       ),
                                     ),
                                   ),
@@ -1023,7 +1023,7 @@ class _Sept26ProgressDialogState extends ConsumerState<Sept26ProgressDialog> {
                           child: ElevatedButton(
                             onPressed: _saving ? null : _submit,
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFF6366F1),
+                              backgroundColor: const Color(0xFF5856D6),
                               foregroundColor: Colors.white,
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(14),
@@ -1093,13 +1093,13 @@ class _Sept26ProgressDialogState extends ConsumerState<Sept26ProgressDialog> {
           color: isSelected ? const Color(0xFFEFF0FE) : tokens.surface,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: isSelected ? const Color(0xFF6366F1) : tokens.border,
+            color: isSelected ? const Color(0xFF5856D6) : tokens.border,
             width: 2,
           ),
           boxShadow: isSelected
               ? [
                   BoxShadow(
-                    color: const Color(0xFF6366F1).withOpacity(0.2),
+                    color: const Color(0xFF5856D6).withOpacity(0.2),
                     blurRadius: 8,
                     offset: const Offset(0, 3),
                   ),
@@ -1112,7 +1112,7 @@ class _Sept26ProgressDialogState extends ConsumerState<Sept26ProgressDialog> {
           style: TextStyle(
             fontSize: 12,
             fontWeight: FontWeight.w700,
-            color: isSelected ? const Color(0xFF4F46E5) : tokens.textSecondary,
+            color: isSelected ? const Color(0xFF5856D6) : tokens.textSecondary,
           ),
         ),
       ),
@@ -1139,7 +1139,7 @@ class _Sept26ProgressDialogState extends ConsumerState<Sept26ProgressDialog> {
               height: 64,
               decoration: const BoxDecoration(
                 gradient: LinearGradient(
-                  colors: [Color(0xFF10B981), Color(0xFF059669)],
+                  colors: [Color(0xFF34C759), Color(0xFF059669)],
                 ),
                 shape: BoxShape.circle,
               ),
@@ -1172,10 +1172,10 @@ class _Sept26ProgressDialogState extends ConsumerState<Sept26ProgressDialog> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
               decoration: BoxDecoration(
-                color: const Color(0xFF10B981).withOpacity(0.08),
+                color: const Color(0xFF34C759).withOpacity(0.08),
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
-                  color: const Color(0xFF10B981).withOpacity(0.25),
+                  color: const Color(0xFF34C759).withOpacity(0.25),
                 ),
               ),
               child: const Text(
@@ -1195,7 +1195,7 @@ class _Sept26ProgressDialogState extends ConsumerState<Sept26ProgressDialog> {
               child: ElevatedButton(
                 onPressed: _finish,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF6366F1),
+                  backgroundColor: const Color(0xFF5856D6),
                   foregroundColor: Colors.white,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),

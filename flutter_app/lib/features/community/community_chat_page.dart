@@ -1,5 +1,6 @@
 import 'dart:async';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
+import 'package:material_symbols_icons/symbols.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -7,6 +8,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../core/auth/auth_providers.dart';
 import 'community_attachment.dart';
+import 'community_page.dart' show communityCourseLook;
 import 'community_file_upload.dart';
 import '../../core/models/course.dart';
 import '../../shared/widgets/app_avatar.dart';
@@ -253,37 +255,105 @@ class _CommunityChatPageState extends ConsumerState<CommunityChatPage> {
 
   void _showAttachmentOptions() {
     if (_sending || _uploadingAttachment) return;
+    final tokens = context.tokens;
     showModalBottomSheet<void>(
         context: context,
         useRootNavigator: true,
+        showDragHandle: true,
         builder: (ctx) => SafeArea(
                 child: Padding(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
               child: Column(mainAxisSize: MainAxisSize.min, children: [
-                const Text('Share a file · Up to 20 MB',
-                    style:
-                        TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
-                const SizedBox(height: 12),
-                for (final images in [true, false])
-                  ListTile(
-                    leading: Icon(images
-                        ? Icons.photo_library_outlined
-                        : Icons.description_outlined),
-                    title: Text(images ? 'Choose Image' : 'Choose Document'),
-                    subtitle: Text(images
-                        ? 'JPG, PNG or WEBP'
-                        : 'PDF, Word, PowerPoint, Excel or ZIP'),
-                    onTap: () {
-                      Navigator.of(ctx).pop();
-                      _showGuidelines(
-                        title: images ? 'Upload Image' : 'Upload Document',
-                        message:
-                            'Choose a relevant file up to 20 MB. Your file will be shared in this conversation.',
-                        confirmLabel: 'Select File',
-                        onConfirm: () => _pickAttachment(images),
-                      );
-                    },
+                Text('Share a file · Up to 20 MB',
+                    style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: -0.4,
+                        color: tokens.textPrimary)),
+                const SizedBox(height: 16),
+                Container(
+                  decoration: BoxDecoration(
+                    color: tokens.surfaceSecondary,
+                    borderRadius: BorderRadius.circular(18),
                   ),
+                  clipBehavior: Clip.antiAlias,
+                  child: Column(children: [
+                    for (final images in [true, false]) ...[
+                      if (!images)
+                        Divider(
+                            height: 0.5,
+                            thickness: 0.5,
+                            indent: 70,
+                            color: tokens.border),
+                      InkWell(
+                        onTap: () {
+                          Navigator.of(ctx).pop();
+                          _showGuidelines(
+                            title: images ? 'Upload Image' : 'Upload Document',
+                            message:
+                                'Choose a relevant file up to 20 MB. Your file will be shared in this conversation.',
+                            confirmLabel: 'Select File',
+                            onConfirm: () => _pickAttachment(images),
+                          );
+                        },
+                        child: Padding(
+                          padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+                          child: Row(children: [
+                            Container(
+                              width: 40,
+                              height: 40,
+                              decoration: BoxDecoration(
+                                color: images
+                                    ? const Color(0xFF007AFF)
+                                    : const Color(0xFFFF9500),
+                                borderRadius: BorderRadius.circular(11),
+                              ),
+                              child: Icon(
+                                images
+                                    ? Symbols.photo_library_rounded
+                                    : Symbols.description_rounded,
+                                color: Colors.white,
+                                size: 22,
+                                fill: 1,
+                              ),
+                            ),
+                            const SizedBox(width: 14),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    images
+                                        ? 'Choose Image'
+                                        : 'Choose Document',
+                                    style: TextStyle(
+                                        fontSize: 17,
+                                        fontWeight: FontWeight.w500,
+                                        letterSpacing: -0.3,
+                                        color: tokens.textPrimary),
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    images
+                                        ? 'JPG, PNG or WEBP'
+                                        : 'PDF, Word, PowerPoint, Excel or ZIP',
+                                    style: TextStyle(
+                                        fontSize: 13.5,
+                                        color: tokens.textSecondary),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Icon(Symbols.arrow_forward_ios_rounded,
+                                size: 14,
+                                weight: 700,
+                                color: tokens.textMuted),
+                          ]),
+                        ),
+                      ),
+                    ],
+                  ]),
+                ),
               ]),
             )));
   }
@@ -367,12 +437,12 @@ class _CommunityChatPageState extends ConsumerState<CommunityChatPage> {
     // otherwise the welcome note — but only while the group has no messages.
     final pinnedMessage = ref
         .watch(communityPinnedMessageProvider(widget.courseId))
-        .valueOrNull;
-    final loadedMsgs = messagesAsync.valueOrNull;
+        .value;
+    final loadedMsgs = messagesAsync.value;
     final groupIsEmpty = loadedMsgs != null && loadedMsgs.isEmpty;
 
     return Scaffold(
-      backgroundColor: isDark ? tokens.bg : const Color(0xFFF7F5F0),
+      backgroundColor: isDark ? tokens.bg : const Color(0xFFF8F6F1),
       body: SafeArea(
         bottom: false,
         child: Column(
@@ -645,7 +715,7 @@ class _Header extends StatelessWidget {
         : ((courseMap['subject'] as String?) ?? courseObj?.subject ?? 'TERM 1');
 
     final accent = isGeneral
-        ? const Color(0xFF6366F1)
+        ? const Color(0xFF5856D6)
         : _accent((courseMap['color'] as String?) ?? courseObj?.color);
 
     final tokens = context.tokens;
@@ -654,7 +724,7 @@ class _Header extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(14, 10, 14, 12),
       decoration: BoxDecoration(
         color: tokens.cardBg,
-        border: Border(bottom: BorderSide(color: tokens.border)),
+        border: Border(bottom: BorderSide(color: tokens.border, width: 0.5)),
       ),
       child: Row(
         children: [
@@ -669,55 +739,50 @@ class _Header extends StatelessWidget {
                 context.go('/community');
               }
             },
-            borderRadius: BorderRadius.circular(10),
+            borderRadius: BorderRadius.circular(18),
             child: Container(
               width: 36,
               height: 36,
               decoration: BoxDecoration(
                 color: tokens.surfaceSecondary,
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: tokens.border),
+                borderRadius: BorderRadius.circular(18),
               ),
               alignment: Alignment.center,
-              child: Icon(Icons.chevron_left,
-                  color: tokens.textPrimary, size: 22),
+              child: Icon(Symbols.arrow_back_ios_new_rounded,
+                  weight: 600, color: tokens.textPrimary, size: 17),
             ),
           ),
           const SizedBox(width: 10),
 
-          // Course Icon
-          Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(12),
-              gradient: LinearGradient(
-                colors: [accent, accent.withOpacity(0.82)],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: accent.withOpacity(0.24),
-                  offset: const Offset(0, 3),
-                  blurRadius: 6,
+          // Course avatar: same icon the course has in the Community list.
+          Builder(builder: (context) {
+            final lower = name.toLowerCase();
+            final isGift = lower.contains('qualifier') ||
+                lower.contains('oneshot') ||
+                lower.contains('attempt');
+            final look = isGeneral
+                ? (
+                    icon: Symbols.forum_rounded,
+                    colors: const [Color(0xFF7D7AFF), Color(0xFF5856D6)]
+                  )
+                : communityCourseLook(name, subject, isGift);
+            return Container(
+              width: 42,
+              height: 42,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(13),
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: look.colors,
                 ),
-              ],
-            ),
-            alignment: Alignment.center,
-            child: isGeneral
-                ? const Icon(Icons.forum_outlined,
-                    color: Colors.white, size: 20)
-                : Text(
-                    _code(name),
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w900,
-                      fontSize: 13.5,
-                    ),
-                  ),
-          ),
-          const SizedBox(width: 10),
+              ),
+              alignment: Alignment.center,
+              child:
+                  Icon(look.icon, fill: 1, color: Colors.white, size: 23),
+            );
+          }),
+          const SizedBox(width: 12),
 
           // Course Title & Term
           Expanded(
@@ -730,10 +795,10 @@ class _Header extends StatelessWidget {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w800,
+                    fontSize: 17,
+                    fontWeight: FontWeight.w700,
                     color: tokens.textPrimary,
-                    letterSpacing: -0.2,
+                    letterSpacing: -0.4,
                   ),
                 ),
                 const SizedBox(height: 2),
@@ -742,8 +807,8 @@ class _Header extends StatelessWidget {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w700,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
                     color: tokens.primaryAccent,
                     letterSpacing: 0.4,
                   ),
@@ -756,11 +821,13 @@ class _Header extends StatelessWidget {
           Theme(
             data: Theme.of(context).copyWith(
               cardColor: tokens.cardBg,
+              dividerTheme: DividerThemeData(
+                  color: tokens.border, thickness: 0.5, space: 1),
               popupMenuTheme: PopupMenuThemeData(
                 color: tokens.cardBg,
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(14),
-                  side: BorderSide(color: tokens.border),
+                  borderRadius: BorderRadius.circular(18),
+                  side: BorderSide(color: tokens.border, width: 0.5),
                 ),
                 elevation: 6,
                 shadowColor: Colors.black26,
@@ -772,11 +839,11 @@ class _Header extends StatelessWidget {
                 height: 34,
                 decoration: BoxDecoration(
                   color: tokens.surfaceSecondary,
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(17),
                 ),
                 alignment: Alignment.center,
-                child: Icon(Icons.more_vert_rounded,
-                    color: tokens.textPrimary, size: 20),
+                child: Icon(Symbols.more_horiz_rounded,
+                    weight: 600, color: tokens.textPrimary, size: 22),
               ),
               offset: const Offset(0, 44),
               onSelected: (val) {
@@ -795,16 +862,16 @@ class _Header extends StatelessWidget {
               itemBuilder: (ctx) => [
                 PopupMenuItem<String>(
                   value: 'read',
-                  height: 42,
+                  height: 50,
                   child: Row(
                     children: [
-                      Icon(Icons.check_rounded, size: 18, color: tokens.textPrimary),
+                      Icon(Symbols.check_rounded, size: 21, weight: 600, color: tokens.textPrimary),
                       const SizedBox(width: 10),
                       Text(
                         'Mark as read',
                         style: TextStyle(
-                          fontSize: 13.5,
-                          fontWeight: FontWeight.w600,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
                           color: tokens.textPrimary,
                         ),
                       ),
@@ -814,16 +881,16 @@ class _Header extends StatelessWidget {
                 const PopupMenuDivider(height: 1),
                 PopupMenuItem<String>(
                   value: 'course',
-                  height: 42,
+                  height: 50,
                   child: Row(
                     children: [
-                      Icon(Icons.open_in_new_rounded, size: 18, color: tokens.textPrimary),
+                      Icon(Symbols.open_in_new_rounded, size: 21, color: tokens.textPrimary),
                       const SizedBox(width: 10),
                       Text(
                         'Open course page',
                         style: TextStyle(
-                          fontSize: 13.5,
-                          fontWeight: FontWeight.w600,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
                           color: tokens.textPrimary,
                         ),
                       ),
@@ -833,22 +900,22 @@ class _Header extends StatelessWidget {
                 const PopupMenuDivider(height: 1),
                 PopupMenuItem<String>(
                   value: 'mute',
-                  height: 42,
+                  height: 50,
                   child: Row(
                     children: [
                       Icon(
                         isMuted
-                            ? Icons.notifications_active_outlined
-                            : Icons.notifications_off_outlined,
-                        size: 18,
+                            ? Symbols.notifications_active_rounded
+                            : Symbols.notifications_off_rounded,
+                        size: 21,
                         color: isMuted ? tokens.primaryAccent : tokens.textPrimary,
                       ),
                       const SizedBox(width: 10),
                       Text(
                         isMuted ? 'Unmute notifications' : 'Mute notifications',
                         style: TextStyle(
-                          fontSize: 13.5,
-                          fontWeight: FontWeight.w600,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
                           color: isMuted ? tokens.primaryAccent : tokens.textPrimary,
                         ),
                       ),
@@ -897,7 +964,7 @@ class _PinnedBanner extends StatelessWidget {
       margin: const EdgeInsets.fromLTRB(16, 10, 16, 0),
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0x2EF59E0B) : const Color(0xFFFEF3C7),
+        color: isDark ? const Color(0x2EFF9500) : const Color(0xFFFEF3C7),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
           color: isDark ? const Color(0x59F5B440) : const Color(0xFFFCD8A6),
@@ -991,23 +1058,42 @@ class _DayMark extends StatelessWidget {
       padding: const EdgeInsets.only(bottom: 14),
       child: Row(
         children: [
-          Expanded(child: Container(height: 1, color: tokens.border)),
+          Expanded(child: Container(height: 0.5, color: tokens.border)),
           const SizedBox(width: 10),
           Text(
             label,
             style: TextStyle(
-              fontSize: 10,
-              fontWeight: FontWeight.w700,
-              letterSpacing: 1,
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              letterSpacing: 0.5,
               color: tokens.textMuted,
             ),
           ),
           const SizedBox(width: 10),
-          Expanded(child: Container(height: 1, color: tokens.border)),
+          Expanded(child: Container(height: 0.5, color: tokens.border)),
         ],
       ),
     );
   }
+}
+
+/// True for 1–3 emoji with nothing else — shown big, iMessage style.
+bool _isEmojiOnly(String text) {
+  final t = text.trim();
+  if (t.isEmpty || t.length > 24) return false;
+  var emoji = 0;
+  for (final r in t.runes) {
+    final isJoiner = r == 0x200D || r == 0xFE0F || (r >= 0x1F3FB && r <= 0x1F3FF);
+    final isEmoji = (r >= 0x1F300 && r <= 0x1FAFF) ||
+        (r >= 0x2600 && r <= 0x27BF) ||
+        (r >= 0x2B00 && r <= 0x2BFF) ||
+        r == 0x2764 ||
+        (r >= 0x1F1E6 && r <= 0x1F1FF);
+    if (isJoiner) continue;
+    if (!isEmoji) return false;
+    emoji++;
+  }
+  return emoji >= 1 && emoji <= 3;
 }
 
 class _LectureCommentLink {
@@ -1083,10 +1169,10 @@ class _Bubble extends StatelessWidget {
   static const _palette = [
     [Color(0xFFEC4899), Color(0xFFFCE7F3)],
     [Color(0xFF0EA5E9), Color(0xFFE0F2FE)],
-    [Color(0xFF10B981), Color(0xFFD1FAE5)],
-    [Color(0xFF6366F1), Color(0xFFEEF2FF)],
-    [Color(0xFFF59E0B), Color(0xFFFEF4E2)],
-    [Color(0xFF8B5CF6), Color(0xFFEDE9FE)],
+    [Color(0xFF34C759), Color(0xFFD1FAE5)],
+    [Color(0xFF5856D6), Color(0xFFEEF2FF)],
+    [Color(0xFFFF9500), Color(0xFFFEF4E2)],
+    [Color(0xFF6E6CF0), Color(0xFFEDE9FE)],
   ];
 
   void _showActionSheet(
@@ -1181,11 +1267,11 @@ class _Bubble extends StatelessWidget {
                 leading: Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF6366F1).withOpacity(0.15),
+                    color: const Color(0xFF5856D6).withOpacity(0.15),
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: const Icon(Icons.play_circle_filled_rounded,
-                      color: Color(0xFF6366F1), size: 20),
+                      color: Color(0xFF5856D6), size: 20),
                 ),
                 title: Text('Open Lecture (${lectureLink.lectureTitle})',
                     maxLines: 1,
@@ -1207,16 +1293,16 @@ class _Bubble extends StatelessWidget {
                 leading: Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFEF4444).withOpacity(0.12),
+                    color: const Color(0xFFFF3B30).withOpacity(0.12),
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: const Icon(Icons.delete_outline_rounded,
-                      color: Color(0xFFEF4444), size: 20),
+                      color: Color(0xFFFF3B30), size: 20),
                 ),
                 title: const Text('Delete message',
                     style: TextStyle(
                         fontWeight: FontWeight.w700,
-                        color: Color(0xFFEF4444),
+                        color: Color(0xFFFF3B30),
                         fontSize: 14.5)),
                 onTap: () {
                   Navigator.of(ctx).pop();
@@ -1266,6 +1352,36 @@ class _Bubble extends StatelessWidget {
         : role == 'ADMIN'
             ? 'ADMIN'
             : 'MENTOR';
+
+    final isEmojiOnly = !isDeleted &&
+        lectureLink == null &&
+        (imageUrl == null || imageUrl.isEmpty) &&
+        replyTo == null &&
+        _isEmojiOnly(cleanedText);
+
+    final createdAt = DateTime.tryParse(
+        (message['createdAt'] as String?) ?? '');
+    final isFresh = createdAt != null &&
+        DateTime.now().difference(createdAt).inSeconds.abs() < 10 &&
+        !MediaQuery.of(context).disableAnimations;
+
+    Widget animated(Widget child) {
+      if (!isFresh) return child;
+      return TweenAnimationBuilder<double>(
+        tween: Tween(begin: 0, end: 1),
+        duration: const Duration(milliseconds: 380),
+        curve: Curves.easeOutBack,
+        builder: (context, t, child) => Opacity(
+          opacity: t.clamp(0.0, 1.0),
+          child: Transform.scale(
+            scale: 0.85 + 0.15 * t,
+            alignment: isMine ? Alignment.bottomRight : Alignment.bottomLeft,
+            child: child,
+          ),
+        ),
+        child: child,
+      );
+    }
 
     return Dismissible(
       key: ValueKey('msg_${message['id']}_${message['createdAt']}'),
@@ -1319,7 +1435,7 @@ class _Bubble extends StatelessWidget {
                 constraints: BoxConstraints(
                   maxWidth: MediaQuery.of(context).size.width * 0.76,
                 ),
-                child: Column(
+                child: animated(Column(
                   crossAxisAlignment: isMine
                       ? CrossAxisAlignment.end
                       : CrossAxisAlignment.start,
@@ -1338,8 +1454,8 @@ class _Bubble extends StatelessWidget {
                                 name,
                                 style: TextStyle(
                                   color: tone,
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.w800,
+                                  fontSize: 13.5,
+                                  fontWeight: FontWeight.w600,
                                 ),
                               ),
                             ),
@@ -1379,25 +1495,41 @@ class _Bubble extends StatelessWidget {
                               );
                             },
                       child: Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 13, vertical: 9),
+                        padding: isEmojiOnly
+                            ? const EdgeInsets.symmetric(horizontal: 4)
+                            : const EdgeInsets.symmetric(
+                                horizontal: 15, vertical: 10),
                         decoration: BoxDecoration(
-                          color: isDeleted
-                              ? (isMine
-                                  ? const Color(0xFFEF4444).withOpacity(0.85)
-                                  : const Color(0xFFEF4444).withOpacity(0.08))
-                              : (isMine ? tokens.primaryAccent : tokens.cardBg),
-                          border: isMine
+                          gradient: (isMine && !isDeleted && !isEmojiOnly)
+                              ? LinearGradient(
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                  colors: [
+                                    Color.lerp(tokens.primaryAccent,
+                                        Colors.white, 0.18)!,
+                                    tokens.primaryAccent,
+                                  ],
+                                )
+                              : null,
+                          color: isEmojiOnly
+                              ? Colors.transparent
+                              : isDeleted
+                                  ? (isMine
+                                      ? const Color(0xFFFF3B30)
+                                          .withOpacity(0.85)
+                                      : const Color(0xFFFF3B30)
+                                          .withOpacity(0.08))
+                                  : (isMine ? null : tokens.cardBg),
+                          border: (isMine || !isDeleted)
                               ? null
                               : Border.all(
-                                  color: isDeleted
-                                      ? const Color(0xFFEF4444).withOpacity(0.3)
-                                      : tokens.border),
+                                  color: const Color(0xFFFF3B30)
+                                      .withValues(alpha: 0.3)),
                           borderRadius: BorderRadius.only(
-                            topLeft: const Radius.circular(16),
-                            topRight: const Radius.circular(16),
-                            bottomLeft: Radius.circular(isMine ? 16 : 4),
-                            bottomRight: Radius.circular(isMine ? 4 : 16),
+                            topLeft: const Radius.circular(20),
+                            topRight: const Radius.circular(20),
+                            bottomLeft: Radius.circular(isMine ? 20 : 6),
+                            bottomRight: Radius.circular(isMine ? 6 : 20),
                           ),
                         ),
                         child: Column(
@@ -1411,7 +1543,7 @@ class _Bubble extends StatelessWidget {
                                       size: 14,
                                       color: isMine
                                           ? Colors.white.withOpacity(0.9)
-                                          : const Color(0xFFEF4444)),
+                                          : const Color(0xFFFF3B30)),
                                   const SizedBox(width: 5),
                                   Text(
                                     'This message was deleted',
@@ -1421,7 +1553,7 @@ class _Bubble extends StatelessWidget {
                                       fontWeight: FontWeight.w600,
                                       color: isMine
                                           ? Colors.white.withOpacity(0.9)
-                                          : const Color(0xFFEF4444),
+                                          : const Color(0xFFFF3B30),
                                     ),
                                   ),
                                 ],
@@ -1504,13 +1636,8 @@ class _Bubble extends StatelessWidget {
                                   decoration: BoxDecoration(
                                     color: isMine
                                         ? Colors.white.withOpacity(0.15)
-                                        : const Color(0xFF6366F1).withOpacity(0.08),
-                                    borderRadius: BorderRadius.circular(10),
-                                    border: Border.all(
-                                      color: isMine
-                                          ? Colors.white.withOpacity(0.3)
-                                          : const Color(0xFF6366F1).withOpacity(0.3),
-                                    ),
+                                        : const Color(0xFF5856D6).withOpacity(0.08),
+                                    borderRadius: BorderRadius.circular(14),
                                   ),
                                   child: Column(
                                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -1518,22 +1645,23 @@ class _Bubble extends StatelessWidget {
                                       Row(
                                         children: [
                                           Icon(
-                                            Icons.menu_book_rounded,
-                                            size: 14,
+                                            Symbols.menu_book_rounded,
+                                            fill: 1,
+                                            size: 16,
                                             color: isMine
                                                 ? Colors.white
-                                                : const Color(0xFF6366F1),
+                                                : const Color(0xFF5856D6),
                                           ),
                                           const SizedBox(width: 5),
                                           Expanded(
                                             child: Text(
                                               'Commented on: ${lectureLink.lectureTitle}',
                                               style: TextStyle(
-                                                fontSize: 11.5,
-                                                fontWeight: FontWeight.w800,
+                                                fontSize: 13,
+                                                fontWeight: FontWeight.w600,
                                                 color: isMine
                                                     ? Colors.white
-                                                    : const Color(0xFF6366F1),
+                                                    : const Color(0xFF5856D6),
                                               ),
                                               maxLines: 1,
                                               overflow: TextOverflow.ellipsis,
@@ -1547,23 +1675,24 @@ class _Bubble extends StatelessWidget {
                                           HapticFeedback.lightImpact();
                                           context.push('/courses/${lectureLink.courseId}');
                                         },
-                                        borderRadius: BorderRadius.circular(6),
+                                        borderRadius: BorderRadius.circular(10),
                                         child: Container(
                                           padding: const EdgeInsets.symmetric(
-                                              horizontal: 10, vertical: 5),
+                                              horizontal: 12, vertical: 7),
                                           decoration: BoxDecoration(
                                             color: isMine
                                                 ? Colors.white
-                                                : const Color(0xFF6366F1),
+                                                : const Color(0xFF5856D6),
                                             borderRadius:
-                                                BorderRadius.circular(6),
+                                                BorderRadius.circular(10),
                                           ),
                                           child: Row(
                                             mainAxisSize: MainAxisSize.min,
                                             children: [
                                               Icon(
-                                                Icons.play_circle_fill_rounded,
-                                                size: 13,
+                                                Symbols.play_circle_rounded,
+                                                fill: 1,
+                                                size: 16,
                                                 color: isMine
                                                     ? tokens.primaryAccent
                                                     : Colors.white,
@@ -1572,8 +1701,8 @@ class _Bubble extends StatelessWidget {
                                               Text(
                                                 'View Lecture',
                                                 style: TextStyle(
-                                                  fontSize: 11,
-                                                  fontWeight: FontWeight.w800,
+                                                  fontSize: 13,
+                                                  fontWeight: FontWeight.w600,
                                                   color: isMine
                                                       ? tokens.primaryAccent
                                                       : Colors.white,
@@ -1593,9 +1722,10 @@ class _Bubble extends StatelessWidget {
                                 Text(
                                   cleanedText,
                                   style: TextStyle(
-                                    fontSize: 13.5,
+                                    fontSize: isEmojiOnly ? 48 : 17,
+                                    letterSpacing: isEmojiOnly ? 0 : -0.2,
                                     color: isMine ? Colors.white : tokens.textPrimary,
-                                    height: 1.4,
+                                    height: isEmojiOnly ? 1.2 : 1.35,
                                   ),
                                 )
                               else if (imageUrl == null && lectureLink == null)
@@ -1619,13 +1749,13 @@ class _Bubble extends StatelessWidget {
                       child: Text(
                         time + (isMine ? ' · sent' : ''),
                         style: TextStyle(
-                          fontSize: 9.5,
+                          fontSize: 12,
                           color: tokens.textMuted,
                         ),
                       ),
                     ),
                   ],
-                ),
+                )),
               ),
             ),
           ],
@@ -1665,7 +1795,7 @@ class _Composer extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: tokens.cardBg,
-        border: Border(top: BorderSide(color: tokens.border, width: 1)),
+        border: Border(top: BorderSide(color: tokens.border, width: 0.5)),
       ),
       child: SafeArea(
         top: false,
@@ -1677,7 +1807,7 @@ class _Composer extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
                 decoration: BoxDecoration(
-                  color: isDark ? const Color(0xFF1E2640) : const Color(0xFFEFF6FF),
+                  color: tokens.primaryAccent.withValues(alpha: isDark ? 0.16 : 0.08),
                   border: Border(
                     left: BorderSide(color: tokens.primaryAccent, width: 3),
                   ),
@@ -1739,17 +1869,15 @@ class _Composer extends StatelessWidget {
                       width: 40,
                       height: 40,
                       decoration: BoxDecoration(
-                        color: isDark
-                            ? tokens.surfaceSecondary
-                            : const Color(0xFFF1F5F9),
+                        color: tokens.surfaceSecondary,
                         shape: BoxShape.circle,
-                        border: Border.all(color: tokens.border),
                       ),
                       alignment: Alignment.center,
                       child: Icon(
-                        Icons.add_rounded,
+                        Symbols.add_rounded,
+                        weight: 600,
                         color: tokens.textSecondary,
-                        size: 22,
+                        size: 24,
                       ),
                     ),
                   ),
@@ -1763,11 +1891,8 @@ class _Composer extends StatelessWidget {
                         maxHeight: 120,
                       ),
                       decoration: BoxDecoration(
-                        color: isDark
-                            ? tokens.surfaceSecondary
-                            : const Color(0xFFF1F5F9),
+                        color: tokens.surfaceSecondary,
                         borderRadius: BorderRadius.circular(20),
-                        border: Border.all(color: tokens.border),
                       ),
                       child: TextField(
                         controller: controller,
@@ -1783,15 +1908,15 @@ class _Composer extends StatelessWidget {
                             vertical: 10,
                           ),
                           hintStyle: TextStyle(
-                            fontSize: 13.5,
+                            fontSize: 16,
                             color: tokens.textMuted,
-                            fontWeight: FontWeight.w500,
+                            fontWeight: FontWeight.w400,
                           ),
                         ),
                         style: TextStyle(
-                          fontSize: 13.5,
+                          fontSize: 16,
                           color: tokens.textPrimary,
-                          fontWeight: FontWeight.w500,
+                          fontWeight: FontWeight.w400,
                         ),
                         textInputAction: TextInputAction.send,
                         onSubmitted: (_) => onSend(),
@@ -1822,9 +1947,10 @@ class _Composer extends StatelessWidget {
                               ),
                             )
                           : const Icon(
-                              Icons.send_rounded,
+                              Symbols.arrow_upward_rounded,
                               color: Colors.white,
-                              size: 17,
+                              weight: 700,
+                              size: 21,
                             ),
                     ),
                   ),
@@ -1847,28 +1973,46 @@ class _ChatBackground extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return RepaintBoundary(
-      child: CustomPaint(
-        painter: _DoodlePainter(isDark: isDark),
-        size: Size.infinite,
+    final accent = context.tokens.primaryAccent;
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: isDark
+              ? [
+                  Color.lerp(context.tokens.bg, accent, 0.10)!,
+                  context.tokens.bg,
+                ]
+              : const [Color(0xFFEEEDFB), Color(0xFFF8F6F1)],
+        ),
+      ),
+      child: RepaintBoundary(
+        child: CustomPaint(
+          painter: _DoodlePainter(isDark: isDark, tint: accent),
+          size: Size.infinite,
+        ),
       ),
     );
   }
 }
 
 class _DoodlePainter extends CustomPainter {
-  _DoodlePainter({this.isDark = false});
+  _DoodlePainter({this.isDark = false, required this.tint});
   final bool isDark;
+  final Color tint;
 
   static const _doodles = <IconData>[
-    Icons.menu_book_outlined,
-    Icons.calculate_outlined,
-    Icons.lightbulb_outline,
-    Icons.science_outlined,
-    Icons.functions,
-    Icons.edit_outlined,
-    Icons.star_outline,
-    Icons.chat_bubble_outline,
+    Symbols.menu_book_rounded,
+    Symbols.calculate_rounded,
+    Symbols.lightbulb_rounded,
+    Symbols.science_rounded,
+    Symbols.function_rounded,
+    Symbols.edit_rounded,
+    Symbols.star_rounded,
+    Symbols.chat_bubble_rounded,
+    Symbols.school_rounded,
+    Symbols.code_rounded,
   ];
 
   static List<_DoodleSpec>? _cached;
@@ -1877,8 +2021,8 @@ class _DoodlePainter extends CustomPainter {
     if (_cached != null) return _cached!;
     final rng = _Mulberry32(31415);
     final out = <_DoodleSpec>[];
-    const rows = 18;
-    const cols = 4;
+    const rows = 14;
+    const cols = 3;
     for (var r = 0; r < rows; r++) {
       for (var c = 0; c < cols; c++) {
         final jitterX = (rng.next() - 0.5) * 0.4;
@@ -1886,7 +2030,7 @@ class _DoodlePainter extends CustomPainter {
         final iconIdx =
             (rng.next() * _doodles.length).floor().clamp(0, _doodles.length - 1);
         final rotDeg = (rng.next() - 0.5) * 30;
-        final size = 22 + rng.next() * 10;
+        final size = 28 + rng.next() * 12;
         out.add(_DoodleSpec(
           col: c + jitterX,
           row: r + jitterY,
@@ -1902,8 +2046,8 @@ class _DoodlePainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final cellW = size.width / 4;
-    const cellH = 92.0;
+    final cellW = size.width / 3;
+    const cellH = 128.0;
     final specs = _layout();
     for (final s in specs) {
       final dx = s.col * cellW + cellW / 2;
@@ -1921,7 +2065,7 @@ class _DoodlePainter extends CustomPainter {
           fontFamily: s.icon.fontFamily,
           package: s.icon.fontPackage,
           fontSize: s.fontSize,
-          color: isDark ? const Color(0x0FFFFFFF) : const Color(0x14000000),
+          color: tint.withValues(alpha: isDark ? 0.10 : 0.075),
         ),
       ),
       textDirection: TextDirection.ltr,
@@ -1937,7 +2081,7 @@ class _DoodlePainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _DoodlePainter oldDelegate) =>
-      oldDelegate.isDark != isDark;
+      oldDelegate.isDark != isDark || oldDelegate.tint != tint;
 }
 
 class _DoodleSpec {

@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'package:dio/dio.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -222,11 +222,11 @@ class _AnnouncementCard extends StatelessWidget {
                 width: 36,
                 height: 36,
                 decoration: BoxDecoration(
-                  color: tokens.primaryAccent.withOpacity(0.12),
+                  color: tokens.textMuted.withValues(alpha: 0.14),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child:
-                    Icon(Icons.campaign, color: tokens.primaryAccent, size: 18),
+                    Icon(Icons.campaign, color: tokens.textSecondary, size: 18),
               ),
               const SizedBox(width: 10),
               Expanded(
@@ -269,13 +269,13 @@ class _AnnouncementCard extends StatelessWidget {
                     padding:
                         const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                     decoration: BoxDecoration(
-                      color: tokens.primaryAccent.withOpacity(0.12),
+                      color: tokens.textMuted.withValues(alpha: 0.14),
                       borderRadius: BorderRadius.circular(6),
                     ),
                     child: Text(
                       (course['name'] as String?)?.toUpperCase() ?? '',
                       style: TextStyle(
-                        color: tokens.primaryAccent,
+                        color: tokens.textSecondary,
                         fontSize: 9.5,
                         fontWeight: FontWeight.w800,
                         letterSpacing: 0.4,

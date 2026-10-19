@@ -1,6 +1,8 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
+import 'package:material_symbols_icons/symbols.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/auth/auth_providers.dart';
+import '../../shared/widgets/apple_input.dart';
 import '../../theme/app_theme_tokens.dart';
 import 'support_providers.dart';
 
@@ -11,6 +13,7 @@ class NewTicketSheet extends ConsumerStatefulWidget {
         context: context,
         useRootNavigator: true,
         isScrollControlled: true,
+        showDragHandle: true,
         useSafeArea: true,
         builder: (_) => const NewTicketSheet(),
       );
@@ -92,26 +95,50 @@ class _NewTicketSheetState extends ConsumerState<NewTicketSheet> {
                       const Expanded(
                           child: Text('New Ticket',
                               style: TextStyle(
-                                  fontSize: 22, fontWeight: FontWeight.w800))),
+                                  fontSize: 28,
+                                  letterSpacing: -0.7,
+                                  fontWeight: FontWeight.w700))),
                       IconButton(
                           onPressed: _submitting
                               ? null
                               : () => Navigator.of(context).pop(),
-                          icon: const Icon(Icons.close),
+                          icon: const Icon(Symbols.close_rounded, weight: 600),
                           tooltip: 'Close')
                     ]),
-                    const Text('What do you need help with?'),
+                    Text('What do you need help with?',
+                        style: TextStyle(
+                            fontSize: 15, color: tokens.textSecondary)),
                     const SizedBox(height: 12),
                     Wrap(spacing: 8, children: [
                       ChoiceChip(
                           label: const Text('General help'),
                           selected: _type == 'GENERAL',
+                          showCheckmark: false,
+                          side: BorderSide.none,
+                          shape: const StadiumBorder(),
+                          backgroundColor: tokens.surfaceSecondary,
+                          selectedColor: tokens.primaryAccent,
+                          labelStyle: TextStyle(
+                              fontWeight: FontWeight.w600,
+                              color: _type == 'GENERAL'
+                                  ? Colors.white
+                                  : tokens.textPrimary),
                           onSelected: _submitting
                               ? null
                               : (_) => setState(() => _type = 'GENERAL')),
                       ChoiceChip(
                           label: const Text('Course / subject'),
                           selected: _type == 'SUBJECT',
+                          showCheckmark: false,
+                          side: BorderSide.none,
+                          shape: const StadiumBorder(),
+                          backgroundColor: tokens.surfaceSecondary,
+                          selectedColor: tokens.primaryAccent,
+                          labelStyle: TextStyle(
+                              fontWeight: FontWeight.w600,
+                              color: _type == 'SUBJECT'
+                                  ? Colors.white
+                                  : tokens.textPrimary),
                           onSelected: _submitting
                               ? null
                               : (_) => setState(() => _type = 'SUBJECT')),
@@ -135,9 +162,9 @@ class _NewTicketSheetState extends ConsumerState<NewTicketSheet> {
                                           ? _courseId
                                           : null,
                                       isExpanded: true,
-                                      decoration: const InputDecoration(
-                                          labelText: 'Choose course',
-                                          border: OutlineInputBorder()),
+                                      decoration: appleInputDecoration(context,
+                                          label: 'Choose course',
+                                          fill: tokens.surfaceSecondary),
                                       items: [
                                         for (final course in courses)
                                           DropdownMenuItem(
@@ -160,24 +187,23 @@ class _NewTicketSheetState extends ConsumerState<NewTicketSheet> {
                         minLines: 4,
                         maxLines: 8,
                         maxLength: 10000,
-                        decoration: const InputDecoration(
-                            labelText: 'Describe your issue',
-                            hintText:
+                        decoration: appleInputDecoration(context,
+                            label: 'Describe your issue',
+                            hint:
                                 'What happened? Include the course or lesson and any error you saw.',
                             alignLabelWithHint: true,
-                            border: OutlineInputBorder())),
+                            fill: tokens.surfaceSecondary)),
                     if (hasReachedActiveLimit)
                       Container(
                         margin: const EdgeInsets.only(top: 12),
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
-                          color: const Color(0xFFEF4444).withOpacity(0.12),
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: const Color(0xFFEF4444).withOpacity(0.3)),
+                          color: const Color(0xFFFF3B30).withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(14),
                         ),
                         child: Row(
                           children: [
-                            const Icon(Icons.info_outline, color: Color(0xFFEF4444), size: 20),
+                            const Icon(Symbols.info_rounded, fill: 1, color: Color(0xFFFF3B30), size: 22),
                             const SizedBox(width: 10),
                             Expanded(
                               child: Text(
@@ -206,7 +232,7 @@ class _NewTicketSheetState extends ConsumerState<NewTicketSheet> {
                                 height: 18,
                                 child:
                                     CircularProgressIndicator(strokeWidth: 2))
-                            : const Icon(Icons.send_rounded),
+                            : const Icon(Symbols.send_rounded, fill: 1),
                         label: Text(
                             _submitting ? 'Creating ticket…' : 'Create Ticket'),
                         style: FilledButton.styleFrom(
@@ -214,7 +240,12 @@ class _NewTicketSheetState extends ConsumerState<NewTicketSheet> {
                                 ? tokens.border
                                 : tokens.primaryAccent,
                             foregroundColor: Colors.white,
-                            minimumSize: const Size.fromHeight(52))),
+                            elevation: 0,
+                            textStyle: const TextStyle(
+                                fontSize: 17, fontWeight: FontWeight.w600),
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(16)),
+                            minimumSize: const Size.fromHeight(54))),
                   ])),
         ),
       ),

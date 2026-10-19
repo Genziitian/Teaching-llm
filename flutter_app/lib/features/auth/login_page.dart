@@ -1,19 +1,25 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
+import 'package:material_symbols_icons/symbols.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../core/auth/auth_providers.dart';
-import '../../shared/widgets/bouncy_pressable.dart';
+import '../../shared/widgets/apple_pressable.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_theme_tokens.dart';
-import '../../theme/app_typography.dart';
 
-/// Clean, minimal, premium sign-in surface.
-/// Responsive:
-/// - Tablet / Wide screen (>= 720dp): Split two-panel layout with branded
-///   showcase on the left and elevated auth card on the right (matches Capacitor web app).
-/// - Phone (< 720dp): Single column focused mobile layout.
+// Apple system colors used on this screen.
+const Color _kIndigo = Color(0xFF5856D6);
+const Color _kBlue = Color(0xFF007AFF);
+const Color _kPink = Color(0xFFFF2D55);
+const Color _kRed = Color(0xFFFF3B30);
+
+/// Sign-in surface.
+/// - Phone (< 720dp): brand hero on a soft aurora, with the sign-in actions
+///   in a rounded bottom sheet.
+/// - Tablet / wide (>= 720dp): showcase panel on the left, auth card right.
 class LoginPage extends ConsumerWidget {
   const LoginPage({super.key});
 
@@ -25,269 +31,359 @@ class LoginPage extends ConsumerWidget {
     final tokens = context.tokens;
     final isDark = context.isDark;
 
-    final bgColor = tokens.bg;
-    final textPrimary = tokens.textPrimary;
-    final textSecondary = tokens.textSecondary;
-    final borderColor = tokens.border;
-    final btnBg = tokens.cardBg;
+    void signIn() {
+      HapticFeedback.lightImpact();
+      ref.read(authStateProvider.notifier).signInWithGoogle();
+    }
 
     return Scaffold(
-      backgroundColor: bgColor,
-      body: SafeArea(
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            final isTablet = constraints.maxWidth >= 720;
+      backgroundColor: tokens.bg,
+      body: Stack(
+        children: [
+          Positioned.fill(child: _Aurora(isDark: isDark)),
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final isTablet = constraints.maxWidth >= 720;
+              if (isTablet) {
+                return SafeArea(
+                  child: _TabletLoginLayout(
+                    isDark: isDark,
+                    loading: loading,
+                    error: error,
+                    tokens: tokens,
+                    onSignIn: signIn,
+                  ),
+                );
+              }
 
-            if (isTablet) {
-              return _TabletLoginLayout(
-                isDark: isDark,
-                loading: loading,
-                error: error,
-                tokens: tokens,
-                textPrimary: textPrimary,
-                textSecondary: textSecondary,
-                borderColor: borderColor,
-                btnBg: btnBg,
-                ref: ref,
-              );
-            }
-
-            // Phone layout
-            return SingleChildScrollView(
-              physics: const BouncingScrollPhysics(),
-              child: ConstrainedBox(
-                constraints: BoxConstraints(minHeight: constraints.maxHeight),
-                child: IntrinsicHeight(
-                  child: Center(
-                    child: ConstrainedBox(
-                      constraints: const BoxConstraints(maxWidth: 480),
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 24),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            const SizedBox(height: 64),
-
-                            // 1. Header: Brand Logo
-                            Center(
-                              child: _BrandLogo(isDark: isDark),
-                            ),
-
-                            const Spacer(flex: 2),
-
-                            // 2. Center Content: Welcome & Sign In
-                            Text(
-                              'Welcome Back!',
-                              textAlign: TextAlign.center,
-                              style: AppTypography.h1.copyWith(
-                                fontSize: 24,
-                                fontWeight: FontWeight.w800,
-                                color: textPrimary,
-                                letterSpacing: -0.4,
-                              ),
-                            ),
-                            const SizedBox(height: 6),
-                            Padding(
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 16),
-                              child: Text(
-                                'Log in or create a new account with Google',
-                                textAlign: TextAlign.center,
-                                style: AppTypography.body.copyWith(
-                                  fontSize: 13.5,
-                                  color: textSecondary,
-                                  height: 1.4,
-                                  fontWeight: FontWeight.w500,
+              final media = MediaQuery.of(context);
+              return SingleChildScrollView(
+                physics: const BouncingScrollPhysics(),
+                child: ConstrainedBox(
+                  constraints:
+                      BoxConstraints(minHeight: constraints.maxHeight),
+                  child: IntrinsicHeight(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        // ── Hero ──
+                        Expanded(
+                          child: Padding(
+                            padding: EdgeInsets.only(
+                                top: media.padding.top + 28, bottom: 28),
+                            child: Column(
+                              children: [
+                                _Entrance(
+                                  child: _BrandLogo(isDark: isDark),
                                 ),
-                              ),
-                            ),
-
-                            if (error != null) ...[
-                              const SizedBox(height: 16),
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 14, vertical: 12),
-                                decoration: BoxDecoration(
-                                  color: isDark
-                                      ? const Color(0x33EF4444)
-                                      : const Color(0xFFFEE2E2),
-                                  borderRadius: BorderRadius.circular(12),
-                                  border: Border.all(
-                                    color: isDark
-                                        ? const Color(0x66EF4444)
-                                        : const Color(0xFFFCA5A5),
-                                  ),
+                                const Spacer(),
+                                const _Entrance(
+                                  delayMs: 80,
+                                  dy: 22,
+                                  child: _HeroTiles(),
                                 ),
-                                child: Row(
-                                  children: [
-                                    const Icon(Icons.error_outline,
-                                        color: Color(0xFFDC2626), size: 18),
-                                    const SizedBox(width: 10),
-                                    Expanded(
-                                      child: Text(
-                                        error.toString(),
-                                        style: AppTypography.body.copyWith(
-                                          color: const Color(0xFFDC2626),
-                                          fontSize: 12.5,
-                                          fontWeight: FontWeight.w600,
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-
-                            const SizedBox(height: 24),
-
-                            // 3. Google Login Button
-                            _GoogleLoginButton(
-                              loading: loading,
-                              backgroundColor: btnBg,
-                              borderColor: borderColor,
-                              textColor: textPrimary,
-                              onPressed: () {
-                                HapticFeedback.lightImpact();
-                                ref
-                                    .read(authStateProvider.notifier)
-                                    .signInWithGoogle();
-                              },
+                                const Spacer(),
+                              ],
                             ),
-
-                            const Spacer(flex: 4),
-
-                            // 4. Divider
-                            Padding(
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 32),
-                              child: Row(
-                                children: [
-                                  Expanded(
-                                    child: Divider(
-                                      color: borderColor,
-                                      thickness: 1,
-                                    ),
-                                  ),
-                                  Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 14),
-                                    child: Text(
-                                      'or',
-                                      style: TextStyle(
-                                        fontSize: 13,
-                                        color: textSecondary,
-                                        fontWeight: FontWeight.w500,
-                                      ),
-                                    ),
-                                  ),
-                                  Expanded(
-                                    child: Divider(
-                                      color: borderColor,
-                                      thickness: 1,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-
-                            const SizedBox(height: 14),
-
-                            // 5. Explore Courses Action (Moved down)
-                            Center(
-                              child: BouncyPressable(
-                                onTap: () {
-                                  HapticFeedback.selectionClick();
-                                  context.go('/courses');
-                                },
-                                scaleDown: 0.96,
-                                child: const Padding(
-                                  padding: EdgeInsets.symmetric(
-                                      horizontal: 16, vertical: 6),
-                                  child: Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Text(
-                                        'Explore Courses',
-                                        style: TextStyle(
-                                          fontSize: 14,
-                                          fontWeight: FontWeight.w700,
-                                          color: AppColors.brand,
-                                          fontFamily: 'Manrope',
-                                        ),
-                                      ),
-                                      SizedBox(width: 6),
-                                      Icon(
-                                        Icons.arrow_forward_rounded,
-                                        size: 16,
-                                        color: AppColors.brand,
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ),
-
-                            const SizedBox(height: 16),
-
-                            // 6. Bottom Legal Section (Pinned to bottom)
-                            Padding(
-                              padding: const EdgeInsets.only(bottom: 16),
-                              child: Column(
-                                children: [
-                                  Text(
-                                    'By continuing, you agree to our',
-                                    style: TextStyle(
-                                      color: textSecondary,
-                                      fontSize: 12,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 4),
-                                  Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      _LegalLink(
-                                        label: 'Terms',
-                                        onTap: () =>
-                                            context.push('/terms-and-conditions'),
-                                      ),
-                                      Text(
-                                        ' · ',
-                                        style: TextStyle(
-                                          color: textSecondary,
-                                          fontSize: 12,
-                                        ),
-                                      ),
-                                      _LegalLink(
-                                        label: 'Privacy',
-                                        onTap: () =>
-                                            context.push('/privacy-policy'),
-                                      ),
-                                      Text(
-                                        ' · ',
-                                        style: TextStyle(
-                                          color: textSecondary,
-                                          fontSize: 12,
-                                        ),
-                                      ),
-                                      _LegalLink(
-                                        label: 'Refund',
-                                        onTap: () =>
-                                            context.push('/refund-policy'),
-                                      ),
-                                    ],
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
+                          ),
                         ),
-                      ),
+
+                        // ── Sheet ──
+                        _Entrance(
+                          delayMs: 160,
+                          dy: 40,
+                          child: Container(
+                            padding: EdgeInsets.fromLTRB(
+                                24, 32, 24, media.padding.bottom + 20),
+                            decoration: BoxDecoration(
+                              color: tokens.cardBg,
+                              borderRadius: const BorderRadius.vertical(
+                                  top: Radius.circular(36)),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black
+                                      .withValues(alpha: isDark ? 0.5 : 0.08),
+                                  blurRadius: 40,
+                                  offset: const Offset(0, -8),
+                                ),
+                              ],
+                            ),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                Text(
+                                  'Welcome Back!',
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                    fontSize: 32,
+                                    fontWeight: FontWeight.w800,
+                                    letterSpacing: -0.8,
+                                    height: 1.1,
+                                    color: tokens.textPrimary,
+                                  ),
+                                ),
+                                const SizedBox(height: 10),
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 12),
+                                  child: Text(
+                                    'Log in or create a new account with Google',
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(
+                                      fontSize: 15,
+                                      height: 1.4,
+                                      fontWeight: FontWeight.w500,
+                                      color: tokens.textSecondary,
+                                    ),
+                                  ),
+                                ),
+                                if (error != null) ...[
+                                  const SizedBox(height: 18),
+                                  _ErrorBanner(message: error.toString()),
+                                ],
+                                const SizedBox(height: 26),
+                                _GoogleLoginButton(
+                                  loading: loading,
+                                  onPressed: signIn,
+                                ),
+                                const SizedBox(height: 22),
+                                const _OrDivider(),
+                                const SizedBox(height: 22),
+                                const _ExploreButton(),
+                                const SizedBox(height: 26),
+                                const _LegalFooter(fontSize: 12.5),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ),
-              ),
-            );
-          },
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Soft, blurred colour glow behind the hero (cheap radial gradients, no
+/// backdrop filters).
+class _Aurora extends StatelessWidget {
+  const _Aurora({required this.isDark});
+  final bool isDark;
+
+  @override
+  Widget build(BuildContext context) {
+    final k = isDark ? 1.35 : 1.0;
+    return IgnorePointer(
+      child: Stack(
+        clipBehavior: Clip.hardEdge,
+        children: [
+          Positioned(
+            top: -150,
+            left: -130,
+            child: _Orb(size: 400, color: _kIndigo, alpha: 0.30 * k),
+          ),
+          Positioned(
+            top: -70,
+            right: -150,
+            child: _Orb(size: 360, color: _kBlue, alpha: 0.22 * k),
+          ),
+          Positioned(
+            top: 190,
+            left: -90,
+            child: _Orb(size: 280, color: _kPink, alpha: 0.15 * k),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _Orb extends StatelessWidget {
+  const _Orb({required this.size, required this.color, required this.alpha});
+  final double size;
+  final Color color;
+  final double alpha;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: size,
+      height: size,
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          gradient: RadialGradient(
+            colors: [
+              color.withValues(alpha: alpha.clamp(0.0, 1.0)),
+              color.withValues(alpha: 0),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Three overlapping glossy app-icon tiles (decorative).
+class _HeroTiles extends StatelessWidget {
+  const _HeroTiles();
+
+  @override
+  Widget build(BuildContext context) {
+    return const SizedBox(
+      width: 240,
+      height: 120,
+      child: Stack(
+        children: [
+          Positioned(
+            left: 16,
+            top: 28,
+            child: _Tile(
+              size: 72,
+              angle: -0.17,
+              icon: Symbols.video_library_rounded,
+              from: Color(0xFF7D7AFF),
+              to: _kIndigo,
+            ),
+          ),
+          Positioned(
+            right: 16,
+            top: 28,
+            child: _Tile(
+              size: 72,
+              angle: 0.17,
+              icon: Symbols.forum_rounded,
+              from: Color(0xFFFF6482),
+              to: _kPink,
+            ),
+          ),
+          Positioned(
+            left: 78,
+            top: 0,
+            child: _Tile(
+              size: 88,
+              angle: 0,
+              icon: Symbols.school_rounded,
+              from: Color(0xFF5AC8FA),
+              to: _kBlue,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _Tile extends StatelessWidget {
+  const _Tile({
+    required this.size,
+    required this.angle,
+    required this.icon,
+    required this.from,
+    required this.to,
+  });
+
+  final double size;
+  final double angle;
+  final IconData icon;
+  final Color from;
+  final Color to;
+
+  @override
+  Widget build(BuildContext context) {
+    return Transform.rotate(
+      angle: angle,
+      child: Container(
+        width: size,
+        height: size,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(size * 0.28),
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [from, to],
+          ),
+          border: Border.all(
+            color: Colors.white.withValues(alpha: 0.28),
+            width: 1,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: to.withValues(alpha: 0.38),
+              blurRadius: 24,
+              offset: const Offset(0, 12),
+            ),
+          ],
+        ),
+        child: Icon(
+          icon,
+          color: Colors.white,
+          size: size * 0.5,
+          fill: 1,
+          weight: 500,
+        ),
+      ),
+    );
+  }
+}
+
+/// Fade + rise on first show. Skipped when the system asks for reduced motion.
+class _Entrance extends StatefulWidget {
+  const _Entrance({required this.child, this.delayMs = 0, this.dy = 14});
+
+  final Widget child;
+  final int delayMs;
+  final double dy;
+
+  @override
+  State<_Entrance> createState() => _EntranceState();
+}
+
+class _EntranceState extends State<_Entrance>
+    with SingleTickerProviderStateMixin {
+  static const int _baseMs = 460;
+  late final AnimationController _c = AnimationController(
+    vsync: this,
+    duration: Duration(milliseconds: _baseMs + widget.delayMs),
+  );
+  late final Animation<double> _a = CurvedAnimation(
+    parent: _c,
+    curve: Interval(
+      widget.delayMs / (_baseMs + widget.delayMs),
+      1,
+      curve: kEaseOutStrong,
+    ),
+  );
+
+  @override
+  void initState() {
+    super.initState();
+    _c.forward();
+  }
+
+  @override
+  void dispose() {
+    _c.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (MediaQuery.of(context).disableAnimations) return widget.child;
+    return AnimatedBuilder(
+      animation: _a,
+      child: widget.child,
+      builder: (context, child) => Opacity(
+        opacity: _a.value,
+        child: Transform.translate(
+          offset: Offset(0, (1 - _a.value) * widget.dy),
+          child: child,
         ),
       ),
     );
@@ -303,25 +399,18 @@ class _TabletLoginLayout extends StatelessWidget {
     required this.loading,
     required this.error,
     required this.tokens,
-    required this.textPrimary,
-    required this.textSecondary,
-    required this.borderColor,
-    required this.btnBg,
-    required this.ref,
+    required this.onSignIn,
   });
 
   final bool isDark;
   final bool loading;
   final Object? error;
   final AppThemeTokens tokens;
-  final Color textPrimary;
-  final Color textSecondary;
-  final Color borderColor;
-  final Color btnBg;
-  final WidgetRef ref;
+  final VoidCallback onSignIn;
 
   @override
   Widget build(BuildContext context) {
+    final subtle = isDark ? const Color(0xFF98989D) : const Color(0xFF6C6C70);
     return Padding(
       padding: const EdgeInsets.all(28),
       child: Row(
@@ -331,40 +420,24 @@ class _TabletLoginLayout extends StatelessWidget {
             flex: 6,
             child: Container(
               decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(24),
+                borderRadius: BorderRadius.circular(32),
                 gradient: LinearGradient(
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                   colors: isDark
-                      ? const [
-                          Color(0xFF1E1B4B),
-                          Color(0xFF0F172A),
-                          Color(0xFF13182C),
-                        ]
-                      : const [
-                          Color(0xFFEEF2FF),
-                          Color(0xFFF5F3FF),
-                          Color(0xFFFAF5FF),
-                        ],
+                      ? const [Color(0xFF2A2A5E), Color(0xFF1C1C1E)]
+                      : const [Color(0xFFE6E6FB), Color(0xFFF7F0FF)],
                 ),
                 border: Border.all(
                   color: isDark
-                      ? const Color(0xFF312E81).withOpacity(0.5)
-                      : const Color(0xFFE0E7FF),
+                      ? Colors.white.withValues(alpha: 0.08)
+                      : Colors.white.withValues(alpha: 0.8),
                 ),
-                boxShadow: const [
-                  BoxShadow(
-                    color: Color(0x0A000000),
-                    offset: Offset(0, 8),
-                    blurRadius: 24,
-                  ),
-                ],
               ),
-              padding: const EdgeInsets.symmetric(horizontal: 36, vertical: 36),
+              padding: const EdgeInsets.all(40),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Logo + Badge
                   Row(
                     children: [
                       _BrandLogo(isDark: isDark),
@@ -373,104 +446,90 @@ class _TabletLoginLayout extends StatelessWidget {
                         padding: const EdgeInsets.symmetric(
                             horizontal: 12, vertical: 6),
                         decoration: BoxDecoration(
-                          color: const Color(0xFF6366F1).withOpacity(0.12),
+                          color: _kIndigo.withValues(alpha: 0.14),
                           borderRadius: BorderRadius.circular(20),
-                          border: Border.all(
-                            color: const Color(0xFF6366F1).withOpacity(0.3),
-                          ),
                         ),
-                        child: const Text(
+                        child: Text(
                           'IITM BS PORTAL',
                           style: TextStyle(
                             fontSize: 10.5,
                             fontWeight: FontWeight.w800,
                             letterSpacing: 1.1,
-                            color: Color(0xFF6366F1),
-                            fontFamily: 'Manrope',
+                            color:
+                                isDark ? const Color(0xFF7D7AFF) : _kIndigo,
                           ),
                         ),
                       ),
                     ],
                   ),
-
                   const Spacer(flex: 2),
-
-                  // Headline
                   Text(
                     'Upgrade How You Learn.',
                     style: TextStyle(
-                      fontSize: 32,
-                      fontWeight: FontWeight.w900,
-                      color: isDark ? Colors.white : const Color(0xFF0F172A),
-                      letterSpacing: -0.8,
-                      height: 1.15,
-                      fontFamily: 'Manrope',
+                      fontSize: 38,
+                      fontWeight: FontWeight.w800,
+                      color: tokens.textPrimary,
+                      letterSpacing: -1.0,
+                      height: 1.1,
                     ),
                   ),
-                  const SizedBox(height: 10),
+                  const SizedBox(height: 12),
                   Text(
                     'The all-in-one learning ecosystem built by IITians for BS Degree aspirants.',
                     style: TextStyle(
-                      fontSize: 14.5,
-                      color: isDark
-                          ? const Color(0xFF94A3B8)
-                          : const Color(0xFF475569),
+                      fontSize: 16,
+                      color: subtle,
                       height: 1.45,
-                      fontFamily: 'Manrope',
                     ),
                   ),
-
                   const Spacer(flex: 2),
-
-                  // Feature Cards
                   _ShowcaseFeature(
-                    icon: Icons.school_rounded,
-                    iconBg: const Color(0xFF6366F1),
+                    icon: Symbols.school_rounded,
+                    iconBg: _kIndigo,
                     title: 'Tailored Curriculum',
                     subtitle:
                         'Structured coursework specifically mapped to your semester syllabus',
-                    isDark: isDark,
+                    tokens: tokens,
+                    subtle: subtle,
                   ),
-                  const SizedBox(height: 14),
+                  const SizedBox(height: 18),
                   _ShowcaseFeature(
-                    icon: Icons.video_library_rounded,
-                    iconBg: const Color(0xFF8B5CF6),
+                    icon: Symbols.video_library_rounded,
+                    iconBg: _kBlue,
                     title: 'Live & Recorded Sessions',
                     subtitle:
                         'Interactive live streams, offline study notes, and full PYQ solutions',
-                    isDark: isDark,
+                    tokens: tokens,
+                    subtle: subtle,
                   ),
-                  const SizedBox(height: 14),
+                  const SizedBox(height: 18),
                   _ShowcaseFeature(
-                    icon: Icons.forum_rounded,
-                    iconBg: const Color(0xFFEC4899),
+                    icon: Symbols.forum_rounded,
+                    iconBg: _kPink,
                     title: 'Active Community & TAs',
                     subtitle:
                         'Never get stuck with rapid doubt resolution and peer discussion groups',
-                    isDark: isDark,
+                    tokens: tokens,
+                    subtle: subtle,
                   ),
-
                   const Spacer(flex: 3),
-
-                  // Footer trust note
                   Row(
                     children: [
                       Icon(
-                        Icons.verified_rounded,
-                        size: 16,
-                        color: isDark
-                            ? const Color(0xFF818CF8)
-                            : const Color(0xFF4F46E5),
+                        Symbols.verified_rounded,
+                        size: 18,
+                        fill: 1,
+                        color: isDark ? const Color(0xFF7D7AFF) : _kIndigo,
                       ),
                       const SizedBox(width: 8),
-                      Text(
-                        'Trusted by thousands of IITM BS learners nationwide',
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                          color: isDark
-                              ? const Color(0xFF94A3B8)
-                              : const Color(0xFF64748B),
+                      Flexible(
+                        child: Text(
+                          'Trusted by thousands of IITM BS learners nationwide',
+                          style: TextStyle(
+                            fontSize: 12.5,
+                            fontWeight: FontWeight.w600,
+                            color: subtle,
+                          ),
                         ),
                       ),
                     ],
@@ -486,192 +545,64 @@ class _TabletLoginLayout extends StatelessWidget {
           Expanded(
             flex: 5,
             child: Center(
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 400),
-                child: Container(
-                  padding: const EdgeInsets.all(32),
-                  decoration: BoxDecoration(
-                    color: tokens.cardBg,
-                    borderRadius: BorderRadius.circular(24),
-                    border: Border.all(color: borderColor),
-                    boxShadow: const [
-                      BoxShadow(
-                        color: Color(0x0E000000),
-                        offset: Offset(0, 12),
-                        blurRadius: 32,
-                      ),
-                    ],
-                  ),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Text(
-                        'Welcome Back!',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.w800,
-                          color: textPrimary,
-                          letterSpacing: -0.4,
-                          fontFamily: 'Manrope',
+              child: SingleChildScrollView(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 420),
+                  child: Container(
+                    padding: const EdgeInsets.all(32),
+                    decoration: BoxDecoration(
+                      color: tokens.cardBg,
+                      borderRadius: BorderRadius.circular(32),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black
+                              .withValues(alpha: isDark ? 0.45 : 0.07),
+                          offset: const Offset(0, 16),
+                          blurRadius: 40,
                         ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        'Sign in to access your courses, live classes, and study materials',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: textSecondary,
-                          height: 1.45,
-                          fontFamily: 'Manrope',
-                        ),
-                      ),
-                      const SizedBox(height: 28),
-
-                      if (error != null) ...[
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 14, vertical: 12),
-                          decoration: BoxDecoration(
-                            color: isDark
-                                ? const Color(0x33EF4444)
-                                : const Color(0xFFFEE2E2),
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(
-                              color: isDark
-                                  ? const Color(0x66EF4444)
-                                  : const Color(0xFFFCA5A5),
-                            ),
-                          ),
-                          child: Text(
-                            error.toString(),
-                            style: const TextStyle(
-                              color: Color(0xFFDC2626),
-                              fontSize: 12.5,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 20),
                       ],
-
-                      // Google Sign In button
-                      _GoogleLoginButton(
-                        loading: loading,
-                        backgroundColor: btnBg,
-                        borderColor: borderColor,
-                        textColor: textPrimary,
-                        onPressed: () {
-                          HapticFeedback.lightImpact();
-                          ref
-                              .read(authStateProvider.notifier)
-                              .signInWithGoogle();
-                        },
-                      ),
-
-                      const SizedBox(height: 24),
-
-                      // Divider
-                      Row(
-                        children: [
-                          Expanded(
-                              child: Divider(color: borderColor, thickness: 1)),
-                          Padding(
-                            padding:
-                                const EdgeInsets.symmetric(horizontal: 14),
-                            child: Text(
-                              'or',
-                              style: TextStyle(
-                                fontSize: 13,
-                                color: textSecondary,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ),
-                          Expanded(
-                              child: Divider(color: borderColor, thickness: 1)),
-                        ],
-                      ),
-
-                      const SizedBox(height: 20),
-
-                      // Explore Courses Button
-                      Center(
-                        child: BouncyPressable(
-                          onTap: () {
-                            HapticFeedback.selectionClick();
-                            context.go('/courses');
-                          },
-                          scaleDown: 0.96,
-                          child: const Padding(
-                            padding: EdgeInsets.symmetric(
-                                horizontal: 16, vertical: 6),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Text(
-                                  'Explore Courses',
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w700,
-                                    color: AppColors.brand,
-                                    fontFamily: 'Manrope',
-                                  ),
-                                ),
-                                SizedBox(width: 6),
-                                Icon(
-                                  Icons.arrow_forward_rounded,
-                                  size: 16,
-                                  color: AppColors.brand,
-                                ),
-                              ],
-                            ),
+                    ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Text(
+                          'Welcome Back!',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 30,
+                            fontWeight: FontWeight.w800,
+                            color: tokens.textPrimary,
+                            letterSpacing: -0.8,
                           ),
                         ),
-                      ),
-
-                      const SizedBox(height: 28),
-
-                      // Legal Links
-                      Column(
-                        children: [
-                          Text(
-                            'By continuing, you agree to our',
-                            style: TextStyle(
-                              color: textSecondary,
-                              fontSize: 11.5,
-                            ),
+                        const SizedBox(height: 10),
+                        Text(
+                          'Sign in to access your courses, live classes, and study materials',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 14.5,
+                            color: tokens.textSecondary,
+                            height: 1.45,
                           ),
-                          const SizedBox(height: 4),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              _LegalLink(
-                                label: 'Terms',
-                                onTap: () =>
-                                    context.push('/terms-and-conditions'),
-                              ),
-                              Text(' · ',
-                                  style: TextStyle(
-                                      color: textSecondary, fontSize: 11.5)),
-                              _LegalLink(
-                                label: 'Privacy',
-                                onTap: () => context.push('/privacy-policy'),
-                              ),
-                              Text(' · ',
-                                  style: TextStyle(
-                                      color: textSecondary, fontSize: 11.5)),
-                              _LegalLink(
-                                label: 'Refund',
-                                onTap: () => context.push('/refund-policy'),
-                              ),
-                            ],
-                          ),
+                        ),
+                        const SizedBox(height: 28),
+                        if (error != null) ...[
+                          _ErrorBanner(message: error.toString()),
+                          const SizedBox(height: 20),
                         ],
-                      ),
-                    ],
+                        _GoogleLoginButton(
+                          loading: loading,
+                          onPressed: onSignIn,
+                        ),
+                        const SizedBox(height: 22),
+                        const _OrDivider(),
+                        const SizedBox(height: 22),
+                        const _ExploreButton(),
+                        const SizedBox(height: 28),
+                        const _LegalFooter(fontSize: 12),
+                      ],
+                    ),
                   ),
                 ),
               ),
@@ -689,14 +620,16 @@ class _ShowcaseFeature extends StatelessWidget {
     required this.iconBg,
     required this.title,
     required this.subtitle,
-    required this.isDark,
+    required this.tokens,
+    required this.subtle,
   });
 
   final IconData icon;
   final Color iconBg;
   final String title;
   final String subtitle;
-  final bool isDark;
+  final AppThemeTokens tokens;
+  final Color subtle;
 
   @override
   Widget build(BuildContext context) {
@@ -704,13 +637,13 @@ class _ShowcaseFeature extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Container(
-          width: 38,
-          height: 38,
+          width: 40,
+          height: 40,
           decoration: BoxDecoration(
-            color: iconBg.withOpacity(0.18),
-            borderRadius: BorderRadius.circular(10),
+            color: iconBg,
+            borderRadius: BorderRadius.circular(11),
           ),
-          child: Icon(icon, color: iconBg, size: 20),
+          child: Icon(icon, color: Colors.white, size: 22, fill: 1, weight: 500),
         ),
         const SizedBox(width: 14),
         Expanded(
@@ -720,26 +653,171 @@ class _ShowcaseFeature extends StatelessWidget {
               Text(
                 title,
                 style: TextStyle(
-                  fontSize: 14.5,
+                  fontSize: 15.5,
                   fontWeight: FontWeight.w700,
-                  color: isDark ? Colors.white : const Color(0xFF0F172A),
-                  fontFamily: 'Manrope',
+                  letterSpacing: -0.2,
+                  color: tokens.textPrimary,
                 ),
               ),
               const SizedBox(height: 2),
               Text(
                 subtitle,
-                style: TextStyle(
-                  fontSize: 12.5,
-                  height: 1.35,
-                  color: isDark
-                      ? const Color(0xFF94A3B8)
-                      : const Color(0xFF64748B),
-                  fontFamily: 'Manrope',
-                ),
+                style: TextStyle(fontSize: 13.5, height: 1.35, color: subtle),
               ),
             ],
           ),
+        ),
+      ],
+    );
+  }
+}
+
+class _ErrorBanner extends StatelessWidget {
+  const _ErrorBanner({required this.message});
+  final String message;
+
+  @override
+  Widget build(BuildContext context) {
+    final tokens = context.tokens;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      decoration: BoxDecoration(
+        color: _kRed.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: Row(
+        children: [
+          const Icon(Symbols.error_rounded, color: _kRed, size: 20, fill: 1),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              message,
+              style: TextStyle(
+                color: tokens.textPrimary,
+                fontSize: 13,
+                fontWeight: FontWeight.w500,
+                height: 1.3,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _OrDivider extends StatelessWidget {
+  const _OrDivider();
+
+  @override
+  Widget build(BuildContext context) {
+    final tokens = context.tokens;
+    final line = Container(height: 0.5, color: tokens.border);
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 24),
+      child: Row(
+        children: [
+          Expanded(child: line),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 14),
+            child: Text(
+              'or',
+              style: TextStyle(
+                fontSize: 13,
+                color: tokens.textSecondary,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+          Expanded(child: line),
+        ],
+      ),
+    );
+  }
+}
+
+/// Tinted secondary action: "Explore Courses".
+class _ExploreButton extends StatelessWidget {
+  const _ExploreButton();
+
+  @override
+  Widget build(BuildContext context) {
+    final accent = context.isDark ? const Color(0xFF7D7AFF) : AppColors.brand;
+    return ApplePressable(
+      onTap: () {
+        HapticFeedback.selectionClick();
+        launchUrl(Uri.parse('https://genziitian.in'),
+            mode: LaunchMode.externalApplication);
+      },
+      child: Container(
+        height: 52,
+        decoration: BoxDecoration(
+          color: AppColors.brand.withValues(alpha: context.isDark ? 0.22 : 0.10),
+          borderRadius: BorderRadius.circular(16),
+        ),
+        alignment: Alignment.center,
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              'Explore Courses',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                letterSpacing: -0.2,
+                color: accent,
+              ),
+            ),
+            const SizedBox(width: 8),
+            Icon(
+              Symbols.arrow_forward_ios_rounded,
+              size: 13,
+              weight: 700,
+              color: accent,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _LegalFooter extends StatelessWidget {
+  const _LegalFooter({required this.fontSize});
+  final double fontSize;
+
+  @override
+  Widget build(BuildContext context) {
+    final secondary = context.tokens.textSecondary;
+    final dot = Text(' · ', style: TextStyle(color: secondary, fontSize: fontSize));
+    return Column(
+      children: [
+        Text(
+          'By continuing, you agree to our',
+          style: TextStyle(color: secondary, fontSize: fontSize),
+        ),
+        const SizedBox(height: 4),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            _LegalLink(
+              label: 'Terms',
+              fontSize: fontSize,
+              onTap: () => context.push('/terms-and-conditions'),
+            ),
+            dot,
+            _LegalLink(
+              label: 'Privacy',
+              fontSize: fontSize,
+              onTap: () => context.push('/privacy-policy'),
+            ),
+            dot,
+            _LegalLink(
+              label: 'Refund',
+              fontSize: fontSize,
+              onTap: () => context.push('/refund-policy'),
+            ),
+          ],
         ),
       ],
     );
@@ -755,8 +833,8 @@ class _BrandLogo extends StatelessWidget {
   Widget build(BuildContext context) {
     return Image.asset(
       'assets/mobile-login-logo.png',
-      width: 140,
-      height: 52,
+      width: 184,
+      height: 68,
       fit: BoxFit.contain,
       color: isDark ? Colors.white : null,
       colorBlendMode: isDark ? BlendMode.srcIn : null,
@@ -773,9 +851,8 @@ class _BrandLogo extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 26,
                     fontWeight: FontWeight.w900,
-                    color: isDark ? Colors.white : const Color(0xFF0F172A),
+                    color: isDark ? Colors.white : const Color(0xFF1C1C1E),
                     letterSpacing: -0.5,
-                    fontFamily: 'Manrope',
                   ),
                 ),
                 const Text(
@@ -783,9 +860,8 @@ class _BrandLogo extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 26,
                     fontWeight: FontWeight.w900,
-                    color: Color(0xFFEF4444),
+                    color: _kRed,
                     letterSpacing: -0.5,
-                    fontFamily: 'Manrope',
                   ),
                 ),
                 Text(
@@ -794,8 +870,8 @@ class _BrandLogo extends StatelessWidget {
                     fontSize: 10,
                     fontWeight: FontWeight.w700,
                     color: isDark
-                        ? const Color(0xFF94A3B8)
-                        : const Color(0xFF64748B),
+                        ? const Color(0xFF98989D)
+                        : const Color(0xFF6C6C70),
                   ),
                 ),
               ],
@@ -804,8 +880,7 @@ class _BrandLogo extends StatelessWidget {
             Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Container(
-                    width: 8, height: 1.5, color: const Color(0xFFEF4444)),
+                Container(width: 8, height: 1.5, color: _kRed),
                 const SizedBox(width: 6),
                 Text(
                   'IITIAN',
@@ -814,14 +889,12 @@ class _BrandLogo extends StatelessWidget {
                     fontWeight: FontWeight.w800,
                     letterSpacing: 3.5,
                     color: isDark
-                        ? const Color(0xFFCBD5E1)
-                        : const Color(0xFF1E293B),
-                    fontFamily: 'Manrope',
+                        ? const Color(0xFFD1D1D6)
+                        : const Color(0xFF3A3A3C),
                   ),
                 ),
                 const SizedBox(width: 6),
-                Container(
-                    width: 8, height: 1.5, color: const Color(0xFFEF4444)),
+                Container(width: 8, height: 1.5, color: _kRed),
               ],
             ),
           ],
@@ -831,34 +904,33 @@ class _BrandLogo extends StatelessWidget {
   }
 }
 
-/// Normal, premium Google login authentication button.
-/// 12px border radius, subtle border, no shadows or glows.
+/// Primary "Continue with Google" button: solid ink pill (white on dark mode)
+/// with the Google mark on a white disc so it stays legible on both.
 class _GoogleLoginButton extends StatelessWidget {
-  const _GoogleLoginButton({
-    required this.loading,
-    required this.backgroundColor,
-    required this.borderColor,
-    required this.textColor,
-    required this.onPressed,
-  });
+  const _GoogleLoginButton({required this.loading, required this.onPressed});
 
   final bool loading;
-  final Color backgroundColor;
-  final Color borderColor;
-  final Color textColor;
   final VoidCallback onPressed;
 
   @override
   Widget build(BuildContext context) {
-    return BouncyPressable(
+    final dark = context.isDark;
+    final fill = dark ? Colors.white : const Color(0xFF1C1C1E);
+    final fg = dark ? const Color(0xFF1C1C1E) : Colors.white;
+    return ApplePressable(
       onTap: loading ? null : onPressed,
-      scaleDown: 0.98,
       child: Container(
-        height: 52,
+        height: 56,
         decoration: BoxDecoration(
-          color: backgroundColor,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: borderColor, width: 1),
+          color: fill,
+          borderRadius: BorderRadius.circular(18),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: dark ? 0.0 : 0.18),
+              blurRadius: 18,
+              offset: const Offset(0, 8),
+            ),
+          ],
         ),
         alignment: Alignment.center,
         child: Row(
@@ -866,23 +938,33 @@ class _GoogleLoginButton extends StatelessWidget {
           children: [
             if (loading)
               SizedBox(
-                width: 18,
-                height: 18,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2.2,
-                  color: textColor,
-                ),
+                width: 22,
+                height: 22,
+                child: CircularProgressIndicator(strokeWidth: 2.2, color: fg),
               )
             else
-              const _GoogleGlyph(),
+              Container(
+                width: 28,
+                height: 28,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  shape: BoxShape.circle,
+                  border: dark
+                      ? null
+                      : Border.all(
+                          color: Colors.white.withValues(alpha: 0.0)),
+                ),
+                alignment: Alignment.center,
+                child: const _GoogleGlyph(),
+              ),
             const SizedBox(width: 12),
             Text(
               loading ? 'Signing in…' : 'Continue with Google',
               style: TextStyle(
-                fontSize: 14.5,
+                fontSize: 16.5,
                 fontWeight: FontWeight.w600,
-                color: textColor,
-                fontFamily: 'Manrope',
+                letterSpacing: -0.2,
+                color: fg,
               ),
             ),
           ],
@@ -944,20 +1026,30 @@ class _GooglePainter extends CustomPainter {
 }
 
 class _LegalLink extends StatelessWidget {
-  const _LegalLink({required this.label, required this.onTap});
+  const _LegalLink({
+    required this.label,
+    required this.onTap,
+    required this.fontSize,
+  });
   final String label;
   final VoidCallback onTap;
+  final double fontSize;
 
   @override
   Widget build(BuildContext context) {
+    final accent = context.isDark ? const Color(0xFF7D7AFF) : AppColors.brand;
     return GestureDetector(
+      behavior: HitTestBehavior.opaque,
       onTap: onTap,
-      child: Text(
-        label,
-        style: const TextStyle(
-          color: AppColors.brand,
-          fontWeight: FontWeight.w600,
-          fontSize: 12,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 4),
+        child: Text(
+          label,
+          style: TextStyle(
+            color: accent,
+            fontWeight: FontWeight.w600,
+            fontSize: fontSize,
+          ),
         ),
       ),
     );

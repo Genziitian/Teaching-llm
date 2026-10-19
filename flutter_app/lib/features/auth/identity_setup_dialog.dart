@@ -1,5 +1,5 @@
 import 'package:dio/dio.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/auth/auth_providers.dart';
@@ -176,7 +176,7 @@ class _IdentitySetupDialogState extends ConsumerState<IdentitySetupDialog> {
                             height: 44,
                             decoration: BoxDecoration(
                               gradient: const LinearGradient(
-                                colors: [Color(0xFF818CF8), Color(0xFF4F46E5)],
+                                colors: [Color(0xFF7D7AFF), Color(0xFF5856D6)],
                                 begin: Alignment.topLeft,
                                 end: Alignment.bottomRight,
                               ),
@@ -184,7 +184,7 @@ class _IdentitySetupDialogState extends ConsumerState<IdentitySetupDialog> {
                               boxShadow: [
                                 BoxShadow(
                                   color:
-                                      const Color(0xFF4F46E5).withOpacity(0.15),
+                                      const Color(0xFF5856D6).withOpacity(0.15),
                                   blurRadius: 12,
                                   offset: const Offset(0, 6),
                                 ),
@@ -384,7 +384,7 @@ class _IdentitySetupDialogState extends ConsumerState<IdentitySetupDialog> {
                                 borderRadius: BorderRadius.circular(12),
                                 border: Border.all(
                                   color: isSelected
-                                      ? const Color(0xFF6366F1)
+                                      ? const Color(0xFF5856D6)
                                       : tokens.border,
                                   width: isSelected ? 2 : 1,
                                 ),
@@ -410,7 +410,7 @@ class _IdentitySetupDialogState extends ConsumerState<IdentitySetupDialog> {
                                       width: 18,
                                       height: 18,
                                       decoration: const BoxDecoration(
-                                        color: Color(0xFF6366F1),
+                                        color: Color(0xFF5856D6),
                                         shape: BoxShape.circle,
                                       ),
                                       child: const Icon(
@@ -434,7 +434,7 @@ class _IdentitySetupDialogState extends ConsumerState<IdentitySetupDialog> {
                       height: 48,
                       child: ElevatedButton(
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF4F46E5),
+                          backgroundColor: const Color(0xFF5856D6),
                           foregroundColor: Colors.white,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
@@ -504,12 +504,12 @@ class _IdentitySetupDialogState extends ConsumerState<IdentitySetupDialog> {
               width: 72,
               height: 72,
               decoration: BoxDecoration(
-                color: const Color(0xFF10B981).withOpacity(0.15),
+                color: const Color(0xFF34C759).withOpacity(0.15),
                 shape: BoxShape.circle,
               ),
               child: const Icon(
                 Icons.check_circle_rounded,
-                color: Color(0xFF10B981),
+                color: Color(0xFF34C759),
                 size: 46,
               ),
             ),
@@ -539,7 +539,7 @@ class _IdentitySetupDialogState extends ConsumerState<IdentitySetupDialog> {
                 TextSpan(
                   text: 'GenZ IITian',
                   style: TextStyle(
-                    color: Color(0xFF4F46E5),
+                    color: Color(0xFF5856D6),
                     fontWeight: FontWeight.w800,
                   ),
                 ),
@@ -553,7 +553,7 @@ class _IdentitySetupDialogState extends ConsumerState<IdentitySetupDialog> {
             height: 48,
             child: ElevatedButton(
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF4F46E5),
+                backgroundColor: const Color(0xFF5856D6),
                 foregroundColor: Colors.white,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
@@ -605,7 +605,7 @@ class _OptionTile extends StatelessWidget {
               : tokens.surfaceSecondary,
           borderRadius: BorderRadius.circular(10),
           border: Border.all(
-            color: isSelected ? const Color(0xFF6366F1) : tokens.border,
+            color: isSelected ? const Color(0xFF5856D6) : tokens.border,
             width: isSelected ? 2 : 1,
           ),
         ),

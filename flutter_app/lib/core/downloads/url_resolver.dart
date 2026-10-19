@@ -21,15 +21,16 @@ class UrlResolver {
   ///   resolve('abc123', 'CONTENT')    → '/api/drive-doc/abc123'
   ///   resolve('abc123', 'VIDEO')      → '/api/drive-stream/abc123'
   ///   resolve('def456', 'MATERIAL')   → '/api/drive-material/def456'
-  ///   resolve('ghi789', 'STORE_NOTE') → '/api/drive-material/ghi789'
+  ///   resolve('ghi789', 'STORE_NOTE') → '/api/store/notes/ghi789/download'
   static String resolve(String id, String contentType) {
     switch (contentType.toUpperCase()) {
       case typeVideo:
         return '/api/drive-stream/$id';
       case typeContent:
         return '/api/drive-doc/$id';
-      case typeMaterial:
       case typeStoreNote:
+        return '/api/store/notes/$id/download';
+      case typeMaterial:
         return '/api/drive-material/$id';
       default:
         return '/api/drive-doc/$id';

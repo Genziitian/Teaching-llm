@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// Global messages wait until forms/dialogs opened by a page are closed.
 final rootModalObserver = ModalObserver();

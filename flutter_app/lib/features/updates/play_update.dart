@@ -1,12 +1,14 @@
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:in_app_update/in_app_update.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../core/router/app_router.dart';
 import '../../core/router/modal_observer.dart';
+import 'package:material_symbols_icons/symbols.dart';
+import '../../shared/widgets/apple_alert.dart';
 import '../../theme/app_theme_tokens.dart';
 
 /// App updates through Google Play.
@@ -111,136 +113,34 @@ Future<void> checkPlayUpdateManually(BuildContext context) async {
 
   final tokens = context.tokens;
   final upToDate = info != null;
-  await showDialog<void>(
-    context: context,
-    useRootNavigator: true,
-    builder: (ctx) => AlertDialog(
-      backgroundColor: tokens.cardBg,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-      title: Row(
-        children: [
-          Icon(
-            upToDate
-                ? Icons.check_circle_outline_rounded
-                : Icons.info_outline_rounded,
-            color: upToDate ? tokens.success : tokens.primaryAccent,
-            size: 24,
-          ),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Text(
-              upToDate ? 'You\'re up to date' : 'Check on Google Play',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w800,
-                color: tokens.textPrimary,
-              ),
-            ),
-          ),
-        ],
-      ),
-      content: Text(
-        upToDate
-            ? 'You have the latest version of Gen-Z IITian.'
-            : 'We couldn\'t check for updates right now. You can open '
-                'Google Play to see if a new version is available.',
-        style: TextStyle(
-          fontSize: 13.5,
-          height: 1.45,
-          color: tokens.textSecondary,
-        ),
-      ),
-      actions: [
-        TextButton(
-          onPressed: () {
-            Navigator.of(ctx, rootNavigator: true).pop();
-            unawaited(openPlayStorePage());
-          },
-          child: Text(
-            'Open Google Play',
-            style: TextStyle(
-              fontWeight: FontWeight.w700,
-              color: tokens.textSecondary,
-            ),
-          ),
-        ),
-        TextButton(
-          onPressed: () => Navigator.of(ctx, rootNavigator: true).pop(),
-          child: Text(
-            'OK',
-            style: TextStyle(
-              fontWeight: FontWeight.w700,
-              color: tokens.primaryAccent,
-            ),
-          ),
-        ),
-      ],
-    ),
+  final choice = await showAppleAlert<String>(
+    context,
+    icon: upToDate ? Symbols.check_circle_rounded : Symbols.info_rounded,
+    iconColor: upToDate ? tokens.success : tokens.primaryAccent,
+    title: upToDate ? 'You\'re up to date' : 'Check on Google Play',
+    message: upToDate
+        ? 'You have the latest version of Gen-Z IITian.'
+        : 'We couldn\'t check for updates right now. You can open '
+            'Google Play to see if a new version is available.',
+    actions: const [
+      AppleAlertAction(label: 'Open Google Play', value: 'play'),
+      AppleAlertAction(label: 'OK', value: 'ok', isDefault: true),
+    ],
   );
+  if (choice == 'play') unawaited(openPlayStorePage());
 }
 
 Future<void> _showUpdateDialog(BuildContext context, AppUpdateInfo info) async {
-  final tokens = context.tokens;
-  final update = await showDialog<bool>(
-    context: context,
-    useRootNavigator: true,
-    builder: (ctx) => AlertDialog(
-      backgroundColor: tokens.cardBg,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-      title: Row(
-        children: [
-          Icon(Icons.system_update_rounded,
-              color: tokens.primaryAccent, size: 24),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Text(
-              'Update available',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w800,
-                color: tokens.textPrimary,
-              ),
-            ),
-          ),
-        ],
-      ),
-      content: Text(
-        'A new version of Gen-Z IITian is ready. Update now to get the '
+  final update = await showAppleAlert<bool>(
+    context,
+    icon: Symbols.system_update_rounded,
+    title: 'Update available',
+    message: 'A new version of Gen-Z IITian is ready. Update now to get the '
         'latest features and fixes.',
-        style: TextStyle(
-          fontSize: 13.5,
-          height: 1.45,
-          color: tokens.textSecondary,
-        ),
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.of(ctx, rootNavigator: true).pop(false),
-          child: Text(
-            'Later',
-            style: TextStyle(
-              fontWeight: FontWeight.w700,
-              color: tokens.textSecondary,
-            ),
-          ),
-        ),
-        ElevatedButton(
-          onPressed: () => Navigator.of(ctx, rootNavigator: true).pop(true),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: tokens.primaryAccent,
-            foregroundColor: Colors.white,
-            elevation: 0,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10),
-            ),
-          ),
-          child: const Text(
-            'Update',
-            style: TextStyle(fontWeight: FontWeight.w800),
-          ),
-        ),
-      ],
-    ),
+    actions: const [
+      AppleAlertAction(label: 'Later', value: false),
+      AppleAlertAction(label: 'Update', value: true, isDefault: true),
+    ],
   );
   if (update == true) await _startUpdate(info);
 }

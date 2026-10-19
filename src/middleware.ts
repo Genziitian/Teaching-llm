@@ -84,6 +84,20 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next()
   }
 
+  // Shared course links: Android users with the app installed are routed to
+  // the app by App Links before reaching this server. Anyone else on Android
+  // lands here, so send them to Google Play to install it.
+  if (
+    method === 'GET' &&
+    pathname === '/free-resources/courses' &&
+    request.nextUrl.searchParams.has('course') &&
+    /android/i.test(request.headers.get('user-agent') || '')
+  ) {
+    return NextResponse.redirect(
+      'https://play.google.com/store/apps/details?id=com.teaching.lms'
+    )
+  }
+
   // ─── 1. Rate Limiting for Login ───
   if (pathname === '/api/auth/login' && method === 'POST') {
     const ip = request.ip ?? request.headers.get('x-forwarded-for') ?? '127.0.0.1'

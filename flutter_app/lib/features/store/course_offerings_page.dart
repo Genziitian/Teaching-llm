@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -36,7 +36,7 @@ class _CourseOfferingsPageState extends ConsumerState<CourseOfferingsPage> {
   @override
   Widget build(BuildContext context) {
     final async = ref.watch(courseOfferingsProvider);
-    final all = async.valueOrNull ?? const [];
+    final all = async.value ?? const [];
     final q = _query.trim().toLowerCase();
     final filtered = all.where((o) {
       final course = (o['course'] as Map?) ?? const {};

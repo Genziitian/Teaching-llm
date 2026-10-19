@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/legacy.dart';
 
 import '../auth/auth_providers.dart';
 import 'download_db.dart';
@@ -20,6 +21,8 @@ final downloadedNotesProvider =
   final user = ref.watch(authStateProvider).value;
   if (user == null) return const {};
   final mgr = ref.read(downloadManagerProvider);
+  // Expired Premium Notes are removed from the device before listing.
+  await mgr.purgeExpiredStoreNotes(user.id);
   return mgr.listGroupedByCourse(user.id, isVideo: false);
 });
 

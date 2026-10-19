@@ -1,9 +1,10 @@
 import 'dart:math' as math;
 
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/legacy.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../shared/widgets/bouncy_pressable.dart';
@@ -303,7 +304,7 @@ class _NoteCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(22),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF7C3AED).withOpacity(0.08),
+            color: const Color(0xFF5E5CE6).withOpacity(0.08),
             blurRadius: 24,
             offset: const Offset(0, 10),
           ),
@@ -405,7 +406,7 @@ class _EnterButtonState extends State<_EnterButton>
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(50),
             gradient: const LinearGradient(
-              colors: [Color(0xFF7C3AED), Color(0xFFDB2777)],
+              colors: [Color(0xFF5E5CE6), Color(0xFFDB2777)],
             ),
             boxShadow: [
               BoxShadow(
@@ -504,9 +505,9 @@ class _PartyFieldState extends State<_PartyField>
   static const _colors = <Color>[
     Color(0xFFF43F5E),
     Color(0xFFFB7185),
-    Color(0xFFF59E0B),
+    Color(0xFFFF9500),
     Color(0xFFFBBF24),
-    Color(0xFF8B5CF6),
+    Color(0xFF6E6CF0),
     Color(0xFF22C55E),
     Color(0xFF38BDF8),
     Color(0xFFEC4899),

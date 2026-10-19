@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { getSession } from '@/lib/auth'
+import { accessExpiry, accessState } from '@/lib/store-notes'
 
 export async function GET() {
   try {
@@ -15,31 +16,24 @@ export async function GET() {
 
     if (!user) return NextResponse.json({ materials: [] })
 
-    // Find all active Note accesses for this user
-    const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
-
     const accesses = await prisma.storeNoteAccess.findMany({
-      where: {
-        userId: user.id,
-        createdAt: { gt: thirtyDaysAgo }
-      },
-      include: {
-        note: {
-          include: { files: true }
-        }
-      },
+      where: { userId: user.id },
+      include: { note: { include: { files: true } } },
       orderBy: { createdAt: 'desc' }
     })
 
-    const purchasedMaterials = accesses.map(acc => ({
-      id: acc.id,
-      noteId: acc.note.id,
-      title: acc.note.title,
-      description: acc.note.description,
-      fileUrl: '', // Hide raw file URL from JSON payload, client will request it via download endpoint
-      purchasedAt: acc.createdAt,
-      expiresAt: new Date(acc.createdAt.getTime() + 30 * 24 * 60 * 60 * 1000)
-    }))
+    // Only active purchases are listed here; expired ones are restored from the Store.
+    const purchasedMaterials = accesses
+      .filter(acc => accessState(acc, acc.note.validityDays) === 'ACTIVE')
+      .map(acc => ({
+        id: acc.id,
+        noteId: acc.note.id,
+        title: acc.note.title,
+        description: acc.note.description,
+        fileUrl: '', // client requests the file via the download endpoint
+        purchasedAt: acc.createdAt,
+        expiresAt: accessExpiry(acc, acc.note.validityDays)
+      }))
 
     return NextResponse.json({ materials: purchasedMaterials })
   } catch (error: any) {

@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/auth/auth_providers.dart';
@@ -28,7 +28,7 @@ class NotificationPrefs {
 }
 
 class NotificationPrefsNotifier
-    extends AutoDisposeAsyncNotifier<NotificationPrefs> {
+    extends AsyncNotifier<NotificationPrefs> {
   @override
   Future<NotificationPrefs> build() async {
     final api = ref.watch(apiClientProvider);
@@ -42,7 +42,7 @@ class NotificationPrefsNotifier
 
   Future<void> _patch(Map<String, dynamic> body) async {
     final api = ref.read(apiClientProvider);
-    final prev = state.valueOrNull;
+    final prev = state.value;
     if (prev != null) {
       state = AsyncData(prev.copyWith(
         announcements: body['announcements'] as bool? ?? prev.announcements,
@@ -131,8 +131,8 @@ class NotificationSettingsPage extends ConsumerWidget {
                   children: [
                     _PrefTile(
                       icon: Icons.campaign_outlined,
-                      iconColor: tokens.primaryAccent,
-                      iconBg: tokens.primaryAccent.withOpacity(0.12),
+                      iconColor: tokens.textSecondary,
+                      iconBg: tokens.textMuted.withValues(alpha: 0.14),
                       title: 'Announcements',
                       sub:
                           'Course updates, schedule changes, exam notices.',

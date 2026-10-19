@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../theme/app_colors.dart';
@@ -25,7 +25,7 @@ class ThemeSheet extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final current =
-        ref.watch(themeModeProvider).valueOrNull ?? AppThemeMode.system;
+        ref.watch(themeModeProvider).value ?? AppThemeMode.system;
     return Container(
       decoration: BoxDecoration(
         color: Theme.of(context).scaffoldBackgroundColor,

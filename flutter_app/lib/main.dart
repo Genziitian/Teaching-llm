@@ -1,5 +1,5 @@
 import 'package:dio/dio.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -62,6 +62,7 @@ void main() async {
   final launchSeen = await PlayStoreLaunch.hasBeenSeen();
 
   runApp(ProviderScope(
+    retry: (_, _) => null,
     overrides: [
       welcomeSeenProvider.overrideWith((_) => welcomeSeen),
       playStoreLaunchSeenProvider.overrideWith((_) => launchSeen),

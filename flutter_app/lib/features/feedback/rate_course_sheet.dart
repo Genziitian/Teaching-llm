@@ -1,7 +1,10 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:material_symbols_icons/symbols.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/auth/auth_providers.dart';
+import '../../shared/widgets/apple_pressable.dart';
 import '../../theme/app_theme_tokens.dart';
 import 'feedback_page.dart' show myFeedbackProvider;
 
@@ -138,7 +141,7 @@ class _RateCourseSheetState extends ConsumerState<RateCourseSheet> {
     setState(() => _errorMessage = null);
 
     // Security check: Only the student who submitted can update/submit feedback.
-    final user = ref.read(authStateProvider).valueOrNull;
+    final user = ref.read(authStateProvider).value;
     final currentUserId = user?.id;
     final role = (user?.role ?? 'STUDENT').toUpperCase();
     final isStudent = role == 'STUDENT';
@@ -216,7 +219,7 @@ class _RateCourseSheetState extends ConsumerState<RateCourseSheet> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(isEdit ? 'Feedback updated successfully!' : 'Thank you for your feedback!'),
-            backgroundColor: const Color(0xFF10B981),
+            backgroundColor: const Color(0xFF34C759),
             behavior: SnackBarBehavior.floating,
           ),
         );
@@ -236,7 +239,7 @@ class _RateCourseSheetState extends ConsumerState<RateCourseSheet> {
     final tokens = context.tokens;
     final isEdit = widget.existingFeedback != null;
 
-    final user = ref.watch(authStateProvider).valueOrNull;
+    final user = ref.watch(authStateProvider).value;
     final currentUserId = user?.id;
     final role = (user?.role ?? 'STUDENT').toUpperCase();
     final isStudent = role == 'STUDENT';
@@ -251,7 +254,7 @@ class _RateCourseSheetState extends ConsumerState<RateCourseSheet> {
 
     return Container(
       constraints: BoxConstraints(
-        maxHeight: MediaQuery.of(context).size.height * 0.92,
+        maxHeight: MediaQuery.of(context).size.height * 0.80,
       ),
       decoration: BoxDecoration(
         color: tokens.cardBg,
@@ -263,7 +266,7 @@ class _RateCourseSheetState extends ConsumerState<RateCourseSheet> {
           // Drag handle
           Center(
             child: Container(
-              margin: const EdgeInsets.only(top: 12, bottom: 6),
+              margin: const EdgeInsets.only(top: 8, bottom: 2),
               width: 40,
               height: 4.5,
               decoration: BoxDecoration(
@@ -275,7 +278,7 @@ class _RateCourseSheetState extends ConsumerState<RateCourseSheet> {
 
           // Header
           Padding(
-            padding: const EdgeInsets.fromLTRB(22, 10, 16, 12),
+            padding: const EdgeInsets.fromLTRB(20, 4, 14, 8),
             child: Row(
               children: [
                 Expanded(
@@ -290,10 +293,10 @@ class _RateCourseSheetState extends ConsumerState<RateCourseSheet> {
                                   ? 'Course Feedback Details'
                                   : (isEdit ? 'Edit Course Feedback' : 'Course Feedback'),
                               style: TextStyle(
-                                fontSize: 20,
-                                fontWeight: FontWeight.w900,
+                                fontSize: 22,
+                                fontWeight: FontWeight.w700,
                                 color: tokens.textPrimary,
-                                letterSpacing: -0.3,
+                                letterSpacing: -0.5,
                               ),
                             ),
                           ),
@@ -325,7 +328,7 @@ class _RateCourseSheetState extends ConsumerState<RateCourseSheet> {
                         style: const TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w600,
-                          color: Color(0xFF6366F1),
+                          color: Color(0xFF5856D6),
                         ),
                       ),
                       if (!isOwner && studentName != null) ...[
@@ -343,53 +346,34 @@ class _RateCourseSheetState extends ConsumerState<RateCourseSheet> {
                   ),
                 ),
                 IconButton(
-                  icon: Icon(Icons.close_rounded, color: tokens.textSecondary, size: 24),
+                  icon: Icon(Symbols.close_rounded,
+                      color: tokens.textSecondary, size: 18, weight: 700),
+                  style: IconButton.styleFrom(
+                    backgroundColor: tokens.surfaceSecondary,
+                    minimumSize: const Size(32, 32),
+                    padding: EdgeInsets.zero,
+                    tapTargetSize: MaterialTapTargetSize.padded,
+                  ),
                   onPressed: () => Navigator.of(context).pop(false),
                 ),
               ],
             ),
           ),
 
-          const Divider(height: 1),
+          const Divider(height: 0.5, thickness: 0.5),
 
           // Scrollable Body
-          Expanded(
+          Flexible(
             child: SingleChildScrollView(
               padding: EdgeInsets.fromLTRB(
-                22,
                 16,
-                22,
-                MediaQuery.of(context).viewInsets.bottom + 24,
+                12,
+                16,
+                MediaQuery.of(context).viewInsets.bottom + 16,
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  // Privacy note
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF6366F1).withOpacity(0.08),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: const Color(0xFF6366F1).withOpacity(0.2)),
-                    ),
-                    child: Row(
-                      children: [
-                        const Icon(Icons.lock_outline_rounded, color: Color(0xFF6366F1), size: 18),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: Text(
-                            'Your feedback is completely private. Teachers cannot see your name or identity.',
-                            style: TextStyle(
-                              fontSize: 12.5,
-                              color: tokens.textSecondary,
-                              height: 1.35,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-
                   // Validation Error alert
                   if (_errorMessage != null) ...[
                     const SizedBox(height: 16),
@@ -402,7 +386,7 @@ class _RateCourseSheetState extends ConsumerState<RateCourseSheet> {
                       ),
                       child: Row(
                         children: [
-                          Icon(Icons.error_outline_rounded, color: tokens.danger, size: 20),
+                          Icon(Symbols.error_rounded, fill: 1, color: tokens.danger, size: 20),
                           const SizedBox(width: 10),
                           Expanded(
                             child: Text(
@@ -419,30 +403,67 @@ class _RateCourseSheetState extends ConsumerState<RateCourseSheet> {
                     ),
                   ],
 
-                  const SizedBox(height: 20),
+                  if (_errorMessage != null) const SizedBox(height: 12),
 
-                  // 4 Categories
-                  for (final cat in _categories) ...[
-                    _buildCategoryCard(cat, tokens, isOwner),
-                    const SizedBox(height: 16),
-                  ],
+                  // 4 categories: one inset-grouped list, hairline separators
+                  Container(
+                    decoration: BoxDecoration(
+                      color: tokens.surfaceSecondary,
+                      borderRadius: BorderRadius.circular(18),
+                    ),
+                    clipBehavior: Clip.antiAlias,
+                    child: Column(
+                      children: [
+                        for (var i = 0; i < _categories.length; i++)
+                          _buildCategoryCard(_categories[i], tokens, isOwner,
+                              isLast: i == _categories.length - 1),
+                      ],
+                    ),
+                  ),
+
+                  // Privacy note as a quiet footnote
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(6, 8, 6, 0),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Padding(
+                          padding: EdgeInsets.only(top: 1),
+                          child: Icon(Symbols.lock_rounded,
+                              fill: 1, color: Color(0xFF5856D6), size: 14),
+                        ),
+                        const SizedBox(width: 6),
+                        Expanded(
+                          child: Text(
+                            'Your feedback is completely private. Teachers cannot see your name or identity.',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: tokens.textSecondary,
+                              height: 1.3,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 16),
 
                   // Additional comments
                   Text(
                     'Additional Comments (Optional)',
                     style: TextStyle(
-                      fontSize: 14.5,
-                      fontWeight: FontWeight.w800,
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: -0.2,
                       color: tokens.textPrimary,
                     ),
                   ),
                   const SizedBox(height: 8),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                     decoration: BoxDecoration(
                       color: tokens.surfaceSecondary,
                       borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: tokens.border),
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -451,8 +472,8 @@ class _RateCourseSheetState extends ConsumerState<RateCourseSheet> {
                           controller: _commentCtrl,
                           readOnly: !isOwner,
                           enabled: isOwner,
-                          minLines: 3,
-                          maxLines: 6,
+                          minLines: 2,
+                          maxLines: 4,
                           maxLength: 500,
                           onChanged: isOwner ? (_) => setState(() {}) : null,
                           style: TextStyle(
@@ -486,20 +507,22 @@ class _RateCourseSheetState extends ConsumerState<RateCourseSheet> {
                     ),
                   ),
 
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 14),
 
                   // Submit / Close Button
                   if (isOwner)
-                    SizedBox(
-                      height: 52,
+                    ApplePressable(
+                      onTap: _submitting ? null : _submit,
+                      child: SizedBox(
+                      height: 50,
                       child: ElevatedButton(
                         onPressed: _submitting ? null : _submit,
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF4F46E5),
+                          backgroundColor: const Color(0xFF5856D6),
                           foregroundColor: Colors.white,
-                          disabledBackgroundColor: const Color(0xFF4F46E5).withOpacity(0.6),
+                          disabledBackgroundColor: const Color(0xFF5856D6).withOpacity(0.6),
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(14),
+                            borderRadius: BorderRadius.circular(25),
                           ),
                           elevation: 0,
                         ),
@@ -531,11 +554,12 @@ class _RateCourseSheetState extends ConsumerState<RateCourseSheet> {
                                 style: const TextStyle(
                                   color: Colors.white,
                                   fontSize: 16,
-                                  fontWeight: FontWeight.w800,
+                                  fontWeight: FontWeight.w600,
+                                  letterSpacing: -0.2,
                                 ),
                               ),
                       ),
-                    )
+                    ))
                   else
                     SizedBox(
                       height: 50,
@@ -568,18 +592,20 @@ class _RateCourseSheetState extends ConsumerState<RateCourseSheet> {
     );
   }
 
-  Widget _buildCategoryCard(_FeedbackCategory cat, AppThemeTokens tokens, bool isOwner) {
+  Widget _buildCategoryCard(
+    _FeedbackCategory cat,
+    AppThemeTokens tokens,
+    bool isOwner, {
+    bool isLast = false,
+  }) {
     final currentVal = _ratings[cat.id] ?? 0;
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      padding: const EdgeInsets.fromLTRB(14, 6, 14, 10),
       decoration: BoxDecoration(
-        color: tokens.surfaceSecondary,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: currentVal > 0 ? const Color(0xFF6366F1).withOpacity(0.4) : tokens.border,
-          width: currentVal > 0 ? 1.5 : 1,
-        ),
+        border: isLast
+            ? null
+            : Border(bottom: BorderSide(color: tokens.border, width: 0.5)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -590,72 +616,33 @@ class _RateCourseSheetState extends ConsumerState<RateCourseSheet> {
                 child: Text(
                   cat.label,
                   style: TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w800,
+                    fontSize: 15.5,
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: -0.2,
                     color: tokens.textPrimary,
                   ),
                 ),
               ),
-              if (currentVal > 0)
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFF59E0B).withOpacity(0.15),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Icon(Icons.star_rounded, color: Color(0xFFF59E0B), size: 14),
-                      const SizedBox(width: 3),
-                      Text(
-                        '$currentVal/5',
-                        style: const TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w800,
-                          color: Color(0xFFD97706),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+              _StarRating(
+                value: currentVal,
+                enabled: isOwner,
+                emptyColor: tokens.textMuted.withValues(alpha: 0.55),
+                onChanged: (v) {
+                  setState(() {
+                    _ratings[cat.id] = v;
+                    _errorMessage = null;
+                  });
+                },
+              ),
             ],
           ),
-          const SizedBox(height: 4),
           Text(
             cat.description,
             style: TextStyle(
-              fontSize: 12,
+              fontSize: 12.5,
               color: tokens.textSecondary,
-              height: 1.3,
+              height: 1.25,
             ),
-          ),
-          const SizedBox(height: 12),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: List.generate(5, (i) {
-              final starNum = i + 1;
-              final isFilled = starNum <= currentVal;
-              return InkWell(
-                onTap: isOwner
-                    ? () {
-                        setState(() {
-                          _ratings[cat.id] = starNum;
-                          _errorMessage = null;
-                        });
-                      }
-                    : null,
-                borderRadius: BorderRadius.circular(12),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
-                  child: Icon(
-                    isFilled ? Icons.star_rounded : Icons.star_outline_rounded,
-                    color: isFilled ? const Color(0xFFF59E0B) : tokens.textMuted.withOpacity(0.5),
-                    size: 38,
-                  ),
-                ),
-              );
-            }),
           ),
         ],
       ),
@@ -663,3 +650,56 @@ class _RateCourseSheetState extends ConsumerState<RateCourseSheet> {
   }
 }
 
+/// Five stars that respond the instant a finger lands and can be scrubbed
+/// with a horizontal drag (1:1 tracking). Light haptic on each change.
+class _StarRating extends StatelessWidget {
+  const _StarRating({
+    required this.value,
+    required this.enabled,
+    required this.emptyColor,
+    required this.onChanged,
+  });
+
+  final int value;
+  final bool enabled;
+  final Color emptyColor;
+  final ValueChanged<int> onChanged;
+
+  static const double _star = 24;
+  static const double _gap = 4;
+
+  void _set(double dx) {
+    final v = ((dx / (_star + _gap)).floor() + 1).clamp(1, 5);
+    if (v != value) {
+      HapticFeedback.selectionClick();
+      onChanged(v);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTapDown: enabled ? (d) => _set(d.localPosition.dx) : null,
+      onHorizontalDragUpdate: enabled ? (d) => _set(d.localPosition.dx) : null,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            for (var i = 1; i <= 5; i++) ...[
+              Icon(
+                Symbols.star_rounded,
+                fill: i <= value ? 1 : 0,
+                weight: i <= value ? 500 : 400,
+                size: _star,
+                color: i <= value ? const Color(0xFFFF9500) : emptyColor,
+              ),
+              if (i < 5) const SizedBox(width: _gap),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}

@@ -4,75 +4,82 @@ publish_to: 'none'
 version: 2.8.4+54
 
 environment:
-  sdk: '>=3.4.0 <4.0.0'
+  sdk: '>=3.13.0 <4.0.0'
+  flutter: '>=3.47.0'
 
 dependencies:
   flutter:
     sdk: flutter
   cupertino_icons: ^1.0.8
-
   # State management
-  flutter_riverpod: ^2.5.1
+  flutter_riverpod: ^3.4.3
 
   # Routing
-  go_router: ^14.2.7
+  go_router: ^18.1.0
 
   # Networking
-  dio: ^5.7.0
+  dio: ^5.11.1
 
   # Storage
-  flutter_secure_storage: ^9.2.2
-  shared_preferences: ^2.3.2
+  # shortcut: installed v9 sessions need migration, ship v10 before upgrading to v11.
+  flutter_secure_storage: ^10.3.4
+  shared_preferences: ^2.5.6
 
   # Auth
-  google_sign_in: ^6.2.2
+  google_sign_in: ^7.2.0
+
+  # Standalone design libraries required by current routing/fonts packages.
+  material_ui: ^1.7.0
+  cupertino_ui: ^1.1.3
 
   # UI / media
-  cached_network_image: ^3.4.1
-  video_player: ^2.9.2
-  chewie: ^1.8.5
-  youtube_player_iframe: ^5.2.0
+  cached_network_image: ^4.0.4
+  video_player: ^2.14.1
+  chewie: ^1.17.2
+  youtube_player_iframe: ^6.0.2
 
   # Utilities
-  intl: ^0.19.0
+  intl: ^0.20.3
   # Parse admin-authored rich text for native update messages.
-  html: ^0.15.6
+  html: ^0.15.7
 
   # Fonts (Manrope is the design system's primary font)
-  google_fonts: ^6.2.1
+  google_fonts: ^9.0.0
 
   # External-link fallback for unembedabble YouTube videos
-  url_launcher: ^6.3.0
+  url_launcher: ^6.3.3
   # Google Play in-app updates: "Update available" popup on launch.
-  in_app_update: ^4.2.3
-  share_plus: ^10.1.4
+  in_app_update: ^5.0.0
+  share_plus: ^13.3.1
 
   # Direct WebView access for the custom YouTube player (modelled after
   # PierfrancescoSoffritti/android-youtube-player) — gives us control over
   # User-Agent + base URL so embed-restricted videos load.
-  webview_flutter: ^4.10.0
-  webview_flutter_android: ^4.0.0
+  webview_flutter: ^4.14.1
+  webview_flutter_android: ^4.14.1
 
   # ToS-risky but necessary: scrape direct stream URLs from YouTube so
   # videos with "embedding disabled" by the uploader (error 150/152) can
   # still play in-app via video_player. Falls back to no-network errors
   # the same way as a real network failure.
-  youtube_explode_dart: ^2.2.1
+  # shortcut: v3 removes the in-process signature decoder, migrate the Android solver before upgrading.
+  youtube_explode_dart: ^2.5.3
 
   # PDF rendering for in-app lecture materials. Uses Android's native
   # PdfRenderer + iOS PDFKit so it's small (4MB), fast, and supports
   # pinch-zoom out of the box. Read-only — no annotations.
-  flutter_pdfview: ^1.3.2
+  flutter_pdfview: ^1.4.5
   # App-private cache dir for downloaded PDFs so adb pull can't grab them.
-  path_provider: ^2.1.4
+  path_provider: ^2.1.6
   # Local SQLite DB for download metadata
-  sqflite: ^2.3.3+1
+  sqflite: ^2.4.4+2
   # Path manipulation utilities
   path: ^1.9.0
-  firebase_core: ^4.7.0
-  firebase_messaging: ^16.2.0
-  firebase_analytics: ^12.3.0
-  flutter_local_notifications: ^19.5.0
+  firebase_core: ^5.0.0
+  firebase_messaging: ^17.0.0
+  firebase_analytics: ^13.0.0
+  flutter_local_notifications: ^22.3.2
+  material_symbols_icons: ^4.2960.0
 
   # Razorpay checkout — implemented via the existing webview_flutter rather
   # than the native razorpay_flutter package because the package's SDK
@@ -84,7 +91,8 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_lints: ^4.0.0
+  flutter_lints: ^6.0.0
+  google_sign_in_platform_interface: ^3.1.0
 
 flutter:
   uses-material-design: true

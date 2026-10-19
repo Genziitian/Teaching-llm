@@ -1,135 +1,53 @@
-import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'package:material_symbols_icons/symbols.dart';
+import 'package:material_ui/material_ui.dart';
 
+import '../../shared/widgets/apple_pressable.dart';
 import '../../shared/widgets/sub_page_header.dart';
-import '../../theme/app_shadows.dart';
 import '../../theme/app_theme_tokens.dart';
 
-// Public courses catalog — hosted on the Next.js site.
-const _courseStoreUrl = 'https://genziitian.in/courses';
-
-Future<void> _openCourseStore(BuildContext context) async {
-  final ok = await launchUrl(
-    Uri.parse(_courseStoreUrl),
-    mode: LaunchMode.externalApplication,
-  );
-  if (!ok && context.mounted) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text("Couldn't open the courses page.")),
-    );
-  }
-}
-
-/// Store page — header, support row, 2×2 product grid.
-class StorePage extends ConsumerWidget {
+/// Store home: Buy Course (coming soon) and Premium Notes.
+class StorePage extends StatelessWidget {
   const StorePage({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final tokens = context.tokens;
-    final products = [
-      _Product(
-        id: 'courses',
-        title: 'Courses',
-        count: '3 available',
-        icon: Icons.menu_book_outlined,
-        gradient: [const Color(0xFF6366F1), tokens.primaryAccent],
-      ),
-      _Product(
-        id: 'notes',
-        title: 'Premium Notes',
-        count: '1 note',
-        icon: Icons.description_outlined,
-        gradient: [const Color(0xFF34D399), tokens.success],
-      ),
-      const _Product(
-        id: 'mentor',
-        title: 'Book a Mentor Call',
-        count: '2 mentors',
-        icon: Icons.headset_mic_outlined,
-        gradient: [Color(0xFFFB923C), Color(0xFFF97316)],
-      ),
-    ];
-
     return AppPageScaffold(
-      title: 'Official Store',
-      subtitle: 'GenZ IITian courses & resources',
+      title: 'Store',
+      subtitle: 'Courses and premium study material',
       showBack: true,
-      onBack: () {
-        HapticFeedback.lightImpact();
-        if (context.canPop()) {
-          context.pop();
-        } else {
-          context.go('/academics');
-        }
-      },
+      onBack: () => context.canPop() ? context.pop() : context.go('/academics'),
       body: ListView(
-        padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+        padding: const EdgeInsets.fromLTRB(16, 18, 16, 40),
         children: [
-          Row(
-            children: [
-              Flexible(
-                child: Text(
-                  'You can also buy courses from',
-                  style: TextStyle(
-                    fontSize: 12.5,
-                    fontWeight: FontWeight.w500,
-                    color: tokens.textSecondary,
-                  ),
-                ),
-              ),
-              const SizedBox(width: 8),
-              InkWell(
-                onTap: () => _openCourseStore(context),
-                borderRadius: BorderRadius.circular(999),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 12, vertical: 5),
-                  decoration: BoxDecoration(
-                    color: tokens.primaryAccent,
-                    borderRadius: BorderRadius.circular(999),
-                  ),
-                  child: const Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        'Visit Here',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 11,
-                          fontWeight: FontWeight.w800,
-                        ),
-                      ),
-                      SizedBox(width: 4),
-                      Icon(Icons.arrow_forward,
-                          color: Colors.white, size: 11),
-                    ],
-                  ),
-                ),
-              ),
+          _StoreTile(
+            title: 'Premium Notes',
+            subtitle: 'Solved papers and notes. Buy once, read on app and web.',
+            icon: Symbols.description_rounded,
+            gradient: const [Color(0xFF34C759), Color(0xFF248A3D)],
+            onTap: () {
+              HapticFeedback.lightImpact();
+              context.push('/store/notes');
+            },
+          ),
+          const SizedBox(height: 14),
+          _StoreTile(
+            title: 'Buy Course',
+            subtitle: 'Full courses with lectures and live classes.',
+            icon: Symbols.school_rounded,
+            gradient: [
+              tokens.textMuted.withValues(alpha: 0.9),
+              tokens.textMuted.withValues(alpha: 0.6),
             ],
-          ),
-          const SizedBox(height: 16),
-          _SupportCard(
-            onTap: () => context.go('/faq'),
-          ),
-          const SizedBox(height: 20),
-          GridView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            itemCount: products.length,
-            gridDelegate:
-                const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2,
-              mainAxisSpacing: 14,
-              crossAxisSpacing: 14,
-              childAspectRatio: 0.92,
-            ),
-            itemBuilder: (_, i) =>
-                _ProductCard(product: products[i]),
+            comingSoon: true,
+            onTap: () {
+              HapticFeedback.selectionClick();
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Courses are coming soon.')),
+              );
+            },
           ),
         ],
       ),
@@ -137,156 +55,95 @@ class StorePage extends ConsumerWidget {
   }
 }
 
-class _Product {
-  const _Product({
-    required this.id,
+class _StoreTile extends StatelessWidget {
+  const _StoreTile({
     required this.title,
-    required this.count,
+    required this.subtitle,
     required this.icon,
     required this.gradient,
+    required this.onTap,
+    this.comingSoon = false,
   });
-  final String id;
+
   final String title;
-  final String count;
+  final String subtitle;
   final IconData icon;
   final List<Color> gradient;
-}
-
-class _SupportCard extends StatelessWidget {
-  const _SupportCard({required this.onTap});
   final VoidCallback onTap;
+  final bool comingSoon;
 
   @override
   Widget build(BuildContext context) {
-    final tokens = context.tokens;
-
-    return Material(
-      color: Colors.transparent,
-      borderRadius: BorderRadius.circular(14),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(14),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-          decoration: BoxDecoration(
-            color: tokens.cardBg,
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: tokens.border),
-          ),
-          child: Row(
-            children: [
-              Container(
-                width: 32,
-                height: 32,
-                decoration: BoxDecoration(
-                  color: tokens.surfaceSecondary,
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: tokens.border),
-                ),
-                child: Icon(Icons.help_outline,
-                    color: tokens.primaryAccent, size: 16),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Text(
-                  'Facing any issue? Get Support',
-                  style: TextStyle(
-                    fontSize: 12.5,
-                    fontWeight: FontWeight.w700,
-                    color: tokens.textPrimary,
-                  ),
-                ),
-              ),
-              Icon(Icons.chevron_right,
-                  color: tokens.textMuted, size: 14),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _ProductCard extends StatelessWidget {
-  const _ProductCard({required this.product});
-  final _Product product;
-
-  @override
-  Widget build(BuildContext context) {
-    final tokens = context.tokens;
-
-    return InkWell(
-      borderRadius: BorderRadius.circular(22),
-      onTap: () {
-        if (product.id == 'courses') {
-          _openCourseStore(context);
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('${product.title} — coming soon')),
-          );
-        }
-      },
+    return ApplePressable(
+      onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.fromLTRB(18, 20, 18, 18),
+        height: 168,
+        padding: const EdgeInsets.all(22),
         decoration: BoxDecoration(
-          color: tokens.cardBg,
-          borderRadius: BorderRadius.circular(22),
-          border: Border.all(color: tokens.border),
-          boxShadow: AppShadows.sm,
+          borderRadius: BorderRadius.circular(28),
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: gradient,
+          ),
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        clipBehavior: Clip.antiAlias,
+        child: Stack(
           children: [
-            Container(
-              width: 56,
-              height: 56,
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: product.gradient,
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                borderRadius: BorderRadius.circular(16),
-                boxShadow: AppShadows.pillGlow(product.gradient.first),
-              ),
-              child: Icon(product.icon,
-                  color: Colors.white, size: 26),
+            Positioned(
+              right: -14,
+              bottom: -26,
+              child: Icon(icon,
+                  size: 130, color: Colors.white.withValues(alpha: 0.16)),
             ),
-            const SizedBox(height: 14),
-            Text(
-              product.title,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w800,
-                color: tokens.textPrimary,
-                letterSpacing: -0.4,
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              product.count,
-              style: TextStyle(
-                fontSize: 11.5,
-                color: tokens.textSecondary,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            const Spacer(),
-            Row(
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                Row(
+                  children: [
+                    Icon(icon, size: 28, color: Colors.white),
+                    const Spacer(),
+                    if (comingSoon)
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 10, vertical: 5),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.22),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: const Text(
+                          'Coming soon',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+                const Spacer(),
                 Text(
-                  'Explore',
-                  style: TextStyle(
-                    fontSize: 12.5,
-                    color: tokens.primaryAccent,
+                  title,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 24,
                     fontWeight: FontWeight.w800,
+                    letterSpacing: -0.5,
                   ),
                 ),
-                const SizedBox(width: 4),
-                Icon(Icons.chevron_right,
-                    color: tokens.primaryAccent, size: 14),
+                const SizedBox(height: 4),
+                Text(
+                  subtitle,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    color: Colors.white.withValues(alpha: 0.88),
+                    fontSize: 13.5,
+                    fontWeight: FontWeight.w500,
+                    height: 1.3,
+                  ),
+                ),
               ],
             ),
           ],
@@ -295,7 +152,3 @@ class _ProductCard extends StatelessWidget {
     );
   }
 }
-
-// _BundleBanner removed — the hard-coded "Degree Programme Bundle · save
-// ₹4,200" featured banner is gone. Reintroduce when there's a real bundle
-// offering tied to a SKU, not a fake countdown.

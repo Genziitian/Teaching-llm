@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -48,7 +48,7 @@ class AppTopBar extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final user = ref.watch(authStateProvider).value;
-    final notif = ref.watch(unreadProvider).valueOrNull ?? 0;
+    final notif = ref.watch(unreadProvider).value ?? 0;
     final tokens = context.tokens;
 
     return Padding(
@@ -146,7 +146,7 @@ class _IconBtn extends StatelessWidget {
                   ),
                   boxShadow: const [
                     BoxShadow(
-                      color: Color(0x66EF4444),
+                      color: Color(0x66FF3B30),
                       blurRadius: 6,
                       offset: Offset(0, 2),
                     ),

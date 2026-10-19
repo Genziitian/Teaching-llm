@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
@@ -80,7 +80,7 @@ class _FeatureRequestsPageState extends ConsumerState<FeatureRequestsPage> {
                 style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800),
               ),
               style: FilledButton.styleFrom(
-                backgroundColor: const Color(0xFF8B5CF6),
+                backgroundColor: const Color(0xFF6E6CF0),
                 foregroundColor: Colors.white,
                 minimumSize: const Size.fromHeight(50),
                 shape: RoundedRectangleBorder(
@@ -182,14 +182,14 @@ class _FeatureRequestCard extends StatelessWidget {
   Color _statusColor(String status) {
     switch (status.toUpperCase()) {
       case 'ACCEPTED':
-        return const Color(0xFF10B981);
+        return const Color(0xFF34C759);
       case 'REJECTED':
-        return const Color(0xFFEF4444);
+        return const Color(0xFFFF3B30);
       case 'IN_PROGRESS':
-        return const Color(0xFF6366F1);
+        return const Color(0xFF5856D6);
       case 'PENDING':
       default:
-        return const Color(0xFFF59E0B);
+        return const Color(0xFFFF9500);
     }
   }
 
@@ -250,19 +250,19 @@ class _FeatureRequestCard extends StatelessWidget {
                     items: const [
                       DropdownMenuItem(
                         value: 'PENDING',
-                        child: Text('Pending', style: TextStyle(color: Color(0xFFF59E0B))),
+                        child: Text('Pending', style: TextStyle(color: Color(0xFFFF9500))),
                       ),
                       DropdownMenuItem(
                         value: 'IN_PROGRESS',
-                        child: Text('In Progress', style: TextStyle(color: Color(0xFF6366F1))),
+                        child: Text('In Progress', style: TextStyle(color: Color(0xFF5856D6))),
                       ),
                       DropdownMenuItem(
                         value: 'ACCEPTED',
-                        child: Text('Accepted', style: TextStyle(color: Color(0xFF10B981))),
+                        child: Text('Accepted', style: TextStyle(color: Color(0xFF34C759))),
                       ),
                       DropdownMenuItem(
                         value: 'REJECTED',
-                        child: Text('Rejected', style: TextStyle(color: Color(0xFFEF4444))),
+                        child: Text('Rejected', style: TextStyle(color: Color(0xFFFF3B30))),
                       ),
                     ],
                     onChanged: (val) {
@@ -534,7 +534,7 @@ class _NewFeatureRequestSheetState
           ElevatedButton(
             onPressed: _submitting ? null : _submit,
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF8B5CF6),
+              backgroundColor: const Color(0xFF6E6CF0),
               foregroundColor: Colors.white,
               padding: const EdgeInsets.symmetric(vertical: 14),
               shape: RoundedRectangleBorder(

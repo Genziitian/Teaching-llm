@@ -5,7 +5,7 @@ import '../../core/auth/auth_providers.dart';
 bool canAccessSupport(String? role) => role == 'STUDENT' || role == 'MANAGER';
 
 final supportSessionProvider = Provider((ref) {
-  final user = ref.watch(authStateProvider).valueOrNull;
+  final user = ref.watch(authStateProvider).value;
   return (id: user?.id, role: user?.role);
 });
 

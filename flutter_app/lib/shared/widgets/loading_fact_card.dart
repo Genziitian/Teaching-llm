@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../../core/facts/loading_facts_data.dart';
 import '../../theme/app_theme_tokens.dart';
@@ -37,9 +37,9 @@ class LoadingFactCard extends StatelessWidget {
             : Colors.white);
 
     final Color borderColor = isUltraRare
-        ? const Color(0xFFF59E0B)
+        ? const Color(0xFFFF9500)
         : isRare
-            ? (isBlack ? const Color(0xFF71717A) : const Color(0xFF6366F1))
+            ? (isBlack ? const Color(0xFF71717A) : const Color(0xFF5856D6))
             : (isBlack
                 ? const Color(0xFF27272A)
                 : (isDark ? const Color(0xFF2A3143) : const Color(0xFFE2E8F0)));
@@ -74,13 +74,13 @@ class LoadingFactCard extends StatelessWidget {
                   boxShadow: [
                     if (isUltraRare)
                       BoxShadow(
-                        color: const Color(0xFFF59E0B).withOpacity(isDark ? 0.25 : 0.2),
+                        color: const Color(0xFFFF9500).withOpacity(isDark ? 0.25 : 0.2),
                         blurRadius: 18,
                         offset: const Offset(0, 4),
                       )
                     else if (isRare)
                       BoxShadow(
-                        color: const Color(0xFF6366F1).withOpacity(isDark ? 0.22 : 0.16),
+                        color: const Color(0xFF5856D6).withOpacity(isDark ? 0.22 : 0.16),
                         blurRadius: 14,
                         offset: const Offset(0, 4),
                       )
@@ -101,12 +101,12 @@ class LoadingFactCard extends StatelessWidget {
                         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
                         decoration: BoxDecoration(
                           gradient: const LinearGradient(
-                            colors: [Color(0xFFEF4444), Color(0xFFF59E0B)],
+                            colors: [Color(0xFFFF3B30), Color(0xFFFF9500)],
                           ),
                           borderRadius: BorderRadius.circular(999),
                           boxShadow: [
                             BoxShadow(
-                              color: const Color(0xFFEF4444).withOpacity(0.35),
+                              color: const Color(0xFFFF3B30).withOpacity(0.35),
                               blurRadius: 6,
                               offset: const Offset(0, 2),
                             ),
@@ -128,12 +128,12 @@ class LoadingFactCard extends StatelessWidget {
                         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
                         decoration: BoxDecoration(
                           gradient: const LinearGradient(
-                            colors: [Color(0xFF4F46E5), Color(0xFF7C3AED)],
+                            colors: [Color(0xFF5856D6), Color(0xFF5E5CE6)],
                           ),
                           borderRadius: BorderRadius.circular(999),
                           boxShadow: [
                             BoxShadow(
-                              color: const Color(0xFF4F46E5).withOpacity(0.3),
+                              color: const Color(0xFF5856D6).withOpacity(0.3),
                               blurRadius: 6,
                               offset: const Offset(0, 2),
                             ),
@@ -162,9 +162,9 @@ class LoadingFactCard extends StatelessWidget {
                               fontSize: isCompact ? 12.5 : 13.5,
                               fontWeight: FontWeight.w700,
                               color: isUltraRare
-                                  ? const Color(0xFFEF4444)
+                                  ? const Color(0xFFFF3B30)
                                   : isRare
-                                      ? const Color(0xFF6366F1)
+                                      ? const Color(0xFF5856D6)
                                       : textColor,
                             ),
                           ),

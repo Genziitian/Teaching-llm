@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import Razorpay from 'razorpay'
 import { getSession } from '@/lib/auth'
+import { accessState, addDays } from '@/lib/store-notes'
 
 export async function POST(req: Request, { params }: { params: { id: string } }) {
   try {
@@ -28,30 +29,23 @@ export async function POST(req: Request, { params }: { params: { id: string } })
       return NextResponse.json({ error: 'Note not found' }, { status: 404 })
     }
 
-    // Check if user already has active access (valid for 30 days)
+    // Active access blocks a second purchase; an expired one can be restored.
     const existingAccess = await prisma.storeNoteAccess.findFirst({
       where: { noteId: note.id, userId: user.id }
     })
-    
-    if (existingAccess) {
-      const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
-      if (existingAccess.createdAt > thirtyDaysAgo) {
-        return NextResponse.json({ error: 'You already have active access to this note.' }, { status: 400 })
-      } else {
-        // Expired, delete the old access so we can create a new one (or just let them buy again)
-        await prisma.storeNoteAccess.delete({ where: { id: existingAccess.id } })
-      }
+
+    if (existingAccess && accessState(existingAccess, note.validityDays) === 'ACTIVE') {
+      return NextResponse.json({ error: 'You already have active access to this note.' }, { status: 400 })
     }
 
     const price = note.price
 
     if (price === 0) {
-      // Free access
-      const access = await prisma.storeNoteAccess.create({
-        data: {
-          noteId: note.id,
-          userId: user.id,
-        }
+      const expiresAt = addDays(new Date(), note.validityDays)
+      await prisma.storeNoteAccess.upsert({
+        where: { noteId_userId: { noteId: note.id, userId: user.id } },
+        create: { noteId: note.id, userId: user.id, expiresAt },
+        update: { createdAt: new Date(), expiresAt },
       })
       return NextResponse.json({ isFree: true })
     }
@@ -69,6 +63,11 @@ export async function POST(req: Request, { params }: { params: { id: string } })
       razorpayOrderId: order.id,
       amount: options.amount,
       key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
+      keyId: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
+      currency: 'INR',
+      noteTitle: note.title,
+      userName: user.name || '',
+      userEmail: user.email || '',
     })
   } catch (error: any) {
     console.error('Error creating note order:', error)

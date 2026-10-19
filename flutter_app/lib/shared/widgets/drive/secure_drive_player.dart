@@ -3,7 +3,7 @@ import 'dart:io';
 
 import 'package:chewie/chewie.dart';
 import 'package:dio/dio.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:video_player/video_player.dart';
 
@@ -276,6 +276,13 @@ class _SecureDrivePlayerState extends State<SecureDrivePlayer> {
       allowFullScreen: true,
       allowMuting: true,
       allowPlaybackSpeedChanging: true,
+      // Preserve the gesture and fullscreen behavior from Chewie 1.10.
+      allowDoubleTapSeek: false,
+      allowDoubleTapToggleFullScreen: false,
+      swipeToExitFullscreen: false,
+      showSeekIndicator: false,
+      useNativeFullScreenOnWeb: false,
+      hideCursorInFullScreen: false,
       playbackSpeeds: const [0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0],
       showControlsOnInitialize: true,
       hideControlsTimer: const Duration(milliseconds: 2500),
@@ -607,7 +614,7 @@ class _SheetRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: selected ? const Color(0x224F46E5) : Colors.transparent,
+      color: selected ? const Color(0x225856D6) : Colors.transparent,
       borderRadius: BorderRadius.circular(10),
       child: InkWell(
         onTap: onTap,

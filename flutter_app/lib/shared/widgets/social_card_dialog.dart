@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -224,7 +224,7 @@ class _SocialCardDialogState extends ConsumerState<_SocialCardDialog> {
           border: Border.all(
             color: isBlack
                 ? const Color(0xFF27272A)
-                : const Color(0xFF6366F1).withOpacity(0.35),
+                : const Color(0xFF5856D6).withOpacity(0.35),
             width: 1.5,
           ),
           boxShadow: const [
@@ -255,7 +255,7 @@ class _SocialCardDialogState extends ConsumerState<_SocialCardDialog> {
                             fontSize: 11,
                             fontWeight: FontWeight.w900,
                             letterSpacing: 1.2,
-                            color: Color(0xFF818CF8),
+                            color: Color(0xFF7D7AFF),
                           ),
                         ),
                         const SizedBox(height: 1),
@@ -326,7 +326,7 @@ class _SocialCardDialogState extends ConsumerState<_SocialCardDialog> {
                     ? const Center(
                         child: CircularProgressIndicator(
                           strokeWidth: 2.5,
-                          color: Color(0xFF818CF8),
+                          color: Color(0xFF7D7AFF),
                         ),
                       )
                     : _error != null
@@ -363,13 +363,13 @@ class _SocialCardDialogState extends ConsumerState<_SocialCardDialog> {
                                     shape: BoxShape.circle,
                                     gradient: const LinearGradient(
                                       colors: [
-                                        Color(0xFF6366F1),
-                                        Color(0xFF10B981),
+                                        Color(0xFF5856D6),
+                                        Color(0xFF34C759),
                                       ],
                                     ),
                                     boxShadow: [
                                       BoxShadow(
-                                        color: const Color(0xFF6366F1)
+                                        color: const Color(0xFF5856D6)
                                             .withOpacity(0.4),
                                         blurRadius: 20,
                                         offset: const Offset(0, 4),
@@ -408,11 +408,11 @@ class _SocialCardDialogState extends ConsumerState<_SocialCardDialog> {
                                   padding: const EdgeInsets.symmetric(
                                       horizontal: 10, vertical: 4),
                                   decoration: BoxDecoration(
-                                    color: const Color(0xFF6366F1)
+                                    color: const Color(0xFF5856D6)
                                         .withOpacity(0.20),
                                     borderRadius: BorderRadius.circular(50),
                                     border: Border.all(
-                                      color: const Color(0xFF6366F1)
+                                      color: const Color(0xFF5856D6)
                                           .withOpacity(0.40),
                                     ),
                                   ),
@@ -460,12 +460,12 @@ class _SocialCardDialogState extends ConsumerState<_SocialCardDialog> {
                                         padding: const EdgeInsets.symmetric(
                                             horizontal: 10, vertical: 4),
                                         decoration: BoxDecoration(
-                                          color: const Color(0xFFF59E0B)
+                                          color: const Color(0xFFFF9500)
                                               .withOpacity(0.15),
                                           borderRadius:
                                               BorderRadius.circular(10),
                                           border: Border.all(
-                                            color: const Color(0xFFF59E0B)
+                                            color: const Color(0xFFFF9500)
                                                 .withOpacity(0.35),
                                           ),
                                         ),
@@ -640,7 +640,7 @@ class _SocialCardDialogState extends ConsumerState<_SocialCardDialog> {
                                             Icon(icon,
                                                 size: 14,
                                                 color:
-                                                    const Color(0xFF818CF8)),
+                                                    const Color(0xFF7D7AFF)),
                                             const SizedBox(width: 5),
                                             Text(
                                               label,
@@ -688,7 +688,7 @@ class _SocialCardDialogState extends ConsumerState<_SocialCardDialog> {
                               width: double.infinity,
                               height: 44,
                               decoration: BoxDecoration(
-                                color: const Color(0xFF6366F1),
+                                color: const Color(0xFF5856D6),
                                 borderRadius: BorderRadius.circular(14),
                               ),
                               alignment: Alignment.center,
@@ -759,7 +759,7 @@ class _SocialCardDialogState extends ConsumerState<_SocialCardDialog> {
                             width: double.infinity,
                             height: 44,
                             decoration: BoxDecoration(
-                              color: const Color(0xFF6366F1),
+                              color: const Color(0xFF5856D6),
                               borderRadius: BorderRadius.circular(14),
                             ),
                             alignment: Alignment.center,
@@ -791,7 +791,7 @@ class _SocialCardDialogState extends ConsumerState<_SocialCardDialog> {
                             width: double.infinity,
                             height: 44,
                             decoration: BoxDecoration(
-                              color: const Color(0xFF4F46E5),
+                              color: const Color(0xFF5856D6),
                               borderRadius: BorderRadius.circular(14),
                             ),
                             alignment: Alignment.center,

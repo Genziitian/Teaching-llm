@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
@@ -41,14 +41,14 @@ class _UserReportsPageState extends ConsumerState<UserReportsPage> {
   Color _statusColor(String status) {
     switch (status.toUpperCase()) {
       case 'RESOLVED':
-        return const Color(0xFF10B981);
+        return const Color(0xFF34C759);
       case 'UNDER_REVIEW':
-        return const Color(0xFFF59E0B);
+        return const Color(0xFFFF9500);
       case 'DISMISSED':
         return const Color(0xFF6B7280);
       case 'NEW':
       default:
-        return const Color(0xFFEF4444);
+        return const Color(0xFFFF3B30);
     }
   }
 
@@ -288,15 +288,15 @@ class _UserReportCard extends StatelessWidget {
                   items: const [
                     DropdownMenuItem(
                       value: 'NEW',
-                      child: Text('New', style: TextStyle(color: Color(0xFFEF4444))),
+                      child: Text('New', style: TextStyle(color: Color(0xFFFF3B30))),
                     ),
                     DropdownMenuItem(
                       value: 'UNDER_REVIEW',
-                      child: Text('Under Review', style: TextStyle(color: Color(0xFFF59E0B))),
+                      child: Text('Under Review', style: TextStyle(color: Color(0xFFFF9500))),
                     ),
                     DropdownMenuItem(
                       value: 'RESOLVED',
-                      child: Text('Resolved', style: TextStyle(color: Color(0xFF10B981))),
+                      child: Text('Resolved', style: TextStyle(color: Color(0xFF34C759))),
                     ),
                     DropdownMenuItem(
                       value: 'DISMISSED',

@@ -1,5 +1,5 @@
 import 'package:dio/dio.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:teaching_llm/core/api/api_client.dart';
@@ -53,6 +53,18 @@ class _Api extends ApiClient {
 }
 
 void main() {
+  test('existing route patterns remain case insensitive', () {
+    final container = ProviderContainer(overrides: [
+      authStateProvider.overrideWith(_Auth.new),
+      welcomeSeenProvider.overrideWith((_) => true),
+    ]);
+    final router = container.read(routerProvider);
+    addTearDown(router.dispose);
+    addTearDown(container.dispose);
+    expect(router.configuration.findMatch(Uri.parse('/COURSES/course1')).isError,
+        isFalse);
+  });
+
   test(
       'website root, store, course catalog and material links resolve natively',
       () {

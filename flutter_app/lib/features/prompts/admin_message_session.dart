@@ -2,13 +2,14 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/legacy.dart';
 
 import '../../core/auth/auth_providers.dart';
 
 /// A fresh session on logout/account change; eligibility still comes from APIs.
 final adminMessageSessionProvider = ChangeNotifierProvider<AdminMessageSession>(
   (ref) => AdminMessageSession(
-    ref.watch(authStateProvider.select((auth) => auth.valueOrNull?.id)),
+    ref.watch(authStateProvider.select((auth) => auth.value?.id)),
   ),
 );
 

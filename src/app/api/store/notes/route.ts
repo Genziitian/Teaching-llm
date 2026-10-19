@@ -1,34 +1,38 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { getSession } from '@/lib/auth'
+import { canManageNotes, isStaffRole, serializeNote } from '@/lib/store-notes'
+
+function cleanDays(v: any) {
+  const n = Math.round(Number(v))
+  return Number.isFinite(n) && n >= 1 && n <= 3650 ? n : 90
+}
 
 export async function POST(req: Request) {
   try {
+    const session = await getSession()
+    if (!session?.userId || !canManageNotes(session.role)) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
+    }
+
     const data = await req.json()
-    const { title, description, fileUrl, price, category, subject } = data
+    const { title, description, fileUrl, price, category, subject, validityDays, highlights, extraRules } = data
 
     if (!title || !fileUrl) {
       return NextResponse.json({ error: 'Title and file link are required' }, { status: 400 })
-    }
-
-    // In a real app we'd get the manager's ID. Since this is an admin tool for now, we find the first manager.
-    // Or we could pass creatorId. But schema says creatorId is required.
-    const manager = await prisma.user.findFirst({
-      where: { role: 'MANAGER' }
-    })
-
-    if (!manager) {
-      return NextResponse.json({ error: 'No manager found to assign as creator' }, { status: 500 })
     }
 
     const note = await prisma.storeNote.create({
       data: {
         title,
         description,
-        price,
-        createdById: manager.id,
-        category: category || "General",
+        price: Number(price) || 0,
+        createdById: session.userId,
+        category: category || 'General',
         subject: subject || null,
+        validityDays: cleanDays(validityDays),
+        highlights: highlights ? String(highlights) : null,
+        extraRules: extraRules ? String(extraRules) : null,
         files: {
           create: {
             title: 'Primary Document',
@@ -46,35 +50,24 @@ export async function POST(req: Request) {
   }
 }
 
-export async function GET(req: Request) {
+export async function GET() {
   try {
     const session = await getSession()
+    const isStaff = isStaffRole(session?.role)
     const notes = await prisma.storeNote.findMany({
-      include: {
-        files: true,
-        createdBy: { select: { id: true, name: true, email: true } },
-        accesses: true
-      },
+      where: isStaff ? undefined : { isActive: true },
+      include: { files: true },
       orderBy: { createdAt: 'desc' }
     })
 
-    const isManager = session?.role === 'MANAGER' || (session?.role === 'ADMIN' || session?.role === 'MODERATOR')
+    const accesses = session?.userId
+      ? await prisma.storeNoteAccess.findMany({ where: { userId: session.userId } })
+      : []
+    const byNote = new Map(accesses.map((a) => [a.noteId, a]))
 
-    const cleanNotes = notes.map(note => {
-      const hasAccess = note.price === 0 || 
-                        isManager || 
-                        (session?.userId ? note.accesses.some(acc => acc.userId === session.userId) : false)
-
-      return {
-        ...note,
-        files: note.files.map(f => ({
-          ...f,
-          fileUrl: hasAccess ? f.fileUrl : ''
-        }))
-      }
+    return NextResponse.json({
+      notes: notes.map((n) => serializeNote(n, { access: byNote.get(n.id) ?? null, isStaff })),
     })
-
-    return NextResponse.json({ notes: cleanNotes })
   } catch (error: any) {
     console.error('Error fetching store notes:', error)
     return NextResponse.json({ error: error.message }, { status: 500 })

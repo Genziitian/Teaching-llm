@@ -1,8 +1,7 @@
 plugins {
     id "com.android.application"
-    id "kotlin-android"
     id "com.google.gms.google-services"
-    // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
+    // Apply Flutter after the Android plugin, which provides built-in Kotlin.
     id "dev.flutter.flutter-gradle-plugin"
 }
 
@@ -13,9 +12,9 @@ if (keystorePropertiesFile.exists()) {
 }
 
 android {
-    namespace "com.teaching.lms"
-    compileSdk 36
-    // ndkVersion "26.1.10909125"
+    namespace = "com.teaching.lms"
+    compileSdk = 36
+    ndkVersion = "28.2.13676358"
 
     compileOptions {
         coreLibraryDesugaringEnabled true
@@ -23,16 +22,12 @@ android {
         targetCompatibility JavaVersion.VERSION_17
     }
 
-    kotlinOptions {
-        jvmTarget = "17"
-    }
-
     defaultConfig {
-        applicationId "com.teaching.lms"
-        minSdkVersion flutter.minSdkVersion
-        targetSdk 36
-        versionCode flutter.versionCode
-        versionName flutter.versionName
+        applicationId = "com.teaching.lms"
+        minSdk = flutter.minSdkVersion
+        targetSdk = 36
+        versionCode = flutter.versionCode
+        versionName = flutter.versionName
     }
 
     signingConfigs {
@@ -56,10 +51,16 @@ android {
         }
     }
 
-    packagingOptions {
+    packaging {
         jniLibs {
             keepDebugSymbols += '**/*.so'
         }
+    }
+}
+
+kotlin {
+    compilerOptions {
+        jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17
     }
 }
 
