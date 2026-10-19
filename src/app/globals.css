@@ -107,9 +107,11 @@
   box-shadow: 4px 4px 8px var(--community-item-shadow-dark), -4px -4px 8px var(--community-item-shadow-light);
   transition: transform 0.22s cubic-bezier(0.25, 0.8, 0.25, 1), box-shadow 0.22s ease, border-color 0.22s ease;
 }
+@media (hover: hover) and (pointer: fine) {
 .community-channel-btn:hover:not(.active) {
   transform: translateY(-2px);
   box-shadow: 0 6px 16px rgba(54,54,232,0.12), -2px -2px 6px var(--community-item-shadow-light);
+}
 }
 .community-channel-btn:active:not(.active) {
   transform: translateY(0);
@@ -129,9 +131,11 @@
   box-shadow: 4px 4px 8px var(--community-item-shadow-dark), -4px -4px 8px var(--community-item-shadow-light);
   transition: transform 0.22s cubic-bezier(0.25, 0.8, 0.25, 1), box-shadow 0.22s ease, border-color 0.22s ease;
 }
+@media (hover: hover) and (pointer: fine) {
 .dm-channel-btn:hover:not(.active) {
   transform: translateY(-2px);
   box-shadow: 0 6px 16px rgba(54,54,232,0.12), -2px -2px 6px var(--community-item-shadow-light);
+}
 }
 .dm-channel-btn:active:not(.active) {
   transform: translateY(0);
@@ -417,6 +421,7 @@ body {
   background: var(--bg);
   color: var(--text-primary);
   min-height: 100vh;
+  min-height: 100dvh;
   font-size: 15px;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
@@ -458,8 +463,10 @@ img {
   background: var(--scrollbar-thumb);
   border-radius: 10px;
 }
+@media (hover: hover) and (pointer: fine) {
 ::-webkit-scrollbar-thumb:hover {
   background: var(--scrollbar-thumb-hover);
+}
 }
 
 /* Utility classes */
@@ -622,9 +629,11 @@ img {
   color: var(--button-text, white);
   box-shadow: 4px 4px 8px rgba(54,54,232,0.3), -2px -2px 6px var(--neu-glow);
 }
+@media (hover: hover) and (pointer: fine) {
 .btn-primary:hover {
   background: var(--button-hover-background, var(--primary-dark));
   box-shadow: 4px 4px 12px rgba(54,54,232,0.4), -2px -2px 6px var(--neu-glow);
+}
 }
 
 .btn-secondary {
@@ -633,16 +642,20 @@ img {
   box-shadow: var(--shadow-sm);
   border: 1px solid var(--button-secondary-border, transparent);
 }
+@media (hover: hover) and (pointer: fine) {
 .btn-secondary:hover {
   box-shadow: var(--shadow);
+}
 }
 
 /* Dark theme button shadows */
 :root[data-theme="dark"] .btn-primary {
   box-shadow: 0 4px 14px rgba(109,109,255,0.35);
 }
+@media (hover: hover) and (pointer: fine) {
 :root[data-theme="dark"] .btn-primary:hover {
   box-shadow: 0 6px 18px rgba(109,109,255,0.45);
+}
 }
 
 /* Black theme button & control overrides */
@@ -652,10 +665,12 @@ img {
   box-shadow: 0 2px 8px rgba(255, 255, 255, 0.15) !important;
   font-weight: 700;
 }
+@media (hover: hover) and (pointer: fine) {
 :root[data-theme="black"] .btn-primary:hover {
   background: #e4e4e7 !important;
   color: #000000 !important;
   box-shadow: 0 4px 12px rgba(255, 255, 255, 0.25) !important;
+}
 }
 :root[data-theme="black"] .btn-secondary {
   background: #18181b !important;
@@ -663,9 +678,11 @@ img {
   border: 1px solid rgba(255, 255, 255, 0.16) !important;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.5) !important;
 }
+@media (hover: hover) and (pointer: fine) {
 :root[data-theme="black"] .btn-secondary:hover {
   background: #27272a !important;
   border-color: rgba(255, 255, 255, 0.3) !important;
+}
 }
 :root[data-theme="black"] .btn-ghost {
   background: transparent !important;
@@ -673,9 +690,11 @@ img {
   box-shadow: none !important;
   border: 1px solid rgba(255, 255, 255, 0.1) !important;
 }
+@media (hover: hover) and (pointer: fine) {
 :root[data-theme="black"] .btn-ghost:hover {
   background: #18181b !important;
   color: #ffffff !important;
+}
 }
 
 :root[data-theme="black"] .card {
@@ -707,12 +726,16 @@ img {
 :root[data-theme="black"] .sidebar-link-item.active .sidebar-link-label {
   color: #ffffff !important;
 }
+@media (hover: hover) and (pointer: fine) {
 :root[data-theme="black"] .sidebar-link-item:not(.active):hover {
   background: var(--surface-hover) !important;
 }
+}
+@media (hover: hover) and (pointer: fine) {
 :root[data-theme="black"] .sidebar-link-item:not(.active):hover .sidebar-link-icon,
 :root[data-theme="black"] .sidebar-link-item:not(.active):hover .sidebar-link-label {
   color: #ffffff !important;
+}
 }
 :root[data-theme="black"] .sidebar-logout-card {
   border-top: 1px solid var(--border) !important;
@@ -779,8 +802,10 @@ img {
 :root[data-theme="black"] td {
   border-bottom: 1px solid var(--border-light) !important;
 }
+@media (hover: hover) and (pointer: fine) {
 :root[data-theme="black"] tr:hover td {
   background: #18181b !important;
+}
 }
 
 .btn-ghost {
@@ -788,25 +813,31 @@ img {
   color: var(--text-secondary);
   box-shadow: var(--shadow-sm);
 }
+@media (hover: hover) and (pointer: fine) {
 .btn-ghost:hover {
   box-shadow: var(--shadow);
   color: var(--text-primary);
+}
 }
 
 .btn-danger {
   background: var(--danger);
   color: white;
 }
+@media (hover: hover) and (pointer: fine) {
 .btn-danger:hover {
   background: #dc2626;
+}
 }
 
 .btn-success {
   background: var(--success);
   color: white;
 }
+@media (hover: hover) and (pointer: fine) {
 .btn-success:hover {
   background: #059669;
+}
 }
 
 .btn-sm {
@@ -1105,8 +1136,10 @@ tr:last-child td {
   border-bottom: none;
 }
 
+@media (hover: hover) and (pointer: fine) {
 tr:hover td {
   background: var(--surface-2);
+}
 }
 
 /* Responsive */
@@ -1300,6 +1333,7 @@ tr:hover td {
   .bundle-modal-box {
     height: auto !important;
     max-height: calc(100vh - 24px) !important;
+    max-height: calc(100dvh - 24px) !important;
     overflow-y: auto !important;
   }
 }
@@ -1472,10 +1506,12 @@ tr:hover td {
   box-shadow: 0 4px 12px rgba(54, 54, 232, 0.3);
 }
 
+@media (hover: hover) and (pointer: fine) {
 .dismiss-btn:hover {
   background: var(--primary-dark);
   transform: translateY(-2px);
   box-shadow: 0 6px 16px rgba(54, 54, 232, 0.4);
+}
 }
 
 .fade-out {
@@ -1861,9 +1897,11 @@ tr:hover td {
   transition: var(--transition);
 }
 
+@media (hover: hover) and (pointer: fine) {
 .sidebar-toggle-btn:hover {
   color: var(--primary);
   box-shadow: var(--shadow);
+}
 }
 
 .sidebar-toggle-btn:active {
@@ -2159,10 +2197,12 @@ tr:hover td {
   transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
 }
 
+@media (hover: hover) and (pointer: fine) {
 .login-explore-btn:hover {
   background: var(--primary-dark) !important;
   transform: translateY(-2px) scale(1.02) !important;
   box-shadow: 0 14px 32px rgba(35, 35, 71, 0.35) !important;
+}
 }
 
 .login-contact-developer {
@@ -2481,8 +2521,10 @@ tr:hover td {
   flex-shrink: 0 !important;
 }
 
+@media (hover: hover) and (pointer: fine) {
 .download-btn:hover {
   width: 142px !important;
+}
 }
 
 .download-btn-text {
@@ -2498,10 +2540,12 @@ tr:hover td {
   display: inline-block;
 }
 
+@media (hover: hover) and (pointer: fine) {
 .download-btn:hover .download-btn-text {
   max-width: 100px;
   opacity: 1;
   margin-left: 8px;
+}
 }
 
 /* Sliding shine / shimmer animation overlay */
@@ -2535,11 +2579,13 @@ tr:hover td {
   }
 }
 
+@media (hover: hover) and (pointer: fine) {
 /* Interactive Hover / Active States */
 .download-btn:hover {
   transform: translateY(-2px) scale(1.02) !important;
   box-shadow: 0 8px 20px rgba(37, 99, 235, 0.45), inset 0 1px 0 var(--neu-glow) !important;
   background: linear-gradient(135deg, #4f87ff 0%, #2563eb 50%, #1d4ed8 100%) !important;
+}
 }
 
 .download-btn:active {
@@ -2649,9 +2695,11 @@ tr:hover td {
     font-size: 13px !important;
   }
 
-  .download-btn:hover {
+  @media (hover: hover) and (pointer: fine) {
+.download-btn:hover {
     width: 40px !important;
   }
+}
 
   .dashboard-home-page .dashboard-stats-grid .stat-card > div:first-child {
     display: grid !important;
@@ -2718,75 +2766,101 @@ tr:hover td {
   box-shadow: none !important;
 }
 
+@media (hover: hover) and (pointer: fine) {
 /* Hover state for inactive links */
 .sidebar-link-item:not(.active):hover {
   background: rgba(255, 255, 255, 0.08) !important;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
 }
+}
 
+@media (hover: hover) and (pointer: fine) {
 .sidebar-link-item:not(.active):hover .sidebar-link-icon,
 .sidebar-link-item:not(.active):hover .sidebar-link-label {
   color: #ffffff !important;
+}
 }
 
 /* Lift icon and add spring-like scale animation */
 .sidebar-link-item .sidebar-link-icon {
   transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), color 0.2s ease !important;
 }
+@media (hover: hover) and (pointer: fine) {
 .sidebar-link-item:hover .sidebar-link-icon {
   transform: scale(1.08) !important;
+}
 }
 
 /* Slide label slightly to the right on hover (if expanded) */
 .sidebar-link-item .sidebar-link-label {
   transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.2s ease, width 0.2s ease !important;
 }
+@media (hover: hover) and (pointer: fine) {
 .sidebar-nav.desktop-expanded .sidebar-link-item:not(.active):hover .sidebar-link-label {
   transform: translateX(4px) !important;
+}
 }
 
 /* Bottom Controls Hover Effects */
 .sidebar-logout-btn {
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
 }
+@media (hover: hover) and (pointer: fine) {
 .sidebar-logout-btn:hover {
   background: rgba(239, 68, 68, 0.18) !important;
   box-shadow: 0 4px 12px rgba(239, 68, 68, 0.15) !important;
 }
+}
+@media (hover: hover) and (pointer: fine) {
 .sidebar-logout-btn:hover span {
   color: #ff6b6b !important;
 }
+}
+@media (hover: hover) and (pointer: fine) {
 .sidebar-logout-btn:hover svg {
   transform: scale(1.08) !important;
   transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+}
 }
 
 .sidebar-collapse-btn {
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
 }
+@media (hover: hover) and (pointer: fine) {
 .sidebar-collapse-btn:hover {
   background: rgba(255, 255, 255, 0.1) !important;
 }
+}
+@media (hover: hover) and (pointer: fine) {
 .sidebar-collapse-btn:hover span {
   color: #ffffff !important;
 }
+}
+@media (hover: hover) and (pointer: fine) {
 .sidebar-collapse-btn:hover svg {
   transform: translateX(-3px) !important;
   transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+}
 }
 
 .sidebar-expand-btn {
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
 }
+@media (hover: hover) and (pointer: fine) {
 .sidebar-expand-btn:hover {
   background: rgba(255, 255, 255, 0.1) !important;
 }
+}
+@media (hover: hover) and (pointer: fine) {
 .sidebar-expand-btn:hover span {
   color: #ffffff !important;
 }
+}
+@media (hover: hover) and (pointer: fine) {
 .sidebar-expand-btn:hover svg {
   transform: translateX(3px) !important;
   transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+}
 }
 
 @keyframes card-flip-spin {
@@ -2871,11 +2945,13 @@ tr:hover td {
     box-shadow: 2px 2px 5px var(--neu-dark, rgba(0,0,0,0.05)), -2px -2px 5px var(--neu-light, rgba(255,255,255,0.05));
   }
 
-  .desktop-back-btn:hover {
+  @media (hover: hover) and (pointer: fine) {
+.desktop-back-btn:hover {
     color: var(--accent);
     border-color: var(--accent);
     transform: translateY(-1px);
   }
+}
 
   .desktop-header-info {
     display: flex;
@@ -2943,9 +3019,11 @@ tr:hover td {
     background: var(--border);
     border-radius: 10px;
   }
-  .desktop-right-panel::-webkit-scrollbar-thumb:hover {
+  @media (hover: hover) and (pointer: fine) {
+.desktop-right-panel::-webkit-scrollbar-thumb:hover {
     background: var(--text-muted);
   }
+}
 
   /* Next Lectures Header Row */
   .next-lectures-header-row {
@@ -2976,10 +3054,12 @@ tr:hover td {
     transition: all 0.2s ease;
   }
 
-  .next-lecture-btn:hover {
+  @media (hover: hover) and (pointer: fine) {
+.next-lecture-btn:hover {
     background: var(--accent);
     color: #fff;
   }
+}
 
   /* Topics & Content items inside Next Lectures */
   .desktop-topics-list {
@@ -3012,9 +3092,11 @@ tr:hover td {
     transition: background 0.2s ease;
   }
 
-  .desktop-topic-header:hover {
+  @media (hover: hover) and (pointer: fine) {
+.desktop-topic-header:hover {
     background: var(--border);
   }
+}
 
   .desktop-topic-title-container {
     display: flex;
@@ -3061,9 +3143,11 @@ tr:hover td {
     min-width: 0;
   }
 
-  .desktop-content-row:hover {
+  @media (hover: hover) and (pointer: fine) {
+.desktop-content-row:hover {
     background: var(--surface-2);
   }
+}
 
   .desktop-content-row.content-active {
     background: rgba(99, 102, 241, 0.08); /* slight accent tint */
@@ -3142,11 +3226,13 @@ tr:hover td {
     margin-top: 8px;
   }
 
-  .desktop-load-more-btn:hover {
+  @media (hover: hover) and (pointer: fine) {
+.desktop-load-more-btn:hover {
     background: var(--surface-2);
     border-color: var(--text-muted);
     color: var(--text-primary);
   }
+}
 
   /* Section headers inside left column */
   .desktop-section-card {
@@ -3258,9 +3344,11 @@ tr:hover td {
     font-weight: 500;
     text-align: left;
   }
-  .source-info-tooltip-wrapper:hover .source-info-tooltip {
+  @media (hover: hover) and (pointer: fine) {
+.source-info-tooltip-wrapper:hover .source-info-tooltip {
     display: block;
   }
+}
 }
 
 /* Hide scrollbar utility */
@@ -3279,7 +3367,9 @@ tr:hover td {
   border: 1px solid color-mix(in srgb, var(--text-primary) 12%, transparent);
   transition: border-color 0.15s ease, background 0.15s ease;
 }
+@media (hover: hover) and (pointer: fine) {
 .st-ticket:hover { border-color: color-mix(in srgb, var(--text-primary) 30%, transparent); }
+}
 .st-ticket--active,
 .st-ticket--active:hover {
   border-color: var(--primary);
@@ -3291,7 +3381,9 @@ tr:hover td {
 }
 .st-composer:focus-within { border-color: var(--primary); }
 .st-icon-btn { transition: background 0.15s ease; }
+@media (hover: hover) and (pointer: fine) {
 .st-icon-btn:hover:not(:disabled) { background: color-mix(in srgb, var(--text-primary) 8%, transparent) !important; }
+}
 
 /* Homework submit — upload progress & success animation */
 @keyframes hw-fade { from { opacity: 0; } to { opacity: 1; } }
@@ -3327,3 +3419,32 @@ tr:hover td {
   .hw-success__ring, .hw-success__check { animation: none; stroke-dashoffset: 0; }
   .hw-bar--indeterminate .hw-bar__fill { animation: none; width: 100% !important; opacity: 0.6; }
 }
+
+
+/* ===== Mobile-native baseline =====
+   - no grey tap flash; press feedback comes from :active
+   - tap fires immediately (no double-tap-zoom wait)
+   - inputs >= 16px on touch so iOS Safari does not zoom the page on focus
+   - controls (not content) are not selectable on long-press
+   - root does not rubber-band / pull-to-refresh; inner scrollers contain overscroll */
+html {
+  -webkit-tap-highlight-color: transparent;
+  -webkit-text-size-adjust: 100%;
+  overscroll-behavior: none;
+}
+body { overscroll-behavior: none; }
+.dashboard-scroll-region { overscroll-behavior-y: contain; }
+
+button, a, [role="button"], summary, label[for], select {
+  touch-action: manipulation;
+}
+button, [role="button"], .tab, .chip, .tab-btn, .btn {
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+}
+@media (pointer: coarse) {
+  input, textarea, select,
+  .form-input, .search-input { font-size: 16px; }
+}
+button:active:not(:disabled), [role="button"]:active { transition-duration: 100ms; }

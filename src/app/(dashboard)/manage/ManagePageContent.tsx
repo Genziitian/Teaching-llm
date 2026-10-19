@@ -2438,10 +2438,12 @@ export function ManagePageInner({ forcedTab }: ManagePageInnerProps = {}) {
               flex-direction: column;
               gap: 20px;
             }
-            .notif-glow-card:hover {
+            @media (hover: hover) and (pointer: fine) {
+.notif-glow-card:hover {
               box-shadow: 0 20px 40px rgba(99, 102, 241, 0.06);
               border-color: rgba(99, 102, 241, 0.2);
             }
+}
             .section-title {
               font-size: 18px;
               font-weight: 800;
@@ -2662,11 +2664,13 @@ export function ManagePageInner({ forcedTab }: ManagePageInnerProps = {}) {
               flex-direction: column;
               gap: 12px;
             }
-            .history-item-card:hover {
+            @media (hover: hover) and (pointer: fine) {
+.history-item-card:hover {
               transform: translateX(3px);
               box-shadow: 0 8px 20px rgba(99, 102, 241, 0.04);
               border-color: rgba(99, 102, 241, 0.1);
             }
+}
           `}} />
 
           {/* Quick Metrics Bar */}
@@ -3855,7 +3859,7 @@ export function ManagePageInner({ forcedTab }: ManagePageInnerProps = {}) {
                   transition: 'box-shadow 0.2s',
                   width: '100%',
                 }}
-                onMouseEnter={e => (e.currentTarget.style.boxShadow = '6px 6px 12px var(--neu-dark), -6px -6px 12px var(--neu-light)')}
+                onMouseEnter={e => canHover() && (e.currentTarget.style.boxShadow = '6px 6px 12px var(--neu-dark), -6px -6px 12px var(--neu-light)')}
                 onMouseLeave={e => (e.currentTarget.style.boxShadow = '4px 4px 8px var(--neu-dark), -4px -4px 8px var(--neu-light)')}
                 >
                   {/* Icon badge */}
@@ -4139,6 +4143,7 @@ export function ManagePageInner({ forcedTab }: ManagePageInnerProps = {}) {
                         background: 'var(--surface-2)',
                       }}
                       onMouseEnter={e => {
+                        if (!canHover()) return
                         e.currentTarget.style.transform = 'translateY(-2px)'
                         e.currentTarget.style.borderColor = 'var(--accent)'
                         e.currentTarget.style.boxShadow = '0 10px 15px rgba(99, 102, 241, 0.15)'
@@ -4501,10 +4506,14 @@ function CourseIconTypeModal({
   )
 }
 
+// hover effects only for real pointers; touch would leave them stuck after a tap
+const canHover = () =>
+  typeof window !== 'undefined' && window.matchMedia('(hover: hover) and (pointer: fine)').matches
+
 export default function ManagePage() {
   return (
     <Suspense fallback={
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', color: 'var(--accent)' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100dvh', color: 'var(--accent)' }}>
         <div className="animate-spin" style={{ width: '32px', height: '32px', borderRadius: '50%', border: '3px solid var(--border)', borderTopColor: 'var(--accent)' }} />
       </div>
     }>

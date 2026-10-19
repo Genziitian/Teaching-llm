@@ -461,7 +461,7 @@ export default function ExploreCoursesPage() {
   const activeBundles = bundleOfferings || []
 
   // Dynamic Level Tabs for Courses & Bundles
-  const visibleCategories = ['Re-attempt', 'Foundation', 'Diploma', 'General'].filter(cat => {
+  const visibleCategories = ['Re-attempt', 'Foundation', 'Qualifier', 'Diploma', 'General'].filter(cat => {
     const hasOfferings = activeOfferings.some((o: any) => (o.category || 'General') === cat)
     const hasBundles = activeBundles.some((b: any) => (b.category || 'General') === cat)
     return hasOfferings || hasBundles
@@ -475,7 +475,7 @@ export default function ExploreCoursesPage() {
 
   // Dynamic Level and Subject Tabs for Store Notes
   const activeNotes = storeNotesData?.notes || []
-  const visibleNotesCategories = ['Re-attempt', 'Foundation', 'Diploma', 'General'].filter(cat => {
+  const visibleNotesCategories = ['Re-attempt', 'Foundation', 'Qualifier', 'Diploma', 'General'].filter(cat => {
     return activeNotes.some((n: any) => (n.category || 'General') === cat)
   })
   const currentNotesTab = visibleNotesCategories.includes(selectedNotesTab)
@@ -815,16 +815,15 @@ export default function ExploreCoursesPage() {
         </div>
       )}
 
-      {/* BACK BUTTON when inside a view */}
+      {/* BACK (text only) when inside a view */}
       {storeView && (
-        <button className="desktop-back-btn" onClick={() => {
+        <button onClick={() => {
           setStoreView(null)
           setSelectedStoreTab('')
           setSelectedNotesTab('')
           setSelectedNotesSubjectTab('')
-        }} style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: 'transparent', border: 'none', color: 'var(--text-secondary)', fontSize: '14px', fontWeight: '700', cursor: 'pointer', marginBottom: '20px', padding: '8px 0' }}>
-          <ArrowLeft size={20} />
-          Back to Store
+        }} style={{ display: 'inline-block', background: 'transparent', border: 'none', boxShadow: 'none', color: 'var(--accent)', fontSize: '17px', fontWeight: 500, cursor: 'pointer', marginBottom: '16px', padding: '6px 0' }}>
+          Back
         </button>
       )}
 
@@ -859,7 +858,7 @@ export default function ExploreCoursesPage() {
         <div style={{ padding: '20px 0' }}>
           <h2 style={{ fontSize: '28px', fontWeight: 800, letterSpacing: '-0.6px', textAlign: 'center', marginBottom: '6px' }}>Select Level</h2>
           <p style={{ fontSize: '15px', color: 'var(--text-secondary)', textAlign: 'center', marginBottom: '32px' }}>Choose a level to explore available courses</p>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(260px, 100%), 1fr))', gap: '14px', maxWidth: '860px', margin: '0 auto' }}>
+          <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '18px', maxWidth: '980px', margin: '0 auto' }}>
             {visibleCategories.map(cat => {
               const courseCount = activeOfferings.filter((o: any) => (o.category || 'General') === cat).length;
               const bundleCount = activeBundles.filter((b: any) => (b.category || 'General') === cat).length;
@@ -869,11 +868,14 @@ export default function ExploreCoursesPage() {
                   onClick={() => setSelectedStoreTab(cat)}
                   style={{
                     background: 'var(--surface)',
-                    borderRadius: '22px',
-                    padding: '16px 18px',
+                    borderRadius: '28px',
+                    padding: '28px 28px',
+                    flex: '1 1 320px',
+                    maxWidth: '440px',
+                    minWidth: 0,
                     display: 'flex',
                     alignItems: 'center',
-                    gap: '14px',
+                    gap: '18px',
                     textAlign: 'left',
                     cursor: 'pointer',
                     boxShadow: '0 1px 2px rgba(0,0,0,0.04), 0 6px 18px rgba(0,0,0,0.04)',
@@ -889,18 +891,18 @@ export default function ExploreCoursesPage() {
                     e.currentTarget.style.boxShadow = '0 1px 2px rgba(0,0,0,0.04), 0 6px 18px rgba(0,0,0,0.04)';
                   }}
                 >
-                  <div style={{ width: '46px', height: '46px', borderRadius: '14px', background: 'var(--surface-hover)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, color: 'var(--text-secondary)' }}>
-                    <BookOpen size={22} strokeWidth={2.2} />
+                  <div style={{ width: '60px', height: '60px', borderRadius: '18px', background: 'var(--surface-hover)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, color: 'var(--text-secondary)' }}>
+                    <BookOpen size={28} strokeWidth={2.1} />
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <h3 style={{ fontSize: '17px', fontWeight: 700, letterSpacing: '-0.3px', color: 'var(--text-primary)', margin: '0 0 2px' }}>{cat}</h3>
-                    <p style={{ fontSize: '13px', color: 'var(--text-secondary)', fontWeight: 500, margin: 0 }}>
+                    <h3 style={{ fontSize: '22px', fontWeight: 800, letterSpacing: '-0.4px', color: 'var(--text-primary)', margin: '0 0 4px' }}>{cat}</h3>
+                    <p style={{ fontSize: '15px', color: 'var(--text-secondary)', fontWeight: 500, margin: 0 }}>
                       {courseCount > 0 && `${courseCount} Course${courseCount > 1 ? 's' : ''}`}
                       {courseCount > 0 && bundleCount > 0 && ' · '}
                       {bundleCount > 0 && `${bundleCount} Bundle${bundleCount > 1 ? 's' : ''}`}
                     </p>
                   </div>
-                  <ChevronRight size={18} strokeWidth={2.4} color="var(--text-muted)" />
+                  <ChevronRight size={22} strokeWidth={2.4} color="var(--text-muted)" />
                 </div>
               );
             })}
@@ -1090,9 +1092,8 @@ export default function ExploreCoursesPage() {
       {/* Category options selection screen for Notes */}
       {storeView === 'notes' && !selectedNotesTab && visibleNotesCategories.length > 0 && (
         <div style={{ padding: '20px 0' }}>
-          <h2 style={{ fontSize: '28px', fontWeight: 800, letterSpacing: '-0.6px', textAlign: 'center', marginBottom: '6px' }}>Select Level</h2>
-          <p style={{ fontSize: '15px', color: 'var(--text-secondary)', textAlign: 'center', marginBottom: '32px' }}>Choose a level to explore available study notes</p>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(260px, 100%), 1fr))', gap: '14px', maxWidth: '860px', margin: '0 auto' }}>
+          
+          <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '18px', maxWidth: '980px', margin: '0 auto' }}>
             {visibleNotesCategories.map(cat => {
               const notesCount = activeNotes.filter((n: any) => (n.category || 'General') === cat).length;
               return (
@@ -1101,11 +1102,14 @@ export default function ExploreCoursesPage() {
                   onClick={() => setSelectedNotesTab(cat)}
                   style={{
                     background: 'var(--surface)',
-                    borderRadius: '22px',
-                    padding: '16px 18px',
+                    borderRadius: '28px',
+                    padding: '28px 28px',
+                    flex: '1 1 320px',
+                    maxWidth: '440px',
+                    minWidth: 0,
                     display: 'flex',
                     alignItems: 'center',
-                    gap: '14px',
+                    gap: '18px',
                     textAlign: 'left',
                     cursor: 'pointer',
                     boxShadow: '0 1px 2px rgba(0,0,0,0.04), 0 6px 18px rgba(0,0,0,0.04)',
@@ -1121,51 +1125,20 @@ export default function ExploreCoursesPage() {
                     e.currentTarget.style.boxShadow = '0 1px 2px rgba(0,0,0,0.04), 0 6px 18px rgba(0,0,0,0.04)';
                   }}
                 >
-                  <div style={{ width: '46px', height: '46px', borderRadius: '14px', background: 'var(--surface-hover)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, color: 'var(--text-secondary)' }}>
-                    <FileText size={22} strokeWidth={2.2} />
+                  <div style={{ width: '60px', height: '60px', borderRadius: '18px', background: 'var(--surface-hover)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, color: 'var(--text-secondary)' }}>
+                    <FileText size={28} strokeWidth={2.1} />
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <h3 style={{ fontSize: '17px', fontWeight: 700, letterSpacing: '-0.3px', color: 'var(--text-primary)', margin: '0 0 2px' }}>{cat}</h3>
-                    <p style={{ fontSize: '13px', color: 'var(--text-secondary)', fontWeight: 500, margin: 0 }}>
+                    <h3 style={{ fontSize: '22px', fontWeight: 800, letterSpacing: '-0.4px', color: 'var(--text-primary)', margin: '0 0 4px' }}>{cat}</h3>
+                    <p style={{ fontSize: '15px', color: 'var(--text-secondary)', fontWeight: 500, margin: 0 }}>
                       {notesCount > 0 ? `${notesCount} Note${notesCount > 1 ? 's' : ''}` : 'No notes'}
                     </p>
                   </div>
-                  <ChevronRight size={18} strokeWidth={2.4} color="var(--text-muted)" />
+                  <ChevronRight size={22} strokeWidth={2.4} color="var(--text-muted)" />
                 </div>
               );
             })}
           </div>
-        </div>
-      )}
-
-      {/* Selected category header with Change Category button for Notes */}
-      {storeView === 'notes' && selectedNotesTab && (
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px', flexWrap: 'wrap', gap: '12px' }}>
-          <h2 style={{ fontSize: '22px', fontWeight: '900', color: 'var(--text-primary)' }}>{selectedNotesTab} Level Notes</h2>
-          <button
-            onClick={() => {
-              setSelectedNotesTab('');
-              setSelectedNotesSubjectTab('');
-            }}
-            style={{
-              padding: '8px 16px',
-              borderRadius: '12px',
-              border: '1.5px solid var(--border)',
-              background: 'var(--surface)',
-              color: 'var(--text-secondary)',
-              fontSize: '13.5px',
-              fontWeight: '700',
-              cursor: 'pointer',
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '6px',
-              transition: 'all 0.2s'
-            }}
-            onMouseEnter={e => e.currentTarget.style.background = 'var(--surface-hover)'}
-            onMouseLeave={e => e.currentTarget.style.background = 'var(--surface)'}
-          >
-            Change Category
-          </button>
         </div>
       )}
 
@@ -1216,7 +1189,7 @@ export default function ExploreCoursesPage() {
       {/* Notes section */}
       {storeView === 'notes' && selectedNotesTab && filteredNotes.length > 0 && (
         <div style={{ marginBottom: '18px' }}>
-          <h2 style={{ fontSize: '20px', fontWeight: '900', color: 'var(--text-primary)', margin: '6px 0 12px' }}>Study Notes</h2>
+          
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(300px, 100%), 1fr))', gap: '14px', paddingBottom: '8px' }}>
             {filteredNotes.map((n: any) => {
               const currentUserId = userData?.user?.id
@@ -1227,13 +1200,13 @@ export default function ExploreCoursesPage() {
               return (
                 <div key={n.id} style={{ background: 'var(--surface)', borderRadius: '24px', padding: '20px', border: '0.5px solid var(--border)', boxShadow: '0 1px 2px rgba(0,0,0,0.04), 0 8px 24px rgba(0,0,0,0.05)', display: 'flex', flexDirection: 'column' }}>
                   <div style={{ fontSize: '18px', fontWeight: 800, letterSpacing: '-0.3px', marginBottom: '6px' }}>{n.title}</div>
-                  {n.description && <div style={{ fontSize: '13px', color: 'var(--text-secondary)', marginBottom: '12px' }}>{n.description}</div>}
+                  <div style={{ fontSize: '13px', color: 'var(--text-secondary)', marginBottom: '12px', minHeight: '40px', lineHeight: '20px', overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>{n.description || ''}</div>
                   <div style={{ display: 'flex', gap: '8px', marginBottom: '12px', alignItems: 'center' }}>
                     <div style={{ fontWeight: '800', color: n.price > 0 ? 'var(--text-primary)' : 'var(--success)' }}>{n.price > 0 ? `₹${n.price}` : 'Free'}</div>
                     <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>· {n.validityDays} days access</div>
                     {isExpired && <div style={{ fontSize: '12px', fontWeight: '800', color: 'var(--danger)' }}>Expired</div>}
                   </div>
-                  <div style={{ display: 'flex', gap: '8px' }}>
+                  <div style={{ display: 'flex', gap: '8px', marginTop: 'auto' }}>
                     <button
                       onClick={() => {
                         if (hasAccess) {
@@ -1244,7 +1217,10 @@ export default function ExploreCoursesPage() {
                       }}
                       style={{
                         flex: 1,
-                        padding: '11px 12px',
+                        height: '44px',
+                        padding: '0 10px',
+                        whiteSpace: 'nowrap',
+                        fontSize: '14px',
                         borderRadius: '13px',
                         background: hasAccess ? 'var(--success)' : isExpired ? 'var(--warning, #ff9f0a)' : 'var(--accent)',
                         color: '#fff',
@@ -1253,11 +1229,11 @@ export default function ExploreCoursesPage() {
                         cursor: 'pointer'
                       }}
                     >
-                      {hasAccess ? 'Access Notes' : isExpired ? 'Restore now' : 'Buy now'}
+                      {hasAccess ? 'Open' : isExpired ? 'Restore' : 'Buy now'}
                     </button>
                     <button
                       onClick={() => setDetailNote(n)}
-                      style={{ padding: '11px 16px', borderRadius: '13px', background: 'var(--surface-hover)', border: 'none', color: 'var(--text-primary)', fontWeight: 600, fontSize: '14px', cursor: 'pointer' }}
+                      style={{ flex: 1, height: '44px', padding: '0 10px', whiteSpace: 'nowrap', borderRadius: '13px', background: 'var(--surface-hover)', border: 'none', color: 'var(--text-primary)', fontWeight: 600, fontSize: '14px', cursor: 'pointer' }}
                     >
                       Details
                     </button>
@@ -1286,7 +1262,7 @@ export default function ExploreCoursesPage() {
                           if (linkEl) linkEl.value = n.files?.[0]?.fileUrl || ''
                           if (priceEl) priceEl.value = n.price
                         }, 100)
-                      }} style={{ padding: '11px 14px', borderRadius: '13px', background: 'var(--surface-hover)', border: 'none', color: 'var(--text-secondary)', fontWeight: 600, fontSize: '14px', cursor: 'pointer' }}>Edit</button>
+                      }} style={{ flex: 1, height: '44px', padding: '0 10px', whiteSpace: 'nowrap', borderRadius: '13px', background: 'var(--surface-hover)', border: 'none', color: 'var(--text-secondary)', fontWeight: 600, fontSize: '14px', cursor: 'pointer' }}>Edit</button>
                       <button onClick={async () => {
                         if (!confirm(`Delete note "${n.title}"?`)) return
                         try {
@@ -1294,7 +1270,7 @@ export default function ExploreCoursesPage() {
                           if (res.ok) window.location.reload()
                           else alert('Failed to delete')
                         } catch { alert('Failed to delete') }
-                      }} style={{ padding: '11px 13px', borderRadius: '13px', background: 'var(--danger-light)', border: 'none', color: 'var(--danger)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}><Trash2 size={16} /></button>
+                      }} style={{ width: '44px', height: '44px', flexShrink: 0, borderRadius: '13px', background: 'var(--danger-light)', border: 'none', color: 'var(--danger)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}><Trash2 size={16} /></button>
                     </>
                   )}
                 </div>
@@ -2330,14 +2306,13 @@ export default function ExploreCoursesPage() {
                     }
 
                     return (
-                      <div style={{ padding: '14px 18px', borderRadius: '16px', background: 'linear-gradient(135deg, var(--border), var(--border))', marginBottom: '16px', border: '1px solid #f59e0b' }}>
+                      <div style={{ padding: '14px 18px', borderRadius: '16px', background: 'var(--surface-hover)', marginBottom: '16px', border: 'none' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-                          <span style={{ fontSize: '18px' }}>🏷️</span>
-                          <span style={{ fontSize: '14px', fontWeight: '900', color: 'var(--warning)' }}>
+                          <span style={{ fontSize: '15px', fontWeight: 700, color: 'var(--accent)' }}>
                             {activeBundle.bundleDiscountType === 'PERCENTAGE' ? `Bundle Offer: ${activeBundle.bundleDiscountValue}% OFF` : `Bundle Offer: ₹${activeBundle.bundleDiscountValue} OFF`}
                           </span>
                         </div>
-                        <div style={{ fontSize: '12px', color: 'var(--warning)', fontWeight: '600', paddingLeft: '28px' }}>
+                        <div style={{ fontSize: '13px', color: 'var(--text-secondary)', fontWeight: 500 }}>
                           {subtitle}
                         </div>
                       </div>
@@ -2571,7 +2546,7 @@ export default function ExploreCoursesPage() {
                               return (
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', padding: '10px 14px', borderRadius: '12px', background: 'var(--success-light)', border: '1px solid #dcfce7' }}>
                                   <div>
-                                    <div style={{ fontSize: '13px', color: 'var(--success)', fontWeight: '900' }}>🏷️ Bundle Discount</div>
+                                    <div style={{ fontSize: '13px', color: 'var(--success)', fontWeight: '900' }}>Bundle Discount</div>
                                     <div style={{ fontSize: '10px', color: 'var(--success)', fontWeight: '700', marginTop: '2px' }}>Applies to: {applicabilityLabel}</div>
                                   </div>
                                   <span style={{ fontSize: '13px', fontWeight: '950', color: 'var(--success)' }}>-₹{bundleDiscountAmt}</span>
@@ -2864,6 +2839,7 @@ export default function ExploreCoursesPage() {
                     <option value="">Choose a category...</option>
                     <option value="Re-attempt">Re-attempt</option>
                     <option value="Foundation">Foundation</option>
+                    <option value="Qualifier">Qualifier</option>
                     <option value="Diploma">Diploma</option>
                     <option value="General">General</option>
                   </select>
@@ -3428,6 +3404,7 @@ export default function ExploreCoursesPage() {
                   >
                     <option value="Re-attempt">Re-attempt</option>
                     <option value="Foundation">Foundation</option>
+                    <option value="Qualifier">Qualifier</option>
                     <option value="Diploma">Diploma</option>
                     <option value="General">General</option>
                   </select>
@@ -3621,6 +3598,7 @@ export default function ExploreCoursesPage() {
               >
                 <option value="Re-attempt">Re-attempt</option>
                 <option value="Foundation">Foundation</option>
+                <option value="Qualifier">Qualifier</option>
                 <option value="Diploma">Diploma</option>
                 <option value="General">General</option>
               </select>
@@ -3829,7 +3807,7 @@ export default function ExploreCoursesPage() {
             <div style={{ marginBottom: '24px', padding: '16px', borderRadius: '12px', background: 'var(--warning-light)', border: '1px solid var(--border)' }}>
               <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer', marginBottom: editBundleData.enableBundleDiscount ? '14px' : 0 }}>
                 <div>
-                  <div style={{ fontSize: '14px', fontWeight: '700', color: 'var(--warning)' }}>🏷️ Bundle Discount</div>
+                  <div style={{ fontSize: '14px', fontWeight: '700', color: 'var(--text-primary)' }}>Bundle Discount</div>
                   <div style={{ fontSize: '12px', color: '#a16207', marginTop: '2px' }}>Apply a discount when users buy from this bundle</div>
                 </div>
                 <input type="checkbox" checked={!!editBundleData.enableBundleDiscount} onChange={e => setEditBundleData({ ...editBundleData, enableBundleDiscount: e.target.checked })} style={{ width: '18px', height: '18px', accentColor: 'var(--warning)' }} />
@@ -4058,6 +4036,7 @@ export default function ExploreCoursesPage() {
                 <option value="">Select Category...</option>
                 <option value="Re-attempt">Re-attempt</option>
                 <option value="Foundation">Foundation</option>
+                <option value="Qualifier">Qualifier</option>
                 <option value="Diploma">Diploma</option>
                 <option value="General">General</option>
               </select>
@@ -4209,7 +4188,7 @@ export default function ExploreCoursesPage() {
               <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', marginBottom: bundleEnableBundleDiscount ? '16px' : '0' }}>
                 <input type="checkbox" checked={bundleEnableBundleDiscount} onChange={e => setBundleEnableBundleDiscount(e.target.checked)} style={{ width: '18px', height: '18px', accentColor: 'var(--warning)' }} />
                 <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: '14px', fontWeight: '700', color: 'var(--warning)' }}>🏷️ Enable Bundle Discount</div>
+                  <div style={{ fontSize: '14px', fontWeight: '700', color: 'var(--text-primary)' }}>Enable Bundle Discount</div>
                   <div style={{ fontSize: '12px', color: 'var(--warning)' }}>Extra discount applied on top of course prices</div>
                 </div>
               </label>
@@ -4449,6 +4428,7 @@ export default function ExploreCoursesPage() {
               >
                 <option value="Re-attempt">Re-attempt</option>
                 <option value="Foundation">Foundation</option>
+                <option value="Qualifier">Qualifier</option>
                 <option value="Diploma">Diploma</option>
                 <option value="General">General</option>
               </select>
@@ -4552,7 +4532,10 @@ export default function ExploreCoursesPage() {
                       })
                     })
                     if (res.ok) { window.location.reload() }
-                    else { alert(editingNote ? 'Failed to update notes' : 'Failed to add notes') }
+                    else {
+                      const err = await res.json().catch(() => ({}))
+                      alert(`${editingNote ? 'Failed to update notes' : 'Failed to add notes'}${err?.error ? `: ${err.error}` : ` (${res.status})`}`)
+                    }
                   } catch { alert('Error saving notes') }
                   finally { setCreating(false) }
                 }}

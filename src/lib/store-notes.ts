@@ -27,11 +27,12 @@ export function buildNoteRules(validityDays: number, extraRules?: string | null)
   const days = Math.max(1, Math.round(validityDays || 90))
   return [
     `You can use this for ${days} days, starting from your purchase date.`,
-    `You can access it anywhere \u2014 on the website too (${SITE_HOST}).`,
-    'You can download it in your app once purchased, and read it offline until it expires.',
+    `You can access it anywhere \u2014 on the website (${SITE_HOST}) and in the app too.`,
+    'You can download it anywhere, on the app or on the website.',
     'When access expires, the paper is removed from your downloads and shown as Expired.',
     'You can restore an expired paper any time by paying again \u2014 a fresh validity period starts from the new purchase date.',
     'This is for your personal use only. Sharing or reselling it is not allowed.',
+    'By buying, you accept our Terms & Conditions and our Refund / Return Policy.',
     ...splitLines(extraRules),
   ]
 }

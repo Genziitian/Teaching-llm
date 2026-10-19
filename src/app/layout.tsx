@@ -118,9 +118,8 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
-  maximumScale: 1,
-  userScalable: false,
   viewportFit: 'cover',
+  themeColor: '#e8eaf0', // fallback; inline script in <head> updates it per theme
 }
 
 import SWRProvider from '@/components/SWRProvider'
