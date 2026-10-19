@@ -66,14 +66,14 @@ class LoginPage extends ConsumerWidget {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
-                            const SizedBox(height: 20),
+                            const SizedBox(height: 64),
 
                             // 1. Header: Brand Logo
                             Center(
                               child: _BrandLogo(isDark: isDark),
                             ),
 
-                            const Spacer(flex: 3),
+                            const Spacer(flex: 2),
 
                             // 2. Center Content: Welcome & Sign In
                             Text(

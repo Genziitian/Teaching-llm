@@ -118,7 +118,7 @@ export const MASTER_QUERIES: Omit<PlatformQuery, 'id'>[] = [
       `The core learning experience is 100% synchronized across both App and Web:\n\n` +
       `• Google OAuth & JWT Authentication (single account works anywhere).\n` +
       `• Course Curriculum & Video Player (YouTube embed with anti-scraping overlay).\n` +
-      `• PDF Study Material Viewer (inline viewing of notes and formula sheets).\n` +
+      `• Study materials: website downloads; the mobile app can view downloaded PDFs in-app. The website has no PDF preview.\n` +
       `• Live Classes (Agora RTC interactive video/audio with real-time room entry).\n` +
       `• Community Chat (Server-Sent Events SSE real-time messaging with attachment sharing).\n` +
       `• Push Notifications (FCM for native mobile, VAPID Web Push for desktop/browsers).\n` +

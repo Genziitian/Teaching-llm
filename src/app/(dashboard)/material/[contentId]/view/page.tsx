@@ -1,7 +1,7 @@
 import { notFound, redirect } from 'next/navigation'
 import { getSession, isAdminOrManager, isStudentEnrolledInContent } from '@/lib/auth'
 import { prisma } from '@/lib/db'
-import MaterialViewerClient from '@/components/pdf/MaterialViewerClient'
+import MaterialDownloadPage from '@/components/materials/MaterialDownloadPage'
 
 export const dynamic = 'force-dynamic'
 
@@ -44,16 +44,9 @@ export default async function MaterialViewPage({ params }: PageProps) {
   }
 
   return (
-    <MaterialViewerClient
-      contentId={content.id}
-      contentType="LECTURE_NOTE"
+    <MaterialDownloadPage
       downloadUrl={`/api/drive-doc/${content.id}`}
-      fallbackUrl={content.pptUrl}
       title={content.title}
-      courseId={content.topic?.courseId}
-      courseName={content.topic?.course?.name || 'Lecture Notes'}
-      watermarkEmail={session.email}
-      userId={session.userId}
       backHref={content.topic?.courseId ? `/courses/${content.topic.courseId}` : '/courses'}
     />
   )

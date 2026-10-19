@@ -390,19 +390,6 @@ class _HomeGreeting extends ConsumerWidget {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
-                const SizedBox(height: 2),
-                Text(
-                  'Take a moment to relax and review your progress.',
-                  maxLines: 2,
-                  softWrap: true,
-                  style: TextStyle(
-                    fontSize: 12,
-                    height: 1.3,
-                    color: isDark
-                        ? const Color(0xFF94A3B8)
-                        : const Color(0xFF64748B),
-                  ),
-                ),
               ],
             ),
           ),

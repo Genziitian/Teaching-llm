@@ -366,8 +366,7 @@ export default function RecordingsPage() {
               <div style={{ display: 'flex', gap: '8px', flexShrink: 0 }}>
                 {lec.pptUrl && (
                   <a
-                    href={lec.pptUrl}
-                    download={lec.pptUrl.startsWith('/api/files/materials/') ? true : undefined}
+                    href={lec.pptUrl.startsWith('/api/files/materials/') ? lec.pptUrl : `/api/drive-doc/${lec.id}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="btn btn-ghost btn-sm"

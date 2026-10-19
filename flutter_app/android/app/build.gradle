@@ -15,7 +15,7 @@ if (keystorePropertiesFile.exists()) {
 android {
     namespace "com.teaching.lms"
     compileSdk 36
-    ndkVersion "26.1.10909125"
+    // ndkVersion "26.1.10909125"
 
     compileOptions {
         coreLibraryDesugaringEnabled true
@@ -29,7 +29,7 @@ android {
 
     defaultConfig {
         applicationId "com.teaching.lms"
-        minSdk 23
+        minSdkVersion flutter.minSdkVersion
         targetSdk 36
         versionCode flutter.versionCode
         versionName flutter.versionName
@@ -49,10 +49,16 @@ android {
             minifyEnabled true
             shrinkResources true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-            ndk {
-                debugSymbolLevel 'FULL'
-            }
+            // ndk {
+            //     debugSymbolLevel 'FULL'
+            // }
             signingConfig = (keystorePropertiesFile.exists() && keystoreProperties['storeFile']) ? signingConfigs.release : signingConfigs.debug
+        }
+    }
+
+    packagingOptions {
+        jniLibs {
+            keepDebugSymbols += '**/*.so'
         }
     }
 }

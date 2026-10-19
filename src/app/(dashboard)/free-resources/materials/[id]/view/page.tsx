@@ -1,7 +1,7 @@
 import { redirect, notFound } from 'next/navigation'
 import { getSession } from '@/lib/auth'
 import { prisma } from '@/lib/db'
-import MaterialViewerClient from '@/components/pdf/MaterialViewerClient'
+import MaterialDownloadPage from '@/components/materials/MaterialDownloadPage'
 
 interface PageProps {
   params: Promise<{ id: string }>
@@ -31,16 +31,9 @@ export default async function MaterialViewPage({ params }: PageProps) {
   if (!material) return notFound()
 
   return (
-    <MaterialViewerClient
-      contentId={material.id}
-      contentType="STUDY_MATERIAL"
+    <MaterialDownloadPage
       downloadUrl={`/api/drive-material/${material.id}`}
-      fallbackUrl={material.fileUrl}
       title={material.title}
-      courseId={material.courseId}
-      courseName={material.course?.name || 'Free Resources'}
-      watermarkEmail={session.email}
-      userId={session.userId}
       backHref="/free-resources/materials"
     />
   )

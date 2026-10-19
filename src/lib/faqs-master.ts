@@ -86,7 +86,7 @@ export const MASTER_FAQS: MasterFaq[] = [
   {
     question: 'Do you provide offline access to videos and materials?',
     answer:
-      'Due to copyright protection, lecture videos stream online. However, course PDFs, formula sheets, notes, and study materials can be downloaded for offline viewing directly inside the app and web.',
+      'Due to copyright protection, lecture videos stream online. Course PDFs, formula sheets, notes, and study materials can be downloaded on the website. The mobile app can also open downloaded PDFs for offline reading; the website does not preview PDFs.',
     order: 13,
   },
   {

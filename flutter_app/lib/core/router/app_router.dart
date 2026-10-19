@@ -28,6 +28,7 @@ import '../../features/info/in_app_doc_page.dart';
 import '../../features/info/no_internet_page.dart';
 import '../../features/lecture/material_page.dart' as lecture_material;
 import '../../features/lecture/watch_page.dart';
+import '../../features/lecture/linked_lecture_page.dart';
 import '../../features/live/live_sessions_page.dart';
 import '../../features/more/more_page.dart';
 import '../../features/notifications/notifications_page.dart';
@@ -45,6 +46,7 @@ import '../../shared/widgets/app_scaffold.dart';
 import '../auth/auth_providers.dart';
 import 'modal_observer.dart';
 import 'nav_history_observer.dart';
+import 'app_link_location.dart';
 
 CustomTransitionPage<void> _buildSmoothPage({
   required LocalKey key,
@@ -136,6 +138,9 @@ final savedLocationProvider = Provider<String?>((ref) => null);
 final routerProvider = Provider<GoRouter>((ref) {
   final refresh = _RouterRefreshListenable(ref);
   ref.onDispose(refresh.dispose);
+  // Kept for this router's lifetime, including welcome/login and mandatory
+  // profile forms. Refreshing authentication must not lose the tapped link.
+  String? pendingLocation;
 
   return GoRouter(
     navigatorKey: rootNavigatorKey,
@@ -146,12 +151,35 @@ final routerProvider = Provider<GoRouter>((ref) {
         FirebaseAnalyticsObserver(analytics: FirebaseAnalytics.instance),
     ],
     initialLocation: '/dashboard',
+    errorBuilder: (context, state) => Scaffold(
+      appBar: AppBar(title: const Text('Open link')),
+      body: Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text('This page is not available in the app.'),
+            const SizedBox(height: 16),
+            TextButton(
+              onPressed: () => context.go('/dashboard'),
+              child: const Text('Go to Home'),
+            ),
+          ],
+        ),
+      ),
+    ),
     refreshListenable: refresh,
     redirect: (context, state) {
+      final location = appLinkLocation(state.uri);
+      if (location != state.uri.toString()) return location;
       final auth = ref.read(authStateProvider);
       final welcomeSeen = ref.read(welcomeSeenProvider);
       final isSignedIn = auth.value != null;
-      final loc = state.matchedLocation;
+      final loc = state.uri.path;
+      const authPaths = {
+        '/login', '/welcome', '/profile-setup', '/identity-setup',
+        '/sept26-progress',
+      };
+      final isAuthPath = authPaths.contains(loc);
 
       const publicPaths = {
         '/login',
@@ -174,27 +202,30 @@ final routerProvider = Provider<GoRouter>((ref) {
         // Match web dashboard layout: these two screens block the entire app.
         // New Google users cannot reach Home until both are saved.
         if (!user.isProfileComplete) {
+          if (!isAuthPath) pendingLocation = location;
           return loc == '/profile-setup' ? null : '/profile-setup';
         }
         if (user.needsIdentitySetup) {
+          if (!isAuthPath) pendingLocation = location;
           return loc == '/identity-setup' ? null : '/identity-setup';
         }
         if (user.needsSept26ProgressUpdate) {
+          if (!isAuthPath) pendingLocation = location;
           return loc == '/sept26-progress' ? null : '/sept26-progress';
         }
-        if (loc == '/profile-setup' ||
-            loc == '/identity-setup' ||
-            loc == '/sept26-progress') {
-          return '/dashboard';
+        if (isAuthPath) {
+          final destination = pendingLocation ?? '/dashboard';
+          pendingLocation = null;
+          return destination;
         }
         if (loc.startsWith('/support/user-reports') &&
-            user.role != 'MANAGER') return '/dashboard';
-        if (loc.startsWith('/support') &&
-            !canAccessSupport(user.role)) return '/dashboard';
-        // Signed in but landed on a sign-in surface → push to dashboard.
-        if (loc == '/login' || loc == '/welcome') {
+            user.role != 'MANAGER') {
           return '/dashboard';
         }
+        if (loc.startsWith('/support') && !canAccessSupport(user.role)) {
+          return '/dashboard';
+        }
+        pendingLocation = null;
         return null;
       }
 
@@ -207,9 +238,27 @@ final routerProvider = Provider<GoRouter>((ref) {
       }
 
       // Private routes require sign-in
+      if (!isAuthPath) pendingLocation = location;
       return welcomeSeen ? '/login' : '/welcome';
     },
     routes: [
+      GoRoute(
+        path: '/courses/:id/lectures/:lectureId/play',
+        builder: (_, state) => LinkedLecturePage(
+          contentId: state.pathParameters['lectureId']!,
+          courseId: state.uri.queryParameters['courseId'] ??
+              state.pathParameters['id']!,
+          preferDrive: true,
+        ),
+      ),
+      GoRoute(
+        path: '/courses/:id/lectures/:lectureId',
+        builder: (_, state) => LinkedLecturePage(
+          contentId: state.pathParameters['lectureId']!,
+          courseId: state.uri.queryParameters['courseId'] ??
+              state.pathParameters['id']!,
+        ),
+      ),
       GoRoute(
         path: '/welcome',
         pageBuilder: (context, state) => _buildSmoothPage(

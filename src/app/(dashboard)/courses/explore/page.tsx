@@ -377,7 +377,7 @@ export default function ExploreCoursesPage() {
 
       if (data.isFree) {
         alert('Note accessed successfully! You can find it in Free Resources -> Purchased Materials')
-        window.open(note.files?.[0]?.fileUrl, '_blank')
+        window.open(`/api/store/notes/${note.id}/download`, '_blank', 'noopener,noreferrer')
         setIsProcessing(false)
         return
       }
@@ -408,7 +408,7 @@ export default function ExploreCoursesPage() {
                 courseTier: '30-Day Access',
                 type: 'note' 
               });
-              setTimeout(() => { window.open(note.files?.[0]?.fileUrl, '_blank') }, 1500);
+              setTimeout(() => { window.open(`/api/store/notes/${note.id}/download`, '_blank', 'noopener,noreferrer') }, 1500);
             } else { alert('Payment verification failed') }
           } catch { alert('Payment verification failed') }
           finally { 

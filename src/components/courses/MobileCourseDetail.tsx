@@ -892,7 +892,7 @@ function CurriculumTab({
                                   </button>
                                 ) : (
                                   <a
-                                    href={item.pptUrl}
+                                    href={`/api/drive-doc/${item.id}`}
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     style={{
@@ -1056,7 +1056,7 @@ function CurriculumTab({
                                 </button>
                               ) : (
                                 <a
-                                  href={item.pptUrl}
+                                  href={`/api/drive-doc/${item.id}`}
                                   target="_blank"
                                   rel="noopener noreferrer"
                                   style={{

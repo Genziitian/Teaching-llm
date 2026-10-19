@@ -13,10 +13,9 @@ export const dynamic = 'force-dynamic'
  * authenticated, enrolled student. Same auth + enrollment gate as
  * /api/drive-stream, but pulls from `content.pptUrl` instead of `videoUrl`.
  *
- * The proxy forces `content-type: application/pdf` and `inline` disposition
- * so the in-app PDF viewer renders it directly without triggering a download
- * prompt. Range is forwarded so PDF viewers can request specific byte ranges
- * for fast page jumps on large documents.
+ * The proxy forces `content-type: application/pdf` and attachment disposition
+ * so browsers download the file instead of rendering an in-site PDF preview.
+ * Range support remains for native app readers and resumable downloads.
  *
  * Returns:
  *   200 OK / 206 Partial Content — file bytes
@@ -98,7 +97,7 @@ export async function GET(
             }
           })
           headers.set('content-type', directRes.headers.get('content-type') || 'application/pdf')
-          headers.set('content-disposition', 'inline')
+          headers.set('content-disposition', 'attachment')
           headers.set('cache-control', 'private, no-store')
           return new Response(directRes.body, { status: directRes.status, headers })
         } catch (fetchErr: any) {
@@ -143,7 +142,7 @@ export async function GET(
     }
 
     responseHeaders.set('content-type', 'application/pdf')
-    responseHeaders.set('content-disposition', 'inline')
+    responseHeaders.set('content-disposition', 'attachment')
     if (!responseHeaders.has('accept-ranges')) {
       responseHeaders.set('accept-ranges', 'bytes')
     }

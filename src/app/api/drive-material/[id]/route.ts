@@ -10,9 +10,8 @@ export const dynamic = 'force-dynamic'
  * GET /api/drive-material/[id]
  *
  * Proxy variant of /api/drive-doc — same shape, but reads `fileUrl` from a
- * Material row instead of `pptUrl` from a Content row. Used by the web
- * PDF viewer at /free-resources/materials/[id]/view so the student never
- * sees the raw Drive URL and every byte goes through our auth check.
+ * Material row instead of `pptUrl` from a Content row. Every byte goes through
+ * the same authorization check, and browsers receive it as a download.
  *
  * Access rules:
  *   - isFree && courseId == null  -> any signed-in user
@@ -97,7 +96,7 @@ export async function GET(
             }
           })
           headers.set('content-type', directRes.headers.get('content-type') || 'application/pdf')
-          headers.set('content-disposition', 'inline')
+          headers.set('content-disposition', 'attachment')
           headers.set('cache-control', 'private, no-store')
           return new Response(directRes.body, { status: directRes.status, headers })
         } catch (fetchErr: any) {
@@ -140,7 +139,7 @@ export async function GET(
       )
     }
     responseHeaders.set('content-type', 'application/pdf')
-    responseHeaders.set('content-disposition', 'inline')
+    responseHeaders.set('content-disposition', 'attachment')
     if (!responseHeaders.has('accept-ranges')) {
       responseHeaders.set('accept-ranges', 'bytes')
     }

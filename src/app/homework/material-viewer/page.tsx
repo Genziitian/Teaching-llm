@@ -1,8 +1,5 @@
 import { redirect } from 'next/navigation'
-import Link from 'next/link'
-import { Download, LifeBuoy } from 'lucide-react'
 import { getSession } from '@/lib/auth'
-import SecureWebPdfViewerLoader from '@/components/pdf/SecureWebPdfViewerLoader'
 
 export const dynamic = 'force-dynamic'
 
@@ -13,87 +10,39 @@ interface PageProps {
   }>
 }
 
-export default async function HomeworkMaterialViewerPage({ searchParams }: PageProps) {
+export default async function HomeworkMaterialDownloadPage({ searchParams }: PageProps) {
   const session = await getSession()
   if (!session) redirect('/login')
 
   const params = await searchParams
-  const url = params?.url
+  const rawUrl = params?.url
+  if (!rawUrl) redirect('/courses')
+
+  let fileUrl: URL
+  try {
+    fileUrl = new URL(rawUrl)
+  } catch {
+    redirect('/courses')
+  }
+  if (fileUrl.protocol !== 'https:' && fileUrl.protocol !== 'http:') redirect('/courses')
+
   const title = params?.title || 'Homework Material'
 
-  if (!url) redirect('/courses')
-
   return (
-    <main style={{ minHeight: '100vh', background: 'var(--bg)', color: 'var(--text-primary)' }}>
-      <header style={{
-        height: '72px',
-        padding: '10px 24px',
-        borderBottom: '1px solid var(--border)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        gap: '16px',
-        background: 'var(--surface)',
-        position: 'sticky',
-        top: 0,
-        zIndex: 20,
-      }}>
-        <Link href="/dashboard" style={{ display: 'inline-flex', alignItems: 'center', gap: '12px', textDecoration: 'none', color: 'var(--text-primary)', minWidth: 0 }}>
-          <img src="/mobile-login-logo.png" alt="GenZ IITian" style={{ width: '42px', height: '42px', objectFit: 'contain' }} />
-          <span style={{ fontSize: '16px', fontWeight: 900, whiteSpace: 'nowrap' }}>GenZ IITian</span>
-        </Link>
-
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
-          <a
-            href={url}
-            target="_blank"
-            rel="noopener noreferrer"
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '6px',
-              padding: '9px 14px',
-              borderRadius: '999px',
-              background: 'var(--surface-2)',
-              border: '1px solid var(--border)',
-              color: 'var(--text-primary)',
-              fontSize: '13px',
-              fontWeight: 800,
-              textDecoration: 'none',
-            }}
-          >
-            <Download size={15} />
-            Download Material
-          </a>
-          <Link
-            href="/support"
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '6px',
-              padding: '9px 14px',
-              borderRadius: '999px',
-              background: 'var(--primary, #10b981)',
-              color: '#fff',
-              fontSize: '13px',
-              fontWeight: 900,
-              textDecoration: 'none',
-            }}
-          >
-            <LifeBuoy size={15} />
-            Need Help
-          </Link>
-        </div>
-      </header>
-
-      <section style={{ padding: '18px 24px 28px' }}>
-        <SecureWebPdfViewerLoader
-          fileUrl={url}
-          fallbackUrl={url}
-          watermarkEmail={session.email}
-          title={title}
-          initialFullscreen
-        />
+    <main className="page-container" style={{ maxWidth: '760px', margin: '0 auto', padding: '32px 20px' }}>
+      <section className="card" style={{ padding: '28px', textAlign: 'center' }}>
+        <h1 style={{ fontSize: '20px', margin: '0 0 8px', color: 'var(--text-primary)' }}>{title}</h1>
+        <p style={{ color: 'var(--text-secondary)', margin: '0 0 20px' }}>
+          PDF preview is unavailable on the website. Download the file to open it, or use the mobile app to read it there.
+        </p>
+        <a
+          href={fileUrl.toString()}
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: '11px 18px', borderRadius: '10px', background: 'var(--accent)', color: '#fff', fontWeight: 700, textDecoration: 'none' }}
+        >
+          Open or download material
+        </a>
       </section>
     </main>
   )

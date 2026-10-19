@@ -66,94 +66,107 @@ class MobileBottomNav extends StatelessWidget {
     final tokens = context.tokens;
     final isDark = context.isDark;
     final isBlack = tokens.isBlack;
-    final navBg = isBlack
-        ? const Color(0xF2000000)
+    final media = MediaQuery.of(context);
+    // Increased-contrast setting -> near-solid surface, no blur (Apple: prefers-contrast).
+    final solid = media.highContrast;
+
+    // Translucent "glass" material: light surface tinted by what scrolls beneath it.
+    final glass = isBlack
+        ? Color(solid ? 0xFF000000 : 0xB8000000)
         : (isDark
-            ? const Color(0xF2101426)
-            : const Color(0xF2FFFFFF));
-    final borderColor = tokens.border;
+            ? Color(solid ? 0xFF101426 : 0xB8101426)
+            : Color(solid ? 0xFFFFFFFF : 0xB8FFFFFF));
+    // Bright hairline = light catching the edge of the material.
+    final edge = isBlack
+        ? const Color(0x24FFFFFF)
+        : (isDark ? const Color(0x1FFFFFFF) : const Color(0xCCFFFFFF));
 
     final academicsActive = _isActive(_center);
+    final bottomInset = media.viewPadding.bottom;
 
-    return SizedBox(
-      height: 88, // bar + elevated FAB height
-      child: Stack(
-        clipBehavior: Clip.none,
-        alignment: Alignment.bottomCenter,
-        children: [
-          // Circular Arc Backdrop Cutout behind the Center FAB (matches Capacitor UI CSS)
-          Positioned(
-            bottom: 54,
-            child: Container(
-              width: 76,
-              height: 38,
-              decoration: BoxDecoration(
-                color: navBg,
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(38)),
-                border: Border(
-                  top: BorderSide(color: borderColor, width: 1),
-                  left: BorderSide(color: borderColor, width: 0.5),
-                  right: BorderSide(color: borderColor, width: 0.5),
+    const pillHeight = 64.0;
+    const fabLift = 20.0; // how far the center button rises above the pill
+
+    return Padding(
+      padding: EdgeInsets.fromLTRB(16, 0, 16, 10 + bottomInset),
+      child: SizedBox(
+        height: pillHeight + fabLift,
+        child: Stack(
+          clipBehavior: Clip.none,
+          alignment: Alignment.bottomCenter,
+          children: [
+            // Floating glass pill (shadow outside the clip, blur inside).
+            Positioned(
+              left: 0,
+              right: 0,
+              bottom: 0,
+              height: pillHeight,
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(32),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Color(isDark || isBlack ? 0x66000000 : 0x240B1020),
+                      offset: const Offset(0, 10),
+                      blurRadius: 30,
+                    ),
+                    const BoxShadow(
+                      color: Color(0x0F0B1020),
+                      offset: Offset(0, 2),
+                      blurRadius: 6,
+                    ),
+                  ],
                 ),
-                boxShadow: const [
-                  BoxShadow(
-                    color: Color(0x08000000),
-                    offset: Offset(0, -6),
-                    blurRadius: 10,
-                  ),
-                ],
-              ),
-            ),
-          ),
-
-          // Frosted Glass Navigation Bar
-          Positioned(
-            left: 0,
-            right: 0,
-            bottom: 0,
-            child: ClipRect(
-              child: BackdropFilter(
-                filter: ui.ImageFilter.blur(sigmaX: 16, sigmaY: 16),
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: navBg,
-                    border: Border(top: BorderSide(color: borderColor, width: 1)),
-                    boxShadow: const [
-                      BoxShadow(
-                        color: Color(0x140B1020),
-                        offset: Offset(0, -8),
-                        blurRadius: 24,
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(32),
+                  child: BackdropFilter(
+                    filter: solid
+                        ? ui.ImageFilter.blur(sigmaX: 0, sigmaY: 0)
+                        : ui.ImageFilter.blur(sigmaX: 24, sigmaY: 24),
+                    child: DecoratedBox(
+                      decoration: BoxDecoration(
+                        color: glass,
+                        borderRadius: BorderRadius.circular(32),
+                        border: Border.all(color: edge, width: 1),
                       ),
-                    ],
-                  ),
-                  child: SafeArea(
-                    top: false,
-                    child: SizedBox(
-                      height: 62,
                       child: Row(
                         children: [
-                          for (final t in _left)
-                            Expanded(
-                              child: TourTarget(
-                                id: _getTourId(t),
-                                child: _NavItem(
-                                  spec: t,
-                                  active: _isActive(t),
-                                ),
-                              ),
+                          // Left group: two buttons
+                          Expanded(
+                            child: Row(
+                              children: [
+                                for (final t in _left)
+                                  Expanded(
+                                    child: TourTarget(
+                                      id: _getTourId(t),
+                                      child: _NavItem(
+                                        spec: t,
+                                        active: _isActive(t),
+                                      ),
+                                    ),
+                                  ),
+                              ],
                             ),
-                          // Spacer for center FAB
-                          const Expanded(child: SizedBox()),
-                          for (final t in _right)
-                            Expanded(
-                              child: TourTarget(
-                                id: _getTourId(t),
-                                child: _NavItem(
-                                  spec: t,
-                                  active: _isActive(t),
-                                ),
-                              ),
+                          ),
+                          // Middle slot reserved for the raised center button
+                          const SizedBox(width: 78),
+                          // Right group: two buttons
+                          Expanded(
+                            child: Row(
+                              children: [
+                                for (final t in _right)
+                                  Expanded(
+                                    child: TourTarget(
+                                      id: _getTourId(t),
+                                      child: _NavItem(
+                                        spec: t,
+                                        active: _isActive(t),
+                                      ),
+                                    ),
+                                  ),
+                              ],
                             ),
+                          ),
                         ],
                       ),
                     ),
@@ -161,21 +174,24 @@ class MobileBottomNav extends StatelessWidget {
                 ),
               ),
             ),
-          ),
 
-          // Elevated Academics Center Button with Spring Scale & Gradient Glow
-          Positioned(
-            bottom: 18,
-            child: TourTarget(
-              id: 'nav_academics',
-              child: _CenterFab(
-                active: academicsActive,
-                isDark: isDark,
-                isBlack: isBlack,
+            // Raised Academics button, centered on the pill
+            Positioned(
+              top: 0,
+              child: TourTarget(
+                id: 'nav_academics',
+                child: _CenterFab(
+                  active: academicsActive,
+                  isDark: isDark,
+                  isBlack: isBlack,
+                  ringColor: isBlack
+                      ? const Color(0xFF000000)
+                      : (isDark ? const Color(0xFF101426) : Colors.white),
+                ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -204,22 +220,34 @@ class _NavItem extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            AnimatedScale(
-              scale: active ? 1.12 : 1.0,
-              duration: const Duration(milliseconds: 200),
-              curve: Curves.easeOutBack,
-              child: Icon(
-                active ? spec.activeIcon : spec.icon,
-                size: 22,
-                color: color,
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 220),
+              curve: Curves.easeOutCubic,
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
+              decoration: BoxDecoration(
+                color: active
+                    ? tokens.primaryAccent.withValues(alpha: 0.14)
+                    : Colors.transparent,
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: AnimatedScale(
+                scale: active ? 1.08 : 1.0,
+                duration: const Duration(milliseconds: 220),
+                curve: Curves.easeOutCubic,
+                child: Icon(
+                  active ? spec.activeIcon : spec.icon,
+                  size: 22,
+                  color: color,
+                ),
               ),
             ),
-            const SizedBox(height: 3),
+            const SizedBox(height: 2),
             AnimatedDefaultTextStyle(
               duration: const Duration(milliseconds: 180),
               curve: Curves.easeOut,
               style: TextStyle(
                 fontSize: 10.5,
+                letterSpacing: 0.1, // small text: slightly positive tracking
                 color: color,
                 fontWeight: active ? FontWeight.w700 : FontWeight.w500,
                 fontFamily: 'Manrope',
@@ -237,11 +265,13 @@ class _CenterFab extends StatelessWidget {
   const _CenterFab({
     required this.active,
     required this.isDark,
+    required this.ringColor,
     this.isBlack = false,
   });
   final bool active;
   final bool isDark;
   final bool isBlack;
+  final Color ringColor;
 
   @override
   Widget build(BuildContext context) {
@@ -269,9 +299,7 @@ class _CenterFab extends StatelessWidget {
                 colors: [Color(0xFF7C3AED), Color(0xFF6366F1)],
               ));
 
-    final borderColor = isBlack
-        ? const Color(0xFF000000)
-        : (isDark ? const Color(0xFF101426) : Colors.white);
+    final borderColor = ringColor;
     final iconColor = isBlack
         ? (active ? Colors.black : Colors.white)
         : Colors.white;
@@ -292,19 +320,21 @@ class _CenterFab extends StatelessWidget {
           AnimatedScale(
             scale: active ? 1.06 : 1.0,
             duration: const Duration(milliseconds: 250),
-            curve: Curves.easeOutBack,
+            curve: Curves.easeOutCubic,
             child: Container(
-              width: 58,
-              height: 58,
+              width: 56,
+              height: 56,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 gradient: gradient,
                 border: Border.all(color: borderColor, width: 4),
-                boxShadow: const [
+                boxShadow: [
                   BoxShadow(
-                    color: Color(0x1F000000),
-                    offset: Offset(0, 4),
-                    blurRadius: 10,
+                    color: isBlack
+                        ? const Color(0x33000000)
+                        : const Color(0x596366F1), // soft brand glow
+                    offset: const Offset(0, 6),
+                    blurRadius: 16,
                   ),
                 ],
               ),

@@ -270,15 +270,6 @@ class _SupportPageState extends ConsumerState<SupportPage> with WidgetsBindingOb
                   color: tokens.textPrimary,
                 ),
               ),
-              const SizedBox(height: 4),
-              Text(
-                'Instant answers to common queries. Browse our knowledge base for solutions.',
-                style: TextStyle(
-                  fontSize: 13,
-                  color: tokens.textSecondary,
-                  height: 1.4,
-                ),
-              ),
               const SizedBox(height: 14),
               ref.watch(faqProvider).when(
                     loading: () => const Center(

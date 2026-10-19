@@ -507,7 +507,7 @@ export default function FreeMaterialsPage() {
                   </div>
 
                   <div style={{ marginTop: 'auto', display: 'flex', gap: '8px' }}>
-                    {mat.sourceType !== 'LINK' && (
+                    {(
                       (mat.fileType || '').toLowerCase().includes('pdf') ||
                       /\.pdf(\?|$)/i.test(mat.fileUrl)
                     ) ? (
@@ -625,7 +625,7 @@ export default function FreeMaterialsPage() {
 
                   {/* Right Column: Actions */}
                   <div style={{ display: 'flex', gap: '8px', alignItems: 'center', justifyContent: 'flex-end', flexShrink: 0 }}>
-                    {mat.sourceType !== 'LINK' && (
+                    {(
                       (mat.fileType || '').toLowerCase().includes('pdf') ||
                       /\.pdf(\?|$)/i.test(mat.fileUrl)
                     ) ? (

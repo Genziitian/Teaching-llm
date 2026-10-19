@@ -38,11 +38,50 @@
             </intent-filter>
 
             <!-- Deep linking for https://class.genziitian.in -->
+            <meta-data android:name="flutter_deeplinking_enabled" android:value="true" />
             <intent-filter android:autoVerify="true">
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="https" android:host="class.genziitian.in" />
+                <data android:scheme="http" android:host="class.genziitian.in" />
+                <data android:scheme="https" />
+                <!-- Leave APIs, downloads, and web-only management pages in
+                     the browser. Only claim routes the native app supports. -->
+                <data android:path="/" />
+                <data android:path="/dashboard" />
+                <data android:path="/login" />
+                <data android:path="/welcome" />
+                <data android:pathPrefix="/courses" />
+                <data android:pathPrefix="/store" />
+                <data android:pathPrefix="/free-resources" />
+                <data android:pathPrefix="/community" />
+                <data android:pathPrefix="/support" />
+                <data android:pathPrefix="/settings" />
+                <data android:pathPrefix="/company/" />
+                <data android:pathPrefix="/material/" />
+                <data android:path="/material" />
+                <data android:path="/watch" />
+                <data android:path="/menu" />
+                <data android:path="/more" />
+                <data android:path="/academics" />
+                <data android:path="/calendar" />
+                <data android:path="/announcements" />
+                <data android:path="/feedback" />
+                <data android:path="/live" />
+                <data android:path="/profile" />
+                <data android:path="/downloads" />
+                <data android:path="/downloaded-notes" />
+                <data android:path="/transactions" />
+                <data android:path="/faq" />
+                <data android:path="/notifications" />
+                <data android:path="/about-us" />
+                <data android:path="/contact-us" />
+                <data android:path="/privacy-policy" />
+                <data android:path="/refund-policy" />
+                <data android:path="/terms" />
+                <data android:path="/terms-and-conditions" />
+                <data android:path="/copyright" />
+                <data android:path="/copyright-policy" />
             </intent-filter>
 
             <!-- Custom URL scheme com.teaching.lms:// -->

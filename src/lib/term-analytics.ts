@@ -171,15 +171,20 @@ export async function computeTermAnalytics(
       return order.indexOf(a.termKey) - order.indexOf(b.termKey)
     })
 
-  // 3. Fetch all successful orders + items
+  const termCourseIds = Array.from(courseTermMap.keys())
+
+  // 3. Fetch successful orders that contain term-tagged courses only. The
+  // analytics endpoint runs on every summary request; reading unrelated store
+  // orders and items needlessly increases the web process's peak memory.
   const orders = await (prisma.order as any).findMany({
-    where: { status: { in: SUCCESS_STATUSES } },
+    where: {
+      status: { in: SUCCESS_STATUSES },
+      items: { some: { courseId: { in: termCourseIds } } },
+    },
     select: {
-      id: true,
       userId: true,
-      amount: true,
-      createdAt: true,
       items: {
+        where: { courseId: { in: termCourseIds } },
         select: {
           courseId: true,
           price: true,
@@ -188,27 +193,25 @@ export async function computeTermAnalytics(
     },
   })
 
-  // 4. Fetch all successful upgrade transactions
+  // 4. Fetch upgrades only for term-tagged courses.
   const upgrades = await (prisma.upgradeTransaction as any).findMany({
-    where: { status: 'SUCCESS' },
+    where: { status: 'SUCCESS', courseId: { in: termCourseIds } },
     select: {
       userId: true,
       courseId: true,
       amount: true,
-      createdAt: true,
     },
   })
 
-  // 5. Fetch all enrollments
+  // 5. Fetch active-student enrollments only for term-tagged courses.
   const enrollments = await (prisma.enrollment as any).findMany({
     where: {
       user: { role: 'STUDENT', isTerminated: false },
+      courseId: { in: termCourseIds },
     },
     select: {
       userId: true,
       courseId: true,
-      createdAt: true,
-      type: true,
     },
   })
 

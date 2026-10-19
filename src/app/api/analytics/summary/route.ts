@@ -103,24 +103,26 @@ export async function GET(request: NextRequest) {
     for (let h = 0; h < 24; h++) mergedHourly[String(h)] = 0
 
     if (courseId && courseId !== 'all') {
-      // Find all activity logs for this course's enrolled students
-      const dailyActivity = await prisma.activityLog.findMany({
-        where: {
-          timestamp: { gte: startDate, lte: today },
-          user: {
-            role: 'STUDENT',
-            isTerminated: false,
-            enrollments: { some: { courseId: courseId } }
-          }
-        },
-        select: { timestamp: true }
-      })
+      // Aggregate activity in Postgres rather than materializing every matching
+      // ActivityLog row in this long-lived web process.
+      const hourlyActivity = await prisma.$queryRaw<Array<{ hour: number; count: bigint }>>`
+        SELECT EXTRACT(HOUR FROM a."timestamp")::int AS hour, COUNT(*)::bigint AS count
+        FROM "ActivityLog" a
+        JOIN "User" u ON u."id" = a."userId"
+        WHERE a."timestamp" >= ${startDate} AND a."timestamp" <= ${today}
+          AND u."role" = 'STUDENT' AND u."isTerminated" = false
+          AND EXISTS (
+            SELECT 1 FROM "Enrollment" e
+            WHERE e."userId" = a."userId" AND e."classId" = ${courseId}
+          )
+        GROUP BY 1
+      `
 
-      for (const log of dailyActivity) {
-        const hour = new Date(log.timestamp).getUTCHours()
+      for (const row of hourlyActivity) {
+        const hour = row.hour
         // Convert UTC to IST (+5:30)
         const istHour = (hour + 5 + Math.floor((30) / 60)) % 24
-        mergedHourly[String(istHour)] = (mergedHourly[String(istHour)] || 0) + 1
+        mergedHourly[String(istHour)] = Number(row.count)
       }
 
       const totalEnrolledInCourse = await prisma.enrollment.count({
@@ -138,34 +140,21 @@ export async function GET(request: NextRequest) {
         }
       })
 
-      const activeUsersInCourse = await prisma.activityLog.findMany({
-        where: {
-          timestamp: { gte: startDate, lte: today },
-          user: {
-            role: 'STUDENT',
-            isTerminated: false,
-            enrollments: { some: { courseId: courseId } }
-          }
-        },
-        select: { userId: true },
-        distinct: ['userId']
-      })
-      const activeUsersCount = activeUsersInCourse.length
-
-      const returningActiveUsersInCourse = await prisma.activityLog.findMany({
-        where: {
-          timestamp: { gte: startDate, lte: today },
-          user: {
-            role: 'STUDENT',
-            isTerminated: false,
-            createdAt: { lt: startDate },
-            enrollments: { some: { courseId: courseId } }
-          }
-        },
-        select: { userId: true },
-        distinct: ['userId']
-      })
-      const returningUsersCount = returningActiveUsersInCourse.length
+      const activeUsers = await prisma.$queryRaw<Array<{ activeUsers: bigint; returningUsers: bigint }>>`
+        SELECT
+          COUNT(DISTINCT a."userId")::bigint AS "activeUsers",
+          (COUNT(DISTINCT a."userId") FILTER (WHERE u."createdAt" < ${startDate}))::bigint AS "returningUsers"
+        FROM "ActivityLog" a
+        JOIN "User" u ON u."id" = a."userId"
+        WHERE a."timestamp" >= ${startDate} AND a."timestamp" <= ${today}
+          AND u."role" = 'STUDENT' AND u."isTerminated" = false
+          AND EXISTS (
+            SELECT 1 FROM "Enrollment" e
+            WHERE e."userId" = a."userId" AND e."classId" = ${courseId}
+          )
+      `
+      const activeUsersCount = Number(activeUsers[0]?.activeUsers || 0)
+      const returningUsersCount = Number(activeUsers[0]?.returningUsers || 0)
 
       totalNewUsers = newEnrollmentsInCourse
       totalReturningUsers = returningUsersCount
@@ -329,32 +318,31 @@ export async function GET(request: NextRequest) {
     }))
 
     if (courseId && courseId !== 'all') {
-      const dailyActivity = await prisma.activityLog.findMany({
-        where: {
-          timestamp: { gte: startDate, lte: today },
-          user: {
-            role: 'STUDENT',
-            isTerminated: false,
-            enrollments: { some: { courseId: courseId } }
-          }
-        },
-        select: { timestamp: true, userId: true }
-      })
+      const dailyActivity = await prisma.$queryRaw<Array<{ day: Date; activeUsers: bigint }>>`
+        SELECT date_trunc('day', a."timestamp") AS day,
+          COUNT(DISTINCT a."userId")::bigint AS "activeUsers"
+        FROM "ActivityLog" a
+        JOIN "User" u ON u."id" = a."userId"
+        WHERE a."timestamp" >= ${startDate} AND a."timestamp" <= ${today}
+          AND u."role" = 'STUDENT' AND u."isTerminated" = false
+          AND EXISTS (
+            SELECT 1 FROM "Enrollment" e
+            WHERE e."userId" = a."userId" AND e."classId" = ${courseId}
+          )
+        GROUP BY 1
+      `
 
       const courseDailyStats = courseDaily.filter((cd: any) => cd.courseId === courseId)
-      
-      const activeUsersPerDay = new Map<string, Set<string>>()
-      for (const log of dailyActivity) {
-        const dateStr = new Date(log.timestamp).toISOString().split('T')[0]
-        if (!activeUsersPerDay.has(dateStr)) {
-          activeUsersPerDay.set(dateStr, new Set())
-        }
-        activeUsersPerDay.get(dateStr)!.add(log.userId)
-      }
+      const activeUsersPerDay = new Map(
+        dailyActivity.map(row => [
+          row.day.toISOString().split('T')[0],
+          Number(row.activeUsers),
+        ])
+      )
 
       dailyTrend = snapshots.map((s: any) => {
         const snapDateStr = new Date(s.date).toISOString().split('T')[0]
-        const activeCount = activeUsersPerDay.get(snapDateStr)?.size || 0
+        const activeCount = activeUsersPerDay.get(snapDateStr) || 0
         
         const match = courseDailyStats.find((cd: any) => 
           new Date(cd.date).toISOString().split('T')[0] === snapDateStr
@@ -418,57 +406,44 @@ export async function GET(request: NextRequest) {
           demoStudents: demoCount,
         }
       } else {
-        const allStudentsList = await prisma.user.findMany({
-          where: { role: 'STUDENT', isTerminated: false },
-          select: { id: true }
-        })
-        const totalStudentsCount = allStudentsList.length
-
-        const enrollments = await (prisma.enrollment as any).findMany({
-          where: {
-            user: { role: 'STUDENT', isTerminated: false }
-          },
-          select: {
-            userId: true,
-            type: true,
-            course: {
-              select: {
-                id: true,
-                name: true,
-                isDemo: true,
-                isFree: true,
-                isGlobal: true,
-              }
-            }
-          }
-        })
+        // Keep this dashboard summary in Postgres. Loading every student ID and
+        // every enrollment with its related course can create a large transient
+        // heap spike on the web instance as the historical dataset grows.
+        const [totalStudentsCount, enrollmentGroups] = await Promise.all([
+          prisma.user.count({
+            where: { role: 'STUDENT', isTerminated: false }
+          }),
+          prisma.enrollment.groupBy({
+            by: ['userId', 'type'],
+            where: {
+              user: { role: 'STUDENT', isTerminated: false },
+              course: {
+                isDemo: false,
+                isFree: false,
+                isGlobal: false,
+                NOT: [
+                  { name: { contains: 'general', mode: 'insensitive' } },
+                  { name: { contains: 'demo', mode: 'insensitive' } },
+                  { name: { contains: 'free', mode: 'insensitive' } },
+                ],
+              },
+            },
+            _count: { _all: true },
+          }),
+        ])
 
         const userBatchMap = new Map<string, Set<string>>()
         let liveEnrollmentsCount = 0
         let recordedEnrollmentsCount = 0
 
-        for (const enr of enrollments) {
-          const course = enr.course
-          if (!course) continue
-
-          // Exclude demo, free, general batches
-          const isDemo = course.isDemo || false
-          const isFree = course.isFree || false
-          const isGlobal = course.isGlobal || false
-          const isGeneralName = /general|demo|free/i.test(course.name || '')
-
-          if (isDemo || isFree || isGlobal || isGeneralName) {
-            continue
+        for (const group of enrollmentGroups) {
+          if (!userBatchMap.has(group.userId)) {
+            userBatchMap.set(group.userId, new Set())
           }
 
-          if (!userBatchMap.has(enr.userId)) {
-            userBatchMap.set(enr.userId, new Set())
-          }
-          
-          const enrType = enr.type || 'LIVE'
-          userBatchMap.get(enr.userId)!.add(enrType)
-          if (enrType === 'LIVE') liveEnrollmentsCount++
-          else if (enrType === 'RECORDED') recordedEnrollmentsCount++
+          userBatchMap.get(group.userId)!.add(group.type)
+          if (group.type === 'LIVE') liveEnrollmentsCount += group._count._all
+          else if (group.type === 'RECORDED') recordedEnrollmentsCount += group._count._all
         }
 
         let liveStudents = 0
@@ -478,27 +453,24 @@ export async function GET(request: NextRequest) {
         let recordedOnlyStudents = 0
         let notEnrolledStudents = 0
 
-        for (const std of allStudentsList) {
-          const types = userBatchMap.get(std.id)
-          if (!types || types.size === 0) {
-            notEnrolledStudents++
-          } else {
-            const hasLive = types.has('LIVE')
-            const hasRecorded = types.has('RECORDED')
+        userBatchMap.forEach((types) => {
+          const hasLive = types.has('LIVE')
+          const hasRecorded = types.has('RECORDED')
 
-            if (hasLive && hasRecorded) {
-              bothStudents++
-              liveStudents++
-              recordedStudents++
-            } else if (hasLive) {
-              liveStudents++
-              liveOnlyStudents++
-            } else if (hasRecorded) {
-              recordedStudents++
-              recordedOnlyStudents++
-            }
+          if (hasLive && hasRecorded) {
+            bothStudents++
+            liveStudents++
+            recordedStudents++
+          } else if (hasLive) {
+            liveStudents++
+            liveOnlyStudents++
+          } else if (hasRecorded) {
+            recordedStudents++
+            recordedOnlyStudents++
           }
-        }
+        })
+
+        notEnrolledStudents = totalStudentsCount - userBatchMap.size
 
         batchStats = {
           liveStudents,

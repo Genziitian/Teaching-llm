@@ -4,14 +4,13 @@
 const CACHE_NAME = 'genz-offline-shell-v2';
 const PRECACHE_URLS = [
   '/offline.html',
-  '/pdf.worker.min.mjs',
   '/favicon.ico',
   '/logo.png',
   '/dashboard',
   '/downloads',
 ];
 
-// 1. INSTALL: Precache critical offline fallback and PDF worker
+// 1. INSTALL: Precache critical offline fallback assets
 self.addEventListener('install', function (event) {
   event.waitUntil(
     caches.open(CACHE_NAME).then(function (cache) {
@@ -102,24 +101,6 @@ self.addEventListener('fetch', function (event) {
     return;
   }
 
-  // Intercept PDF worker script so PDF rendering never fails offline
-  if (url.pathname === '/pdf.worker.min.mjs') {
-    event.respondWith(
-      caches.match(event.request, { ignoreSearch: true }).then(function (cached) {
-        if (cached) return cached;
-        return fetch(event.request).then(function (response) {
-          if (response && response.status === 200) {
-            const clone = response.clone();
-            caches.open(CACHE_NAME).then(function (cache) {
-              cache.put(event.request, clone);
-            });
-          }
-          return response;
-        });
-      })
-    );
-    return;
-  }
 });
 
 // 4. PUSH NOTIFICATIONS

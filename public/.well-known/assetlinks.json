@@ -1,0 +1,14 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.teaching.lms",
+      "sha256_cert_fingerprints": [
+        "A7:2C:10:C9:9A:27:D6:AD:19:F0:D1:44:32:50:EB:D7:C1:4C:1E:3E:E7:8B:62:68:DC:42:E5:B4:32:47:A9:BB",
+        "69:E9:C1:D3:5B:02:A0:CE:BD:AB:1F:E3:A2:6B:09:65:8A:22:B2:83:C2:BB:F5:CD:0B:06:81:C3:FA:9F:40:2C",
+        "43:E9:2D:9B:15:68:78:9A:FF:CC:C8:AF:CE:C8:AA:C6:89:A8:35:BF:B6:F0:5B:F0:25:91:E9:D4:89:91:C0:ED"
+      ]
+    }
+  }
+]

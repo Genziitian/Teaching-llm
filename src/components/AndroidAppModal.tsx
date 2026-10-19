@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { usePathname } from 'next/navigation'
 import posthog from 'posthog-js'
 import { detectDevice, type DeviceInfo } from '@/lib/device'
+import { androidAppIntent } from '@/lib/app-links'
 
 // Report the block to analytics only once per page load
 let blockReported = false
@@ -53,6 +54,7 @@ export function shouldShowAndroidAppModal({
 
 export default function AndroidAppModal() {
   const [isOpen, setIsOpen] = useState(false)
+  const [appIntent, setAppIntent] = useState(() => androidAppIntent('/'))
   const pathname = usePathname()
 
   // Re-checked on every route change so the block cannot be escaped by
@@ -75,6 +77,7 @@ export default function AndroidAppModal() {
     })
 
     setIsOpen(show)
+    setAppIntent(androidAppIntent(window.location.pathname + window.location.search))
 
     if (show && !blockReported) {
       blockReported = true
@@ -290,6 +293,26 @@ export default function AndroidAppModal() {
             <span>Real-time lecture & assignment updates</span>
           </div>
         </div>
+
+        <a
+          href={appIntent}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            width: '100%',
+            minHeight: '48px',
+            marginBottom: '10px',
+            borderRadius: '14px',
+            backgroundColor: '#ffffff',
+            color: '#111827',
+            fontSize: '15px',
+            fontWeight: 700,
+            textDecoration: 'none',
+          }}
+        >
+          Open in app
+        </a>
 
         {/* Download Now Button */}
         <a

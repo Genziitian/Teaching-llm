@@ -415,7 +415,7 @@ export default function StudyResourcesPage() {
                     </>
                   )}
                   <a
-                    href={mat.fileUrl}
+                    href={getFileType(mat.fileUrl, mat.fileType) === 'PDF' ? `/api/drive-material/${mat.id}` : mat.fileUrl}
                     download
                     target="_blank"
                     rel="noopener noreferrer"
