@@ -6,6 +6,7 @@ import 'package:material_ui/material_ui.dart';
 
 import '../../shared/widgets/app_refresh.dart';
 import '../../shared/widgets/apple_pressable.dart';
+import '../../shared/widgets/share_link_sheet.dart';
 import '../../shared/widgets/sub_page_header.dart';
 import '../../theme/app_theme_tokens.dart';
 import 'store_notes_data.dart';
@@ -183,8 +184,14 @@ class _StoreNotesPageState extends ConsumerState<StoreNotesPage> {
                               padding: const EdgeInsets.symmetric(
                                   horizontal: 16, vertical: 8),
                               decoration: BoxDecoration(
+                                gradient: selected
+                                    ? LinearGradient(
+                                        colors: cats[i] == 'All'
+                                            ? const [Color(0xFF8E8E93), Color(0xFF636366)]
+                                            : _categoryColors(cats[i]))
+                                    : null,
                                 color: selected
-                                    ? tokens.textPrimary
+                                    ? null
                                     : tokens.textMuted.withValues(alpha: 0.14),
                                 borderRadius: BorderRadius.circular(20),
                               ),
@@ -194,7 +201,7 @@ class _StoreNotesPageState extends ConsumerState<StoreNotesPage> {
                                 style: TextStyle(
                                   fontSize: 13.5,
                                   fontWeight: FontWeight.w700,
-                                  color: selected ? tokens.bg : tokens.textPrimary,
+                                  color: selected ? Colors.white : tokens.textPrimary,
                                 ),
                               ),
                             ),
@@ -205,15 +212,13 @@ class _StoreNotesPageState extends ConsumerState<StoreNotesPage> {
                   ),
                 SliverPadding(
                   padding: const EdgeInsets.fromLTRB(16, 8, 16, 120),
-                  sliver: SliverGrid(
-                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 2,
-                      crossAxisSpacing: 12,
-                      mainAxisSpacing: 12,
-                      mainAxisExtent: 246,
-                    ),
+                  sliver: SliverList(
                     delegate: SliverChildBuilderDelegate(
-                      (_, i) => _NoteCard(note: shown[i]),
+                      (_, i) => Padding(
+                        padding: EdgeInsets.only(
+                            bottom: i == shown.length - 1 ? 0 : 12),
+                        child: _NoteCard(note: shown[i]),
+                      ),
                       childCount: shown.length,
                     ),
                   ),
@@ -227,6 +232,22 @@ class _StoreNotesPageState extends ConsumerState<StoreNotesPage> {
   }
 }
 
+/// Accent colour per category, so every note has its own identity.
+List<Color> _categoryColors(String category) {
+  switch (category.toLowerCase()) {
+    case 'foundation':
+      return const [Color(0xFF5AC8FA), Color(0xFF0A84FF)];
+    case 'diploma':
+      return const [Color(0xFFBF5AF2), Color(0xFF7D3CE0)];
+    case 'qualifier':
+      return const [Color(0xFFFFB340), Color(0xFFFF7A00)];
+    case 're-attempt':
+      return const [Color(0xFFFF6482), Color(0xFFFF2D55)];
+    default:
+      return const [Color(0xFF30D158), Color(0xFF1E9E48)];
+  }
+}
+
 class _NoteCard extends ConsumerWidget {
   const _NoteCard({required this.note});
   final StoreNote note;
@@ -236,6 +257,8 @@ class _NoteCard extends ConsumerWidget {
     final tokens = context.tokens;
     final expired = note.isExpired;
     final owned = note.hasAccess && !note.isFree;
+    final colors = _categoryColors(note.category);
+    final accent = colors.last;
 
     final label = expired
         ? 'Restore now'
@@ -249,80 +272,195 @@ class _NoteCard extends ConsumerWidget {
       await buyStoreNote(context, ref, noteId: note.id, title: note.title);
     }
 
+    final buttonColors = expired
+        ? const [Color(0xFFFFB340), Color(0xFFFF9F0A)]
+        : (note.hasAccess ? const [Color(0xFF30D158), Color(0xFF1E9E48)] : colors);
+
     return ApplePressable(
       onTap: () => context.push('/store/notes/${note.id}'),
       child: Container(
-        padding: const EdgeInsets.all(14),
+        padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: tokens.cardBg,
-          borderRadius: BorderRadius.circular(22),
+          borderRadius: BorderRadius.circular(26),
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Color.alphaBlend(accent.withValues(alpha: 0.22), tokens.cardBg),
+              Color.alphaBlend(accent.withValues(alpha: 0.06), tokens.cardBg),
+            ],
+          ),
+          border: Border.all(color: accent.withValues(alpha: 0.28), width: 0.8),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Container(
-                  width: 40,
-                  height: 40,
+                  width: 52,
+                  height: 52,
                   decoration: BoxDecoration(
-                    color: tokens.textMuted.withValues(alpha: 0.14),
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(16),
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: colors,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: accent.withValues(alpha: 0.38),
+                        blurRadius: 14,
+                        offset: const Offset(0, 6),
+                      ),
+                    ],
                   ),
-                  child: Icon(Symbols.description_rounded,
-                      fill: 1, size: 22, color: tokens.textSecondary),
+                  child: const Icon(Symbols.description_rounded,
+                      fill: 1, size: 28, color: Colors.white),
                 ),
-                const Spacer(),
-                if (expired)
-                  _Tag('Expired', tokens.danger)
-                else if (owned)
-                  _Tag('Owned', tokens.success),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        note.title,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w800,
+                          height: 1.2,
+                          letterSpacing: -0.4,
+                          color: tokens.textPrimary,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Wrap(
+                        spacing: 6,
+                        runSpacing: 6,
+                        children: [
+                          if (note.category.isNotEmpty)
+                            _Tag(note.category, accent),
+                          if ((note.subject ?? '').isNotEmpty)
+                            _Tag(note.subject!, tokens.textSecondary),
+                          _Tag('${note.validityDays} days', tokens.textSecondary),
+                          if (expired) _Tag('Expired', tokens.danger),
+                          if (owned) _Tag('Owned', tokens.success),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
               ],
             ),
-            const SizedBox(height: 10),
-            Text(
-              note.title,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                fontSize: 14.5,
-                fontWeight: FontWeight.w700,
-                height: 1.25,
-                letterSpacing: -0.2,
-                color: tokens.textPrimary,
-              ),
+            const SizedBox(height: 16),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Text(
+                  formatNotePrice(note.price),
+                  style: TextStyle(
+                    fontSize: 26,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: -0.6,
+                    color: note.isFree ? tokens.success : tokens.textPrimary,
+                  ),
+                ),
+                if ((note.originalPrice ?? 0) > note.price) ...[
+                  const SizedBox(width: 8),
+                  Text(
+                    formatNotePrice(note.originalPrice!),
+                    style: TextStyle(
+                      decoration: TextDecoration.lineThrough,
+                      color: tokens.textMuted,
+                      fontSize: 14,
+                    ),
+                  ),
+                ],
+                const Spacer(),
+                ApplePressable(
+                  onTap: () {
+                    HapticFeedback.selectionClick();
+                    showShareLinkSheet(
+                      context,
+                      title: note.title,
+                      message:
+                          'Check out these premium notes on GenZ IITIAN: ${note.title}',
+                      link:
+                          'https://class.genziitian.in/courses/explore?note=${Uri.encodeQueryComponent(note.id)}',
+                    );
+                  },
+                  child: Container(
+                    width: 42,
+                    height: 42,
+                    decoration: BoxDecoration(
+                      color: accent.withValues(alpha: 0.16),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(Symbols.ios_share_rounded,
+                        size: 20, color: accent),
+                  ),
+                ),
+              ],
             ),
-            const SizedBox(height: 3),
-            Text(
-              [note.subject, note.category]
-                  .where((e) => e != null && e.isNotEmpty)
-                  .join(' · '),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(fontSize: 12, color: tokens.textSecondary),
-            ),
-            const Spacer(),
-            Text(
-              formatNotePrice(note.price),
-              style: TextStyle(
-                fontSize: 17,
-                fontWeight: FontWeight.w800,
-                color: note.isFree ? tokens.success : tokens.textPrimary,
-              ),
-            ),
-            const SizedBox(height: 8),
-            _CardButton(
-              label: label,
-              filled: true,
-              color: expired ? tokens.warning : tokens.primaryAccent,
-              onTap: primary,
-            ),
-            const SizedBox(height: 6),
-            _CardButton(
-              label: 'Details',
-              filled: false,
-              color: tokens.textPrimary,
-              onTap: () => context.push('/store/notes/${note.id}'),
+            const SizedBox(height: 14),
+            Row(
+              children: [
+                Expanded(
+                  flex: 3,
+                  child: ApplePressable(
+                    onTap: primary,
+                    child: Container(
+                      height: 48,
+                      alignment: Alignment.center,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(24),
+                        gradient: LinearGradient(colors: buttonColors),
+                        boxShadow: [
+                          BoxShadow(
+                            color: buttonColors.last.withValues(alpha: 0.35),
+                            blurRadius: 14,
+                            offset: const Offset(0, 6),
+                          ),
+                        ],
+                      ),
+                      child: Text(
+                        label,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  flex: 2,
+                  child: ApplePressable(
+                    onTap: () => context.push('/store/notes/${note.id}'),
+                    child: Container(
+                      height: 48,
+                      alignment: Alignment.center,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(24),
+                        color: tokens.textMuted.withValues(alpha: 0.16),
+                      ),
+                      child: Text(
+                        'Details',
+                        style: TextStyle(
+                          color: tokens.textPrimary,
+                          fontSize: 15.5,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ],
         ),
@@ -347,41 +485,4 @@ class _Tag extends StatelessWidget {
             style: TextStyle(
                 fontSize: 11, fontWeight: FontWeight.w700, color: color)),
       );
-}
-
-class _CardButton extends StatelessWidget {
-  const _CardButton({
-    required this.label,
-    required this.filled,
-    required this.color,
-    required this.onTap,
-  });
-  final String label;
-  final bool filled;
-  final Color color;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final tokens = context.tokens;
-    return ApplePressable(
-      onTap: onTap,
-      child: Container(
-        height: 34,
-        alignment: Alignment.center,
-        decoration: BoxDecoration(
-          color: filled ? color : tokens.textMuted.withValues(alpha: 0.14),
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Text(
-          label,
-          style: TextStyle(
-            fontSize: 13,
-            fontWeight: FontWeight.w700,
-            color: filled ? Colors.white : color,
-          ),
-        ),
-      ),
-    );
-  }
 }

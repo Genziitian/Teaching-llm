@@ -41,10 +41,22 @@ class AcademicsPage extends ConsumerWidget {
         route: '/free-resources',
       ),
       (
+        title: 'Purchased Materials',
+        gradient: const [Color(0xFFFF9F0A), Color(0xFFF97316)],
+        icon: Symbols.lock_open_rounded,
+        route: '/free-resources/purchased',
+      ),
+      (
         title: 'Store',
         gradient: const [Color(0xFFFF6482), Color(0xFFFF2D55)],
         icon: Symbols.storefront_rounded,
         route: '/store',
+      ),
+      (
+        title: 'Purchase History',
+        gradient: const [Color(0xFF7D7AFF), Color(0xFF5E5CE6)],
+        icon: Symbols.receipt_long_rounded,
+        route: '/purchase-history',
       ),
       if (canAccessSupport(ref.watch(authStateProvider).value?.role))
         (
@@ -58,12 +70,6 @@ class AcademicsPage extends ConsumerWidget {
         gradient: const [Color(0xFFBF5AF2), Color(0xFFAF52DE)],
         icon: Symbols.download_done_rounded,
         route: '/downloads',
-      ),
-      (
-        title: 'Announcements',
-        gradient: const [Color(0xFF0A84FF), Color(0xFF007AFF)],
-        icon: Symbols.notifications_rounded,
-        route: '/announcements',
       ),
     ];
 

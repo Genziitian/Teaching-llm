@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import Script from 'next/script'
 import useSWR from 'swr'
+import ShareLinkModal, { ShareIcon } from '@/components/ShareLinkModal'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { BookOpen, FileText, Users, ClipboardList, Trash2, Pencil, Sparkles, IndianRupee, Calendar, Plus, ExternalLink, HelpCircle, ChevronRight, X, Info, ArrowLeft, Upload } from 'lucide-react'
 import { normalizeMeetLink } from '@/lib/meet-link'
@@ -23,6 +24,16 @@ const CATEGORY_TO_VIEW: Record<string, 'courses' | 'notes' | 'mentorship'> = {
   diploma: 'courses',
   notes: 'notes',
 }
+
+const NOTE_COLORS: Record<string, [string, string]> = {
+  foundation: ['#5AC8FA', '#0A84FF'],
+  diploma: ['#BF5AF2', '#7D3CE0'],
+  qualifier: ['#FFB340', '#FF7A00'],
+  're-attempt': ['#FF6482', '#FF2D55'],
+  general: ['#30D158', '#1E9E48'],
+}
+const noteColors = (category?: string): [string, string] =>
+  NOTE_COLORS[(category || 'general').toLowerCase()] || NOTE_COLORS.general
 
 export default function ExploreCoursesPage() {
   const router = useRouter()
@@ -146,6 +157,18 @@ export default function ExploreCoursesPage() {
   const [showCreateNoteModal, setShowCreateNoteModal] = useState(false)
   const [editingNote, setEditingNote] = useState<any>(null)
   const [detailNote, setDetailNote] = useState<any>(null)
+  const [noteLinkHandled, setNoteLinkHandled] = useState(false)
+  const [shareNote, setShareNote] = useState<{ id: string; title: string } | null>(null)
+  const sharedNoteId = searchParams?.get('note') || ''
+  // Shared note link (?note=<id>): open that note's details once notes have loaded.
+  useEffect(() => {
+    if (noteLinkHandled || !sharedNoteId) return
+    const found = (storeNotesData?.notes || []).find((n: any) => n.id === sharedNoteId)
+    if (found) {
+      setDetailNote(found)
+      setNoteLinkHandled(true)
+    }
+  }, [sharedNoteId, storeNotesData, noteLinkHandled])
   const [noteFiles, setNoteFiles] = useState<{ title: string; fileUrl: string }[]>([])
   const [showNotesInfo, setShowNotesInfo] = useState(false)
   const [uploadingNoteFile, setUploadingNoteFile] = useState(false)
@@ -1209,23 +1232,33 @@ export default function ExploreCoursesPage() {
       {storeView === 'notes' && selectedNotesTab && filteredNotes.length > 0 && (
         <div style={{ marginBottom: '18px' }}>
           
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(300px, 100%), 1fr))', gap: '14px', paddingBottom: '8px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(400px, 100%), 1fr))', gap: '22px', paddingBottom: '8px' }}>
             {filteredNotes.map((n: any) => {
               const currentUserId = userData?.user?.id
               const isManager = userData?.user?.role === 'MANAGER' || userData?.role === 'MANAGER'
               const hasAccess = !!n.hasAccess
               const isExpired = n.myAccess?.state === 'EXPIRED'
+              const [c1, c2] = noteColors(n.category)
 
               return (
-                <div key={n.id} style={{ background: 'var(--surface)', borderRadius: '24px', padding: '20px', border: '0.5px solid var(--border)', boxShadow: '0 1px 2px rgba(0,0,0,0.04), 0 8px 24px rgba(0,0,0,0.05)', display: 'flex', flexDirection: 'column' }}>
-                  <div style={{ fontSize: '18px', fontWeight: 800, letterSpacing: '-0.3px', marginBottom: '6px' }}>{n.title}</div>
-                  <div style={{ fontSize: '13px', color: 'var(--text-secondary)', marginBottom: '12px', minHeight: '40px', lineHeight: '20px', overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>{n.description || ''}</div>
-                  <div style={{ display: 'flex', gap: '8px', marginBottom: '12px', alignItems: 'center' }}>
-                    <div style={{ fontWeight: '800', color: n.price > 0 ? 'var(--text-primary)' : 'var(--success)' }}>{n.price > 0 ? `₹${n.price}` : 'Free'}</div>
-                    <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>· {n.validityDays} days access</div>
-                    {isExpired && <div style={{ fontSize: '12px', fontWeight: '800', color: 'var(--danger)' }}>Expired</div>}
+                <div key={n.id} style={{ position: 'relative', overflow: 'hidden', backgroundColor: 'var(--surface)', backgroundImage: `linear-gradient(145deg, ${c2}2e, ${c2}0d)`, borderRadius: '30px', padding: '26px', border: `1px solid ${c2}47`, boxShadow: '0 1px 2px rgba(0,0,0,0.05), 0 14px 36px rgba(0,0,0,0.12)', display: 'flex', flexDirection: 'column', minHeight: '300px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '14px', marginBottom: '18px' }}>
+                    <div style={{ width: '58px', height: '58px', borderRadius: '18px', background: `linear-gradient(135deg, ${c1}, ${c2})`, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: `0 8px 20px ${c2}59`, flexShrink: 0 }}>
+                      <FileText size={28} color="#fff" strokeWidth={2.2} />
+                    </div>
+                    <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
+                      <span style={{ fontSize: '12px', fontWeight: 700, padding: '5px 12px', borderRadius: '20px', background: `${c2}26`, color: c2 }}>{n.category || 'General'}</span>
+                      {n.subject && <span style={{ fontSize: '12px', fontWeight: 600, padding: '5px 12px', borderRadius: '20px', background: 'var(--surface-hover)', color: 'var(--text-secondary)' }}>{n.subject}</span>}
+                      {isExpired && <span style={{ fontSize: '12px', fontWeight: 700, padding: '5px 12px', borderRadius: '20px', background: 'var(--danger-light)', color: 'var(--danger)' }}>Expired</span>}
+                    </div>
                   </div>
-                  <div style={{ display: 'flex', gap: '8px', marginTop: 'auto' }}>
+                  <div style={{ fontSize: '24px', fontWeight: 800, letterSpacing: '-0.6px', lineHeight: 1.15, marginBottom: '8px' }}>{n.title}</div>
+                  <div style={{ fontSize: '14.5px', color: 'var(--text-secondary)', marginBottom: '18px', minHeight: '44px', lineHeight: '22px', overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>{n.description || ''}</div>
+                  <div style={{ display: 'flex', gap: '12px', marginBottom: '18px', alignItems: 'center' }}>
+                    <div style={{ fontSize: '34px', fontWeight: 800, letterSpacing: '-1px', color: n.price > 0 ? 'var(--text-primary)' : 'var(--success)' }}>{n.price > 0 ? `₹${n.price}` : 'Free'}</div>
+                    <div style={{ fontSize: '12.5px', fontWeight: 600, padding: '6px 12px', borderRadius: '20px', background: 'var(--surface-hover)', color: 'var(--text-secondary)' }}>{n.validityDays} days access</div>
+                  </div>
+                  <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', marginTop: 'auto' }}>
                     <button
                       onClick={() => {
                         if (hasAccess) {
@@ -1236,15 +1269,16 @@ export default function ExploreCoursesPage() {
                         }
                       }}
                       style={{
-                        flex: 1,
-                        height: '44px',
-                        padding: '0 10px',
+                        flex: 1.4,
+                        height: '52px',
+                        padding: '0 14px',
                         whiteSpace: 'nowrap',
-                        fontSize: '14px',
-                        borderRadius: '13px',
-                        background: hasAccess ? 'var(--success)' : isExpired ? 'var(--warning, #ff9f0a)' : 'var(--accent)',
-                        color: (hasAccess || isExpired) ? '#fff' : 'var(--button-text, #fff)',
-                        fontWeight: 600,
+                        fontSize: '16px',
+                        borderRadius: '26px',
+                        background: hasAccess ? 'linear-gradient(135deg,#30D158,#1E9E48)' : isExpired ? 'linear-gradient(135deg,#FFB340,#FF9F0A)' : `linear-gradient(135deg, ${c1}, ${c2})`,
+                        boxShadow: `0 8px 20px ${hasAccess ? '#1E9E4859' : isExpired ? '#FF9F0A59' : c2 + '59'}`,
+                        color: '#fff',
+                        fontWeight: 700,
                         border: 'none',
                         cursor: 'pointer'
                       }}
@@ -1253,9 +1287,17 @@ export default function ExploreCoursesPage() {
                     </button>
                     <button
                       onClick={() => setDetailNote(n)}
-                      style={{ flex: 1, height: '44px', padding: '0 10px', whiteSpace: 'nowrap', borderRadius: '13px', background: 'var(--surface-hover)', border: 'none', color: 'var(--text-primary)', fontWeight: 600, fontSize: '14px', cursor: 'pointer' }}
+                      style={{ flex: 1, height: '52px', padding: '0 14px', whiteSpace: 'nowrap', borderRadius: '26px', background: 'var(--surface-hover)', border: 'none', color: 'var(--text-primary)', fontWeight: 700, fontSize: '15.5px', cursor: 'pointer' }}
                     >
                       Details
+                    </button>
+                    <button
+                      onClick={() => setShareNote({ id: n.id, title: n.title })}
+                      title="Share"
+                      aria-label="Share note"
+                      style={{ width: '52px', height: '52px', flexShrink: 0, borderRadius: '50%', background: `${c2}26`, border: 'none', color: c2, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
+                    >
+                      <ShareIcon size={20} />
                     </button>
                   {(userData?.user?.role === 'MANAGER' || userData?.role === 'MANAGER') && (
                     <>
@@ -1300,6 +1342,14 @@ export default function ExploreCoursesPage() {
           </div>
         </div>
       )}
+
+      <ShareLinkModal
+        open={!!shareNote}
+        onClose={() => setShareNote(null)}
+        title={shareNote?.title || ''}
+        message={`Check out these premium notes on GenZ IITIAN: ${shareNote?.title || ''}`}
+        url={shareNote ? `https://class.genziitian.in/courses/explore?note=${shareNote.id}` : ''}
+      />
 
       {/* Mentorship offerings section */}
       {storeView === 'mentorship' && mentorshipsData?.mentorships?.length > 0 && (

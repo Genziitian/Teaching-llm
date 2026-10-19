@@ -24,6 +24,7 @@ import '../../features/downloads/downloaded_notes_page.dart';
 import '../../features/store/store_note_detail_page.dart';
 import '../../features/store/store_notes_page.dart';
 import '../../features/store/store_page.dart';
+import '../../features/academics/purchase_history_page.dart';
 import '../../features/courses/courses_page.dart';
 import '../../features/dashboard/dashboard_page.dart';
 import '../../features/feedback/feedback_page.dart';
@@ -527,6 +528,14 @@ final routerProvider = Provider<GoRouter>((ref) {
             ],
           ),
         ],
+      ),
+      GoRoute(
+        caseSensitive: false,
+        path: '/purchase-history',
+        pageBuilder: (context, state) => _buildSmoothPage(
+          key: state.pageKey,
+          child: const PurchaseHistoryPage(),
+        ),
       ),
       GoRoute(
         caseSensitive: false,

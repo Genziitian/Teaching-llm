@@ -115,8 +115,12 @@ class MyStoreNote {
     required this.price,
     required this.state,
     required this.expiresAt,
+    this.purchasedAt,
+    this.category = '',
   });
 
+  final DateTime? purchasedAt;
+  final String category;
   final String noteId;
   final String title;
   final double price;
@@ -129,6 +133,8 @@ class MyStoreNote {
         price: (j['price'] as num?)?.toDouble() ?? 0,
         state: _parseState(j['state'] as String?),
         expiresAt: DateTime.tryParse('${j['expiresAt']}')?.toLocal(),
+        purchasedAt: DateTime.tryParse('${j['purchasedAt']}')?.toLocal(),
+        category: (j['category'] as String?) ?? '',
       );
 }
 

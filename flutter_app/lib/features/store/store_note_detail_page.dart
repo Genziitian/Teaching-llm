@@ -68,7 +68,6 @@ class _Body extends ConsumerWidget {
     final multi = note.files.length > 1;
 
     String cta;
-    Color ctaColor = tokens.primaryAccent;
     IconData ctaIcon;
     Future<void> Function() onCta;
 
@@ -87,14 +86,12 @@ class _Body extends ConsumerWidget {
       };
     } else if (active) {
       cta = 'Download';
-      ctaColor = tokens.success;
       ctaIcon = Symbols.download_rounded;
       onCta = () => _download(context, ref);
     } else if (expired) {
       cta = note.price > 0
           ? 'Restore now · ${formatNotePrice(note.price)}'
           : 'Restore now';
-      ctaColor = tokens.warning;
       ctaIcon = Symbols.restore_rounded;
       onCta = () async {
         await buyStoreNote(context, ref, noteId: note.id, title: note.title);
@@ -107,6 +104,12 @@ class _Body extends ConsumerWidget {
       };
     }
 
+    final colors = _detailColors(note.category);
+    final accent = colors.last;
+    final ctaColors = expired
+        ? const [Color(0xFFFFB340), Color(0xFFFF9F0A)]
+        : (active ? const [Color(0xFF30D158), Color(0xFF1E9E48)] : colors);
+
     final meta = [note.category, note.subject]
         .where((e) => e != null && e.isNotEmpty)
         .join(' · ');
@@ -118,79 +121,106 @@ class _Body extends ConsumerWidget {
             padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
             children: [
               Container(
-                padding: const EdgeInsets.all(20),
+                padding: const EdgeInsets.all(22),
                 decoration: BoxDecoration(
-                  color: tokens.cardBg,
-                  borderRadius: BorderRadius.circular(26),
+                  borderRadius: BorderRadius.circular(30),
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: colors,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: accent.withValues(alpha: 0.35),
+                      blurRadius: 24,
+                      offset: const Offset(0, 12),
+                    ),
+                  ],
                 ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                clipBehavior: Clip.antiAlias,
+                child: Stack(
                   children: [
-                    Container(
-                      width: 52,
-                      height: 52,
-                      decoration: BoxDecoration(
-                        color: tokens.textMuted.withValues(alpha: 0.14),
-                        borderRadius: BorderRadius.circular(16),
-                      ),
+                    Positioned(
+                      right: -18,
+                      top: -10,
                       child: Icon(Symbols.description_rounded,
-                          fill: 1, size: 28, color: tokens.textSecondary),
+                          fill: 1,
+                          size: 150,
+                          color: Colors.white.withValues(alpha: 0.14)),
                     ),
-                    const SizedBox(height: 14),
-                    if (meta.isNotEmpty)
-                      Text(meta.toUpperCase(),
-                          style: TextStyle(
-                              fontSize: 11.5,
-                              fontWeight: FontWeight.w700,
-                              letterSpacing: 0.6,
-                              color: tokens.textSecondary)),
-                    const SizedBox(height: 4),
-                    Text(
-                      note.title,
-                      style: TextStyle(
-                        fontSize: 26,
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: -0.6,
-                        height: 1.15,
-                        color: tokens.textPrimary,
-                      ),
-                    ),
-                    const SizedBox(height: 14),
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.end,
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+                        Container(
+                          width: 54,
+                          height: 54,
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(alpha: 0.24),
+                            borderRadius: BorderRadius.circular(17),
+                          ),
+                          child: const Icon(Symbols.description_rounded,
+                              fill: 1, size: 28, color: Colors.white),
+                        ),
+                        const SizedBox(height: 18),
+                        if (meta.isNotEmpty)
+                          Text(meta.toUpperCase(),
+                              style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w700,
+                                  letterSpacing: 0.8,
+                                  color: Colors.white.withValues(alpha: 0.85))),
+                        const SizedBox(height: 4),
                         Text(
-                          formatNotePrice(note.price),
-                          style: TextStyle(
-                            fontSize: 28,
+                          note.title,
+                          style: const TextStyle(
+                            fontSize: 30,
                             fontWeight: FontWeight.w800,
-                            color: note.isFree
-                                ? tokens.success
-                                : tokens.textPrimary,
+                            letterSpacing: -0.9,
+                            height: 1.1,
+                            color: Colors.white,
                           ),
                         ),
-                        if ((note.originalPrice ?? 0) > note.price) ...[
-                          const SizedBox(width: 8),
-                          Padding(
-                            padding: const EdgeInsets.only(bottom: 4),
-                            child: Text(
-                              formatNotePrice(note.originalPrice!),
-                              style: TextStyle(
-                                decoration: TextDecoration.lineThrough,
-                                color: tokens.textMuted,
-                                fontSize: 14,
+                        const SizedBox(height: 18),
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            Text(
+                              formatNotePrice(note.price),
+                              style: const TextStyle(
+                                fontSize: 32,
+                                fontWeight: FontWeight.w800,
+                                letterSpacing: -0.8,
+                                color: Colors.white,
                               ),
                             ),
-                          ),
-                        ],
-                        const Spacer(),
-                        Padding(
-                          padding: const EdgeInsets.only(bottom: 4),
-                          child: Text('${note.validityDays} days access',
-                              style: TextStyle(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w600,
-                                  color: tokens.textSecondary)),
+                            if ((note.originalPrice ?? 0) > note.price) ...[
+                              const SizedBox(width: 8),
+                              Text(
+                                formatNotePrice(note.originalPrice!),
+                                style: TextStyle(
+                                  decoration: TextDecoration.lineThrough,
+                                  decorationColor:
+                                      Colors.white.withValues(alpha: 0.7),
+                                  color: Colors.white.withValues(alpha: 0.7),
+                                  fontSize: 15,
+                                ),
+                              ),
+                            ],
+                            const Spacer(),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 12, vertical: 7),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withValues(alpha: 0.22),
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              child: Text('${note.validityDays} days access',
+                                  style: const TextStyle(
+                                      fontSize: 12.5,
+                                      fontWeight: FontWeight.w700,
+                                      color: Colors.white)),
+                            ),
+                          ],
                         ),
                       ],
                     ),
@@ -254,7 +284,7 @@ class _Body extends ConsumerWidget {
                       _Line(
                         icon: Symbols.auto_awesome_rounded,
                         text: h,
-                        color: tokens.textSecondary,
+                        color: accent,
                       ),
                   ],
                 ),
@@ -303,10 +333,17 @@ class _Body extends ConsumerWidget {
                 onCta();
               },
               child: Container(
-                height: 52,
+                height: 56,
                 decoration: BoxDecoration(
-                  color: ctaColor,
-                  borderRadius: BorderRadius.circular(16),
+                  borderRadius: BorderRadius.circular(28),
+                  gradient: LinearGradient(colors: ctaColors),
+                  boxShadow: [
+                    BoxShadow(
+                      color: ctaColors.last.withValues(alpha: 0.38),
+                      blurRadius: 16,
+                      offset: const Offset(0, 7),
+                    ),
+                  ],
                 ),
                 alignment: Alignment.center,
                 child: Row(
@@ -327,6 +364,21 @@ class _Body extends ConsumerWidget {
         ),
       ],
     );
+  }
+}
+
+List<Color> _detailColors(String category) {
+  switch (category.toLowerCase()) {
+    case 'foundation':
+      return const [Color(0xFF5AC8FA), Color(0xFF0A84FF)];
+    case 'diploma':
+      return const [Color(0xFFBF5AF2), Color(0xFF7D3CE0)];
+    case 'qualifier':
+      return const [Color(0xFFFFB340), Color(0xFFFF7A00)];
+    case 're-attempt':
+      return const [Color(0xFFFF6482), Color(0xFFFF2D55)];
+    default:
+      return const [Color(0xFF30D158), Color(0xFF1E9E48)];
   }
 }
 

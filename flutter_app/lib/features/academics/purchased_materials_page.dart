@@ -26,7 +26,7 @@ class PurchasedMaterialsPage extends ConsumerWidget {
           children: [
             const SubPageHeader(
               title: 'Purchased Materials',
-              subtitle: 'Available for 30 days from purchase',
+              subtitle: 'Available for 90 days from purchase',
             ),
             const SizedBox(height: 12),
             Expanded(
@@ -108,6 +108,27 @@ class _Empty extends StatelessWidget {
               style: TextStyle(
                 fontSize: 12,
                 color: tokens.textSecondary,
+              ),
+            ),
+            const SizedBox(height: 20),
+            GestureDetector(
+              onTap: () => context.push('/store'),
+              child: Container(
+                height: 48,
+                padding: const EdgeInsets.symmetric(horizontal: 28),
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: tokens.primaryAccent,
+                  borderRadius: BorderRadius.circular(15),
+                ),
+                child: const Text(
+                  'Visit store',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 15.5,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
               ),
             ),
           ],

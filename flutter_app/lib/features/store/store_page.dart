@@ -16,17 +16,17 @@ class StorePage extends StatelessWidget {
     final tokens = context.tokens;
     return AppPageScaffold(
       title: 'Store',
-      subtitle: 'Courses and premium study material',
+      subtitle: 'Buy course and premium study material',
       showBack: true,
       onBack: () => context.canPop() ? context.pop() : context.go('/academics'),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(16, 18, 16, 40),
         children: [
           _StoreTile(
-            title: 'Premium Notes',
-            subtitle: 'Solved papers and notes. Buy once, read on app and web.',
+            title: 'Buy Premium Notes',
+            subtitle: 'Formula sheets, notes, solved papers and more',
             icon: Symbols.description_rounded,
-            gradient: const [Color(0xFF34C759), Color(0xFF248A3D)],
+            gradient: const [Color(0xFF1E8E3E), Color(0xFF0F5C28)],
             onTap: () {
               HapticFeedback.lightImpact();
               context.push('/store/notes');
@@ -58,7 +58,7 @@ class StorePage extends StatelessWidget {
 class _StoreTile extends StatelessWidget {
   const _StoreTile({
     required this.title,
-    required this.subtitle,
+    this.subtitle,
     required this.icon,
     required this.gradient,
     required this.onTap,
@@ -66,7 +66,7 @@ class _StoreTile extends StatelessWidget {
   });
 
   final String title;
-  final String subtitle;
+  final String? subtitle;
   final IconData icon;
   final List<Color> gradient;
   final VoidCallback onTap;
@@ -132,18 +132,20 @@ class _StoreTile extends StatelessWidget {
                     letterSpacing: -0.5,
                   ),
                 ),
-                const SizedBox(height: 4),
-                Text(
-                  subtitle,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    color: Colors.white.withValues(alpha: 0.88),
-                    fontSize: 13.5,
-                    fontWeight: FontWeight.w500,
-                    height: 1.3,
+                if (subtitle != null && subtitle!.isNotEmpty) ...[
+                  const SizedBox(height: 4),
+                  Text(
+                    subtitle!,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      color: Colors.white.withValues(alpha: 0.92),
+                      fontSize: 13.5,
+                      fontWeight: FontWeight.w500,
+                      height: 1.3,
+                    ),
                   ),
-                ),
+                ],
               ],
             ),
           ],
