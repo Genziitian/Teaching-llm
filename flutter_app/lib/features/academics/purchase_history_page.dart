@@ -108,7 +108,7 @@ List<Color> _colorsFor(String category) {
     case 're-attempt':
       return const [Color(0xFFFF6482), Color(0xFFFF2D55)];
     default:
-      return const [Color(0xFF30D158), Color(0xFF1E9E48)];
+      return const [Color(0xFF3A9D6B), Color(0xFF237A52)];
   }
 }
 

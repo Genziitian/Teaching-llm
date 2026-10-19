@@ -30,7 +30,7 @@ const NOTE_COLORS: Record<string, [string, string]> = {
   diploma: ['#BF5AF2', '#7D3CE0'],
   qualifier: ['#FFB340', '#FF7A00'],
   're-attempt': ['#FF6482', '#FF2D55'],
-  general: ['#30D158', '#1E9E48'],
+  general: ['#3A9D6B', '#237A52'],
 }
 const noteColors = (category?: string): [string, string] =>
   NOTE_COLORS[(category || 'general').toLowerCase()] || NOTE_COLORS.general
@@ -159,6 +159,8 @@ export default function ExploreCoursesPage() {
   const [detailNote, setDetailNote] = useState<any>(null)
   const [noteLinkHandled, setNoteLinkHandled] = useState(false)
   const [shareNote, setShareNote] = useState<{ id: string; title: string } | null>(null)
+  const [consentNote, setConsentNote] = useState<any>(null)
+  const [consentChecked, setConsentChecked] = useState(false)
   const sharedNoteId = searchParams?.get('note') || ''
   // Shared note link (?note=<id>): open that note's details once notes have loaded.
   useEffect(() => {
@@ -391,7 +393,12 @@ export default function ExploreCoursesPage() {
     }
   }
 
-  const handleNotePurchase = async (note: any) => {
+  const handleNotePurchase = (note: any) => {
+    setConsentChecked(false)
+    setConsentNote(note)
+  }
+
+  const startNotePurchase = async (note: any) => {
     setIsProcessing(true)
     try {
       const res = await fetch(`/api/store/notes/${note.id}/create-order`, { method: 'POST' })
@@ -1243,7 +1250,7 @@ export default function ExploreCoursesPage() {
               return (
                 <div key={n.id} style={{ position: 'relative', overflow: 'hidden', backgroundColor: 'var(--surface)', backgroundImage: `linear-gradient(145deg, ${c2}2e, ${c2}0d)`, borderRadius: '30px', padding: '26px', border: `1px solid ${c2}47`, boxShadow: '0 1px 2px rgba(0,0,0,0.05), 0 14px 36px rgba(0,0,0,0.12)', display: 'flex', flexDirection: 'column', minHeight: '300px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '14px', marginBottom: '18px' }}>
-                    <div style={{ width: '58px', height: '58px', borderRadius: '18px', background: `linear-gradient(135deg, ${c1}, ${c2})`, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: `0 8px 20px ${c2}59`, flexShrink: 0 }}>
+                    <div style={{ width: '58px', height: '58px', borderRadius: '18px', background: `linear-gradient(135deg, ${c1}, ${c2})`, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: `0 8px 20px ${c2}38`, flexShrink: 0 }}>
                       <FileText size={28} color="#fff" strokeWidth={2.2} />
                     </div>
                     <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
@@ -1275,8 +1282,8 @@ export default function ExploreCoursesPage() {
                         whiteSpace: 'nowrap',
                         fontSize: '16px',
                         borderRadius: '26px',
-                        background: hasAccess ? 'linear-gradient(135deg,#30D158,#1E9E48)' : isExpired ? 'linear-gradient(135deg,#FFB340,#FF9F0A)' : `linear-gradient(135deg, ${c1}, ${c2})`,
-                        boxShadow: `0 8px 20px ${hasAccess ? '#1E9E4859' : isExpired ? '#FF9F0A59' : c2 + '59'}`,
+                        background: hasAccess ? 'linear-gradient(135deg,#3A9D6B,#237A52)' : isExpired ? 'linear-gradient(135deg,#FFB340,#FF9F0A)' : `linear-gradient(135deg, ${c1}, ${c2})`,
+                        boxShadow: `0 8px 20px ${hasAccess ? '#237A5238' : isExpired ? '#FF9F0A38' : c2 + '38'}`,
                         color: '#fff',
                         fontWeight: 700,
                         border: 'none',
@@ -1339,6 +1346,49 @@ export default function ExploreCoursesPage() {
               </div>
             )
           })}
+          </div>
+        </div>
+      )}
+
+      {consentNote && (
+        <div
+          onClick={() => setConsentNote(null)}
+          style={{ position: 'fixed', inset: 0, zIndex: 1100, background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(6px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px' }}
+        >
+          <div
+            onClick={e => e.stopPropagation()}
+            style={{ width: '100%', maxWidth: '420px', background: 'var(--surface)', borderRadius: '24px', padding: '24px', boxShadow: '0 24px 70px rgba(0,0,0,0.35)', display: 'flex', flexDirection: 'column', gap: '18px' }}
+          >
+            <div style={{ fontSize: '20px', fontWeight: 800, letterSpacing: '-0.4px', color: 'var(--text-primary)' }}>Before you buy</div>
+            <label style={{ display: 'flex', gap: '12px', alignItems: 'flex-start', cursor: 'pointer' }}>
+              <input
+                type="checkbox"
+                checked={consentChecked}
+                onChange={e => setConsentChecked(e.target.checked)}
+                style={{ width: '22px', height: '22px', marginTop: '1px', accentColor: 'var(--accent)', flexShrink: 0, cursor: 'pointer' }}
+              />
+              <span style={{ fontSize: '14.5px', lineHeight: 1.5, color: 'var(--text-secondary)' }}>
+                By continuing, you agree to our{' '}
+                <a href="/company/terms-and-conditions" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--accent)', fontWeight: 700 }}>Terms &amp; Conditions</a>
+                {' '}and our{' '}
+                <a href="/company/refund-policy" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--accent)', fontWeight: 700 }}>Refund / Return Policy</a>.
+              </span>
+            </label>
+            <div style={{ display: 'flex', gap: '10px' }}>
+              <button
+                onClick={() => setConsentNote(null)}
+                style={{ flex: 1, height: '50px', borderRadius: '25px', border: 'none', background: 'var(--surface-hover)', color: 'var(--text-primary)', fontWeight: 700, fontSize: '15px', cursor: 'pointer' }}
+              >
+                Cancel
+              </button>
+              <button
+                disabled={!consentChecked}
+                onClick={() => { const n = consentNote; setConsentNote(null); startNotePurchase(n) }}
+                style={{ flex: 1.4, height: '50px', borderRadius: '25px', border: 'none', background: 'var(--accent)', color: 'var(--button-text, #fff)', fontWeight: 700, fontSize: '15px', cursor: consentChecked ? 'pointer' : 'not-allowed', opacity: consentChecked ? 1 : 0.4 }}
+              >
+                Buy now
+              </button>
+            </div>
           </div>
         </div>
       )}

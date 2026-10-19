@@ -609,6 +609,7 @@ class _ExpiredNotesSection extends ConsumerWidget {
                                 ref,
                                 noteId: expired[i].noteId,
                                 title: expired[i].title,
+                                price: expired[i].price,
                               ),
                               child: Container(
                                 height: 38,

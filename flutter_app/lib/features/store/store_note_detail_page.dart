@@ -94,13 +94,25 @@ class _Body extends ConsumerWidget {
           : 'Restore now';
       ctaIcon = Symbols.restore_rounded;
       onCta = () async {
-        await buyStoreNote(context, ref, noteId: note.id, title: note.title);
+        await buyStoreNote(
+          context,
+          ref,
+          noteId: note.id,
+          title: note.title,
+          price: note.price,
+        );
       };
     } else {
       cta = note.isFree ? 'Get free' : 'Buy now · ${formatNotePrice(note.price)}';
       ctaIcon = Symbols.shopping_bag_rounded;
       onCta = () async {
-        await buyStoreNote(context, ref, noteId: note.id, title: note.title);
+        await buyStoreNote(
+          context,
+          ref,
+          noteId: note.id,
+          title: note.title,
+          price: note.price,
+        );
       };
     }
 
@@ -108,7 +120,7 @@ class _Body extends ConsumerWidget {
     final accent = colors.last;
     final ctaColors = expired
         ? const [Color(0xFFFFB340), Color(0xFFFF9F0A)]
-        : (active ? const [Color(0xFF30D158), Color(0xFF1E9E48)] : colors);
+        : (active ? const [Color(0xFF3A9D6B), Color(0xFF237A52)] : colors);
 
     final meta = [note.category, note.subject]
         .where((e) => e != null && e.isNotEmpty)
@@ -131,7 +143,7 @@ class _Body extends ConsumerWidget {
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: accent.withValues(alpha: 0.35),
+                      color: accent.withValues(alpha: 0.2),
                       blurRadius: 24,
                       offset: const Offset(0, 12),
                     ),
@@ -339,7 +351,7 @@ class _Body extends ConsumerWidget {
                   gradient: LinearGradient(colors: ctaColors),
                   boxShadow: [
                     BoxShadow(
-                      color: ctaColors.last.withValues(alpha: 0.38),
+                      color: ctaColors.last.withValues(alpha: 0.22),
                       blurRadius: 16,
                       offset: const Offset(0, 7),
                     ),
@@ -378,7 +390,7 @@ List<Color> _detailColors(String category) {
     case 're-attempt':
       return const [Color(0xFFFF6482), Color(0xFFFF2D55)];
     default:
-      return const [Color(0xFF30D158), Color(0xFF1E9E48)];
+      return const [Color(0xFF3A9D6B), Color(0xFF237A52)];
   }
 }
 

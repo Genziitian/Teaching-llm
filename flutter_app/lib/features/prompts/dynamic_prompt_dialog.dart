@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:flutter/services.dart';
 import 'package:material_ui/material_ui.dart';
 
 import '../../theme/app_theme_tokens.dart';
@@ -46,6 +47,7 @@ class _DynamicPromptDialogState extends State<DynamicPromptDialog> {
   }
 
   void _handleAnswerChange(String questionId, String val) {
+    HapticFeedback.selectionClick();
     setState(() {
       _answers[questionId] = val;
       _error = null;
@@ -110,7 +112,7 @@ class _DynamicPromptDialogState extends State<DynamicPromptDialog> {
         ),
         decoration: BoxDecoration(
           color: tokens.cardBg,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -120,10 +122,10 @@ class _DynamicPromptDialogState extends State<DynamicPromptDialog> {
               child: Container(
                 margin: const EdgeInsets.only(top: 10, bottom: 6),
                 width: 36,
-                height: 4,
+                height: 5,
                 decoration: BoxDecoration(
-                  color: tokens.border,
-                  borderRadius: BorderRadius.circular(2),
+                  color: tokens.textMuted.withOpacity(0.4),
+                  borderRadius: BorderRadius.circular(3),
                 ),
               ),
             ),
@@ -144,15 +146,23 @@ class _DynamicPromptDialogState extends State<DynamicPromptDialog> {
                       child: Column(
                         children: [
                           Container(
-                            width: 48,
-                            height: 48,
+                            width: 58,
+                            height: 58,
                             decoration: BoxDecoration(
                               gradient: const LinearGradient(
-                                colors: [Color(0xFF5856D6), Color(0xFF4338CA)],
+                                colors: [Color(0xFF7D7AFF), Color(0xFF5856D6)],
                                 begin: Alignment.topLeft,
                                 end: Alignment.bottomRight,
                               ),
-                              borderRadius: BorderRadius.circular(14),
+                              borderRadius: BorderRadius.circular(18),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: const Color(0xFF5856D6)
+                                      .withOpacity(0.28),
+                                  blurRadius: 16,
+                                  offset: const Offset(0, 7),
+                                ),
+                              ],
                             ),
                             child: const Icon(
                               Icons.rate_review_rounded,
@@ -165,10 +175,10 @@ class _DynamicPromptDialogState extends State<DynamicPromptDialog> {
                             title,
                             textAlign: TextAlign.center,
                             style: TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.w900,
+                              fontSize: 23,
+                              fontWeight: FontWeight.w800,
                               color: tokens.textPrimary,
-                              letterSpacing: -0.3,
+                              letterSpacing: -0.6,
                             ),
                           ),
                           if (description != null &&
@@ -197,7 +207,7 @@ class _DynamicPromptDialogState extends State<DynamicPromptDialog> {
                             horizontal: 14, vertical: 10),
                         decoration: BoxDecoration(
                           color: tokens.danger.withOpacity(0.12),
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(16),
                           border:
                               Border.all(color: tokens.danger.withOpacity(0.3)),
                         ),
@@ -230,13 +240,13 @@ class _DynamicPromptDialogState extends State<DynamicPromptDialog> {
 
                     // Submit Button
                     SizedBox(
-                      height: 48,
+                      height: 54,
                       child: ElevatedButton(
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFF5856D6),
                           foregroundColor: Colors.white,
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
+                            borderRadius: BorderRadius.circular(27),
                           ),
                           elevation: 0,
                         ),
@@ -253,8 +263,8 @@ class _DynamicPromptDialogState extends State<DynamicPromptDialog> {
                             : const Text(
                                 'Submit & Continue',
                                 style: TextStyle(
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.w800,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w700,
                                 ),
                               ),
                       ),
@@ -298,7 +308,7 @@ class _DynamicPromptDialogState extends State<DynamicPromptDialog> {
                     padding: const EdgeInsets.symmetric(horizontal: 4),
                     child: InkWell(
                       onTap: () => _handleAnswerChange(qId, opt),
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(16),
                       child: Container(
                         padding: const EdgeInsets.symmetric(vertical: 12),
                         alignment: Alignment.center,
@@ -308,12 +318,12 @@ class _DynamicPromptDialogState extends State<DynamicPromptDialog> {
                                   ? const Color(0xFF312E81)
                                   : const Color(0xFFEEF2FF))
                               : tokens.surfaceSecondary,
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(16),
                           border: Border.all(
                             color: isSelected
                                 ? const Color(0xFF5856D6)
                                 : tokens.border,
-                            width: isSelected ? 2 : 1,
+                            width: isSelected ? 1.5 : 0.5,
                           ),
                         ),
                         child: Text(
@@ -343,7 +353,7 @@ class _DynamicPromptDialogState extends State<DynamicPromptDialog> {
                   padding: const EdgeInsets.only(bottom: 8),
                   child: InkWell(
                     onTap: () => _handleAnswerChange(qId, optStr),
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(16),
                     child: Container(
                       padding: const EdgeInsets.symmetric(
                           horizontal: 14, vertical: 12),
@@ -353,12 +363,12 @@ class _DynamicPromptDialogState extends State<DynamicPromptDialog> {
                                 ? const Color(0xFF312E81)
                                 : const Color(0xFFEEF2FF))
                             : tokens.surfaceSecondary,
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(16),
                         border: Border.all(
                           color: isSelected
                               ? const Color(0xFF5856D6)
                               : tokens.border,
-                          width: isSelected ? 2 : 1,
+                          width: isSelected ? 1.5 : 0.5,
                         ),
                       ),
                       child: Row(
@@ -407,7 +417,7 @@ class _DynamicPromptDialogState extends State<DynamicPromptDialog> {
                   backgroundColor: tokens.textPrimary,
                   foregroundColor: tokens.bg,
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(16),
                   ),
                   elevation: 0,
                 ),

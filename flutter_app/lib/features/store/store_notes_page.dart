@@ -244,7 +244,7 @@ List<Color> _categoryColors(String category) {
     case 're-attempt':
       return const [Color(0xFFFF6482), Color(0xFFFF2D55)];
     default:
-      return const [Color(0xFF30D158), Color(0xFF1E9E48)];
+      return const [Color(0xFF3A9D6B), Color(0xFF237A52)];
   }
 }
 
@@ -269,12 +269,18 @@ class _NoteCard extends ConsumerWidget {
         context.push('/store/notes/${note.id}');
         return;
       }
-      await buyStoreNote(context, ref, noteId: note.id, title: note.title);
+      await buyStoreNote(
+        context,
+        ref,
+        noteId: note.id,
+        title: note.title,
+        price: note.price,
+      );
     }
 
     final buttonColors = expired
         ? const [Color(0xFFFFB340), Color(0xFFFF9F0A)]
-        : (note.hasAccess ? const [Color(0xFF30D158), Color(0xFF1E9E48)] : colors);
+        : (note.hasAccess ? const [Color(0xFF3A9D6B), Color(0xFF237A52)] : colors);
 
     return ApplePressable(
       onTap: () => context.push('/store/notes/${note.id}'),
@@ -286,7 +292,7 @@ class _NoteCard extends ConsumerWidget {
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              Color.alphaBlend(accent.withValues(alpha: 0.22), tokens.cardBg),
+              Color.alphaBlend(accent.withValues(alpha: 0.14), tokens.cardBg),
               Color.alphaBlend(accent.withValues(alpha: 0.06), tokens.cardBg),
             ],
           ),
@@ -310,7 +316,7 @@ class _NoteCard extends ConsumerWidget {
                     ),
                     boxShadow: [
                       BoxShadow(
-                        color: accent.withValues(alpha: 0.38),
+                        color: accent.withValues(alpha: 0.22),
                         blurRadius: 14,
                         offset: const Offset(0, 6),
                       ),
@@ -420,7 +426,7 @@ class _NoteCard extends ConsumerWidget {
                         gradient: LinearGradient(colors: buttonColors),
                         boxShadow: [
                           BoxShadow(
-                            color: buttonColors.last.withValues(alpha: 0.35),
+                            color: buttonColors.last.withValues(alpha: 0.2),
                             blurRadius: 14,
                             offset: const Offset(0, 6),
                           ),

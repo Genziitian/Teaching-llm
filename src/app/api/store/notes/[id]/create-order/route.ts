@@ -58,12 +58,14 @@ export async function POST(req: Request, { params }: { params: { id: string } })
     }
 
     const order = await razorpay.orders.create(options)
+    // The key id is public (not the secret); fall back to the server one if the public var is missing.
+    const publicKeyId = process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || process.env.RAZORPAY_KEY_ID
 
     return NextResponse.json({
       razorpayOrderId: order.id,
       amount: options.amount,
-      key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
-      keyId: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
+      key: publicKeyId,
+      keyId: publicKeyId,
       currency: 'INR',
       noteTitle: note.title,
       userName: user.name || '',

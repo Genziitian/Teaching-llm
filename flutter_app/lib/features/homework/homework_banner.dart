@@ -401,54 +401,38 @@ class _HomeworkDetailCardState extends State<_HomeworkDetailCard> {
     final countdown = _formatCountdown(dueAt);
     final dateFormatted = _formatDate(dueAt);
 
+    // Calm palette: green when done, amber while pending, neutral grey once
+    // the deadline has passed (no alarm red).
     final statusColor = isSubmitted
-        ? const Color(0xFF34C759)
+        ? const Color(0xFF3A9D6B)
         : isPastDue
-            ? const Color(0xFFFF3B30)
-            : const Color(0xFFFF9500);
-
-    final statusGradient = isSubmitted
-        ? const [Color(0xFF34C759), Color(0xFF059669)]
-        : isPastDue
-            ? const [Color(0xFFFF3B30), Color(0xFFDC2626)]
-            : const [Color(0xFFFF9500), Color(0xFFD97706)];
+            ? const Color(0xFF8E8E93)
+            : const Color(0xFFFF9F0A);
 
     return Container(
       margin: const EdgeInsets.only(bottom: 14),
       decoration: BoxDecoration(
         color: tokens.surface,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(26),
         border: Border.all(
-          color: statusColor.withOpacity(0.35),
-          width: 1,
+          color: statusColor.withOpacity(0.18),
+          width: 0.8,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(tokens.isDark ? 0.25 : 0.04),
-            blurRadius: 16,
-            offset: const Offset(0, 4),
+            color: Colors.black.withOpacity(tokens.isDark ? 0.2 : 0.05),
+            blurRadius: 18,
+            offset: const Offset(0, 6),
           ),
         ],
       ),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(26),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // 3px top colored indicator
-            Container(
-              height: 3,
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: statusGradient,
-                  begin: Alignment.centerLeft,
-                  end: Alignment.centerRight,
-                ),
-              ),
-            ),
-
             Padding(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(20),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -465,11 +449,8 @@ class _HomeworkDetailCardState extends State<_HomeworkDetailCard> {
                           vertical: 3.5,
                         ),
                         decoration: BoxDecoration(
-                          color: statusColor.withOpacity(0.12),
+                          color: statusColor.withOpacity(0.15),
                           borderRadius: BorderRadius.circular(999),
-                          border: Border.all(
-                            color: statusColor.withOpacity(0.3),
-                          ),
                         ),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
@@ -519,9 +500,6 @@ class _HomeworkDetailCardState extends State<_HomeworkDetailCard> {
                           decoration: BoxDecoration(
                             color: tokens.surfaceSecondary,
                             borderRadius: BorderRadius.circular(999),
-                            border: Border.all(
-                              color: tokens.border,
-                            ),
                           ),
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
@@ -570,7 +548,9 @@ class _HomeworkDetailCardState extends State<_HomeworkDetailCard> {
                                 '($countdown)',
                                 style: TextStyle(
                                   fontSize: 11.5,
-                                  color: statusColor,
+                                  color: isPastDue && !isSubmitted
+                                      ? tokens.textMuted
+                                      : statusColor,
                                   fontWeight: FontWeight.w700,
                                 ),
                               ),
@@ -586,9 +566,10 @@ class _HomeworkDetailCardState extends State<_HomeworkDetailCard> {
                   Text(
                     title,
                     style: TextStyle(
-                      fontSize: 16.5,
-                      fontWeight: FontWeight.w800,
+                      fontSize: 18,
+                      fontWeight: FontWeight.w700,
                       color: tokens.textPrimary,
+                      letterSpacing: -0.3,
                       height: 1.25,
                     ),
                   ),
@@ -628,7 +609,7 @@ class _HomeworkDetailCardState extends State<_HomeworkDetailCard> {
                   // Divider
                   const SizedBox(height: 14),
                   Container(
-                    height: 1,
+                    height: 0.5,
                     color: tokens.border,
                   ),
                   const SizedBox(height: 12),
@@ -644,7 +625,7 @@ class _HomeworkDetailCardState extends State<_HomeworkDetailCard> {
                             const Icon(
                               Icons.task_alt_rounded,
                               size: 15,
-                              color: Color(0xFF34C759),
+                              color: Color(0xFF3A9D6B),
                             ),
                             const SizedBox(width: 6),
                             Expanded(
@@ -704,20 +685,20 @@ class _HomeworkDetailCardState extends State<_HomeworkDetailCard> {
                                     ? 'View Material'
                                     : 'Materials (${fileUrls.length})',
                                 style: TextStyle(
-                                  fontSize: 12,
+                                  fontSize: 13,
                                   fontWeight: FontWeight.w700,
                                   color: tokens.textPrimary,
                                 ),
                               ),
                               style: OutlinedButton.styleFrom(
-                                side: BorderSide(color: tokens.border),
+                                side: BorderSide.none,
                                 backgroundColor: tokens.surfaceSecondary,
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(999),
                                 ),
                                 padding: const EdgeInsets.symmetric(
-                                  horizontal: 14,
-                                  vertical: 8,
+                                  horizontal: 18,
+                                  vertical: 12,
                                 ),
                                 minimumSize: Size.zero,
                                 tapTargetSize: MaterialTapTargetSize.shrinkWrap,
@@ -749,8 +730,8 @@ class _HomeworkDetailCardState extends State<_HomeworkDetailCard> {
                                       ? 'Update Submission'
                                       : 'Submit Homework',
                               style: const TextStyle(
-                                fontWeight: FontWeight.w800,
-                                fontSize: 12,
+                                fontWeight: FontWeight.w700,
+                                fontSize: 13,
                               ),
                             ),
                             style: ElevatedButton.styleFrom(
@@ -764,7 +745,7 @@ class _HomeworkDetailCardState extends State<_HomeworkDetailCard> {
                                   : isSubmitted
                                       ? tokens.textPrimary
                                       : Colors.white,
-                              elevation: isSubmitted || !canSubmit ? 0 : 2,
+                              elevation: 0,
                               side: isSubmitted
                                   ? BorderSide(color: tokens.border)
                                   : BorderSide.none,
@@ -772,8 +753,8 @@ class _HomeworkDetailCardState extends State<_HomeworkDetailCard> {
                                 borderRadius: BorderRadius.circular(999),
                               ),
                               padding: const EdgeInsets.symmetric(
-                                horizontal: 16,
-                                vertical: 8,
+                                horizontal: 20,
+                                vertical: 12,
                               ),
                               minimumSize: Size.zero,
                               tapTargetSize: MaterialTapTargetSize.shrinkWrap,
@@ -840,15 +821,6 @@ class _HomeworkDetailCardState extends State<_HomeworkDetailCard> {
                       fontSize: 14,
                       fontWeight: FontWeight.w700,
                       color: tokens.textPrimary,
-                    ),
-                  ),
-                  subtitle: Text(
-                    url,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      fontSize: 11,
-                      color: tokens.textMuted,
                     ),
                   ),
                   trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 14),

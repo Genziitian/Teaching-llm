@@ -34,7 +34,7 @@ class LoadingFactCard extends StatelessWidget {
         ? const Color(0xFF0D0D0D)
         : (isDark
             ? const Color(0xFF161A23)
-            : Colors.white);
+            : const Color(0xFFF2F2F7));
 
     final Color borderColor = isUltraRare
         ? const Color(0xFFFF9500)
@@ -42,7 +42,7 @@ class LoadingFactCard extends StatelessWidget {
             ? (isBlack ? const Color(0xFF71717A) : const Color(0xFF5856D6))
             : (isBlack
                 ? const Color(0xFF27272A)
-                : (isDark ? const Color(0xFF2A3143) : const Color(0xFFE2E8F0)));
+                : (isDark ? const Color(0xFF2A3143) : Colors.transparent));
 
     final Color textColor = tokens.textPrimary;
 
@@ -66,7 +66,7 @@ class LoadingFactCard extends StatelessWidget {
                 ),
                 decoration: BoxDecoration(
                   color: bgColor,
-                  borderRadius: BorderRadius.circular(16),
+                  borderRadius: BorderRadius.circular(20),
                   border: Border.all(
                     color: borderColor,
                     width: (isRare || isUltraRare) ? 1.5 : 1.0,
@@ -84,9 +84,9 @@ class LoadingFactCard extends StatelessWidget {
                         blurRadius: 14,
                         offset: const Offset(0, 4),
                       )
-                    else
+                    else if (isDark)
                       BoxShadow(
-                        color: Colors.black.withOpacity(isDark ? 0.25 : 0.05),
+                        color: Colors.black.withOpacity(0.25),
                         blurRadius: 10,
                         offset: const Offset(0, 3),
                       ),

@@ -1,11 +1,17 @@
+import 'package:flutter/foundation.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/services.dart';
+import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:material_ui/material_ui.dart';
 
 import '../../core/auth/auth_providers.dart';
 import '../../core/downloads/download_providers.dart';
+import '../../core/payments/play_billing_service.dart';
 import '../../core/payments/razorpay_service.dart';
+import '../../theme/app_theme_tokens.dart';
+import '../academics/free_resources_page.dart' show purchasedMaterialsProvider;
 
 enum NoteAccessState { none, active, expired }
 
@@ -194,6 +200,154 @@ final expiredStoreNotesProvider =
   return all.where((n) => n.state == NoteAccessState.expired).toList();
 });
 
+/// Asks the buyer to accept the Terms and the Refund / Return Policy.
+/// The Buy now button stays disabled until the box is ticked.
+Future<bool> _confirmNoteTerms(BuildContext context) async {
+  final tokens = context.tokens;
+  final router = GoRouter.of(context);
+  final ok = await showModalBottomSheet<bool>(
+    context: context,
+    backgroundColor: tokens.cardBg,
+    isScrollControlled: true,
+    shape: const RoundedRectangleBorder(
+      borderRadius: BorderRadius.vertical(top: Radius.circular(26)),
+    ),
+    builder: (sheet) {
+      var checked = false;
+      return StatefulBuilder(
+        builder: (sheet, setState) {
+          final linkStyle = TextStyle(
+            color: tokens.primaryAccent,
+            fontWeight: FontWeight.w700,
+          );
+          return SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(20, 10, 20, 20),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Center(
+                    child: Container(
+                      width: 36,
+                      height: 5,
+                      decoration: BoxDecoration(
+                        color: tokens.textMuted.withValues(alpha: 0.4),
+                        borderRadius: BorderRadius.circular(3),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 18),
+                  Text(
+                    'Before you buy',
+                    style: TextStyle(
+                      fontSize: 21,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: -0.4,
+                      color: tokens.textPrimary,
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                  GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: () => setState(() => checked = !checked),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        AnimatedContainer(
+                          duration: const Duration(milliseconds: 150),
+                          width: 26,
+                          height: 26,
+                          margin: const EdgeInsets.only(top: 1),
+                          decoration: BoxDecoration(
+                            color: checked
+                                ? tokens.primaryAccent
+                                : Colors.transparent,
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(
+                              color: checked
+                                  ? tokens.primaryAccent
+                                  : tokens.textMuted,
+                              width: 2,
+                            ),
+                          ),
+                          child: checked
+                              ? const Icon(Icons.check_rounded,
+                                  size: 18, color: Colors.white)
+                              : null,
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Text.rich(
+                            TextSpan(
+                              style: TextStyle(
+                                fontSize: 14.5,
+                                height: 1.45,
+                                color: tokens.textSecondary,
+                              ),
+                              children: [
+                                const TextSpan(
+                                    text: 'By continuing, you agree to our '),
+                                TextSpan(
+                                  text: 'Terms & Conditions',
+                                  style: linkStyle,
+                                  recognizer: TapGestureRecognizer()
+                                    ..onTap = () => router
+                                        .push('/terms-and-conditions'),
+                                ),
+                                const TextSpan(text: ' and our '),
+                                TextSpan(
+                                  text: 'Refund / Return Policy',
+                                  style: linkStyle,
+                                  recognizer: TapGestureRecognizer()
+                                    ..onTap =
+                                        () => router.push('/refund-policy'),
+                                ),
+                                const TextSpan(text: '.'),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  GestureDetector(
+                    onTap: checked
+                        ? () => Navigator.of(sheet).pop(true)
+                        : null,
+                    child: AnimatedOpacity(
+                      duration: const Duration(milliseconds: 150),
+                      opacity: checked ? 1 : 0.4,
+                      child: Container(
+                        height: 52,
+                        alignment: Alignment.center,
+                        decoration: BoxDecoration(
+                          color: tokens.primaryAccent,
+                          borderRadius: BorderRadius.circular(26),
+                        ),
+                        child: const Text(
+                          'Buy now',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 16.5,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      );
+    },
+  );
+  return ok == true;
+}
+
 /// Runs checkout for a note (first purchase or restore). Returns true when
 /// access was granted. Shows its own feedback.
 Future<bool> buyStoreNote(
@@ -201,25 +355,53 @@ Future<bool> buyStoreNote(
   WidgetRef ref, {
   required String noteId,
   required String title,
+  double? price,
 }) async {
+  final agreed = await _confirmNoteTerms(context);
+  if (!agreed || !context.mounted) return false;
   HapticFeedback.mediumImpact();
   final messenger = ScaffoldMessenger.of(context);
-  final service = RazorpayCheckoutService(api: ref.read(apiClientProvider));
-  final result = await service.purchaseNote(context: context, noteId: noteId);
 
-  if (!result.isSuccess) {
-    final msg = (result.errorMessage ?? 'Payment failed').replaceFirst(
-        RegExp(r'^(Exception: )'), '');
-    if (!msg.toLowerCase().contains('cancel')) {
-      messenger.showSnackBar(SnackBar(content: Text(msg)));
+  final isAndroid = !kIsWeb && defaultTargetPlatform == TargetPlatform.android;
+  final effectivePrice = price ??
+      ref.read(storeNoteProvider(noteId)).asData?.value.price ??
+      0.0;
+
+  if (isAndroid && effectivePrice > 0) {
+    final playService = PlayBillingService(api: ref.read(apiClientProvider));
+    final result = await playService.purchaseNote(
+      noteId: noteId,
+      price: effectivePrice,
+      title: title,
+    );
+
+    if (!result.isSuccess) {
+      if (!result.isCancelled) {
+        messenger.showSnackBar(
+          SnackBar(content: Text(result.errorMessage ?? 'Payment failed')),
+        );
+      }
+      return false;
     }
-    return false;
+  } else {
+    final service = RazorpayCheckoutService(api: ref.read(apiClientProvider));
+    final result = await service.purchaseNote(context: context, noteId: noteId);
+
+    if (!result.isSuccess) {
+      final msg = (result.errorMessage ?? 'Payment failed').replaceFirst(
+          RegExp(r'^(Exception: )'), '');
+      if (!msg.toLowerCase().contains('cancel')) {
+        messenger.showSnackBar(SnackBar(content: Text(msg)));
+      }
+      return false;
+    }
   }
 
   ref.invalidate(storeNotesProvider);
   ref.invalidate(storeNoteProvider(noteId));
   ref.invalidate(myStoreNotesProvider);
   ref.invalidate(downloadedNotesProvider);
+  ref.invalidate(purchasedMaterialsProvider);
   HapticFeedback.heavyImpact();
   messenger.showSnackBar(
     SnackBar(content: Text('"$title" is unlocked. You can download it now.')),

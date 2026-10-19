@@ -58,7 +58,8 @@ class _SplashOverlayState extends ConsumerState<SplashOverlay>
       duration: const Duration(milliseconds: 1500),
     )..addListener(() {
         setState(() {
-          _progress = _progressController?.value ?? 0.0;
+          _progress =
+              Curves.easeInOutCubic.transform(_progressController?.value ?? 0.0);
         });
       });
 
@@ -120,23 +121,22 @@ class _SplashOverlayState extends ConsumerState<SplashOverlay>
           enabled: !_loaderVisible && !showingLaunch,
           child: widget.child,
         ),
-        if (overlayVisible)
-          AnimatedOpacity(
-            opacity: overlayVisible ? 1.0 : 0.0,
-            duration: const Duration(milliseconds: 300),
-            curve: Curves.easeOut,
-            child: IgnorePointer(
-              ignoring: !overlayVisible,
-              child: Material(
-                color: Colors.white,
-                child: SizedBox.expand(
-                  child: SafeArea(
-                    child: _buildLogoAndProgress(),
+        // Fades out smoothly instead of disappearing in one frame.
+        AnimatedSwitcher(
+          duration: const Duration(milliseconds: 380),
+          switchOutCurve: Curves.easeOut,
+          transitionBuilder: (child, animation) =>
+              FadeTransition(opacity: animation, child: child),
+          child: overlayVisible
+              ? Material(
+                  key: const ValueKey('splash'),
+                  color: Colors.white,
+                  child: SizedBox.expand(
+                    child: SafeArea(child: _buildLogoAndProgress()),
                   ),
-                ),
-              ),
-            ),
-          ),
+                )
+              : const SizedBox.shrink(key: ValueKey('no-splash')),
+        ),
       ],
     );
   }
@@ -146,8 +146,16 @@ class _SplashOverlayState extends ConsumerState<SplashOverlay>
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // GenZ IITIAN Logo
-          Image.asset(
+          // GenZ IITIAN Logo (eases in: fade + slight scale)
+          TweenAnimationBuilder<double>(
+            tween: Tween(begin: 0, end: 1),
+            duration: const Duration(milliseconds: 650),
+            curve: Curves.easeOutCubic,
+            builder: (context, t, child) => Opacity(
+              opacity: t,
+              child: Transform.scale(scale: 0.92 + 0.08 * t, child: child),
+            ),
+            child: Image.asset(
             'assets/mobile-login-logo.png',
             width: 170,
             height: 65,
@@ -164,21 +172,22 @@ class _SplashOverlayState extends ConsumerState<SplashOverlay>
               );
             },
           ),
-          const SizedBox(height: 36),
+          ),
+          const SizedBox(height: 40),
 
           // Loading Bar Container
           Container(
-            width: 240,
-            height: 6,
+            width: 200,
+            height: 4,
             decoration: BoxDecoration(
-              color: const Color(0xFFF1F5F9),
+              color: const Color(0xFFE5E5EA),
               borderRadius: BorderRadius.circular(999),
             ),
             alignment: Alignment.centerLeft,
             child: FractionallySizedBox(
               widthFactor: _progress.clamp(0.0, 1.0),
               child: Container(
-                height: 6,
+                height: 4,
                 decoration: BoxDecoration(
                   color: const Color(0xFFDC2626), // GenZ Red brand color
                   borderRadius: BorderRadius.circular(999),
@@ -191,17 +200,27 @@ class _SplashOverlayState extends ConsumerState<SplashOverlay>
           const Text(
             'LOADING...',
             style: TextStyle(
-              fontSize: 12,
-              color: Color(0xFF64748B),
-              fontWeight: FontWeight.w700,
-              letterSpacing: 1.2,
+              fontSize: 11.5,
+              color: Color(0xFF8E8E93),
+              fontWeight: FontWeight.w600,
+              letterSpacing: 1.6,
             ),
           ),
           if (_fact != null) ...[
-            const SizedBox(height: 24),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: LoadingFactCard(fact: _fact, maxWidth: 360),
+            const SizedBox(height: 28),
+            TweenAnimationBuilder<double>(
+              tween: Tween(begin: 0, end: 1),
+              duration: const Duration(milliseconds: 700),
+              curve: Curves.easeOut,
+              builder: (context, t, child) => Opacity(
+                opacity: t,
+                child: Transform.translate(
+                    offset: Offset(0, 8 * (1 - t)), child: child),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: LoadingFactCard(fact: _fact, maxWidth: 360),
+              ),
             ),
           ],
         ],
