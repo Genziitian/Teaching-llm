@@ -30,7 +30,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
 
     const note = await prisma.storeNote.findUnique({
       where: { id: params.id },
-      include: { files: true }
+      include: { files: { orderBy: { sortOrder: 'asc' } } }
     })
 
     if (!note) {
@@ -70,7 +70,8 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
       return NextResponse.json({ error: 'Access expired or not purchased. Buy or restore this note to open it.' }, { status: 403 })
     }
 
-    const noteFile = note.files?.[0]
+    const wantedFileId = req.nextUrl.searchParams.get('fileId')
+    const noteFile = (wantedFileId ? note.files?.find((f) => f.id === wantedFileId) : null) ?? note.files?.[0]
     if (!noteFile || !noteFile.fileUrl) {
       return NextResponse.json({ error: 'No documents attached to this note.' }, { status: 404 })
     }

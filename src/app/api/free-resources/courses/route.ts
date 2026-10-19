@@ -40,7 +40,7 @@ export async function GET() {
       }
     })
 
-    return NextResponse.json(coursesWithEnrollmentStatus)
+    return NextResponse.json(coursesWithEnrollmentStatus, { headers: { 'Cache-Control': 'no-store' } })
   } catch (error) {
     console.error('Error fetching free courses:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })

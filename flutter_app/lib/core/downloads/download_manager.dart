@@ -268,8 +268,9 @@ class DownloadManager {
         continue;
       }
       final id = row['contentId'] as String;
+      final noteId = id.split('__').first;
       final until = DateTime.tryParse((row['version'] as String?) ?? '');
-      if (expiredIds.contains(id) || (until != null && until.isBefore(now))) {
+      if (expiredIds.contains(noteId) || (until != null && until.isBefore(now))) {
         await deleteDownload(userId, id);
         removed.add(id);
       }

@@ -18,7 +18,7 @@ export default function FreeResourcesPage() {
     {
       href: '/free-resources/courses',
       title: 'Free Courses',
-      description: 'Browse and self-enroll in free courses with full content access.',
+      description: 'Browse and enroll for free.',
       count: freeCoursesCount,
       countLabel: 'courses available',
       color: 'var(--accent)',
@@ -33,7 +33,7 @@ export default function FreeResourcesPage() {
     {
       href: '/free-resources/materials',
       title: 'Free Materials',
-      description: 'Download study materials available for free — no enrollment needed.',
+      description: 'Notes, summaries and formula sheets.',
       count: freeMaterialsCount,
       countLabel: 'materials available',
       color: 'var(--success)',
@@ -47,7 +47,7 @@ export default function FreeResourcesPage() {
     {
       href: '/free-resources/purchased',
       title: 'Purchased Materials',
-      description: 'Access your securely purchased study notes. Available for 30 days.',
+      description: 'Unlocked through your courses.',
       count: '30-day',
       countLabel: 'access expiry',
       color: 'var(--warning)',

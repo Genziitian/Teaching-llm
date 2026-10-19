@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { getSession } from '@/lib/auth'
-import { canManageNotes, isStaffRole, serializeNote } from '@/lib/store-notes'
+import { canManageNotes, isStaffRole, readFileInputs, serializeNote } from '@/lib/store-notes'
 
 function cleanDays(v: any) {
   const n = Math.round(Number(v))
@@ -16,10 +16,11 @@ export async function POST(req: Request) {
     }
 
     const data = await req.json()
-    const { title, description, fileUrl, price, category, subject, validityDays, highlights, extraRules } = data
+    const { title, description, price, category, subject, validityDays, highlights, extraRules } = data
+    const fileInputs = readFileInputs(data)
 
-    if (!title || !fileUrl) {
-      return NextResponse.json({ error: 'Title and file link are required' }, { status: 400 })
+    if (!title || fileInputs.length === 0) {
+      return NextResponse.json({ error: 'Title and at least one file are required' }, { status: 400 })
     }
 
     const note = await prisma.storeNote.create({
@@ -34,11 +35,12 @@ export async function POST(req: Request) {
         highlights: highlights ? String(highlights) : null,
         extraRules: extraRules ? String(extraRules) : null,
         files: {
-          create: {
-            title: 'Primary Document',
-            fileUrl,
-            fileType: 'LINK'
-          }
+          create: fileInputs.map((f, i) => ({
+            title: f.title || 'Document',
+            fileUrl: f.fileUrl,
+            fileType: 'LINK',
+            sortOrder: i,
+          }))
         }
       }
     })
@@ -56,7 +58,7 @@ export async function GET() {
     const isStaff = isStaffRole(session?.role)
     const notes = await prisma.storeNote.findMany({
       where: isStaff ? undefined : { isActive: true },
-      include: { files: true },
+      include: { files: { orderBy: { sortOrder: 'asc' } } },
       orderBy: { createdAt: 'desc' }
     })
 

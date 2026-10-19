@@ -21,6 +21,76 @@ class StoreNotesPage extends ConsumerStatefulWidget {
 class _StoreNotesPageState extends ConsumerState<StoreNotesPage> {
   String _category = 'All';
 
+  void _showInfo(BuildContext context) {
+    final tokens = context.tokens;
+    showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: tokens.cardBg,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(26)),
+      ),
+      builder: (sheet) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 10, 20, 20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Center(
+                child: Container(
+                  width: 36,
+                  height: 5,
+                  decoration: BoxDecoration(
+                    color: tokens.textMuted.withValues(alpha: 0.4),
+                    borderRadius: BorderRadius.circular(3),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 18),
+              Text(
+                'Where are my notes?',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: -0.4,
+                  color: tokens.textPrimary,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'You can access your notes in Free Resources > Purchased Materials.',
+                style: TextStyle(
+                    fontSize: 14.5, height: 1.45, color: tokens.textSecondary),
+              ),
+              const SizedBox(height: 18),
+              ApplePressable(
+                onTap: () {
+                  Navigator.of(sheet).pop();
+                  context.push('/free-resources/purchased');
+                },
+                child: Container(
+                  height: 50,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    color: tokens.primaryAccent,
+                    borderRadius: BorderRadius.circular(15),
+                  ),
+                  child: const Text(
+                    'Open Purchased Materials',
+                    style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final tokens = context.tokens;
@@ -31,6 +101,22 @@ class _StoreNotesPageState extends ConsumerState<StoreNotesPage> {
       subtitle: 'Buy once, use on app and web',
       showBack: true,
       onBack: () => context.canPop() ? context.pop() : context.go('/store'),
+      right: ApplePressable(
+        onTap: () {
+          HapticFeedback.selectionClick();
+          _showInfo(context);
+        },
+        child: Container(
+          width: 36,
+          height: 36,
+          decoration: BoxDecoration(
+            color: tokens.textMuted.withValues(alpha: 0.14),
+            shape: BoxShape.circle,
+          ),
+          child: Icon(Symbols.info_rounded,
+              size: 20, color: tokens.textSecondary),
+        ),
+      ),
       body: AppRefresh(
         onRefresh: () async {
           ref.invalidate(storeNotesProvider);

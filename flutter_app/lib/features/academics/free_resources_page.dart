@@ -48,7 +48,6 @@ class FreeResourcesPage extends ConsumerWidget {
 
     return AppPageScaffold(
       title: 'Free Resources',
-      subtitle: 'Free courses and study materials',
       showBack: true,
       onBack: () {
         if (Navigator.of(context).canPop()) {

@@ -82,9 +82,9 @@ const PAGE_TITLES: Record<string, { title: string; subtitle: string }> = {
   '/activity-logs': { title: 'Activity Log',     subtitle: 'Monitor all platform activity and user actions' },
   '/data-analysis': { title: 'Data Analysis',      subtitle: 'Production-level insights and student behavior metrics' },
   '/feedback':   { title: 'Feedback',           subtitle: 'Average ratings and student reviews.' },
-  '/free-resources/courses': { title: 'Free Courses', subtitle: 'Browse and self-enroll in free courses' },
-  '/free-resources/materials': { title: 'Free Materials', subtitle: 'Download study materials available for free' },
-  '/free-resources': { title: 'Free Resources', subtitle: 'Access free courses and study materials' },
+  '/free-resources/courses': { title: 'Free Courses', subtitle: '' },
+  '/free-resources/materials': { title: 'Free Materials', subtitle: '' },
+  '/free-resources': { title: 'Free Resources', subtitle: '' },
   '/transactions': { title: 'Upgrade Transactions', subtitle: 'Monitor student course upgrades and revenue' },
   '/my-transactions': { title: 'My Transaction History', subtitle: 'View all your course transactions and upgrades' },
 }

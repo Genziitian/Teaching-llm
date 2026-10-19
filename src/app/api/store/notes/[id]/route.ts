@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { getSession } from '@/lib/auth'
-import { canManageNotes, isStaffRole, serializeNote } from '@/lib/store-notes'
+import { canManageNotes, isStaffRole, readFileInputs, serializeNote } from '@/lib/store-notes'
 
 export async function GET(_req: Request, { params }: { params: { id: string } }) {
   try {
@@ -9,7 +9,7 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
     const isStaff = isStaffRole(session?.role)
     const note = await prisma.storeNote.findUnique({
       where: { id: params.id },
-      include: { files: true },
+      include: { files: { orderBy: { sortOrder: 'asc' } } },
     })
     if (!note || (!note.isActive && !isStaff)) {
       return NextResponse.json({ error: 'Note not found' }, { status: 404 })
@@ -52,7 +52,8 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
     }
     const { id } = params
     const body = await req.json()
-    const { title, description, fileUrl, price, category, subject, validityDays, highlights, extraRules, isActive } = body
+    const { title, description, price, category, subject, validityDays, highlights, extraRules, isActive } = body
+    const fileInputs = readFileInputs(body)
 
     const days = Math.round(Number(validityDays))
 
@@ -71,15 +72,18 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
       }
     })
 
-    if (fileUrl) {
-      const existingFile = await prisma.storeNoteFile.findFirst({ where: { noteId: id } })
-      if (existingFile) {
-        await prisma.storeNoteFile.update({ where: { id: existingFile.id }, data: { fileUrl } })
-      } else {
-        await prisma.storeNoteFile.create({
-          data: { noteId: id, fileUrl, title: updated.title }
-        })
-      }
+    // The submitted list is the full set of files for this note.
+    if (fileInputs.length > 0) {
+      await prisma.storeNoteFile.deleteMany({ where: { noteId: id } })
+      await prisma.storeNoteFile.createMany({
+        data: fileInputs.map((f, i) => ({
+          noteId: id,
+          title: f.title || 'Document',
+          fileUrl: f.fileUrl,
+          fileType: 'LINK',
+          sortOrder: i,
+        })),
+      })
     }
 
     return NextResponse.json({ note: updated })

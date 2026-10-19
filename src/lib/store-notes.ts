@@ -95,3 +95,17 @@ export async function currentUserId() {
   const session = await getSession()
   return { session, userId: session?.userId as string | undefined }
 }
+
+export type NoteFileInput = { title?: string; fileUrl: string }
+
+/** Accepts `files: [{title,fileUrl}]` (preferred) or a single `fileUrl`. */
+export function readFileInputs(body: any): NoteFileInput[] {
+  const raw: any[] = Array.isArray(body?.files)
+    ? body.files
+    : body?.fileUrl
+      ? [{ title: 'Primary Document', fileUrl: body.fileUrl }]
+      : []
+  return raw
+    .filter((f) => f && typeof f.fileUrl === 'string' && f.fileUrl.trim())
+    .map((f) => ({ title: String(f.title || '').trim() || 'Document', fileUrl: f.fileUrl.trim() }))
+}

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import ShareLinkModal, { ShareIcon } from '@/components/ShareLinkModal'
 import useSWR, { mutate } from 'swr'
 import { CourseIconBadge } from '@/lib/course-icons'
 import UserAvatar from '@/components/UserAvatar'
@@ -9,23 +9,25 @@ import { useLoadingFact } from '@/hooks/useLoadingFact'
 import LoadingFactCard from '@/components/ui/LoadingFactCard'
 
 export default function FreeCoursesPage() {
-  const router = useRouter()
-  const fetcher = (url: string) => fetch(url).then(r => r.json())
+  const fetcher = (url: string) => fetch(url, { cache: 'no-store' }).then(r => r.json())
   const { data: courses, isLoading, mutate: mutateFreeCourses } = useSWR<any[]>('/api/free-resources/courses', fetcher)
   const loadingFact = useLoadingFact(isLoading)
   const [loadingId, setLoadingId] = useState<string | null>(null)
+  const [shareCourse, setShareCourse] = useState<{ id: string; name: string } | null>(null)
 
   const handleEnroll = async (courseId: string, currentlyEnrolled: boolean) => {
     setLoadingId(courseId)
     const nextEnrolledState = !currentlyEnrolled
 
-    // Optimistic UI update (0ms instant response)
-    if (courses && typeof mutateFreeCourses === 'function') {
-      const optimisticList = courses.map((c: any) =>
-        c.id === courseId ? { ...c, isEnrolled: nextEnrolledState } : c
+    // Optimistic UI update: flip the button instantly, and do NOT revalidate
+    // right now (a refetch here can return stale data and revert the flip).
+    const setEnrolled = (value: boolean) =>
+      mutateFreeCourses(
+        (current?: any[]) =>
+          (current || []).map((c: any) => (c.id === courseId ? { ...c, isEnrolled: value } : c)),
+        { revalidate: false }
       )
-      mutateFreeCourses(optimisticList, false)
-    }
+    setEnrolled(nextEnrolledState)
 
     try {
       if (currentlyEnrolled) {
@@ -44,20 +46,14 @@ export default function FreeCoursesPage() {
         if (!res.ok) throw new Error('Failed to enroll')
       }
 
-      if (typeof mutateFreeCourses === 'function') {
-        await mutateFreeCourses()
-      }
-      mutate('/api/free-resources/courses')
+      // Server confirmed: keep the optimistic state. Refresh other pages' caches only.
       mutate('/api/courses')
       mutate('/api/auth/me')
       mutate('/api/dashboard')
-      try {
-        router.refresh()
-      } catch (e) {}
     } catch (error) {
       console.error(error)
       alert('Error updating enrollment status.')
-      if (typeof mutateFreeCourses === 'function') mutateFreeCourses()
+      setEnrolled(currentlyEnrolled)
     } finally {
       setLoadingId(null)
     }
@@ -212,6 +208,15 @@ export default function FreeCoursesPage() {
 
               {/* Managing Tools */}
               <div style={{ display: 'flex', gap: '8px' }}>
+                <button
+                  className="btn btn-ghost"
+                  title="Share"
+                  aria-label="Share course"
+                  onClick={() => setShareCourse({ id: course.id, name: course.name })}
+                  style={{ padding: '0 14px', borderRadius: '50px', display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '44px', height: 'auto', color: 'var(--accent)' }}
+                >
+                  <ShareIcon size={18} />
+                </button>
                 {course.isEnrolled ? (
                   <>
                     <button 
@@ -249,6 +254,13 @@ export default function FreeCoursesPage() {
           </div>
         ))}
       </div>
+      <ShareLinkModal
+        open={!!shareCourse}
+        onClose={() => setShareCourse(null)}
+        title={shareCourse?.name || ''}
+        message={`Check out this free course on GenZ IITIAN: ${shareCourse?.name || ''}`}
+        url={shareCourse ? `https://class.genziitian.in/free-resources/courses?course=${shareCourse.id}` : ''}
+      />
     </div>
   )
 }

@@ -65,6 +65,7 @@ class _Body extends ConsumerWidget {
     final localPath = ref.watch(downloadStatusProvider(note.id)).value;
     final expired = note.isExpired;
     final active = note.hasAccess;
+    final multi = note.files.length > 1;
 
     String cta;
     Color ctaColor = tokens.primaryAccent;
@@ -258,6 +259,17 @@ class _Body extends ConsumerWidget {
                   ],
                 ),
               ],
+              if (active && multi) ...[
+                const SizedBox(height: 22),
+                _Heading('Files'),
+                const SizedBox(height: 8),
+                _Group(
+                  children: [
+                    for (final f in note.files)
+                      _FileRow(note: note, file: f),
+                  ],
+                ),
+              ],
               const SizedBox(height: 22),
               _Heading('Rules & validity'),
               const SizedBox(height: 8),
@@ -274,6 +286,7 @@ class _Body extends ConsumerWidget {
             ],
           ),
         ),
+        if (!(active && multi))
         SafeArea(
           top: false,
           child: Container(
@@ -389,6 +402,79 @@ class _Line extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+
+/// One file of a multi-file note: Download, then Open once it is on the device.
+class _FileRow extends ConsumerWidget {
+  const _FileRow({required this.note, required this.file});
+  final StoreNote note;
+  final StoreNoteFile file;
+
+  String get _contentId => '${note.id}__${file.id}';
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final tokens = context.tokens;
+    final localPath = ref.watch(downloadStatusProvider(_contentId)).value;
+    final downloaded = localPath != null;
+
+    return ApplePressable(
+      onTap: () {
+        HapticFeedback.lightImpact();
+        if (downloaded) {
+          final uri = Uri(path: '/material', queryParameters: {
+            'contentId': _contentId,
+            'title': file.title,
+            'contentType': 'STORE_NOTE',
+            'localPath': localPath,
+            'courseName': 'Premium Notes',
+          });
+          context.push(uri.toString());
+        } else {
+          startDownloadFlow(
+            context,
+            ref,
+            contentId: _contentId,
+            contentType: 'STORE_NOTE',
+            title: file.title,
+            courseName: 'Premium Notes',
+            version: note.expiresAt?.toUtc().toIso8601String(),
+          );
+        }
+      },
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(14, 13, 14, 13),
+        child: Row(
+          children: [
+            Icon(Symbols.description_rounded,
+                fill: 1, size: 20, color: tokens.textSecondary),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                file.title,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: tokens.textPrimary),
+              ),
+            ),
+            const SizedBox(width: 10),
+            Text(
+              downloaded ? 'Open' : 'Download',
+              style: TextStyle(
+                fontSize: 13.5,
+                fontWeight: FontWeight.w700,
+                color: downloaded ? tokens.primaryAccent : tokens.success,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

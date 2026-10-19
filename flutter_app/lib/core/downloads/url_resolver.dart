@@ -29,6 +29,11 @@ class UrlResolver {
       case typeContent:
         return '/api/drive-doc/$id';
       case typeStoreNote:
+        // Notes with several files use "<noteId>__<fileId>" as the content id.
+        if (id.contains('__')) {
+          final parts = id.split('__');
+          return '/api/store/notes/${parts.first}/download?fileId=${parts.last}';
+        }
         return '/api/store/notes/$id/download';
       case typeMaterial:
         return '/api/drive-material/$id';

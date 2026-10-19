@@ -28,6 +28,12 @@ String formatNotePrice(double price) {
   return '₹${whole ? price.toInt() : price.toStringAsFixed(2)}';
 }
 
+class StoreNoteFile {
+  StoreNoteFile({required this.id, required this.title});
+  final String id;
+  final String title;
+}
+
 class StoreNote {
   StoreNote({
     required this.id,
@@ -44,6 +50,7 @@ class StoreNote {
     required this.purchasedAt,
     required this.expiresAt,
     required this.hasAccess,
+    required this.files,
   });
 
   final String id;
@@ -62,6 +69,7 @@ class StoreNote {
   final DateTime? purchasedAt;
   final DateTime? expiresAt;
   final bool hasAccess;
+  final List<StoreNoteFile> files;
 
   bool get isFree => price <= 0;
   bool get isExpired => state == NoteAccessState.expired;
@@ -85,6 +93,16 @@ class StoreNote {
       purchasedAt: DateTime.tryParse('${access?['purchasedAt']}')?.toLocal(),
       expiresAt: DateTime.tryParse('${access?['expiresAt']}')?.toLocal(),
       hasAccess: j['hasAccess'] == true,
+      files: (j['files'] is List
+              ? (j['files'] as List).whereType<Map>()
+              : const <Map>[])
+          .map((f) => StoreNoteFile(
+                id: f['id'].toString(),
+                title: (f['title'] as String?)?.trim().isNotEmpty == true
+                    ? f['title'] as String
+                    : 'Document',
+              ))
+          .toList(),
     );
   }
 }

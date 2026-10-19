@@ -3,6 +3,7 @@
 import { ReactNode, useMemo, useState } from 'react'
 import useSWR, { mutate } from 'swr'
 import { useConfirmDialog } from '@/hooks/useConfirmDialog'
+import ShareLinkModal, { ShareIcon } from '@/components/ShareLinkModal'
 import {
   IITM_LEVELS,
   IITM_SUBJECTS_BY_LEVEL,
@@ -134,6 +135,7 @@ export default function FreeMaterialsPage() {
 
   // Modal state
   const [showModal, setShowModal] = useState(false)
+  const [shareMat, setShareMat] = useState<{ id: string; title: string } | null>(null)
   const [formData, setFormData] = useState<Record<string, string>>({})
   const [sourceType, setSourceType] = useState<'FILE' | 'LINK'>('FILE')
   const [saving, setSaving] = useState(false)
@@ -498,9 +500,6 @@ export default function FreeMaterialsPage() {
                         {mat.term}
                       </span>
                     )}
-                    {mat.fileSize && (
-                      <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>{mat.fileSize}</span>
-                    )}
                     <span style={{ fontSize: '11px', color: 'var(--text-muted)', marginLeft: 'auto' }}>
                       {new Date(mat.uploadedAt).toLocaleDateString('en-GB')}
                     </span>
@@ -531,6 +530,15 @@ export default function FreeMaterialsPage() {
                         {mat.sourceType === 'LINK' ? 'Open Link' : 'Download / View'}
                       </a>
                     )}
+                    <button
+                      onClick={() => setShareMat({ id: mat.id, title: mat.title })}
+                      className="btn btn-ghost"
+                      title="Share"
+                      aria-label="Share material"
+                      style={{ padding: '0 12px', color: 'var(--accent)' }}
+                    >
+                      <ShareIcon size={16} />
+                    </button>
                     {canManage && (
                       <div style={{ display: 'flex', gap: '4px' }}>
                         <button
@@ -613,9 +621,6 @@ export default function FreeMaterialsPage() {
                             {mat.term}
                           </span>
                         )}
-                        {mat.fileSize && (
-                          <span style={{ fontSize: '10.5px', color: 'var(--text-muted)' }}>{mat.fileSize}</span>
-                        )}
                         <span style={{ fontSize: '10.5px', color: 'var(--text-muted)' }}>
                           • Uploaded: {new Date(mat.uploadedAt).toLocaleDateString('en-GB')}
                         </span>
@@ -649,6 +654,15 @@ export default function FreeMaterialsPage() {
                         {mat.sourceType === 'LINK' ? 'Open Link' : 'Download / View'}
                       </a>
                     )}
+                    <button
+                      onClick={() => setShareMat({ id: mat.id, title: mat.title })}
+                      className="btn btn-ghost"
+                      title="Share"
+                      aria-label="Share material"
+                      style={{ padding: '8px 12px', color: 'var(--accent)' }}
+                    >
+                      <ShareIcon size={16} />
+                    </button>
                     {canManage && (
                       <div style={{ display: 'flex', gap: '4px' }}>
                         <button
@@ -915,6 +929,13 @@ export default function FreeMaterialsPage() {
           </div>
         </div>
       )}
+      <ShareLinkModal
+        open={!!shareMat}
+        onClose={() => setShareMat(null)}
+        title={shareMat?.title || ''}
+        message={`Check out this free material on GenZ IITIAN: ${shareMat?.title || ''}`}
+        url={shareMat ? `https://class.genziitian.in/free-resources/materials/${shareMat.id}/view` : ''}
+      />
     </div>
   )
 }

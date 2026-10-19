@@ -18,7 +18,7 @@ export async function GET() {
 
     const accesses = await prisma.storeNoteAccess.findMany({
       where: { userId: user.id },
-      include: { note: { include: { files: true } } },
+      include: { note: { include: { files: { orderBy: { sortOrder: 'asc' } } } } },
       orderBy: { createdAt: 'desc' }
     })
 
@@ -31,6 +31,7 @@ export async function GET() {
         title: acc.note.title,
         description: acc.note.description,
         fileUrl: '', // client requests the file via the download endpoint
+        files: acc.note.files.map(f => ({ id: f.id, title: f.title })),
         purchasedAt: acc.createdAt,
         expiresAt: accessExpiry(acc, acc.note.validityDays)
       }))

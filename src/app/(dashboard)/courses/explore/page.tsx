@@ -146,7 +146,8 @@ export default function ExploreCoursesPage() {
   const [showCreateNoteModal, setShowCreateNoteModal] = useState(false)
   const [editingNote, setEditingNote] = useState<any>(null)
   const [detailNote, setDetailNote] = useState<any>(null)
-  const [noteFileLabel, setNoteFileLabel] = useState('')
+  const [noteFiles, setNoteFiles] = useState<{ title: string; fileUrl: string }[]>([])
+  const [showNotesInfo, setShowNotesInfo] = useState(false)
   const [uploadingNoteFile, setUploadingNoteFile] = useState(false)
   const [showCreateMentorshipModal, setShowCreateMentorshipModal] = useState(false)
   const [editingMentorship, setEditingMentorship] = useState<any>(null)
@@ -339,31 +340,27 @@ export default function ExploreCoursesPage() {
   }
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) return
+    const picked = Array.from(e.target.files || [])
+    e.target.value = ''
+    if (picked.length === 0) return
 
     setUploadingNoteFile(true)
     try {
-      const formData = new FormData()
-      formData.append('file', file)
-      formData.append('type', 'store-notes')
-
-      const res = await fetch('/api/upload', {
-        method: 'POST',
-        body: formData
-      })
-
-      if (res.ok) {
-        const json = await res.json()
-        const linkEl = document.getElementById('noteLinkInput') as HTMLInputElement
-        if (linkEl) {
-          linkEl.value = json.url
+      const added: { title: string; fileUrl: string }[] = []
+      for (const file of picked) {
+        const formData = new FormData()
+        formData.append('file', file)
+        formData.append('type', 'store-notes')
+        const res = await fetch('/api/upload', { method: 'POST', body: formData })
+        if (res.ok) {
+          const json = await res.json()
+          added.push({ title: file.name, fileUrl: json.url })
+        } else {
+          const err = await res.json().catch(() => ({}))
+          alert(`${file.name}: ${err.error || 'Failed to upload file'}`)
         }
-        setNoteFileLabel(file.name)
-      } else {
-        const err = await res.json()
-        alert(err.error || 'Failed to upload file')
       }
+      if (added.length) setNoteFiles(prev => [...prev, ...added])
     } catch {
       alert('Error uploading file')
     } finally {
@@ -714,7 +711,7 @@ export default function ExploreCoursesPage() {
                   {[
                     { label: 'Course', action: () => { setOfferingCategory(''); setShowCreateModal(true); setShowCreateDropdown(false) } },
                     { label: 'Bundle', action: () => { setBundleCategory(''); setShowCreateBundleModal(true); setShowCreateDropdown(false) } },
-                    { label: 'Notes', action: () => { setNoteCategory('General'); setNoteSubject(''); setNoteFileLabel(''); setShowCreateNoteModal(true); setShowCreateDropdown(false) } },
+                    { label: 'Notes', action: () => { setNoteCategory('General'); setNoteSubject(''); setNoteFiles([]); setShowCreateNoteModal(true); setShowCreateDropdown(false) } },
                     { label: 'Mentorship', action: () => { setShowCreateMentorshipModal(true); setShowCreateDropdown(false) } }
                   ].map((item, i) => (
                     <button
@@ -817,14 +814,36 @@ export default function ExploreCoursesPage() {
 
       {/* BACK (text only) when inside a view */}
       {storeView && (
-        <button onClick={() => {
-          setStoreView(null)
-          setSelectedStoreTab('')
-          setSelectedNotesTab('')
-          setSelectedNotesSubjectTab('')
-        }} style={{ display: 'inline-block', background: 'transparent', border: 'none', boxShadow: 'none', color: 'var(--accent)', fontSize: '17px', fontWeight: 500, cursor: 'pointer', marginBottom: '16px', padding: '6px 0' }}>
-          Back
-        </button>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px', position: 'relative' }}>
+          <button onClick={() => {
+            setStoreView(null)
+            setSelectedStoreTab('')
+            setSelectedNotesTab('')
+            setSelectedNotesSubjectTab('')
+            setShowNotesInfo(false)
+          }} style={{ display: 'inline-block', background: 'transparent', border: 'none', boxShadow: 'none', color: 'var(--accent)', fontSize: '17px', fontWeight: 500, cursor: 'pointer', padding: '6px 0' }}>
+            Back
+          </button>
+          {storeView === 'notes' && (
+            <>
+              <button
+                aria-label="Where do I find my notes?"
+                onClick={() => setShowNotesInfo(v => !v)}
+                style={{ width: '34px', height: '34px', borderRadius: '50%', border: 'none', background: 'var(--surface-hover)', color: 'var(--text-secondary)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+              >
+                <Info size={18} />
+              </button>
+              {showNotesInfo && (
+                <div
+                  onClick={() => setShowNotesInfo(false)}
+                  style={{ position: 'absolute', top: '42px', right: 0, maxWidth: '280px', padding: '12px 14px', borderRadius: '16px', background: 'var(--surface)', boxShadow: '0 0 0 0.5px var(--border), 0 12px 32px rgba(0,0,0,0.16)', fontSize: '13.5px', lineHeight: 1.45, color: 'var(--text-primary)', zIndex: 50, cursor: 'pointer' }}
+                >
+                  You can access your notes in <b>Free Resources &gt; Purchased Materials</b>.
+                </div>
+              )}
+            </>
+          )}
+        </div>
       )}
 
       {/* Category filter pill (when arrived via Home category card) */}
@@ -1038,7 +1057,7 @@ export default function ExploreCoursesPage() {
                       setCouponCode('');
                       setCouponError('');
                       setShowBundleModal(true) 
-                    }} style={{ flex: 1, padding: '13px', borderRadius: '14px', background: 'var(--accent)', color: '#fff', fontWeight: 600, fontSize: '15px', border: 'none', cursor: 'pointer' }}>View / Buy</button>
+                    }} style={{ flex: 1, padding: '13px', borderRadius: '14px', background: 'var(--accent)', color: 'var(--button-text, #fff)', fontWeight: 600, fontSize: '15px', border: 'none', cursor: 'pointer' }}>View / Buy</button>
                     
                     {(userData?.user?.role === 'MANAGER' || userData?.role === 'MANAGER') && (
                       <div style={{ display: 'flex', gap: '6px' }}>
@@ -1210,7 +1229,8 @@ export default function ExploreCoursesPage() {
                     <button
                       onClick={() => {
                         if (hasAccess) {
-                          window.open(`/api/store/notes/${n.id}/download`, '_blank')
+                          if ((n.files?.length || 0) > 1) setDetailNote(n)
+                          else window.open(`/api/store/notes/${n.id}/download`, '_blank')
                         } else {
                           handleNotePurchase(n)
                         }
@@ -1223,7 +1243,7 @@ export default function ExploreCoursesPage() {
                         fontSize: '14px',
                         borderRadius: '13px',
                         background: hasAccess ? 'var(--success)' : isExpired ? 'var(--warning, #ff9f0a)' : 'var(--accent)',
-                        color: '#fff',
+                        color: (hasAccess || isExpired) ? '#fff' : 'var(--button-text, #fff)',
                         fontWeight: 600,
                         border: 'none',
                         cursor: 'pointer'
@@ -1244,7 +1264,7 @@ export default function ExploreCoursesPage() {
                         setEditingNote(n)
                         setNoteCategory(n.category || 'General')
                         setNoteSubject(n.subject || '')
-                        setNoteFileLabel(n.files?.[0]?.fileUrl ? 'File attached. Upload to replace.' : '')
+                        setNoteFiles((n.files || []).filter((f: any) => f.fileUrl).map((f: any) => ({ title: f.title || 'Document', fileUrl: f.fileUrl })))
                         setShowCreateNoteModal(true)
                         setTimeout(() => {
                           const titleEl = document.getElementById('noteTitleInput') as HTMLInputElement
@@ -1315,7 +1335,7 @@ export default function ExploreCoursesPage() {
                   } catch { alert('Failed to fetch bookings') }
                   finally { setLoadingAllBookings(false) }
                 }}
-                style={{ padding: '8px 16px', borderRadius: '50px', background: 'var(--primary)', color: '#fff', border: 'none', fontWeight: '700', fontSize: '13px', cursor: 'pointer', boxShadow: '0 4px 12px rgba(54,54,232,0.2)' }}
+                style={{ padding: '8px 16px', borderRadius: '50px', background: 'var(--primary)', color: 'var(--button-text, #fff)', border: 'none', fontWeight: '700', fontSize: '13px', cursor: 'pointer', boxShadow: '0 4px 12px rgba(54,54,232,0.2)' }}
               >
                 📋 View All Bookings
               </button>
@@ -1426,7 +1446,7 @@ export default function ExploreCoursesPage() {
               
               return (
                 <div key={booking.id} style={{ 
-                  background: isPast ? 'var(--surface)' : '#fff', 
+                  background: isPast ? 'var(--surface)' : 'var(--surface-2)', 
                   borderRadius: '20px', 
                   padding: '20px', 
                   boxShadow: isPast ? 'none' : '0 10px 30px rgba(0,0,0,0.04)',
@@ -1460,7 +1480,7 @@ export default function ExploreCoursesPage() {
                   {!isPast && (
                     <div style={{ marginTop: '4px' }}>
                       {booking.meetLink ? (
-                        <a href={normalizeMeetLink(booking.meetLink) ?? '#'} target="_blank" rel="noopener noreferrer" style={{ display: 'block', textAlign: 'center', padding: '12px', borderRadius: '12px', background: 'var(--primary)', color: '#fff', fontWeight: '800', textDecoration: 'none', fontSize: '14px' }}>
+                        <a href={normalizeMeetLink(booking.meetLink) ?? '#'} target="_blank" rel="noopener noreferrer" style={{ display: 'block', textAlign: 'center', padding: '12px', borderRadius: '12px', background: 'var(--primary)', color: 'var(--button-text, #fff)', fontWeight: '800', textDecoration: 'none', fontSize: '14px' }}>
                           Join Meeting →
                         </a>
                       ) : (
@@ -1523,7 +1543,7 @@ export default function ExploreCoursesPage() {
             <div
               key={offering.id}
               style={{
-                background: isFullyPurchased ? '#dfdfe5' : 'var(--surface-2)',
+                background: isFullyPurchased ? 'var(--surface-hover)' : 'var(--surface-2)',
                 borderRadius: '28px',
                 boxShadow: isFullyPurchased ? 'none' : '8px 8px 16px var(--neu-dark), -8px -8px 16px var(--neu-light)',
                 overflow: 'visible',
@@ -1709,7 +1729,7 @@ export default function ExploreCoursesPage() {
                         <div style={{
                           position: 'absolute', top: '10px', right: '12px',
                           padding: '3px 10px', borderRadius: '20px',
-                          background: 'var(--accent)', color: '#fff',
+                          background: 'var(--accent)', color: 'var(--button-text, #fff)',
                           fontSize: '9px', fontWeight: '900', letterSpacing: '0.08em',
                         }}>
                           PRO
@@ -1732,7 +1752,7 @@ export default function ExploreCoursesPage() {
                           style={{
                             width: '100%', padding: '11px', borderRadius: '50px',
                             border: 'none', background: 'var(--accent)',
-                            color: '#fff', fontSize: '13px', fontWeight: '800',
+                            color: 'var(--button-text, #fff)', fontSize: '13px', fontWeight: '800',
                             cursor: 'not-allowed',
                             opacity: 0.6,
                             boxShadow: '0 8px 16px rgba(99,102,241,0.35)',
@@ -1757,7 +1777,7 @@ export default function ExploreCoursesPage() {
                       <div style={{
                         position: 'absolute', top: '10px', right: '12px',
                         padding: '3px 10px', borderRadius: '20px',
-                        background: 'var(--accent)', color: '#fff',
+                        background: 'var(--accent)', color: 'var(--button-text, #fff)',
                         fontSize: '9px', fontWeight: '900', letterSpacing: '0.08em',
                       }}>
                         PRO
@@ -1780,7 +1800,7 @@ export default function ExploreCoursesPage() {
                         style={{
                           width: '100%', padding: '11px', borderRadius: '50px',
                           border: 'none', background: 'var(--accent)',
-                          color: '#fff', fontSize: '13px', fontWeight: '800',
+                          color: 'var(--button-text, #fff)', fontSize: '13px', fontWeight: '800',
                           cursor: 'not-allowed',
                           opacity: 0.6,
                           boxShadow: '0 8px 16px rgba(99,102,241,0.35)',
@@ -1903,7 +1923,7 @@ export default function ExploreCoursesPage() {
                       <div style={{
                         position: 'absolute', top: '10px', right: '12px',
                         padding: '3px 10px', borderRadius: '20px',
-                        background: 'var(--accent)', color: '#fff',
+                        background: 'var(--accent)', color: 'var(--button-text, #fff)',
                         fontSize: '9px', fontWeight: '900', letterSpacing: '0.08em',
                       }}>
                         PRO
@@ -1925,7 +1945,7 @@ export default function ExploreCoursesPage() {
                         style={{
                           width: '100%', padding: '11px', borderRadius: '50px',
                           border: 'none', background: 'var(--text-primary)',
-                          color: '#fff', fontSize: '13px', fontWeight: '800',
+                          color: 'var(--button-text, #fff)', fontSize: '13px', fontWeight: '800',
                           cursor: upgrading ? 'not-allowed' : 'pointer',
                           opacity: upgrading ? 0.5 : 1,
                           boxShadow: '0 8px 16px rgba(30, 30, 58, 0.4)',
@@ -1962,7 +1982,7 @@ export default function ExploreCoursesPage() {
                       <div style={{
                         position: 'absolute', top: '10px', right: '12px',
                         padding: '3px 10px', borderRadius: '20px',
-                        background: 'var(--accent)', color: '#fff',
+                        background: 'var(--accent)', color: 'var(--button-text, #fff)',
                         fontSize: '9px', fontWeight: '900', letterSpacing: '0.08em',
                       }}>
                         PRO
@@ -1986,7 +2006,7 @@ export default function ExploreCoursesPage() {
                         style={{
                           width: '100%', padding: '11px', borderRadius: '50px',
                           border: 'none', background: 'var(--accent)',
-                          color: '#fff', fontSize: '13px', fontWeight: '800',
+                          color: 'var(--button-text, #fff)', fontSize: '13px', fontWeight: '800',
                           cursor: purchasing ? 'not-allowed' : 'pointer',
                           opacity: purchasing ? 0.5 : 1,
                           boxShadow: '0 8px 16px rgba(99,102,241,0.35)',
@@ -2152,7 +2172,7 @@ export default function ExploreCoursesPage() {
                         borderRadius: '16px', 
                         border: '1.5px solid var(--border)', 
                         marginBottom: '12px',
-                        background: bundleSelectedCoursesToBuy.includes(course.id) ? 'var(--surface)' : '#fff',
+                        background: bundleSelectedCoursesToBuy.includes(course.id) ? 'var(--surface)' : 'var(--surface-2)',
                         transition: 'all 0.2s ease'
                       }}>
                         <div className="bundle-modal-item-body" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -2185,7 +2205,7 @@ export default function ExploreCoursesPage() {
                                     }}
                                   >
                                     {bundleSelectedCoursesToBuy.includes(course.id) && (
-                                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--button-text, white)" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
                                     )}
                                   </div>
                                   <div>
@@ -2242,7 +2262,7 @@ export default function ExploreCoursesPage() {
                                             setCouponError('Live-only coupon removed (requires all subjects to be Live).')
                                           }
                                         }}
-                                        style={{ padding: '6px 10px', borderRadius: '8px', border: selectedType === 'RECORDED' ? '1.5px solid #3b82f6' : '1px solid var(--border)', background: selectedType === 'RECORDED' ? 'var(--info-light)' : '#fff', color: selectedType === 'RECORDED' ? 'var(--info)' : 'var(--text-secondary)', fontSize: '11px', fontWeight: '700', cursor: 'pointer' }}
+                                        style={{ padding: '6px 10px', borderRadius: '8px', border: selectedType === 'RECORDED' ? '1.5px solid #3b82f6' : '1px solid var(--border)', background: selectedType === 'RECORDED' ? 'var(--info-light)' : 'var(--surface-2)', color: selectedType === 'RECORDED' ? 'var(--info)' : 'var(--text-secondary)', fontSize: '11px', fontWeight: '700', cursor: 'pointer' }}
                                       >
                                         Recorded
                                       </button>
@@ -2250,7 +2270,7 @@ export default function ExploreCoursesPage() {
                                         onClick={() => {
                                           setBundleSelectedForPurchase({ ...bundleSelectedForPurchase, [course.id]: 'LIVE' })
                                         }}
-                                        style={{ padding: '6px 10px', borderRadius: '8px', border: selectedType === 'LIVE' ? '1.5px solid #3b82f6' : '1px solid var(--border)', background: selectedType === 'LIVE' ? 'var(--info-light)' : '#fff', color: selectedType === 'LIVE' ? 'var(--info)' : 'var(--text-secondary)', fontSize: '11px', fontWeight: '700', cursor: 'pointer' }}
+                                        style={{ padding: '6px 10px', borderRadius: '8px', border: selectedType === 'LIVE' ? '1.5px solid #3b82f6' : '1px solid var(--border)', background: selectedType === 'LIVE' ? 'var(--info-light)' : 'var(--surface-2)', color: selectedType === 'LIVE' ? 'var(--info)' : 'var(--text-secondary)', fontSize: '11px', fontWeight: '700', cursor: 'pointer' }}
                                       >
                                         Live
                                       </button>
@@ -2259,7 +2279,7 @@ export default function ExploreCoursesPage() {
                                           onClick={() => {
                                             setBundleSelectedForPurchase({ ...bundleSelectedForPurchase, [course.id]: 'CHAMPION' })
                                           }}
-                                          style={{ padding: '6px 10px', borderRadius: '8px', border: selectedType === 'CHAMPION' ? '1.5px solid #ef4444' : '1px solid var(--border)', background: selectedType === 'CHAMPION' ? 'var(--danger-light)' : '#fff', color: selectedType === 'CHAMPION' ? 'var(--danger)' : 'var(--text-secondary)', fontSize: '11px', fontWeight: '700', cursor: 'pointer' }}
+                                          style={{ padding: '6px 10px', borderRadius: '8px', border: selectedType === 'CHAMPION' ? '1.5px solid #ef4444' : '1px solid var(--border)', background: selectedType === 'CHAMPION' ? 'var(--danger-light)' : 'var(--surface-2)', color: selectedType === 'CHAMPION' ? 'var(--danger)' : 'var(--text-secondary)', fontSize: '11px', fontWeight: '700', cursor: 'pointer' }}
                                         >
                                           Champion
                                         </button>
@@ -2336,20 +2356,20 @@ export default function ExploreCoursesPage() {
                             <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                               <button 
                                 onClick={() => setBundleGlobalAccessType('RECORDED')}
-                                style={{ padding: '8px 12px', borderRadius: '8px', border: bundleGlobalAccessType === 'RECORDED' ? '2px solid #3b82f6' : '1.5px solid var(--border)', background: bundleGlobalAccessType === 'RECORDED' ? 'var(--info-light)' : '#fff', color: bundleGlobalAccessType === 'RECORDED' ? 'var(--info)' : 'var(--text-secondary)', fontSize: '12px', fontWeight: '700', cursor: 'pointer', transition: 'all 0.2s' }}
+                                style={{ padding: '8px 12px', borderRadius: '8px', border: bundleGlobalAccessType === 'RECORDED' ? '2px solid #3b82f6' : '1.5px solid var(--border)', background: bundleGlobalAccessType === 'RECORDED' ? 'var(--info-light)' : 'var(--surface-2)', color: bundleGlobalAccessType === 'RECORDED' ? 'var(--info)' : 'var(--text-secondary)', fontSize: '12px', fontWeight: '700', cursor: 'pointer', transition: 'all 0.2s' }}
                               >
                                 Recorded Plus
                               </button>
                               <button 
                                 onClick={() => setBundleGlobalAccessType('LIVE')}
-                                style={{ padding: '8px 12px', borderRadius: '8px', border: bundleGlobalAccessType === 'LIVE' ? '2px solid #3b82f6' : '1.5px solid var(--border)', background: bundleGlobalAccessType === 'LIVE' ? 'var(--info-light)' : '#fff', color: bundleGlobalAccessType === 'LIVE' ? 'var(--info)' : 'var(--text-secondary)', fontSize: '12px', fontWeight: '700', cursor: 'pointer', transition: 'all 0.2s' }}
+                                style={{ padding: '8px 12px', borderRadius: '8px', border: bundleGlobalAccessType === 'LIVE' ? '2px solid #3b82f6' : '1.5px solid var(--border)', background: bundleGlobalAccessType === 'LIVE' ? 'var(--info-light)' : 'var(--surface-2)', color: bundleGlobalAccessType === 'LIVE' ? 'var(--info)' : 'var(--text-secondary)', fontSize: '12px', fontWeight: '700', cursor: 'pointer', transition: 'all 0.2s' }}
                               >
                                 Live Pro
                               </button>
                               {activeBundle.championDiscountPrice > 0 && (
                                 <button 
                                   onClick={() => setBundleGlobalAccessType('CHAMPION')}
-                                  style={{ padding: '8px 12px', borderRadius: '8px', border: bundleGlobalAccessType === 'CHAMPION' ? '2px solid #ef4444' : '1.5px solid var(--border)', background: bundleGlobalAccessType === 'CHAMPION' ? 'var(--danger-light)' : '#fff', color: bundleGlobalAccessType === 'CHAMPION' ? 'var(--danger)' : 'var(--text-secondary)', fontSize: '12px', fontWeight: '700', cursor: 'pointer', transition: 'all 0.2s' }}
+                                  style={{ padding: '8px 12px', borderRadius: '8px', border: bundleGlobalAccessType === 'CHAMPION' ? '2px solid #ef4444' : '1.5px solid var(--border)', background: bundleGlobalAccessType === 'CHAMPION' ? 'var(--danger-light)' : 'var(--surface-2)', color: bundleGlobalAccessType === 'CHAMPION' ? 'var(--danger)' : 'var(--text-secondary)', fontSize: '12px', fontWeight: '700', cursor: 'pointer', transition: 'all 0.2s' }}
                                 >
                                   Champion
                                 </button>
@@ -2763,7 +2783,7 @@ export default function ExploreCoursesPage() {
             </div>
 
             <div style={{ padding: '0 40px 40px', textAlign: 'center' }}>
-              <button onClick={() => setShowBatchComparisonModal(false)} style={{ background: 'var(--primary)', color: 'white', padding: '14px 40px', borderRadius: '16px', fontSize: '15px', fontWeight: '700', border: 'none', cursor: 'pointer', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)' }}>
+              <button onClick={() => setShowBatchComparisonModal(false)} style={{ background: 'var(--primary)', color: 'var(--button-text, #fff)', padding: '14px 40px', borderRadius: '16px', fontSize: '15px', fontWeight: '700', border: 'none', cursor: 'pointer', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)' }}>
                 Got it, thanks!
               </button>
             </div>
@@ -3021,7 +3041,7 @@ export default function ExploreCoursesPage() {
                       <div
                         key={idx}
                         style={{
-                          background: 'var(--accent)', color: '#fff', padding: '6px 12px', borderRadius: '20px',
+                          background: 'var(--accent)', color: 'var(--button-text, #fff)', padding: '6px 12px', borderRadius: '20px',
                           fontSize: '12px', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '6px'
                         }}
                       >
@@ -3061,7 +3081,7 @@ export default function ExploreCoursesPage() {
                       }}
                       style={{
                         padding: '10px 16px', borderRadius: '10px', border: 'none',
-                        background: 'var(--accent)', color: '#fff', fontWeight: '700',
+                        background: 'var(--accent)', color: 'var(--button-text, #fff)', fontWeight: '700',
                         cursor: 'pointer', fontSize: '12px'
                       }}
                     >
@@ -3264,7 +3284,7 @@ export default function ExploreCoursesPage() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               <button 
                 onClick={() => { setSuccessOrderId(null); router.push(purchasedCourse?.type === 'mentorship' ? '/courses?view=mentorship' : '/courses') }}
-                style={{ width: '100%', padding: '16px', borderRadius: '16px', background: 'var(--text-primary)', color: '#fff', fontWeight: '800', border: 'none', cursor: 'pointer', transition: 'all 0.2s', fontSize: '16px' }}
+                style={{ width: '100%', padding: '16px', borderRadius: '16px', background: 'var(--text-primary)', color: 'var(--button-text, #fff)', fontWeight: '800', border: 'none', cursor: 'pointer', transition: 'all 0.2s', fontSize: '16px' }}
               >
                 {purchasedCourse?.type === 'mentorship' ? 'View My Bookings' : 'Start Learning Now'}
               </button>
@@ -3956,7 +3976,7 @@ export default function ExploreCoursesPage() {
             </div>
 
             <div style={{ padding: '0 40px 40px', textAlign: 'center' }}>
-              <button onClick={() => setInfoModalOffering(null)} style={{ background: 'var(--primary)', color: 'white', padding: '14px 40px', borderRadius: '16px', fontSize: '15px', fontWeight: '700', border: 'none', cursor: 'pointer', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)' }}>
+              <button onClick={() => setInfoModalOffering(null)} style={{ background: 'var(--primary)', color: 'var(--button-text, #fff)', padding: '14px 40px', borderRadius: '16px', fontSize: '15px', fontWeight: '700', border: 'none', cursor: 'pointer', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)' }}>
                 Got it, thanks!
               </button>
             </div>
@@ -4314,6 +4334,8 @@ export default function ExploreCoursesPage() {
       )}
 
       <style>{`
+                :root[data-theme="black"] button[style*="background: var(--accent)"],:root[data-theme="black"] button[style*="background: var(--primary)"],:root[data-theme="black"] button[style*="background: var(--text-primary)"]{color:#000 !important}
+        :root[data-theme="black"] button[style*="background: var(--accent)"] svg,:root[data-theme="black"] button[style*="background: var(--primary)"] svg{stroke:#000 !important}
         .apple-modal{padding:26px 26px 22px !important;border-radius:28px !important;max-width:540px !important;box-shadow:0 0 0 0.5px var(--border),0 30px 80px rgba(0,0,0,0.28) !important}
         .apple-modal > div{margin-bottom:14px !important}
         .apple-modal h2{font-size:22px !important;font-weight:800 !important;letter-spacing:-0.4px !important;margin-bottom:2px !important}
@@ -4363,12 +4385,28 @@ export default function ExploreCoursesPage() {
                 </>
               )}
 
+              {hasAccess && (n.files?.length || 0) > 1 && (
+                <>
+                  <h3 style={{ fontSize: '16px', fontWeight: '900', margin: '8px 0' }}>Files</h3>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', margin: '0 0 16px' }}>
+                    {n.files.map((f: any) => (
+                      <a key={f.id} href={`/api/store/notes/${n.id}/download?fileId=${f.id}`} target="_blank" rel="noopener noreferrer"
+                        style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '12px 14px', borderRadius: '14px', background: 'var(--surface-hover)', color: 'var(--text-primary)', textDecoration: 'none', fontSize: '14px', fontWeight: 600 }}>
+                        <FileText size={18} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />
+                        <span style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{f.title || 'Document'}</span>
+                        <ExternalLink size={16} style={{ color: 'var(--accent)', flexShrink: 0 }} />
+                      </a>
+                    ))}
+                  </div>
+                </>
+              )}
+
               <h3 style={{ fontSize: '16px', fontWeight: '900', margin: '8px 0' }}>Rules &amp; validity</h3>
               <ul style={{ margin: '0 0 20px', paddingLeft: '20px', fontSize: '14px', lineHeight: 1.7 }}>
                 {(n.rules || []).map((r: string, i: number) => <li key={i}>{r}</li>)}
               </ul>
 
-              <button
+              {!(hasAccess && (n.files?.length || 0) > 1) && <button
                 onClick={() => {
                   if (hasAccess) window.open(`/api/store/notes/${n.id}/download`, '_blank')
                   else { setDetailNote(null); handleNotePurchase(n) }
@@ -4376,7 +4414,7 @@ export default function ExploreCoursesPage() {
                 style={{ width: '100%', padding: '14px', borderRadius: '14px', border: 'none', color: '#fff', fontWeight: '800', fontSize: '15px', cursor: 'pointer', background: hasAccess ? 'linear-gradient(135deg,#10b981,#059669)' : isExpired ? 'linear-gradient(135deg,#f59e0b,#d97706)' : 'linear-gradient(135deg,#3b82f6,#2563eb)' }}
               >
                 {hasAccess ? 'Access Notes' : isExpired ? `Restore now${n.price > 0 ? ` · ₹${n.price}` : ''}` : n.price > 0 ? `Buy now · ₹${n.price}` : 'Get free'}
-              </button>
+              </button>}
             </div>
           </div>
         )
@@ -4460,18 +4498,33 @@ export default function ExploreCoursesPage() {
             </div>
 
             <div style={{ marginBottom: '20px' }}>
-              <label style={{ display: 'block', fontSize: '13px', fontWeight: '700', color: 'var(--text-secondary)', marginBottom: '6px' }}>Notes file *</label>
+              <label style={{ display: 'block', fontSize: '13px', fontWeight: '700', color: 'var(--text-secondary)', marginBottom: '6px' }}>Notes files * (you can add more than one)</label>
+              {noteFiles.length > 0 && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginBottom: '8px' }}>
+                  {noteFiles.map((f, i) => (
+                    <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 8px 8px 12px', borderRadius: '12px', background: 'var(--surface-hover)' }}>
+                      <FileText size={16} style={{ flexShrink: 0, color: 'var(--text-secondary)' }} />
+                      <input
+                        value={f.title}
+                        onChange={e => setNoteFiles(prev => prev.map((x, j) => j === i ? { ...x, title: e.target.value } : x))}
+                        style={{ flex: 1, minWidth: 0, border: 'none', background: 'transparent', fontSize: '14px', color: 'var(--text-primary)', padding: '4px 0' }}
+                      />
+                      <button type="button" onClick={() => setNoteFiles(prev => prev.filter((_, j) => j !== i))}
+                        style={{ width: '28px', height: '28px', borderRadius: '8px', border: 'none', background: 'transparent', color: 'var(--text-secondary)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <X size={16} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
               <div
                 onClick={() => { if (!uploadingNoteFile) document.getElementById('noteFileUpload')?.click() }}
                 style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '14px', borderRadius: '14px', background: 'var(--surface-hover)', border: '1px dashed var(--border)', cursor: 'pointer', color: 'var(--text-primary)', fontSize: '14px', fontWeight: 500 }}
               >
                 <Upload size={18} />
-                <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                  {uploadingNoteFile ? 'Uploading...' : (noteFileLabel || 'Choose a PDF to upload')}
-                </span>
+                <span>{uploadingNoteFile ? 'Uploading...' : (noteFiles.length ? 'Add more files' : 'Choose files to upload')}</span>
               </div>
-              <input id="noteFileUpload" type="file" accept=".pdf,.png,.jpg,.jpeg,.zip" style={{ display: 'none' }} onChange={handleFileUpload} disabled={uploadingNoteFile} />
-              <input id="noteLinkInput" type="hidden" />
+              <input id="noteFileUpload" type="file" multiple accept=".pdf,.png,.jpg,.jpeg,.zip" style={{ display: 'none' }} onChange={handleFileUpload} disabled={uploadingNoteFile} />
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '28px' }}>
@@ -4502,12 +4555,11 @@ export default function ExploreCoursesPage() {
                 onClick={async () => {
                   const title = (document.getElementById('noteTitleInput') as HTMLInputElement).value
                   const desc = (document.getElementById('noteDescInput') as HTMLTextAreaElement).value
-                  const link = (document.getElementById('noteLinkInput') as HTMLInputElement).value
                   const price = (document.getElementById('notePriceInput') as HTMLInputElement).value
                   const validityDays = (document.getElementById('noteValidityInput') as HTMLInputElement).value
                   const highlights = (document.getElementById('noteHighlightsInput') as HTMLTextAreaElement).value
                   const extraRules = (document.getElementById('noteRulesInput') as HTMLTextAreaElement).value
-                  if (!title || !link) { alert('Title and an uploaded file are required'); return }
+                  if (!title || noteFiles.length === 0) { alert('Title and at least one uploaded file are required'); return }
                   if ((noteCategory === 'Foundation' || noteCategory === 'Re-attempt') && !noteSubject) {
                     alert('Subject is required for the selected Level')
                     return
@@ -4522,7 +4574,7 @@ export default function ExploreCoursesPage() {
                       body: JSON.stringify({ 
                         title, 
                         description: desc, 
-                        fileUrl: link, 
+                        files: noteFiles, 
                         price: Number(price) || 0,
                         category: noteCategory,
                         subject: noteSubject || null,
@@ -4539,7 +4591,7 @@ export default function ExploreCoursesPage() {
                   } catch { alert('Error saving notes') }
                   finally { setCreating(false) }
                 }}
-                style={{ flex: 1, padding: '13px', borderRadius: '14px', border: 'none', background: 'var(--accent)', color: '#fff', fontWeight: 600, fontSize: '15px', cursor: 'pointer' }}
+                style={{ flex: 1, padding: '13px', borderRadius: '14px', border: 'none', background: 'var(--accent)', color: 'var(--button-text, #fff)', fontWeight: 600, fontSize: '15px', cursor: 'pointer' }}
               >
                 {editingNote ? 'Save Changes' : 'Create Notes'}
               </button>
@@ -4679,7 +4731,7 @@ export default function ExploreCoursesPage() {
                       onClick={() => { setMentorshipBookingDate(d); setMentorshipBookingTimes([]) }}
                       style={{
                         padding: '10px 16px', borderRadius: '12px', border: isSelected ? '2px solid #f59e0b' : '2px solid var(--border)',
-                        background: isSelected ? 'var(--warning-light)' : '#fff', color: isSelected ? 'var(--warning)' : 'var(--text-secondary)',
+                        background: isSelected ? 'var(--warning-light)' : 'var(--surface-2)', color: isSelected ? 'var(--warning)' : 'var(--text-secondary)',
                         fontWeight: '800', fontSize: '13px', cursor: 'pointer', whiteSpace: 'nowrap', transition: 'all 0.2s'
                       }}
                     >
@@ -4733,7 +4785,7 @@ export default function ExploreCoursesPage() {
                           }}
                           style={{
                             padding: '10px', borderRadius: '14px', border: isSelected ? '2px solid #f59e0b' : '2px solid var(--border)',
-                            background: isSelected ? 'var(--warning-light)' : (disabled ? 'var(--surface)' : '#fff'),
+                            background: isSelected ? 'var(--warning-light)' : (disabled ? 'var(--surface)' : 'var(--surface-2)'),
                             color: isSelected ? 'var(--warning)' : (disabled ? 'var(--text-muted)' : 'var(--text-secondary)'),
                             fontWeight: '800', fontSize: '12.5px', cursor: disabled ? 'not-allowed' : 'pointer',
                             transition: 'all 0.2s', position: 'relative'
@@ -4931,7 +4983,7 @@ export default function ExploreCoursesPage() {
                   setIsProcessing(false)
                 }
               }} 
-              style={{ width: '100%', padding: '14px', background: 'var(--primary)', color: 'white', fontWeight: '700', borderRadius: '12px', border: 'none', cursor: isProcessing ? 'not-allowed' : 'pointer' }}>
+              style={{ width: '100%', padding: '14px', background: 'var(--primary)', color: 'var(--button-text, #fff)', fontWeight: '700', borderRadius: '12px', border: 'none', cursor: isProcessing ? 'not-allowed' : 'pointer' }}>
               {isProcessing ? 'Saving...' : 'Save Slots'}
             </button>
           </div>
@@ -5005,7 +5057,7 @@ export default function ExploreCoursesPage() {
                                   setEditingBookingLink(null)
                                 } else alert('Failed to update')
                               } catch { alert('Error updating') }
-                            }} style={{ padding: '8px 12px', borderRadius: '10px', background: 'var(--primary)', color: '#fff', border: 'none', fontWeight: '700', fontSize: '12px' }}>Save</button>
+                            }} style={{ padding: '8px 12px', borderRadius: '10px', background: 'var(--primary)', color: 'var(--button-text, #fff)', border: 'none', fontWeight: '700', fontSize: '12px' }}>Save</button>
                           </div>
                         ) : (
                           <>
@@ -5119,7 +5171,7 @@ export default function ExploreCoursesPage() {
                 if (res.ok) { alert('Success!'); setShowManualBookingModal(false); window.location.reload() }
                 else alert('Failed')
               } catch { alert('Error') }
-            }} style={{ width: '100%', padding: '16px', borderRadius: '16px', background: 'var(--text-primary)', color: '#fff', fontWeight: '800', border: 'none', cursor: 'pointer' }}>Create Booking</button>
+            }} style={{ width: '100%', padding: '16px', borderRadius: '16px', background: 'var(--text-primary)', color: 'var(--button-text, #fff)', fontWeight: '800', border: 'none', cursor: 'pointer' }}>Create Booking</button>
           </div>
         </div>
       )}
