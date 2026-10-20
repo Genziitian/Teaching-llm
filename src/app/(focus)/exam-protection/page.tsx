@@ -6,12 +6,20 @@ import Link from 'next/link';
 import { ProtectionClaim, ProtectionData, ProtectionPurchase, protectionRequest } from '@/lib/exam-protection/client';
 import { DAY, RULES, refundForFee, discountForFee } from '@/lib/exam-protection/policy';
 import styles from './protection.module.css';
+import { useUserData } from '@/components/UserDataProvider';
+import { canSeeProtectionOnWeb } from '@/lib/exam-protection/access';
 const date = (value: string) => new Date(value).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
 const until = (value: string, days: number) => date(new Date(new Date(value).getTime() + days * DAY).toISOString());
 type RzpConstructor = new (options: Record<string, unknown>) => {
     open(): void;
 };
 export default function ExamProtectionPage() {
+    const { userData } = useUserData();
+    if (userData?.user && !canSeeProtectionOnWeb(userData.user.role, userData.user.email))
+        return <main className={styles.page}><div className={`${styles.card} ${styles.empty}`}>Exam Protection is not available on the website for your account yet.</div></main>;
+    return <ProtectionContent/>;
+}
+function ProtectionContent() {
     const { data, error, isLoading, mutate } = useSWR<ProtectionData>('/api/exam-protection', () => protectionRequest(), { refreshInterval: 60000 });
     const [notice, setNotice] = useState(''), [busy, setBusy] = useState(false), [detail, setDetail] = useState<ProtectionData['courses'][number] | null>(null), [purchasing, setPurchasing] = useState<ProtectionData['courses'][number] | null>(null), [accepted, setAccepted] = useState(false);
     const dialog = useRef<HTMLDialogElement>(null);
@@ -73,7 +81,7 @@ export default function ExamProtectionPage() {
     const tabs = data ? (data.manager ? [['overview', 'Overview'], ['claims', `Claims · ${data.claims.length}`], ['purchases', `Purchases · ${data.purchases.length}`]] : [['overview', 'Protect'], ['claims', `My claims · ${data.claims.length}`], ['coupons', 'My Coupons']]) : [];
     const open = data?.claims.filter(c => !['Completed', 'Rejected'].includes(c.status)).length ?? 0;
     return <main className={styles.page}><Script src="https://checkout.razorpay.com/v1/checkout.js" strategy="afterInteractive"/>
-    <header className={styles.hero}><p className={styles.eyebrow}>Academics</p><h1>Exam Protection</h1><p className={styles.lede}>{data?.manager ? 'Manage availability, course fees and claim reviews.' : 'Protect your Quiz 1 attempt. If you do not pass, request a refund or a same-course discount.'}</p></header>
+    <header className={styles.hero}><Link href="/dashboard" className={styles.back}>‹ Back</Link><p className={styles.eyebrow}>Academics</p><h1>Exam Protection</h1><p className={styles.lede}>{data?.manager ? 'Manage availability, course fees and claim reviews.' : 'Protect your Quiz 1 attempt. If you do not pass, request a refund or a same-course discount.'}</p></header>
     <div role="status" aria-live="polite">{notice && <p className={styles.notice}>{notice}</p>}</div>
     {isLoading ? <div className={styles.skeleton} aria-label="Loading"/> : error ? <div className={styles.card} role="alert"><p>{error.message}</p><button onClick={() => mutate()}>Try again</button></div> : data && <>
     <nav className={styles.tabs} role="tablist">{tabs.map(([key, label]) => <button key={key} role="tab" aria-selected={tab === key} className={tab === key ? styles.tabOn : ''} onClick={() => setTab(key)}>{label}</button>)}</nav>

@@ -86,3 +86,7 @@
 @media (max-width:760px){.benefit{grid-template-columns:1fr}.row{flex-direction:column;align-items:flex-start}.coupon{grid-template-columns:1fr}}
 @media (prefers-reduced-motion:reduce){.dialog[open],.skeleton{animation:none}.page button{transition:none}}
 @media (prefers-reduced-transparency:reduce){.tabs{background:var(--bg);backdrop-filter:none}.dialog::backdrop{backdrop-filter:none}}
+
+.page{max-width:1280px;margin:0 auto}
+.back{display:inline-flex;align-items:center;min-height:36px;margin-bottom:12px;font-size:15px;font-weight:500;text-decoration:none;color:var(--primary)}
+.back:active{opacity:.6}

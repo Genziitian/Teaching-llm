@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import { canSeeProtectionOnWeb } from '@/lib/exam-protection/access'
 import { usePathname, useRouter } from 'next/navigation'
 import { useEffect, useRef, useState } from 'react'
 import { useUserData } from '@/components/UserDataProvider'
@@ -12,6 +13,7 @@ interface NavItem {
   label: string
   icon: React.ReactNode
   roles?: string[]
+  protectionPreview?: boolean
   desktopOnly?: boolean
 }
 
@@ -58,6 +60,7 @@ const NAV_ITEMS: NavItem[] = [
     label: 'Exam Protection',
     icon: <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3 4 6v6c0 5 8 9 8 9s8-4 8-9V6Z"/><path d="m8 12 3 3 5-6"/></svg>,
     roles: ['STUDENT', 'MANAGER'],
+    protectionPreview: true,
   },
   {
     href: '/live',
@@ -394,7 +397,7 @@ export default function Sidebar({ userRole, userName, userEmail }: SidebarProps)
   const currentUserRole = userData?.user?.role || userRole
 
   const visibleItems = NAV_ITEMS.filter(
-    item => !item.roles || item.roles.includes(currentUserRole)
+    item => (!item.roles || item.roles.includes(currentUserRole)) && (!item.protectionPreview || canSeeProtectionOnWeb(currentUserRole, userData?.user?.email))
   )
 
   const initials = currentUserName
