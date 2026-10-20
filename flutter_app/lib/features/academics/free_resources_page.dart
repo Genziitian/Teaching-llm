@@ -27,7 +27,10 @@ final freeMaterialsProvider = FutureProvider<List<dynamic>>((ref) async {
 final purchasedMaterialsProvider = FutureProvider<List<dynamic>>((ref) async {
   final api = ref.watch(apiClientProvider);
   final res = await api.get<dynamic>('/api/free-resources/purchased');
-  return res.data is List ? res.data as List : const [];
+  final data = res.data;
+  // The server answers { materials: [...] }; older builds sent a bare list.
+  if (data is Map && data['materials'] is List) return data['materials'] as List;
+  return data is List ? data : const [];
 });
 
 /// Free Resources sub-page — three big status cards backed by real counts

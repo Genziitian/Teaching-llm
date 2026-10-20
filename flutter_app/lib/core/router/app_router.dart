@@ -51,6 +51,7 @@ import '../auth/auth_providers.dart';
 import 'modal_observer.dart';
 import 'nav_history_observer.dart';
 import 'app_link_location.dart';
+import 'tab_stack.dart';
 
 CustomTransitionPage<void> _buildSmoothPage({
   required LocalKey key,
@@ -133,6 +134,9 @@ CustomTransitionPage<void> _buildSlideUpPage({
     },
   );
 }
+
+/// Order must match the branches of the main tab shell below.
+const _kTabPaths = ['/dashboard', '/courses', '/academics', '/community', '/more'];
 
 final rootNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'rootNav');
 final shellNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'shellNav');
@@ -669,54 +673,64 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
 
       // ── Main Tab Shell (Bottom navigation ONLY on primary root tabs) ──
-      ShellRoute(
-        notifyRootObserver: false,
-        navigatorKey: shellNavigatorKey,
-        builder: (context, state, child) => AppScaffold(
-          currentLocation: state.matchedLocation,
-          child: child,
+      StatefulShellRoute(
+        builder: (context, state, navigationShell) => AppScaffold(
+          currentLocation: _kTabPaths[navigationShell.currentIndex],
+          child: navigationShell,
         ),
-        routes: [
-          GoRoute(
-            caseSensitive: false,
-            path: '/dashboard',
-            pageBuilder: (context, state) => NoTransitionPage(
-              key: state.pageKey,
-              child: const DashboardPage(),
+        navigatorContainerBuilder: (context, navigationShell, children) =>
+            TabStack(index: navigationShell.currentIndex, children: children),
+        branches: [
+          StatefulShellBranch(routes: [
+            GoRoute(
+              caseSensitive: false,
+              path: '/dashboard',
+              pageBuilder: (context, state) => NoTransitionPage(
+                key: state.pageKey,
+                child: const DashboardPage(),
+              ),
             ),
-          ),
-          GoRoute(
-            caseSensitive: false,
-            path: '/courses',
-            pageBuilder: (context, state) => NoTransitionPage(
-              key: state.pageKey,
-              child: const CoursesPage(),
+          ]),
+          StatefulShellBranch(routes: [
+            GoRoute(
+              caseSensitive: false,
+              path: '/courses',
+              pageBuilder: (context, state) => NoTransitionPage(
+                key: state.pageKey,
+                child: const CoursesPage(),
+              ),
             ),
-          ),
-          GoRoute(
-            caseSensitive: false,
-            path: '/academics',
-            pageBuilder: (context, state) => NoTransitionPage(
-              key: state.pageKey,
-              child: const AcademicsPage(),
+          ]),
+          StatefulShellBranch(routes: [
+            GoRoute(
+              caseSensitive: false,
+              path: '/academics',
+              pageBuilder: (context, state) => NoTransitionPage(
+                key: state.pageKey,
+                child: const AcademicsPage(),
+              ),
             ),
-          ),
-          GoRoute(
-            caseSensitive: false,
-            path: '/community',
-            pageBuilder: (context, state) => NoTransitionPage(
-              key: state.pageKey,
-              child: const CommunityPage(),
+          ]),
+          StatefulShellBranch(routes: [
+            GoRoute(
+              caseSensitive: false,
+              path: '/community',
+              pageBuilder: (context, state) => NoTransitionPage(
+                key: state.pageKey,
+                child: const CommunityPage(),
+              ),
             ),
-          ),
-          GoRoute(
-            caseSensitive: false,
-            path: '/more',
-            pageBuilder: (context, state) => NoTransitionPage(
-              key: state.pageKey,
-              child: const MorePage(),
+          ]),
+          StatefulShellBranch(routes: [
+            GoRoute(
+              caseSensitive: false,
+              path: '/more',
+              pageBuilder: (context, state) => NoTransitionPage(
+                key: state.pageKey,
+                child: const MorePage(),
+              ),
             ),
-          ),
+          ]),
         ],
       ),
     ],

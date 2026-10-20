@@ -216,8 +216,8 @@ class _StoreNotesPageState extends ConsumerState<StoreNotesPage> {
                     delegate: SliverChildBuilderDelegate(
                       (_, i) => Padding(
                         padding: EdgeInsets.only(
-                            bottom: i == shown.length - 1 ? 0 : 12),
-                        child: _NoteCard(note: shown[i]),
+                            bottom: i == shown.length - 1 ? 0 : 16),
+                        child: _NoteCard(note: shown[i], index: i),
                       ),
                       childCount: shown.length,
                     ),
@@ -249,23 +249,26 @@ List<Color> _categoryColors(String category) {
 }
 
 class _NoteCard extends ConsumerWidget {
-  const _NoteCard({required this.note});
+  const _NoteCard({required this.note, this.index = 0});
   final StoreNote note;
+  final int index;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final tokens = context.tokens;
     final expired = note.isExpired;
     final owned = note.hasAccess && !note.isFree;
-    final accent = _categoryColors(note.category).last;
+    final colors = _categoryColors(note.category);
 
     final label = expired
         ? 'Restore now'
         : (note.hasAccess ? 'Open' : (note.isFree ? 'Get free' : 'Buy now'));
 
+    void openDetails() => context.push('/store/notes/${note.id}');
+
     Future<void> primary() async {
       if (note.hasAccess) {
-        context.push('/store/notes/${note.id}');
+        openDetails();
         return;
       }
       await buyStoreNote(
@@ -277,198 +280,372 @@ class _NoteCard extends ConsumerWidget {
       );
     }
 
+    void share() {
+      HapticFeedback.selectionClick();
+      showShareLinkSheet(
+        context,
+        title: note.title,
+        message: 'Check out these premium notes on GenZ IITIAN: ${note.title}',
+        link:
+            'https://class.genziitian.in/courses/explore?note=${Uri.encodeQueryComponent(note.id)}',
+      );
+    }
+
     final buttonColor = expired
         ? const Color(0xFFD98A00)
         : (note.hasAccess ? tokens.success : tokens.textPrimary);
     final buttonText = (expired || note.hasAccess) ? Colors.white : tokens.bg;
 
-    final meta = [
-      if ((note.subject ?? '').isNotEmpty) note.subject!,
-      if (note.category.isNotEmpty) note.category,
-      '${note.validityDays} days',
-    ].join('  ·  ');
+    final desc = (note.description ?? '').trim();
+    final blurb = desc.isNotEmpty ? desc : (note.subject ?? '').trim();
 
-    return ApplePressable(
-      onTap: () => context.push('/store/notes/${note.id}'),
+    final card = ApplePressable(
+      onTap: openDetails,
       child: Container(
-        padding: const EdgeInsets.all(16),
+        clipBehavior: Clip.antiAlias,
         decoration: BoxDecoration(
           color: tokens.cardBg,
-          borderRadius: BorderRadius.circular(22),
+          borderRadius: BorderRadius.circular(28),
           border: Border.all(color: tokens.border, width: 0.5),
+          boxShadow: const [
+            BoxShadow(
+              color: Color(0x14000000),
+              blurRadius: 24,
+              offset: Offset(0, 10),
+            ),
+          ],
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Container(
-                  width: 44,
-                  height: 44,
-                  decoration: BoxDecoration(
-                    color: accent.withValues(alpha: 0.12),
-                    borderRadius: BorderRadius.circular(12),
+            // ── Cover: category colour, paper sheets, glass chips ──────
+            SizedBox(
+              height: 140,
+              child: Stack(
+                clipBehavior: Clip.hardEdge,
+                children: [
+                  Positioned.fill(
+                    child: DecoratedBox(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: colors,
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                      ),
+                    ),
                   ),
-                  child: Icon(Symbols.description_rounded,
-                      fill: 1, size: 23, color: accent),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                  Positioned(
+                    top: -70,
+                    left: -50,
+                    child: Container(
+                      width: 220,
+                      height: 220,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        gradient: RadialGradient(
+                          colors: [
+                            Colors.white.withValues(alpha: 0.30),
+                            Colors.white.withValues(alpha: 0),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                  Positioned(
+                    right: 30,
+                    bottom: -30,
+                    child: Transform.rotate(
+                      angle: 0.13,
+                      child: const _Sheet(alpha: 0.5),
+                    ),
+                  ),
+                  Positioned(
+                    right: 58,
+                    bottom: -20,
+                    child: Transform.rotate(
+                      angle: -0.10,
+                      child: _Sheet(alpha: 0.96, accent: colors.last),
+                    ),
+                  ),
+                  Positioned(
+                    top: 14,
+                    right: 14,
+                    child: ApplePressable(
+                      onTap: share,
+                      child: Container(
+                        width: 40,
+                        height: 40,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: Colors.white.withValues(alpha: 0.22),
+                          border: Border.all(
+                              color: Colors.white.withValues(alpha: 0.30),
+                              width: 0.8),
+                        ),
+                        child: const Icon(Symbols.ios_share_rounded,
+                            size: 20, color: Colors.white),
+                      ),
+                    ),
+                  ),
+                  if (expired || owned)
+                    Positioned(
+                      top: 16,
+                      left: 16,
+                      child: _GlassPill(
+                        icon: expired
+                            ? Symbols.schedule_rounded
+                            : Symbols.check_circle_rounded,
+                        text: expired ? 'Expired' : 'Owned',
+                      ),
+                    ),
+                  Positioned(
+                    left: 16,
+                    bottom: 16,
+                    child: Row(
+                      children: [
+                        if (note.category.isNotEmpty)
+                          _GlassPill(text: note.category),
+                        if (note.category.isNotEmpty) const SizedBox(width: 8),
+                        _GlassPill(
+                          icon: Symbols.event_available_rounded,
+                          text: '${note.validityDays} days',
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            // ── Body ──────────────────────────────────────────────────
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 18, 20, 20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    note.title,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.w700,
+                      height: 1.15,
+                      letterSpacing: -0.6,
+                      color: tokens.textPrimary,
+                    ),
+                  ),
+                  if (blurb.isNotEmpty) ...[
+                    const SizedBox(height: 6),
+                    Text(
+                      blurb,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 14.5,
+                        height: 1.35,
+                        color: tokens.textSecondary,
+                      ),
+                    ),
+                  ],
+                  const SizedBox(height: 16),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
                       Text(
-                        note.title,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
+                        formatNotePrice(note.price),
                         style: TextStyle(
-                          fontSize: 16.5,
-                          fontWeight: FontWeight.w600,
-                          height: 1.2,
-                          letterSpacing: -0.3,
-                          color: tokens.textPrimary,
+                          fontSize: 30,
+                          height: 1,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: -0.9,
+                          color: note.isFree
+                              ? tokens.success
+                              : tokens.textPrimary,
                         ),
                       ),
-                      const SizedBox(height: 3),
-                      Text(
-                        meta,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                            fontSize: 12.5, color: tokens.textSecondary),
+                      if ((note.originalPrice ?? 0) > note.price) ...[
+                        const SizedBox(width: 10),
+                        Text(
+                          formatNotePrice(note.originalPrice!),
+                          style: TextStyle(
+                            decoration: TextDecoration.lineThrough,
+                            color: tokens.textMuted,
+                            fontSize: 16,
+                          ),
+                        ),
+                      ],
+                      const Spacer(),
+                      if (note.files.length > 1)
+                        Text(
+                          '${note.files.length} files',
+                          style: TextStyle(
+                            fontSize: 13.5,
+                            fontWeight: FontWeight.w600,
+                            color: tokens.textSecondary,
+                          ),
+                        ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      Expanded(
+                        flex: 3,
+                        child: ApplePressable(
+                          onTap: primary,
+                          child: Container(
+                            height: 54,
+                            alignment: Alignment.center,
+                            decoration: BoxDecoration(
+                              color: buttonColor,
+                              borderRadius: BorderRadius.circular(27),
+                            ),
+                            child: Text(
+                              label,
+                              style: TextStyle(
+                                color: buttonText,
+                                fontSize: 17,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        flex: 2,
+                        child: ApplePressable(
+                          onTap: openDetails,
+                          child: Container(
+                            height: 54,
+                            alignment: Alignment.center,
+                            decoration: BoxDecoration(
+                              color: tokens.textMuted.withValues(alpha: 0.12),
+                              borderRadius: BorderRadius.circular(27),
+                            ),
+                            child: Text(
+                              'Details',
+                              style: TextStyle(
+                                color: tokens.textPrimary,
+                                fontSize: 17,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ),
                       ),
                     ],
                   ),
-                ),
-                const SizedBox(width: 12),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Text(
-                      formatNotePrice(note.price),
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w700,
-                        letterSpacing: -0.3,
-                        color: note.isFree ? tokens.success : tokens.textPrimary,
-                      ),
-                    ),
-                    if ((note.originalPrice ?? 0) > note.price)
-                      Text(
-                        formatNotePrice(note.originalPrice!),
-                        style: TextStyle(
-                          decoration: TextDecoration.lineThrough,
-                          color: tokens.textMuted,
-                          fontSize: 12,
-                        ),
-                      ),
-                    if (expired) ...[
-                      const SizedBox(height: 4),
-                      _Tag('Expired', tokens.danger),
-                    ] else if (owned) ...[
-                      const SizedBox(height: 4),
-                      _Tag('Owned', tokens.success),
-                    ],
-                  ],
-                ),
-              ],
-            ),
-            const SizedBox(height: 14),
-            Row(
-              children: [
-                Expanded(
-                  flex: 3,
-                  child: ApplePressable(
-                    onTap: primary,
-                    child: Container(
-                      height: 44,
-                      alignment: Alignment.center,
-                      decoration: BoxDecoration(
-                        color: buttonColor,
-                        borderRadius: BorderRadius.circular(14),
-                      ),
-                      child: Text(
-                        label,
-                        style: TextStyle(
-                          color: buttonText,
-                          fontSize: 15,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  flex: 2,
-                  child: ApplePressable(
-                    onTap: () => context.push('/store/notes/${note.id}'),
-                    child: Container(
-                      height: 44,
-                      alignment: Alignment.center,
-                      decoration: BoxDecoration(
-                        color: tokens.textMuted.withValues(alpha: 0.12),
-                        borderRadius: BorderRadius.circular(14),
-                      ),
-                      child: Text(
-                        'Details',
-                        style: TextStyle(
-                          color: tokens.textPrimary,
-                          fontSize: 15,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                ApplePressable(
-                  onTap: () {
-                    HapticFeedback.selectionClick();
-                    showShareLinkSheet(
-                      context,
-                      title: note.title,
-                      message:
-                          'Check out these premium notes on GenZ IITIAN: ${note.title}',
-                      link:
-                          'https://class.genziitian.in/courses/explore?note=${Uri.encodeQueryComponent(note.id)}',
-                    );
-                  },
-                  child: Container(
-                    width: 44,
-                    height: 44,
-                    decoration: BoxDecoration(
-                      color: tokens.textMuted.withValues(alpha: 0.12),
-                      borderRadius: BorderRadius.circular(14),
-                    ),
-                    child: Icon(Symbols.ios_share_rounded,
-                        size: 20, color: tokens.textPrimary),
-                  ),
-                ),
-              ],
+                ],
+              ),
             ),
           ],
         ),
       ),
     );
+
+    // Each card rises in once, a little after the one above it.
+    return TweenAnimationBuilder<double>(
+      tween: Tween(begin: 0, end: 1),
+      duration: Duration(milliseconds: 420 + (index > 5 ? 5 : index) * 70),
+      curve: Curves.easeOutCubic,
+      builder: (_, v, child) => Opacity(
+        opacity: v,
+        child: Transform.translate(offset: Offset(0, (1 - v) * 18), child: child),
+      ),
+      child: card,
+    );
   }
 }
 
-class _Tag extends StatelessWidget {
-  const _Tag(this.text, this.color);
+/// A small frosted chip that sits on the coloured cover.
+class _GlassPill extends StatelessWidget {
+  const _GlassPill({required this.text, this.icon});
   final String text;
-  final Color color;
+  final IconData? icon;
 
   @override
-  Widget build(BuildContext context) => Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-        decoration: BoxDecoration(
-          color: color.withValues(alpha: 0.14),
-          borderRadius: BorderRadius.circular(10),
-        ),
-        child: Text(text,
-            style: TextStyle(
-                fontSize: 11, fontWeight: FontWeight.w700, color: color)),
-      );
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 7),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.22),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.30), width: 0.8),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (icon != null) ...[
+            Icon(icon, size: 15, color: Colors.white),
+            const SizedBox(width: 5),
+          ],
+          Text(
+            text,
+            style: const TextStyle(
+              fontSize: 12.5,
+              fontWeight: FontWeight.w700,
+              letterSpacing: 0.1,
+              color: Colors.white,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }
+
+/// A sheet of notes: used twice, tilted, to give the cover some depth.
+class _Sheet extends StatelessWidget {
+  const _Sheet({required this.alpha, this.accent});
+  final double alpha;
+  final Color? accent;
+
+  @override
+  Widget build(BuildContext context) {
+    Widget line(double w) => Container(
+          width: w,
+          height: 5,
+          margin: const EdgeInsets.only(bottom: 7),
+          decoration: BoxDecoration(
+            color: const Color(0x1F000000),
+            borderRadius: BorderRadius.circular(3),
+          ),
+        );
+    return Container(
+      width: 88,
+      height: 112,
+      padding: const EdgeInsets.fromLTRB(13, 14, 13, 0),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: alpha),
+        borderRadius: BorderRadius.circular(13),
+        boxShadow: const [
+          BoxShadow(color: Color(0x26000000), blurRadius: 14, offset: Offset(0, 6)),
+        ],
+      ),
+      child: accent == null
+          ? null
+          : Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  width: 34,
+                  height: 7,
+                  margin: const EdgeInsets.only(bottom: 10),
+                  decoration: BoxDecoration(
+                    color: accent!.withValues(alpha: 0.85),
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                ),
+                line(58),
+                line(50),
+                line(58),
+                line(36),
+              ],
+            ),
+    );
+  }
+}
+

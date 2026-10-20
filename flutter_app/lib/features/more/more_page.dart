@@ -90,58 +90,56 @@ https://class.genziitian.in/download''';
         physics: const AlwaysScrollableScrollPhysics(),
         padding: const EdgeInsets.fromLTRB(16, 16, 16, 120),
         children: [
-          // ── Profile row (flat, like the Apple ID row) ─────────────
-          _ActionCard(
-            children: [
-              _PressRow(
-                onTap: () => context.push('/profile'),
-                isLast: true,
-                separatorInset: 0,
-                child: Padding(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                  child: Row(
-                    children: [
-                      AppAvatar(
-                        avatarUrl: user?.avatar,
-                        gender: user?.gender,
-                        size: 60,
-                        border: Border.all(color: tokens.border, width: 0.5),
-                      ),
-                      const SizedBox(width: 14),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              name,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: TextStyle(
-                                fontSize: 19,
-                                fontWeight: FontWeight.w700,
-                                letterSpacing: -0.2,
-                                color: textPrimary,
-                                              ),
-                            ),
-                            const SizedBox(height: 3),
-                            Text(
-                              '$role · View Profile',
-                              style: TextStyle(
-                                fontSize: 13.5,
-                                fontWeight: FontWeight.w500,
-                                color: textSecondary,
-                                              ),
-                            ),
-                          ],
+          // ── Profile header (centred, like Apple Settings) ─────────
+          Semantics(
+            button: true,
+            label: 'View profile',
+            child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: () {
+                HapticFeedback.selectionClick();
+                context.push('/profile');
+              },
+              child: Padding(
+                padding: const EdgeInsets.only(top: 8, bottom: 4),
+                child: Column(
+                  children: [
+                    AppAvatar(
+                      avatarUrl: user?.avatar,
+                      gender: user?.gender,
+                      size: 104,
+                      border: Border.all(color: tokens.border, width: 0.5),
+                    ),
+                    const SizedBox(height: 14),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 24),
+                      child: Text(
+                        name,
+                        maxLines: 2,
+                        textAlign: TextAlign.center,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 26,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: -0.4,
+                          color: textPrimary,
                         ),
                       ),
-                      const _Chevron(),
-                    ],
-                  ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      role,
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        letterSpacing: 0.6,
+                        color: textSecondary,
+                      ),
+                    ),
+                  ],
                 ),
               ),
-            ],
+            ),
           ),
 
           const SizedBox(height: 28),
@@ -150,6 +148,13 @@ https://class.genziitian.in/download''';
           _SectionLabel(title: 'GENERAL', color: textSecondary),
           _ActionCard(
             children: [
+              _ActionRow(
+                icon: Symbols.person_rounded,
+                tile: const Color(0xFF5856D6),
+                title: 'View Profile',
+                textColor: textPrimary,
+                onTap: () => context.push('/profile'),
+              ),
               _ActionRow(
                 icon: Symbols.download_done_rounded,
                 tile: const Color(0xFF34C759),

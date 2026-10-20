@@ -74,3 +74,10 @@ bugreport-*.zip
 Teaching-llm.env
 *service-account*.json
 *.key.json
+
+# Generated assets & backups
+output/
+backups/
+**/backups/
+*.bak*
+

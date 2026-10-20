@@ -45,8 +45,7 @@ class _SplashOverlayState extends ConsumerState<SplashOverlay>
 
     // The one-time welcome is the first screen. Skip the loader so it cannot
     // cover that welcome, and so Enter opens the app directly.
-    final launchPending = playStoreLaunchApplies() &&
-        !ref.read(playStoreLaunchSeenProvider);
+    final launchPending = ref.read(playStoreWelcomePendingProvider);
     if (launchPending) {
       _loaderVisible = false;
       _hasShownThisSession = true;
@@ -106,8 +105,7 @@ class _SplashOverlayState extends ConsumerState<SplashOverlay>
   @override
   Widget build(BuildContext context) {
     final overlayVisible = _loaderVisible;
-    final showingLaunch =
-        playStoreLaunchApplies() && !ref.watch(playStoreLaunchSeenProvider);
+    final showingLaunch = ref.watch(playStoreWelcomePendingProvider);
 
     // Once the splash / welcome is out of the way, ask Google Play whether a
     // newer version exists (runs once per launch).

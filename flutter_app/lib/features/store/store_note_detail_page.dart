@@ -339,39 +339,45 @@ class _Body extends ConsumerWidget {
                 top: BorderSide(color: tokens.border, width: 0.5),
               ),
             ),
-            child: ApplePressable(
-              onTap: () {
-                HapticFeedback.lightImpact();
-                onCta();
-              },
-              child: Container(
-                height: 56,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(28),
-                  gradient: LinearGradient(colors: ctaColors),
-                  boxShadow: [
-                    BoxShadow(
-                      color: ctaColors.last.withValues(alpha: 0.22),
-                      blurRadius: 16,
-                      offset: const Offset(0, 7),
-                    ),
-                  ],
-                ),
-                alignment: Alignment.center,
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(ctaIcon, color: Colors.white, size: 22),
-                    const SizedBox(width: 8),
-                    Text(cta,
-                        style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 16.5,
-                            fontWeight: FontWeight.w700)),
-                  ],
-                ),
-              ),
-            ),
+            child: (active && localPath == null)
+                // Bought but not on the device yet: Download and Open together.
+                ? Row(
+                    children: [
+                      Expanded(
+                        child: _CtaButton(
+                          label: 'Download',
+                          icon: Symbols.download_rounded,
+                          colors: ctaColors,
+                          filled: false,
+                          onTap: () => _download(context, ref),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: _CtaButton(
+                          label: 'Open',
+                          icon: Symbols.menu_book_rounded,
+                          colors: ctaColors,
+                          filled: true,
+                          onTap: () async {
+                            context.push(Uri(path: '/material', queryParameters: {
+                              'contentId': note.id,
+                              'title': note.title,
+                              'contentType': 'STORE_NOTE',
+                              'courseName': 'Premium Notes',
+                            }).toString());
+                          },
+                        ),
+                      ),
+                    ],
+                  )
+                : _CtaButton(
+                    label: cta,
+                    icon: ctaIcon,
+                    colors: ctaColors,
+                    filled: true,
+                    onTap: onCta,
+                  ),
           ),
         ),
       ],
@@ -537,6 +543,65 @@ class _FileRow extends ConsumerWidget {
                 color: downloaded ? tokens.primaryAccent : tokens.success,
               ),
             ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+
+/// Bottom-bar action: gradient when [filled], soft tinted outline otherwise.
+class _CtaButton extends StatelessWidget {
+  const _CtaButton({
+    required this.label,
+    required this.icon,
+    required this.colors,
+    required this.filled,
+    required this.onTap,
+  });
+  final String label;
+  final IconData icon;
+  final List<Color> colors;
+  final bool filled;
+  final Future<void> Function() onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final fg = filled ? Colors.white : colors.last;
+    return ApplePressable(
+      onTap: () {
+        HapticFeedback.lightImpact();
+        onTap();
+      },
+      child: Container(
+        height: 56,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(28),
+          gradient: filled ? LinearGradient(colors: colors) : null,
+          color: filled ? null : colors.last.withValues(alpha: 0.10),
+          border: filled
+              ? null
+              : Border.all(color: colors.last.withValues(alpha: 0.35)),
+          boxShadow: filled
+              ? [
+                  BoxShadow(
+                    color: colors.last.withValues(alpha: 0.22),
+                    blurRadius: 16,
+                    offset: const Offset(0, 7),
+                  ),
+                ]
+              : null,
+        ),
+        alignment: Alignment.center,
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, color: fg, size: 22),
+            const SizedBox(width: 8),
+            Text(label,
+                style: TextStyle(
+                    color: fg, fontSize: 16.5, fontWeight: FontWeight.w700)),
           ],
         ),
       ),

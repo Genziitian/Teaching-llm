@@ -65,6 +65,25 @@ void main() {
         isFalse);
   });
 
+  test('home banner destinations resolve to native routes', () {
+    final container = ProviderContainer(overrides: [
+      authStateProvider.overrideWith(_Auth.new),
+      welcomeSeenProvider.overrideWith((_) => true),
+    ]);
+    final router = container.read(routerProvider);
+    addTearDown(router.dispose);
+    addTearDown(container.dispose);
+    for (final path in [
+      '/academics',
+      '/free-resources',
+      '/store/notes',
+      '/community',
+    ]) {
+      expect(router.configuration.findMatch(Uri.parse(path)).isError, isFalse,
+          reason: path);
+    }
+  });
+
   test(
       'website root, store, course catalog and material links resolve natively',
       () {

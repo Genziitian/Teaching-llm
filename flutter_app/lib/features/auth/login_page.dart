@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:material_ui/material_ui.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:flutter/services.dart';
@@ -80,7 +82,7 @@ class LoginPage extends ConsumerWidget {
                                 const _Entrance(
                                   delayMs: 80,
                                   dy: 22,
-                                  child: _HeroTiles(),
+                                  child: _FeatureCarousel(),
                                 ),
                                 const Spacer(),
                               ],
@@ -113,11 +115,11 @@ class LoginPage extends ConsumerWidget {
                               crossAxisAlignment: CrossAxisAlignment.stretch,
                               children: [
                                 Text(
-                                  'Welcome Back!',
+                                  'Welcome',
                                   textAlign: TextAlign.center,
                                   style: TextStyle(
                                     fontSize: 32,
-                                    fontWeight: FontWeight.w800,
+                                    fontWeight: FontWeight.w700,
                                     letterSpacing: -0.8,
                                     height: 1.1,
                                     color: tokens.textPrimary,
@@ -231,103 +233,195 @@ class _Orb extends StatelessWidget {
 }
 
 /// Three overlapping glossy app-icon tiles (decorative).
-class _HeroTiles extends StatelessWidget {
-  const _HeroTiles();
+class _Feature {
+  const _Feature(this.icon, this.title, this.text, this.from, this.to);
+  final IconData icon;
+  final String title;
+  final String text;
+  final Color from;
+  final Color to;
+}
+
+const _features = [
+  _Feature(Symbols.video_library_rounded, 'Recorded & live classes',
+      'Learn from lectures and join live sessions.', Color(0xFF7D7AFF), _kIndigo),
+  _Feature(Symbols.description_rounded, 'Premium notes',
+      'Formula sheets and notes, on the app and the web.', Color(0xFF5AC8FA), _kBlue),
+  _Feature(Symbols.forum_rounded, 'Community & support',
+      'Ask doubts, get help and stay on track.', Color(0xFFFF6482), _kPink),
+];
+
+/// Three feature cards that glide on their own, loop forever and can be
+/// swiped. Auto-play pauses while touched and is off when the system asks
+/// for reduced motion.
+class _FeatureCarousel extends StatefulWidget {
+  const _FeatureCarousel();
+
+  @override
+  State<_FeatureCarousel> createState() => _FeatureCarouselState();
+}
+
+class _FeatureCarouselState extends State<_FeatureCarousel> {
+  static const _start = 3000; // multiple of 3, so it begins on the first card
+  final _controller = PageController(viewportFraction: 0.78, initialPage: _start);
+  Timer? _timer;
+  int _index = 0;
+  bool _reduceMotion = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _reduceMotion = MediaQuery.of(context).disableAnimations;
+    _restart();
+  }
+
+  void _restart() {
+    _timer?.cancel();
+    if (_reduceMotion) return;
+    _timer = Timer.periodic(const Duration(milliseconds: 3600), (_) {
+      if (!mounted || !_controller.hasClients) return;
+      _controller.nextPage(
+        duration: const Duration(milliseconds: 650),
+        curve: Curves.easeInOutCubic,
+      );
+    });
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    _controller.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
-    return const SizedBox(
-      width: 240,
-      height: 120,
-      child: Stack(
-        children: [
-          Positioned(
-            left: 16,
-            top: 28,
-            child: _Tile(
-              size: 72,
-              angle: -0.17,
-              icon: Symbols.video_library_rounded,
-              from: Color(0xFF7D7AFF),
-              to: _kIndigo,
+    final tokens = context.tokens;
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        SizedBox(
+          height: 176,
+          child: Listener(
+            onPointerDown: (_) => _timer?.cancel(),
+            onPointerUp: (_) => _restart(),
+            onPointerCancel: (_) => _restart(),
+            child: PageView.builder(
+              controller: _controller,
+              onPageChanged: (i) => setState(() => _index = i % _features.length),
+              itemBuilder: (context, i) {
+                final f = _features[i % _features.length];
+                return AnimatedBuilder(
+                  animation: _controller,
+                  builder: (context, child) {
+                    final page = _controller.hasClients &&
+                            _controller.position.haveDimensions
+                        ? (_controller.page ?? _start.toDouble())
+                        : _start.toDouble();
+                    final d = (page - i).abs().clamp(0.0, 1.0);
+                    return Center(
+                      child: Opacity(
+                        opacity: 1 - 0.4 * d,
+                        child: Transform.scale(scale: 1 - 0.08 * d, child: child),
+                      ),
+                    );
+                  },
+                  child: _FeatureCard(feature: f),
+                );
+              },
             ),
           ),
-          Positioned(
-            right: 16,
-            top: 28,
-            child: _Tile(
-              size: 72,
-              angle: 0.17,
-              icon: Symbols.forum_rounded,
-              from: Color(0xFFFF6482),
-              to: _kPink,
-            ),
-          ),
-          Positioned(
-            left: 78,
-            top: 0,
-            child: _Tile(
-              size: 88,
-              angle: 0,
-              icon: Symbols.school_rounded,
-              from: Color(0xFF5AC8FA),
-              to: _kBlue,
-            ),
-          ),
-        ],
-      ),
+        ),
+        const SizedBox(height: 14),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            for (var i = 0; i < _features.length; i++)
+              AnimatedContainer(
+                duration: const Duration(milliseconds: 250),
+                curve: Curves.easeOut,
+                margin: const EdgeInsets.symmetric(horizontal: 3),
+                width: i == _index ? 20 : 6,
+                height: 6,
+                decoration: BoxDecoration(
+                  color: i == _index
+                      ? tokens.textPrimary
+                      : tokens.textMuted.withValues(alpha: 0.35),
+                  borderRadius: BorderRadius.circular(3),
+                ),
+              ),
+          ],
+        ),
+      ],
     );
   }
 }
 
-class _Tile extends StatelessWidget {
-  const _Tile({
-    required this.size,
-    required this.angle,
-    required this.icon,
-    required this.from,
-    required this.to,
-  });
-
-  final double size;
-  final double angle;
-  final IconData icon;
-  final Color from;
-  final Color to;
+class _FeatureCard extends StatelessWidget {
+  const _FeatureCard({required this.feature});
+  final _Feature feature;
 
   @override
   Widget build(BuildContext context) {
-    return Transform.rotate(
-      angle: angle,
-      child: Container(
-        width: size,
-        height: size,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(size * 0.28),
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [from, to],
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 6),
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(28),
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [feature.from, feature.to],
+        ),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.28), width: 1),
+        boxShadow: [
+          BoxShadow(
+            color: feature.to.withValues(alpha: 0.3),
+            blurRadius: 26,
+            offset: const Offset(0, 12),
           ),
-          border: Border.all(
-            color: Colors.white.withValues(alpha: 0.28),
-            width: 1,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: to.withValues(alpha: 0.38),
-              blurRadius: 24,
-              offset: const Offset(0, 12),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Container(
+            width: 46,
+            height: 46,
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.24),
+              borderRadius: BorderRadius.circular(14),
             ),
-          ],
-        ),
-        child: Icon(
-          icon,
-          color: Colors.white,
-          size: size * 0.5,
-          fill: 1,
-          weight: 500,
-        ),
+            child: Icon(feature.icon,
+                color: Colors.white, size: 25, fill: 1, weight: 500),
+          ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                feature.title,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 20,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: -0.4,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                feature.text,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  color: Colors.white.withValues(alpha: 0.9),
+                  fontSize: 13.5,
+                  height: 1.35,
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }
@@ -567,11 +661,11 @@ class _TabletLoginLayout extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
                         Text(
-                          'Welcome Back!',
+                          'Welcome',
                           textAlign: TextAlign.center,
                           style: TextStyle(
                             fontSize: 30,
-                            fontWeight: FontWeight.w800,
+                            fontWeight: FontWeight.w700,
                             color: tokens.textPrimary,
                             letterSpacing: -0.8,
                           ),
@@ -742,7 +836,9 @@ class _ExploreButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final accent = context.isDark ? const Color(0xFF7D7AFF) : AppColors.brand;
+    // Darker indigo on the light tint so the label meets contrast guidelines.
+    final accent =
+        context.isDark ? const Color(0xFFA5A3FF) : const Color(0xFF3634A3);
     return ApplePressable(
       onTap: () {
         HapticFeedback.selectionClick();
@@ -752,7 +848,7 @@ class _ExploreButton extends StatelessWidget {
       child: Container(
         height: 52,
         decoration: BoxDecoration(
-          color: AppColors.brand.withValues(alpha: context.isDark ? 0.22 : 0.10),
+          color: AppColors.brand.withValues(alpha: context.isDark ? 0.22 : 0.12),
           borderRadius: BorderRadius.circular(16),
         ),
         alignment: Alignment.center,
@@ -796,7 +892,6 @@ class _LegalFooter extends StatelessWidget {
           'By continuing, you agree to our',
           style: TextStyle(color: secondary, fontSize: fontSize),
         ),
-        const SizedBox(height: 4),
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -1037,18 +1132,25 @@ class _LegalLink extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final accent = context.isDark ? const Color(0xFF7D7AFF) : AppColors.brand;
+    final accent =
+        context.isDark ? const Color(0xFFA5A3FF) : const Color(0xFF3634A3);
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: onTap,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 4),
-        child: Text(
-          label,
-          style: TextStyle(
-            color: accent,
-            fontWeight: FontWeight.w600,
-            fontSize: fontSize,
+      // 44pt-high tap area, as Apple recommends for touch targets.
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(minHeight: 44, minWidth: 44),
+        child: Center(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 4),
+            child: Text(
+              label,
+              style: TextStyle(
+                color: accent,
+                fontWeight: FontWeight.w600,
+                fontSize: fontSize,
+              ),
+            ),
           ),
         ),
       ),

@@ -12,6 +12,7 @@ import '../../core/payments/play_billing_service.dart';
 import '../../core/payments/razorpay_service.dart';
 import '../../theme/app_theme_tokens.dart';
 import '../academics/free_resources_page.dart' show purchasedMaterialsProvider;
+import 'purchase_success_dialog.dart';
 
 enum NoteAccessState { none, active, expired }
 
@@ -363,9 +364,14 @@ Future<bool> buyStoreNote(
   final messenger = ScaffoldMessenger.of(context);
 
   final isAndroid = !kIsWeb && defaultTargetPlatform == TargetPlatform.android;
-  final effectivePrice = price ??
-      ref.read(storeNoteProvider(noteId)).asData?.value.price ??
-      0.0;
+  // The price decides the payment method. When the caller did not pass it,
+  // load the note instead of assuming 0 (which would wrongly use Razorpay).
+  var effectivePrice = price ?? 0.0;
+  if (price == null) {
+    try {
+      effectivePrice = (await ref.read(storeNoteProvider(noteId).future)).price;
+    } catch (_) {}
+  }
 
   if (isAndroid && effectivePrice > 0) {
     final playService = PlayBillingService(api: ref.read(apiClientProvider));
@@ -402,9 +408,33 @@ Future<bool> buyStoreNote(
   ref.invalidate(myStoreNotesProvider);
   ref.invalidate(downloadedNotesProvider);
   ref.invalidate(purchasedMaterialsProvider);
-  HapticFeedback.heavyImpact();
-  messenger.showSnackBar(
-    SnackBar(content: Text('"$title" is unlocked. You can download it now.')),
+  if (!context.mounted) return true;
+
+  // Access end date for the modal (falls back to today + validity).
+  DateTime? validUntil;
+  try {
+    final note = await ref
+        .read(storeNoteProvider(noteId).future)
+        .timeout(const Duration(seconds: 2));
+    validUntil =
+        note.expiresAt ?? DateTime.now().add(Duration(days: note.validityDays));
+  } catch (_) {}
+  if (!context.mounted) return true;
+
+  // Skip "Open note" when the user is already on that note's page.
+  var onNotePage = false;
+  try {
+    onNotePage = GoRouterState.of(context).uri.path.endsWith('/notes/$noteId');
+  } catch (_) {}
+
+  final open = await showPurchaseSuccessDialog(
+    context,
+    title: title,
+    validUntil: validUntil,
+    offerOpen: !onNotePage,
   );
+  if (open && context.mounted) {
+    context.push('/store/notes/$noteId');
+  }
   return true;
 }

@@ -14,19 +14,24 @@ import '../../theme/app_typography.dart';
 
 const _kDefaultSlides = <Map<String, dynamic>>[
   {
-    'asset': 'assets/slides/join-community.png',
-    'alt': 'Join IITM BS Community',
-    'href': '/community',
-  },
-  {
-    'asset': 'assets/slides/qualifier-session.png',
-    'alt': 'Qualifier & Foundation Sessions',
+    'asset': 'assets/slides/batch-sept-2026-v2.webp',
+    'alt': 'September 2026 batch is live',
     'href': '/academics',
   },
   {
-    'asset': 'assets/slides/level-up.png',
-    'alt': 'Level Up Your Preparation',
-    'href': '/courses',
+    'asset': 'assets/slides/free-resources-v2.webp',
+    'alt': 'Free notes and solved PYQs',
+    'href': '/free-resources',
+  },
+  {
+    'asset': 'assets/slides/premium-notes-v2.webp',
+    'alt': 'Premium notes for IITM BS',
+    'href': '/store/notes',
+  },
+  {
+    'asset': 'assets/slides/community-support-v2.webp',
+    'alt': 'Community and doubt support',
+    'href': '/community',
   },
 ];
 
@@ -103,8 +108,8 @@ class _HomeSliderState extends ConsumerState<HomeSlider> {
         _restartTimer(slides.length);
         return Column(
           children: [
-            SizedBox(
-              height: 180,
+            AspectRatio(
+              aspectRatio: 2400 / 1140,
               child: PageView.builder(
                 controller: _controller,
                 itemCount: slides.length,

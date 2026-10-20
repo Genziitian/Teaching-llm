@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/foundation.dart';
@@ -5,8 +6,10 @@ import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
+import 'package:material_symbols_icons/symbols.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../core/auth/auth_providers.dart';
 import '../../shared/widgets/bouncy_pressable.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_typography.dart';
@@ -21,6 +24,32 @@ bool playStoreLaunchApplies() {
   if (kIsWeb) return false;
   return defaultTargetPlatform == TargetPlatform.android;
 }
+
+/// Has this account already seen the welcome? Asked once per signed-in user.
+/// If the server cannot be reached we say "seen" so nobody is nagged.
+final playStoreWelcomeServerSeenProvider =
+    FutureProvider.autoDispose.family<bool, String>((ref, userId) async {
+  try {
+    final res = await ref
+        .watch(apiClientProvider)
+        .get<dynamic>('/api/user/play-welcome');
+    final d = res.data;
+    return d is Map && d['seen'] == true;
+  } catch (_) {
+    return true;
+  }
+});
+
+/// True only while the welcome should be on screen: Android, signed in, not
+/// seen on this phone, and not seen by this account on any phone.
+final playStoreWelcomePendingProvider = Provider<bool>((ref) {
+  if (!playStoreLaunchApplies()) return false;
+  if (ref.watch(playStoreLaunchSeenProvider)) return false;
+  final user = ref.watch(authStateProvider).value;
+  if (user == null) return false;
+  final seen = ref.watch(playStoreWelcomeServerSeenProvider(user.id));
+  return seen.maybeWhen(data: (v) => !v, orElse: () => false);
+});
 
 const _kSeenKey = 'genz_flutter_playstore_launch_seen';
 
@@ -60,49 +89,64 @@ class PlayStoreLaunchOverlay extends ConsumerStatefulWidget {
 
 class _PlayStoreLaunchOverlayState extends ConsumerState<PlayStoreLaunchOverlay>
     with SingleTickerProviderStateMixin {
-  AnimationController? _fade;
+  late final AnimationController _fade = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 420),
+    value: 1,
+  );
   bool _busy = false;
-
-  @override
-  void initState() {
-    super.initState();
-    if (!playStoreLaunchApplies()) return;
-    if (ref.read(playStoreLaunchSeenProvider)) return;
-    _fade = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 420),
-      value: 1,
-    );
-  }
+  bool _synced = false;
 
   @override
   void dispose() {
-    _fade?.dispose();
+    _fade.dispose();
     super.dispose();
+  }
+
+  void _saveSeenOnAccount() {
+    unawaited(() async {
+      try {
+        await ref.read(apiClientProvider).post<dynamic>('/api/user/play-welcome');
+      } catch (_) {}
+    }());
   }
 
   Future<void> _enter() async {
     if (_busy) return;
     _busy = true;
+    HapticFeedback.mediumImpact();
     await PlayStoreLaunch.markSeen();
-    final fade = _fade;
-    if (!mounted || fade == null) return;
-    await fade.reverse();
+    _saveSeenOnAccount();
+    if (!mounted) return;
+    await _fade.reverse();
     if (!mounted) return;
     ref.read(playStoreLaunchSeenProvider.notifier).state = true;
+    _busy = false;
+    _fade.value = 1;
   }
 
   @override
   Widget build(BuildContext context) {
-    final seen = ref.watch(playStoreLaunchSeenProvider);
-    final fade = _fade;
-    if (seen || fade == null) return widget.child;
+    if (!playStoreLaunchApplies()) return widget.child;
+
+    // Tapped Enter on this phone before signing in: remember it on the
+    // account once, so a reinstall never shows it again.
+    final signedIn = ref.watch(authStateProvider).value != null;
+    if (signedIn && ref.watch(playStoreLaunchSeenProvider) && !_synced) {
+      _synced = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _saveSeenOnAccount();
+      });
+    }
+
+    final pending = ref.watch(playStoreWelcomePendingProvider);
+    if (!pending) return widget.child;
 
     return Stack(
       children: [
         widget.child,
         FadeTransition(
-          opacity: fade,
+          opacity: _fade,
           child: _CelebrationScreen(onEnter: _enter),
         ),
       ],
@@ -110,58 +154,108 @@ class _PlayStoreLaunchOverlayState extends ConsumerState<PlayStoreLaunchOverlay>
   }
 }
 
-class _CelebrationScreen extends StatelessWidget {
+class _CelebrationScreen extends StatefulWidget {
   const _CelebrationScreen({required this.onEnter});
 
   final VoidCallback onEnter;
 
   @override
+  State<_CelebrationScreen> createState() => _CelebrationScreenState();
+}
+
+class _CelebrationScreenState extends State<_CelebrationScreen>
+    with SingleTickerProviderStateMixin {
+  static const _indigo = Color(0xFF5E5CE6);
+
+  late final AnimationController _in = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 1400),
+  );
+  bool _partyFading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      if (MediaQuery.of(context).disableAnimations) {
+        _in.value = 1;
+      } else {
+        _in.forward();
+      }
+    });
+    // The celebration is a short burst, not a loop.
+    Future.delayed(const Duration(milliseconds: 2600), () {
+      if (mounted) setState(() => _partyFading = true);
+    });
+  }
+
+  @override
+  void dispose() {
+    _in.dispose();
+    super.dispose();
+  }
+
+  /// Staggered fade + rise; [start] is when (0..0.6 of the intro) it begins.
+  Widget _rise(double start, Widget child) {
+    final curve = Interval(start, math.min(start + 0.4, 1.0));
+    return AnimatedBuilder(
+      animation: _in,
+      child: child,
+      builder: (context, child) {
+        final v = Curves.easeOutCubic.transform(curve.transform(_in.value));
+        return Opacity(
+          opacity: v,
+          child: Transform.translate(offset: Offset(0, (1 - v) * 16), child: child),
+        );
+      },
+    );
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final reduce = MediaQuery.of(context).disableAnimations;
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: const SystemUiOverlayStyle(
         statusBarIconBrightness: Brightness.dark,
         systemNavigationBarIconBrightness: Brightness.dark,
       ),
       child: Material(
-        color: const Color(0xFFFFF6EE),
+        color: const Color(0xFFF7F6FB),
         child: DecoratedBox(
           decoration: const BoxDecoration(
             gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                Color(0xFFFFF1F4),
-                Color(0xFFFFF7E8),
-                Color(0xFFF3E8FF),
-                Color(0xFFE8EEFF),
-              ],
-              stops: [0.0, 0.34, 0.68, 1.0],
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [Color(0xFFFFF4F7), Color(0xFFF7F6FB), Color(0xFFF1EEFF)],
             ),
           ),
           child: Stack(
             children: [
               const Positioned(
-                top: -90,
-                left: -70,
-                child: _Glow(color: Color(0xFFFF8FAB), size: 260),
+                top: -110,
+                left: -80,
+                child: _Glow(color: Color(0xFFFF8FAB), size: 280),
               ),
               const Positioned(
-                top: 80,
-                right: -90,
-                child: _Glow(color: Color(0xFFFFD166), size: 240),
+                bottom: -60,
+                right: -70,
+                child: _Glow(color: Color(0xFFB4A9FF), size: 300),
               ),
-              const Positioned(
-                bottom: -40,
-                left: -20,
-                child: _Glow(color: Color(0xFFC4B5FD), size: 280),
-              ),
-              const Positioned.fill(child: _PartyField()),
+              if (!reduce)
+                Positioned.fill(
+                  child: AnimatedOpacity(
+                    opacity: _partyFading ? 0 : 1,
+                    duration: const Duration(milliseconds: 900),
+                    child: const _PartyField(),
+                  ),
+                ),
               SafeArea(
                 child: Padding(
-                  padding: const EdgeInsets.fromLTRB(22, 8, 22, 16),
+                  padding: const EdgeInsets.fromLTRB(24, 8, 24, 20),
                   child: Center(
                     child: ConstrainedBox(
-                      constraints: const BoxConstraints(maxWidth: 520),
+                      constraints: const BoxConstraints(maxWidth: 480),
                       child: Column(
                         children: [
                           Expanded(
@@ -174,27 +268,27 @@ class _CelebrationScreen extends StatelessWidget {
                                       minHeight: constraints.maxHeight,
                                     ),
                                     child: Column(
-                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
                                       children: [
-                                        // Logo
-                                        ConstrainedBox(
-                                          constraints: const BoxConstraints(maxHeight: 80),
-                                          child: Image.asset(
+                                        _rise(
+                                          0.00,
+                                          Image.asset(
                                             'assets/mobile-login-logo.png',
-                                            height: 70,
+                                            height: 64,
                                             fit: BoxFit.contain,
                                           ),
                                         ),
-                                        const SizedBox(height: 16),
-                                        const _Eyebrow(),
                                         const SizedBox(height: 18),
-                                        const _Headline(),
-                                        const SizedBox(height: 16),
-                                        const _Thanks(),
-                                        const SizedBox(height: 18),
-                                        const _NoteCard(),
-                                        const SizedBox(height: 18),
-                                        const _SignOff(),
+                                        _rise(0.08, const _Eyebrow()),
+                                        const SizedBox(height: 20),
+                                        _rise(0.16, const _Headline()),
+                                        const SizedBox(height: 12),
+                                        _rise(0.24, const _Thanks()),
+                                        const SizedBox(height: 24),
+                                        _rise(0.34, const _NoteCard()),
+                                        const SizedBox(height: 20),
+                                        _rise(0.44, const _SignOff()),
                                       ],
                                     ),
                                   ),
@@ -203,7 +297,7 @@ class _CelebrationScreen extends StatelessWidget {
                             ),
                           ),
                           const SizedBox(height: 14),
-                          _EnterButton(onPressed: onEnter),
+                          _rise(0.54, _EnterButton(onPressed: widget.onEnter)),
                         ],
                       ),
                     ),
@@ -224,36 +318,46 @@ class _Eyebrow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.82),
+        color: Colors.white.withValues(alpha: 0.85),
         borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: const Color(0xFFFFC2D4)),
+        border: Border.all(color: const Color(0x145E5CE6)),
       ),
       child: Text(
         'OUR FIRST PLAY STORE APP',
         style: AppTypography.uppercase.copyWith(
-          color: const Color(0xFFBE185D),
+          color: const Color(0xFF5E5CE6),
           fontSize: 11,
-          letterSpacing: 1.15,
+          fontWeight: FontWeight.w700,
+          letterSpacing: 1.0,
         ),
       ),
     );
   }
 }
 
+/// One line, always: scales down a little on narrow phones instead of leaving
+/// a single word alone on the second line.
 class _Headline extends StatelessWidget {
   const _Headline();
 
   @override
   Widget build(BuildContext context) {
-    return Text(
-      'Welcome to the new app',
-      textAlign: TextAlign.center,
-      style: AppTypography.h1.copyWith(
-        fontSize: 32,
-        height: 1.12,
-        color: AppColors.ink,
+    return FittedBox(
+      fit: BoxFit.scaleDown,
+      child: Text(
+        'Welcome to the new app',
+        maxLines: 1,
+        softWrap: false,
+        textAlign: TextAlign.center,
+        style: AppTypography.h1.copyWith(
+          fontSize: 32,
+          height: 1.1,
+          letterSpacing: -0.8,
+          fontWeight: FontWeight.w800,
+          color: AppColors.ink,
+        ),
       ),
     );
   }
@@ -264,29 +368,18 @@ class _Thanks extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final style = AppTypography.body.copyWith(
-      fontSize: 16,
-      height: 1.45,
-      color: AppColors.ink2,
-      fontWeight: FontWeight.w600,
-    );
-    return Column(
-      children: [
-        Text(
-          'Thank you for supporting us. Because of you, we are here.',
-          textAlign: TextAlign.center,
-          style: style,
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8),
+      child: Text(
+        'Thank you for supporting us. Because of you, we are here.',
+        textAlign: TextAlign.center,
+        style: AppTypography.body.copyWith(
+          fontSize: 16,
+          height: 1.45,
+          color: AppColors.ink2,
+          fontWeight: FontWeight.w500,
         ),
-        const SizedBox(height: 8),
-        Text(
-          'Please use this app.',
-          textAlign: TextAlign.center,
-          style: style.copyWith(
-            color: AppColors.ink,
-            fontWeight: FontWeight.w800,
-          ),
-        ),
-      ],
+      ),
     );
   }
 }
@@ -296,47 +389,61 @@ class _NoteCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final body = AppTypography.body.copyWith(
+      fontSize: 14.5,
+      height: 1.5,
+      color: AppColors.ink2,
+    );
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
+      padding: const EdgeInsets.fromLTRB(18, 16, 18, 18),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.94),
-        borderRadius: BorderRadius.circular(22),
-        boxShadow: [
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: const Color(0x0F000000), width: 0.5),
+        boxShadow: const [
           BoxShadow(
-            color: const Color(0xFF5E5CE6).withOpacity(0.08),
-            blurRadius: 24,
-            offset: const Offset(0, 10),
+            color: Color(0x145E5CE6),
+            blurRadius: 28,
+            offset: Offset(0, 12),
           ),
         ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'A small heads-up',
-            style: AppTypography.title.copyWith(
-              fontSize: 15,
-              color: AppColors.ink,
-            ),
+          Row(
+            children: [
+              Container(
+                width: 32,
+                height: 32,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFF9F0A),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(Symbols.info_rounded,
+                    fill: 1, size: 19, color: Colors.white),
+              ),
+              const SizedBox(width: 10),
+              Text(
+                'A small heads-up',
+                style: AppTypography.title.copyWith(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.ink,
+                ),
+              ),
+            ],
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 12),
           Text(
             'This is our first app on the Play Store. Even after testing day and night, you may still run into a bug or find something missing. Please be patient with us.',
-            style: AppTypography.body.copyWith(
-              fontSize: 14,
-              height: 1.5,
-              color: AppColors.ink2,
-            ),
+            style: body,
           ),
           const SizedBox(height: 10),
           Text(
             'If something feels off, open the Support tab and raise a ticket. We will fix it as fast as we can.',
-            style: AppTypography.body.copyWith(
-              fontSize: 14,
-              height: 1.5,
-              color: AppColors.ink2,
-            ),
+            style: body,
           ),
         ],
       ),
@@ -354,74 +461,49 @@ class _SignOff extends StatelessWidget {
       textAlign: TextAlign.center,
       style: AppTypography.title.copyWith(
         fontSize: 15,
-        color: const Color(0xFF6D28D9),
+        fontWeight: FontWeight.w700,
+        color: const Color(0xFF5E5CE6),
       ),
     );
   }
 }
 
-class _EnterButton extends StatefulWidget {
+class _EnterButton extends StatelessWidget {
   const _EnterButton({required this.onPressed});
 
   final VoidCallback onPressed;
 
   @override
-  State<_EnterButton> createState() => _EnterButtonState();
-}
-
-class _EnterButtonState extends State<_EnterButton>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _pulse;
-
-  @override
-  void initState() {
-    super.initState();
-    _pulse = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 900),
-    )..repeat(reverse: true);
-  }
-
-  @override
-  void dispose() {
-    _pulse.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: _pulse,
-      builder: (context, child) {
-        final scale = 1 + (_pulse.value * 0.025);
-        return Transform.scale(scale: scale, child: child);
-      },
-      child: BouncyPressable(
-        onTap: widget.onPressed,
-        scaleDown: 0.97,
-        child: Container(
-          key: const Key('play-store-launch-enter'),
-          height: 56,
-          alignment: Alignment.center,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(50),
-            gradient: const LinearGradient(
-              colors: [Color(0xFF5E5CE6), Color(0xFFDB2777)],
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: const Color(0xFFDB2777).withOpacity(0.32),
-                blurRadius: 18,
-                offset: const Offset(0, 8),
-              ),
-            ],
+    return BouncyPressable(
+      onTap: onPressed,
+      scaleDown: 0.97,
+      child: Container(
+        key: const Key('play-store-launch-enter'),
+        height: 56,
+        width: double.infinity,
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(28),
+          gradient: const LinearGradient(
+            colors: [Color(0xFF6E6CF0), Color(0xFF5E5CE6)],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
           ),
-          child: Text(
-            'ENTER',
-            style: AppTypography.buttonLabel.copyWith(
-              fontSize: 16,
-              letterSpacing: 1.4,
+          boxShadow: [
+            BoxShadow(
+              color: const Color(0xFF5E5CE6).withValues(alpha: 0.30),
+              blurRadius: 18,
+              offset: const Offset(0, 8),
             ),
+          ],
+        ),
+        child: Text(
+          'Enter',
+          style: AppTypography.buttonLabel.copyWith(
+            fontSize: 17,
+            fontWeight: FontWeight.w700,
+            letterSpacing: 0.2,
           ),
         ),
       ),
@@ -592,12 +674,13 @@ class _PartyFieldState extends State<_PartyField>
     if (dt <= 0) return;
     if (dt > 0.05) dt = 0.05;
 
+    final spawning = now < 2.4;
     _untilBurst -= dt;
-    if (_untilBurst <= 0) {
+    if (spawning && _untilBurst <= 0) {
       _spawnBurst(0.12 + _rng.nextDouble() * 0.76, 0.08 + _rng.nextDouble() * 0.7);
       _untilBurst = 0.65 + _rng.nextDouble() * 0.55;
     }
-    if (_bits.length < 42) _spawnRain();
+    if (spawning && _bits.length < 30) _spawnRain();
 
     for (final bit in _bits) {
       bit.vy += 0.28 * dt;

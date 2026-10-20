@@ -147,6 +147,13 @@ class _PurchaseRow extends StatelessWidget {
     final title = (item['title'] as String?) ?? 'Purchased Material';
     final url = item['fileUrl'] as String?;
 
+    // Store notes open on their own page, where Download and Open live.
+    final noteId = item['noteId'] as String?;
+    if (noteId != null && noteId.isNotEmpty) {
+      context.push('/store/notes/$noteId');
+      return;
+    }
+
     if (id != null && id.isNotEmpty) {
       final uri = Uri(
         path: '/material',
@@ -239,7 +246,8 @@ class _PurchaseRow extends StatelessWidget {
                     if (purchasedAt != null) ...[
                       const SizedBox(height: 2),
                       Text(
-                        _formatDate(purchasedAt),
+                        _formatDate(purchasedAt) +
+                            _formatUntil(item['expiresAt'] as String?),
                         style: TextStyle(
                           color: tokens.textMuted,
                           fontSize: 10.5,
@@ -255,6 +263,16 @@ class _PurchaseRow extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  String _formatUntil(String? iso) {
+    final dt = iso == null ? null : DateTime.tryParse(iso)?.toLocal();
+    if (dt == null) return '';
+    const months = [
+      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+    ];
+    return '  ·  Until ${dt.day} ${months[dt.month - 1]} ${dt.year}';
   }
 
   String _formatDate(String iso) {
