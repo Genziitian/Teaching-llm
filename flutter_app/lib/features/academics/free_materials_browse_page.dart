@@ -12,6 +12,7 @@ import '../../shared/widgets/share_link_sheet.dart';
 import '../downloads/download_button.dart' show startDownloadFlow;
 import '../../shared/widgets/sub_page_header.dart';
 import '../../theme/app_theme_tokens.dart';
+import '../../shared/widgets/shimmer_loading.dart';
 
 enum _Category { assignment, pyq, note }
 
@@ -492,12 +493,7 @@ class _MaterialList extends ConsumerWidget {
     return AppRefresh(
       onRefresh: () async => ref.invalidate(_materialsProvider(query)),
       child: async.when(
-        loading: () => Center(
-          child: CircularProgressIndicator(
-            strokeWidth: 2,
-            color: tokens.primaryAccent,
-          ),
-        ),
+        loading: () => const PageLoading(),
         error: (e, _) => Center(
           child: Padding(
             padding: const EdgeInsets.all(24),

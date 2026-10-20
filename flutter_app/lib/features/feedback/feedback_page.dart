@@ -9,6 +9,7 @@ import '../../shared/widgets/sub_page_header.dart';
 import '../../theme/app_theme_tokens.dart';
 import '../courses/courses_page.dart' show coursesProvider;
 import 'rate_course_sheet.dart';
+import '../../shared/widgets/shimmer_loading.dart';
 
 /// GET /api/feedback → list of feedback rows the user has already submitted.
 final myFeedbackProvider =
@@ -120,12 +121,7 @@ class FeedbackPage extends ConsumerWidget {
           ref.invalidate(myFeedbackProvider);
         },
         child: enrolledAsync.when(
-          loading: () => Center(
-            child: CircularProgressIndicator(
-              strokeWidth: 2.5,
-              color: tokens.primaryAccent,
-            ),
-          ),
+          loading: () => const PageLoading(),
           error: (e, _) => ListView(
             padding: const EdgeInsets.all(40),
             children: [

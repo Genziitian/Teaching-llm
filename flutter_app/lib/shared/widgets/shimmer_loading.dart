@@ -119,3 +119,66 @@ class SkeletonBox extends StatelessWidget {
     );
   }
 }
+
+
+/// Page-level loading state: "Please wait, loading…" over skeleton cards.
+/// Use this instead of a bare spinner whenever a whole screen is loading.
+class PageLoading extends StatelessWidget {
+  const PageLoading({super.key, this.rows = 3, this.message = 'Please wait, loading…'});
+  final int rows;
+  final String message;
+
+  @override
+  Widget build(BuildContext context) {
+    final tokens = context.tokens;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Center(
+            child: Padding(
+              padding: const EdgeInsets.only(bottom: 16),
+              child: Text(
+                message,
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: tokens.textSecondary,
+                ),
+              ),
+            ),
+          ),
+          for (var i = 0; i < rows; i++) ...[
+            Container(
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: tokens.cardBg,
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: tokens.border, width: 0.5),
+              ),
+              child: const Row(
+                children: [
+                  SkeletonBox(width: 52, height: 52, borderRadius: 14),
+                  SizedBox(width: 14),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        SkeletonBox(height: 14, borderRadius: 7),
+                        SizedBox(height: 10),
+                        SkeletonBox(width: 150, height: 11, borderRadius: 6),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            if (i < rows - 1) const SizedBox(height: 12),
+          ],
+        ],
+      ),
+    );
+  }
+}

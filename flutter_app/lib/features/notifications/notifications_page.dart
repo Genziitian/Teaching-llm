@@ -11,6 +11,7 @@ import '../../shared/utils/cta_navigation.dart';
 
 import '../../shared/widgets/app_topbar.dart' show unreadProvider;
 import '../../shared/widgets/sub_page_header.dart';
+import '../../shared/widgets/shimmer_loading.dart';
 
 /// GET /api/notifications → list of recent notifications + announcements for the user.
 final notificationsProvider =
@@ -86,12 +87,7 @@ class _NotificationsPageState extends ConsumerState<NotificationsPage> {
           ref.invalidate(unreadProvider);
         },
         child: async.when(
-          loading: () => Center(
-            child: CircularProgressIndicator(
-              strokeWidth: 2,
-              color: tokens.primaryAccent,
-            ),
-          ),
+          loading: () => const PageLoading(),
           error: (e, _) => _Error(message: e.toString()),
           data: (list) {
             if (list.isEmpty) return const _Empty();

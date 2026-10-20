@@ -9,6 +9,7 @@ import '../../features/courses/courses_page.dart' show coursesProvider;
 import '../../shared/widgets/apple_pressable.dart';
 import '../../theme/app_theme_tokens.dart';
 import '../../shared/widgets/app_refresh.dart';
+import '../../shared/widgets/shimmer_loading.dart';
 
 /// Community: General Discussion hero + the user's course communities.
 class CommunityPage extends ConsumerWidget {
@@ -211,10 +212,7 @@ class CommunityPage extends ConsumerWidget {
 
               // ── Course communities ──
               coursesAsync.when(
-                loading: () => const Padding(
-                  padding: EdgeInsets.symmetric(vertical: 40),
-                  child: Center(child: CircularProgressIndicator()),
-                ),
+                loading: () => const PageLoading(),
                 error: (e, _) => Padding(
                   padding:
                       const EdgeInsets.symmetric(horizontal: 4, vertical: 20),

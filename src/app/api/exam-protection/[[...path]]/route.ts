@@ -150,7 +150,7 @@ async function handle(request: NextRequest, context: Context, method: string) {
             const form = await limitedForm(request), body = JSON.parse(String(form.get('data') || '{}'));
             const details = validateClaimDetails(body), file = await proofFile(form, true);
             const purchase = await prisma.protectionPurchase.findFirst({ where: { id: String(body.purchaseId), userId: session.userId, status: 'PAID' } });
-            check(purchase, 'Choose an eligible protected Quiz 1 purchase.', 403);
+            check(purchase, 'Choose an eligible protected purchase.', 403);
             const window = await prisma.protectionCourse.findUnique({ where: { courseId: purchase.courseKey }, select: { claimsOpenedAt: true } });
             const state = claimWindow(window?.claimsOpenedAt);
             check(state !== 'not_open', 'Claims for this course are not open yet. You will be notified when results are out.', 409);

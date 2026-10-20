@@ -9,6 +9,7 @@ import '../../shared/widgets/sub_page_header.dart';
 import '../../theme/app_theme_tokens.dart';
 import '../../shared/widgets/app_refresh.dart';
 import '../../shared/utils/cta_navigation.dart';
+import '../../shared/widgets/shimmer_loading.dart';
 
 const _kCachedAnnouncementsKey = 'cached_announcements_payload';
 
@@ -88,12 +89,7 @@ class AnnouncementsPage extends ConsumerWidget {
       body: AppRefresh(
         onRefresh: () async => ref.invalidate(announcementsProvider),
         child: async.when(
-          loading: () => Center(
-            child: CircularProgressIndicator(
-              strokeWidth: 2,
-              color: tokens.primaryAccent,
-            ),
-          ),
+          loading: () => const PageLoading(),
           error: (e, _) => ListView(
             padding: const EdgeInsets.all(40),
             children: [

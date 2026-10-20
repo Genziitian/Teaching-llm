@@ -11,6 +11,7 @@ import '../../shared/widgets/sub_page_header.dart';
 import '../../theme/app_theme_tokens.dart';
 import '../store/store_notes_data.dart';
 import '../support/support_providers.dart';
+import '../../shared/widgets/shimmer_loading.dart';
 
 /// One row from /api/my-transactions (courses, bundles, notes, upgrades...).
 class _Txn {
@@ -87,7 +88,7 @@ class PurchaseHistoryPage extends ConsumerWidget {
               .catchError((_) => <_Txn>[]);
         },
         child: async.when(
-          loading: () => const Center(child: CircularProgressIndicator()),
+          loading: () => const PageLoading(),
           error: (e, _) => ListView(
             physics: const AlwaysScrollableScrollPhysics(),
             padding: const EdgeInsets.fromLTRB(16, 120, 16, 40),

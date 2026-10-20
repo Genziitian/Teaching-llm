@@ -8,5 +8,5 @@ export default async function FocusLayout({ children }: { children: React.ReactN
   if (!session) redirect('/login')
   if (session.isTerminated) redirect('/terminated')
   if (session.isMaintenanceMode) redirect('/maintenance')
-  return <UserDataProvider><div style={{ minHeight: '100vh', background: 'var(--bg)' }}>{children}</div></UserDataProvider>
+  return <UserDataProvider><div style={{ height: '100dvh', overflowY: 'auto', overscrollBehaviorY: 'contain', WebkitOverflowScrolling: 'touch', background: 'var(--bg)' }}>{children}</div></UserDataProvider>
 }

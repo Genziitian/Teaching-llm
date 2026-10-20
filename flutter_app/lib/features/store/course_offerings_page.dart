@@ -8,6 +8,7 @@ import '../../theme/app_colors.dart';
 import '../../theme/app_shadows.dart';
 import '../../theme/app_typography.dart';
 import '../../shared/widgets/app_refresh.dart';
+import '../../shared/widgets/shimmer_loading.dart';
 
 /// /api/course-offerings → list of buyable course offerings with prices.
 /// Shape (per row, fields we use):
@@ -84,10 +85,7 @@ class _CourseOfferingsPageState extends ConsumerState<CourseOfferingsPage> {
             ),
             const SizedBox(height: 16),
             if (async.isLoading)
-              const Padding(
-                padding: EdgeInsets.symmetric(vertical: 60),
-                child: Center(child: CircularProgressIndicator()),
-              )
+              const PageLoading()
             else if (async.hasError)
               Padding(
                 padding: const EdgeInsets.all(20),

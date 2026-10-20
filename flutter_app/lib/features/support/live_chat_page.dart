@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import '../../core/auth/auth_providers.dart';
 import '../../shared/widgets/app_refresh.dart';
 import '../../theme/app_theme_tokens.dart';
+import '../../shared/widgets/shimmer_loading.dart';
 
 /// GET /api/support/live-chats/[id]/messages.
 final liveChatMessagesProvider =
@@ -312,12 +313,7 @@ class _Thread extends ConsumerWidget {
     return AppRefresh(
       onRefresh: () async => ref.invalidate(liveChatMessagesProvider(chatId)),
       child: async.when(
-        loading: () => Center(
-          child: CircularProgressIndicator(
-            strokeWidth: 2,
-            color: tokens.primaryAccent,
-          ),
-        ),
+        loading: () => const PageLoading(),
         error: (e, _) => Center(
           child: Text(
             '$e',

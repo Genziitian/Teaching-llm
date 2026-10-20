@@ -16,6 +16,7 @@ import '../../shared/widgets/apple_pressable.dart';
 import '../../shared/widgets/sub_page_header.dart';
 import '../../theme/app_shadows.dart';
 import '../../theme/app_theme_tokens.dart';
+import '../../shared/widgets/shimmer_loading.dart';
 
 /// Same normalisation as `src/lib/meet-link.ts` on the backend. Teachers
 /// sometimes paste Meet URLs with a `class.genziitian.in/` prefix that
@@ -170,15 +171,7 @@ class _LiveSessionsPageState extends ConsumerState<LiveSessionsPage> {
           physics: const AlwaysScrollableScrollPhysics(),
           children: [
             sessions.when(
-              loading: () => Padding(
-                padding: const EdgeInsets.symmetric(vertical: 60),
-                child: Center(
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    color: tokens.primaryAccent,
-                  ),
-                ),
-              ),
+              loading: () => const PageLoading(),
               error: (e, _) => Padding(
                 padding:
                     const EdgeInsets.symmetric(vertical: 40, horizontal: 20),

@@ -241,7 +241,7 @@ class _PolicyUpdateDialogState extends State<PolicyUpdateDialog>
                       iconColor: Color(0xFFFF453A),
                       title: 'Champion Refund Rule',
                       description:
-                          'If you do not qualify, refund = Champion price minus Live Pro price. Live Pro is not refunded.',
+                          'The Champion refund rule has been updated.',
                     ),
                   ),
                   const SizedBox(height: 14),
@@ -263,7 +263,7 @@ class _PolicyUpdateDialogState extends State<PolicyUpdateDialog>
                       iconColor: Color(0xFF0A84FF),
                       title: 'Validity & Pricing in ₹',
                       description:
-                          'Transparent pricing with 90-day digital access and instant fulfillment.',
+                          'Transparent pricing with clear access validity and instant fulfillment.',
                     ),
                   ),
                   const SizedBox(height: 14),

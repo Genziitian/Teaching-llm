@@ -10,6 +10,7 @@ import '../../shared/widgets/sub_page_header.dart';
 import '../../theme/app_theme_tokens.dart';
 import '../downloads/download_button.dart';
 import 'store_notes_data.dart';
+import '../../shared/widgets/shimmer_loading.dart';
 
 /// Full page about one note. Highlights and rules come from the server so
 /// the website's Details popup shows exactly the same text.
@@ -28,7 +29,7 @@ class StoreNoteDetailPage extends ConsumerWidget {
       onBack: () =>
           context.canPop() ? context.pop() : context.go('/store/notes'),
       body: async.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
+        loading: () => const PageLoading(),
         error: (e, _) => Center(
           child: Padding(
             padding: const EdgeInsets.all(24),

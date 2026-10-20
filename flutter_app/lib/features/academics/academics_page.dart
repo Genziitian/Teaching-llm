@@ -47,7 +47,7 @@ class AcademicsPage extends ConsumerWidget {
         route: '/free-resources/purchased',
       ),
       (
-        title: 'Store',
+        title: 'Store: Buy courses and notes',
         gradient: const [Color(0xFFFF6482), Color(0xFFFF2D55)],
         icon: Symbols.storefront_rounded,
         route: '/store',

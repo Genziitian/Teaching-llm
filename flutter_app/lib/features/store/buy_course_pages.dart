@@ -10,11 +10,13 @@ import '../../core/auth/auth_providers.dart';
 import '../../core/payments/play_billing_service.dart';
 import '../../shared/widgets/apple_pressable.dart';
 import '../../shared/widgets/app_refresh.dart';
+import '../../shared/widgets/share_link_sheet.dart';
 import '../../shared/widgets/sub_page_header.dart';
 import '../../theme/app_theme_tokens.dart';
 import '../courses/courses_page.dart' show coursesProvider;
 import 'course_offerings_page.dart' show courseOfferingsProvider;
 import 'purchase_success_dialog.dart';
+import '../../shared/widgets/shimmer_loading.dart';
 
 /// /api/bundle-offerings: same data the website store shows.
 final bundleOfferingsProvider =
@@ -351,10 +353,7 @@ class BuyCourseLevelsPage extends ConsumerWidget {
           padding: const EdgeInsets.fromLTRB(16, 18, 16, 40),
           children: [
             if (loading)
-              const Padding(
-                padding: EdgeInsets.symmetric(vertical: 80),
-                child: Center(child: CircularProgressIndicator()),
-              )
+              const PageLoading()
             else if (order.isEmpty)
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 80),
@@ -415,20 +414,26 @@ class _TermArt {
 
 _TermArt? _termArt(String level) {
   final l = level.toLowerCase();
+  if (l.contains('crash')) {
+    return const _TermArt('assets/store/term-crash.webp', true, Color(0xFF1B2A5C));
+  }
+  if (l.contains('reattempt') || l.contains('re-attempt')) {
+    return const _TermArt('assets/store/term-reattempt.webp', true, Color(0xFF1B2A5C));
+  }
   if (l.contains('general')) {
-    return const _TermArt('assets/store/term-general.webp', false, Color(0xFF3B4FD8));
+    return const _TermArt('assets/store/term-general.webp', true, Color(0xFF1B2A5C));
   }
   if (l.contains('foundation')) {
-    return const _TermArt('assets/store/term-foundation.webp', false, Color(0xFF1F7A45));
+    return const _TermArt('assets/store/term-foundation.webp', true, Color(0xFF1B2A5C));
   }
   if (l.contains('qualifier')) {
-    return const _TermArt('assets/store/term-qualifier.webp', true, Color(0xFF0B1B3F));
+    return const _TermArt('assets/store/term-qualifier.webp', true, Color(0xFF1B2A5C));
   }
   if (l.contains('diploma')) {
-    return const _TermArt('assets/store/term-diploma.webp', false, Color(0xFF0A5C4E));
+    return const _TermArt('assets/store/term-diploma.webp', true, Color(0xFF1B2A5C));
   }
   if (l.contains('degree')) {
-    return const _TermArt('assets/store/term-degree.webp', true, Color(0xFF3A1D00));
+    return const _TermArt('assets/store/term-degree.webp', true, Color(0xFF1B2A5C));
   }
   return null;
 }
@@ -451,10 +456,6 @@ class _LevelCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final parts = <String>[
-      if (bundles > 0) '$bundles ${bundles == 1 ? 'Bundle' : 'Bundles'}',
-      if (courses > 0) '$courses ${courses == 1 ? 'Course' : 'Courses'}',
-    ];
     final g = _kTermGradients[index % _kTermGradients.length];
     final art = _termArt(level);
     final ink = art != null && art.dark ? art.accent : Colors.white;
@@ -462,6 +463,12 @@ class _LevelCard extends StatelessWidget {
       onTap: onTap,
       child: Container(
         height: height,
+        foregroundDecoration: art == null
+            ? null
+            : BoxDecoration(
+                borderRadius: BorderRadius.circular(30),
+                border: Border.all(color: Colors.black.withValues(alpha: 0.55), width: 1.2),
+              ),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(30),
           gradient: LinearGradient(
@@ -495,22 +502,10 @@ class _LevelCard extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 12, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: art != null && art.dark
-                          ? art.accent.withValues(alpha: 0.12)
-                          : Colors.white.withValues(alpha: 0.22),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Text(parts.join(' · '),
-                        style: TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w700,
-                            color: ink)),
-                  ),
                   const Spacer(),
+                  if (art != null)
+                    Semantics(label: level, child: const SizedBox(height: 34))
+                  else
                   Text(level,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -597,10 +592,7 @@ class BuyCourseLevelPage extends ConsumerWidget {
           padding: const EdgeInsets.fromLTRB(16, 14, 16, 40),
           children: [
             if (loading)
-              const Padding(
-                padding: EdgeInsets.symmetric(vertical: 80),
-                child: Center(child: CircularProgressIndicator()),
-              )
+              const PageLoading()
             else if (bundles.isEmpty && offs.isEmpty)
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 80),
@@ -649,23 +641,24 @@ Color _tint(BuildContext context, Color accent, double a) =>
 
 /// Small icon + text line used for the facts on every course card.
 class _Fact extends StatelessWidget {
-  const _Fact(this.icon, this.text, this.accent);
+  const _Fact(this.icon, this.text, this.accent, {this.dense = false});
   final IconData icon;
   final String text;
   final Color accent;
+  final bool dense;
   @override
   Widget build(BuildContext context) {
     final tokens = context.tokens;
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 3),
+      padding: EdgeInsets.symmetric(vertical: dense ? 2 : 3),
       child: Row(
         children: [
-          Icon(icon, size: 18, color: accent),
-          const SizedBox(width: 10),
+          Icon(icon, size: dense ? 16 : 18, color: accent),
+          SizedBox(width: dense ? 8 : 10),
           Expanded(
             child: Text(text,
                 style: TextStyle(
-                    fontSize: 14.5,
+                    fontSize: dense ? 13 : 14.5,
                     fontWeight: FontWeight.w600,
                     color: tokens.textPrimary)),
           ),
@@ -704,18 +697,18 @@ class _BundleCard extends StatelessWidget {
             : 'Starting from';
 
     Widget action(String label, bool primary) => Container(
-          height: 48,
-          padding: const EdgeInsets.symmetric(horizontal: 20),
+          height: 42,
+          padding: const EdgeInsets.symmetric(horizontal: 16),
           alignment: Alignment.center,
           decoration: BoxDecoration(
             color: primary
                 ? accent
                 : Colors.white.withValues(alpha: 0.7),
-            borderRadius: BorderRadius.circular(24),
+            borderRadius: BorderRadius.circular(21),
           ),
           child: Text(label,
               style: TextStyle(
-                  fontSize: 15.5,
+                  fontSize: 14.5,
                   fontWeight: FontWeight.w700,
                   color: primary ? Colors.white : Colors.black87)),
         );
@@ -775,18 +768,18 @@ class _BundleCard extends StatelessWidget {
             const SizedBox(height: 14),
             Container(
               width: double.infinity,
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(
                 color: Colors.white.withValues(alpha: 0.55),
-                borderRadius: BorderRadius.circular(18),
+                borderRadius: BorderRadius.circular(16),
               ),
               child: Column(
                 children: [
                   if (banner.isNotEmpty)
-                    _Fact(Symbols.event_rounded, banner, accent),
-                  _Fact(Symbols.translate_rounded, 'Hinglish', accent),
+                    _Fact(Symbols.event_rounded, banner, accent, dense: true),
+                  _Fact(Symbols.translate_rounded, 'Hinglish', accent, dense: true),
                   _Fact(Symbols.all_inclusive_rounded,
-                      'Access till end of term', accent),
+                      'Access till end of term', accent, dense: true),
                 ],
               ),
             ),
@@ -1255,7 +1248,7 @@ class _BundleDetailPageState extends ConsumerState<BundleDetailPage> {
         showBack: true,
         body: Center(
           child: async.isLoading
-              ? const CircularProgressIndicator()
+              ? const PageLoading()
               : Text('This bundle is not available.',
                   style: TextStyle(color: tokens.textSecondary)),
         ),
@@ -1313,6 +1306,7 @@ class _BundleDetailPageState extends ConsumerState<BundleDetailPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              if (title.isNotEmpty) ...[
               Row(
                 children: [
                   Container(
@@ -1336,6 +1330,7 @@ class _BundleDetailPageState extends ConsumerState<BundleDetailPage> {
                 ],
               ),
               const SizedBox(height: 14),
+              ],
               child,
             ],
           ),
@@ -1614,24 +1609,24 @@ class _BundleDetailPageState extends ConsumerState<BundleDetailPage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Container(
-                padding: const EdgeInsets.all(14),
-                margin: const EdgeInsets.only(bottom: 12),
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
+                margin: const EdgeInsets.only(bottom: 10),
                 decoration: BoxDecoration(
                   color: const Color(0xFFFF9F0A).withValues(alpha: 0.14),
-                  borderRadius: BorderRadius.circular(16),
+                  borderRadius: BorderRadius.circular(12),
                 ),
                 child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     const Icon(Symbols.lock_rounded,
-                        size: 20, color: Color(0xFFFF9F0A)),
-                    const SizedBox(width: 10),
+                        size: 16, color: Color(0xFFFF9F0A)),
+                    const SizedBox(width: 8),
                     Expanded(
                       child: Text(
-                          'Fixed bundle. All ${courseRows.length} courses come together and cannot be bought separately.',
+                          'Fixed bundle. All ${courseRows.length} courses come together.',
                           style: TextStyle(
-                              fontSize: 14,
-                              height: 1.4,
+                              fontSize: 12.5,
+                              height: 1.3,
                               fontWeight: FontWeight.w600,
                               color: tokens.textPrimary)),
                     ),
@@ -1909,7 +1904,7 @@ class _BundleDetailPageState extends ConsumerState<BundleDetailPage> {
     final tc = _type == null ? grad.first : _typeColor(_type!);
     final step2 = <Widget>[
       card(
-        'Your order',
+        '',
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -2008,8 +2003,8 @@ class _BundleDetailPageState extends ConsumerState<BundleDetailPage> {
         color: const Color(0xFFFF375F),
       ),
       card('Included with every purchase',
-          checks(_kCommonPoints, const Color(0xFFFF9F0A)),
-          icon: Symbols.verified_rounded, color: const Color(0xFFFF9F0A)),
+          checks(_kCommonPoints, const Color(0xFF8E8E93)),
+          icon: Symbols.verified_rounded, color: const Color(0xFF8E8E93)),
     ];
 
     step2.addAll(<Widget>[
@@ -2163,12 +2158,31 @@ class _BundleDetailPageState extends ConsumerState<BundleDetailPage> {
         subtitle: 'Step ${_step + 1} of 3  ·  ${stepTitles[_step]}',
         showBack: true,
         onBack: _back,
+        right: CircleIconBtn(
+          icon: Symbols.ios_share_rounded,
+          onTap: () {
+            HapticFeedback.selectionClick();
+            final name = (bundle['name'] ?? 'Bundle').toString();
+            showShareLinkSheet(
+              context,
+              title: name,
+              message: 'Check out $name on GenZ IITIAN',
+              link:
+                  'https://class.genziitian.in/courses/explore?bundle=${Uri.encodeQueryComponent(bundle['id'].toString())}',
+            );
+          },
+        ),
         bottomNavigationBar: Container(
           padding: EdgeInsets.fromLTRB(
-              20, 12, 20, 12 + MediaQuery.of(context).padding.bottom),
+              18, 14, 14, 14 + MediaQuery.of(context).padding.bottom),
           decoration: BoxDecoration(
-            color: tokens.bg,
-            border: Border(top: BorderSide(color: tokens.border, width: 0.5)),
+            color: tokens.cardBg,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(26)),
+            border: Border.all(color: tokens.border, width: 0.5),
+            boxShadow: const [
+              BoxShadow(
+                  color: Color(0x1A000000), blurRadius: 24, offset: Offset(0, -6)),
+            ],
           ),
           child: Row(
             children: [
@@ -2178,8 +2192,15 @@ class _BundleDetailPageState extends ConsumerState<BundleDetailPage> {
                 children: [
                   if (barTop.isNotEmpty)
                     Text(barTop,
-                        style: TextStyle(
-                            fontSize: 12.5, color: tokens.textSecondary)),
+                        style: barBottom.isEmpty
+                            ? TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.w700,
+                                color: tokens.textPrimary)
+                            : TextStyle(
+                                fontSize: 12.5,
+                                fontWeight: FontWeight.w600,
+                                color: tokens.textSecondary)),
                   if (barBottom.isNotEmpty)
                     Text(barBottom,
                         style: TextStyle(
@@ -2203,8 +2224,21 @@ class _BundleDetailPageState extends ConsumerState<BundleDetailPage> {
                               _step == 2 ? const Color(0xFF0A7D4B) : grad.last,
                             ])
                           : null,
-                      color: btnEnabled ? null : tokens.surfaceSecondary,
+                      color: btnEnabled
+                          ? null
+                          : grad.last.withValues(alpha: 0.14),
                       borderRadius: BorderRadius.circular(27),
+                      boxShadow: btnEnabled
+                          ? [
+                              BoxShadow(
+                                  color: (_step == 2
+                                          ? const Color(0xFF0A7D4B)
+                                          : grad.last)
+                                      .withValues(alpha: 0.35),
+                                  blurRadius: 14,
+                                  offset: const Offset(0, 6))
+                            ]
+                          : null,
                     ),
                     child: _buying
                         ? const SizedBox(
@@ -2218,7 +2252,7 @@ class _BundleDetailPageState extends ConsumerState<BundleDetailPage> {
                                 fontWeight: FontWeight.w700,
                                 color: btnEnabled
                                     ? Colors.white
-                                    : tokens.textMuted)),
+                                    : grad.last.withValues(alpha: 0.7))),
                   ),
                 ),
               ),

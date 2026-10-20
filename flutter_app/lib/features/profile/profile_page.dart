@@ -11,6 +11,7 @@ import '../../shared/widgets/apple_pressable.dart';
 import '../../shared/widgets/social_card_dialog.dart';
 import '../../shared/widgets/sub_page_header.dart';
 import '../../theme/app_theme_tokens.dart';
+import '../../shared/widgets/shimmer_loading.dart';
 
 /// GET /api/auth/me — returns { user: {...} } with the full profile.
 final profileProvider = FutureProvider<Map<String, dynamic>>((ref) async {
@@ -365,12 +366,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
         color: tokens.primaryAccent,
         backgroundColor: tokens.cardBg,
         child: async.when(
-          loading: () => const Center(
-            child: Padding(
-              padding: EdgeInsets.symmetric(vertical: 80),
-              child: CircularProgressIndicator(),
-            ),
-          ),
+          loading: () => const PageLoading(),
           error: (e, _) => Center(
             child: Padding(
               padding: const EdgeInsets.all(24),

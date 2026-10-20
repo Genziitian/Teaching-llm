@@ -13,6 +13,7 @@ import '../../shared/widgets/apple_input.dart';
 import '../../theme/app_theme_tokens.dart';
 import '../community/community_file_upload.dart';
 import 'support_providers.dart';
+import '../../shared/widgets/shimmer_loading.dart';
 
 class TicketDetailPage extends ConsumerStatefulWidget {
   const TicketDetailPage({super.key, required this.ticketId});
@@ -219,7 +220,7 @@ class _TicketDetailPageState extends ConsumerState<TicketDetailPage>
           icon: const Icon(Symbols.refresh_rounded, weight: 600),
           tooltip: 'Refresh conversation'),
       body: ticket.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
+        loading: () => const PageLoading(),
         error: (error, _) => Center(
             child: Padding(
                 padding: const EdgeInsets.all(24),

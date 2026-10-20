@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/auth/auth_providers.dart';
 import '../../shared/widgets/sub_page_header.dart';
 import '../../theme/app_theme_tokens.dart';
+import '../../shared/widgets/shimmer_loading.dart';
 
 /// Per-user push-notification category toggles.
 class NotificationPrefs {
@@ -82,15 +83,7 @@ class NotificationSettingsPage extends ConsumerWidget {
         padding: const EdgeInsets.fromLTRB(0, 16, 0, 24),
         children: [
           async.when(
-              loading: () => Padding(
-                padding: const EdgeInsets.symmetric(vertical: 60),
-                child: Center(
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    color: tokens.primaryAccent,
-                  ),
-                ),
-              ),
+              loading: () => const PageLoading(),
               error: (e, _) => Padding(
                 padding: const EdgeInsets.symmetric(
                     vertical: 40, horizontal: 20),

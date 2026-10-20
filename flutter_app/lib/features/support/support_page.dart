@@ -4,6 +4,7 @@ import 'package:material_symbols_icons/symbols.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../shared/widgets/app_loading_wrapper.dart';
 import '../../shared/widgets/sub_page_header.dart';
 import '../../shared/widgets/apple_input.dart';
@@ -12,6 +13,7 @@ import '../../theme/app_theme_tokens.dart';
 import 'new_ticket_sheet.dart';
 import 'faq_page.dart' show faqProvider;
 import 'support_providers.dart';
+import '../../shared/widgets/shimmer_loading.dart';
 
 class SupportPage extends ConsumerStatefulWidget {
   const SupportPage({super.key});
@@ -102,34 +104,97 @@ class _SupportPageState extends ConsumerState<SupportPage> with WidgetsBindingOb
           : 'Get help and follow your conversations',
       showBack: true,
       onBack: () => context.canPop() ? context.pop() : context.go('/more'),
-      floatingActionButton: role == 'STUDENT'
-          ? ApplePressable(
-              onTap: _newTicket,
-              pressedScale: 0.92,
-              child: Container(
-                width: 58,
-                height: 58,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: hasReachedActiveLimit
-                      ? tokens.surfaceSecondary
-                      : tokens.primaryAccent,
-                  boxShadow: hasReachedActiveLimit
-                      ? null
-                      : [
-                          BoxShadow(
-                            color: tokens.primaryAccent.withValues(alpha: 0.35),
-                            blurRadius: 18,
-                            offset: const Offset(0, 8),
+      bottomNavigationBar: role == 'STUDENT'
+          ? Container(
+              padding: EdgeInsets.fromLTRB(
+                  16, 12, 16, 12 + MediaQuery.of(context).padding.bottom),
+              decoration: BoxDecoration(
+                color: tokens.cardBg,
+                borderRadius:
+                    const BorderRadius.vertical(top: Radius.circular(26)),
+                border: Border.all(color: tokens.border, width: 0.5),
+                boxShadow: const [
+                  BoxShadow(
+                      color: Color(0x1A000000),
+                      blurRadius: 24,
+                      offset: Offset(0, -6)),
+                ],
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: ApplePressable(
+                      onTap: _newTicket,
+                      pressedScale: 0.98,
+                      child: Container(
+                        height: 54,
+                        alignment: Alignment.center,
+                        decoration: BoxDecoration(
+                          color: hasReachedActiveLimit
+                              ? tokens.surfaceSecondary
+                              : tokens.primaryAccent,
+                          borderRadius: BorderRadius.circular(27),
+                          boxShadow: hasReachedActiveLimit
+                              ? null
+                              : [
+                                  BoxShadow(
+                                    color: tokens.primaryAccent
+                                        .withValues(alpha: 0.35),
+                                    blurRadius: 16,
+                                    offset: const Offset(0, 6),
+                                  ),
+                                ],
+                        ),
+                        child: Text(
+                          hasReachedActiveLimit
+                              ? 'Limit Reached (3/3 Active)'
+                              : 'New Ticket',
+                          style: TextStyle(
+                            fontSize: 17,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: -0.3,
+                            color: hasReachedActiveLimit
+                                ? tokens.textMuted
+                                : Colors.white,
                           ),
-                        ],
-                ),
-                child: Icon(Symbols.add_rounded,
-                    weight: 600,
-                    size: 30,
-                    color: hasReachedActiveLimit
-                        ? tokens.textMuted
-                        : Colors.white),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Semantics(
+                    button: true,
+                    label: 'Chat on WhatsApp',
+                    child: ApplePressable(
+                      onTap: () => launchUrl(
+                        Uri.parse('https://wa.me/917254926179'),
+                        mode: LaunchMode.externalApplication,
+                      ),
+                      pressedScale: 0.92,
+                      child: Container(
+                        width: 54,
+                        height: 54,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: const Color(0xFF25D366),
+                          boxShadow: [
+                            BoxShadow(
+                              color: const Color(0xFF25D366)
+                                  .withValues(alpha: 0.38),
+                              blurRadius: 16,
+                              offset: const Offset(0, 6),
+                            ),
+                          ],
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.all(13),
+                          child: Image.asset('assets/icons/whatsapp.png',
+                              fit: BoxFit.contain),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ),
             )
           : null,
@@ -142,7 +207,7 @@ class _SupportPageState extends ConsumerState<SupportPage> with WidgetsBindingOb
         },
         child: ListView(
           physics: const AlwaysScrollableScrollPhysics(),
-          padding: const EdgeInsets.fromLTRB(16, 16, 16, 110),
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
           children: [
             if (hasReachedActiveLimit)
               Container(
@@ -168,34 +233,6 @@ class _SupportPageState extends ConsumerState<SupportPage> with WidgetsBindingOb
                       ),
                     ),
                   ],
-                ),
-              ),
-            if (role == 'STUDENT')
-              ApplePressable(
-                onTap: _newTicket,
-                pressedScale: 0.98,
-                child: Container(
-                  height: 50,
-                  decoration: BoxDecoration(
-                    color: hasReachedActiveLimit
-                        ? tokens.cardBg
-                        : tokens.primaryAccent,
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  alignment: Alignment.center,
-                  child: Text(
-                    hasReachedActiveLimit
-                        ? 'Limit Reached (3/3 Active)'
-                        : 'New Ticket',
-                    style: TextStyle(
-                      fontSize: 17,
-                      fontWeight: FontWeight.w600,
-                      letterSpacing: -0.3,
-                      color: hasReachedActiveLimit
-                          ? tokens.textMuted
-                          : Colors.white,
-                    ),
-                  ),
                 ),
               ),
             if (links.isNotEmpty) _Group(children: links),
@@ -317,12 +354,7 @@ class _SupportPageState extends ConsumerState<SupportPage> with WidgetsBindingOb
               ),
               const SizedBox(height: 12),
               ref.watch(faqProvider).when(
-                    loading: () => const Center(
-                      child: Padding(
-                        padding: EdgeInsets.all(24),
-                        child: CircularProgressIndicator(),
-                      ),
-                    ),
+                    loading: () => const PageLoading(),
                     error: (_, __) => const SizedBox.shrink(),
                     data: (faqs) => _Group(
                       children: [

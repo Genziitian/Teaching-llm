@@ -13,6 +13,7 @@ import '../../theme/app_shadows.dart';
 import '../../theme/app_theme_tokens.dart';
 import '../../theme/app_typography.dart';
 import '../store/store_notes_data.dart';
+import '../../shared/widgets/shimmer_loading.dart';
 
 class DownloadedNotesPage extends ConsumerWidget {
   const DownloadedNotesPage({super.key});
@@ -186,11 +187,7 @@ class DownloadedNotesPage extends ConsumerWidget {
           ref.invalidate(totalDownloadSizeProvider);
         },
         child: notesAsync.when(
-          loading: () => const Center(
-            child: CircularProgressIndicator(
-              valueColor: AlwaysStoppedAnimation(AppColors.brand),
-            ),
-          ),
+          loading: () => const PageLoading(),
           error: (err, _) => Center(
             child: Padding(
               padding: const EdgeInsets.all(24),

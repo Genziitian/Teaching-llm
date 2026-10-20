@@ -10,6 +10,7 @@ import '../../shared/widgets/share_link_sheet.dart';
 import '../../shared/widgets/sub_page_header.dart';
 import '../../theme/app_theme_tokens.dart';
 import 'store_notes_data.dart';
+import '../../shared/widgets/shimmer_loading.dart';
 
 /// Premium Notes: every note as a card with Buy now / Details.
 class StoreNotesPage extends ConsumerStatefulWidget {
@@ -124,7 +125,7 @@ class _StoreNotesPageState extends ConsumerState<StoreNotesPage> {
           await ref.read(storeNotesProvider.future).catchError((_) => <StoreNote>[]);
         },
         child: async.when(
-          loading: () => const Center(child: CircularProgressIndicator()),
+          loading: () => const PageLoading(),
           error: (e, _) => ListView(
             physics: const AlwaysScrollableScrollPhysics(),
             children: [
@@ -305,7 +306,7 @@ class _NoteCard extends ConsumerWidget {
         clipBehavior: Clip.antiAlias,
         decoration: BoxDecoration(
           color: tokens.cardBg,
-          borderRadius: BorderRadius.circular(28),
+          borderRadius: BorderRadius.circular(24),
           border: Border.all(color: tokens.border, width: 0.5),
           boxShadow: const [
             BoxShadow(
@@ -320,7 +321,7 @@ class _NoteCard extends ConsumerWidget {
           children: [
             // ── Cover: category colour, paper sheets, glass chips ──────
             SizedBox(
-              height: 140,
+              height: 108,
               child: Stack(
                 clipBehavior: Clip.hardEdge,
                 children: [
@@ -369,8 +370,8 @@ class _NoteCard extends ConsumerWidget {
                     ),
                   ),
                   Positioned(
-                    top: 14,
-                    right: 14,
+                    top: 10,
+                    right: 12,
                     child: ApplePressable(
                       onTap: share,
                       child: Container(
@@ -420,7 +421,7 @@ class _NoteCard extends ConsumerWidget {
 
             // ── Body ──────────────────────────────────────────────────
             Padding(
-              padding: const EdgeInsets.fromLTRB(20, 18, 20, 20),
+              padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -429,7 +430,7 @@ class _NoteCard extends ConsumerWidget {
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
-                      fontSize: 22,
+                      fontSize: 19,
                       fontWeight: FontWeight.w700,
                       height: 1.15,
                       letterSpacing: -0.6,
@@ -443,20 +444,20 @@ class _NoteCard extends ConsumerWidget {
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
-                        fontSize: 14.5,
+                        fontSize: 13.5,
                         height: 1.35,
                         color: tokens.textSecondary,
                       ),
                     ),
                   ],
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 12),
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
                       Text(
                         formatNotePrice(note.price),
                         style: TextStyle(
-                          fontSize: 30,
+                          fontSize: 25,
                           height: 1,
                           fontWeight: FontWeight.w800,
                           letterSpacing: -0.9,
@@ -488,7 +489,7 @@ class _NoteCard extends ConsumerWidget {
                         ),
                     ],
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 12),
                   Row(
                     children: [
                       Expanded(
@@ -496,17 +497,17 @@ class _NoteCard extends ConsumerWidget {
                         child: ApplePressable(
                           onTap: primary,
                           child: Container(
-                            height: 54,
+                            height: 46,
                             alignment: Alignment.center,
                             decoration: BoxDecoration(
                               color: buttonColor,
-                              borderRadius: BorderRadius.circular(27),
+                              borderRadius: BorderRadius.circular(23),
                             ),
                             child: Text(
                               label,
                               style: TextStyle(
                                 color: buttonText,
-                                fontSize: 17,
+                                fontSize: 15.5,
                                 fontWeight: FontWeight.w600,
                               ),
                             ),
@@ -519,17 +520,17 @@ class _NoteCard extends ConsumerWidget {
                         child: ApplePressable(
                           onTap: openDetails,
                           child: Container(
-                            height: 54,
+                            height: 46,
                             alignment: Alignment.center,
                             decoration: BoxDecoration(
                               color: tokens.textMuted.withValues(alpha: 0.12),
-                              borderRadius: BorderRadius.circular(27),
+                              borderRadius: BorderRadius.circular(23),
                             ),
                             child: Text(
                               'Details',
                               style: TextStyle(
                                 color: tokens.textPrimary,
-                                fontSize: 17,
+                                fontSize: 15.5,
                                 fontWeight: FontWeight.w600,
                               ),
                             ),

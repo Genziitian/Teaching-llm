@@ -18,6 +18,7 @@ import '../../theme/app_colors.dart';
 import '../../theme/app_theme_tokens.dart';
 import '../courses/course_detail_page.dart' show courseDetailProvider;
 import '../courses/courses_page.dart' show coursesProvider;
+import '../../shared/widgets/shimmer_loading.dart';
 
 /// GET /api/community/[courseId]/messages → list of messages oldest→newest.
 final communityMessagesProvider =
@@ -464,9 +465,7 @@ class _CommunityChatPageState extends ConsumerState<CommunityChatPage> {
                 children: [
                   Positioned.fill(child: _ChatBackground(isDark: isDark)),
                   messagesAsync.when(
-                    loading: () => const Center(
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    ),
+                    loading: () => const PageLoading(),
                     error: (e, _) => Center(
                       child: Padding(
                         padding: const EdgeInsets.all(24),

@@ -33,7 +33,7 @@ const ROWS: Row[] = [
   },
   {
     title: 'Champion Refund Rule',
-    text: 'If you do not qualify, the refund is the Champion price minus the Live Pro price. Live Pro is not refunded.',
+    text: 'The Champion refund rule has been updated.',
     color: '#FF453A',
     icon: (
       <svg {...svgProps}>
@@ -55,7 +55,7 @@ const ROWS: Row[] = [
   },
   {
     title: 'Pricing & Validity',
-    text: 'Transparent pricing in INR (₹) and 90-day digital access validity terms.',
+    text: 'Transparent pricing in INR (₹) and clear access validity terms.',
     color: '#0A84FF',
     icon: (
       <svg {...svgProps}>

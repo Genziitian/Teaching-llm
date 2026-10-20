@@ -15,7 +15,6 @@ class StorePage extends StatelessWidget {
   Widget build(BuildContext context) {
     return AppPageScaffold(
       title: 'Store',
-      subtitle: 'Buy course and premium study material',
       showBack: true,
       onBack: () => context.canPop() ? context.pop() : context.go('/academics'),
       body: ListView(
@@ -92,10 +91,13 @@ class _StoreTile extends StatelessWidget {
             // from the full-colour term cards on the next screen.
             if (image != null)
               AspectRatio(
-                aspectRatio: 1600 / 500,
+                // Narrower than the artwork on purpose: crops the empty left
+                // side so the picture sits in the middle of the banner.
+                aspectRatio: 2.15,
                 child: Image.asset(
                   image!,
                   fit: BoxFit.cover,
+                  alignment: const Alignment(1.0, 0),
                   gaplessPlayback: true,
                 ),
               )

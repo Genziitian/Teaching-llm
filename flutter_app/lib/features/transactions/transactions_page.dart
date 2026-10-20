@@ -8,6 +8,7 @@ import '../../theme/app_theme_tokens.dart';
 import '../../shared/widgets/app_refresh.dart';
 
 import '../../shared/widgets/sub_page_header.dart';
+import '../../shared/widgets/shimmer_loading.dart';
 
 /// GET /api/my-transactions → { transactions: [...] }.
 /// Aggregates upgrades, orders, mentorships, test series, store notes.
@@ -36,12 +37,7 @@ class TransactionsPage extends ConsumerWidget {
       body: AppRefresh(
         onRefresh: () async => ref.invalidate(transactionsProvider),
         child: async.when(
-          loading: () => Center(
-            child: CircularProgressIndicator(
-              strokeWidth: 2,
-              color: tokens.primaryAccent,
-            ),
-          ),
+          loading: () => const PageLoading(),
           error: (e, _) => _Error(message: e.toString()),
           data: (list) {
             if (list.isEmpty) return const _Empty();

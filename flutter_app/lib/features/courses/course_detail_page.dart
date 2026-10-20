@@ -921,12 +921,7 @@ class _DownloadedNotesTabContent extends ConsumerWidget {
     final notesAsync = ref.watch(downloadedNotesProvider);
 
     return notesAsync.when(
-      loading: () => const Center(
-        child: Padding(
-          padding: EdgeInsets.all(32),
-          child: CircularProgressIndicator(strokeWidth: 2),
-        ),
-      ),
+      loading: () => const PageLoading(),
       error: (e, _) => Center(
         child: Padding(
           padding: const EdgeInsets.all(24),

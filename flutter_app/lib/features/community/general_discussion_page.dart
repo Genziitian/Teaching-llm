@@ -16,6 +16,7 @@ import '../../theme/app_theme_tokens.dart';
 import 'community_attachment.dart';
 import 'community_file_upload.dart';
 import 'community_chat_page.dart' show communityMessagesProvider;
+import '../../shared/widgets/shimmer_loading.dart';
 
 class GeneralDiscussionPage extends ConsumerStatefulWidget {
   const GeneralDiscussionPage({super.key, this.initialAction});
@@ -750,12 +751,7 @@ class _GeneralDiscussionPageState extends ConsumerState<GeneralDiscussionPage> {
 
                     // ── 3. Posts Stream ────────────────────────────
                     messagesAsync.when(
-                      loading: () => const Padding(
-                        padding: EdgeInsets.symmetric(vertical: 40),
-                        child: Center(
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        ),
-                      ),
+                      loading: () => const PageLoading(),
                       error: (err, _) => Padding(
                         padding: const EdgeInsets.symmetric(vertical: 40),
                         child: Center(

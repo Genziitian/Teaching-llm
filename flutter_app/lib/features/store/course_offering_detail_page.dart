@@ -10,6 +10,7 @@ import '../../theme/app_shadows.dart';
 import '../../theme/app_typography.dart';
 import '../courses/courses_page.dart' show coursesProvider;
 import 'course_offerings_page.dart' show courseOfferingsProvider;
+import '../../shared/widgets/shimmer_loading.dart';
 
 /// Fetches a single offering by id by filtering the cached list. There's no
 /// dedicated /api/course-offerings/[id] GET endpoint in the backend, but
@@ -101,7 +102,7 @@ class _CourseOfferingDetailPageState
       body: SafeArea(
         bottom: false,
         child: async.when(
-          loading: () => const Center(child: CircularProgressIndicator()),
+          loading: () => const PageLoading(),
           error: (e, _) => Padding(
             padding: const EdgeInsets.all(24),
             child: Center(

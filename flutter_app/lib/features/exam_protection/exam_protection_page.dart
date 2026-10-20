@@ -10,6 +10,7 @@ import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../core/auth/auth_providers.dart';
+import '../../shared/widgets/apple_pressable.dart';
 import '../../theme/app_theme_tokens.dart';
 import 'protection_checkout.dart';
 
@@ -29,7 +30,7 @@ final protectionProvider = FutureProvider.autoDispose<Map<String, dynamic>>((
 int _refund(num fee) => (fee.toInt() - 10).clamp(0, 1000000);
 int _discount(num fee) => (fee * 1.5).round();
 const _faqs = [
-  ('What does Exam Protection cover?', 'If you do not pass the exam for a protected course, you choose a refund or a bigger discount on the same course.'),
+  ('What does Exam Protection cover?', 'If you score below 38% in the exam for a protected course, you choose a refund or a bigger discount on the same course.'),
   ('How much do I get back?', 'Refund: your fee minus ₹10. Discount: 1.5× your fee. For example, a ₹50 fee gives a ₹40 refund or a ₹75 discount.'),
   ('When can I add protection?', 'Before your exam, while protection is open for your course. Tap Add Protection on the course.'),
   ('How do I make a claim?', 'When official results are declared, claims open and you get a notification. Within 7 days, tap Start a claim, pick your benefit, answer a few quick questions and upload your result screenshot.'),
@@ -38,6 +39,7 @@ const _faqs = [
   ('How do I receive my refund?', 'Once your claim is approved, the refund is sent back to you and marked complete in My claims.'),
   ('How do I use my discount coupon?', 'Open My coupons and tap Reveal. Use the code within 7 days on the same course, signed in with the same email.'),
   ('Can I use the coupon on another course?', 'It works only for the same course you protected. The exam can be different, for example a later quiz or term of that course.'),
+  ('Do I have to attend the exam?', 'Yes. You must attend the exam for the protected course. If you skip it, you cannot claim.'),
   ('What if I pass?', 'Congratulations! No claim is needed. Your protection simply covered you for that exam.'),
 ];
 const _lifecycle = [
@@ -243,7 +245,7 @@ class _PageState extends ConsumerState<ExamProtectionPage> {
   }
   bool _stepReady(Map? selected) => switch (claimStep) {
     0 => selected != null,
-    1 => reason != null && (attempted == 'no' || (attempted == 'yes' && (double.tryParse(marks.text) ?? -1) >= 0)),
+    1 => reason != null && attempted == 'yes' && (double.tryParse(marks.text) ?? -1) >= 0 && (double.tryParse(marks.text) ?? 101) < 38,
     2 => image != null && released,
     _ => true,
   };
@@ -286,27 +288,28 @@ class _PageState extends ConsumerState<ExamProtectionPage> {
     ]),
   );
   Widget _navButton(IconData icon, String label, int target, Color tint) => Expanded(
-    child: Material(
-      color: tint.withValues(alpha: 0.10),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14), side: BorderSide(color: tint.withValues(alpha: 0.28))),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(14),
-        onTap: () => setState(() => section = target),
-        child: Padding(
-          padding: const EdgeInsets.all(14),
-          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Container(
-              width: 36, height: 36,
-              decoration: BoxDecoration(color: tint, borderRadius: BorderRadius.circular(10)),
-              child: Icon(icon, size: 20, color: Colors.white),
-            ),
-            const SizedBox(height: 10),
-            Row(children: [
-              Expanded(child: Text(label, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: context.tokens.textPrimary))),
-              Icon(Icons.chevron_right_rounded, size: 18, color: tint),
-            ]),
-          ]),
+    child: ApplePressable(
+      onTap: () => setState(() => section = target),
+      pressedScale: 0.96,
+      child: Container(
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: tint.withValues(alpha: 0.10),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: tint.withValues(alpha: 0.22), width: 0.8),
         ),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Container(
+            width: 38, height: 38,
+            decoration: BoxDecoration(color: tint, borderRadius: BorderRadius.circular(12)),
+            child: Icon(icon, size: 20, color: Colors.white),
+          ),
+          const SizedBox(height: 12),
+          Row(children: [
+            Expanded(child: Text(label, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, letterSpacing: -0.2, color: context.tokens.textPrimary))),
+            Icon(Icons.chevron_right_rounded, size: 18, color: tint),
+          ]),
+        ]),
       ),
     ),
   );
@@ -369,8 +372,8 @@ class _PageState extends ConsumerState<ExamProtectionPage> {
           const SizedBox(width: 10),
           Expanded(child: field('No', Icons.radio_button_unchecked)),
         ]),
-        label('Marks obtained in this course'),
-        field('Enter your marks', Icons.edit_outlined),
+        label('Percentage you got in the exam'),
+        field('Enter your percentage', Icons.edit_outlined),
         label('Anything else? (optional)'),
         field('Add any details you want to share', Icons.notes_rounded),
         label('Official results screenshot'),
@@ -461,6 +464,134 @@ class _PageState extends ConsumerState<ExamProtectionPage> {
       text('Late claims after the 7-day window are void. Use the same email you used here when redeeming a coupon.'),
     ]),
   )));
+  Widget _gh(String t) => Padding(
+    padding: const EdgeInsets.fromLTRB(2, 22, 2, 8),
+    child: Text(t, style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, letterSpacing: -0.3, color: context.tokens.textPrimary)),
+  );
+  Widget _gb(String t) => Padding(
+    padding: const EdgeInsets.only(bottom: 8, left: 2, right: 2),
+    child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      Padding(padding: const EdgeInsets.only(top: 7, right: 10), child: Container(width: 5, height: 5, decoration: const BoxDecoration(color: Color(0xFF5856D6), shape: BoxShape.circle))),
+      Expanded(child: Text(t, style: TextStyle(fontSize: 14, height: 1.5, color: context.tokens.textSecondary))),
+    ]),
+  );
+  Widget _timeline(List<(String, String)> items) => Column(children: [
+    for (final (i, it) in items.indexed)
+      IntrinsicHeight(child: Row(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+        SizedBox(width: 34, child: Column(children: [
+          Container(width: 26, height: 26, alignment: Alignment.center, decoration: const BoxDecoration(color: Color(0xFF5856D6), shape: BoxShape.circle), child: Text('${i + 1}', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: Colors.white))),
+          if (i < items.length - 1) Expanded(child: Container(width: 2, margin: const EdgeInsets.symmetric(vertical: 3), color: const Color(0xFF5856D6).withValues(alpha: 0.25))),
+        ])),
+        Expanded(child: Padding(
+          padding: const EdgeInsets.only(bottom: 16, left: 6),
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Text(it.$1, style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: context.tokens.textPrimary)),
+            const SizedBox(height: 2),
+            Text(it.$2, style: TextStyle(fontSize: 13.5, height: 1.45, color: context.tokens.textSecondary)),
+          ]),
+        )),
+      ])),
+  ]);
+  void _fullGuide() => Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => Scaffold(
+    backgroundColor: context.tokens.bg,
+    appBar: AppBar(title: const Text('Exam Protection: full guide')),
+    floatingActionButton: FloatingActionButton.extended(
+      heroTag: 'protection-guide-help',
+      onPressed: () => context.push('/support'),
+      backgroundColor: const Color(0xFF5856D6),
+      foregroundColor: Colors.white,
+      icon: const Icon(Icons.call_rounded, size: 20),
+      label: const Text('Need help?'),
+    ),
+    body: ListView(padding: const EdgeInsets.fromLTRB(16, 4, 16, 100), children: [
+      text('Exam Protection is a small one-time add-on for a course. If you attend the exam and do not pass, you can claim either a refund or a bigger discount on the same course. This page explains everything, step by step.'),
+
+      _gh('The journey at a glance'),
+      _timeline(const [
+        ('Add protection', 'Buy protection on your course before the exam. You pay a small one-time fee.'),
+        ('Attend your exam', 'Protection stays valid until your exam ends. You must attend the exam.'),
+        ('Results are declared', 'When official results are out, claims open. You get an app notification and an email.'),
+        ('Make your claim', 'You have 7 days. Pick your benefit, answer a few quick questions and upload your result screenshot.'),
+        ('We review your claim', 'You get a notification at every update and can follow it anytime in My claims.'),
+        ('Receive your benefit', 'Your refund is sent back, or your coupon is added to My coupons.'),
+      ]),
+
+      _gh('Before you buy'),
+      _gb('Protection is bought per course, and it covers the exam for that course.'),
+      _gb('You pay once. There is no renewal and no extra charge later.'),
+      _gb('Add it before your exam, while protection is open for your course. Tap Add Protection on the course.'),
+      _gb('It stays valid until your exam ends.'),
+
+      _gh('Who can claim'),
+      _gb('You must attend the exam for the protected course. If you skip it, you cannot claim.'),
+      _gb('A score of 38% or above counts as a pass, and no claim is needed. Below 38% counts as a fail, and you can claim.'),
+      _gb('Your official results must be released before you claim.'),
+      _gb('Use the same account and email you used to buy protection.'),
+
+      _gh('Your two benefits'),
+      Builder(builder: (_) { const tint = Color(0xFF16A34A); return _pathCard('Refund', 'Fee − ₹10', [
+        _pathStep(1, 'Choose Refund when you claim.', tint),
+        _pathStep(2, 'Your claim is reviewed and approved.', tint),
+        _pathStep(3, 'We send your fee back, minus a minimal ₹10 fee.', tint),
+        _pathStep(4, 'It is marked complete in My claims and you get a notification.', tint),
+      ], 'Example: ₹50 fee → ₹40 back to you.', tint); }),
+      const SizedBox(height: 12),
+      Builder(builder: (_) { const tint = Color(0xFF5856D6); return _pathCard('Coupon', '1.5 × fee', [
+        _pathStep(1, 'Choose Discount when you claim.', tint),
+        _pathStep(2, 'Your claim is reviewed and approved.', tint),
+        _pathStep(3, 'A coupon appears in My coupons.', tint),
+        _pathStep(4, 'Tap Reveal and use it within 7 days on the same course, signed in with the same email.', tint),
+      ], 'Example: ₹50 fee → ₹75 off the same course.', tint); }),
+
+      _gh('How to make a claim'),
+      _gb('Open the course or Exam Protection, then tap Start a claim once claims are open.'),
+      _gb('Step 1: pick your protected course and your benefit (Refund or Discount).'),
+      _gb('Step 2: tell us why you did not pass, whether you attempted the exam, and the percentage you got.'),
+      _gb('Step 3: upload a screenshot of your official results dashboard. PNG, JPEG or WebP, up to 5 MB. You can preview or replace it before you submit.'),
+      _gb('Step 4: confirm that your official results have been released, check the summary and submit.'),
+
+      _gh('What each status means'),
+      for (final (name, note, tint) in _lifecycle)
+        Container(
+          margin: const EdgeInsets.only(bottom: 8),
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(color: tint.withValues(alpha: 0.08), borderRadius: BorderRadius.circular(12), border: Border.all(color: tint.withValues(alpha: 0.25))),
+          child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Container(width: 8, height: 8, margin: const EdgeInsets.only(top: 6, right: 10), decoration: BoxDecoration(color: tint, shape: BoxShape.circle)),
+            Expanded(child: Text.rich(TextSpan(children: [
+              TextSpan(text: '$name  ', style: TextStyle(fontWeight: FontWeight.w700, color: context.tokens.textPrimary)),
+              TextSpan(text: note, style: TextStyle(color: context.tokens.textSecondary)),
+            ]), style: const TextStyle(fontSize: 13.5, height: 1.4))),
+          ]),
+        ),
+
+      _gh('Important rules'),
+      _gb('The claim window is 7 days from the day claims open. Claims made after that are void.'),
+      _gb('Each protection can be claimed once, with one benefit: refund or coupon, not both.'),
+      _gb('Coupons work only on the course you protected. The exam can be different, for example a later quiz or term of that course.'),
+      _gb('Please share only true information and your own official result screenshot.'),
+      _gb('Your claims stay visible in My claims for a limited time. Uploaded screenshots are deleted after 60 days; other claim details remain.'),
+      _gb('Decisions on claims follow these rules and our Terms and Conditions.'),
+
+      _gh('Common questions'),
+      for (final (q, a) in _faqs)
+        Container(
+          margin: const EdgeInsets.only(bottom: 10),
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(color: context.tokens.cardBg, borderRadius: BorderRadius.circular(14), border: Border.all(color: context.tokens.border, width: 0.5)),
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Text(q, style: TextStyle(fontSize: 14.5, fontWeight: FontWeight.w700, color: context.tokens.textPrimary)),
+            const SizedBox(height: 4),
+            Text(a, style: TextStyle(fontSize: 13.5, height: 1.45, color: context.tokens.textSecondary)),
+          ]),
+        ),
+      const SizedBox(height: 4),
+      Center(child: TextButton(
+        onPressed: () => context.push('/terms'),
+        child: const Text('Read the Terms and Conditions'),
+      )),
+    ]),
+  )));
   Widget _skeleton() {
     final c = context.tokens.textSecondary.withValues(alpha: 0.10);
     Widget box(double h, {double? w, double r = 16}) => Container(height: h, width: w, decoration: BoxDecoration(color: c, borderRadius: BorderRadius.circular(r)));
@@ -488,11 +619,6 @@ class _PageState extends ConsumerState<ExamProtectionPage> {
       icon: const Icon(Icons.call_rounded, size: 18),
       label: const Text('Need help? Contact support'),
     ),
-  );
-  Widget _miniTag(String label, Color tint) => Container(
-    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-    decoration: BoxDecoration(color: tint.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(999)),
-    child: Text(label, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: tint)),
   );
   Widget _stat(String label, String value, String example, Color tint) => Expanded(
     child: Container(
@@ -569,8 +695,8 @@ class _PageState extends ConsumerState<ExamProtectionPage> {
                 Text('How it works', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700, color: context.tokens.textPrimary)),
                 const SizedBox(height: 10),
                 for (final (i, t) in const [
-                  'When official results are declared, claims open for 7 days. We will tell you by app notification and email.',
-                  'If you did not pass, submit a claim with your result screenshot.',
+                  'When results are declared, we notify you. Claims stay open for 7 days.',
+                  'Attend the exam. Below 38% counts as a fail, and then you can claim with your result screenshot.',
                   'If your claim is verified and everything checks out, pick one of the two options below.',
                 ].indexed)
                   Padding(
@@ -585,6 +711,24 @@ class _PageState extends ConsumerState<ExamProtectionPage> {
                       Expanded(child: Text(t, style: TextStyle(fontSize: 14, height: 1.4, color: context.tokens.textSecondary))),
                     ]),
                   ),
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 10),
+                  child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                    Container(
+                      width: 24, height: 24, alignment: Alignment.center,
+                      decoration: const BoxDecoration(color: Color(0xFF5856D6), shape: BoxShape.circle),
+                      child: const Text('4', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Colors.white)),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(child: Text.rich(TextSpan(style: TextStyle(fontSize: 14, height: 1.4, color: context.tokens.textSecondary), children: [
+                      const TextSpan(text: 'We recommend you read the full points and rules before you pay. '),
+                      WidgetSpan(alignment: PlaceholderAlignment.baseline, baseline: TextBaseline.alphabetic, child: GestureDetector(
+                        onTap: _fullGuide,
+                        child: const Text('Read the full guide', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: Color(0xFF5856D6), decoration: TextDecoration.underline)),
+                      )),
+                    ]))),
+                  ]),
+                ),
                 const SizedBox(height: 8),
                 Text('Your two options', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700, color: context.tokens.textPrimary)),
                 const SizedBox(height: 10),
@@ -734,13 +878,13 @@ class _PageState extends ConsumerState<ExamProtectionPage> {
                             decoration: BoxDecoration(color: const Color(0xFF5856D6), borderRadius: BorderRadius.circular(8)),
                             child: const Text('Q', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: Colors.white)),
                           ),
-                          Expanded(child: Text('What is the Exam Protection add-on?', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, letterSpacing: -0.3, color: context.tokens.textPrimary))),
+                          Expanded(child: FittedBox(fit: BoxFit.scaleDown, alignment: Alignment.centerLeft, child: Text('What is the Exam Protection add-on?', maxLines: 1, softWrap: false, style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700, letterSpacing: -0.3, color: context.tokens.textPrimary)))),
                           AnimatedRotation(turns: introOpen ? 0.5 : 0, duration: const Duration(milliseconds: 200), child: const Icon(Icons.expand_more_rounded, color: Color(0xFF5856D6))),
                         ]),
                       ),
                       if (introOpen) ...[
                       const SizedBox(height: 6),
-                      Text('Your safety net for exam day. Add it to your course for a small fee. If you do not pass, get your money back or a bigger discount on the same course.', style: TextStyle(fontSize: 14, height: 1.45, color: context.tokens.textSecondary)),
+                      Text('Your safety net for exam day. Add it to your course for a small fee. If you score below 38%, get your money back or a bigger discount on the same course.', style: TextStyle(fontSize: 14, height: 1.45, color: context.tokens.textSecondary)),
                       const SizedBox(height: 12),
                       Text('Study with confidence. Protected either way.', style: TextStyle(fontSize: 14, height: 1.45, fontWeight: FontWeight.w600, color: context.tokens.textPrimary)),
                       const SizedBox(height: 14),
@@ -755,6 +899,25 @@ class _PageState extends ConsumerState<ExamProtectionPage> {
                     Padding(
                       padding: const EdgeInsets.only(bottom: 16),
                       child: Column(children: [
+                        ApplePressable(
+                          onTap: () => setState(() => section = 3),
+                          pressedScale: 0.97,
+                          child: Container(
+                            height: 54,
+                            alignment: Alignment.center,
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF5856D6),
+                              borderRadius: BorderRadius.circular(27),
+                              boxShadow: [BoxShadow(color: const Color(0xFF5856D6).withValues(alpha: 0.35), blurRadius: 16, offset: const Offset(0, 6))],
+                            ),
+                            child: const Row(mainAxisSize: MainAxisSize.min, children: [
+                              Icon(Icons.verified_user_rounded, size: 20, color: Colors.white),
+                              SizedBox(width: 8),
+                              Text('Get protection', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700, letterSpacing: -0.3, color: Colors.white)),
+                            ]),
+                          ),
+                        ),
+                        const SizedBox(height: 10),
                         Row(children: [
                           _navButton(Icons.shield_outlined, 'My protection', 3, const Color(0xFF5856D6)),
                           const SizedBox(width: 10),
@@ -769,7 +932,7 @@ class _PageState extends ConsumerState<ExamProtectionPage> {
                 ],
                 if (section == 0)
                 card('Exam protection benefits', [
-                  text('If you do not pass, choose one when you claim.'),
+                  text('If you score below 38%, choose one when you claim.'),
                   IntrinsicHeight(child: Row(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
                     _stat('Refund', 'Full refund', 'minus a minimal ₹10 fee', const Color(0xFF16A34A)),
                     const SizedBox(width: 10),
@@ -829,7 +992,7 @@ class _PageState extends ConsumerState<ExamProtectionPage> {
                       ),
                       title: Text('${p['courseName']}', style: const TextStyle(fontWeight: FontWeight.w600)),
                       subtitle: Text(
-                        '₹${p['fee']} paid · valid until your exam ends\nIf you do not pass: ₹${_refund(p['fee'] as num)} refund or ₹${_discount(p['fee'] as num)} coupon${manager ? '\n${p['user']['email']}' : ''}',
+                        '₹${p['fee']} paid · valid until your exam ends\nIf you score below 38%: ₹${_refund(p['fee'] as num)} refund or ₹${_discount(p['fee'] as num)} coupon${manager ? '\n${p['user']['email']}' : ''}',
                       ),
                       trailing: Text(p['claim'] != null ? 'Claimed' : p['claimWindow'] == 'open' ? 'Claim by ${_date(p['claimsCloseAt'])}' : p['claimWindow'] == 'closed' ? 'Window closed' : 'Protected', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: p['claim'] != null ? const Color(0xFF2563EB) : p['claimWindow'] == 'open' ? const Color(0xFFD97706) : p['claimWindow'] == 'closed' ? context.tokens.textSecondary : const Color(0xFF16A34A))),
                     ),
@@ -949,16 +1112,12 @@ class _PageState extends ConsumerState<ExamProtectionPage> {
                                   .map(
                                     (r) => DropdownMenuItem(
                                       value: '$r',
-                                      child: Text(
-                                        '$r',
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
+                                      child: Text('$r', overflow: TextOverflow.ellipsis),
                                     ),
                                   )
                                   .toList(),
                               onChanged: (v) => setState(() => reason = v),
-                              validator: (v) =>
-                                  v == null ? 'Choose a reason' : null,
+                              validator: (v) => v == null ? 'Choose a reason' : null,
                             ),
                             DropdownButtonFormField<String>(
                               initialValue: attempted,
@@ -966,28 +1125,27 @@ class _PageState extends ConsumerState<ExamProtectionPage> {
                                 labelText: 'Did you attempt the exam?',
                               ),
                               items: const [
-                                DropdownMenuItem(
-                                  value: 'yes',
-                                  child: Text('Yes'),
-                                ),
-                                DropdownMenuItem(
-                                  value: 'no',
-                                  child: Text('No'),
-                                ),
+                                DropdownMenuItem(value: 'yes', child: Text('Yes')),
+                                DropdownMenuItem(value: 'no', child: Text('No')),
                               ],
                               onChanged: (v) => setState(() {
                                 attempted = v;
                                 if (v == 'no') marks.clear();
                               }),
-                              validator: (v) =>
-                                  v == null ? 'Choose Yes or No' : null,
+                              validator: (v) => v == null ? 'Choose Yes or No' : null,
                             ),
+                            if (attempted == 'no')
+                              Padding(
+                                padding: const EdgeInsets.only(top: 6),
+                                child: Text('You must attend the exam to claim.', style: TextStyle(fontSize: 12.5, color: const Color(0xFFDC2626))),
+                              ),
                             TextFormField(
                               controller: marks,
                               enabled: attempted == 'yes',
                               onChanged: (_) => setState(() {}),
                               decoration: const InputDecoration(
-                                labelText: 'Marks obtained in this course',
+                                labelText: 'Percentage you got in this exam (%)',
+                                helperText: 'Pass mark is 38%. Claims are for scores below 38%.',
                               ),
                               keyboardType:
                                   const TextInputType.numberWithOptions(
@@ -996,8 +1154,11 @@ class _PageState extends ConsumerState<ExamProtectionPage> {
                               validator: (v) =>
                                   attempted == 'yes' &&
                                       (double.tryParse(v ?? '') == null ||
-                                          double.parse(v!) < 0)
-                                  ? 'Enter valid marks'
+                                          double.parse(v!) < 0 ||
+                                          double.parse(v) > 100)
+                                  ? 'Enter a percentage from 0 to 100'
+                                  : (attempted == 'yes' && double.parse(v!) >= 38)
+                                  ? '38% or above is a pass. Not eligible to claim.'
                                   : null,
                             ),
                             TextFormField(
@@ -1052,7 +1213,7 @@ class _PageState extends ConsumerState<ExamProtectionPage> {
                               _reviewRow('Course', '${selected['courseName']}'),
                               _reviewRow('Benefit', benefit == 'refund' ? 'Refund · ₹${_refund(selected['fee'] as num)}' : 'Discount · ₹${_discount(selected['fee'] as num)}'),
                               _reviewRow('Reason', reason ?? ''),
-                              _reviewRow('Attempted', attempted == 'yes' ? 'Yes · ${marks.text} marks' : 'No'),
+                              _reviewRow('Attempted', attempted == 'yes' ? 'Yes · ${marks.text}%' : 'No'),
                               _reviewRow('Proof', imageName ?? 'Screenshot attached'),
                               text('A manager reviews your claim manually. You will be notified at each status change.'),
                             ],
@@ -1212,7 +1373,7 @@ class _PageState extends ConsumerState<ExamProtectionPage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               text(
-                '${c['benefit'] == 'refund' ? 'Refund' : 'Discount'}: ₹${c['benefit'] == 'refund' ? _refund(p['fee'] as num) : _discount(p['fee'] as num)}\nReason: ${c['reason']}\nAttempted: ${c['attempted'] == true ? 'Yes' : 'No'}\nMarks: ${c['marks'] ?? 'Not attempted'}\nStudent message: ${c['message']}',
+                '${c['benefit'] == 'refund' ? 'Refund' : 'Discount'}: ₹${c['benefit'] == 'refund' ? _refund(p['fee'] as num) : _discount(p['fee'] as num)}\nReason: ${c['reason']}\nAttempted: ${c['attempted'] == true ? 'Yes' : 'No'}\nPercentage: ${c['marks'] != null ? '${c['marks']}%' : 'Not attempted'}\nStudent message: ${c['message']}',
               ),
               if (manager) text('${p['user']['name']} · ${p['user']['email']}'),
               if (c['proof'] != null)

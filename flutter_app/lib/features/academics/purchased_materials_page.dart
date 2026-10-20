@@ -8,6 +8,7 @@ import '../../shared/widgets/sub_page_header.dart';
 import '../../theme/app_shadows.dart';
 import '../../theme/app_theme_tokens.dart';
 import 'free_resources_page.dart' show purchasedMaterialsProvider;
+import '../../shared/widgets/shimmer_loading.dart';
 
 /// Simple list view of purchased note packs.
 class PurchasedMaterialsPage extends ConsumerWidget {
@@ -34,12 +35,7 @@ class PurchasedMaterialsPage extends ConsumerWidget {
                 onRefresh: () async =>
                     ref.invalidate(purchasedMaterialsProvider),
                 child: async.when(
-                  loading: () => Center(
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: tokens.primaryAccent,
-                    ),
-                  ),
+                  loading: () => const PageLoading(),
                   error: (e, _) => Center(
                     child: Padding(
                       padding: const EdgeInsets.all(24),

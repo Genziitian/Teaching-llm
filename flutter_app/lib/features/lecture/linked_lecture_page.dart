@@ -7,6 +7,7 @@ import '../../core/auth/auth_providers.dart';
 import '../../shared/widgets/youtube/youtube_utils.dart';
 import 'material_page.dart' as lecture_material;
 import 'watch_page.dart';
+import '../../shared/widgets/shimmer_loading.dart';
 
 typedef LinkedLecture = ({String contentId, String courseId});
 
@@ -40,7 +41,7 @@ class LinkedLecturePage extends ConsumerWidget {
     final lecture = ref.watch(linkedLectureProvider(link));
     return lecture.when(
       loading: () => const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
+        body: PageLoading(),
       ),
       error: (error, _) => _message(
         context,
