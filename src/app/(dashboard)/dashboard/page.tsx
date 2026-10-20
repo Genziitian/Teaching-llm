@@ -5,7 +5,6 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import useSWR from 'swr'
 import Script from 'next/script'
-import ProtectionSummary from '@/components/exam-protection/ProtectionSummary'
 import { formatISTDate, getEventStatus } from '@/lib/date-utils'
 import { normalizeMeetLink } from '@/lib/meet-link'
 import HomeHeroSlider, { HeroSlide } from '@/components/home/HomeHeroSlider'
@@ -688,7 +687,6 @@ export default function DashboardPage() {
   return (
     <>
     <div className="page-container fade-in dashboard-home-page" data-tour="dashboard-hero">
-      <ProtectionSummary />
       <style>{`
         @media (max-width: 768px) {
           .dashboard-stats-grid {
