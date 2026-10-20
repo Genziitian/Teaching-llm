@@ -77,6 +77,22 @@ class LoginPage extends ConsumerWidget {
                                 _Entrance(
                                   child: _BrandLogo(isDark: isDark),
                                 ),
+                                const SizedBox(height: 10),
+                                _Entrance(
+                                  delayMs: 40,
+                                  child: Text(
+                                    'UPGRADE HOW YOU LEARN',
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(
+                                      fontSize: 12.5,
+                                      fontWeight: FontWeight.w800,
+                                      letterSpacing: 3.2,
+                                      color: isDark
+                                          ? const Color(0xFFA5A3FF)
+                                          : const Color(0xFF3634A3),
+                                    ),
+                                  ),
+                                ),
                                 const Spacer(),
                                 const _Entrance(
                                   delayMs: 80,
@@ -180,24 +196,49 @@ class _Aurora extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final k = isDark ? 1.35 : 1.0;
+    final base = isDark
+        ? const [Color(0xFF14142B), Color(0xFF0E1A33), Color(0xFF1B1226)]
+        : const [Color(0xFFEDEBFF), Color(0xFFE3F0FF), Color(0xFFFFEEF1)];
     return IgnorePointer(
       child: Stack(
         clipBehavior: Clip.hardEdge,
         children: [
-          Positioned(
-            top: -150,
-            left: -130,
-            child: _Orb(size: 400, color: _kIndigo, alpha: 0.30 * k),
+          // Soft three-tone wash: lilac -> sky -> blush.
+          Positioned.fill(
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: base,
+                ),
+              ),
+            ),
           ),
           Positioned(
-            top: -70,
-            right: -150,
-            child: _Orb(size: 360, color: _kBlue, alpha: 0.22 * k),
+            top: -140,
+            left: -120,
+            child: _Orb(size: 420, color: _kIndigo, alpha: 0.34 * k),
           ),
           Positioned(
-            top: 190,
-            left: -90,
-            child: _Orb(size: 280, color: _kPink, alpha: 0.15 * k),
+            top: -60,
+            right: -140,
+            child: _Orb(size: 380, color: _kBlue, alpha: 0.26 * k),
+          ),
+          Positioned(
+            top: 250,
+            right: -120,
+            child: _Orb(size: 320, color: const Color(0xFF30D5C8), alpha: 0.16 * k),
+          ),
+          Positioned(
+            top: 300,
+            left: -110,
+            child: _Orb(size: 320, color: _kPink, alpha: 0.20 * k),
+          ),
+          Positioned(
+            top: 120,
+            left: 60,
+            child: _Orb(size: 260, color: const Color(0xFFFFB340), alpha: 0.14 * k),
           ),
         ],
       ),
@@ -253,6 +294,14 @@ const _features = [
 /// Three feature cards that glide on their own, loop forever and can be
 /// swiped. Auto-play pauses while touched and is off when the system asks
 /// for reduced motion.
+const _slideAssets = <String>[
+  'assets/onboarding/courses.webp',
+  'assets/onboarding/notes.webp',
+  'assets/onboarding/live.webp',
+  'assets/onboarding/community.webp',
+  'assets/onboarding/free.webp',
+];
+
 class _FeatureCarousel extends StatefulWidget {
   const _FeatureCarousel();
 
@@ -262,15 +311,17 @@ class _FeatureCarousel extends StatefulWidget {
 
 class _FeatureCarouselState extends State<_FeatureCarousel> {
   static const _start = 3000; // multiple of 3, so it begins on the first card
-  final _controller = PageController(viewportFraction: 0.78, initialPage: _start);
+  final _controller = PageController(viewportFraction: 0.9, initialPage: _start);
   Timer? _timer;
-  int _index = 0;
   bool _reduceMotion = false;
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     _reduceMotion = MediaQuery.of(context).disableAnimations;
+    for (final a in _slideAssets) {
+      precacheImage(AssetImage(a), context);
+    }
     _restart();
   }
 
@@ -295,63 +346,73 @@ class _FeatureCarouselState extends State<_FeatureCarousel> {
 
   @override
   Widget build(BuildContext context) {
-    final tokens = context.tokens;
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        SizedBox(
-          height: 176,
-          child: Listener(
-            onPointerDown: (_) => _timer?.cancel(),
-            onPointerUp: (_) => _restart(),
-            onPointerCancel: (_) => _restart(),
-            child: PageView.builder(
-              controller: _controller,
-              onPageChanged: (i) => setState(() => _index = i % _features.length),
-              itemBuilder: (context, i) {
-                final f = _features[i % _features.length];
-                return AnimatedBuilder(
-                  animation: _controller,
-                  builder: (context, child) {
-                    final page = _controller.hasClients &&
-                            _controller.position.haveDimensions
-                        ? (_controller.page ?? _start.toDouble())
-                        : _start.toDouble();
-                    final d = (page - i).abs().clamp(0.0, 1.0);
-                    return Center(
-                      child: Opacity(
-                        opacity: 1 - 0.4 * d,
-                        child: Transform.scale(scale: 1 - 0.08 * d, child: child),
+    // Cards are 17:10 images. Size the strip from the screen width so the
+    // active card is large on every phone.
+    final width = MediaQuery.of(context).size.width;
+    final cardHeight = (width * 0.9 - 12) / 1.7;
+    return SizedBox(
+      height: cardHeight + 28,
+      child: Listener(
+        onPointerDown: (_) => _timer?.cancel(),
+        onPointerUp: (_) => _restart(),
+        onPointerCancel: (_) => _restart(),
+        child: PageView.builder(
+          controller: _controller,
+          clipBehavior: Clip.none,
+          itemBuilder: (context, i) {
+            final asset = _slideAssets[i % _slideAssets.length];
+            return AnimatedBuilder(
+              animation: _controller,
+              builder: (context, child) {
+                final page = _controller.hasClients &&
+                        _controller.position.haveDimensions
+                    ? (_controller.page ?? _start.toDouble())
+                    : _start.toDouble();
+                final diff = (page - i).clamp(-1.0, 1.0);
+                final d = diff.abs();
+                return Center(
+                  child: Opacity(
+                    opacity: 1 - 0.45 * d,
+                    child: Transform.rotate(
+                      angle: -diff * 0.05,
+                      child: Transform.scale(
+                        scale: 1 - 0.12 * d,
+                        child: child,
                       ),
-                    );
-                  },
-                  child: _FeatureCard(feature: f),
+                    ),
+                  ),
                 );
               },
-            ),
-          ),
-        ),
-        const SizedBox(height: 14),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            for (var i = 0; i < _features.length; i++)
-              AnimatedContainer(
-                duration: const Duration(milliseconds: 250),
-                curve: Curves.easeOut,
-                margin: const EdgeInsets.symmetric(horizontal: 3),
-                width: i == _index ? 20 : 6,
-                height: 6,
-                decoration: BoxDecoration(
-                  color: i == _index
-                      ? tokens.textPrimary
-                      : tokens.textMuted.withValues(alpha: 0.35),
-                  borderRadius: BorderRadius.circular(3),
+              child: SizedBox(
+                height: cardHeight,
+                child: Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 6),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(30),
+                    boxShadow: [
+                      BoxShadow(
+                        color: _kIndigo.withValues(alpha: 0.28),
+                        blurRadius: 30,
+                        offset: const Offset(0, 14),
+                      ),
+                    ],
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(30),
+                    child: Image.asset(
+                      asset,
+                      fit: BoxFit.cover,
+                      width: double.infinity,
+                      height: double.infinity,
+                      gaplessPlayback: true,
+                    ),
+                  ),
                 ),
               ),
-          ],
+            );
+          },
         ),
-      ],
+      ),
     );
   }
 }

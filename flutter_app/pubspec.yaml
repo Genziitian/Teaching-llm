@@ -101,6 +101,8 @@ flutter:
     - assets/mobile-login-logo.png
     - assets/splash-screen.png
     - assets/slides/
+    - assets/onboarding/
+    - assets/store/
     - assets/avatars/
   # Outfit fonts are optional brand polish; drop the .ttf files into
   # assets/fonts/ and re-add the `fonts:` block below to enable. Without

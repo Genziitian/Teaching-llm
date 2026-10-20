@@ -1,0 +1,101 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="800" viewBox="0 0 1200 800" fill="none">
+<defs>
+ <pattern id="grid" width="28" height="28" patternUnits="userSpaceOnUse"><path d="M28 0H0V28" stroke="#D9D2C3" stroke-width=".7" opacity=".12"/></pattern>
+ <pattern id="fibres" width="97" height="79" patternUnits="userSpaceOnUse"><path d="M7 13l3-1m28 39 4 1m37-29 2-2M21 68l2-1m44 1h3M52 8l2 1" stroke="#1F1D1B" stroke-width=".55" opacity=".055"/><path d="M13 42h2m72 21 2 1M43 27l3-1" stroke="#F4EFE6" stroke-width="1" opacity=".45"/></pattern>
+ <filter id="layer" x="-35%" y="-40%" width="180%" height="190%" color-interpolation-filters="sRGB"><feDropShadow dx="4" dy="12" stdDeviation="12" flood-color="#1F1D1B" flood-opacity=".45"/></filter>
+ <filter id="small" x="-40%" y="-40%" width="180%" height="190%" color-interpolation-filters="sRGB"><feDropShadow dx="2" dy="5" stdDeviation="3" flood-color="#1F1D1B" flood-opacity=".45"/></filter>
+</defs>
+<!-- A quiet desk; all lettering belongs to the page, not this illustration. -->
+<path fill="#1A1917" d="M0 0h1200v800H0z"/><path fill="url(#grid)" d="M0 0h1200v800H0z"/>
+<path fill="url(#fibres)" d="M0 0h1200v800H0z"/>
+<!-- The loose map has a torn east edge, exposing its lilac backing. -->
+<g filter="url(#layer)"><path d="M314 451 759 416 820 660 367 699Z" fill="#B9A7F2"/><path d="m314 451 445-35 1 2-444 36" stroke="#F4EFE6" stroke-opacity=".6" stroke-width="1.5"/>
+<path d="m297 430 442-31 5 35-10 9 14 12-5 14 14 10-7 17 15 11-8 14 14 14-5 15 14 13-8 17 14 11-7 15 15 12-5 17 14 12-4 19-441 35Z" fill="#2A2824"/><path d="m297 430 442-31 5 35-10 9 14 12-5 14 14 10-7 17 15 11-8 14 14 14-5 15 14 13-8 17 14 11-7 15 15 12-5 17 14 12-4 19-441 35Z" fill="#F4EFE6" opacity=".14"/>
+<path d="m298 432 439-31" stroke="#F4EFE6" stroke-width="2"/>
+<path d="m342 438 39 230m41-235 41 230m41-235 41 230m41-235 41 230m41-235 41 230M311 480l435-31M320 529l441-32M330 579l444-32M339 629l450-32" stroke="#D9D2C3" stroke-width=".9" opacity=".32"/>
+<path d="m471 418 43 238m-211-151 451-32" stroke="#D9D2C3" stroke-width="1.5" opacity=".32"/>
+<path d="m356 604c-23-36 23-44 57-45s51-18 37-40-17-41 18-52 38-28 33-46" stroke="#F4EFE6" stroke-width="2" stroke-dasharray="2 9" stroke-linecap="round" opacity=".5"/>
+<circle cx="356" cy="604" r="5" stroke="#F4EFE6" stroke-width="1.4" opacity=".5"/>
+<path d="m328 641 20-6 18 3m299-190 16 8 17-5m-289 11 11-8 14 7" stroke="#D9D2C3" stroke-width="1.5" stroke-linecap="round"/>
+<path d="m298 430 442-31 5 35-10 9 14 12" stroke="#F4EFE6" stroke-width="1.1" stroke-opacity=".38"/>
+<path d="m297 430 442-31 5 35-10 9 14 12-5 14 14 10-7 17 15 11-8 14 14 14-5 15 14 13-8 17 14 11-7 15 15 12-5 17 14 12-4 19-441 35Z" fill="url(#fibres)"/>
+</g>
+<!-- A translucent strip of washi secures only one corner. -->
+<path d="m315 413 66-15-3 9 7 4-3 7 6 4-69 15 3-8-7-4 4-7Z" fill="#B9A7F2" opacity=".57"/>
+<path d="m329 411 5 20m7-23 5 20m7-22 5 19m6-22 5 20" stroke="#F4EFE6" opacity=".4" stroke-width="3"/>
+<!-- Destination card: a small vermilion paper house, precisely at 940,300. -->
+<g filter="url(#small)"><path d="m908 296 32-27 32 27-6 1v32h-52v-32Z" fill="#2A2824"/><path d="m918 296 22-18 22 18v25h-44Z" fill="#FF5B3A"/><path d="m912 296 28-24 28 24" stroke="#FF5B3A" stroke-width="5" stroke-linecap="square" stroke-linejoin="miter"/><path d="M935 321v-15h10v15" fill="#2A2824"/><path d="m948 290 6 5" stroke="#F4EFE6" stroke-width="1.2" opacity=".5"/></g>
+<!-- Compass body, registered at 600,565. -->
+<g filter="url(#layer)"><circle cx="600" cy="569" r="119" fill="#1E8A82"/><circle cx="600" cy="565" r="119" fill="#1E8A82"/>
+<path d="M491 529a115 115 0 0 1 191-49" stroke="#F4EFE6" stroke-width="1.5" opacity=".6"/>
+<circle cx="600" cy="565" r="105" fill="#2A2824"/><circle cx="600" cy="565" r="102" stroke="#D9D2C3" stroke-width="1.4"/>
+<path d="M600.00 482.00L600.00 470.00" stroke="#D9D2C3" stroke-width="1.7" opacity="0.65"/>
+<path d="M609.30 476.49L609.93 470.52" stroke="#D9D2C3" stroke-width="0.8" opacity="0.28"/>
+<path d="M618.50 477.94L619.75 472.08" stroke="#D9D2C3" stroke-width="0.8" opacity="0.28"/>
+<path d="M627.50 480.36L629.36 474.65" stroke="#D9D2C3" stroke-width="0.8" opacity="0.28"/>
+<path d="M636.20 483.69L638.64 478.21" stroke="#D9D2C3" stroke-width="0.8" opacity="0.28"/>
+<path d="M641.50 493.12L647.50 482.73" stroke="#D9D2C3" stroke-width="1.7" opacity="0.65"/>
+<path d="M652.31 493.00L655.84 488.14" stroke="#D9D2C3" stroke-width="0.8" opacity="0.28"/>
+<path d="M659.55 498.86L663.57 494.40" stroke="#D9D2C3" stroke-width="0.8" opacity="0.28"/>
+<path d="M666.14 505.45L670.60 501.43" stroke="#D9D2C3" stroke-width="0.8" opacity="0.28"/>
+<path d="M672.00 512.69L676.86 509.16" stroke="#D9D2C3" stroke-width="0.8" opacity="0.28"/>
+<path d="M671.88 523.50L682.27 517.50" stroke="#D9D2C3" stroke-width="1.7" opacity="0.65"/>
+<path d="M681.31 528.80L686.79 526.36" stroke="#D9D2C3" stroke-width="0.8" opacity="0.28"/>
+<path d="M684.64 537.50L690.35 535.64" stroke="#D9D2C3" stroke-width="0.8" opacity="0.28"/>
+<path d="M687.06 546.50L692.92 545.25" stroke="#D9D2C3" stroke-width="0.8" opacity="0.28"/>
+<path d="M688.51 555.70L694.48 555.07" stroke="#D9D2C3" stroke-width="0.8" opacity="0.28"/>
+<path d="M683.00 565.00L695.00 565.00" stroke="#D9D2C3" stroke-width="1.7" opacity="0.65"/>
+<path d="M688.51 574.30L694.48 574.93" stroke="#D9D2C3" stroke-width="0.8" opacity="0.28"/>
+<path d="M687.06 583.50L692.92 584.75" stroke="#D9D2C3" stroke-width="0.8" opacity="0.28"/>
+<path d="M684.64 592.50L690.35 594.36" stroke="#D9D2C3" stroke-width="0.8" opacity="0.28"/>
+<path d="M681.31 601.20L686.79 603.64" stroke="#D9D2C3" stroke-width="0.8" opacity="0.28"/>
+<path d="M671.88 606.50L682.27 612.50" stroke="#D9D2C3" stroke-width="1.7" opacity="0.65"/>
+<path d="M672.00 617.31L676.86 620.84" stroke="#D9D2C3" stroke-width="0.8" opacity="0.28"/>
+<path d="M666.14 624.55L670.60 628.57" stroke="#D9D2C3" stroke-width="0.8" opacity="0.28"/>
+<path d="M659.55 631.14L663.57 635.60" stroke="#D9D2C3" stroke-width="0.8" opacity="0.28"/>
+<path d="M652.31 637.00L655.84 641.86" stroke="#D9D2C3" stroke-width="0.8" opacity="0.28"/>
+<path d="M641.50 636.88L647.50 647.27" stroke="#D9D2C3" stroke-width="1.7" opacity="0.65"/>
+<path d="M636.20 646.31L638.64 651.79" stroke="#D9D2C3" stroke-width="0.8" opacity="0.28"/>
+<path d="M627.50 649.64L629.36 655.35" stroke="#D9D2C3" stroke-width="0.8" opacity="0.28"/>
+<path d="M618.50 652.06L619.75 657.92" stroke="#D9D2C3" stroke-width="0.8" opacity="0.28"/>
+<path d="M609.30 653.51L609.93 659.48" stroke="#D9D2C3" stroke-width="0.8" opacity="0.28"/>
+<path d="M600.00 648.00L600.00 660.00" stroke="#D9D2C3" stroke-width="1.7" opacity="0.65"/>
+<path d="M590.70 653.51L590.07 659.48" stroke="#D9D2C3" stroke-width="0.8" opacity="0.28"/>
+<path d="M581.50 652.06L580.25 657.92" stroke="#D9D2C3" stroke-width="0.8" opacity="0.28"/>
+<path d="M572.50 649.64L570.64 655.35" stroke="#D9D2C3" stroke-width="0.8" opacity="0.28"/>
+<path d="M563.80 646.31L561.36 651.79" stroke="#D9D2C3" stroke-width="0.8" opacity="0.28"/>
+<path d="M558.50 636.88L552.50 647.27" stroke="#D9D2C3" stroke-width="1.7" opacity="0.65"/>
+<path d="M547.69 637.00L544.16 641.86" stroke="#D9D2C3" stroke-width="0.8" opacity="0.28"/>
+<path d="M540.45 631.14L536.43 635.60" stroke="#D9D2C3" stroke-width="0.8" opacity="0.28"/>
+<path d="M533.86 624.55L529.40 628.57" stroke="#D9D2C3" stroke-width="0.8" opacity="0.28"/>
+<path d="M528.00 617.31L523.14 620.84" stroke="#D9D2C3" stroke-width="0.8" opacity="0.28"/>
+<path d="M528.12 606.50L517.73 612.50" stroke="#D9D2C3" stroke-width="1.7" opacity="0.65"/>
+<path d="M518.69 601.20L513.21 603.64" stroke="#D9D2C3" stroke-width="0.8" opacity="0.28"/>
+<path d="M515.36 592.50L509.65 594.36" stroke="#D9D2C3" stroke-width="0.8" opacity="0.28"/>
+<path d="M512.94 583.50L507.08 584.75" stroke="#D9D2C3" stroke-width="0.8" opacity="0.28"/>
+<path d="M511.49 574.30L505.52 574.93" stroke="#D9D2C3" stroke-width="0.8" opacity="0.28"/>
+<path d="M517.00 565.00L505.00 565.00" stroke="#D9D2C3" stroke-width="1.7" opacity="0.65"/>
+<path d="M511.49 555.70L505.52 555.07" stroke="#D9D2C3" stroke-width="0.8" opacity="0.28"/>
+<path d="M512.94 546.50L507.08 545.25" stroke="#D9D2C3" stroke-width="0.8" opacity="0.28"/>
+<path d="M515.36 537.50L509.65 535.64" stroke="#D9D2C3" stroke-width="0.8" opacity="0.28"/>
+<path d="M518.69 528.80L513.21 526.36" stroke="#D9D2C3" stroke-width="0.8" opacity="0.28"/>
+<path d="M528.12 523.50L517.73 517.50" stroke="#D9D2C3" stroke-width="1.7" opacity="0.65"/>
+<path d="M528.00 512.69L523.14 509.16" stroke="#D9D2C3" stroke-width="0.8" opacity="0.28"/>
+<path d="M533.86 505.45L529.40 501.43" stroke="#D9D2C3" stroke-width="0.8" opacity="0.28"/>
+<path d="M540.45 498.86L536.43 494.40" stroke="#D9D2C3" stroke-width="0.8" opacity="0.28"/>
+<path d="M547.69 493.00L544.16 488.14" stroke="#D9D2C3" stroke-width="0.8" opacity="0.28"/>
+<path d="M558.50 493.12L552.50 482.73" stroke="#D9D2C3" stroke-width="1.7" opacity="0.65"/>
+<path d="M563.80 483.69L561.36 478.21" stroke="#D9D2C3" stroke-width="0.8" opacity="0.28"/>
+<path d="M572.50 480.36L570.64 474.65" stroke="#D9D2C3" stroke-width="0.8" opacity="0.28"/>
+<path d="M581.50 477.94L580.25 472.08" stroke="#D9D2C3" stroke-width="0.8" opacity="0.28"/>
+<path d="M590.70 476.49L590.07 470.52" stroke="#D9D2C3" stroke-width="0.8" opacity="0.28"/>
+<circle cx="600" cy="565" r="72" stroke="#D9D2C3" stroke-width=".8"/>
+<path d="m600 489 4 9h-8Zm0 152-4-9h8ZM524 565l9-4v8Zm152 0-9 4v-8Z" fill="#1E8A82" opacity=".7"/>
+<path d="m600 513 9 43 43 9-43 9-9 43-9-43-43-9 43-9Z" stroke="#D9D2C3" stroke-width=".8"/>
+<circle cx="600" cy="565" r="7" fill="#D9D2C3"/>
+<circle cx="600" cy="565" r="105" fill="url(#fibres)"/>
+<path d="M505 633a115 115 0 0 0 178 13" stroke="#D9D2C3" stroke-width="2" opacity=".13"/>
+</g>
+<!-- A spare paper clip, just enough desk life. -->
+<path d="m802 617-17 44c-5 13 12 20 17 7l18-48c4-10-9-15-13-5l-16 42c-2 6 4 9 7 3l13-34" stroke="#1F1D1B" stroke-width="2" stroke-linecap="round" opacity=".24"/>
+</svg>

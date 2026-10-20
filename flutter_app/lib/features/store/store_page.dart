@@ -26,6 +26,7 @@ class StorePage extends StatelessWidget {
             cta: 'View notes',
             subtitle: 'Formula sheets, notes, solved papers and more',
             icon: Symbols.description_rounded,
+            image: 'assets/store/store-notes.webp',
             gradient: const [Color(0xFF1E8E3E), Color(0xFF0F5C28)],
             onTap: () {
               HapticFeedback.lightImpact();
@@ -38,6 +39,7 @@ class StorePage extends StatelessWidget {
             cta: 'View courses',
             subtitle: 'Full courses with lectures and live classes.',
             icon: Symbols.school_rounded,
+            image: 'assets/store/store-course.webp',
             gradient: const [Color(0xFF0A84FF), Color(0xFF0A4FB8)],
             onTap: () {
               HapticFeedback.lightImpact();
@@ -57,6 +59,7 @@ class _StoreTile extends StatelessWidget {
     this.subtitle,
     required this.icon,
     required this.gradient,
+    this.image,
     required this.onTap,
     this.comingSoon = false,
   });
@@ -66,6 +69,7 @@ class _StoreTile extends StatelessWidget {
   final String? subtitle;
   final IconData icon;
   final List<Color> gradient;
+  final String? image;
   final VoidCallback onTap;
   final bool comingSoon;
 
@@ -86,6 +90,16 @@ class _StoreTile extends StatelessWidget {
           children: [
             // Colour "poster" on top, white details below: clearly different
             // from the full-colour term cards on the next screen.
+            if (image != null)
+              AspectRatio(
+                aspectRatio: 1600 / 500,
+                child: Image.asset(
+                  image!,
+                  fit: BoxFit.cover,
+                  gaplessPlayback: true,
+                ),
+              )
+            else
             Container(
               height: 118,
               decoration: BoxDecoration(

@@ -37,6 +37,19 @@ const NOTE_COLORS: Record<string, [string, string]> = {
 const noteColors = (category?: string): [string, string] =>
   NOTE_COLORS[(category || 'general').toLowerCase()] || NOTE_COLORS.general
 
+const TERM_ART: Record<string, { src: string; dark: boolean; accent: string }> = {
+  general: { src: '/store-art/term-general.webp', dark: false, accent: '#3B4FD8' },
+  foundation: { src: '/store-art/term-foundation.webp', dark: false, accent: '#1F7A45' },
+  qualifier: { src: '/store-art/term-qualifier.webp', dark: true, accent: '#0B1B3F' },
+  diploma: { src: '/store-art/term-diploma.webp', dark: false, accent: '#0A5C4E' },
+  degree: { src: '/store-art/term-degree.webp', dark: true, accent: '#3A1D00' },
+}
+const termArtFor = (name: string) => {
+  const l = (name || '').toLowerCase()
+  const key = Object.keys(TERM_ART).find(k => l.includes(k))
+  return key ? TERM_ART[key] : null
+}
+
 export default function ExploreCoursesPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -646,6 +659,9 @@ export default function ExploreCoursesPage() {
             width: 22px !important;
             height: 22px !important;
           }
+          .store-category-grid .store-cat-card .store-cat-body {
+            padding: 12px 12px 14px !important;
+          }
           .store-category-grid .store-cat-card h3 {
             font-size: 14px !important;
             margin-bottom: 4px !important;
@@ -850,36 +866,77 @@ export default function ExploreCoursesPage() {
           </div>
         </div>
 
-      {/* STORE CATEGORY CARDS */}
+      {/* STORE HOME - illustrated posters */}
       {!storeView && (
-        <div className="store-category-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(280px, 100%), 1fr))', gap: '20px', marginBottom: '32px' }}>
-          {[
-            { key: 'courses' as const, title: 'Courses', subtitle: `${(offerings || []).length + (bundleOfferings || []).length} available`, icon: <BookOpen size={26} color="#fff" strokeWidth={2.2} />, gradient: 'linear-gradient(135deg, #5ac8fa, #0a84ff)', comingSoon: false },
-            { key: 'notes' as const, title: 'Premium Notes', subtitle: `${storeNotesData?.notes?.length || 0} ${(storeNotesData?.notes?.length || 0) === 1 ? 'note' : 'notes'}`, icon: <FileText size={26} color="#fff" strokeWidth={2.2} />, gradient: 'linear-gradient(135deg, #34c759, #248a3d)', comingSoon: false },
-            { key: 'mentorship' as const, title: 'Book a Call with Mentor', subtitle: 'Coming soon', icon: <Users size={26} color="#fff" strokeWidth={2.2} />, gradient: 'linear-gradient(135deg, #a1a1a6, #7c7c80)', comingSoon: true },
-          ].map(card => (
-            <div key={card.key} className="store-cat-card" onClick={() => { if (!card.comingSoon) setStoreView(card.key) }}
-              style={{ background: 'var(--surface)', borderRadius: '28px', padding: 'clamp(22px, 5vw, 30px)', cursor: card.comingSoon ? 'default' : 'pointer', boxShadow: '0 1px 2px rgba(0,0,0,0.04), 0 8px 24px rgba(0,0,0,0.05)', border: '0.5px solid var(--border)', transition: 'transform 0.35s cubic-bezier(0.23,1,0.32,1), box-shadow 0.35s cubic-bezier(0.23,1,0.32,1)', position: 'relative', overflow: 'hidden', display: 'flex', flexDirection: 'column', alignItems: 'flex-start', textAlign: 'left', opacity: card.comingSoon ? 0.78 : 1 }}
-              onMouseEnter={e => { if (card.comingSoon) return; e.currentTarget.style.transform = 'scale(1.015)'; e.currentTarget.style.boxShadow = '0 2px 4px rgba(0,0,0,0.05), 0 18px 40px rgba(0,0,0,0.09)' }}
-              onMouseLeave={e => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.boxShadow = '0 1px 2px rgba(0,0,0,0.04), 0 8px 24px rgba(0,0,0,0.05)' }}
-              onMouseDown={e => { if (!card.comingSoon) e.currentTarget.style.transform = 'scale(0.98)' }}
-              onMouseUp={e => { if (!card.comingSoon) e.currentTarget.style.transform = 'scale(1.015)' }}
-            >
-              <div style={{ display: 'flex', width: '100%', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '28px' }}>
-                <div className="store-cat-icon" style={{ width: '56px', height: '56px', borderRadius: '17px', background: card.gradient, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{card.icon}</div>
-                {card.comingSoon && (
-                  <span style={{ fontSize: '12px', fontWeight: 700, padding: '5px 11px', borderRadius: '999px', background: 'var(--surface-hover)', color: 'var(--text-secondary)' }}>Coming soon</span>
-                )}
-              </div>
-              <h3 style={{ fontSize: 'clamp(20px, 4.4vw, 24px)', fontWeight: 800, letterSpacing: '-0.5px', color: 'var(--text-primary)', margin: '0 0 4px' }}>{card.title}</h3>
-              <p className="store-cat-sub" style={{ fontSize: '15px', color: 'var(--text-secondary)', fontWeight: 500, margin: '0 0 18px' }}>{card.subtitle}</p>
-              {!card.comingSoon && (
-                <div className="store-cat-explore" style={{ display: 'flex', alignItems: 'center', gap: '4px', color: 'var(--accent)', fontSize: '15px', fontWeight: 600, marginTop: 'auto' }}>
-                  Explore <ChevronRight size={17} strokeWidth={2.6} />
+        <div className="store-home">
+          <style>{`
+            .store-home { padding: 4px 0 8px; }
+            .store-hero { margin: 0 0 22px; }
+            .store-hero .eyebrow { display: inline-flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent); }
+            .store-hero .eyebrow i { width: 22px; height: 2px; border-radius: 2px; background: currentColor; display: inline-block; }
+            .store-hero h2 { margin: 8px 0 6px; font-size: clamp(30px, 6vw, 44px); font-weight: 800; letter-spacing: -0.035em; line-height: 1.04; color: var(--text-primary); }
+            .store-hero p { margin: 0; font-size: clamp(14px, 2.6vw, 17px); color: var(--text-secondary); max-width: 560px; line-height: 1.5; }
+            .store-posters { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
+            .store-poster { position: relative; overflow: hidden; border-radius: 30px; background: var(--surface); border: 0.5px solid var(--border); box-shadow: 0 1px 2px rgba(0,0,0,0.04), 0 10px 30px rgba(0,0,0,0.07); cursor: pointer; display: flex; flex-direction: column; transition: transform 380ms cubic-bezier(.2,.9,.2,1), box-shadow 380ms cubic-bezier(.2,.9,.2,1); animation: posterIn 520ms cubic-bezier(.2,.9,.2,1) backwards; -webkit-tap-highlight-color: transparent; }
+            .store-poster:nth-child(2) { animation-delay: 80ms; }
+            .store-poster:hover { transform: translateY(-4px); box-shadow: 0 2px 4px rgba(0,0,0,0.05), 0 22px 48px rgba(0,0,0,0.13); }
+            .store-poster:active { transform: scale(0.985); transition-duration: 90ms; }
+            .store-poster .art { position: relative; aspect-ratio: 1600 / 500; overflow: hidden; }
+            .store-poster .art img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform 700ms cubic-bezier(.2,.9,.2,1); }
+            .store-poster:hover .art img { transform: scale(1.05); }
+            .store-poster .art::after { content: ''; position: absolute; inset: auto 0 0 0; height: 46%; background: linear-gradient(to top, var(--surface), transparent); pointer-events: none; }
+            .store-poster .chip { position: absolute; top: 14px; left: 14px; z-index: 2; padding: 6px 12px; border-radius: 999px; font-size: 12.5px; font-weight: 700; color: #fff; background: rgba(0,0,0,0.32); -webkit-backdrop-filter: blur(14px) saturate(160%); backdrop-filter: blur(14px) saturate(160%); border: 1px solid rgba(255,255,255,0.28); }
+            .store-poster .body { padding: 4px 24px 24px; display: flex; flex-direction: column; gap: 6px; }
+            .store-poster h3 { margin: 0; font-size: clamp(22px, 4.4vw, 28px); font-weight: 800; letter-spacing: -0.03em; color: var(--text-primary); }
+            .store-poster .sub { margin: 0; font-size: 15px; color: var(--text-secondary); line-height: 1.45; }
+            .store-poster .go { margin-top: 12px; align-self: flex-start; display: inline-flex; align-items: center; gap: 6px; padding: 12px 20px; border-radius: 999px; font-size: 15px; font-weight: 700; color: #fff; transition: gap 240ms ease, transform 240ms ease; }
+            .store-poster:hover .go { gap: 10px; }
+            .store-soon { margin-top: 20px; display: flex; align-items: center; gap: 14px; padding: 16px 20px; border-radius: 22px; border: 1px dashed var(--border); background: color-mix(in srgb, var(--surface) 70%, transparent); color: var(--text-secondary); }
+            .store-soon .ic { width: 42px; height: 42px; border-radius: 14px; background: var(--surface-hover); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+            .store-soon b { color: var(--text-primary); display: block; font-size: 15px; }
+            .store-soon span.tag { margin-left: auto; font-size: 12px; font-weight: 700; padding: 5px 11px; border-radius: 999px; background: var(--surface-hover); }
+            @keyframes posterIn { from { opacity: 0; transform: translateY(18px) scale(0.98); } to { opacity: 1; transform: none; } }
+            @media (max-width: 720px) {
+              .store-posters { grid-template-columns: 1fr; gap: 16px; }
+              .store-poster { border-radius: 26px; }
+              .store-poster .body { padding: 2px 18px 20px; }
+              .store-hero { margin-bottom: 16px; }
+            }
+            @media (prefers-reduced-motion: reduce) {
+              .store-poster, .store-poster .art img, .store-poster .go { transition: none !important; animation: none !important; }
+              .store-poster:hover { transform: none; }
+            }
+          `}</style>
+          <div className="store-hero">
+            <span className="eyebrow"><i /> Gen-Z IITian Store</span>
+            <h2>Upgrade how you learn.</h2>
+            <p>Courses taught by experts and premium notes, in one place. Pick where you want to start.</p>
+          </div>
+          <div className="store-posters">
+            {[
+              { key: 'courses' as const, art: '/store-art/store-course.webp', title: 'Courses', sub: 'Recorded, Live Pro and Champion batches by term.', count: `${(offerings || []).length + (bundleOfferings || []).length} available`, cta: 'Browse courses', grad: 'linear-gradient(135deg, #3B82F6, #2447C9)' },
+              { key: 'notes' as const, art: '/store-art/store-notes.webp', title: 'Premium Notes', sub: 'Formula sheets, notes and solved papers for every subject.', count: `${storeNotesData?.notes?.length || 0} ${(storeNotesData?.notes?.length || 0) === 1 ? 'note' : 'notes'}`, cta: 'Browse notes', grad: 'linear-gradient(135deg, #2FA760, #14633A)' },
+            ].map(card => (
+              <div key={card.key} className="store-poster" role="button" tabIndex={0}
+                onClick={() => setStoreView(card.key)}
+                onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setStoreView(card.key) } }}>
+                <div className="art">
+                  <img src={card.art} alt="" loading="eager" decoding="async" />
+                  <span className="chip">{card.count}</span>
                 </div>
-              )}
-            </div>
-          ))}
+                <div className="body">
+                  <h3>{card.title}</h3>
+                  <p className="sub">{card.sub}</p>
+                  <span className="go" style={{ background: card.grad }}>{card.cta} <ChevronRight size={17} strokeWidth={2.6} /></span>
+                </div>
+              </div>
+            ))}
+          </div>
+          <div className="store-soon">
+            <div className="ic"><Users size={20} strokeWidth={2.1} /></div>
+            <div><b>Book a call with a mentor</b>1-to-1 guidance from IITians</div>
+            <span className="tag">Coming soon</span>
+          </div>
         </div>
       )}
 
@@ -946,12 +1003,54 @@ export default function ExploreCoursesPage() {
       {/* Category options selection screen */}
       {storeView === 'courses' && !selectedStoreTab && visibleCategories.length > 0 && (
         <div style={{ padding: '20px 0' }}>
-          <h2 style={{ fontSize: '28px', fontWeight: 800, letterSpacing: '-0.6px', textAlign: 'center', marginBottom: '6px' }}>Select Level</h2>
-          <p style={{ fontSize: '15px', color: 'var(--text-secondary)', textAlign: 'center', marginBottom: '32px' }}>Choose a level to explore available courses</p>
-          <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '18px', maxWidth: '980px', margin: '0 auto' }}>
+          <div style={{ maxWidth: '1100px', margin: '0 auto 22px', padding: '0 2px' }}>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', fontSize: '12px', fontWeight: 800, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--accent)' }}>
+              <i style={{ width: 22, height: 2, borderRadius: 2, background: 'currentColor', display: 'inline-block' }} /> Courses
+            </span>
+            <h2 style={{ fontSize: 'clamp(28px, 6vw, 40px)', fontWeight: 800, letterSpacing: '-0.035em', lineHeight: 1.05, margin: '8px 0 6px', color: 'var(--text-primary)' }}>Choose your term</h2>
+            <p style={{ fontSize: 'clamp(14px, 2.6vw, 16px)', color: 'var(--text-secondary)', margin: 0 }}>Pick a level to see its batches and bundles.</p>
+          </div>
+          <div className="level-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(320px, 100%), 1fr))', gap: '18px', maxWidth: '1100px', margin: '0 auto' }}>
             {visibleCategories.map(cat => {
               const courseCount = activeOfferings.filter((o: any) => (o.category || 'General') === cat).length;
               const bundleCount = activeBundles.filter((b: any) => (b.category || 'General') === cat).length;
+              const art = termArtFor(cat);
+              if (art) {
+                const ink = art.dark ? art.accent : '#fff';
+                return (
+                  <div
+                    key={cat}
+                    onClick={() => setSelectedStoreTab(cat)}
+                    style={{
+                      position: 'relative', overflow: 'hidden', cursor: 'pointer',
+                      minWidth: 0,
+                      aspectRatio: '1200 / 640', minHeight: '190px',
+                      borderRadius: '28px', border: '0.5px solid var(--border)',
+                      boxShadow: '0 1px 2px rgba(0,0,0,0.04), 0 8px 24px rgba(0,0,0,0.08)',
+                      transition: 'transform 0.3s cubic-bezier(0.23,1,0.32,1)',
+                    }}
+                    onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-4px)'; e.currentTarget.style.boxShadow = '0 2px 4px rgba(0,0,0,0.05), 0 22px 44px rgba(0,0,0,0.16)' }}
+                    onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = '0 1px 2px rgba(0,0,0,0.04), 0 8px 24px rgba(0,0,0,0.08)' }}
+                    onMouseDown={e => { e.currentTarget.style.transform = 'scale(0.985)' }}
+                    onMouseUp={e => { e.currentTarget.style.transform = 'translateY(-4px)' }}
+                  >
+                    <img src={art.src} alt="" loading="lazy" decoding="async" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'right center' }} />
+                    <div style={{ position: 'relative', height: '100%', padding: '22px 22px', display: 'flex', flexDirection: 'column', alignItems: 'flex-start', justifyContent: 'space-between' }}>
+                      <span style={{ fontSize: '13px', fontWeight: 700, color: ink, background: art.dark ? `${art.accent}1f` : 'rgba(255,255,255,0.22)', padding: '6px 12px', borderRadius: '20px' }}>
+                        {courseCount > 0 && `${courseCount} Course${courseCount > 1 ? 's' : ''}`}
+                        {courseCount > 0 && bundleCount > 0 && ' · '}
+                        {bundleCount > 0 && `${bundleCount} Bundle${bundleCount > 1 ? 's' : ''}`}
+                      </span>
+                      <div>
+                        <h3 style={{ fontSize: 'clamp(26px, 6vw, 32px)', fontWeight: 800, letterSpacing: '-1px', color: ink, margin: '0 0 12px', lineHeight: 1.05 }}>{cat}</h3>
+                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '15px', fontWeight: 700, padding: '11px 18px', borderRadius: '999px', background: art.dark ? art.accent : '#fff', color: art.dark ? '#fff' : art.accent }}>
+                          View courses <ChevronRight size={16} strokeWidth={2.6} />
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                );
+              }
               return (
                 <div
                   key={cat}

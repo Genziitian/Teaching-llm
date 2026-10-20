@@ -1,0 +1,66 @@
+.page {
+  --desk: #f4efe6;
+  --ink: #1f1d1b;
+  --muted: #1f1d1b;
+  --grid: #d9d2c344;
+  position: relative;
+  isolation: isolate;
+  min-height: max(820px, 100svh);
+  overflow: hidden;
+  color: var(--ink);
+  background-color: var(--desk);
+  background-image: linear-gradient(var(--grid) 1px, transparent 1px), linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size: 32px 32px;
+}
+.copy { position: relative; z-index: 2; padding: 70px 7% 0; max-width: 1400px; margin: 0 auto; pointer-events: none; }
+.eyebrow { opacity: .7; margin: 0 0 22px; font-size: 11px; font-weight: 600; letter-spacing: .2em; color: var(--muted); }
+.copy h1 { margin: 0; font-family: Georgia, 'Times New Roman', serif; font-weight: 400; font-size: clamp(58px, 7.6vw, 106px); line-height: .98; letter-spacing: -.065em; }
+.description { opacity: .72; margin: 24px 0; max-width: 480px; color: var(--muted); font-size: 15px; line-height: 1.75; }
+.pathname { overflow-wrap: anywhere; }
+.back { pointer-events: auto; display: inline-flex; gap: 23px; align-items: center; min-height: 48px; padding: 12px 26px; background: var(--ink); color: var(--desk); border-radius: 3px; font-size: 14px; font-weight: 500; text-decoration: none; transition: background .2s; }
+.back:hover { background: #1e8a82; color: #f4efe6; }
+.back:focus-visible, .compassControl:focus-visible { outline: 3px solid #ff5b3a; outline-offset: 6px; }
+.stage { position: absolute; bottom: 10px; left: 50%; width: min(1200px, 100%); aspect-ratio: 3 / 2; transform: translateX(-50%); }
+.layer, .path, .needle, .crane { position: absolute; inset: 0; width: 100%; height: 100%; user-select: none; pointer-events: none; }
+.dark { display: none; }
+.mobileScene { display: none; }
+.needle { transform-origin: 50% 70.625%; will-change: transform; }
+.crane { transform-origin: 50% 56.25%; }
+.craneFound { animation: craneNod .7s ease-in-out 1; }
+@keyframes craneNod { 35% { transform: rotate(7deg); } 65% { transform: rotate(-3deg); } }
+.path { color: #1e8a82; }
+.pathReveal { stroke-dasharray: 1; stroke-dashoffset: 1; transition: stroke-dashoffset 1.1s ease; }
+.pathComplete .pathReveal { stroke-dashoffset: 0; }
+.compassControl { position: absolute; left: 43%; top: 60.125%; width: 14%; height: 21%; border-radius: 50%; border: 0; background: transparent; cursor: grab; touch-action: none; -webkit-tap-highlight-color: transparent; }
+.grabbing { cursor: grabbing; }
+.hint { opacity: .7; position: absolute; z-index: 2; bottom: 25px; left: 20px; right: 20px; text-align: center; font-size: 11px; letter-spacing: .025em; color: var(--muted); margin: 0; }
+.pulse { animation: pulse .55s ease 1; }
+.srOnly { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+@keyframes pulse { 50% { box-shadow: 0 0 0 7px #1e8a8226; transform: translateY(-2px); } }
+:global(html[data-theme='dark']) .page, :global(html[data-theme='black']) .page { --desk: #1a1917; --ink: #f4efe6; --muted: #f4efe6; --grid: #d9d2c30c; }
+:global(html[data-theme='dark']) .light, :global(html[data-theme='black']) .light { display: none; }
+:global(html[data-theme='dark']) .dark, :global(html[data-theme='black']) .dark { display: block; }
+@media (min-width: 701px) { .mobileScene { display: none !important; } }
+@media (min-width: 1500px) { .copy { padding-top: 95px; } }
+@media (max-width: 700px) {
+  .page { min-height: max(800px, 100svh); }
+  .copy { padding: 46px 8% 0; }
+  .eyebrow { margin-bottom: 23px; font-size: 10px; }
+  .copy h1 { font-size: clamp(56px, 13vw, 84px); }
+  .description { font-size: 13px; max-width: 310px; margin: 20px 0; }
+  .stage { width: min(1000px, 200%); bottom: 18px; }
+  .desktopScene { display: none !important; }
+  .mobileScene { display: block; }
+  .mobileScene.dark { display: none; }
+  :global(html[data-theme='dark']) .mobileScene.dark, :global(html[data-theme='black']) .mobileScene.dark { display: block; }
+  :global(html[data-theme='dark']) .mobileScene.light, :global(html[data-theme='black']) .mobileScene.light { display: none; }
+  .hint { bottom: 22px; font-size: 10px; }
+  .desktopBreak { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pulse, .craneFound { animation: none; }
+  .pathReveal { transition: none; }
+  .path { transition: opacity .2s; opacity: 0; }
+  .pathComplete { opacity: 1; }
+  .needle { transition: opacity .2s; }
+}

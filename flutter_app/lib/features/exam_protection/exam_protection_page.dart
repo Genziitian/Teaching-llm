@@ -651,7 +651,6 @@ class _PageState extends ConsumerState<ExamProtectionPage> {
                                 child: Text(busy ? 'Working…' : claimStep < 3 ? 'Continue' : 'Submit claim'),
                               ),
                             ]),
-                            ),
                           ],
                         ),
                       ),

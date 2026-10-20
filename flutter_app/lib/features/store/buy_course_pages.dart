@@ -405,6 +405,34 @@ const _kTermIcons = <IconData>[
   Symbols.workspace_premium_rounded,
 ];
 
+/// Bundled artwork per term (matched by name). Null keeps the gradient look.
+class _TermArt {
+  const _TermArt(this.asset, this.dark, this.accent);
+  final String asset;
+  final bool dark; // true = art is light on the left, so use dark text
+  final Color accent;
+}
+
+_TermArt? _termArt(String level) {
+  final l = level.toLowerCase();
+  if (l.contains('general')) {
+    return const _TermArt('assets/store/term-general.webp', false, Color(0xFF3B4FD8));
+  }
+  if (l.contains('foundation')) {
+    return const _TermArt('assets/store/term-foundation.webp', false, Color(0xFF1F7A45));
+  }
+  if (l.contains('qualifier')) {
+    return const _TermArt('assets/store/term-qualifier.webp', true, Color(0xFF0B1B3F));
+  }
+  if (l.contains('diploma')) {
+    return const _TermArt('assets/store/term-diploma.webp', false, Color(0xFF0A5C4E));
+  }
+  if (l.contains('degree')) {
+    return const _TermArt('assets/store/term-degree.webp', true, Color(0xFF3A1D00));
+  }
+  return null;
+}
+
 class _LevelCard extends StatelessWidget {
   const _LevelCard({
     required this.index,
@@ -428,6 +456,8 @@ class _LevelCard extends StatelessWidget {
       if (courses > 0) '$courses ${courses == 1 ? 'Course' : 'Courses'}',
     ];
     final g = _kTermGradients[index % _kTermGradients.length];
+    final art = _termArt(level);
+    final ink = art != null && art.dark ? art.accent : Colors.white;
     return ApplePressable(
       onTap: onTap,
       child: Container(
@@ -443,6 +473,16 @@ class _LevelCard extends StatelessWidget {
         clipBehavior: Clip.antiAlias,
         child: Stack(
           children: [
+            if (art != null)
+              Positioned.fill(
+                child: Image.asset(
+                  art.asset,
+                  fit: BoxFit.cover,
+                  alignment: Alignment.centerRight,
+                  gaplessPlayback: true,
+                ),
+              )
+            else
             Positioned(
               right: -18,
               bottom: -28,
@@ -459,31 +499,33 @@ class _LevelCard extends StatelessWidget {
                     padding: const EdgeInsets.symmetric(
                         horizontal: 12, vertical: 6),
                     decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.22),
+                      color: art != null && art.dark
+                          ? art.accent.withValues(alpha: 0.12)
+                          : Colors.white.withValues(alpha: 0.22),
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Text(parts.join(' · '),
-                        style: const TextStyle(
+                        style: TextStyle(
                             fontSize: 13,
                             fontWeight: FontWeight.w700,
-                            color: Colors.white)),
+                            color: ink)),
                   ),
                   const Spacer(),
                   Text(level,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
+                      style: TextStyle(
                           fontSize: 32,
                           fontWeight: FontWeight.w800,
                           letterSpacing: -1,
                           height: 1.05,
-                          color: Colors.white)),
+                          color: ink)),
                   const SizedBox(height: 14),
                   Container(
                     height: 46,
                     padding: const EdgeInsets.symmetric(horizontal: 20),
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: art != null && art.dark ? art.accent : Colors.white,
                       borderRadius: BorderRadius.circular(23),
                     ),
                     child: Row(
@@ -493,10 +535,15 @@ class _LevelCard extends StatelessWidget {
                             style: TextStyle(
                                 fontSize: 15.5,
                                 fontWeight: FontWeight.w700,
-                                color: g.last)),
+                                color: art == null
+                                    ? g.last
+                                    : (art.dark ? Colors.white : art.accent))),
                         const SizedBox(width: 6),
                         Icon(Symbols.arrow_forward_rounded,
-                            size: 18, color: g.last),
+                            size: 18,
+                            color: art == null
+                                ? g.last
+                                : (art.dark ? Colors.white : art.accent)),
                       ],
                     ),
                   ),

@@ -1,0 +1,1 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="800" viewBox="0 0 1200 800" fill="none"><defs><filter id="shadow" x="-100%" y="-30%" width="300%" height="180%"><feGaussianBlur stdDeviation="3"/></filter></defs><!-- Separate shadow rotates about 600,565 with the needle. --><path d="m603 493 14 77-14 61-14-61Z" fill="#1F1D1B" opacity=".18" filter="url(#shadow)"/></svg>
