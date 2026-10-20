@@ -9,6 +9,7 @@ import '../../core/facts/loading_facts_data.dart';
 import '../../features/launch/play_store_launch_overlay.dart';
 import '../../features/prompts/admin_messages_host.dart';
 import '../../features/updates/play_update.dart';
+import '../../features/updates/policy_update_dialog.dart';
 import '../../features/updates/whats_new_dialog.dart';
 import 'loading_fact_card.dart';
 
@@ -114,6 +115,7 @@ class _SplashOverlayState extends ConsumerState<SplashOverlay>
       WidgetsBinding.instance.addPostFrameCallback((_) {
         unawaited(checkPlayUpdateOnLaunch());
         unawaited(checkWhatsNewOnLaunch());
+        unawaited(checkPolicyUpdateOnLaunch());
       });
     }
 

@@ -1,7 +1,7 @@
 // Exact legal copy shared with the website policy pages.
 const privacyPolicyText = r'''Official Legal Document
 Privacy Policy
-Last updated: August 24, 2026
+Last updated: October 20, 2026
 
 This Privacy Notice for GENZ IITIAN ("we," "us," or "our"), describes how and why we might access, collect, store, use, and/or share ("process") your personal information when you use our services ("Services"), including when you:
 
@@ -95,6 +95,8 @@ Sensitive Information: We do not process sensitive information.
 Payment Data: We may collect data necessary to process your payment if you choose to make purchases, such as your payment instrument number, and the security code associated with your payment instrument. All payment data is handled and stored by RAZORPAY. You may find their privacy notice link here: https://razorpay.com/privacy-policy/
 
 WE USE PAYMENT IN OUR WEBSITE ONLY
+
+Google Play In-App Purchases (Android App): For purchases of digital goods, study materials, and premium notes made within our Android mobile application, transactions are processed directly and securely by Google Play Billing (Google LLC). We do not collect, process, or store your credit/debit card numbers, UPI credentials, or banking details. Google manages your payment data in accordance with Google's Privacy Policy (https://policies.google.com/privacy) and Google Play Terms of Service.
 Application Data
 If you use our application(s), we also may collect the following information if you choose to provide us with access or permission:
 
@@ -205,6 +207,8 @@ At GenZ IITian, we provide 100% digital educational services in the form of onli
 
 Due to the nature of digital content, all purchases are final. We do not offer refunds, returns, or exchanges under any circumstances once a course has been purchased. We strongly recommend reviewing course details before making a purchase. In case of any technical issues, payment errors, or access-related problems, you can contact our support team. We will ensure that you receive proper access to your purchased course. We reserve the right to update or modify this policy at any time without prior notice. Changes will be effective immediately upon posting.
 
+Google Play In-App Purchases Refund Policy: For purchases made directly through our Android mobile application via Google Play In-App Billing, refund requests are subject to Google Play Refund Policies. Users can request a refund directly through Google Play within 48 hours of purchase via their Google Play Order History or at https://support.google.com/googleplay/answer/2479637. If you encounter any technical difficulty or access issues with an in-app purchase, contact our support team with your Google Play Order ID (GPA.xxxx...) for immediate assistance.
+
 14
 14. Do We Make Updates to This Notice?
 In Short: Yes, we will update this notice as necessary to stay compliant with relevant laws.
@@ -237,7 +241,7 @@ Email Us Directly''';
 
 const termsAndConditionsText = r'''Terms & Conditions
 
-Last Updated: April 2026
+Last Updated: October 2026
 
 01 Service Description
 
@@ -256,6 +260,15 @@ To access our courses, users must sign in via their Google account. You are sole
 04 Payment Terms
 
 All prices are clearly displayed before the final checkout. By proceeding with the payment, you agree to the price and terms of the specific course. All payments are processed through secure third-party payment gateways (Razorpay, Stripe, or Cashfree).
+
+04.1 Google Play In-App Purchases (Android App)
+
+For digital educational goods, study notes, and materials purchased within the Android mobile application, transactions are processed exclusively through Google Play In-App Billing in compliance with Google Play Developer Policies. By initiating an in-app purchase, you agree to Google Play's Terms of Service and payment terms.
+
+- Pricing & Currency: All prices are clearly stated in Indian Rupees (₹) or your local currency as configured in Google Play prior to confirmation.
+- Digital Delivery & Validity: Digital study materials and notes are delivered immediately upon confirmation of payment. Access is valid for the specified period (e.g., 90 days from the purchase date), after which access expires unless restored or repurchased.
+- Cross-Platform Synchronization: Digital notes purchased via Google Play Billing in the mobile app are automatically linked to your authenticated user account and are accessible across both the mobile application and the web platform.
+- Repurchase & Restoration: Note purchases are one-time consumable digital items. If your access period expires, you may repurchase the material to renew access for an additional validity period.
 
 05 Prohibited Use & Copyright
 

@@ -10,7 +10,7 @@ import { TERMS_AND_CONDITIONS_HTML } from './terms-and-conditions'
  * which styles h1/h2/p/ul/li/etc. — keep markup simple.
  */
 
-const LAST_UPDATED = 'April 2026'
+const LAST_UPDATED = 'October 2026'
 
 function sectionHeader(num: string, title: string): string {
   return `<h2><span style="display:inline-block; min-width:42px; color:#94a3b8; font-weight:700; letter-spacing:-0.01em;">${num}.</span> ${title}</h2>`
@@ -45,6 +45,10 @@ ${sectionHeader('03', 'Reason for this Policy')}
 
 ${sectionHeader('04', 'Duplicate Payment Resolution')}
 <p>In case of a technical glitch leading to a duplicate payment for the same course, users should contact our support team immediately. Upon verification, we will initiate a refund for the duplicate transaction through the original payment method. The refund process may take <strong>5–7 business days</strong> depending on the payment gateway and your bank.</p>
+
+${sectionHeader('05', 'Google Play In-App Purchases Refund Policy')}
+<p>For purchases of digital goods, notes, and study materials made directly through our Android mobile application via Google Play In-App Billing, refund requests are governed by Google Play Refund Policies. You may request a refund directly through Google Play within 48 hours of purchase via your Google Play account order history or at <a href="https://support.google.com/googleplay/answer/2479637" target="_blank" rel="noopener noreferrer">Google Play Refund Support</a>.</p>
+<p>If you experience any technical difficulty, delayed unlocking, or access issues after completing a Google Play purchase, please contact our support team with your Google Play Order ID (starting with <code>GPA.</code>) for immediate assistance or order resolution.</p>
 
 ${contactFooter('Still have questions?')}
 `.trim()

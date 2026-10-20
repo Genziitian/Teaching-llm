@@ -245,6 +245,8 @@ class InAppDocPage extends ConsumerWidget {
         return const Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            _LastUpdatedBadge('October 2026'),
+            SizedBox(height: 14),
             _Paragraph(
               'At GenZ IITian, we provide 100% digital educational services in the form of online courses. There is no physical product, shipment, or delivery involved.',
             ),
@@ -263,6 +265,15 @@ class InAppDocPage extends ConsumerWidget {
             SizedBox(height: 16),
             _Paragraph(
               'We reserve the right to update or modify this policy at any time without prior notice. Changes will be effective immediately upon posting.',
+            ),
+            SizedBox(height: 20),
+            _SectionHeader(
+              num: '05',
+              title: 'Google Play In-App Purchases Refund Policy',
+            ),
+            SizedBox(height: 10),
+            _Paragraph(
+              'For purchases of digital goods, notes, and study materials made directly through our Android mobile application via Google Play In-App Billing, refund requests are governed by Google Play Refund Policies. Users can request a refund directly through Google Play within 48 hours of purchase via their Google Play Order History or at https://support.google.com/googleplay/answer/2479637. If you encounter any technical difficulty or access issues with an in-app purchase, contact our support team with your Google Play Order ID (GPA.xxxx...) for immediate assistance.',
             ),
           ],
         );
@@ -359,7 +370,7 @@ class _TermsAndConditionsDocument extends StatelessWidget {
             color: tokens.textMuted,
           ),
         ));
-      } else if (RegExp(r'^0[1-6] ').hasMatch(block)) {
+      } else if (RegExp(r'^0\d(\.\d+)?\s').hasMatch(block)) {
         children.add(Padding(
           padding: const EdgeInsets.only(top: 8),
           child: Text(
