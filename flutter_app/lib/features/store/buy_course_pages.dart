@@ -18,7 +18,7 @@ import 'purchase_success_dialog.dart';
 
 /// /api/bundle-offerings: same data the website store shows.
 final bundleOfferingsProvider =
-    FutureProvider<List<Map<String, dynamic>>>((ref) async {
+    FutureProvider.autoDispose<List<Map<String, dynamic>>>((ref) async {
   final api = ref.watch(apiClientProvider);
   final res = await api.get<dynamic>('/api/bundle-offerings');
   final data = res.data;
@@ -1741,7 +1741,7 @@ class _BundleDetailPageState extends ConsumerState<BundleDetailPage> {
                               color: tokens.textPrimary)),
                     ),
                     Builder(builder: (_) {
-                      final pr = _type == null
+                      final pr = (_type == null || fixed)
                           ? null
                           : _coursePrice(bundle, _type!, chosenIds, chosenIds[i], total);
                       return Text(pr == null ? '' : _money(pr),
@@ -1909,7 +1909,7 @@ class _BundleDetailPageState extends ConsumerState<BundleDetailPage> {
     } else {
       barTop = 'Total';
       barBottom = total == null ? 'At checkout' : _money(total);
-      btnLabel = 'Pay now';
+      btnLabel = _agree ? 'Pay now' : 'Accept terms to pay';
       btnEnabled = _agree && ids.isNotEmpty && !_buying;
       btnTap = btnEnabled ? () => _buy(bundle, ids) : null;
     }

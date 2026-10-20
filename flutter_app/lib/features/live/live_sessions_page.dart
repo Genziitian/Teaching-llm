@@ -686,7 +686,7 @@ class _LiveCardState extends State<_LiveCard>
                         ),
                         alignment: Alignment.center,
                         child: const Text(
-                          'Join class',
+                          'Join now',
                           style: TextStyle(
                             color: Color(0xFFDC2626),
                             fontSize: 17,
@@ -716,6 +716,107 @@ class _LiveCardState extends State<_LiveCard>
   }
 }
 
+/// Session row in the same shape as the Home "Upcoming Session" card:
+/// rounded video tile, small coloured time label, title, subtitle.
+class _SessionTile extends StatelessWidget {
+  const _SessionTile({
+    required this.label,
+    required this.title,
+    required this.subtitle,
+    required this.accent,
+    required this.icon,
+    this.trailing,
+    this.onTap,
+    this.muted = false,
+  });
+  final String label;
+  final String title;
+  final String subtitle;
+  final Color accent;
+  final IconData icon;
+  final Widget? trailing;
+  final VoidCallback? onTap;
+  final bool muted;
+
+  @override
+  Widget build(BuildContext context) {
+    final tokens = context.tokens;
+    final card = Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: muted
+            ? tokens.cardBg
+            : Color.alphaBlend(
+                accent.withValues(alpha: tokens.isDark ? 0.12 : 0.06),
+                tokens.cardBg),
+        borderRadius: BorderRadius.circular(24),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 52,
+            height: 52,
+            decoration: BoxDecoration(
+              color: muted
+                  ? tokens.textMuted.withValues(alpha: 0.14)
+                  : accent.withValues(alpha: 0.16),
+              borderRadius: BorderRadius.circular(15),
+            ),
+            alignment: Alignment.center,
+            child: Icon(icon,
+                size: 26,
+                fill: 1,
+                weight: 500,
+                color: muted ? tokens.textSecondary : accent),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(label,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                        fontSize: 11.5,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 0.5,
+                        color: muted ? tokens.textSecondary : accent)),
+                const SizedBox(height: 3),
+                Text(title,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                        fontSize: 16.5,
+                        height: 1.2,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: -0.3,
+                        color: tokens.textPrimary)),
+                if (subtitle.isNotEmpty) ...[
+                  const SizedBox(height: 2),
+                  Text(subtitle,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                          fontSize: 13, color: tokens.textSecondary)),
+                ],
+              ],
+            ),
+          ),
+          const SizedBox(width: 10),
+          trailing ??
+              Icon(Symbols.arrow_forward_ios_rounded,
+                  weight: 700, color: tokens.textMuted, size: 13),
+        ],
+      ),
+    );
+    return onTap == null
+        ? card
+        : ApplePressable(onTap: onTap, pressedScale: 0.98, child: card);
+  }
+}
+
 class _UpcomingRow extends StatelessWidget {
   const _UpcomingRow({required this.event, required this.slotIndex});
   final CourseEvent event;
@@ -730,7 +831,6 @@ class _UpcomingRow extends StatelessWidget {
         dt.year == now.year && dt.month == now.month && dt.day == now.day;
     final mentor = event.instructorName ?? 'Teacher not assigned';
     final subject = event.courseName ?? 'Class';
-    // Same rotating slot accents as Capacitor's UpcomingSessionRow.
     final accents = [
       tokens.primaryAccent,
       tokens.success,
@@ -739,124 +839,19 @@ class _UpcomingRow extends StatelessWidget {
       tokens.info
     ];
     final accent = accents[slotIndex % accents.length];
-
-    return ApplePressable(
+    return _SessionTile(
+      label:
+          '${DateFormat('h:mm a').format(dt)} · ${isToday ? 'TODAY' : DateFormat('d MMM').format(dt).toUpperCase()}',
+      title: event.title,
+      subtitle: [subject, mentor].where((v) => v.isNotEmpty).join(' · '),
+      accent: accent,
+      icon: Symbols.videocam_rounded,
       onTap: () => _joinSession(context, event),
-      child: Container(
-        decoration: BoxDecoration(
-          color: tokens.cardBg,
-          borderRadius: BorderRadius.circular(22),
-        ),
-        clipBehavior: Clip.antiAlias,
-        child: IntrinsicHeight(
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Container(width: 4, color: accent),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(14, 16, 0, 16),
-                child: SizedBox(
-                  width: 64,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      FittedBox(
-                        fit: BoxFit.scaleDown,
-                        child: Text(
-                          DateFormat('h:mm').format(dt),
-                          style: TextStyle(
-                            fontSize: 22,
-                            fontWeight: FontWeight.w700,
-                            letterSpacing: -0.5,
-                            color: accent,
-                            fontFeatures: const [FontFeature.tabularFigures()],
-                          ),
-                        ),
-                      ),
-                      Text(
-                        DateFormat('a').format(dt),
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                          color: accent,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        isToday
-                            ? 'Today'
-                            : DateFormat('d MMM').format(dt),
-                        style: TextStyle(
-                          fontSize: 12.5,
-                          color: tokens.textSecondary,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(10, 16, 8, 16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        event.title,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          fontSize: 17,
-                          height: 1.25,
-                          fontWeight: FontWeight.w600,
-                          letterSpacing: -0.3,
-                          color: tokens.textPrimary,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        subject,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: tokens.textSecondary,
-                        ),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        mentor,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w500,
-                          color: tokens.textPrimary,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.only(right: 14),
-                child: Center(
-                  child: Icon(Symbols.arrow_forward_ios_rounded,
-                      weight: 700, color: tokens.textMuted, size: 13),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
     );
   }
 }
 
-/// A finished session, shown as a plain full-width row (same shape as the
-/// Upcoming rows) rather than a video-style thumbnail card.
+/// A finished session, in the same shape as the Upcoming rows.
 class _PastRow extends StatelessWidget {
   const _PastRow({required this.event});
   final CourseEvent event;
@@ -867,117 +862,19 @@ class _PastRow extends StatelessWidget {
     final dt = event.startTime.toLocal();
     final mentor = event.instructorName ?? 'Teacher not assigned';
     final subject = event.courseName ?? 'Class';
-
-    return Container(
-      decoration: BoxDecoration(
-        color: tokens.cardBg,
-        borderRadius: BorderRadius.circular(22),
-      ),
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          SizedBox(
-            width: 52,
-            child: Column(
-              children: [
-                Text(
-                  DateFormat('d').format(dt),
-                  style: TextStyle(
-                    fontSize: 26,
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: -0.5,
-                    color: tokens.textPrimary,
-                    fontFeatures: const [FontFeature.tabularFigures()],
-                  ),
-                ),
-                Text(
-                  DateFormat('MMM').format(dt).toUpperCase(),
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    color: tokens.textSecondary,
-                    letterSpacing: 0.4,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  DateFormat('h:mm a').format(dt),
-                  style: TextStyle(
-                    fontSize: 11.5,
-                    color: tokens.textMuted,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Container(
-            width: 0.5,
-            height: 56,
-            margin: const EdgeInsets.symmetric(horizontal: 14),
-            color: tokens.border,
-          ),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  event.title,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    fontSize: 17,
-                    height: 1.25,
-                    fontWeight: FontWeight.w600,
-                    letterSpacing: -0.3,
-                    color: tokens.textPrimary,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  subject,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: tokens.textSecondary,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  mentor,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                    color: tokens.textPrimary,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(width: 8),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-            decoration: BoxDecoration(
-              color: tokens.textMuted.withOpacity(0.14),
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Text(
-              'Ended',
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-                color: tokens.textSecondary,
-              ),
-            ),
-          ),
-        ],
-      ),
+    return _SessionTile(
+      label:
+          'ENDED · ${DateFormat('d MMM').format(dt).toUpperCase()} · ${DateFormat('h:mm a').format(dt)}',
+      title: event.title,
+      subtitle: [subject, mentor].where((v) => v.isNotEmpty).join(' · '),
+      accent: tokens.textSecondary,
+      icon: Symbols.videocam_rounded,
+      muted: true,
+      trailing: const SizedBox.shrink(),
     );
   }
 }
+
 
 class _Empty extends StatelessWidget {
   const _Empty({required this.title, required this.sub});

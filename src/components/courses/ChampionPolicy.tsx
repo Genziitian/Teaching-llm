@@ -19,8 +19,7 @@ export default function ChampionPolicy() {
   )
   const ul: React.CSSProperties = { listStyle: 'none', margin: '6px 0 12px', padding: 0, display: 'flex', flexDirection: 'column', gap: 6 }
   return (
-    <div style={{ padding: '16px 18px', borderRadius: 16, background: 'var(--danger-light)', border: '1px solid var(--border)', marginBottom: 16 }}>
-      <div style={{ fontSize: 15, fontWeight: 800, color: 'var(--danger)' }}>Qualifier Champion Batch: Terms &amp; Conditions</div>
+    <div style={{ padding: 0 }}>
       <div style={{ fontSize: 13, color: 'var(--text-secondary)', margin: '6px 0 10px' }}>Everything in Live Pro, plus a full refund or free reattempt support when all the conditions below are fulfilled.</div>
       <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: '0.05em', textTransform: 'uppercase', color: 'var(--text-secondary)' }}>Eligibility criteria</div>
       <ul style={ul}>{CHAMPION_ELIGIBILITY.map(li)}</ul>

@@ -891,8 +891,8 @@ export default function ExploreCoursesPage() {
             setSelectedNotesTab('')
             setSelectedNotesSubjectTab('')
             setShowNotesInfo(false)
-          }} style={{ display: 'inline-block', background: 'transparent', border: 'none', boxShadow: 'none', color: 'var(--accent)', fontSize: '17px', fontWeight: 500, cursor: 'pointer', padding: '6px 0' }}>
-            Back
+          }} style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', background: 'transparent', border: 'none', boxShadow: 'none', color: 'var(--accent)', fontSize: '17px', fontWeight: 500, cursor: 'pointer', padding: '6px 0' }}>
+            <ArrowLeft size={20} /> Back
           </button>
           {storeView === 'notes' && (
             <>
@@ -1032,7 +1032,8 @@ export default function ExploreCoursesPage() {
         <div style={{ marginBottom: '18px' }}>
           <div style={{ marginTop: '12px' }} />
           <div style={{ display: 'flex', gap: '12px', overflowX: 'auto', paddingBottom: '8px' }}>
-            {filteredBundles.map((b: any) => {
+            {filteredBundles.map((b: any, bi: number) => {
+              const tone = ['#6366f1', '#10b981', '#f59e0b', '#ec4899', '#0ea5e9'][bi % 5]
               const bundlePriceRecorded = b.recordedDiscountPrice ?? b.recordedOriginalPrice
               const bundlePriceLive = b.liveDiscountPrice ?? b.liveOriginalPrice
               const bundlePriceChampion = b.championDiscountPrice ?? b.championOriginalPrice
@@ -1040,11 +1041,11 @@ export default function ExploreCoursesPage() {
                 <div key={b.id} style={{ 
                   minWidth: '320px', 
                   maxWidth: '350px',
-                  background: 'var(--surface)', 
+                  background: `linear-gradient(160deg, color-mix(in srgb, ${tone} 16%, var(--surface)) 0%, color-mix(in srgb, ${tone} 4%, var(--surface)) 70%)`, 
                   borderRadius: '26px', 
                   padding: '20px', 
                   boxShadow: '0 1px 2px rgba(0,0,0,0.04), 0 8px 24px rgba(0,0,0,0.05)',
-                  border: '0.5px solid var(--border)',
+                  border: `1px solid color-mix(in srgb, ${tone} 28%, var(--border))`,
                   display: 'flex',
                   flexDirection: 'column',
                   gap: '14px',
@@ -1056,7 +1057,7 @@ export default function ExploreCoursesPage() {
                 >
                   <div style={{ flex: 1 }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '10px' }}>
-                      <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.06em', background: 'var(--surface-hover)', padding: '4px 10px', borderRadius: '20px' }}>Bundle</div>
+                      <div style={{ fontSize: '11px', fontWeight: 700, color: tone, textTransform: 'uppercase', letterSpacing: '0.06em', background: `color-mix(in srgb, ${tone} 16%, transparent)`, padding: '4px 10px', borderRadius: '20px' }}>Bundle</div>
                         <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-secondary)' }}>{b.courses.length} Courses</span>
                     </div>
                     <div style={{ fontSize: '22px', fontWeight: 800, letterSpacing: '-0.4px', color: 'var(--text-primary)', marginBottom: '6px' }}>{b.name}</div>
@@ -1072,8 +1073,8 @@ export default function ExploreCoursesPage() {
                           <span key={c.course.id} style={{ 
                             fontSize: '11px', 
                             fontWeight: '700', 
-                            color: 'var(--text-secondary)', 
-                            background: 'var(--surface-hover)', 
+                            color: 'var(--text-primary)', 
+                            background: `color-mix(in srgb, ${tone} 14%, transparent)`, 
                             padding: '4px 9px', 
                             borderRadius: '8px',
                             border: 'none'
@@ -1085,19 +1086,19 @@ export default function ExploreCoursesPage() {
                     )}
                   </div>
 
-                  <div style={{ background: 'var(--surface-hover)', borderRadius: '18px', padding: '14px 16px', border: 'none' }}>
+                  <div style={{ background: `color-mix(in srgb, ${tone} 14%, var(--surface))`, borderRadius: '18px', padding: '14px 16px', border: 'none' }}>
                     <div style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '5px' }}>
                       <Calendar size={13} /> {b.bannerText || 'Class starts from 1 June 2026'}
                     </div>
                     <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px' }}>
                       <span style={{ fontSize: '14px', fontWeight: '800', color: 'var(--text-primary)' }}>₹</span>
-                      <span style={{ fontSize: '28px', fontWeight: '950', color: 'var(--text-primary)', letterSpacing: '-0.02em' }}>{b.startingPrice || (bundlePriceLive || bundlePriceRecorded || 0)}</span>
+                      <span style={{ fontSize: '28px', fontWeight: '950', color: tone, letterSpacing: '-0.02em' }}>{b.startingPrice || (bundlePriceLive || bundlePriceRecorded || 0)}</span>
                     </div>
                   </div>
 
                   <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-                    <button onClick={() => setDetailView({ kind: 'bundle', id: b.id })} style={{ padding: '13px 18px', borderRadius: '14px', background: 'var(--surface-hover)', color: 'var(--text-primary)', fontWeight: 600, fontSize: '15px', border: 'none', cursor: 'pointer' }}>Details</button>
-                    <button onClick={() => openBundleBuy(b)} style={{ flex: 1, padding: '13px', borderRadius: '14px', background: 'var(--accent)', color: 'var(--button-text, #fff)', fontWeight: 600, fontSize: '15px', border: 'none', cursor: 'pointer' }}>View / Buy</button>
+                    <button onClick={() => setDetailView({ kind: 'bundle', id: b.id })} style={{ padding: '13px 18px', borderRadius: '14px', background: `color-mix(in srgb, ${tone} 16%, transparent)`, color: tone, fontWeight: 700, fontSize: '15px', border: 'none', cursor: 'pointer', whiteSpace: 'nowrap' }}>View details</button>
+                    <button onClick={() => openBundleBuy(b)} style={{ flex: 1, padding: '13px', borderRadius: '14px', background: tone, color: '#fff', fontWeight: 700, fontSize: '15px', border: 'none', cursor: 'pointer', whiteSpace: 'nowrap' }}>Buy now</button>
                     
                     {(userData?.user?.role === 'MANAGER' || userData?.role === 'MANAGER') && (
                       <div style={{ display: 'flex', gap: '6px' }}>
@@ -1151,55 +1152,31 @@ export default function ExploreCoursesPage() {
       )}
 
       {/* Category options selection screen for Notes */}
-      {storeView === 'notes' && !selectedNotesTab && visibleNotesCategories.length > 0 && (
-        <div style={{ padding: '20px 0' }}>
-          
-          <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '18px', maxWidth: '980px', margin: '0 auto' }}>
-            {visibleNotesCategories.map(cat => {
-              const notesCount = activeNotes.filter((n: any) => (n.category || 'General') === cat).length;
-              return (
-                <div
-                  key={cat}
-                  onClick={() => setSelectedNotesTab(cat)}
-                  style={{
-                    background: 'var(--surface)',
-                    borderRadius: '28px',
-                    padding: '28px 28px',
-                    flex: '1 1 320px',
-                    maxWidth: '440px',
-                    minWidth: 0,
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '18px',
-                    textAlign: 'left',
-                    cursor: 'pointer',
-                    boxShadow: '0 1px 2px rgba(0,0,0,0.04), 0 6px 18px rgba(0,0,0,0.04)',
-                    border: '0.5px solid var(--border)',
-                    transition: 'transform 0.3s cubic-bezier(0.23,1,0.32,1), box-shadow 0.3s cubic-bezier(0.23,1,0.32,1)',
-                  }}
-                  onMouseEnter={e => {
-                    e.currentTarget.style.transform = 'scale(1.015)';
-                    e.currentTarget.style.boxShadow = '0 2px 4px rgba(0,0,0,0.05), 0 14px 32px rgba(0,0,0,0.08)';
-                  }}
-                  onMouseLeave={e => {
-                    e.currentTarget.style.transform = 'scale(1)';
-                    e.currentTarget.style.boxShadow = '0 1px 2px rgba(0,0,0,0.04), 0 6px 18px rgba(0,0,0,0.04)';
-                  }}
-                >
-                  <div style={{ width: '60px', height: '60px', borderRadius: '18px', background: 'var(--surface-hover)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, color: 'var(--text-secondary)' }}>
-                    <FileText size={28} strokeWidth={2.1} />
-                  </div>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <h3 style={{ fontSize: '22px', fontWeight: 800, letterSpacing: '-0.4px', color: 'var(--text-primary)', margin: '0 0 4px' }}>{cat}</h3>
-                    <p style={{ fontSize: '15px', color: 'var(--text-secondary)', fontWeight: 500, margin: 0 }}>
-                      {notesCount > 0 ? `${notesCount} Note${notesCount > 1 ? 's' : ''}` : 'No notes'}
-                    </p>
-                  </div>
-                  <ChevronRight size={22} strokeWidth={2.4} color="var(--text-muted)" />
-                </div>
-              );
-            })}
-          </div>
+      {storeView === 'notes' && visibleNotesCategories.length > 0 && (
+        <div style={{ display: 'flex', gap: '10px', overflowX: 'auto', padding: '2px 2px 14px', marginBottom: '6px' }}>
+          {visibleNotesCategories.map((cat, ci) => {
+            const notesCount = activeNotes.filter((n: any) => (n.category || 'General') === cat).length
+            const on = currentNotesTab === cat
+            const tone = ['#6366f1', '#10b981', '#f59e0b', '#ec4899', '#0ea5e9'][ci % 5]
+            return (
+              <button
+                key={cat}
+                onClick={() => { setSelectedNotesTab(cat); setSelectedNotesSubjectTab('') }}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: '8px', whiteSpace: 'nowrap', cursor: 'pointer',
+                  padding: '11px 18px', borderRadius: '999px', fontSize: '15px', fontWeight: 700,
+                  border: on ? `1.5px solid ${tone}` : '1px solid var(--border)',
+                  background: on ? tone : 'var(--surface)',
+                  color: on ? '#fff' : 'var(--text-primary)',
+                  transition: 'all 0.2s ease',
+                }}
+              >
+                <FileText size={16} strokeWidth={2.2} />
+                {cat}
+                <span style={{ fontSize: '12px', fontWeight: 800, padding: '2px 8px', borderRadius: '999px', background: on ? 'rgba(255,255,255,0.25)' : `color-mix(in srgb, ${tone} 16%, transparent)`, color: on ? '#fff' : tone }}>{notesCount}</span>
+              </button>
+            )
+          })}
         </div>
       )}
 
@@ -1248,7 +1225,7 @@ export default function ExploreCoursesPage() {
       )}
 
       {/* Notes section */}
-      {storeView === 'notes' && selectedNotesTab && filteredNotes.length > 0 && (
+      {storeView === 'notes' && filteredNotes.length > 0 && (
         <div style={{ marginBottom: '18px' }}>
           
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(400px, 100%), 1fr))', gap: '22px', paddingBottom: '8px' }}>
@@ -2455,54 +2432,52 @@ export default function ExploreCoursesPage() {
                     );
                   })()}
 
-                  {activeBundle.allowIndividualPurchase === false && (activeBundle.forceClassType || bundleGlobalAccessType) === 'CHAMPION' && <ChampionPolicy />}
-
-                  {activeBundle.allowIndividualPurchase === false && (
-                    <div style={{ padding: '12px 18px', borderRadius: '16px', background: 'var(--info-light)', border: '1px solid var(--border)', marginBottom: '16px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                        <span style={{ fontSize: '20px' }}>🔒</span>
-                        <div>
-                          <div style={{ fontSize: '14px', fontWeight: '900', color: 'var(--info)' }}>Fixed Course Bundle</div>
-                          <div style={{ fontSize: '11px', color: 'var(--info)', fontWeight: '600' }}>This course set must be purchased as a complete package. Class type applies to all subjects.</div>
+                  {activeBundle.allowIndividualPurchase === false && (() => {
+                    const forced = activeBundle.forceClassType as string | null
+                    const eff = (forced || bundleGlobalAccessType) as 'RECORDED' | 'LIVE' | 'CHAMPION'
+                    const rec = activeBundle.recordedDiscountPrice ?? activeBundle.recordedOriginalPrice
+                    const live = activeBundle.liveDiscountPrice ?? activeBundle.liveOriginalPrice
+                    const champ = activeBundle.championDiscountPrice ?? activeBundle.championOriginalPrice
+                    const recO = activeBundle.recordedOriginalPrice, liveO = activeBundle.liveOriginalPrice, champO = activeBundle.championOriginalPrice
+                    const plans = [
+                      { key: 'RECORDED', name: 'Recorded Plus', price: rec, orig: recO, note: '', color: '#f59e0b' },
+                      { key: 'LIVE', name: 'Live Pro', price: live, orig: liveO, note: '', color: '#3b82f6' },
+                      { key: 'CHAMPION', name: 'Champion', price: champ, orig: champO, note: activeBundle.championSubtitle || '', color: '#ef4444' },
+                    ].filter(pl => Number(pl.price) > 0 && (!forced || forced === pl.key))
+                    return (
+                      <div style={{ marginTop: 28 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: 'var(--text-secondary)', fontWeight: 600, marginBottom: 14 }}>
+                          <span>🔒</span> Fixed bundle. All {activeBundle.courses.length} courses come together.
                         </div>
+                        <div style={{ fontSize: 22, fontWeight: 800, letterSpacing: '-0.5px', color: 'var(--text-primary)', marginBottom: 14 }}>Choose your plan</div>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))', gap: 12 }}>
+                          {plans.map(pl => {
+                            const on = eff === pl.key
+                            return (
+                              <button key={pl.key} onClick={() => setBundleGlobalAccessType(pl.key as 'RECORDED' | 'LIVE' | 'CHAMPION')}
+                                style={{ textAlign: 'left', cursor: forced ? 'default' : 'pointer', padding: '18px 18px 16px', borderRadius: 20, border: on ? `2px solid ${pl.color}` : '1px solid var(--border)', background: on ? `color-mix(in srgb, ${pl.color} 10%, var(--surface))` : 'var(--surface)', color: 'var(--text-primary)', transition: 'transform .15s ease, border-color .15s ease, background .15s ease' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+                                  <span style={{ fontSize: 15, fontWeight: 700 }}>{pl.name}</span>
+                                  <span style={{ width: 20, height: 20, borderRadius: '50%', border: on ? `6px solid ${pl.color}` : '2px solid var(--border)', boxSizing: 'border-box' }} />
+                                </div>
+                                <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
+                                  <span style={{ fontSize: 28, fontWeight: 800, letterSpacing: '-0.8px' }}>₹{pl.price}</span>
+                                  {Number(pl.orig) > Number(pl.price) && <span style={{ fontSize: 13, color: 'var(--text-muted)', textDecoration: 'line-through' }}>₹{pl.orig}</span>}
+                                </div>
+                                {pl.note && <div style={{ fontSize: 12.5, color: 'var(--text-secondary)', marginTop: 6, fontWeight: 600 }}>{pl.note}</div>}
+                              </button>
+                            )
+                          })}
+                        </div>
+                        {eff === 'CHAMPION' && (
+                          <details style={{ marginTop: 14, borderRadius: 18, border: '1px solid var(--border)', background: 'var(--surface)', padding: '4px 18px' }}>
+                            <summary style={{ cursor: 'pointer', padding: '14px 0', fontSize: 15, fontWeight: 700, color: 'var(--text-primary)', listStyle: 'none' }}>Champion terms &amp; conditions <span style={{ color: 'var(--accent)', fontWeight: 600, fontSize: 13 }}>View</span></summary>
+                            <div style={{ paddingBottom: 14 }}><ChampionPolicy /></div>
+                          </details>
+                        )}
                       </div>
-                      
-                      {!activeBundle.forceClassType && (
-                        <div style={{ background: 'var(--surface)', borderRadius: '10px', padding: '10px', border: '1px solid #dbeafe', display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                            <span style={{ fontSize: '13px', fontWeight: '700', color: 'var(--info)' }}>Select Class Type</span>
-                            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                              <button 
-                                onClick={() => setBundleGlobalAccessType('RECORDED')}
-                                style={{ padding: '8px 12px', borderRadius: '8px', border: bundleGlobalAccessType === 'RECORDED' ? '2px solid #3b82f6' : '1.5px solid var(--border)', background: bundleGlobalAccessType === 'RECORDED' ? 'var(--info-light)' : 'var(--surface-2)', color: bundleGlobalAccessType === 'RECORDED' ? 'var(--info)' : 'var(--text-secondary)', fontSize: '12px', fontWeight: '700', cursor: 'pointer', transition: 'all 0.2s' }}
-                              >
-                                Recorded Plus
-                              </button>
-                              <button 
-                                onClick={() => setBundleGlobalAccessType('LIVE')}
-                                style={{ padding: '8px 12px', borderRadius: '8px', border: bundleGlobalAccessType === 'LIVE' ? '2px solid #3b82f6' : '1.5px solid var(--border)', background: bundleGlobalAccessType === 'LIVE' ? 'var(--info-light)' : 'var(--surface-2)', color: bundleGlobalAccessType === 'LIVE' ? 'var(--info)' : 'var(--text-secondary)', fontSize: '12px', fontWeight: '700', cursor: 'pointer', transition: 'all 0.2s' }}
-                              >
-                                Live Pro
-                              </button>
-                              {activeBundle.championDiscountPrice > 0 && (
-                                <button 
-                                  onClick={() => setBundleGlobalAccessType('CHAMPION')}
-                                  style={{ padding: '8px 12px', borderRadius: '8px', border: bundleGlobalAccessType === 'CHAMPION' ? '2px solid #ef4444' : '1.5px solid var(--border)', background: bundleGlobalAccessType === 'CHAMPION' ? 'var(--danger-light)' : 'var(--surface-2)', color: bundleGlobalAccessType === 'CHAMPION' ? 'var(--danger)' : 'var(--text-secondary)', fontSize: '12px', fontWeight: '700', cursor: 'pointer', transition: 'all 0.2s' }}
-                                >
-                                  Champion
-                                </button>
-                              )}
-                            </div>
-                          </div>
-                          {bundleGlobalAccessType === 'CHAMPION' && activeBundle.championSubtitle && (
-                            <div style={{ padding: '8px 12px', background: 'var(--danger-light)', border: '1px solid var(--border)', borderRadius: '8px', color: 'var(--danger)', fontSize: '12px', fontWeight: '700' }}>
-                              ⭐ {activeBundle.championSubtitle}
-                            </div>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  )}
+                    )
+                  })()}
                 </div>
               </div>
 
@@ -3943,7 +3918,11 @@ export default function ExploreCoursesPage() {
                   <option value="">Let user choose (Live or Recorded)</option>
                   <option value="RECORDED">Force Recorded Classes</option>
                   <option value="LIVE">Force Live Classes</option>
+                  <option value="CHAMPION">Force Champion Batch</option>
                 </select>
+                {editBundleData.forceClassType && (
+                  <div style={{ marginTop: 8, fontSize: 12, fontWeight: 700, color: "#a16207" }}>Students can only buy the {editBundleData.forceClassType === "LIVE" ? "Live" : editBundleData.forceClassType === "RECORDED" ? "Recorded" : "Champion"} price. Choose "Let user choose" so they can pick Recorded, Live or Champion.</div>
+                )}
               </div>
             )}
 
@@ -4401,7 +4380,11 @@ export default function ExploreCoursesPage() {
                     <option value="">Let user choose (Live or Recorded)</option>
                     <option value="RECORDED">Force Recorded Classes</option>
                     <option value="LIVE">Force Live Classes</option>
+                    <option value="CHAMPION">Force Champion Batch</option>
                   </select>
+                  {bundleForceClassType && (
+                    <div style={{ marginTop: 8, fontSize: 12, fontWeight: 700, color: "#a16207" }}>Students can only buy the {bundleForceClassType === "LIVE" ? "Live" : bundleForceClassType === "RECORDED" ? "Recorded" : "Champion"} price. Choose "Let user choose" so they can pick Recorded, Live or Champion.</div>
+                  )}
                 </div>
               )}
             </div>
@@ -4577,7 +4560,7 @@ export default function ExploreCoursesPage() {
               eyebrow={o.course?.subject || o.category}
               title={o.course?.name || o.name}
               description={o.course?.description}
-              compare={{ hasRecorded: !!o.hasRecorded, hasLive: !!o.hasLive }}
+              compare={{ hasRecorded: !!o.hasRecorded, hasLive: !!o.hasLive, hasChampion: Number(o.championDiscountPrice ?? o.championOriginalPrice) > 0 }}
               points={{ value: o.highlights, canEdit: isMgr, onSave: save('course', o.id, '/api/course-offerings') }}
               price={rows.length ? priceBlock(rows) : null}
               ctas={ctas}
@@ -4595,7 +4578,7 @@ export default function ExploreCoursesPage() {
             eyebrow={`Bundle · ${b.courses?.length || 0} courses`}
             title={b.name}
             description={b.description}
-            compare={{ hasRecorded: !!(b.recordedDiscountPrice ?? b.recordedOriginalPrice) || b.forceClassType !== 'LIVE', hasLive: !!(b.liveDiscountPrice ?? b.liveOriginalPrice) }}
+            compare={{ hasRecorded: !!(b.recordedDiscountPrice ?? b.recordedOriginalPrice) || b.forceClassType !== 'LIVE', hasLive: !!(b.liveDiscountPrice ?? b.liveOriginalPrice), hasChampion: Number(b.championDiscountPrice ?? b.championOriginalPrice) > 0 }}
             points={{ value: b.highlights, canEdit: isMgr, onSave: save('bundle', b.id, '/api/bundle-offerings') }}
             sections={[{ title: b.courseHeadline || 'Included courses', items: (b.courses || []).map((c: any) => c.course?.name || c.course?.subject).filter(Boolean) }]}
             price={(

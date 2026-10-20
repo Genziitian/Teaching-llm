@@ -1,6 +1,7 @@
 'use client'
 
 import { ReactNode, useEffect, useState } from 'react'
+import ChampionPolicy from './ChampionPolicy'
 
 export type DetailCta = { label: string; onClick: () => void; tone?: 'primary' | 'secondary' | 'success'; disabled?: boolean; sub?: string }
 
@@ -13,13 +14,16 @@ export const COMMON_POINTS = [
 ]
 
 const COMPARE_ROWS = [
-  { f: 'Recorded lectures', rec: 'Full access', live: 'Full access' },
-  { f: 'Course materials', rec: 'Full access', live: 'Full access' },
-  { f: 'Class recordings', rec: 'Available', live: 'Available' },
-  { f: 'Live classes', rec: 'Not included', live: 'Direct entry' },
-  { f: 'Direct Q&A with teacher', rec: 'Not included', live: 'Yes, live' },
-  { f: 'Priority support', rec: 'Standard', live: '24/7 priority' },
-  { f: 'Duration', rec: 'Till end of term', live: 'Till end of term' },
+  { f: 'Recorded lectures', rec: 'Full access', live: 'Full access', champ: 'Full access' },
+  { f: 'Course materials', rec: 'Full access', live: 'Full access', champ: 'Full access' },
+  { f: 'Class recordings', rec: 'Available', live: 'Available', champ: 'Available' },
+  { f: 'Live classes', rec: 'Not included', live: 'Direct entry', champ: 'Direct entry' },
+  { f: 'Direct Q&A with teacher', rec: 'Not included', live: 'Yes, live', champ: 'Yes, live' },
+  { f: 'Priority support', rec: 'Standard', live: '24/7 priority', champ: '24/7 priority' },
+  { f: 'Weekly tests and evaluation', rec: 'Not included', live: 'Not included', champ: 'Included' },
+  { f: '1-to-1 mentorship', rec: 'Not included', live: 'Not included', champ: 'Included' },
+  { f: 'Full refund or free reattempt*', rec: 'Not included', live: 'Not included', champ: 'If conditions met' },
+  { f: 'Duration', rec: 'Till end of term', live: 'Till end of term', champ: 'Till end of term' },
 ]
 
 export function splitPoints(v?: string | null): string[] {
@@ -32,7 +36,7 @@ export default function StoreDetailScreen(props: {
   description?: string | null
   price?: ReactNode
   status?: ReactNode
-  compare?: { hasRecorded: boolean; hasLive: boolean } | null
+  compare?: { hasRecorded: boolean; hasLive: boolean; hasChampion?: boolean } | null
   commonPoints?: string[] | null
   sections?: { title: string; items: string[] }[]
   points?: { value: string | null | undefined; canEdit: boolean; onSave: (v: string) => Promise<void> } | null
@@ -136,9 +140,9 @@ export default function StoreDetailScreen(props: {
               </section>
             )}
 
-            {compare && (compare.hasRecorded || compare.hasLive) && (
+            {compare && (compare.hasRecorded || compare.hasLive || compare.hasChampion) && (
               <section style={{ ...card, padding: '22px 6px 8px' }}>
-                <h3 style={{ ...h3, padding: '0 16px' }}>{compare.hasLive && compare.hasRecorded ? 'Live Pro vs Recorded' : compare.hasLive ? 'Live Pro' : 'Recorded batch'}</h3>
+                <h3 style={{ ...h3, padding: '0 16px' }}>{compare.hasChampion ? 'Compare plans' : compare.hasLive && compare.hasRecorded ? 'Live Pro vs Recorded' : compare.hasLive ? 'Live Pro' : 'Recorded batch'}</h3>
                 <div style={{ overflowX: 'auto' }}>
                   <table className="sds-table" style={{ width: '100%', borderCollapse: 'collapse' }}>
                     <thead>
@@ -146,6 +150,7 @@ export default function StoreDetailScreen(props: {
                         <th style={{ fontWeight: 700 }}>Feature</th>
                         {compare.hasRecorded && <th style={{ fontWeight: 700 }}>Recorded</th>}
                         {compare.hasLive && <th style={{ fontWeight: 700, color: 'var(--accent)' }}>Live Pro</th>}
+                        {compare.hasChampion && <th style={{ fontWeight: 700, color: '#ef4444' }}>Champion</th>}
                       </tr>
                     </thead>
                     <tbody>
@@ -154,12 +159,17 @@ export default function StoreDetailScreen(props: {
                           <td style={{ color: 'var(--text-secondary)', fontWeight: 600 }}>{r.f}</td>
                           {compare.hasRecorded && <td style={{ color: r.rec === 'Not included' || r.rec === 'Standard' ? 'var(--text-secondary)' : 'var(--text-primary)' }}>{r.rec}</td>}
                           {compare.hasLive && <td style={{ fontWeight: 700, color: 'var(--text-primary)' }}>{r.live}</td>}
+                          {compare.hasChampion && <td style={{ fontWeight: 700, color: r.champ === 'Not included' ? 'var(--text-secondary)' : 'var(--text-primary)' }}>{r.champ}</td>}
                         </tr>
                       ))}
                     </tbody>
                   </table>
                 </div>
               </section>
+            )}
+
+            {compare?.hasChampion && (
+              <section style={card}><h3 style={h3}>Champion batch terms</h3><ChampionPolicy /></section>
             )}
 
             {common && common.length > 0 && (

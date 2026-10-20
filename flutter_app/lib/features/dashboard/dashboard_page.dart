@@ -88,6 +88,12 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
         }
         return aStatus == 'live' ? -1 : 1;
       });
+    // When something is live right now, show only live sessions.
+    if (liveSessions.any((e) =>
+        (e as Map)['status']?.toString().toLowerCase() == 'live')) {
+      liveSessions.removeWhere((e) =>
+          (e as Map)['status']?.toString().toLowerCase() != 'live');
+    }
     final announcements = (dash['announcements'] as List?) ?? const [];
 
     return SafeArea(
@@ -226,15 +232,33 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
                 ],
                 const SizedBox(height: 16),
 
+                // ── Hero banner slider ──────────────────────────────
+                const SizedBox(height: 4),
+                const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 16),
+                  child: TourTarget(
+                    id: 'dashboard_hero',
+                    child: HomeSlider(),
+                  ),
+                ),
+                const SizedBox(height: 6),
+
                 // ── Upcoming / live session ─────────────────────────
                 if (liveSessions.isNotEmpty) ...[
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 20),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     child: SectionHead(
                       topPadding: 0,
                       title: AppTranslations.t(
-                          'dashboard.upcomingSession', currentLanguage),
+                          (liveSessions.first is Map &&
+                                  (liveSessions.first as Map)['status']
+                                          ?.toString()
+                                          .toLowerCase() ==
+                                      'live')
+                              ? 'dashboard.liveNow'
+                              : 'dashboard.upcomingSession',
+                          currentLanguage),
                       right: AppTranslations.t(
                           'dashboard.viewAll', currentLanguage),
                       onRightTap: () => context.go('/live'),
@@ -247,15 +271,6 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
                   ),
                 ],
 
-                // ── Hero banner slider ──────────────────────────────
-                SizedBox(height: liveSessions.isNotEmpty ? 30 : 4),
-                const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 16),
-                  child: TourTarget(
-                    id: 'dashboard_hero',
-                    child: HomeSlider(),
-                  ),
-                ),
                 const SizedBox(height: 26),
 
                 // ── Shortcuts (Free Resources, Support, Downloads…) ──
@@ -648,7 +663,7 @@ class _UpcomingSessionCard extends StatelessWidget {
                       ],
                       Flexible(
                         child: Text(
-                          isLive ? 'LIVE NOW' : time,
+                          isLive ? (time.isEmpty ? 'LIVE' : 'STARTED $time') : time,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: TextStyle(
