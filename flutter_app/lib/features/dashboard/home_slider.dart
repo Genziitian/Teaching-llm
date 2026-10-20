@@ -74,7 +74,11 @@ final homeSlidesProvider =
     final res = await api.get<dynamic>('/api/admin/home-slides');
     final list = res.data is List ? res.data as List : const [];
     if (list.isNotEmpty) {
-      return [for (final j in list) j as Map<String, dynamic>];
+      // Admin slides first, then the built-in launch banners so they always show.
+      return [
+        for (final j in list) j as Map<String, dynamic>,
+        ..._kDefaultSlides.where((d) => (d['asset'] as String).contains('-v1.')),
+      ];
     }
   } catch (_) {}
 
