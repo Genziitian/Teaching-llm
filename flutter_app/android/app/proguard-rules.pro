@@ -33,3 +33,11 @@
 -dontwarn com.google.android.play.core.splitinstall.**
 -dontwarn com.google.android.play.core.tasks.**
 
+
+# shared_preferences_android calls Kotlin suspend methods via JNI by exact signature.
+# Keep coroutine types un-renamed, otherwise release builds throw NoSuchMethodError
+# (SharedPreferencesApiRegistrar.getAll(..., Continuation)).
+-keep class kotlin.coroutines.** { *; }
+-keep class kotlinx.coroutines.** { *; }
+-keep class kotlin.Metadata { *; }
+-dontwarn kotlinx.coroutines.**

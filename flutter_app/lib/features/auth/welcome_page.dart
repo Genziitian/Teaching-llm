@@ -52,67 +52,65 @@ class WelcomePage extends ConsumerStatefulWidget {
 
 class _Slide {
   const _Slide({
-    required this.eyebrow,
     required this.title,
-    required this.quote,
+    required this.text,
+    required this.asset,
     required this.accent,
-    required this.icon,
+    this.tagline,
   });
-  final String eyebrow;
+  final String? tagline;
   final String title;
-  final String quote;
+  final String text;
+  final String asset;
   final Color accent;
-  final IconData icon;
 }
 
+// A three-part story: the problem, the idea, the result. The art carries no
+// text; the words below are real text so they stay sharp and editable.
 const _slides = <_Slide>[
   _Slide(
-    eyebrow: 'Built for IITM BS',
-    title: 'Made for BS Degree Aspirants',
-    quote:
-        '"By IITians who know your syllabus, your pace, and the exam pressure — because we have been through it ourselves."',
+    title: 'It was everywhere.',
+    text:
+        'Notes in one place, videos in another, updates in a chat you missed. For a new BS student, finding the right support on time was almost impossible.',
+    asset: 'assets/onboarding-story/story-1.webp',
     accent: Color(0xFF5856D6),
-    icon: Icons.school_outlined,
   ),
   _Slide(
-    eyebrow: 'Live + Recorded',
-    title: 'Master Every Topic, Your Way',
-    quote:
-        '"Structured live classes, on-demand recordings, premium notes, and PYQs — with doubt support that never sleeps."',
-    accent: Color(0xFF0EA5E9),
-    icon: Icons.live_tv_outlined,
+    title: 'So we built it.',
+    text:
+        'Gen-Z IITian began with one idea: IIT-level learning in one place, for everyone, wherever you are.',
+    asset: 'assets/onboarding-story/story-2.webp',
+    accent: Color(0xFFFF9F0A),
   ),
   _Slide(
-    eyebrow: 'Qualify · Excel · Graduate',
-    title: 'Your Complete BS Companion',
-    quote:
-        '"From Qualifier prep to Term-wise live batches — one focused platform from your first attempt to your final degree."',
+    title: 'So here we are.',
+    text:
+        'Courses, expert guidance and a community that has your back, from your first attempt to your final degree.',
+    asset: 'assets/onboarding-story/story-3.webp',
     accent: Color(0xFF34C759),
-    icon: Icons.workspace_premium_outlined,
+    tagline:
+        'Learn from seniors who have been through it. Learn from experience. Learn from us.',
   ),
 ];
 
-class _WelcomePageState extends ConsumerState<WelcomePage>
-    with SingleTickerProviderStateMixin {
+class _WelcomePageState extends ConsumerState<WelcomePage> {
   final _controller = PageController();
-  late final AnimationController _intro = AnimationController(
-    vsync: this,
-    duration: const Duration(milliseconds: 1100),
-  );
   int _index = 0;
+  bool _precached = false;
 
   @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) _intro.forward();
-    });
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_precached) return;
+    _precached = true;
+    for (final s in _slides) {
+      precacheImage(AssetImage(s.asset), context);
+    }
   }
 
   @override
   void dispose() {
     _controller.dispose();
-    _intro.dispose();
     super.dispose();
   }
 
@@ -144,78 +142,156 @@ class _WelcomePageState extends ConsumerState<WelcomePage>
     return _index.toDouble();
   }
 
-  Color _accentAt(double p) {
-    final last = _slides.length - 1;
-    final i = p.floor().clamp(0, last);
-    final j = (i + 1).clamp(0, last);
-    return Color.lerp(
-        _slides[i].accent, _slides[j].accent, (p - i).clamp(0.0, 1.0))!;
-  }
-
   @override
   Widget build(BuildContext context) {
     final isLast = _index == _slides.length - 1;
     final reduce = MediaQuery.of(context).disableAnimations;
-    final width = MediaQuery.of(context).size.width;
+    final media = MediaQuery.of(context);
+    final width = media.size.width;
     return Scaffold(
       backgroundColor: const Color(0xFFF2F2F7),
-      body: SafeArea(
-        child: AnimatedBuilder(
-          animation: Listenable.merge([_controller, _intro]),
-          builder: (context, _) {
-            final page = _page;
-            final accent = _accentAt(page);
-            final intro = reduce ? 1.0 : _intro.value;
-            return Stack(
-              children: [
-                // Soft colour wash that follows the swipe (parallax + tint).
-                Positioned(
-                  top: -90,
-                  left: -70 - page * 36,
-                  child: _Blob(color: accent.withOpacity(0.20), size: 280),
-                ),
-                Positioned(
-                  bottom: -110,
-                  right: -90 + page * 36,
-                  child: _Blob(color: accent.withOpacity(0.14), size: 340),
-                ),
-                Column(
-                  children: [
-                    _TopBar(onSkip: _finish, showSkip: !isLast),
-                    Expanded(
-                      child: PageView.builder(
-                        controller: _controller,
-                        physics: const BouncingScrollPhysics(),
-                        itemCount: _slides.length,
-                        onPageChanged: (i) {
-                          HapticFeedback.selectionClick();
-                          setState(() => _index = i);
-                        },
-                        itemBuilder: (_, i) => _SlideView(
-                          slide: _slides[i],
-                          delta: i - page,
-                          intro: intro,
-                          width: width,
-                          reduce: reduce,
+      body: AnimatedBuilder(
+        animation: _controller,
+        builder: (context, _) {
+          final page = _page;
+          return Stack(
+            children: [
+              // Full-page illustrations, swipeable, with a light parallax.
+              Positioned.fill(
+                child: PageView.builder(
+                  controller: _controller,
+                  physics: const BouncingScrollPhysics(),
+                  itemCount: _slides.length,
+                  onPageChanged: (i) {
+                    HapticFeedback.selectionClick();
+                    setState(() => _index = i);
+                  },
+                  itemBuilder: (_, i) {
+                    final delta = i - page;
+                    return ClipRect(
+                      child: Transform.translate(
+                        offset: Offset(reduce ? 0 : -delta * width * 0.18, 0),
+                        child: Image.asset(
+                          _slides[i].asset,
+                          fit: BoxFit.cover,
+                          alignment: Alignment.topCenter,
+                          gaplessPlayback: true,
                         ),
                       ),
-                    ),
-                    _Dots(count: _slides.length, page: page),
-                    const SizedBox(height: 22),
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
-                      child: _PrimaryButton(
+                    );
+                  },
+                ),
+              ),
+
+              // Top bar on a frosted pill so it reads on any artwork.
+              Positioned(
+                top: 0,
+                left: 0,
+                right: 0,
+                child: SafeArea(
+                  bottom: false,
+                  child: _TopBar(onSkip: _finish, showSkip: !isLast),
+                ),
+              ),
+
+              // Bottom sheet: words, dots, button.
+              Positioned(
+                left: 0,
+                right: 0,
+                bottom: 0,
+                child: Container(
+                  padding: EdgeInsets.fromLTRB(
+                      24, 22, 24, media.padding.bottom + 18),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius:
+                        const BorderRadius.vertical(top: Radius.circular(34)),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.10),
+                        blurRadius: 40,
+                        offset: const Offset(0, -10),
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      AnimatedSwitcher(
+                        duration: const Duration(milliseconds: 320),
+                        switchInCurve: Curves.easeOutCubic,
+                        transitionBuilder: (child, anim) => FadeTransition(
+                          opacity: anim,
+                          child: SlideTransition(
+                            position: Tween<Offset>(
+                              begin: const Offset(0, 0.06),
+                              end: Offset.zero,
+                            ).animate(anim),
+                            child: child,
+                          ),
+                        ),
+                        child: SizedBox(
+                          key: ValueKey(_index),
+                          width: double.infinity,
+                          // Fixed height so the sheet does not jump between slides.
+                          height: 132,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                _slides[_index].title,
+                                style: AppTypography.h1.copyWith(
+                                  fontSize: 23,
+                                  height: 1.15,
+                                  letterSpacing: -0.6,
+                                  color: AppColors.ink,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                _slides[_index].text,
+                                maxLines: 5,
+                                overflow: TextOverflow.ellipsis,
+                                style: AppTypography.body.copyWith(
+                                  fontSize: 13.5,
+                                  height: 1.45,
+                                  color: AppColors.muted,
+                                ),
+                              ),
+                              if (_slides[_index].tagline != null) ...[
+                                const SizedBox(height: 8),
+                                Text(
+                                  _slides[_index].tagline!,
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: AppTypography.title.copyWith(
+                                    fontSize: 13.5,
+                                    height: 1.4,
+                                    fontWeight: FontWeight.w800,
+                                    color: AppColors.brand,
+                                  ),
+                                ),
+                              ],
+                            ],
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 14),
+                      _Dots(count: _slides.length, page: page),
+                      const SizedBox(height: 18),
+                      _PrimaryButton(
                         label: isLast ? 'Get Started' : 'Next',
                         icon: isLast ? Icons.arrow_forward : Icons.chevron_right,
                         onPressed: _next,
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ],
-            );
-          },
-        ),
+              ),
+            ],
+          );
+        },
       ),
     );
   }
@@ -228,204 +304,56 @@ class _TopBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(24, 18, 24, 0),
-      child: Row(
-        children: [
-          // Brand mark
-          Container(
-            width: 38,
-            height: 38,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              gradient: const LinearGradient(
-                colors: [AppColors.brand, AppColors.brandDk],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              boxShadow: AppShadows.pillGlow(AppColors.brand),
-            ),
-            alignment: Alignment.center,
-            child: const Icon(Icons.school, color: Colors.white, size: 18),
-          ),
-          const SizedBox(width: 10),
-          Text('Gen-Z IITian',
+      padding: const EdgeInsets.fromLTRB(18, 14, 18, 0),
+      child: SizedBox(
+        height: 38,
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            // Plain brand name, centred in the row.
+            Text(
+              'Gen-Z IITian',
               style: AppTypography.title.copyWith(
-                fontSize: 15,
+                fontSize: 17,
+                letterSpacing: -0.3,
+                fontWeight: FontWeight.w800,
                 color: AppColors.ink,
-              )),
-          const Spacer(),
-          AnimatedOpacity(
-            duration: const Duration(milliseconds: 220),
-            opacity: showSkip ? 1 : 0,
-            child: IgnorePointer(
-              ignoring: !showSkip,
-              child: TextButton(
-                onPressed: onSkip,
-                child: Text('Skip',
-                    style: AppTypography.title.copyWith(
-                      fontSize: 13,
-                      color: AppColors.muted,
-                    )),
+                shadows: [
+                  Shadow(
+                    color: Colors.white.withOpacity(0.7),
+                    blurRadius: 10,
+                  ),
+                ],
               ),
             ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _SlideView extends StatelessWidget {
-  const _SlideView({
-    required this.slide,
-    required this.delta,
-    required this.intro,
-    required this.width,
-    required this.reduce,
-  });
-  final _Slide slide;
-  // Distance from the centred page: 0 = centred, +-1 = one page away.
-  final double delta;
-  final double intro; // 0..1 first-show entrance
-  final double width;
-  final bool reduce;
-
-  double _stage(double start) => reduce
-      ? 1.0
-      : Curves.easeOutCubic.transform(((intro - start) / 0.55).clamp(0.0, 1.0));
-
-  @override
-  Widget build(BuildContext context) {
-    final d = delta.abs().clamp(0.0, 1.0);
-    final focus = 1.0 - d;
-    final fade = Curves.easeOut.transform(focus);
-
-    // Layers move at slightly different speeds while swiping (depth).
-    double shift(double k) => reduce ? 0 : -delta * width * k;
-
-    Widget layer({
-      required double enterStart,
-      required double parallax,
-      required Widget child,
-    }) {
-      final st = _stage(enterStart);
-      return Opacity(
-        opacity: (fade * st).clamp(0.0, 1.0),
-        child: Transform.translate(
-          offset: Offset(shift(parallax), (1 - st) * 20),
-          child: child,
-        ),
-      );
-    }
-
-    final heroIn = _stage(0.0);
-    final heroScale = (0.82 + 0.18 * heroIn) * (0.92 + 0.08 * focus);
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 32),
-      child: Column(
-        children: [
-          const Spacer(flex: 2),
-          // Hero: soft rings + gradient tile.
-          Opacity(
-            opacity: (fade * heroIn).clamp(0.0, 1.0),
-            child: Transform.translate(
-              offset: Offset(shift(0.30), 0),
-              child: Transform.scale(
-                scale: heroScale,
-                child: SizedBox(
-                  width: 230,
-                  height: 230,
-                  child: Stack(
-                    alignment: Alignment.center,
-                    children: [
-                      for (final r in const [
-                        [230.0, 0.07],
-                        [178.0, 0.10],
-                      ])
-                        Container(
-                          width: r[0],
-                          height: r[0],
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: slide.accent.withOpacity(r[1]),
-                          ),
-                        ),
-                      Container(
-                        width: 112,
-                        height: 112,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(34),
-                          gradient: LinearGradient(
-                            colors: [
-                              slide.accent,
-                              slide.accent.withOpacity(0.72)
-                            ],
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                          ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: slide.accent.withOpacity(0.32),
-                              blurRadius: 28,
-                              offset: const Offset(0, 14),
-                            ),
-                          ],
-                        ),
-                        child: Icon(slide.icon, color: Colors.white, size: 52),
+            Align(
+              alignment: Alignment.centerRight,
+              child: AnimatedOpacity(
+                duration: const Duration(milliseconds: 220),
+                opacity: showSkip ? 1 : 0,
+                child: IgnorePointer(
+                  ignoring: !showSkip,
+                  child: GestureDetector(
+                    onTap: onSkip,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 14, vertical: 9),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.82),
+                        borderRadius: BorderRadius.circular(30),
                       ),
-                    ],
+                      child: Text('Skip',
+                          style: AppTypography.title.copyWith(
+                            fontSize: 13,
+                            color: AppColors.ink,
+                          )),
+                    ),
                   ),
                 ),
               ),
             ),
-          ),
-          const SizedBox(height: 30),
-          layer(
-            enterStart: 0.15,
-            parallax: 0.16,
-            child: Text(
-              slide.eyebrow.toUpperCase(),
-              textAlign: TextAlign.center,
-              style: AppTypography.uppercase.copyWith(
-                color: slide.accent,
-                fontSize: 11.5,
-                letterSpacing: 1.4,
-                fontWeight: FontWeight.w800,
-              ),
-            ),
-          ),
-          const SizedBox(height: 10),
-          layer(
-            enterStart: 0.25,
-            parallax: 0.22,
-            child: Text(
-              slide.title,
-              textAlign: TextAlign.center,
-              style: AppTypography.h1.copyWith(
-                fontSize: 28,
-                height: 1.15,
-                letterSpacing: -0.6,
-                color: AppColors.ink,
-              ),
-            ),
-          ),
-          const SizedBox(height: 14),
-          layer(
-            enterStart: 0.35,
-            parallax: 0.28,
-            child: Text(
-              slide.quote,
-              textAlign: TextAlign.center,
-              style: AppTypography.body.copyWith(
-                fontSize: 15,
-                height: 1.55,
-                color: AppColors.muted,
-              ),
-            ),
-          ),
-          const Spacer(flex: 3),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -494,28 +422,6 @@ class _PrimaryButton extends StatelessWidget {
             const SizedBox(width: 8),
             Icon(icon, color: Colors.white, size: 18),
           ],
-        ),
-      ),
-    );
-  }
-}
-
-class _Blob extends StatelessWidget {
-  const _Blob({required this.color, required this.size});
-  final Color color;
-  final double size;
-  @override
-  Widget build(BuildContext context) {
-    return IgnorePointer(
-      child: Container(
-        width: size,
-        height: size,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          gradient: RadialGradient(
-            colors: [color, color.withOpacity(0)],
-            stops: const [0.0, 0.7],
-          ),
         ),
       ),
     );

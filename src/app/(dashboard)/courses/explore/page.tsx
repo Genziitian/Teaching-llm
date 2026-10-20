@@ -874,22 +874,24 @@ export default function ExploreCoursesPage() {
             .store-hero { margin: 0 0 22px; }
             .store-hero .eyebrow { display: inline-flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent); }
             .store-hero .eyebrow i { width: 22px; height: 2px; border-radius: 2px; background: currentColor; display: inline-block; }
-            .store-hero h2 { margin: 8px 0 6px; font-size: clamp(30px, 6vw, 44px); font-weight: 800; letter-spacing: -0.035em; line-height: 1.04; color: var(--text-primary); }
+            .store-hero h2 { margin: 0; font-size: clamp(30px, 6vw, 44px); font-weight: 800; letter-spacing: -0.035em; line-height: 1.04; color: var(--text-primary); }
             .store-hero p { margin: 0; font-size: clamp(14px, 2.6vw, 17px); color: var(--text-secondary); max-width: 560px; line-height: 1.5; }
             .store-posters { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
             .store-poster { position: relative; overflow: hidden; border-radius: 30px; background: var(--surface); border: 0.5px solid var(--border); box-shadow: 0 1px 2px rgba(0,0,0,0.04), 0 10px 30px rgba(0,0,0,0.07); cursor: pointer; display: flex; flex-direction: column; transition: transform 380ms cubic-bezier(.2,.9,.2,1), box-shadow 380ms cubic-bezier(.2,.9,.2,1); animation: posterIn 520ms cubic-bezier(.2,.9,.2,1) backwards; -webkit-tap-highlight-color: transparent; }
             .store-poster:nth-child(2) { animation-delay: 80ms; }
             .store-poster:hover { transform: translateY(-4px); box-shadow: 0 2px 4px rgba(0,0,0,0.05), 0 22px 48px rgba(0,0,0,0.13); }
             .store-poster:active { transform: scale(0.985); transition-duration: 90ms; }
-            .store-poster .art { position: relative; aspect-ratio: 1600 / 500; overflow: hidden; }
+            .store-poster .art { position: relative; aspect-ratio: 1600 / 560; overflow: hidden; }
+            .store-poster .art img { object-position: right center; }
+            .store-poster .over { position: absolute; z-index: 2; left: clamp(18px, 3vw, 34px); top: 0; bottom: 0; display: flex; flex-direction: column; justify-content: center; align-items: flex-start; gap: clamp(8px, 1.6vw, 16px); max-width: 46%; }
+            .store-poster .over h3 { color: #fff; margin: 0; font-size: clamp(24px, 4.4vw, 46px); line-height: 1.02; text-shadow: 0 2px 18px rgba(0,0,0,0.25); }
             .store-poster .art img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform 700ms cubic-bezier(.2,.9,.2,1); }
             .store-poster:hover .art img { transform: scale(1.05); }
-            .store-poster .art::after { content: ''; position: absolute; inset: auto 0 0 0; height: 46%; background: linear-gradient(to top, var(--surface), transparent); pointer-events: none; }
-            .store-poster .chip { position: absolute; top: 14px; left: 14px; z-index: 2; padding: 6px 12px; border-radius: 999px; font-size: 12.5px; font-weight: 700; color: #fff; background: rgba(0,0,0,0.32); -webkit-backdrop-filter: blur(14px) saturate(160%); backdrop-filter: blur(14px) saturate(160%); border: 1px solid rgba(255,255,255,0.28); }
+                        .store-poster .chip { position: absolute; top: 14px; right: 14px; z-index: 2; padding: 6px 12px; border-radius: 999px; font-size: 12.5px; font-weight: 700; color: #fff; background: rgba(0,0,0,0.32); -webkit-backdrop-filter: blur(14px) saturate(160%); backdrop-filter: blur(14px) saturate(160%); border: 1px solid rgba(255,255,255,0.28); }
             .store-poster .body { padding: 4px 24px 24px; display: flex; flex-direction: column; gap: 6px; }
             .store-poster h3 { margin: 0; font-size: clamp(22px, 4.4vw, 28px); font-weight: 800; letter-spacing: -0.03em; color: var(--text-primary); }
             .store-poster .sub { margin: 0; font-size: 15px; color: var(--text-secondary); line-height: 1.45; }
-            .store-poster .go { margin-top: 12px; align-self: flex-start; display: inline-flex; align-items: center; gap: 6px; padding: 12px 20px; border-radius: 999px; font-size: 15px; font-weight: 700; color: #fff; transition: gap 240ms ease, transform 240ms ease; }
+            .store-poster .go { display: inline-flex; align-items: center; gap: 6px; padding: clamp(9px, 1.4vw, 13px) clamp(14px, 2vw, 22px); border-radius: 999px; font-size: clamp(13px, 1.6vw, 16px); font-weight: 700; color: #1a1a2e; background: #fff; transition: gap 240ms ease, transform 240ms ease; }
             .store-poster:hover .go { gap: 10px; }
             .store-soon { margin-top: 20px; display: flex; align-items: center; gap: 14px; padding: 16px 20px; border-radius: 22px; border: 1px dashed var(--border); background: color-mix(in srgb, var(--surface) 70%, transparent); color: var(--text-secondary); }
             .store-soon .ic { width: 42px; height: 42px; border-radius: 14px; background: var(--surface-hover); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
@@ -899,7 +901,8 @@ export default function ExploreCoursesPage() {
             @media (max-width: 720px) {
               .store-posters { grid-template-columns: 1fr; gap: 16px; }
               .store-poster { border-radius: 26px; }
-              .store-poster .body { padding: 2px 18px 20px; }
+              .store-poster .art { aspect-ratio: 2 / 1; }
+              .store-poster .over { max-width: 52%; }
               .store-hero { margin-bottom: 16px; }
             }
             @media (prefers-reduced-motion: reduce) {
@@ -908,14 +911,12 @@ export default function ExploreCoursesPage() {
             }
           `}</style>
           <div className="store-hero">
-            <span className="eyebrow"><i /> Gen-Z IITian Store</span>
             <h2>Upgrade how you learn.</h2>
-            <p>Courses taught by experts and premium notes, in one place. Pick where you want to start.</p>
           </div>
           <div className="store-posters">
             {[
-              { key: 'courses' as const, art: '/store-art/store-course.webp', title: 'Courses', sub: 'Recorded, Live Pro and Champion batches by term.', count: `${(offerings || []).length + (bundleOfferings || []).length} available`, cta: 'Browse courses', grad: 'linear-gradient(135deg, #3B82F6, #2447C9)' },
-              { key: 'notes' as const, art: '/store-art/store-notes.webp', title: 'Premium Notes', sub: 'Formula sheets, notes and solved papers for every subject.', count: `${storeNotesData?.notes?.length || 0} ${(storeNotesData?.notes?.length || 0) === 1 ? 'note' : 'notes'}`, cta: 'Browse notes', grad: 'linear-gradient(135deg, #2FA760, #14633A)' },
+              { key: 'courses' as const, art: '/store-art/store-course.webp', title: 'Courses', sub: 'Recorded, Live Pro and Champion batches by term.', count: `${(offerings || []).length + (bundleOfferings || []).length} available`, cta: 'Browse', grad: 'linear-gradient(135deg, #3B82F6, #2447C9)' },
+              { key: 'notes' as const, art: '/store-art/store-notes.webp', title: 'Premium Notes', sub: 'Formula sheets, notes and solved papers for every subject.', count: `${storeNotesData?.notes?.length || 0} ${(storeNotesData?.notes?.length || 0) === 1 ? 'note' : 'notes'}`, cta: 'Browse', grad: 'linear-gradient(135deg, #2FA760, #14633A)' },
             ].map(card => (
               <div key={card.key} className="store-poster" role="button" tabIndex={0}
                 onClick={() => setStoreView(card.key)}
@@ -923,11 +924,10 @@ export default function ExploreCoursesPage() {
                 <div className="art">
                   <img src={card.art} alt="" loading="eager" decoding="async" />
                   <span className="chip">{card.count}</span>
-                </div>
-                <div className="body">
-                  <h3>{card.title}</h3>
-                  <p className="sub">{card.sub}</p>
-                  <span className="go" style={{ background: card.grad }}>{card.cta} <ChevronRight size={17} strokeWidth={2.6} /></span>
+                  <div className="over">
+                    <h3>{card.title}</h3>
+                    <span className="go" style={{ color: card.key === 'notes' ? '#14633A' : '#2447C9' }}>{card.cta} <ChevronRight size={17} strokeWidth={2.6} /></span>
+                  </div>
                 </div>
               </div>
             ))}
@@ -1003,14 +1003,14 @@ export default function ExploreCoursesPage() {
       {/* Category options selection screen */}
       {storeView === 'courses' && !selectedStoreTab && visibleCategories.length > 0 && (
         <div style={{ padding: '20px 0' }}>
-          <div style={{ maxWidth: '1100px', margin: '0 auto 22px', padding: '0 2px' }}>
+          <div style={{ margin: '0 0 22px', padding: '0 2px' }}>
             <span style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', fontSize: '12px', fontWeight: 800, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--accent)' }}>
               <i style={{ width: 22, height: 2, borderRadius: 2, background: 'currentColor', display: 'inline-block' }} /> Courses
             </span>
             <h2 style={{ fontSize: 'clamp(28px, 6vw, 40px)', fontWeight: 800, letterSpacing: '-0.035em', lineHeight: 1.05, margin: '8px 0 6px', color: 'var(--text-primary)' }}>Choose your term</h2>
             <p style={{ fontSize: 'clamp(14px, 2.6vw, 16px)', color: 'var(--text-secondary)', margin: 0 }}>Pick a level to see its batches and bundles.</p>
           </div>
-          <div className="level-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(320px, 100%), 1fr))', gap: '18px', maxWidth: '1100px', margin: '0 auto' }}>
+          <div className="level-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(440px, 100%), 1fr))', gap: '22px', margin: '0' }}>
             {visibleCategories.map(cat => {
               const courseCount = activeOfferings.filter((o: any) => (o.category || 'General') === cat).length;
               const bundleCount = activeBundles.filter((b: any) => (b.category || 'General') === cat).length;
@@ -1024,7 +1024,7 @@ export default function ExploreCoursesPage() {
                     style={{
                       position: 'relative', overflow: 'hidden', cursor: 'pointer',
                       minWidth: 0,
-                      aspectRatio: '1200 / 640', minHeight: '190px',
+                      aspectRatio: '1200 / 640', minHeight: '230px',
                       borderRadius: '28px', border: '0.5px solid var(--border)',
                       boxShadow: '0 1px 2px rgba(0,0,0,0.04), 0 8px 24px rgba(0,0,0,0.08)',
                       transition: 'transform 0.3s cubic-bezier(0.23,1,0.32,1)',
@@ -1035,15 +1035,15 @@ export default function ExploreCoursesPage() {
                     onMouseUp={e => { e.currentTarget.style.transform = 'translateY(-4px)' }}
                   >
                     <img src={art.src} alt="" loading="lazy" decoding="async" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'right center' }} />
-                    <div style={{ position: 'relative', height: '100%', padding: '22px 22px', display: 'flex', flexDirection: 'column', alignItems: 'flex-start', justifyContent: 'space-between' }}>
-                      <span style={{ fontSize: '13px', fontWeight: 700, color: ink, background: art.dark ? `${art.accent}1f` : 'rgba(255,255,255,0.22)', padding: '6px 12px', borderRadius: '20px' }}>
+                    <div style={{ position: 'relative', height: '100%', padding: 'clamp(20px, 3vw, 32px)', display: 'flex', flexDirection: 'column', alignItems: 'flex-start', justifyContent: 'space-between' }}>
+                      <span style={{ fontSize: '14px', fontWeight: 700, color: ink, background: art.dark ? `${art.accent}1f` : 'rgba(255,255,255,0.22)', padding: '6px 12px', borderRadius: '20px' }}>
                         {courseCount > 0 && `${courseCount} Course${courseCount > 1 ? 's' : ''}`}
                         {courseCount > 0 && bundleCount > 0 && ' · '}
                         {bundleCount > 0 && `${bundleCount} Bundle${bundleCount > 1 ? 's' : ''}`}
                       </span>
                       <div>
-                        <h3 style={{ fontSize: 'clamp(26px, 6vw, 32px)', fontWeight: 800, letterSpacing: '-1px', color: ink, margin: '0 0 12px', lineHeight: 1.05 }}>{cat}</h3>
-                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '15px', fontWeight: 700, padding: '11px 18px', borderRadius: '999px', background: art.dark ? art.accent : '#fff', color: art.dark ? '#fff' : art.accent }}>
+                        <h3 style={{ fontSize: 'clamp(32px, 6vw, 50px)', fontWeight: 800, letterSpacing: '-1.5px', color: ink, margin: '0 0 16px', lineHeight: 1.03 }}>{cat}</h3>
+                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '16px', fontWeight: 700, padding: '13px 22px', borderRadius: '999px', background: art.dark ? art.accent : '#fff', color: art.dark ? '#fff' : art.accent }}>
                           View courses <ChevronRight size={16} strokeWidth={2.6} />
                         </span>
                       </div>

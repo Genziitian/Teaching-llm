@@ -157,7 +157,7 @@ class _PageState extends ConsumerState<ExamProtectionPage> {
       color: context.tokens.cardBg,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
-        side: BorderSide(color: context.tokens.textSecondary.withOpacity(0.14)),
+        side: BorderSide(color: context.tokens.textSecondary.withValues(alpha: 0.14)),
       ),
       child: Padding(
         padding: const EdgeInsets.all(20),
@@ -192,7 +192,7 @@ class _PageState extends ConsumerState<ExamProtectionPage> {
       for (var i = 0; i < 4; i++) ...[
         if (i > 0) const SizedBox(width: 6),
         Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          AnimatedContainer(duration: const Duration(milliseconds: 220), height: 4, decoration: BoxDecoration(borderRadius: BorderRadius.circular(4), color: i <= step ? const Color(0xFF5856D6) : context.tokens.textSecondary.withOpacity(0.18))),
+          AnimatedContainer(duration: const Duration(milliseconds: 220), height: 4, decoration: BoxDecoration(borderRadius: BorderRadius.circular(4), color: i <= step ? const Color(0xFF5856D6) : context.tokens.textSecondary.withValues(alpha: 0.18))),
           const SizedBox(height: 6),
           Text(labels[i], style: TextStyle(fontSize: 11, fontWeight: i == step ? FontWeight.w600 : FontWeight.w400, color: i == step ? context.tokens.textPrimary : context.tokens.textSecondary)),
         ])),
@@ -201,8 +201,8 @@ class _PageState extends ConsumerState<ExamProtectionPage> {
   }
   Widget _choice(String label, String value, Color tint, bool on, VoidCallback onTap) => Expanded(
     child: Material(
-      color: tint.withOpacity(on ? 0.14 : 0.06),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14), side: BorderSide(color: on ? tint : context.tokens.textSecondary.withOpacity(0.18), width: on ? 1.5 : 1)),
+      color: tint.withValues(alpha: on ? 0.14 : 0.06),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14), side: BorderSide(color: on ? tint : context.tokens.textSecondary.withValues(alpha: 0.18), width: on ? 1.5 : 1)),
       child: InkWell(
         borderRadius: BorderRadius.circular(14),
         onTap: busy ? null : onTap,
@@ -229,8 +229,8 @@ class _PageState extends ConsumerState<ExamProtectionPage> {
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(12),
-        color: tint.withOpacity(0.08),
-        border: Border.all(color: tint.withOpacity(0.25)),
+        color: tint.withValues(alpha: 0.08),
+        border: Border.all(color: tint.withValues(alpha: 0.25)),
       ),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Text(label, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: tint)),
