@@ -32,7 +32,13 @@ export function splitPoints(v?: string | null): string[] {
 
 const PLAN = { rec: '#0ea5e9', live: '#6366f1', champ: '#f43f5e' }
 const planPill = (c: string): React.CSSProperties => ({ display: 'inline-block', padding: '6px 12px', borderRadius: 999, fontSize: 12, fontWeight: 800, letterSpacing: '0.04em', textTransform: 'uppercase', color: c, background: `color-mix(in srgb, ${c} 14%, transparent)` })
-const planCell = (c: string): React.CSSProperties => ({ borderTop: '0.5px solid var(--border)', background: `color-mix(in srgb, ${c} 5%, transparent)` })
+const planCell = (c: string, offered = true): React.CSSProperties => ({ borderTop: '0.5px solid var(--border)', background: offered ? `color-mix(in srgb, ${c} 5%, transparent)` : 'transparent', opacity: offered ? 1 : 0.38, filter: offered ? undefined : 'grayscale(1)' })
+const planHead = (label: string, c: string, offered: boolean) => (
+  <div style={{ display: 'inline-flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
+    <span style={offered ? planPill(c) : { ...planPill('#9ca3af'), opacity: 0.8 }}>{label}</span>
+    {!offered && <span style={{ fontSize: 10.5, fontWeight: 600, color: 'var(--text-muted, #9ca3af)', textTransform: 'none', letterSpacing: 0, lineHeight: 1.2, maxWidth: 110 }}>Not offered for this course</span>}
+  </div>
+)
 const NO = new Set(['Not included'])
 const cellVal = (v: string, c: string) => NO.has(v)
   ? <span style={{ color: 'var(--text-muted, #9ca3af)', fontWeight: 600 }} aria-label="Not included">&mdash;</span>
@@ -104,7 +110,7 @@ export default function StoreDetailScreen(props: {
         @keyframes sdsIn{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
         .sds-wrap{animation:sdsIn .38s cubic-bezier(.16,1,.3,1) both}
         .sds-grid{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:24px;align-items:start}
-        .sds-side{position:sticky;top:84px}
+        .sds-side{position:sticky;top:84px;max-height:calc(100vh - 100px);overflow-y:auto;scrollbar-width:none}.sds-side::-webkit-scrollbar{display:none}
         .sds-cta{transition:transform .15s ease,opacity .15s ease}
         .sds-cta:active{transform:scale(.98)}
         .sds-table td,.sds-table th{padding:14px 16px;font-size:14px;text-align:center}
@@ -165,26 +171,26 @@ export default function StoreDetailScreen(props: {
               </section>
             )}
 
-            {compare && (compare.hasRecorded || compare.hasLive || compare.hasChampion) && (
+            {compare && (
               <section style={{ ...card, padding: '22px 6px 8px' }}>
-                <h3 style={{ ...h3, padding: '0 18px' }}>{bar}{compare.hasChampion ? 'Compare plans' : compare.hasLive && compare.hasRecorded ? 'Live Pro vs Recorded' : compare.hasLive ? 'Live Pro' : 'Recorded batch'}</h3>
+                <h3 style={{ ...h3, padding: '0 18px' }}>{bar}{compare.hasChampion ? 'Compare plans' : 'Live Pro vs Recorded'}</h3>
                 <div style={{ overflowX: 'auto' }}>
                   <table className="sds-table" style={{ width: '100%', borderCollapse: 'separate', borderSpacing: 0 }}>
                     <thead>
                       <tr>
                         <th style={{ fontWeight: 700, color: 'var(--text-secondary)', fontSize: 12, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Feature</th>
-                        {compare.hasRecorded && <th><span style={planPill(PLAN.rec)}>Recorded</span></th>}
-                        {compare.hasLive && <th><span style={planPill(PLAN.live)}>Live Pro</span></th>}
-                        {compare.hasChampion && <th><span style={planPill(PLAN.champ)}>Champion</span></th>}
+                        <th>{planHead('Recorded', PLAN.rec, compare.hasRecorded)}</th>
+                        <th>{planHead('Live Pro', PLAN.live, compare.hasLive)}</th>
+                        {compare.hasChampion && <th>{planHead('Champion', PLAN.champ, true)}</th>}
                       </tr>
                     </thead>
                     <tbody>
                       {COMPARE_ROWS.map((r, i) => (
                         <tr key={i}>
                           <td style={{ color: 'var(--text-secondary)', fontWeight: 600, borderTop: '0.5px solid var(--border)' }}>{r.f}</td>
-                          {compare.hasRecorded && <td style={planCell(PLAN.rec)}>{cellVal(r.rec, PLAN.rec)}</td>}
-                          {compare.hasLive && <td style={planCell(PLAN.live)}>{cellVal(r.live, PLAN.live)}</td>}
-                          {compare.hasChampion && <td style={planCell(PLAN.champ)}>{cellVal(r.champ, PLAN.champ)}</td>}
+                          <td style={planCell(PLAN.rec, compare.hasRecorded)}>{cellVal(r.rec, PLAN.rec)}</td>
+                          <td style={planCell(PLAN.live, compare.hasLive)}>{cellVal(r.live, PLAN.live)}</td>
+                          {compare.hasChampion && <td style={planCell(PLAN.champ, true)}>{cellVal(r.champ, PLAN.champ)}</td>}
                         </tr>
                       ))}
                     </tbody>
@@ -201,14 +207,13 @@ export default function StoreDetailScreen(props: {
               <section style={card}><h3 style={h3}>{bar}Included with every purchase</h3>{list(common)}</section>
             )}
 
-            {sections.filter(s => s.items.length > 0).map((s, i) => (
-              <section key={i} style={card}><h3 style={h3}>{bar}{s.title}</h3>{list(s.items)}</section>
-            ))}
-
             {children}
           </div>
 
           <aside className="sds-side">
+            {sections.filter(sec => sec.items.length > 0).map((sec, i) => (
+              <section key={i} style={{ ...card, marginBottom: 16, padding: '20px 20px' }}><h3 style={h3}>{bar}{sec.title}</h3>{list(sec.items)}</section>
+            ))}
             <div style={{ ...card, display: 'flex', flexDirection: 'column', gap: 14, background: `linear-gradient(165deg, color-mix(in srgb, ${accent} 14%, var(--surface)) 0%, var(--surface) 62%)`, border: `1px solid color-mix(in srgb, ${accent} 26%, var(--border))` }}>
               {price}
               {ctas.map(ctaBtn)}

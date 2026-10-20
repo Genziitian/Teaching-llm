@@ -1050,7 +1050,7 @@ export default function ExploreCoursesPage() {
                     <img src={art.src} alt="" loading="lazy" decoding="async" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'right center' }} />
                     <div style={{ position: 'relative', height: '100%', padding: 'clamp(20px, 3vw, 32px)', paddingBottom: 'clamp(34px, 6vw, 56px)', display: 'flex', flexDirection: 'column', alignItems: 'flex-start', justifyContent: 'flex-end' }}>
                       <div>
-                        <h3 style={{ fontSize: 'clamp(28px, 5.4vw, 50px)', fontWeight: 800, letterSpacing: '-1.5px', color: ink, margin: '0 0 14px', lineHeight: 1.03, overflowWrap: 'anywhere', maxWidth: '78%' }}>{cat}</h3>
+                        <h3 style={{ fontSize: 'clamp(26px, 4.2vw, 46px)', fontWeight: 800, letterSpacing: '-1.5px', color: ink, margin: '0 0 14px', lineHeight: 1.03, whiteSpace: 'nowrap' }}>{cat}</h3>
                         <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: 'clamp(14px, 1.6vw, 16px)', fontWeight: 700, padding: 'clamp(10px, 1.4vw, 13px) clamp(16px, 2vw, 22px)', borderRadius: '999px', background: art.dark ? art.accent : '#fff', color: art.dark ? '#fff' : art.accent }}>
                           View courses <ChevronRight size={16} strokeWidth={2.6} />
                         </span>
