@@ -47,6 +47,7 @@ class ExamProtectionPage extends ConsumerStatefulWidget {
 }
 
 class _PageState extends ConsumerState<ExamProtectionPage> {
+  int section = 0;
   bool busy = false;
   final formKey = GlobalKey<FormState>();
   String? purchaseId, reason, attempted;
@@ -154,7 +155,10 @@ class _PageState extends ConsumerState<ExamProtectionPage> {
     padding: const EdgeInsets.only(bottom: 16),
     child: Material(
       color: context.tokens.cardBg,
-      borderRadius: BorderRadius.circular(22),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: BorderSide(color: context.tokens.textSecondary.withOpacity(0.14)),
+      ),
       child: Padding(
         padding: const EdgeInsets.all(20),
         child: Column(
@@ -163,9 +167,9 @@ class _PageState extends ConsumerState<ExamProtectionPage> {
             Text(
               title,
               style: TextStyle(
-                fontSize: 21,
-                fontWeight: FontWeight.w700,
-                letterSpacing: -0.4,
+                fontSize: 17,
+                fontWeight: FontWeight.w600,
+                letterSpacing: -0.2,
                 color: context.tokens.textPrimary,
               ),
             ),
@@ -174,6 +178,21 @@ class _PageState extends ConsumerState<ExamProtectionPage> {
           ],
         ),
       ),
+    ),
+  );
+  Widget _stat(String label, String value, String example) => Expanded(
+    child: Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: context.tokens.textSecondary.withOpacity(0.14)),
+      ),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Text(label, style: TextStyle(fontSize: 12, color: context.tokens.textSecondary)),
+        const SizedBox(height: 2),
+        Text(value, style: TextStyle(fontSize: 19, fontWeight: FontWeight.w700, letterSpacing: -0.3, color: context.tokens.textPrimary)),
+        Text(example, style: TextStyle(fontSize: 12, color: context.tokens.textSecondary)),
+      ]),
     ),
   );
   Widget text(String value) => Padding(
@@ -308,11 +327,36 @@ class _PageState extends ConsumerState<ExamProtectionPage> {
             child: ListView(
               padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
               children: [
-                card('Outcome A · Failed Quiz 1', [
-                  text(_rules),
-                  text('₹50 fee → ₹40 refund or ₹75 discount.'),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(4, 0, 4, 16),
+                  child: Text(
+                    'Protect your Quiz 1 attempt. If you do not pass, request a refund or a same-course discount.',
+                    style: TextStyle(fontSize: 15, height: 1.45, color: context.tokens.textSecondary),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 16),
+                  child: SegmentedButton<int>(
+                    showSelectedIcon: false,
+                    segments: [
+                      const ButtonSegment(value: 0, label: Text('Protect')),
+                      ButtonSegment(value: 1, label: Text('Claims · ${claims.length}')),
+                      const ButtonSegment(value: 2, label: Text('Coupons')),
+                    ],
+                    selected: {section},
+                    onSelectionChanged: (v) => setState(() => section = v.first),
+                  ),
+                ),
+                if (section == 0)
+                card('Quiz 1 protection benefits', [
+                  text('One benefit is chosen at claim time, calculated from the fee you paid.'),
+                  Row(children: [
+                    _stat('Refund', 'Fee − ₹10', '₹50 → ₹40'),
+                    const SizedBox(width: 10),
+                    _stat('Discount', '1.5 × fee', '₹50 → ₹75'),
+                  ]),
                 ]),
-                card('Outcome B', [text('Coming soon')]),
+                if (section == 0)
                 if (manager)
                   card('Purchase availability', [
                     text(data['isOpen'] == true ? 'Open' : 'Closed'),
@@ -333,6 +377,7 @@ class _PageState extends ConsumerState<ExamProtectionPage> {
                       'Set individual protection fees in Manage Course on the website.',
                     ),
                   ]),
+                if (section == 0)
                 card('Explore protection', [
                   text(
                     data['isOpen'] == true
@@ -371,6 +416,7 @@ class _PageState extends ConsumerState<ExamProtectionPage> {
                     const Divider(),
                   ],
                 ]),
+                if (section == 0)
                 card(manager ? 'Protection purchases' : 'My protection', [
                   text(
                     'Visible for ${data['retentionDays']} days from purchase.',
@@ -387,6 +433,7 @@ class _PageState extends ConsumerState<ExamProtectionPage> {
                       ),
                     ),
                 ]),
+                if (section == 0)
                 if (!manager)
                   card('Start a protection claim', [
                     if (available.isEmpty)
@@ -556,6 +603,7 @@ class _PageState extends ConsumerState<ExamProtectionPage> {
                         ),
                       ),
                   ]),
+                if (section == 1)
                 card(manager ? 'Manager claims' : 'My claims', [
                   text(
                     'Visible for ${data['retentionDays']} days after submission. Proof media is deleted after 60 days.',
@@ -564,7 +612,7 @@ class _PageState extends ConsumerState<ExamProtectionPage> {
                     text('No claims within this visibility period.'),
                   for (final c in claims) claimTile(c, manager),
                 ]),
-                if (!manager)
+                if (section == 2 && !manager)
                   card('My Coupons', [
                     text(
                       'Scratch to reveal your coupon. Once scratched, use it within 7 days.',

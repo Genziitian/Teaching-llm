@@ -39,6 +39,7 @@ async function handle(request: NextRequest, context: Context, method: string) {
         const path = context.params.path || [];
         const session = await getSession();
         check(session, 'Sign in to continue.', 401);
+        check(session.role === 'STUDENT' || session.role === 'MANAGER', 'Exam Protection is not available for this account.', 403);
         const manager = session.role === 'MANAGER';
         if (method !== 'GET') {
             const limit = await checkRateLimit(session.userId, 'general');

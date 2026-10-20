@@ -236,6 +236,9 @@ final routerProvider = Provider<GoRouter>((ref) {
         if (loc.startsWith('/support') && !canAccessSupport(user.role)) {
           return '/dashboard';
         }
+        if (loc.startsWith('/exam-protection') && user.role != 'STUDENT') {
+          return '/dashboard';
+        }
         pendingLocation = null;
         return null;
       }
