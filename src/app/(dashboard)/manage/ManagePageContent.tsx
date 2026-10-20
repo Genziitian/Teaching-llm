@@ -21,25 +21,11 @@ import { type PlatformQuery, QUERY_CATEGORIES } from '@/lib/queries-master'
 import ClearCourseEnrollmentsModal from '@/components/ClearCourseEnrollmentsModal'
 import AcademicTermsModal from '@/components/manage/AcademicTermsModal'
 
-export type Tab = 'courses' | 'offerings' | 'bundles' | 'lectures' | 'events' | 'materials' | 'announcements' | 'notifications' | 'home-slides' | 'faqs' | 'queries'
+export type Tab = 'courses' | 'offerings' | 'bundles' | 'lectures' | 'events' | 'materials' | 'announcements' | 'notifications' | 'faqs' | 'queries'
 
 interface ManagePageInnerProps {
   forcedTab?: Tab
 }
-
-const PROMO_SPLASH_PAGE_OPTIONS = [
-  { value: '/dashboard', label: 'Home' },
-  { value: '/courses', label: 'Courses and course details' },
-  { value: '/academics', label: 'Academics' },
-  { value: '/community', label: 'Community' },
-  { value: '/live', label: 'Live Classes' },
-  { value: '/calendar', label: 'Calendar' },
-  { value: '/announcements', label: 'Announcements' },
-  { value: '/free-resources', label: 'Free Resources' },
-  { value: '/support', label: 'Support' },
-  { value: '/more', label: 'More' },
-  { value: '/settings', label: 'Settings' },
-]
 
 export function ManagePageInner({ forcedTab }: ManagePageInnerProps = {}) {
   const router = useRouter()
@@ -96,12 +82,6 @@ export function ManagePageInner({ forcedTab }: ManagePageInnerProps = {}) {
   const { data: campaignsData, error: campaignsError, isLoading: loadingCampaigns, mutate: mutateCampaigns } = useSWR(
     tab === 'notifications' ? '/api/notifications/campaigns' : null, fetcher
   )
-  const { data: homeSlidesData, error: slidesError, isLoading: loadingSlides, mutate: mutateSlides } = useSWR(
-    tab === 'home-slides' ? '/api/admin/home-slides?manage=1' : null, fetcher
-  )
-  const { data: homeContentSettings, error: homeContentSettingsError, mutate: mutateHomeContentSettings } = useSWR(
-    tab === 'home-slides' ? '/api/admin/home-content-settings' : null, fetcher
-  )
   const { data: faqsData, error: faqsError, isLoading: loadingFaqs, mutate: mutateFaqs } = useSWR(
     tab === 'faqs' ? '/api/support/faq' : null, fetcher
   )
@@ -118,7 +98,6 @@ export function ManagePageInner({ forcedTab }: ManagePageInnerProps = {}) {
   const announcements = Array.isArray(announcementsData) ? announcementsData : Array.isArray(announcementsData?.announcements) ? announcementsData.announcements : []
   const instructors = Array.isArray(instructorsData) ? instructorsData : []
   const campaigns = Array.isArray(campaignsData) ? campaignsData : []
-  const slides = Array.isArray(homeSlidesData) ? homeSlidesData : []
   const faqs = Array.isArray(faqsData) ? faqsData : []
   const queries: PlatformQuery[] = Array.isArray(queriesData) ? queriesData : []
 
@@ -131,7 +110,6 @@ export function ManagePageInner({ forcedTab }: ManagePageInnerProps = {}) {
     (tab === 'materials' && loadingMaterials) ||
     (tab === 'announcements' && loadingAnnouncements) ||
     (tab === 'notifications' && loadingCampaigns) ||
-    (tab === 'home-slides' && loadingSlides) ||
     (tab === 'faqs' && loadingFaqs) ||
     (tab === 'queries' && loadingQueries)
   const loadError =
@@ -145,8 +123,6 @@ export function ManagePageInner({ forcedTab }: ManagePageInnerProps = {}) {
     announcementsError ||
     instructorsError ||
     campaignsError ||
-    slidesError ||
-    homeContentSettingsError ||
     faqsError ||
     queriesError
 
@@ -187,13 +163,7 @@ export function ManagePageInner({ forcedTab }: ManagePageInnerProps = {}) {
       if (typeof mutateCampaigns === 'function') await mutateCampaigns()
       mutate('/api/notifications/campaigns')
     }
-    if (tab === 'home-slides') {
-      if (typeof mutateSlides === 'function') await mutateSlides()
-      if (typeof mutateHomeContentSettings === 'function') await mutateHomeContentSettings()
-      mutate('/api/admin/home-slides?manage=1')
-      mutate('/api/admin/home-slides')
-      mutate('/api/admin/home-content-settings')
-    }
+
     if (tab === 'faqs') {
       if (typeof mutateFaqs === 'function') await mutateFaqs()
       mutate('/api/support/faq')
@@ -214,36 +184,6 @@ export function ManagePageInner({ forcedTab }: ManagePageInnerProps = {}) {
   const [saving, setSaving]             = useState(false)
   const [copiedId, setCopiedId]         = useState<string | null>(null)
   const [materialSourceType, setMaterialSourceType] = useState<'FILE' | 'LINK'>('FILE')
-  const [promoSplashDraft, setPromoSplashDraft] = useState('/splash-screen.png')
-  const selectedPromoPages = String(homeContentSettings?.promoSplashTargetPages || '/dashboard')
-    .split(',')
-    .map((page: string) => page.trim())
-    .filter(Boolean)
-
-  useEffect(() => {
-    if (homeContentSettings?.promoSplashImage) {
-      setPromoSplashDraft(homeContentSettings.promoSplashImage)
-    }
-  }, [homeContentSettings?.promoSplashImage])
-
-  async function updateHomeContentSettings(patch: Record<string, unknown>) {
-    setSaving(true)
-    try {
-      const res = await fetch('/api/admin/home-content-settings', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...homeContentSettings, ...patch }),
-      })
-      const data = await res.json().catch(() => ({}))
-      if (!res.ok) throw new Error(data.error || 'Failed to update home content settings')
-      await mutateHomeContentSettings(data, { revalidate: false })
-      mutate('/api/admin/home-slides')
-    } catch (error) {
-      alert(error instanceof Error ? error.message : 'Failed to update home content settings')
-    } finally {
-      setSaving(false)
-    }
-  }
 
   // Dedicated states for Advanced Inline Notification Dashboard
   const [inlineNotif, setInlineNotif] = useState({
@@ -670,7 +610,6 @@ export function ManagePageInner({ forcedTab }: ManagePageInnerProps = {}) {
           materials:     '/api/materials',
           announcements: '/api/announcements',
           notifications: '/api/notifications/campaigns',
-          'home-slides': '/api/admin/home-slides',
           faqs:          '/api/support/faq',
           queries:       '/api/manage/queries',
         }
@@ -801,7 +740,6 @@ export function ManagePageInner({ forcedTab }: ManagePageInnerProps = {}) {
     else if (tab === 'materials') entityType = 'Material'
     else if (tab === 'events') entityType = 'Event'
     else if (tab === 'announcements') entityType = 'Announcement'
-    else if (tab === 'home-slides') entityType = 'Home Slide'
     else if (tab === 'faqs') entityType = 'FAQ'
 
     const allowed = await confirm({
@@ -822,8 +760,6 @@ export function ManagePageInner({ forcedTab }: ManagePageInnerProps = {}) {
     } else if (tab === 'notifications') {
       alert('For audit compliance, notification campaign history cannot be deleted.')
       return
-    } else if (tab === 'home-slides') {
-      await fetch(`/api/admin/home-slides/${id}`, { method: 'DELETE' })
     } else {
       const endpoints: Record<Tab, string> = {
         courses:       '/api/courses',
@@ -834,7 +770,6 @@ export function ManagePageInner({ forcedTab }: ManagePageInnerProps = {}) {
         materials:     '',
         announcements: '/api/announcements',
         notifications: '',
-        'home-slides': '',
         faqs:          '/api/support/faq',
         queries:       '/api/manage/queries',
       }
@@ -1818,125 +1753,6 @@ export function ManagePageInner({ forcedTab }: ManagePageInnerProps = {}) {
           </div>
         )
 
-      case 'home-slides':
-        return (
-          <>
-            <div className="form-group">
-              <label className="form-label">Banner Image *</label>
-              <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-                <input
-                  type="text"
-                  className="form-input"
-                  value={f.image || ''}
-                  onChange={e => set('image', e.target.value)}
-                  placeholder="https://example.com/slide.png"
-                  style={{ flex: 1 }}
-                />
-                {f.image && (
-                  <button
-                    type="button"
-                    onClick={() => set('image', '')}
-                    className="btn btn-ghost"
-                    style={{ color: 'var(--danger)', border: '1px solid #fee2e2', padding: '10px 14px', fontSize: '13px', cursor: 'pointer' }}
-                  >
-                    🗑️ Remove Photo
-                  </button>
-                )}
-                <label className="btn btn-ghost" style={{ border: '1px solid var(--neu-dark)', cursor: 'pointer', display: 'flex', alignItems: 'center', whiteSpace: 'nowrap', padding: '10px 14px', fontSize: '13px' }}>
-                  📂 Upload File
-                  <input
-                    type="file"
-                    accept="image/*"
-                    style={{ display: 'none' }}
-                    onChange={async (e) => {
-                      const file = e.target.files?.[0];
-                      if (!file) return;
-                      
-                      const uploadData = new FormData();
-                      uploadData.append('file', file);
-                      uploadData.append('type', 'announcements');
-
-                      try {
-                        setSaving(true);
-                        const res = await fetch('/api/upload', {
-                          method: 'POST',
-                          body: uploadData
-                        });
-                        const data = await res.json();
-                        if (res.ok && data.url) {
-                          set('image', data.url);
-                          alert('Image uploaded successfully!');
-                        } else {
-                          alert(`Upload failed: ${data.error || 'Unknown error'}`);
-                        }
-                      } catch (err) {
-                        alert('Error uploading image file');
-                      } finally {
-                        setSaving(false);
-                      }
-                    }}
-                  />
-                </label>
-              </div>
-              <p style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '4px' }}>
-                Upload a 16:9 ratio visual promotion slide (maximum 10MB).
-              </p>
-            </div>
-
-            <div className="form-group">
-              <label className="form-label">Alt Text (Accessibility) *</label>
-              <input
-                className="form-input"
-                value={f.alt || ''}
-                onChange={e => set('alt', e.target.value)}
-                placeholder="e.g. Special May qualifier exam session banner"
-              />
-            </div>
-
-            <div className="form-group">
-              <label className="form-label">CTA Link / Redirect Link *</label>
-              <input
-                className="form-input"
-                value={f.href || ''}
-                onChange={e => set('href', e.target.value)}
-                placeholder="e.g. /courses or https://youtube.com/..."
-              />
-              <p style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '4px' }}>
-                Students will redirect to this page/URL when they click the banner slide.
-              </p>
-            </div>
-
-            {f.image && (
-              <div style={{ marginTop: '12px', width: '100%' }}>
-                <label className="form-label">Carousel Slide Preview:</label>
-                <div style={{
-                  width: '100%',
-                  aspectRatio: '16 / 9',
-                  borderRadius: '14px',
-                  background: 'var(--text-primary)',
-                  backgroundImage: `url(${f.image})`,
-                  backgroundSize: 'cover',
-                  backgroundPosition: 'center',
-                  boxShadow: '0 8px 16px rgba(0,0,0,0.1)',
-                  position: 'relative'
-                }}>
-                  <div style={{
-                    position: 'absolute',
-                    bottom: '12px',
-                    left: '50%',
-                    transform: 'translateX(-50%)',
-                    display: 'flex',
-                    gap: '6px'
-                  }}>
-                    <div style={{ width: '20px', height: '6px', borderRadius: '50px', background: 'var(--primary)' }}></div>
-                    <div style={{ width: '6px', height: '6px', borderRadius: '50px', background: 'var(--surface-2)' }}></div>
-                    <div style={{ width: '6px', height: '6px', borderRadius: '50px', background: 'var(--surface-2)' }}></div>
-                  </div>
-                </div>
-              </div>
-            )}
-          </>
-        )
       case 'faqs':
         return (
           <>
@@ -1988,7 +1804,6 @@ export function ManagePageInner({ forcedTab }: ManagePageInnerProps = {}) {
       case 'materials':     return materials
       case 'announcements': return announcements
       case 'notifications': return campaigns
-      case 'home-slides':   return slides
       case 'faqs':          return faqs
     }
   }
@@ -2162,13 +1977,9 @@ export function ManagePageInner({ forcedTab }: ManagePageInnerProps = {}) {
               Academic Terms & Exam Cycles
             </button>
           )}
-          {tab !== 'notifications' && ((tab === 'events' || tab === 'announcements' || tab === 'home-slides' || tab === 'faqs' || tab === 'queries') || userRole === 'MANAGER' || (userRole === 'ADMIN' || userRole === 'MODERATOR')) && (
+          {tab !== 'notifications' && ((tab === 'events' || tab === 'announcements' || tab === 'faqs' || tab === 'queries') || userRole === 'MANAGER' || (userRole === 'ADMIN' || userRole === 'MODERATOR')) && (
             <button
               onClick={() => {
-                if (tab === 'home-slides' && slides.length >= 10) {
-                  alert('Maximum limit of 10 slides reached. Delete an existing slide first.')
-                  return
-                }
                 if (tab === 'queries') {
                   openCreateQuery()
                   return
@@ -2176,12 +1987,11 @@ export function ManagePageInner({ forcedTab }: ManagePageInnerProps = {}) {
                 openCreate()
               }}
               className="btn btn-primary"
-              style={{ ...(tab === 'home-slides' && slides.length >= 10 ? { opacity: 0.5, cursor: 'not-allowed' } : {}) }}
             >
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
               </svg>
-              {tab === 'events' ? 'Add Event' : tab === 'home-slides' ? 'Add Banner Slide' : tab === 'faqs' ? 'Add FAQ' : tab === 'queries' ? 'Add Query' : 'Create New'}
+              {tab === 'events' ? 'Add Event' : tab === 'faqs' ? 'Add FAQ' : tab === 'queries' ? 'Add Query' : 'Create New'}
             </button>
           )}
         </div>
@@ -2224,192 +2034,7 @@ export function ManagePageInner({ forcedTab }: ManagePageInnerProps = {}) {
 
 
 
-      {/* Items List */}
-      {tab === 'home-slides' && homeContentSettings && (
-        <div className="card" style={{ padding: '18px', marginBottom: '18px', display: 'grid', gap: '18px' }}>
-          <div>
-            <div style={{ fontSize: '16px', fontWeight: 800, color: 'var(--text-primary)' }}>Student Home Display Controls</div>
-            <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '3px' }}>
-              These settings apply to the website, Capacitor app, and Flutter app.
-            </div>
-          </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '14px' }}>
-            <div style={{ padding: '16px', border: '1px solid var(--border)', borderRadius: '14px', background: 'var(--surface)' }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px' }}>
-                <div>
-                  <div style={{ fontWeight: 800, color: 'var(--text-primary)' }}>Home Carousel</div>
-                  <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Turn every home banner on or off.</div>
-                </div>
-                <button
-                  type="button"
-                  disabled={saving}
-                  onClick={() => updateHomeContentSettings({ homeCarouselEnabled: !homeContentSettings.homeCarouselEnabled })}
-                  className="btn btn-sm"
-                  style={{ background: homeContentSettings.homeCarouselEnabled ? '#16a34a' : 'var(--surface-2)', color: homeContentSettings.homeCarouselEnabled ? 'white' : 'var(--text-secondary)' }}
-                >
-                  {homeContentSettings.homeCarouselEnabled ? 'ON' : 'OFF'}
-                </button>
-              </div>
-            </div>
-
-            <div style={{ padding: '16px', border: '1px solid var(--border)', borderRadius: '14px', background: 'var(--surface)', display: 'grid', gap: '12px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px' }}>
-                <div>
-                  <div style={{ fontWeight: 800, color: 'var(--text-primary)' }}>Promotional Splash</div>
-                  <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Optional full-screen image after the logo loader.</div>
-                </div>
-                <button
-                  type="button"
-                  disabled={saving}
-                  onClick={() => updateHomeContentSettings({ promoSplashEnabled: !homeContentSettings.promoSplashEnabled })}
-                  className="btn btn-sm"
-                  style={{ background: homeContentSettings.promoSplashEnabled ? '#16a34a' : 'var(--surface-2)', color: homeContentSettings.promoSplashEnabled ? 'white' : 'var(--text-secondary)' }}
-                >
-                  {homeContentSettings.promoSplashEnabled ? 'ON' : 'OFF'}
-                </button>
-              </div>
-
-              <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                <input
-                  className="form-input"
-                  value={promoSplashDraft}
-                  onChange={event => setPromoSplashDraft(event.target.value)}
-                  placeholder="/splash-screen.png or uploaded image URL"
-                  style={{ flex: '1 1 240px' }}
-                />
-                <label className="btn btn-ghost btn-sm" style={{ cursor: 'pointer' }}>
-                  Upload
-                  <input
-                    type="file"
-                    accept="image/png,image/jpeg"
-                    hidden
-                    onChange={async event => {
-                      const file = event.target.files?.[0]
-                      if (!file) return
-                      const uploadData = new FormData()
-                      uploadData.append('file', file)
-                      uploadData.append('type', 'announcements')
-                      setSaving(true)
-                      try {
-                        const response = await fetch('/api/upload', { method: 'POST', body: uploadData })
-                        const data = await response.json().catch(() => ({}))
-                        if (!response.ok || !data.url) throw new Error(data.error || 'Upload failed')
-                        setPromoSplashDraft(data.url)
-                        await updateHomeContentSettings({ promoSplashImage: data.url })
-                      } catch (error) {
-                        alert(error instanceof Error ? error.message : 'Upload failed')
-                      } finally {
-                        setSaving(false)
-                      }
-                    }}
-                  />
-                </label>
-                <button type="button" className="btn btn-primary btn-sm" disabled={saving || !promoSplashDraft.trim()} onClick={() => updateHomeContentSettings({ promoSplashImage: promoSplashDraft.trim() })}>
-                  Save Image
-                </button>
-              </div>
-
-              <label style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
-                Display time (milliseconds, 1000–10000)
-                <input
-                  type="number"
-                  min={1000}
-                  max={10000}
-                  step={500}
-                  className="form-input"
-                  defaultValue={homeContentSettings.promoSplashDurationMs}
-                  onBlur={event => updateHomeContentSettings({ promoSplashDurationMs: Number(event.target.value) })}
-                  style={{ marginTop: '5px' }}
-                />
-              </label>
-
-              <div>
-                <div style={{ fontSize: '12px', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '7px' }}>Show when the user first visits any selected page</div>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '7px' }}>
-                  {PROMO_SPLASH_PAGE_OPTIONS.map(option => {
-                    const selected = selectedPromoPages.includes(option.value)
-                    return (
-                      <button
-                        key={option.value}
-                        type="button"
-                        disabled={saving}
-                        onClick={() => {
-                          const next = selected
-                            ? selectedPromoPages.filter((page: string) => page !== option.value)
-                            : [...selectedPromoPages, option.value]
-                          if (next.length === 0) {
-                            alert('Select at least one page for the promotional splash.')
-                            return
-                          }
-                          updateHomeContentSettings({ promoSplashTargetPages: next })
-                        }}
-                        className="btn btn-sm"
-                        style={{
-                          background: selected ? 'var(--primary)' : 'var(--surface-2)',
-                          color: selected ? 'white' : 'var(--text-secondary)',
-                          border: '1px solid var(--border)',
-                        }}
-                      >
-                        {selected ? '✓ ' : ''}{option.label}
-                      </button>
-                    )
-                  })}
-                </div>
-                <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '7px' }}>
-                  Multiple selected pages are one shared campaign: the first eligible page claims the display.
-                </div>
-              </div>
-
-              <div style={{ display: 'grid', gridTemplateColumns: 'minmax(160px, 1fr) minmax(140px, 1fr)', gap: '10px' }}>
-                <label style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
-                  Frequency
-                  <select
-                    className="form-input"
-                    value={homeContentSettings.promoSplashFrequency || 'ONCE'}
-                    onChange={event => updateHomeContentSettings({ promoSplashFrequency: event.target.value })}
-                    style={{ marginTop: '5px' }}
-                  >
-                    <option value="ONCE">Once per user</option>
-                    <option value="RECURRING">Recurring</option>
-                  </select>
-                </label>
-                {homeContentSettings.promoSplashFrequency === 'RECURRING' && (
-                  <label style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
-                    Repeat every (days)
-                    <input
-                      type="number"
-                      min={1}
-                      max={365}
-                      className="form-input"
-                      defaultValue={homeContentSettings.promoSplashIntervalDays || 1}
-                      onBlur={event => updateHomeContentSettings({ promoSplashIntervalDays: Number(event.target.value) })}
-                      style={{ marginTop: '5px' }}
-                    />
-                  </label>
-                )}
-              </div>
-
-              <button
-                type="button"
-                disabled={saving}
-                className="btn btn-ghost btn-sm"
-                onClick={async () => {
-                  const allowed = window.confirm('Show this promotional splash again to users who already saw it?')
-                  if (allowed) await updateHomeContentSettings({ resetPromoSplashViews: true })
-                }}
-              >
-                Reset Seen History
-              </button>
-
-              {promoSplashDraft && (
-                <img src={promoSplashDraft} alt="Promotional splash preview" style={{ width: '120px', aspectRatio: '9 / 20', objectFit: 'cover', borderRadius: '10px', border: '1px solid var(--border)' }} />
-              )}
-              <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Recommended: 1080 × 2400 px (9:20), PNG/JPG, under 2 MB.</div>
-            </div>
-          </div>
-        </div>
-      )}
 
       {tab === 'notifications' ? (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
@@ -3642,157 +3267,6 @@ export function ManagePageInner({ forcedTab }: ManagePageInnerProps = {}) {
             </div>
           ) : (
             <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
-              {tab === 'home-slides' ? (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', width: '100%' }}>
-                {slides.map((item: any, idx: number) => {
-                  return (
-                    <div key={item.id} style={{
-                      display: 'flex', gap: '16px', padding: '16px', borderRadius: '16px', background: 'var(--surface)', alignItems: 'center', boxShadow: '2px 2px 5px rgba(0,0,0,0.03)'
-                    }}>
-                      <div 
-                        onClick={() => {
-                          if (item.image) {
-                            window.open(item.image, '_blank', 'noopener,noreferrer');
-                          }
-                        }}
-                        title="Click to view full size"
-                        style={{
-                          width: '120px', aspectRatio: '16/9', borderRadius: '10px', background: 'var(--surface-2)', backgroundImage: `url(${item.image})`, backgroundSize: 'cover', backgroundPosition: 'center', flexShrink: 0, cursor: 'pointer'
-                        }}
-                      ></div>
-                      
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ fontSize: '13px', fontWeight: '800', color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                          Alt: {item.alt || 'No alt description'}
-                        </div>
-                        <div style={{ fontSize: '11px', color: 'var(--accent)', marginTop: '2px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                          CTA Redirect: <a href={item.href} target="_blank" rel="noreferrer" style={{ color: 'var(--accent)', textDecoration: 'underline' }}>{item.href}</a>
-                        </div>
-                        <div style={{ fontSize: '10px', color: 'var(--text-muted)', marginTop: '4px' }}>
-                          Display order position: <strong style={{ color: 'var(--text-primary)' }}>{idx + 1}</strong>
-                        </div>
-                        <div style={{ fontSize: '10px', color: item.isActive === false ? 'var(--danger)' : '#16a34a', marginTop: '4px', fontWeight: 800 }}>
-                          {item.isActive === false ? 'Hidden' : 'Active'}
-                        </div>
-                      </div>
-
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
-                        <button
-                          type="button"
-                          disabled={saving}
-                          onClick={async () => {
-                            setSaving(true)
-                            try {
-                              const res = await fetch(`/api/admin/home-slides/${item.id}`, {
-                                method: 'PUT',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({ isActive: item.isActive === false }),
-                              })
-                              if (!res.ok) throw new Error('Failed to update slide')
-                              await loadData()
-                            } catch (error) {
-                              alert(error instanceof Error ? error.message : 'Failed to update slide')
-                            } finally {
-                              setSaving(false)
-                            }
-                          }}
-                          className="btn btn-sm"
-                          style={{ background: item.isActive === false ? 'var(--surface-2)' : '#16a34a', color: item.isActive === false ? 'var(--text-secondary)' : 'white' }}
-                          title="Show or hide this slide"
-                        >
-                          {item.isActive === false ? 'OFF' : 'ON'}
-                        </button>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                          <button
-                            disabled={idx === 0 || saving}
-                            onClick={async () => {
-                              try {
-                                setSaving(true);
-                                const updated = [...slides];
-                                const temp = updated[idx].order;
-                                updated[idx].order = updated[idx - 1].order;
-                                updated[idx - 1].order = temp;
-                                
-                                const res = await fetch('/api/admin/home-slides', {
-                                  method: 'PUT',
-                                  headers: { 'Content-Type': 'application/json' },
-                                  body: JSON.stringify({ slides: updated })
-                                });
-                                if (res.ok) loadData();
-                              } catch (err) {
-                                console.error(err);
-                              } finally {
-                                setSaving(false);
-                              }
-                            }}
-                            className="btn btn-ghost btn-sm"
-                            style={{ padding: '2px 6px', fontSize: '10px', height: '22px' }}
-                            title="Move Up"
-                          >
-                            ▲
-                          </button>
-                          <button
-                            disabled={idx === slides.length - 1 || saving}
-                            onClick={async () => {
-                              try {
-                                setSaving(true);
-                                const updated = [...slides];
-                                const temp = updated[idx].order;
-                                updated[idx].order = updated[idx + 1].order;
-                                updated[idx + 1].order = temp;
-                                
-                                const res = await fetch('/api/admin/home-slides', {
-                                  method: 'PUT',
-                                  headers: { 'Content-Type': 'application/json' },
-                                  body: JSON.stringify({ slides: updated })
-                                });
-                                if (res.ok) loadData();
-                              } catch (err) {
-                                console.error(err);
-                              } finally {
-                                setSaving(false);
-                              }
-                            }}
-                            className="btn btn-ghost btn-sm"
-                            style={{ padding: '2px 6px', fontSize: '10px', height: '22px' }}
-                            title="Move Down"
-                          >
-                            ▼
-                          </button>
-                        </div>
-
-                         <button
-                          type="button"
-                          onClick={() => {
-                            if (item.image) {
-                              window.open(item.image, '_blank', 'noopener,noreferrer');
-                            }
-                          }}
-                          className="btn btn-ghost btn-sm"
-                          style={{ padding: '6px', color: 'var(--accent)' }}
-                          title="Preview Image"
-                        >
-                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-                            <circle cx="12" cy="12" r="3"/>
-                          </svg>
-                        </button>
-                        <button onClick={() => openEdit(item)} className="btn btn-ghost btn-sm" style={{ padding: '6px' }} title="Edit">
-                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                            <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
-                          </svg>
-                        </button>
-                        <button onClick={() => handleDelete(item.id, item)} className="btn btn-ghost btn-sm" style={{ padding: '6px', color: 'var(--danger)' }} title="Delete">
-                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                            <polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/>
-                          </svg>
-                        </button>
-                      </div>
-                    </div>
-                  )
-                })}
-              </div>
-            ) : (
               <>
                 {tab === 'courses' && (
                   <div style={{
@@ -4077,7 +3551,6 @@ export function ManagePageInner({ forcedTab }: ManagePageInnerProps = {}) {
               )
             })}
               </>
-            )}
           </div>
         )}
       </div>

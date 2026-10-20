@@ -794,10 +794,9 @@ function CalendarPageContent() {
           display: 'flex', 
           alignItems: 'center', 
           gap: '4px',
-          background: 'var(--surface-2)',
-          padding: '6px',
+          background: 'var(--surface-hover)',
+          padding: '4px',
           borderRadius: '50px',
-          boxShadow: 'inset 4px 4px 8px var(--border), inset -4px -4px 8px var(--neu-light)'
         }}>
           <button onClick={goToday} className="btn btn-sm" style={{ 
             background: 'transparent', 
@@ -827,13 +826,11 @@ function CalendarPageContent() {
         </div>
 
         <h2 style={{ 
-          fontSize: '26px', 
-          fontWeight: '800', 
+          fontSize: '30px', 
+          fontWeight: '700', 
+          letterSpacing: '-0.03em',
           color: 'var(--text-primary)',
           margin: 0,
-          background: 'linear-gradient(135deg, var(--text-primary), var(--info))',
-          WebkitBackgroundClip: 'text',
-          WebkitTextFillColor: 'transparent'
         }}>
           {monthName}
         </h2>
@@ -847,15 +844,14 @@ function CalendarPageContent() {
               style={{
                 padding: '10px 20px',
                 fontWeight: '700',
-                background: 'var(--surface-2)',
-                color: 'var(--primary)',
-                border: '1px solid var(--border)',
+                background: 'var(--surface-hover)',
+                color: 'var(--accent)',
+                border: 'none',
                 borderRadius: '50px',
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: '8px',
                 cursor: syncing ? 'wait' : 'pointer',
-                boxShadow: '4px 4px 10px var(--neu-dark), -4px -4px 10px var(--neu-light)',
                 opacity: syncing ? 0.7 : 1,
               }}
               title="Sync today's scheduled classes to live sessions"
@@ -871,15 +867,14 @@ function CalendarPageContent() {
               style={{
                 padding: '10px 20px',
                 fontWeight: '700',
-                background: 'var(--surface-2)',
+                background: 'var(--surface-hover)',
                 color: 'var(--text-primary)',
-                border: '1px solid var(--border)',
+                border: 'none',
                 borderRadius: '50px',
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: '8px',
                 cursor: 'pointer',
-                boxShadow: '4px 4px 10px var(--neu-dark), -4px -4px 10px var(--neu-light)',
               }}
               title="Manage, select and bulk delete events after any date"
             >
@@ -889,7 +884,7 @@ function CalendarPageContent() {
               </svg>
               Manage &amp; Clean Up
             </button>
-            <button onClick={() => openCreate()} className="btn btn-primary" style={{ padding: '10px 24px', fontWeight: '700' }}>
+            <button onClick={() => openCreate()} className="btn btn-primary" style={{ padding: '10px 22px', fontWeight: '600', borderRadius: '50px' }}>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
                 <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
               </svg>
@@ -902,27 +897,26 @@ function CalendarPageContent() {
       {/* Calendar Grid */}
       <div className="card calendar-desktop-only" style={{
         overflow: 'hidden',
-        borderRadius: '28px',
-        border: '1px solid var(--border)',
-        boxShadow: '20px 20px 60px var(--neu-dark), -20px -20px 60px var(--neu-light)'
+        borderRadius: '22px',
+        border: '0.5px solid var(--border)',
+        boxShadow: 'none',
+        background: 'var(--surface)'
       }}>
         {/* Day headers */}
         <div style={{
           display: 'grid',
           gridTemplateColumns: 'repeat(7, 1fr)',
-          borderBottom: '1px solid var(--border)',
-          background: 'var(--surface-2)',
-          backdropFilter: 'blur(10px)'
+          borderBottom: '0.5px solid var(--border)',
+          background: 'transparent',
         }}>
           {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(d => (
             <div key={d} style={{
-              padding: '16px 8px',
-              textAlign: 'center',
-              fontSize: '11px',
-              fontWeight: '800',
-              color: 'var(--text-muted)',
-              textTransform: 'uppercase',
-              letterSpacing: '0.1em',
+              padding: '14px 12px 10px',
+              textAlign: 'right',
+              fontSize: '12px',
+              fontWeight: '600',
+              color: 'var(--text-secondary)',
+              letterSpacing: '0.02em',
             }}>
               {d}
             </div>
@@ -940,13 +934,12 @@ function CalendarPageContent() {
             const today = day ? isToday(day) : false
             return (
               <div key={dayKey} style={{
-                minHeight: '120px',
-                padding: '36px 8px 8px', // Extra top padding for the date number
-                borderBottom: '1px solid rgba(0,0,0,0.03)',
-                borderRight: (i + 1) % 7 !== 0 ? '1px solid rgba(0,0,0,0.03)' : 'none',
-                background: today ? 'rgba(59, 130, 246, 0.08)' : 'transparent',
-                boxShadow: today ? 'inset 0 0 0 1.5px var(--info)' : 'none',
-                transition: 'all 0.2s ease',
+                minHeight: '132px',
+                padding: '40px 6px 8px', // room for the date number
+                borderTop: '0.5px solid var(--border)',
+                borderRight: (i + 1) % 7 !== 0 ? '0.5px solid var(--border)' : 'none',
+                background: 'transparent',
+                transition: 'background 0.15s ease',
                 cursor: day ? 'pointer' : 'default',
                 position: 'relative',
               }}
@@ -954,20 +947,10 @@ function CalendarPageContent() {
                 if (day) setSelectedDailyDay(day)
               }}
               onMouseEnter={e => { 
-                if (day) {
-                  e.currentTarget.style.background = 'var(--surface-2)';
-                  e.currentTarget.style.boxShadow = today 
-                    ? 'inset 0 0 0 1.5px var(--info), inset 0 0 20px rgba(0,0,0,0.02)' 
-                    : 'inset 0 0 20px rgba(0,0,0,0.02)';
-                  e.currentTarget.style.zIndex = '5';
-                }
+                if (day) e.currentTarget.style.background = 'var(--surface-hover)'
               }}
               onMouseLeave={e => { 
-                if (day) {
-                  e.currentTarget.style.background = today ? 'rgba(59, 130, 246, 0.08)' : 'transparent';
-                  e.currentTarget.style.boxShadow = today ? 'inset 0 0 0 1.5px var(--info)' : 'none';
-                  e.currentTarget.style.zIndex = '1';
-                }
+                if (day) e.currentTarget.style.background = 'transparent'
               }}
               onDoubleClick={(e) => {
                 e.stopPropagation()
@@ -981,19 +964,25 @@ function CalendarPageContent() {
                   <>
                     <div style={{
                       position: 'absolute',
-                      top: '10px',
-                      right: '12px',
-                      fontSize: '13px',
-                      fontWeight: today ? '800' : '600',
-                      color: today ? 'var(--info)' : 'var(--text-muted)',
+                      top: '8px',
+                      right: '10px',
+                      minWidth: '26px',
+                      height: '26px',
+                      padding: '0 4px',
+                      boxSizing: 'border-box',
+                      borderRadius: '13px',
+                      fontSize: '14px',
+                      fontWeight: today ? '600' : '500',
+                      fontVariantNumeric: 'tabular-nums',
+                      color: today ? 'var(--button-text, #fff)' : 'var(--text-primary)',
+                      background: today ? 'var(--accent)' : 'transparent',
                       display: 'flex',
                       alignItems: 'center',
-                      gap: '4px'
+                      justifyContent: 'center',
                     }}>
                       {day}
-                      {today && <div style={{ width: '4px', height: '4px', borderRadius: '50%', background: 'var(--info)' }} />}
                     </div>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
                       {dayEvents.slice(0, 4).map(ev => {
                         const tc = TYPE_COLORS[ev.type] || TYPE_COLORS.class
                         return (
@@ -1001,26 +990,29 @@ function CalendarPageContent() {
                             e.stopPropagation(); 
                             if (isManager) setSelectedEvent(ev);
                           }} style={{
-                            padding: '4px 8px',
-                            borderRadius: '8px',
-                            background: tc.bg,
-                            color: tc.color,
-                            fontSize: '10px',
-                            fontWeight: '700',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '6px',
+                            padding: '3px 8px',
+                            borderRadius: '7px',
+                            background: `color-mix(in srgb, ${tc.bg} 16%, transparent)`,
+                            color: 'var(--text-primary)',
+                            fontSize: '11.5px',
+                            fontWeight: '600',
+                            lineHeight: 1.35,
                             overflow: 'hidden',
                             textOverflow: 'ellipsis',
                             whiteSpace: 'nowrap',
                             cursor: isManager ? 'pointer' : 'default',
-                            boxShadow: today ? '0 0 8px rgba(255, 255, 255, 0.35)' : '0 2px 4px rgba(0,0,0,0.05)',
-                            border: today ? '1.5px solid #ffffff' : '1px solid var(--border)'
                           }} title={`${ev.title}${ev.time ? ` ${ev.time}` : ''}`}>
-                            {ev.title}
+                            <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: tc.bg, flexShrink: 0 }} />
+                            <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{ev.title}</span>
                           </div>
                         )
                       })}
                       {dayEvents.length > 4 && (
-                        <div style={{ fontSize: '9px', fontWeight: '800', color: 'var(--text-muted)', paddingLeft: '4px', marginTop: '2px' }}>
-                          + {dayEvents.length - 4} MORE
+                        <div style={{ fontSize: '11.5px', fontWeight: '600', color: 'var(--text-secondary)', paddingLeft: '8px', marginTop: '2px' }}>
+                          {dayEvents.length - 4} more
                         </div>
                       )}
                     </div>

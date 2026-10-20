@@ -222,18 +222,6 @@ const NAV_ITEMS: NavItem[] = [
     ),
   },
   {
-    href: '/manage/home-slides',
-    label: 'Home Carousel',
-    roles: ['MANAGER'],
-    icon: (
-      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <rect x="2" y="7" width="20" height="14" rx="2" ry="2"/>
-        <path d="M16 3H8"/>
-        <path d="M12 3v4"/>
-      </svg>
-    ),
-  },
-  {
     href: '/my-transactions',
     label: 'Transactions',
     roles: ['STUDENT'],
@@ -564,7 +552,7 @@ export default function Sidebar({ userRole, userName, userEmail }: SidebarProps)
               const isActive = effectivePath === item.href ||
                 (item.href !== '/dashboard' && item.href !== '/courses/explore' && effectivePath.startsWith(item.href) && 
                  (effectivePath[item.href.length] === '/' || effectivePath[item.href.length] === undefined) && !effectivePath.startsWith('/courses/explore') &&
-                 !(item.href === '/manage' && (effectivePath.startsWith('/manage/prompts') || effectivePath.startsWith('/manage/updates') || effectivePath.startsWith('/manage/coupons') || effectivePath.startsWith('/manage/notifications') || effectivePath.startsWith('/manage/home-slides') || effectivePath.startsWith('/manage/contacts') || effectivePath.startsWith('/manage/mail-assigner') || effectivePath.startsWith('/manage/facts'))))
+                 !(item.href === '/manage' && (effectivePath.startsWith('/manage/prompts') || effectivePath.startsWith('/manage/updates') || effectivePath.startsWith('/manage/coupons') || effectivePath.startsWith('/manage/notifications') || effectivePath.startsWith('/manage/contacts') || effectivePath.startsWith('/manage/mail-assigner') || effectivePath.startsWith('/manage/facts'))))
 
               const isStore = item.href === '/courses/explore'
               const getLinkStyle = () => {

@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from 'react'
 import Script from 'next/script'
-import useSWR from 'swr'
+import useSWR, { mutate as globalMutate } from 'swr'
+import StoreDetailScreen from '@/components/courses/StoreDetailScreen'
 import ShareLinkModal, { ShareIcon } from '@/components/ShareLinkModal'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { BookOpen, FileText, Users, ClipboardList, Trash2, Pencil, Sparkles, IndianRupee, Calendar, Plus, ExternalLink, HelpCircle, ChevronRight, X, Info, ArrowLeft, Upload } from 'lucide-react'
@@ -157,6 +158,7 @@ export default function ExploreCoursesPage() {
   const [showCreateNoteModal, setShowCreateNoteModal] = useState(false)
   const [editingNote, setEditingNote] = useState<any>(null)
   const [detailNote, setDetailNote] = useState<any>(null)
+  const [detailView, setDetailView] = useState<{ kind: 'course' | 'bundle'; id: string } | null>(null)
   const [noteLinkHandled, setNoteLinkHandled] = useState(false)
   const [shareNote, setShareNote] = useState<{ id: string; title: string } | null>(null)
   const [consentNote, setConsentNote] = useState<any>(null)
@@ -391,6 +393,42 @@ export default function ExploreCoursesPage() {
     } finally {
       setUploadingNoteFile(false)
     }
+  }
+
+  const openBundleBuy = (b: any) => {
+    const bundlePriceChampion = b.championDiscountPrice ?? b.championOriginalPrice
+    const bundlePriceLive = b.liveDiscountPrice ?? b.liveOriginalPrice
+    const bundlePriceRecorded = b.recordedDiscountPrice ?? b.recordedOriginalPrice
+                      setActiveBundle(b); 
+                      const defaultType = b.forceClassType || (bundlePriceChampion ? 'CHAMPION' : (bundlePriceLive ? 'LIVE' : (bundlePriceRecorded ? 'RECORDED' : 'LIVE')));
+                      setBundleAccessType(defaultType as 'RECORDED' | 'LIVE'); // Cast for compatibility with existing state if needed, but we'll update the state type below
+                      setBundleGlobalAccessType(defaultType as 'RECORDED' | 'LIVE' | 'CHAMPION');
+                      
+                      // Initialize per-course access types
+                      const initialSelections: Record<string, 'RECORDED' | 'LIVE' | 'CHAMPION'> = {};
+                      b.courses.forEach((bc: any) => {
+                        const offering = bc.course.courseOfferings?.[0];
+                        const hasChamp = offering?.championDiscountPrice > 0 || offering?.championOriginalPrice > 0;
+                        
+                        // If bundle is fixed, everyone gets the global default. 
+                        // If not fixed, we try to set CHAMPION for individual courses if available, else bundle default.
+                        if (b.allowIndividualPurchase === false) {
+                          initialSelections[bc.course.id] = defaultType as 'RECORDED' | 'LIVE' | 'CHAMPION';
+                        } else {
+                          initialSelections[bc.course.id] = (hasChamp ? 'CHAMPION' : (defaultType || 'LIVE')) as 'RECORDED' | 'LIVE' | 'CHAMPION';
+                        }
+                      });
+                      setBundleSelectedForPurchase(initialSelections);
+
+                      setBundleSelectedCoursesToBuy(b.courses.map((c: any) => c.course.id).filter((id: string) => {
+                        if (b.allowIndividualPurchase === false) return true;
+                        const isManager = userData?.user?.role === 'MANAGER' || userData?.role === 'MANAGER';
+                        return isManager || getEnrollmentStatus(id) === null;
+                      })); 
+                      setCouponApplied(null);
+                      setCouponCode('');
+                      setCouponError('');
+                      setShowBundleModal(true)
   }
 
   const handleNotePurchase = (note: any) => {
@@ -1056,38 +1094,8 @@ export default function ExploreCoursesPage() {
                   </div>
 
                   <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-                    <button onClick={() => { 
-                      setActiveBundle(b); 
-                      const defaultType = b.forceClassType || (bundlePriceChampion ? 'CHAMPION' : (bundlePriceLive ? 'LIVE' : (bundlePriceRecorded ? 'RECORDED' : 'LIVE')));
-                      setBundleAccessType(defaultType as 'RECORDED' | 'LIVE'); // Cast for compatibility with existing state if needed, but we'll update the state type below
-                      setBundleGlobalAccessType(defaultType as 'RECORDED' | 'LIVE' | 'CHAMPION');
-                      
-                      // Initialize per-course access types
-                      const initialSelections: Record<string, 'RECORDED' | 'LIVE' | 'CHAMPION'> = {};
-                      b.courses.forEach((bc: any) => {
-                        const offering = bc.course.courseOfferings?.[0];
-                        const hasChamp = offering?.championDiscountPrice > 0 || offering?.championOriginalPrice > 0;
-                        
-                        // If bundle is fixed, everyone gets the global default. 
-                        // If not fixed, we try to set CHAMPION for individual courses if available, else bundle default.
-                        if (b.allowIndividualPurchase === false) {
-                          initialSelections[bc.course.id] = defaultType as 'RECORDED' | 'LIVE' | 'CHAMPION';
-                        } else {
-                          initialSelections[bc.course.id] = (hasChamp ? 'CHAMPION' : (defaultType || 'LIVE')) as 'RECORDED' | 'LIVE' | 'CHAMPION';
-                        }
-                      });
-                      setBundleSelectedForPurchase(initialSelections);
-
-                      setBundleSelectedCoursesToBuy(b.courses.map((c: any) => c.course.id).filter((id: string) => {
-                        if (b.allowIndividualPurchase === false) return true;
-                        const isManager = userData?.user?.role === 'MANAGER' || userData?.role === 'MANAGER';
-                        return isManager || getEnrollmentStatus(id) === null;
-                      })); 
-                      setCouponApplied(null);
-                      setCouponCode('');
-                      setCouponError('');
-                      setShowBundleModal(true) 
-                    }} style={{ flex: 1, padding: '13px', borderRadius: '14px', background: 'var(--accent)', color: 'var(--button-text, #fff)', fontWeight: 600, fontSize: '15px', border: 'none', cursor: 'pointer' }}>View / Buy</button>
+                    <button onClick={() => setDetailView({ kind: 'bundle', id: b.id })} style={{ padding: '13px 18px', borderRadius: '14px', background: 'var(--surface-hover)', color: 'var(--text-primary)', fontWeight: 600, fontSize: '15px', border: 'none', cursor: 'pointer' }}>Details</button>
+                    <button onClick={() => openBundleBuy(b)} style={{ flex: 1, padding: '13px', borderRadius: '14px', background: 'var(--accent)', color: 'var(--button-text, #fff)', fontWeight: 600, fontSize: '15px', border: 'none', cursor: 'pointer' }}>View / Buy</button>
                     
                     {(userData?.user?.role === 'MANAGER' || userData?.role === 'MANAGER') && (
                       <div style={{ display: 'flex', gap: '6px' }}>
@@ -1768,7 +1776,10 @@ export default function ExploreCoursesPage() {
                   </p>
                 )}
 
-                {/* Duplicate name removed - course name already shown above */}
+                <button
+                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); setDetailView({ kind: 'course', id: offering.id }) }}
+                  style={{ alignSelf: 'flex-start', background: 'var(--surface-hover)', border: 'none', borderRadius: '999px', padding: '7px 14px', fontSize: '13px', fontWeight: 600, color: 'var(--accent)', cursor: 'pointer', marginBottom: '12px' }}
+                >Details</button>
 
                 {offering.description && (
                   <p style={{
@@ -2206,18 +2217,19 @@ export default function ExploreCoursesPage() {
 
       {/* Bundle Choose / Buy Modal */}
       {showBundleModal && activeBundle && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(15,23,42,0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1100, padding: '12px' }} onClick={() => { setShowBundleModal(false); setActiveBundle(null) }}>
+        <div className="bundle-fs-root" style={{ position: 'fixed', inset: 0, background: 'var(--background, var(--surface-2))', display: 'flex', alignItems: 'stretch', justifyContent: 'center', zIndex: 1250, padding: 0, overflowY: 'auto' }}>
+          <style>{`.bundle-fs-root .bundle-modal-box{height:100dvh !important;max-height:none !important;max-width:1120px !important;border-radius:0 !important;background:transparent !important;padding:28px clamp(16px,4vw,40px) 32px !important;overflow:auto !important}.bundle-fs-root .bundle-modal-grid{overflow:visible !important}`}</style>
           {(() => {
             const selectedList = activeBundle.allowIndividualPurchase === false ? activeBundle.courses.map((c: any) => c.course.id) : bundleSelectedCoursesToBuy;
             return (
-              <div className="bundle-modal-box" style={{ width: '100%', maxWidth: 'min(1024px, calc(100vw - 24px))', height: 'min(86vh, calc(100vh - 24px))', background: 'var(--surface)', borderRadius: 'clamp(16px, 4vw, 24px)', padding: 'clamp(16px, 4vw, 40px)', display: 'flex', flexDirection: 'column', overflow: 'hidden', position: 'relative' }} onClick={e => e.stopPropagation()}>
+              <div className="bundle-modal-box" style={{ width: '100%', maxWidth: 'min(1024px, calc(100vw - 24px))', height: '100dvh', background: 'transparent', borderRadius: 0, padding: 'clamp(16px, 4vw, 40px)', display: 'flex', flexDirection: 'column', overflow: 'hidden', position: 'relative' }} onClick={e => e.stopPropagation()}>
                 <button 
                   onClick={() => { setShowBundleModal(false); setActiveBundle(null) }}
-                  style={{ position: 'absolute', top: '24px', right: '24px', background: 'var(--surface)', border: 'none', width: '36px', height: '36px', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'var(--text-secondary)', transition: 'all 0.2s', zIndex: 10 }}
+                  style={{ display: 'flex', alignItems: 'center', gap: '4px', alignSelf: 'flex-start', background: 'none', border: 'none', color: 'var(--accent)', fontSize: '16px', fontWeight: 600, cursor: 'pointer', padding: '4px 0', marginBottom: '14px' }}
                 >
-                  <X size={20} />
+                  <ArrowLeft size={20} /> Back
                 </button>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '20px', paddingRight: '48px', gap: '12px', flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '20px', gap: '12px', flexWrap: 'wrap' }}>
               <div style={{ flex: '1 1 200px', minWidth: 0 }}>
                 <h3 style={{ fontSize: 'clamp(18px, 5vw, 24px)', fontWeight: '900', color: 'var(--text-primary)', wordBreak: 'break-word' }}>{activeBundle.name}</h3>
                 {activeBundle.description && (
@@ -4445,78 +4457,139 @@ export default function ExploreCoursesPage() {
         .apple-modal input:focus,.apple-modal select:focus,.apple-modal textarea:focus{box-shadow:0 0 0 3px rgba(10,132,255,0.22) !important}
       `}</style>
 
-      {/* NOTE DETAILS MODAL */}
+      {/* NOTE DETAILS (full screen) */}
       {detailNote && (() => {
         const n = detailNote
         const hasAccess = !!n.hasAccess
         const isExpired = n.myAccess?.state === 'EXPIRED'
         const fmt = (d: string) => new Date(d).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })
+        const multi = hasAccess && (n.files?.length || 0) > 1
         return (
-          <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px' }} onClick={() => setDetailNote(null)}>
-            <div style={{ background: 'var(--surface)', borderRadius: '24px', width: '100%', maxWidth: '560px', maxHeight: '90vh', overflowY: 'auto', padding: '28px' }} onClick={(e) => e.stopPropagation()}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', alignItems: 'flex-start' }}>
-                <div>
-                  <div style={{ fontSize: '12px', fontWeight: '800', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>{[n.category, n.subject].filter(Boolean).join(' · ')}</div>
-                  <h2 style={{ fontSize: '24px', fontWeight: '900', margin: '6px 0 0' }}>{n.title}</h2>
-                </div>
-                <button onClick={() => setDetailNote(null)} style={{ background: 'var(--surface-hover)', border: 'none', width: '36px', height: '36px', borderRadius: '18px', cursor: 'pointer', color: 'var(--text-secondary)', flexShrink: 0 }}>✕</button>
+          <StoreDetailScreen
+            eyebrow={[n.category, n.subject].filter(Boolean).join(' · ')}
+            title={n.title}
+            description={n.description}
+            commonPoints={null}
+            compare={null}
+            onClose={() => setDetailNote(null)}
+            status={n.myAccess ? (
+              <div style={{ display: 'inline-block', padding: '10px 16px', borderRadius: 14, fontSize: 14, fontWeight: 600, background: isExpired ? 'var(--danger-light)' : 'var(--success-light, #ecfdf5)', color: isExpired ? 'var(--danger)' : 'var(--success)' }}>
+                {isExpired ? `Expired on ${fmt(n.myAccess.expiresAt)}` : `Active · expires on ${fmt(n.myAccess.expiresAt)}`}
               </div>
-
-              <div style={{ display: 'flex', gap: '12px', alignItems: 'baseline', margin: '14px 0' }}>
-                <div style={{ fontSize: '28px', fontWeight: '900', color: n.price > 0 ? 'var(--text-primary)' : 'var(--success)' }}>{n.price > 0 ? `₹${n.price}` : 'Free'}</div>
-                {n.originalPrice > n.price && <div style={{ textDecoration: 'line-through', color: 'var(--text-secondary)' }}>₹{n.originalPrice}</div>}
-                <div style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>{n.validityDays} days access</div>
-              </div>
-
-              {n.myAccess && (
-                <div style={{ padding: '10px 14px', borderRadius: '12px', marginBottom: '14px', fontSize: '13px', fontWeight: '700', background: isExpired ? 'var(--danger-light)' : 'var(--success-light, #ecfdf5)', color: isExpired ? 'var(--danger)' : 'var(--success)' }}>
-                  {isExpired ? `Expired on ${fmt(n.myAccess.expiresAt)}` : `Active · expires on ${fmt(n.myAccess.expiresAt)}`}
+            ) : null}
+            price={(
+              <div>
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, flexWrap: 'wrap' }}>
+                  <span style={{ fontSize: 36, fontWeight: 800, letterSpacing: '-1px', color: n.price > 0 ? 'var(--text-primary)' : 'var(--success)' }}>{n.price > 0 ? `₹${n.price}` : 'Free'}</span>
+                  {n.originalPrice > n.price && <span style={{ textDecoration: 'line-through', color: 'var(--text-secondary)' }}>₹{n.originalPrice}</span>}
                 </div>
-              )}
+                <div style={{ fontSize: 14, color: 'var(--text-secondary)', marginTop: 4 }}>{n.validityDays} days access</div>
+              </div>
+            )}
+            sections={[
+              { title: "What's inside", items: n.highlights || [] },
+              { title: 'Rules & validity', items: n.rules || [] },
+            ]}
+            ctas={multi ? [] : [{
+              label: hasAccess ? 'Access notes' : isExpired ? `Restore now${n.price > 0 ? ` · ₹${n.price}` : ''}` : n.price > 0 ? `Buy now · ₹${n.price}` : 'Get free',
+              tone: hasAccess ? 'success' : 'primary',
+              onClick: () => {
+                if (hasAccess) window.open(`/api/store/notes/${n.id}/download`, '_blank')
+                else { setDetailNote(null); handleNotePurchase(n) }
+              },
+            }]}
+          >
+            {multi && (
+              <section style={{ background: 'var(--surface)', border: '0.5px solid var(--border)', borderRadius: 22, padding: 22 }}>
+                <h3 style={{ fontSize: 18, fontWeight: 800, margin: '0 0 12px' }}>Files</h3>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  {n.files.map((f: any) => (
+                    <a key={f.id} href={`/api/store/notes/${n.id}/download?fileId=${f.id}`} target="_blank" rel="noopener noreferrer"
+                      style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '13px 14px', borderRadius: 14, background: 'var(--surface-hover)', color: 'var(--text-primary)', textDecoration: 'none', fontSize: 15, fontWeight: 600 }}>
+                      <FileText size={18} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />
+                      <span style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{f.title || 'Document'}</span>
+                      <ExternalLink size={16} style={{ color: 'var(--accent)', flexShrink: 0 }} />
+                    </a>
+                  ))}
+                </div>
+              </section>
+            )}
+          </StoreDetailScreen>
+        )
+      })()}
 
-              {n.description && <p style={{ fontSize: '14px', lineHeight: 1.6, color: 'var(--text-secondary)', margin: '0 0 16px', whiteSpace: 'pre-wrap' }}>{n.description}</p>}
-
-              {n.highlights?.length > 0 && (
-                <>
-                  <h3 style={{ fontSize: '16px', fontWeight: '900', margin: '8px 0' }}>What&apos;s inside</h3>
-                  <ul style={{ margin: '0 0 16px', paddingLeft: '20px', fontSize: '14px', lineHeight: 1.7 }}>
-                    {n.highlights.map((h: string, i: number) => <li key={i}>{h}</li>)}
-                  </ul>
-                </>
-              )}
-
-              {hasAccess && (n.files?.length || 0) > 1 && (
-                <>
-                  <h3 style={{ fontSize: '16px', fontWeight: '900', margin: '8px 0' }}>Files</h3>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', margin: '0 0 16px' }}>
-                    {n.files.map((f: any) => (
-                      <a key={f.id} href={`/api/store/notes/${n.id}/download?fileId=${f.id}`} target="_blank" rel="noopener noreferrer"
-                        style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '12px 14px', borderRadius: '14px', background: 'var(--surface-hover)', color: 'var(--text-primary)', textDecoration: 'none', fontSize: '14px', fontWeight: 600 }}>
-                        <FileText size={18} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />
-                        <span style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{f.title || 'Document'}</span>
-                        <ExternalLink size={16} style={{ color: 'var(--accent)', flexShrink: 0 }} />
-                      </a>
-                    ))}
-                  </div>
-                </>
-              )}
-
-              <h3 style={{ fontSize: '16px', fontWeight: '900', margin: '8px 0' }}>Rules &amp; validity</h3>
-              <ul style={{ margin: '0 0 20px', paddingLeft: '20px', fontSize: '14px', lineHeight: 1.7 }}>
-                {(n.rules || []).map((r: string, i: number) => <li key={i}>{r}</li>)}
-              </ul>
-
-              {!(hasAccess && (n.files?.length || 0) > 1) && <button
-                onClick={() => {
-                  if (hasAccess) window.open(`/api/store/notes/${n.id}/download`, '_blank')
-                  else { setDetailNote(null); handleNotePurchase(n) }
-                }}
-                style={{ width: '100%', padding: '14px', borderRadius: '14px', border: 'none', color: '#fff', fontWeight: '800', fontSize: '15px', cursor: 'pointer', background: hasAccess ? 'linear-gradient(135deg,#10b981,#059669)' : isExpired ? 'linear-gradient(135deg,#f59e0b,#d97706)' : 'linear-gradient(135deg,#3b82f6,#2563eb)' }}
-              >
-                {hasAccess ? 'Access Notes' : isExpired ? `Restore now${n.price > 0 ? ` · ₹${n.price}` : ''}` : n.price > 0 ? `Buy now · ₹${n.price}` : 'Get free'}
-              </button>}
-            </div>
+      {/* COURSE / BUNDLE DETAILS (full screen) */}
+      {detailView && (() => {
+        const isMgr = userData?.user?.role === 'MANAGER' || userData?.role === 'MANAGER'
+        const save = (kind: 'course' | 'bundle', id: string, swrKey: string) => async (v: string) => {
+          const res = await fetch('/api/store/highlights', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ kind, id, highlights: v }) })
+          if (!res.ok) { alert('Could not save points'); throw new Error('save failed') }
+          await globalMutate(swrKey)
+        }
+        const priceBlock = (rows: { label: string; price: number; original?: number }[]) => (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            {rows.map((r, i) => (
+              <div key={i}>
+                <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--text-secondary)' }}>{r.label}</div>
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: 10 }}>
+                  <span style={{ fontSize: 32, fontWeight: 800, letterSpacing: '-1px', color: 'var(--text-primary)' }}>₹{r.price}</span>
+                  {r.original && r.original > r.price ? <span style={{ textDecoration: 'line-through', color: 'var(--text-secondary)' }}>₹{r.original}</span> : null}
+                </div>
+              </div>
+            ))}
           </div>
+        )
+        if (detailView.kind === 'course') {
+          const o: any = (activeOfferings as any[]).find((x: any) => x.id === detailView.id)
+          if (!o) return null
+          const et = isMgr ? null : getEnrollmentStatus(o.courseId)
+          const rows: { label: string; price: number; original?: number }[] = []
+          if (o.hasRecorded && o.recordedDiscountPrice) rows.push({ label: 'Recorded', price: Number(o.recordedDiscountPrice), original: Number(o.recordedOriginalPrice || 0) })
+          if (o.hasLive && o.liveDiscountPrice) rows.push({ label: 'Live Pro', price: Number(o.liveDiscountPrice), original: Number(o.liveOriginalPrice || 0) })
+          const ctas: any[] = []
+          if (!isMgr) {
+            if (et === 'LIVE' || (et === 'RECORDED' && !o.hasLive)) ctas.push({ label: 'You are enrolled', tone: 'secondary', disabled: true, onClick: () => {} })
+            else {
+              if (o.hasRecorded && et !== 'RECORDED') ctas.push({ label: 'Buy Recorded', sub: `₹${o.recordedDiscountPrice || 0}`, tone: o.hasLive ? 'secondary' : 'primary', disabled: !!purchasing, onClick: () => { setDetailView(null); handlePurchase(o.id, 'RECORDED') } })
+              if (o.hasLive) ctas.push({ label: et === 'RECORDED' ? 'Upgrade to Live Pro' : 'Buy Live Pro', sub: `₹${o.liveDiscountPrice || 0}`, disabled: !!purchasing, onClick: () => { setDetailView(null); handlePurchase(o.id, 'LIVE') } })
+            }
+          }
+          if (o.detailsLink) ctas.push({ label: 'More info', tone: 'secondary', onClick: () => window.open(o.detailsLink, '_blank') })
+          return (
+            <StoreDetailScreen
+              eyebrow={o.course?.subject || o.category}
+              title={o.course?.name || o.name}
+              description={o.course?.description}
+              compare={{ hasRecorded: !!o.hasRecorded, hasLive: !!o.hasLive }}
+              points={{ value: o.highlights, canEdit: isMgr, onSave: save('course', o.id, '/api/course-offerings') }}
+              price={rows.length ? priceBlock(rows) : null}
+              ctas={ctas}
+              onClose={() => setDetailView(null)}
+            />
+          )
+        }
+        const b: any = (activeBundles as any[]).find((x: any) => x.id === detailView.id)
+        if (!b) return null
+        const rows: { label: string; price: number; original?: number }[] = []
+        const bp = b.startingPrice || b.liveDiscountPrice || b.liveOriginalPrice || b.recordedDiscountPrice || b.recordedOriginalPrice
+        if (bp) rows.push({ label: b.startingFromText || 'Starting from', price: Number(bp) })
+        return (
+          <StoreDetailScreen
+            eyebrow={`Bundle · ${b.courses?.length || 0} courses`}
+            title={b.name}
+            description={b.description}
+            compare={{ hasRecorded: !!(b.recordedDiscountPrice ?? b.recordedOriginalPrice) || b.forceClassType !== 'LIVE', hasLive: !!(b.liveDiscountPrice ?? b.liveOriginalPrice) }}
+            points={{ value: b.highlights, canEdit: isMgr, onSave: save('bundle', b.id, '/api/bundle-offerings') }}
+            sections={[{ title: b.courseHeadline || 'Included courses', items: (b.courses || []).map((c: any) => c.course?.name || c.course?.subject).filter(Boolean) }]}
+            price={(
+              <div>
+                {b.bannerText && <div style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 8 }}>{b.bannerText}</div>}
+                {rows.length ? priceBlock(rows) : null}
+              </div>
+            )}
+            ctas={[{ label: 'Choose & buy', onClick: () => { setDetailView(null); openBundleBuy(b) } }]}
+            onClose={() => setDetailView(null)}
+          />
         )
       })()}
 

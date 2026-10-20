@@ -1,22 +1,38 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../core/api/api_client.dart';
 import '../../core/router/app_router.dart';
 import '../../core/router/modal_observer.dart';
+import '../../shared/widgets/apple_pressable.dart';
 import '../../theme/app_theme_tokens.dart';
 
 const String _kPolicyUpdateSeenKey = 'genz_policy_update_oct_2026';
 
-/// Checks if the user has seen the October 2026 Policy Update modal.
-/// Runs once per user.
-Future<void> checkPolicyUpdateOnLaunch() async {
+/// Shows the October 2026 Policy Update once, ever. The account remembers it
+/// (so web and app share one answer); this phone remembers it too, and it is
+/// marked as seen the moment it appears so closing the app cannot bring it back.
+Future<void> checkPolicyUpdateOnLaunch([ApiClient? api]) async {
   try {
     final prefs = await SharedPreferences.getInstance();
-    final seen = prefs.getBool(_kPolicyUpdateSeenKey) ?? false;
-    if (seen) return;
+    if (prefs.getBool(_kPolicyUpdateSeenKey) ?? false) return;
+
+    // Already seen on this account (web or another phone)?
+    if (api != null) {
+      try {
+        final res = await api.get<dynamic>('/api/user/seen-notices');
+        final d = res.data;
+        final seen = d is Map ? d['seen'] : null;
+        if (seen is List && seen.contains(_kPolicyUpdateSeenKey)) {
+          await prefs.setBool(_kPolicyUpdateSeenKey, true);
+          return;
+        }
+      } catch (_) {}
+    }
 
     // Wait for the app and any other dialogs (like update/whats new) to complete
     await Future<void>.delayed(const Duration(seconds: 4));
@@ -24,6 +40,15 @@ Future<void> checkPolicyUpdateOnLaunch() async {
     for (var attempt = 0; attempt < 15; attempt++) {
       final context = rootNavigatorKey.currentContext;
       if (context != null && context.mounted && !rootModalObserver.hasPopup) {
+        await prefs.setBool(_kPolicyUpdateSeenKey, true);
+        if (api != null) {
+          unawaited(() async {
+            try {
+              await api.post<dynamic>('/api/user/seen-notices',
+                  body: {'key': _kPolicyUpdateSeenKey});
+            } catch (_) {}
+          }());
+        }
         await showDialog<void>(
           context: context,
           useRootNavigator: true,
@@ -31,7 +56,6 @@ Future<void> checkPolicyUpdateOnLaunch() async {
           barrierColor: Colors.black.withValues(alpha: 0.55),
           builder: (_) => const PolicyUpdateDialog(),
         );
-        await prefs.setBool(_kPolicyUpdateSeenKey, true);
         return;
       }
       await Future<void>.delayed(const Duration(seconds: 2));
@@ -41,8 +65,59 @@ Future<void> checkPolicyUpdateOnLaunch() async {
   }
 }
 
-class PolicyUpdateDialog extends StatelessWidget {
+class PolicyUpdateDialog extends StatefulWidget {
   const PolicyUpdateDialog({super.key});
+
+  @override
+  State<PolicyUpdateDialog> createState() => _PolicyUpdateDialogState();
+}
+
+class _PolicyUpdateDialogState extends State<PolicyUpdateDialog>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _in = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 1100),
+  );
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      if (MediaQuery.of(context).disableAnimations) {
+        _in.value = 1;
+      } else {
+        _in.forward();
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _in.dispose();
+    super.dispose();
+  }
+
+  /// Staggered fade + rise, [start] in 0..0.6 of the intro.
+  Widget _rise(double start, Widget child) {
+    final curve = Interval(start, start + 0.4);
+    return AnimatedBuilder(
+      animation: _in,
+      child: child,
+      builder: (context, child) {
+        final v = Curves.easeOutCubic.transform(curve.transform(_in.value));
+        return Opacity(
+          opacity: v,
+          child: Transform.translate(offset: Offset(0, (1 - v) * 14), child: child),
+        );
+      },
+    );
+  }
+
+  void _openDoc(BuildContext context, String route) {
+    Navigator.of(context, rootNavigator: true).pop();
+    context.push(route);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -51,160 +126,180 @@ class PolicyUpdateDialog extends StatelessWidget {
     return Dialog(
       backgroundColor: Colors.transparent,
       elevation: 0,
-      insetPadding: const EdgeInsets.symmetric(horizontal: 22, vertical: 24),
+      insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
       child: Center(
         child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 400),
+          constraints: const BoxConstraints(maxWidth: 420),
           child: Container(
-            padding: const EdgeInsets.fromLTRB(22, 26, 22, 22),
             decoration: BoxDecoration(
               color: tokens.cardBg,
-              borderRadius: BorderRadius.circular(28),
-              border: Border.all(color: tokens.border),
+              borderRadius: BorderRadius.circular(30),
+              border: Border.all(color: tokens.border, width: 0.5),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.25),
-                  blurRadius: 32,
-                  offset: const Offset(0, 12),
+                  color: Colors.black.withValues(alpha: 0.30),
+                  blurRadius: 40,
+                  offset: const Offset(0, 18),
                 ),
               ],
             ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                // Header
-                Row(
-                  children: [
-                    Container(
-                      width: 46,
-                      height: 46,
-                      decoration: BoxDecoration(
-                        color: tokens.primaryAccent.withValues(alpha: 0.12),
-                        borderRadius: BorderRadius.circular(14),
-                      ),
-                      alignment: Alignment.center,
-                      child: Icon(
-                        Symbols.policy_rounded,
-                        color: tokens.primaryAccent,
-                        size: 24,
+            child: SingleChildScrollView(
+              physics: const BouncingScrollPhysics(),
+              padding: const EdgeInsets.fromLTRB(24, 30, 24, 22),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  _rise(
+                    0.0,
+                    Center(
+                      child: Container(
+                        width: 64,
+                        height: 64,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(20),
+                          gradient: const LinearGradient(
+                            colors: [Color(0xFF7D7AFF), Color(0xFF5E5CE6)],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: const Color(0xFF5E5CE6).withValues(alpha: 0.45),
+                              blurRadius: 24,
+                              offset: const Offset(0, 10),
+                            ),
+                          ],
+                        ),
+                        child: const Icon(Symbols.policy_rounded,
+                            fill: 1, color: Colors.white, size: 32),
                       ),
                     ),
-                    const SizedBox(width: 14),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Updated Policies',
-                            style: TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.w800,
-                              letterSpacing: -0.4,
-                              color: tokens.textPrimary,
-                            ),
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            'Effective October 2026',
-                            style: TextStyle(
-                              fontSize: 12.5,
-                              fontWeight: FontWeight.w600,
-                              color: tokens.primaryAccent,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 16),
-
-                Text(
-                  'We have updated our Terms & Conditions, Privacy Policy, and Refund Policy with comprehensive disclosures:',
-                  style: TextStyle(
-                    fontSize: 13.5,
-                    height: 1.45,
-                    color: tokens.textSecondary,
                   ),
-                ),
-                const SizedBox(height: 16),
-
-                _PolicyHighlightRow(
-                  icon: Symbols.payments_rounded,
-                  iconColor: const Color(0xFF34C759),
-                  title: 'Google Play In-App Purchases',
-                  description:
-                      'Official terms for purchasing study notes & materials via Google Play Billing.',
-                ),
-                const SizedBox(height: 12),
-                _PolicyHighlightRow(
-                  icon: Symbols.schedule_rounded,
-                  iconColor: const Color(0xFF007AFF),
-                  title: 'Validity & Pricing in ₹',
-                  description:
-                      'Transparent pricing with 90-day digital access and instant fulfillment.',
-                ),
-                const SizedBox(height: 12),
-                _PolicyHighlightRow(
-                  icon: Symbols.sync_rounded,
-                  iconColor: const Color(0xFFFF9500),
-                  title: 'Cross-Platform Sync & Refunds',
-                  description:
-                      'Unlocked notes sync to web; refunds follow Google Play policies.',
-                ),
-                const SizedBox(height: 20),
-
-                // Review links
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: [
-                    _DocLinkButton(
-                      label: 'Terms',
-                      onTap: () {
-                        Navigator.of(context, rootNavigator: true).pop();
-                        context.push('/terms-and-conditions');
-                      },
-                    ),
-                    _DocLinkButton(
-                      label: 'Privacy',
-                      onTap: () {
-                        Navigator.of(context, rootNavigator: true).pop();
-                        context.push('/privacy-policy');
-                      },
-                    ),
-                    _DocLinkButton(
-                      label: 'Refund Policy',
-                      onTap: () {
-                        Navigator.of(context, rootNavigator: true).pop();
-                        context.push('/refund-policy');
-                      },
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 18),
-
-                // Primary Action Button
-                GestureDetector(
-                  onTap: () => Navigator.of(context, rootNavigator: true).pop(),
-                  child: Container(
-                    height: 48,
-                    alignment: Alignment.center,
-                    decoration: BoxDecoration(
-                      color: tokens.primaryAccent,
-                      borderRadius: BorderRadius.circular(24),
-                    ),
-                    child: const Text(
-                      'I Understand & Agree',
+                  const SizedBox(height: 16),
+                  _rise(
+                    0.06,
+                    Text(
+                      'Updated Policies',
+                      textAlign: TextAlign.center,
                       style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 15,
-                        fontWeight: FontWeight.w700,
+                        fontSize: 26,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: -0.7,
+                        color: tokens.textPrimary,
                       ),
                     ),
                   ),
-                ),
-              ],
+                  const SizedBox(height: 4),
+                  _rise(
+                    0.10,
+                    Text(
+                      'Effective October 2026',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 13.5,
+                        fontWeight: FontWeight.w600,
+                        color: tokens.textSecondary,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                  _rise(
+                    0.14,
+                    Text(
+                      'We have updated our Terms & Conditions, Privacy Policy, and Refund Policy with comprehensive disclosures:',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 15,
+                        height: 1.45,
+                        color: tokens.textSecondary,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  _rise(
+                    0.22,
+                    const _PolicyHighlightRow(
+                      icon: Symbols.payments_rounded,
+                      iconColor: Color(0xFF30B368),
+                      title: 'Google Play In-App Purchases',
+                      description:
+                          'Official terms for purchasing study notes & materials via Google Play Billing.',
+                    ),
+                  ),
+                  const SizedBox(height: 18),
+                  _rise(
+                    0.29,
+                    const _PolicyHighlightRow(
+                      icon: Symbols.schedule_rounded,
+                      iconColor: Color(0xFF0A84FF),
+                      title: 'Validity & Pricing in ₹',
+                      description:
+                          'Transparent pricing with 90-day digital access and instant fulfillment.',
+                    ),
+                  ),
+                  const SizedBox(height: 18),
+                  _rise(
+                    0.36,
+                    const _PolicyHighlightRow(
+                      icon: Symbols.sync_rounded,
+                      iconColor: Color(0xFFFF9F0A),
+                      title: 'Cross-Platform Sync & Refunds',
+                      description:
+                          'Unlocked notes sync to web; refunds follow Google Play policies.',
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  _rise(
+                    0.46,
+                    Wrap(
+                      alignment: WrapAlignment.center,
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: [
+                        _DocLinkButton(
+                          label: 'Terms',
+                          onTap: () => _openDoc(context, '/terms-and-conditions'),
+                        ),
+                        _DocLinkButton(
+                          label: 'Privacy',
+                          onTap: () => _openDoc(context, '/privacy-policy'),
+                        ),
+                        _DocLinkButton(
+                          label: 'Refund Policy',
+                          onTap: () => _openDoc(context, '/refund-policy'),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 22),
+                  _rise(
+                    0.54,
+                    ApplePressable(
+                      onTap: () {
+                        HapticFeedback.mediumImpact();
+                        Navigator.of(context, rootNavigator: true).pop();
+                      },
+                      child: Container(
+                        height: 54,
+                        alignment: Alignment.center,
+                        decoration: BoxDecoration(
+                          color: tokens.primaryAccent,
+                          borderRadius: BorderRadius.circular(27),
+                        ),
+                        child: Text(
+                          'I Understand & Agree',
+                          style: TextStyle(
+                            color: tokens.isBlack ? Colors.black : Colors.white,
+                            fontSize: 16.5,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),
@@ -233,16 +328,16 @@ class _PolicyHighlightRow extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Container(
-          width: 32,
-          height: 32,
+          width: 40,
+          height: 40,
           decoration: BoxDecoration(
-            color: iconColor.withValues(alpha: 0.12),
-            borderRadius: BorderRadius.circular(9),
+            color: iconColor.withValues(alpha: 0.14),
+            borderRadius: BorderRadius.circular(12),
           ),
           alignment: Alignment.center,
-          child: Icon(icon, color: iconColor, size: 18),
+          child: Icon(icon, color: iconColor, size: 22),
         ),
-        const SizedBox(width: 12),
+        const SizedBox(width: 14),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -250,7 +345,7 @@ class _PolicyHighlightRow extends StatelessWidget {
               Text(
                 title,
                 style: TextStyle(
-                  fontSize: 13.5,
+                  fontSize: 15,
                   fontWeight: FontWeight.w700,
                   color: tokens.textPrimary,
                 ),
@@ -259,8 +354,8 @@ class _PolicyHighlightRow extends StatelessWidget {
               Text(
                 description,
                 style: TextStyle(
-                  fontSize: 12,
-                  height: 1.35,
+                  fontSize: 14,
+                  height: 1.4,
                   color: tokens.textSecondary,
                 ),
               ),
@@ -281,18 +376,30 @@ class _DocLinkButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final tokens = context.tokens;
-    return GestureDetector(
+    return ApplePressable(
+      pressedScale: 0.96,
       onTap: onTap,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-        child: Text(
-          label,
-          style: TextStyle(
-            fontSize: 12.5,
-            fontWeight: FontWeight.w600,
-            color: tokens.primaryAccent,
-            decoration: TextDecoration.underline,
-          ),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
+        decoration: BoxDecoration(
+          color: tokens.textMuted.withValues(alpha: 0.14),
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 13.5,
+                fontWeight: FontWeight.w600,
+                color: tokens.textPrimary,
+              ),
+            ),
+            const SizedBox(width: 3),
+            Icon(Symbols.chevron_right_rounded,
+                size: 17, weight: 600, color: tokens.textSecondary),
+          ],
         ),
       ),
     );

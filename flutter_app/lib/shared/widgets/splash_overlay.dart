@@ -113,7 +113,7 @@ class _SplashOverlayState extends ConsumerState<SplashOverlay>
       WidgetsBinding.instance.addPostFrameCallback((_) {
         unawaited(checkPlayUpdateOnLaunch());
         unawaited(checkWhatsNewOnLaunch());
-        unawaited(checkPolicyUpdateOnLaunch());
+        unawaited(checkPolicyUpdateOnLaunch(ref.read(apiClientProvider)));
       });
     }
 

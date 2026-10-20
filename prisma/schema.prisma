@@ -60,6 +60,8 @@ model User {
   appTourCompletedAt      DateTime?
   completedTourVersion    Int                          @default(0)
   hasSeenPlayStoreWelcome Boolean                      @default(false)
+  // Keys of one-time notices (policy updates etc.) this account has already seen.
+  seenNotices             String[]                     @default([])
   // Per-user push notification toggles. Default true so existing users keep
   // getting pushes; the Flutter app surfaces these as switches under More →
   // Push Settings. Server-side filter lives in /api/announcements and
@@ -247,6 +249,7 @@ model BundleOffering {
   startingPrice               Float?
   bannerText                  String?                @default("Class starts from 1 June 2026")
   startingFromText            String?                @default("Courses start from")
+  highlights                  String?
   courseHeadline              String?                @default("Included Courses")
   category                    String                 @default("General")
   createdBy                   User                   @relation(fields: [createdById], references: [id])
@@ -1199,6 +1202,7 @@ model CourseOffering {
   championDiscountPrice Float?
   championSubtitle      String?
   detailsLink           String?
+  highlights            String?
   category              String      @default("General")
   createdAt             DateTime    @default(now())
   updatedAt             DateTime    @updatedAt

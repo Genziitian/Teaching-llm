@@ -170,7 +170,6 @@ export default function Header({ userName, userRole }: HeaderProps) {
       materials: { title: 'Study Materials', subtitle: 'Manage downloadable notes and PDFs for subjects' },
       announcements: { title: 'Announcements Fan-Out', subtitle: 'Publish platform-wide announcements and update notifications' },
       notifications: { title: 'Push Notifications', subtitle: 'Broadcast notifications and marketing campaigns to students' },
-      'home-slides': { title: 'Home Carousel Banners', subtitle: 'Manage promotional slides shown on student dashboard' },
     }
     const tabInfo = MANAGE_TAB_INFO[tab || 'courses']
     if (tabInfo) {
