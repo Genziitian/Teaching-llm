@@ -3,6 +3,14 @@ export const STUDENT_DAYS = 60;
 export const MANAGER_DAYS = 360;
 export const PROOF_DAYS = 60;
 export const REFUND_DEDUCTION = 10;
+export const CLAIM_WINDOW_DAYS = 7;
+export type ClaimWindow = 'not_open' | 'open' | 'closed';
+export const claimWindowEnd = (openedAt: Date | null | undefined) => openedAt ? new Date(openedAt.getTime() + CLAIM_WINDOW_DAYS * DAY) : null;
+export function claimWindow(openedAt: Date | null | undefined, now = new Date()): ClaimWindow {
+    if (!openedAt)
+        return 'not_open';
+    return now.getTime() < claimWindowEnd(openedAt)!.getTime() ? 'open' : 'closed';
+}
 export const REASONS = ['Marks below the passing requirement', 'Could not complete the exam', 'Did not attempt the exam', 'Other reason'] as const;
 export const STATUSES = ['Submitted', 'Under Review', 'More Information Required', 'Approved', 'Rejected', 'Processing', 'Completed'] as const;
 export const discountForFee = (fee: number) => Math.round(fee * 1.5);
@@ -47,7 +55,7 @@ export function imageMime(bytes: Uint8Array): string | null {
         return 'image/webp';
     return null;
 }
-export const RULES = 'Failed Quiz 1: refund your protection fee minus ₹10, OR get 1.5× the fee as a discount on your next purchase of the same course, rounded to a whole rupee. Proof is reviewed manually. Refunds and coupons are handled by the manager.';
+export const RULES = 'Failed Quiz 1: refund your protection fee minus ₹10, OR get 1.5× the fee as a discount on your next purchase of the same course, rounded to a whole rupee. Proof is reviewed manually. Refunds and coupons are handled by the manager. Protection is valid until your exam ends. Claims open only after official results are declared; you then have 7 days to claim. Late claims are void.';
 export function isSameSubjectBundle(subject: string, courses: {
     course: {
         subject?: string | null;

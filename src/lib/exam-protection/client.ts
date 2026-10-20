@@ -5,6 +5,8 @@ export type ProtectionPurchase = {
     subject: string;
     fee: number;
     paidAt: string;
+    claimWindow?: 'not_open' | 'open' | 'closed';
+    claimsCloseAt?: string | null;
     user?: {
         name: string;
         email: string;
@@ -63,6 +65,8 @@ export type ProtectionData = {
         name: string;
         subject: string | null;
         fee: number;
+        claimWindow: 'not_open' | 'open' | 'closed';
+        claimsCloseAt: string | null;
         protected: boolean;
     }[];
     purchases: ProtectionPurchase[];

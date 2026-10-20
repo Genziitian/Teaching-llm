@@ -1729,8 +1729,9 @@ model ProtectionClaimEvent {
 }
 
 model ProtectionCourse {
-  courseId  String @id
-  fee       Int?
+  courseId       String    @id
+  fee            Int?
+  claimsOpenedAt DateTime?
   course    Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
   updatedAt DateTime @updatedAt
 }

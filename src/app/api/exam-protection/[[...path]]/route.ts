@@ -5,7 +5,8 @@ import Razorpay from 'razorpay';
 import crypto from 'node:crypto';
 import { Prisma } from '@prisma/client';
 import { checkRateLimit } from '@/lib/ratelimit';
-import { DAY, STUDENT_DAYS, MANAGER_DAYS, REASONS, RULES, cutoff, validFee, parseFee, refundForFee, discountForFee, validateClaimDetails, isSameSubjectBundle } from '@/lib/exam-protection/policy';
+import { sendClaimWindowOpenedEmails } from '@/lib/exam-protection/mail';
+import { claimWindow, claimWindowEnd, CLAIM_WINDOW_DAYS, DAY, STUDENT_DAYS, MANAGER_DAYS, REASONS, RULES, cutoff, validFee, parseFee, refundForFee, discountForFee, validateClaimDetails, isSameSubjectBundle } from '@/lib/exam-protection/policy';
 import { check, ProtectionError, cleanupProtectionMedia, limitedForm, proofFile, notify, ownedClaim, claimChange, proofExpiry } from '@/lib/exam-protection/server';
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -34,6 +35,7 @@ async function capturedPurchase(orderId: string, userId?: string) {
     });
     return prisma.protectionPurchase.findUniqueOrThrow({ where: { id: purchase.id } });
 }
+let lastCleanup = 0;
 async function handle(request: NextRequest, context: Context, method: string) {
     try {
         const path = context.params.path || [];
@@ -46,18 +48,20 @@ async function handle(request: NextRequest, context: Context, method: string) {
             check(limit.success, 'Please wait before trying again.', 429);
         }
         if (method === 'GET' && path.length === 0) {
-            await cleanupProtectionMedia();
-            // Recover a captured payment even if the app closed before verification.
-            const pending = await prisma.protectionPurchase.findMany({ where: { userId: session.userId, status: 'PENDING', providerOrderId: { not: null } }, take: 5, orderBy: { createdAt: 'desc' } });
-            for (const purchase of pending) {
-                try {
-                    await capturedPurchase(purchase.providerOrderId!, session.userId);
-                }
-                catch (error) {
-                    if (!(error instanceof ProtectionError && error.status === 409))
-                        console.error('[protection] Payment reconciliation failed', purchase.id);
-                }
+            // Housekeeping must never delay the page: cleanup runs in the background at most every 10 minutes.
+            if (Date.now() - lastCleanup > 10 * 60000) {
+                lastCleanup = Date.now();
+                cleanupProtectionMedia().catch(() => console.error('[protection] Media cleanup failed'));
             }
+            // Recover captured payments (app closed before verification): only recent orders, checked in parallel.
+            const pending = await prisma.protectionPurchase.findMany({ where: { userId: session.userId, status: 'PENDING', providerOrderId: { not: null }, createdAt: { gt: new Date(Date.now() - 2 * DAY) } }, take: 3, orderBy: { createdAt: 'desc' } });
+            await Promise.allSettled(pending.map(purchase => Promise.race([
+                capturedPurchase(purchase.providerOrderId!, session.userId),
+                new Promise((_, reject) => setTimeout(() => reject(new ProtectionError('timeout', 409)), 2500)),
+            ]).catch(error => {
+                if (!(error instanceof ProtectionError && error.status === 409))
+                    console.error('[protection] Payment reconciliation failed', purchase.id);
+            })));
             const since = cutoff(manager ? MANAGER_DAYS : STUDENT_DAYS);
             const [settings, courses, purchases, claims, couponClaims] = await Promise.all([
                 prisma.protectionSettings.findUnique({ where: { id: 'global' } }),
@@ -66,11 +70,29 @@ async function handle(request: NextRequest, context: Context, method: string) {
                 prisma.protectionClaim.findMany({ where: { createdAt: { gt: since }, ...(manager ? {} : { purchase: { userId: session.userId } }) }, include: { purchase: { include: { user: { select: { name: true, email: true } } } }, proof: { select: { expiresAt: true } }, coupon: true, events: { where: manager ? {} : { internal: false }, orderBy: { createdAt: 'asc' } } }, orderBy: { createdAt: 'desc' } }),
                 manager ? Promise.resolve([]) : prisma.protectionClaim.findMany({ where: { couponId: { not: null }, purchase: { userId: session.userId } }, include: { purchase: { select: { courseName: true, fee: true } }, coupon: true }, orderBy: { createdAt: 'desc' } }),
             ]);
+            const windows = new Map((await prisma.protectionCourse.findMany({ where: { courseId: { in: purchases.map(p => p.courseKey) } }, select: { courseId: true, claimsOpenedAt: true } })).map(w => [w.courseId, w.claimsOpenedAt]));
             const protectedKeys = await prisma.protectionPurchase.findMany({ where: { userId: session.userId, status: 'PAID' }, select: { courseKey: true } });
             return json({ manager, email: session.email, isOpen: settings?.isOpen ?? false, rules: RULES, reasons: REASONS, retentionDays: manager ? MANAGER_DAYS : STUDENT_DAYS,
-                courses: courses.map(entry => ({ ...entry.course, fee: entry.fee, protected: protectedKeys.some(p => p.courseKey === entry.courseId) })), purchases,
+                courses: courses.map(entry => ({ ...entry.course, fee: entry.fee, protected: protectedKeys.some(p => p.courseKey === entry.courseId), claimWindow: claimWindow(entry.claimsOpenedAt), claimsCloseAt: claimWindowEnd(entry.claimsOpenedAt) })), purchases: purchases.map(p => { const w = windows.get(p.courseKey); return { ...p, claimWindow: claimWindow(w), claimsCloseAt: claimWindowEnd(w) }; }),
                 coupons: couponClaims.map(claim => ({ id: claim.id, purchase: claim.purchase, couponRevealedAt: claim.couponRevealedAt, coupon: claim.coupon ? { code: claim.couponRevealedAt ? claim.coupon.code : null, expiresAt: claim.coupon.expiresAt, currentUses: claim.coupon.currentUses, maxUses: claim.coupon.maxUses, isActive: claim.coupon.isActive } : null })),
                 claims: claims.map(claim => ({ ...claim, coupon: claim.coupon ? { code: manager || claim.couponRevealedAt ? claim.coupon.code : null, expiresAt: claim.coupon.expiresAt, currentUses: claim.coupon.currentUses, maxUses: claim.coupon.maxUses, isActive: claim.coupon.isActive } : null })) });
+        }
+        if (method === 'POST' && path[0] === 'courses' && path[1] && path[2] === 'open-claims') {
+            check(manager, 'Only managers can open claims.', 403);
+            const setting = await prisma.protectionCourse.findUnique({ where: { courseId: path[1] }, include: { course: { select: { name: true } } } });
+            check(setting, 'Set a protection fee for this course first.', 404);
+            check(!setting.claimsOpenedAt, claimWindow(setting.claimsOpenedAt) === 'open' ? 'Claims are already open for this course.' : 'The claim window for this course has already closed.', 409);
+            const openedAt = new Date(), closesAt = claimWindowEnd(openedAt)!;
+            const buyers = await prisma.protectionPurchase.findMany({ where: { courseKey: setting.courseId, status: 'PAID', claim: null }, include: { user: { select: { id: true, name: true, email: true } } } });
+            const closes = closesAt.toLocaleString('en-IN', { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit', timeZone: 'Asia/Kolkata' });
+            await prisma.$transaction(async (tx) => {
+                const updated = await tx.protectionCourse.updateMany({ where: { courseId: setting.courseId, claimsOpenedAt: null }, data: { claimsOpenedAt: openedAt } });
+                check(updated.count === 1, 'Claims were just opened by another manager.', 409);
+                for (const b of buyers)
+                    await notify(tx, b.userId, `Claims are open for ${setting.course.name}. If you did not pass, submit your claim within ${CLAIM_WINDOW_DAYS} days (by ${closes} IST). Late claims are void.`);
+            });
+            const mail = await sendClaimWindowOpenedEmails(buyers.map(b => ({ to: b.user.email, name: b.user.name, courseName: setting.course.name, closesAt })));
+            return json({ claimsOpenedAt: openedAt, claimsCloseAt: closesAt, notified: buyers.length, emailed: mail.sent });
         }
         if (path[0] === 'courses' && path[1]) {
             check(manager, 'Only managers can change course protection.', 403);
@@ -129,6 +151,10 @@ async function handle(request: NextRequest, context: Context, method: string) {
             const details = validateClaimDetails(body), file = await proofFile(form, true);
             const purchase = await prisma.protectionPurchase.findFirst({ where: { id: String(body.purchaseId), userId: session.userId, status: 'PAID' } });
             check(purchase, 'Choose an eligible protected Quiz 1 purchase.', 403);
+            const window = await prisma.protectionCourse.findUnique({ where: { courseId: purchase.courseKey }, select: { claimsOpenedAt: true } });
+            const state = claimWindow(window?.claimsOpenedAt);
+            check(state !== 'not_open', 'Claims for this course are not open yet. You will be notified when results are out.', 409);
+            check(state === 'open', 'The 7-day claim window for this course has closed. Late claims are void.', 409);
             const now = new Date();
             const claim = await prisma.$transaction(async (tx) => {
                 const created = await tx.protectionClaim.create({ data: { purchaseId: purchase.id, ...details, createdAt: now, proof: { create: { ...file!, expiresAt: proofExpiry(now) } }, events: { create: { actorId: session.userId, message: 'Submitted for manual proof review.' } } } });
