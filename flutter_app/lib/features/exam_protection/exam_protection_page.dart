@@ -47,7 +47,7 @@ class ExamProtectionPage extends ConsumerStatefulWidget {
 }
 
 class _PageState extends ConsumerState<ExamProtectionPage> {
-  int section = 0;
+  int section = 0, claimStep = 0;
   bool busy = false;
   final formKey = GlobalKey<FormState>();
   String? purchaseId, reason, attempted;
@@ -180,15 +180,60 @@ class _PageState extends ConsumerState<ExamProtectionPage> {
       ),
     ),
   );
-  Widget _stat(String label, String value, String example) => Expanded(
+  bool _stepReady(Map? selected) => switch (claimStep) {
+    0 => selected != null,
+    1 => reason != null && (attempted == 'no' || (attempted == 'yes' && (double.tryParse(marks.text) ?? -1) >= 0)),
+    2 => image != null && released,
+    _ => true,
+  };
+  Widget _progress(int step) {
+    const labels = ['Course', 'Exam', 'Proof', 'Review'];
+    return Row(children: [
+      for (var i = 0; i < 4; i++) ...[
+        if (i > 0) const SizedBox(width: 6),
+        Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          AnimatedContainer(duration: const Duration(milliseconds: 220), height: 4, decoration: BoxDecoration(borderRadius: BorderRadius.circular(4), color: i <= step ? const Color(0xFF5856D6) : context.tokens.textSecondary.withOpacity(0.18))),
+          const SizedBox(height: 6),
+          Text(labels[i], style: TextStyle(fontSize: 11, fontWeight: i == step ? FontWeight.w600 : FontWeight.w400, color: i == step ? context.tokens.textPrimary : context.tokens.textSecondary)),
+        ])),
+      ],
+    ]);
+  }
+  Widget _choice(String label, String value, Color tint, bool on, VoidCallback onTap) => Expanded(
+    child: Material(
+      color: tint.withOpacity(on ? 0.14 : 0.06),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14), side: BorderSide(color: on ? tint : context.tokens.textSecondary.withOpacity(0.18), width: on ? 1.5 : 1)),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(14),
+        onTap: busy ? null : onTap,
+        child: Padding(
+          padding: const EdgeInsets.all(14),
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Row(children: [Text(label, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: tint)), const Spacer(), if (on) Icon(Icons.check_circle_rounded, size: 18, color: tint)]),
+            const SizedBox(height: 4),
+            Text(value, style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: context.tokens.textPrimary)),
+          ]),
+        ),
+      ),
+    ),
+  );
+  Widget _reviewRow(String label, String value) => Padding(
+    padding: const EdgeInsets.only(bottom: 10),
+    child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      SizedBox(width: 90, child: Text(label, style: TextStyle(fontSize: 13, color: context.tokens.textSecondary))),
+      Expanded(child: Text(value, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: context.tokens.textPrimary))),
+    ]),
+  );
+  Widget _stat(String label, String value, String example, Color tint) => Expanded(
     child: Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: context.tokens.textSecondary.withOpacity(0.14)),
+        color: tint.withOpacity(0.08),
+        border: Border.all(color: tint.withOpacity(0.25)),
       ),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Text(label, style: TextStyle(fontSize: 12, color: context.tokens.textSecondary)),
+        Text(label, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: tint)),
         const SizedBox(height: 2),
         Text(value, style: TextStyle(fontSize: 19, fontWeight: FontWeight.w700, letterSpacing: -0.3, color: context.tokens.textPrimary)),
         Text(example, style: TextStyle(fontSize: 12, color: context.tokens.textSecondary)),
@@ -351,9 +396,9 @@ class _PageState extends ConsumerState<ExamProtectionPage> {
                 card('Quiz 1 protection benefits', [
                   text('One benefit is chosen at claim time, calculated from the fee you paid.'),
                   Row(children: [
-                    _stat('Refund', 'Fee − ₹10', '₹50 → ₹40'),
+                    _stat('Refund', 'Fee − ₹10', '₹50 → ₹40', const Color(0xFF16A34A)),
                     const SizedBox(width: 10),
-                    _stat('Discount', '1.5 × fee', '₹50 → ₹75'),
+                    _stat('Discount', '1.5 × fee', '₹50 → ₹75', const Color(0xFF5856D6)),
                   ]),
                 ]),
                 if (section == 0)
@@ -435,7 +480,7 @@ class _PageState extends ConsumerState<ExamProtectionPage> {
                 ]),
                 if (section == 0)
                 if (!manager)
-                  card('Start a protection claim', [
+                  card('Start a claim', [
                     if (available.isEmpty)
                       text(
                         'No unclaimed protected purchases within the 60-day visibility period.',
@@ -445,6 +490,9 @@ class _PageState extends ConsumerState<ExamProtectionPage> {
                         key: formKey,
                         child: Column(
                           children: [
+                            _progress(claimStep),
+                            const SizedBox(height: 16),
+                            if (claimStep == 0) ...[
                             DropdownButtonFormField<String>(
                               initialValue: purchaseId,
                               isExpanded: true,
@@ -467,29 +515,14 @@ class _PageState extends ConsumerState<ExamProtectionPage> {
                                   ? 'Choose a protected course'
                                   : null,
                             ),
-                            DropdownButtonFormField<String>(
-                              initialValue: benefit,
-                              isExpanded: true,
-                              decoration: const InputDecoration(
-                                labelText: 'Benefit',
-                              ),
-                              items: [
-                                DropdownMenuItem(
-                                  value: 'refund',
-                                  child: Text(
-                                    'Refund${selected == null ? '' : ' · ₹${_refund(selected['fee'] as num)}'}',
-                                  ),
-                                ),
-                                DropdownMenuItem(
-                                  value: 'coupon',
-                                  child: Text(
-                                    'Same-course discount${selected == null ? '' : ' · ₹${_discount(selected['fee'] as num)}'}',
-                                  ),
-                                ),
-                              ],
-                              onChanged: (v) =>
-                                  setState(() => benefit = v ?? 'refund'),
-                            ),
+                            const SizedBox(height: 14),
+                            Row(children: [
+                              _choice('Refund', selected == null ? 'Fee − ₹10' : '₹${_refund(selected['fee'] as num)}', const Color(0xFF16A34A), benefit == 'refund', () => setState(() => benefit = 'refund')),
+                              const SizedBox(width: 10),
+                              _choice('Discount', selected == null ? '1.5 × fee' : '₹${_discount(selected['fee'] as num)}', const Color(0xFF5856D6), benefit == 'coupon', () => setState(() => benefit = 'coupon')),
+                            ]),
+                            ],
+                            if (claimStep == 1) ...[
                             DropdownButtonFormField<String>(
                               initialValue: reason,
                               isExpanded: true,
@@ -536,6 +569,7 @@ class _PageState extends ConsumerState<ExamProtectionPage> {
                             TextFormField(
                               controller: marks,
                               enabled: attempted == 'yes',
+                              onChanged: (_) => setState(() {}),
                               decoration: const InputDecoration(
                                 labelText: 'Marks obtained in this course',
                               ),
@@ -558,6 +592,8 @@ class _PageState extends ConsumerState<ExamProtectionPage> {
                                 labelText: 'Anything else? (optional)',
                               ),
                             ),
+                            ],
+                            if (claimStep == 2) ...[
                             const SizedBox(height: 12),
                             text(
                               'Official results-dashboard screenshot · PNG, JPEG or WebP, up to 5 MB. Preview or replace before submitting. Uploaded media is deleted after 60 days; other claim details remain.',
@@ -595,9 +631,26 @@ class _PageState extends ConsumerState<ExamProtectionPage> {
                                 'My official results have been released.',
                               ),
                             ),
-                            FilledButton(
-                              onPressed: busy ? null : () => run(submit),
-                              child: Text(busy ? 'Working…' : 'Submit claim'),
+                            ],
+                            if (claimStep == 3 && selected != null) ...[
+                              _reviewRow('Course', '${selected['courseName']}'),
+                              _reviewRow('Benefit', benefit == 'refund' ? 'Refund · ₹${_refund(selected['fee'] as num)}' : 'Discount · ₹${_discount(selected['fee'] as num)}'),
+                              _reviewRow('Reason', reason ?? ''),
+                              _reviewRow('Attempted', attempted == 'yes' ? 'Yes · ${marks.text} marks' : 'No'),
+                              _reviewRow('Proof', imageName ?? 'Screenshot attached'),
+                              text('A manager reviews your claim manually. You will be notified at each status change.'),
+                            ],
+                            const SizedBox(height: 8),
+                            Row(children: [
+                              if (claimStep > 0) OutlinedButton(onPressed: busy ? null : () => setState(() => claimStep--), child: const Text('Back')),
+                              const Spacer(),
+                              FilledButton(
+                                onPressed: busy || !_stepReady(selected) ? null : () {
+                                  if (claimStep < 3) { setState(() => claimStep++); } else { run(() async { await submit(); if (mounted) setState(() => claimStep = 0); }); }
+                                },
+                                child: Text(busy ? 'Working…' : claimStep < 3 ? 'Continue' : 'Submit claim'),
+                              ),
+                            ]),
                             ),
                           ],
                         ),
