@@ -36,6 +36,8 @@ ${sectionHeader('01', 'No Refund Policy')}
 <p style="padding:14px 18px; background:#f8fafc; border-left:4px solid #3636e8; border-radius:6px; font-style:italic; color:#475569;">"All purchases are final. We do not offer refunds once a course is purchased."</p>
 <p>As our products are digital educational courses and access is granted immediately upon payment, we cannot provide any refunds or returns. Once the course material is accessed, the value is considered delivered.</p>
 
+<p><strong>Exceptions:</strong> the Champion Batch refund (section 07), duplicate payments (section 04) and refunds governed by Google Play (section 05).</p>
+
 ${sectionHeader('02', 'No Cancellation Policy')}
 <p style="padding:14px 18px; background:#f8fafc; border-left:4px solid #3636e8; border-radius:6px; font-style:italic; color:#475569;">"Orders cannot be cancelled once placed."</p>
 <p>Due to the automated nature of our enrollment process, once a payment is successful, the order cannot be reversed or cancelled. Access is linked to your account immediately.</p>
@@ -49,6 +51,22 @@ ${sectionHeader('04', 'Duplicate Payment Resolution')}
 ${sectionHeader('05', 'Google Play In-App Purchases Refund Policy')}
 <p>For purchases of digital goods, notes, and study materials made directly through our Android mobile application via Google Play In-App Billing, refund requests are governed by Google Play Refund Policies. You may request a refund directly through Google Play within 48 hours of purchase via your Google Play account order history or at <a href="https://support.google.com/googleplay/answer/2479637" target="_blank" rel="noopener noreferrer">Google Play Refund Support</a>.</p>
 <p>If you experience any technical difficulty, delayed unlocking, or access issues after completing a Google Play purchase, please contact our support team with your Google Play Order ID (starting with <code>GPA.</code>) for immediate assistance or order resolution.</p>
+
+${sectionHeader('06', 'Course & Bundle Purchases (Website and App)')}
+<ul>
+  <li><strong>Website:</strong> paid through Razorpay. Valid coupon codes can be used.</li>
+  <li><strong>Android app:</strong> paid only through Google Play Billing at fixed prices (no coupons). Refund requests follow Google Play refund rules, and you can write to our support team with your Google Play Order ID (starting with GPA.).</li>
+  <li>Courses unlock immediately after payment and are available in your Courses tab on both the app and the website. Your Purchase History and Transactions show every purchase with its payment source.</li>
+  <li>Recorded and Live Pro purchases are final once the course is accessed, as stated in section 01.</li>
+</ul>
+
+${sectionHeader('07', 'Champion Batch Refund')}
+<p>The Champion Batch includes everything in Live Pro plus extra promises. If you meet all the conditions below and still do not qualify, you receive a refund of the <strong>extra amount paid for Champion</strong>: Champion price minus Live Pro price (example: ₹1499 − ₹999 = ₹500), or free reattempt support. <strong>The Live Pro price is not refunded.</strong></p>
+<ul>
+  <li>Attend at least 80% of live classes.</li>
+  <li>Score the minimum required marks in the weekly tests.</li>
+  <li>Regularly share your GA marks and progress with the team, and be eligible to give the Qualifier exam offline.</li>
+</ul>
 
 ${contactFooter('Still have questions?')}
 `.trim()

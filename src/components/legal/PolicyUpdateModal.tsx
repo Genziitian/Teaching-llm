@@ -21,6 +21,27 @@ const svgProps = {
 
 const ROWS: Row[] = [
   {
+    title: 'Courses & Bundles',
+    text: 'Terms for buying courses and bundles (Recorded, Live Pro, Champion) on the website via Razorpay and in the app via Google Play.',
+    color: '#5E5CE6',
+    icon: (
+      <svg {...svgProps}>
+        <path d="M4 5a2 2 0 0 1 2-2h12v16H6a2 2 0 0 0-2 2z" />
+        <path d="M4 21V5" />
+      </svg>
+    ),
+  },
+  {
+    title: 'Champion Refund Rule',
+    text: 'If you do not qualify, the refund is the Champion price minus the Live Pro price. Live Pro is not refunded.',
+    color: '#FF453A',
+    icon: (
+      <svg {...svgProps}>
+        <path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0z" />
+      </svg>
+    ),
+  },
+  {
     title: 'Google Play In-App Purchases',
     text: 'Official terms for digital notes and study materials purchased inside the Android app.',
     color: '#30B368',
@@ -119,7 +140,7 @@ export default function PolicyUpdateModal() {
     fetch('/api/user/seen-notices', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ key: STORAGE_KEY }),
+      body: JSON.stringify({ key: STORAGE_KEY, accepted: true, platform: 'web' }),
     }).catch(() => {})
     setIsOpen(false)
   }
@@ -137,33 +158,36 @@ export default function PolicyUpdateModal() {
         .policy-overlay {
           position: fixed; inset: 0; z-index: 2147483500;
           display: flex; align-items: center; justify-content: center;
-          padding: 20px 16px; background: rgba(0,0,0,0.55);
+          padding: 12px; background: rgba(0,0,0,0.55);
           backdrop-filter: blur(10px) saturate(140%);
           -webkit-backdrop-filter: blur(10px) saturate(140%);
           animation: policyFade 260ms ease-out both;
         }
         .policy-card {
-          width: 100%; max-width: 440px; max-height: calc(100dvh - 40px);
-          overflow-y: auto; overscroll-behavior: contain;
+          width: 100%; max-width: 580px; max-height: calc(100dvh - 24px);
+          display: flex; flex-direction: column; overflow: hidden;
           background: var(--surface-2, #fff); color: var(--text-primary, #0f172a);
           border: 1px solid var(--border, rgba(0,0,0,0.08));
-          border-radius: 28px; padding: 32px 26px 24px;
+          border-radius: 24px; padding: 0;
           box-shadow: 0 30px 70px -20px rgba(0,0,0,0.5);
           animation: policyIn 420ms cubic-bezier(.2,.8,.2,1) both;
         }
+        .policy-body { flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; padding: 24px 24px 8px; }
+        .policy-foot { flex: 0 0 auto; padding: 12px 24px calc(16px + env(safe-area-inset-bottom)); border-top: 1px solid var(--border, rgba(0,0,0,0.08)); background: var(--surface-2, #fff); }
+        @media (max-width: 480px) { .policy-body { padding: 18px 16px 6px; } .policy-foot { padding: 10px 16px calc(14px + env(safe-area-inset-bottom)); } .policy-card { border-radius: 20px; } }
         .policy-rise { animation: policyRise 480ms cubic-bezier(.2,.8,.2,1) backwards; }
         .policy-link {
           display: inline-flex; align-items: center; gap: 4px;
           padding: 8px 13px; border-radius: 999px; text-decoration: none;
           background: var(--surface-hover, rgba(127,127,127,0.12));
           color: var(--text-primary, #0f172a);
-          font-size: 13px; font-weight: 600; transition: transform 120ms ease, opacity 120ms ease;
+          font-size: 12px; font-weight: 600; transition: transform 120ms ease, opacity 120ms ease;
         }
         .policy-link:active { transform: scale(0.96); }
         .policy-cta {
-          width: 100%; height: 54px; border: none; border-radius: 18px; cursor: pointer;
+          width: 100%; height: 48px; border: none; border-radius: 14px; cursor: pointer;
           background: var(--accent, #3636e8); color: var(--button-text, #fff);
-          font-size: 16px; font-weight: 700; letter-spacing: -0.1px;
+          font-size: 15px; font-weight: 700; letter-spacing: -0.1px;
           transition: transform 120ms ease, opacity 120ms ease;
         }
         .policy-cta:active { transform: scale(0.98); }
@@ -177,11 +201,12 @@ export default function PolicyUpdateModal() {
       `}</style>
 
       <div className="policy-card">
+        <div className="policy-body">
         <div style={{ textAlign: 'center' }}>
           <div
             className="policy-rise"
             style={{
-              width: 64, height: 64, margin: '0 auto 16px', borderRadius: 20,
+              width: 52, height: 52, margin: '0 auto 12px', borderRadius: 16,
               background: 'linear-gradient(145deg, #7D7AFF, #5E5CE6)',
               display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff',
               boxShadow: '0 12px 26px -8px rgba(94,92,230,0.55)',
@@ -206,7 +231,7 @@ export default function PolicyUpdateModal() {
             id="policy-modal-title"
             className="policy-rise"
             style={{
-              animationDelay: '110ms', margin: 0, fontSize: 26, fontWeight: 800,
+              animationDelay: '110ms', margin: 0, fontSize: 22, fontWeight: 800,
               lineHeight: 1.15, letterSpacing: '-0.03em',
             }}
           >
@@ -215,17 +240,17 @@ export default function PolicyUpdateModal() {
           <p
             className="policy-rise"
             style={{
-              animationDelay: '160ms', margin: '12px 0 0', fontSize: 15, lineHeight: 1.5,
+              animationDelay: '160ms', margin: '10px 0 0', fontSize: 13, lineHeight: 1.5,
               color: 'var(--text-secondary, #475569)',
             }}
           >
             We have updated our <strong style={{ color: 'var(--text-primary)' }}>Terms &amp; Conditions</strong>,{' '}
             <strong style={{ color: 'var(--text-primary)' }}>Privacy Policy</strong>, and{' '}
-            <strong style={{ color: 'var(--text-primary)' }}>Return &amp; Refund Policy</strong> to include comprehensive terms for Google Play In-App Purchases:
+            <strong style={{ color: 'var(--text-primary)' }}>Return &amp; Refund Policy</strong> to include terms for courses, bundles and Google Play In-App Purchases:
           </p>
         </div>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 18, margin: '26px 0 24px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 14, margin: '18px 0 14px' }}>
           {ROWS.map((r, i) => (
             <div
               key={r.title}
@@ -234,25 +259,27 @@ export default function PolicyUpdateModal() {
             >
               <div
                 style={{
-                  width: 40, height: 40, flexShrink: 0, borderRadius: 12, color: r.color,
+                  width: 36, height: 36, flexShrink: 0, borderRadius: 10, color: r.color,
                   background: `${r.color}24`, display: 'flex', alignItems: 'center', justifyContent: 'center',
                 }}
               >
                 {r.icon}
               </div>
               <div>
-                <div style={{ fontSize: 15, fontWeight: 700, lineHeight: 1.3 }}>{r.title}</div>
-                <div style={{ fontSize: 14, lineHeight: 1.45, color: 'var(--text-secondary, #475569)', marginTop: 2 }}>
+                <div style={{ fontSize: 14, fontWeight: 700, lineHeight: 1.3 }}>{r.title}</div>
+                <div style={{ fontSize: 13, lineHeight: 1.45, color: 'var(--text-secondary, #475569)', marginTop: 2 }}>
                   {r.text}
                 </div>
               </div>
             </div>
           ))}
         </div>
+        </div>
 
+        <div className="policy-foot">
         <div
           className="policy-rise"
-          style={{ display: 'flex', flexWrap: 'wrap', gap: 8, justifyContent: 'center', marginBottom: 22, animationDelay: '520ms' }}
+          style={{ display: 'flex', flexWrap: 'wrap', gap: 6, justifyContent: 'center', marginBottom: 10, animationDelay: '520ms' }}
         >
           {LINKS.map(l => (
             <Link key={l.href} href={l.href} target="_blank" className="policy-link">
@@ -273,6 +300,7 @@ export default function PolicyUpdateModal() {
         >
           I Understand &amp; Agree
         </button>
+        </div>
       </div>
     </div>
   )

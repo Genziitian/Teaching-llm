@@ -12,15 +12,59 @@ import '../../theme/app_theme_tokens.dart';
 import '../store/store_notes_data.dart';
 import '../support/support_providers.dart';
 
-/// Every premium-notes purchase made with this account, on the app or the
-/// website. Only notes are listed here, not other kinds of purchases.
+/// One row from /api/my-transactions (courses, bundles, notes, upgrades...).
+class _Txn {
+  _Txn(this.title, this.type, this.source, this.amount, this.createdAt,
+      this.status, this.orderId);
+  final String title;
+  final String type;
+  final String source; // GOOGLE_PLAY or RAZORPAY
+  final double amount;
+  final DateTime? createdAt;
+  final String status;
+  final String orderId;
+}
+
+final _myTransactionsProvider =
+    FutureProvider.autoDispose<List<_Txn>>((ref) async {
+  final api = ref.watch(apiClientProvider);
+  final res = await api.get<dynamic>('/api/my-transactions');
+  final data = res.data;
+  final list = (data is Map ? data['transactions'] : null) as List? ?? const [];
+  final out = <_Txn>[];
+  for (final j in list) {
+    if (j is! Map) continue;
+    final status = (j['status'] ?? '').toString().toUpperCase();
+    if (status != 'SUCCESS' && status != 'PAID') continue;
+    final courses = (j['courses'] as List? ?? const [])
+        .whereType<Map>()
+        .map((c) => (c['name'] ?? '').toString())
+        .where((n) => n.isNotEmpty)
+        .toList();
+    var title = courses.join(', ');
+    if (title.isEmpty) title = 'Purchase';
+    out.add(_Txn(
+      title.replaceFirst('Study Note: ', ''),
+      (j['type'] ?? 'PURCHASE').toString(),
+      (j['source'] ?? 'RAZORPAY').toString(),
+      (j['amount'] is num) ? (j['amount'] as num).toDouble() : 0,
+      DateTime.tryParse((j['createdAt'] ?? '').toString())?.toLocal(),
+      status,
+      (j['orderId'] ?? '').toString(),
+    ));
+  }
+  return out;
+});
+
+/// Every purchase made with this account, on the app or the website:
+/// courses, bundles, notes and upgrades, tagged with where it was paid.
 class PurchaseHistoryPage extends ConsumerWidget {
   const PurchaseHistoryPage({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final tokens = context.tokens;
-    final async = ref.watch(myStoreNotesProvider);
+    final async = ref.watch(_myTransactionsProvider);
     final role = ref.watch(authStateProvider).value?.role;
 
     Widget contact() => _ContactCard(
@@ -37,10 +81,10 @@ class PurchaseHistoryPage extends ConsumerWidget {
           context.canPop() ? context.pop() : context.go('/academics'),
       body: AppRefresh(
         onRefresh: () async {
-          ref.invalidate(myStoreNotesProvider);
+          ref.invalidate(_myTransactionsProvider);
           await ref
-              .read(myStoreNotesProvider.future)
-              .catchError((_) => <MyStoreNote>[]);
+              .read(_myTransactionsProvider.future)
+              .catchError((_) => <_Txn>[]);
         },
         child: async.when(
           loading: () => const Center(child: CircularProgressIndicator()),
@@ -74,7 +118,7 @@ class PurchaseHistoryPage extends ConsumerWidget {
                               color: tokens.textPrimary)),
                       const SizedBox(height: 4),
                       Text(
-                        'Notes you buy on the app or the website show up here.',
+                        'Courses and notes you buy on the app or the website show up here.',
                         textAlign: TextAlign.center,
                         style: TextStyle(
                             fontSize: 13, color: tokens.textSecondary),
@@ -97,106 +141,146 @@ class PurchaseHistoryPage extends ConsumerWidget {
   }
 }
 
-List<Color> _colorsFor(String category) {
-  switch (category.toLowerCase()) {
-    case 'foundation':
-      return const [Color(0xFF5AC8FA), Color(0xFF0A84FF)];
-    case 'diploma':
-      return const [Color(0xFFBF5AF2), Color(0xFF7D3CE0)];
-    case 'qualifier':
+List<Color> _colorsForType(String type) {
+  switch (type) {
+    case 'STUDY_NOTE':
+      return const [Color(0xFF3A9D6B), Color(0xFF237A52)];
+    case 'UPGRADE':
       return const [Color(0xFFFFB340), Color(0xFFFF7A00)];
-    case 're-attempt':
+    case 'MENTORSHIP':
+      return const [Color(0xFFBF5AF2), Color(0xFF7D3CE0)];
+    case 'TEST_SERIES':
       return const [Color(0xFFFF6482), Color(0xFFFF2D55)];
     default:
-      return const [Color(0xFF3A9D6B), Color(0xFF237A52)];
+      return const [Color(0xFF5AC8FA), Color(0xFF0A84FF)];
+  }
+}
+
+IconData _iconForType(String type) {
+  switch (type) {
+    case 'STUDY_NOTE':
+      return Symbols.description_rounded;
+    case 'UPGRADE':
+      return Symbols.trending_up_rounded;
+    case 'MENTORSHIP':
+      return Symbols.person_rounded;
+    case 'TEST_SERIES':
+      return Symbols.quiz_rounded;
+    default:
+      return Symbols.school_rounded;
+  }
+}
+
+String _labelForType(String type) {
+  switch (type) {
+    case 'STUDY_NOTE':
+      return 'Premium Notes';
+    case 'UPGRADE':
+      return 'Upgrade';
+    case 'MENTORSHIP':
+      return 'Mentorship';
+    case 'TEST_SERIES':
+      return 'Test Series';
+    default:
+      return 'Course';
   }
 }
 
 class _PurchaseCard extends StatelessWidget {
   const _PurchaseCard({required this.item});
-  final MyStoreNote item;
+  final _Txn item;
 
   @override
   Widget build(BuildContext context) {
     final tokens = context.tokens;
-    final colors = _colorsFor(item.category);
-    final expired = item.state == NoteAccessState.expired;
-    final statusColor = expired ? tokens.danger : tokens.success;
+    final colors = _colorsForType(item.type);
+    final isPlay = item.source == 'GOOGLE_PLAY';
+    final srcColor = isPlay ? const Color(0xFF0A84FF) : tokens.textSecondary;
 
-    return ApplePressable(
-      onTap: () => context.push('/store/notes/${item.noteId}'),
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: tokens.cardBg,
-          borderRadius: BorderRadius.circular(22),
-        ),
-        child: Row(
-          children: [
-            Container(
-              width: 48,
-              height: 48,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(15),
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: colors,
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: tokens.cardBg,
+        borderRadius: BorderRadius.circular(22),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 48,
+            height: 48,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(15),
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: colors,
+              ),
+            ),
+            child: Icon(_iconForType(item.type),
+                fill: 1, size: 26, color: Colors.white),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  item.title,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: -0.2,
+                    color: tokens.textPrimary,
+                  ),
                 ),
-              ),
-              child: const Icon(Symbols.description_rounded,
-                  fill: 1, size: 26, color: Colors.white),
-            ),
-            const SizedBox(width: 14),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    item.title,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700,
-                      letterSpacing: -0.2,
-                      color: tokens.textPrimary,
+                const SizedBox(height: 3),
+                Text(
+                  [
+                    _labelForType(item.type),
+                    if (item.createdAt != null) formatNoteDate(item.createdAt!),
+                  ].join(' · '),
+                  style:
+                      TextStyle(fontSize: 12.5, color: tokens.textSecondary),
+                ),
+                const SizedBox(height: 6),
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 3),
+                      decoration: BoxDecoration(
+                        color: srcColor.withValues(alpha: 0.13),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Text(isPlay ? 'Google Play' : 'Razorpay',
+                          style: TextStyle(
+                              fontSize: 11.5,
+                              fontWeight: FontWeight.w800,
+                              color: srcColor)),
                     ),
-                  ),
-                  const SizedBox(height: 3),
-                  Text(
-                    [
-                      'Premium Notes',
-                      if (item.purchasedAt != null)
-                        formatNoteDate(item.purchasedAt!),
-                    ].join(' · '),
-                    style:
-                        TextStyle(fontSize: 12.5, color: tokens.textSecondary),
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    expired
-                        ? 'Expired${item.expiresAt != null ? ' on ${formatNoteDate(item.expiresAt!)}' : ''}'
-                        : 'Active${item.expiresAt != null ? ' until ${formatNoteDate(item.expiresAt!)}' : ''}',
-                    style: TextStyle(
-                        fontSize: 12.5,
-                        fontWeight: FontWeight.w700,
-                        color: statusColor),
-                  ),
-                ],
-              ),
+                    const SizedBox(width: 8),
+                    Text('Paid',
+                        style: TextStyle(
+                            fontSize: 12.5,
+                            fontWeight: FontWeight.w700,
+                            color: tokens.success)),
+                  ],
+                ),
+              ],
             ),
-            const SizedBox(width: 10),
-            Text(
-              formatNotePrice(item.price),
-              style: TextStyle(
-                fontSize: 17,
-                fontWeight: FontWeight.w800,
-                color: tokens.textPrimary,
-              ),
+          ),
+          const SizedBox(width: 10),
+          Text(
+            formatNotePrice(item.amount),
+            style: TextStyle(
+              fontSize: 17,
+              fontWeight: FontWeight.w800,
+              color: tokens.textPrimary,
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

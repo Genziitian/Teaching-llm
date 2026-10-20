@@ -13,7 +13,11 @@ export const CHAMPION_PROVIDES = [
   '1-to-1 mentorship to choose the best strategy and action plan',
 ]
 
-export default function ChampionPolicy() {
+export default function ChampionPolicy({ championPrice, livePrice }: { championPrice?: number; livePrice?: number }) {
+  const refund = championPrice && livePrice && championPrice > livePrice ? championPrice - livePrice : 0
+  const refundText = refund > 0
+    ? `If you do not qualify, the refund is the extra amount paid for Champion (Champion price minus Live Pro price): ₹${championPrice} − ₹${livePrice} = ₹${refund}. The Live Pro price (₹${livePrice}) is not refunded.`
+    : 'If you do not qualify, the refund is the extra amount paid for Champion (Champion price minus Live Pro price). The Live Pro price is not refunded.'
   const li = (t: string, i: number) => (
     <li key={i} style={{ display: 'flex', gap: 8, fontSize: 13, lineHeight: 1.45, color: 'var(--text-primary)' }}><span>•</span><span>{t}</span></li>
   )
@@ -22,7 +26,7 @@ export default function ChampionPolicy() {
     <div style={{ padding: 0 }}>
       <div style={{ fontSize: 13, color: 'var(--text-secondary)', margin: '6px 0 10px' }}>Everything in Live Pro, plus a full refund or free reattempt support when all the conditions below are fulfilled.</div>
       <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: '0.05em', textTransform: 'uppercase', color: 'var(--text-secondary)' }}>Eligibility criteria</div>
-      <ul style={ul}>{CHAMPION_ELIGIBILITY.map(li)}</ul>
+      <ul style={ul}>{[...CHAMPION_ELIGIBILITY, refundText].map(li)}</ul>
       <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: '0.05em', textTransform: 'uppercase', color: 'var(--text-secondary)' }}>What we provide</div>
       <ul style={ul}>{CHAMPION_PROVIDES.map(li)}</ul>
       <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)' }}>We provide everything from our side. In return we expect dedication, discipline and focus: 80% attendance, weekly test qualification and active participation.</div>

@@ -5,7 +5,6 @@ import 'package:material_symbols_icons/symbols.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 import '../../core/auth/auth_providers.dart';
 import '../../shared/widgets/apple_pressable.dart';
@@ -842,8 +841,34 @@ class _ExploreButton extends StatelessWidget {
     return ApplePressable(
       onTap: () {
         HapticFeedback.selectionClick();
-        launchUrl(Uri.parse('https://genziitian.in'),
-            mode: LaunchMode.externalApplication);
+        // Do not send the user out to the website. Ask them to sign in
+        // first; the router remembers /store and opens it right after login.
+        showDialog<void>(
+          context: context,
+          builder: (dialogContext) => AlertDialog(
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+            title: const Text('Please log in first'),
+            content: const Text(
+              'Sign in to your account to browse and buy courses. '
+              'As soon as you are in, we will take you straight to the Store.',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(dialogContext).pop(),
+                child: const Text('Not now'),
+              ),
+              FilledButton(
+                onPressed: () {
+                  Navigator.of(dialogContext).pop();
+                  // Not signed in: the router stores '/store' as the pending
+                  // destination and keeps the user on the login screen.
+                  context.go('/store');
+                },
+                child: const Text('Log in'),
+              ),
+            ],
+          ),
+        );
       },
       child: Container(
         height: 52,

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { getSession } from '@/lib/auth'
+import { logActivity, ACTION, MODULE } from '@/lib/activity-log'
 
 const KEY_PATTERN = /^[a-z0-9_]{3,64}$/i
 
@@ -46,6 +47,19 @@ export async function POST(request: NextRequest) {
       await (prisma.user as any).update({
         where: { id: session.userId },
         data: { seenNotices: { push: key } },
+      })
+    }
+    // The user tapped "I Understand & Agree": keep a dated record in the activity log.
+    if (body?.accepted === true && key.startsWith('genz_policy')) {
+      const platform = body?.platform === 'app' ? 'app' : 'website'
+      logActivity({
+        userId: session.userId,
+        userName: session.name,
+        userRole: session.role,
+        actionType: ACTION.POLICY_ACCEPTED,
+        actionDescription: `${session.name} accepted the policy update (${key}) on the ${platform}`,
+        moduleName: MODULE.AUTH,
+        metadata: { notice: key, platform, acceptedAt: new Date().toISOString() },
       })
     }
     return NextResponse.json({ success: true })

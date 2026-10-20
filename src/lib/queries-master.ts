@@ -287,4 +287,257 @@ export const MASTER_QUERIES: Omit<PlatformQuery, 'id'>[] = [
     appliesTo: 'BOTH',
     order: 19,
   },
+  {
+    question: "How does a student pay for a course or bundle in the App vs on the website?",
+    answer:
+      `Paying is different on each platform, but the result is the same (the student is enrolled and an order is saved):
+` +
+      `
+` +
+      `• Website: Razorpay. Coupons can be used.
+` +
+      `• Android App: Google Play Billing only. Prices are fixed, coupons are not applied inside the app.
+` +
+      `
+` +
+      `How the App flow works:
+` +
+      `1. The app asks the server to create an order (create-order with playMode).
+` +
+      `2. The server returns the amount and a Play product id named course_<rupees> (example: course_999 for Rs 999).
+` +
+      `3. The student pays in the Google Play sheet.
+` +
+      `4. The server checks the purchase with Google (/api/play/verify-course-purchase), marks the order SUCCESS and enrolls the student exactly like Razorpay does.
+` +
+      `
+` +
+      `IMPORTANT: every distinct price you set must exist as a one-time (consumable) product in Google Play Console named course_<price>. If the product is missing the purchase fails and nobody is charged. Notes work the same way with note_<price>.
+` +
+      `
+` +
+      `Why we did this: Google requires Play Billing for digital content bought inside the Android app.`,
+    category: 'PLATFORM_SYSTEM',
+    appliesTo: 'BOTH',
+    order: 20,
+  },
+  {
+    question: "Where can I see whether a purchase was paid through Google Play or Razorpay?",
+    answer:
+      `Every transaction now carries a payment source tag:
+` +
+      `
+` +
+      `• Google Play: the payment id starts with GPA. (or play_).
+` +
+      `• Razorpay: everything else.
+` +
+      `
+` +
+      `Where it shows:
+` +
+      `• Manager > Transactions: a blue GOOGLE PLAY badge on Play purchases. Other rows keep the existing In-app or External web badge.
+` +
+      `• Student website > My Transactions: a Google Play or Razorpay tag next to the order id.
+` +
+      `• App > Academics > Purchase History: a Google Play or Razorpay tag on each row.
+` +
+      `
+` +
+      `Notes: this needs no database change. It only tells the source for new Play purchases; old orders show as Razorpay because they never had Play ids.
+` +
+      `
+` +
+      `Why we did this: so you can quickly tell where money came from when a student writes about a payment.`,
+    category: 'PLATFORM_SYSTEM',
+    appliesTo: 'BOTH',
+    order: 21,
+  },
+  {
+    question: "What does the App Purchase History screen show?",
+    answer:
+      `Academics > Purchase History lists every successful purchase made with the student's account, whether it was bought in the app or on the website: courses, bundles, premium notes, upgrades, mentorship and test series.
+` +
+      `
+` +
+      `Each row shows an icon, the title, type and date, a Google Play or Razorpay tag, 'Paid', and the amount. Pull down to refresh.
+` +
+      `
+` +
+      `Before this change the screen showed premium notes only. Old purchases appear too if the server still has them (it reads the same data as the website My Transactions page).`,
+    category: 'APP_VS_WEB',
+    appliesTo: 'APP_ONLY',
+    order: 22,
+  },
+  {
+    question: "Why do students only see the Live Pro price on a fixed bundle, with no option to choose Recorded or Champion?",
+    answer:
+      `Almost always the bundle is set to Force Class Type = Force Live Classes.
+` +
+      `
+` +
+      `Where: Manage > Bundles > Edit Bundle > Force Class Type (only for fixed bundles, i.e. when students cannot pick individual courses).
+` +
+      `
+` +
+      `What each value does:
+` +
+      `• Let user choose: students see every plan that has a price (Recorded, Live Pro, Champion).
+` +
+      `• Force Recorded / Live / Champion: students can only buy that one plan, no matter how many prices you entered.
+` +
+      `
+` +
+      `To fix: open the bundle, set Force Class Type to 'Let user choose', save. The form now loads the real saved value and shows a warning when a force is on. Before this fix the form always displayed 'Let user choose', so a forced bundle looked unforced.
+` +
+      `
+` +
+      `A plan only appears if its price is above 0. The same rule applies on the website and in the app.`,
+    category: 'BATCHES_ENROLLMENT',
+    appliesTo: 'BOTH',
+    order: 23,
+  },
+  {
+    question: "What are the three plans (Recorded, Live Pro, Champion) and what does each include?",
+    answer:
+      `We have exactly three plans:
+` +
+      `
+` +
+      `• Recorded: lectures, course materials, class recordings, standard support. No live classes.
+` +
+      `• Live Pro: everything in Recorded plus direct entry to live classes, live Q&A with the teacher and 24/7 priority support.
+` +
+      `• Champion: everything in Live Pro plus weekly tests and evaluation, 1-to-1 mentorship, and a full refund or free reattempt support when the student meets the conditions.
+` +
+      `
+` +
+      `Champion conditions (shown to students as Terms & Conditions before paying):
+` +
+      `• Attend at least 80% of live classes.
+` +
+      `• Score the minimum required marks in the weekly tests.
+` +
+      `• Regularly share GA marks/progress with the team and be eligible to give the Qualifier exam offline.
+• If the student does not qualify, the refund is only the extra amount paid for Champion: Champion price minus Live Pro price (example: 1499 - 999 = Rs 500). The Live Pro price is not refunded.
+` +
+      `
+` +
+      `Champion shows only when the course or bundle has a Champion price. Names are the same everywhere: Recorded, Live Pro, Champion (older labels like 'Recorded Plus' and 'Live Batch' were renamed).
+` +
+      `
+` +
+      `Where it is shown: website (details screen comparison table with a Champion column, plan cards, a 'Champion terms and conditions' popup) and app (Choose batch page and the Review and pay page).`,
+    category: 'BATCHES_ENROLLMENT',
+    appliesTo: 'BOTH',
+    order: 24,
+  },
+  {
+    question: "How does the App Buy Course flow work, step by step?",
+    answer:
+      `Store > Buy Course in the app follows the same data as the website store:
+` +
+      `
+` +
+      `1. Choose your term (level): cards per level (Foundation, Diploma, Qualifier and so on).
+` +
+      `2. Level page: bundles and single courses for that level, each with 'Details' and 'Buy now'.
+` +
+      `3. Bundle page in 3 steps:
+` +
+      `   Step 1, Choose courses: banner, 'What you get', then the course list. Nothing is pre-selected. Fixed bundles show a lock notice and all courses are included automatically.
+` +
+      `   Step 2, Choose batch: Recorded, Live Pro (and Champion if priced). The student must pick one, nothing is auto-selected. The Live vs Recorded comparison is shown under the plans. Skipped when the bundle has only one plan.
+` +
+      `   Step 3, Review and pay: order summary, included points, Champion terms (only for Champion), the 'I agree to the Terms & Conditions and Refund Policy' checkbox, then 'Pay now' (Google Play). The button says 'Accept terms to pay' until the box is ticked.
+` +
+      `4. Fixed bundles show only the total price, not per-course prices. Bundles where students pick courses show a price per course.
+` +
+      `
+` +
+      `After paying the student lands on the Courses tab. The 'i' button in the Buy Course header explains where enrolled courses live.`,
+    category: 'APP_VS_WEB',
+    appliesTo: 'APP_ONLY',
+    order: 25,
+  },
+  {
+    question: "What is the 'What you get' box on a bundle or course and where does it show?",
+    answer:
+      `Managers can write a short list of benefits (one point per line) for any bundle or course.
+` +
+      `
+` +
+      `• Set it: Edit Bundle / Create Bundle has a 'What you get' textarea. On the website details screen a manager also sees an 'Edit points' button.
+` +
+      `• Shows on: the website details screen and the app bundle page (Step 1) as check-marked points.
+` +
+      `• Stored in: the highlights field on CourseOffering and BundleOffering.
+` +
+      `
+` +
+      `Database note: needs these two columns once (already in the Prisma schema):
+` +
+      `ALTER TABLE "CourseOffering" ADD COLUMN IF NOT EXISTS "highlights" TEXT;
+` +
+      `ALTER TABLE "BundleOffering" ADD COLUMN IF NOT EXISTS "highlights" TEXT;`,
+    category: 'BATCHES_ENROLLMENT',
+    appliesTo: 'BOTH',
+    order: 26,
+  },
+  {
+    question: "What changed in the website store design (details screens, notes, bundle cards)?",
+    answer:
+      `Website store (/courses/explore) updates:
+` +
+      `
+` +
+      `• Details and Buy are full screen pages, not popups. Courses and bundles both have a 'View details' option.
+` +
+      `• Details screen: 'What you get', a Recorded vs Live Pro comparison (plus a Champion column when Champion is priced), 'Included with every purchase', and a sticky price and buy card.
+` +
+      `• Bundle cards are colour coded (indigo, green, amber, pink, sky) with 'View details' and 'Buy now' in one row.
+` +
+      `• Fixed bundle buy screen: big plan cards (Recorded, Live Pro, Champion) with prices; Champion shows a 'Read all' row that opens the terms in a popup.
+` +
+      `• Notes: category pills (General, Foundation, Qualifier...) with note counts replace the single big category card; the first category is selected automatically. Back buttons have an arrow icon.
+` +
+      `• Calendar page (desktop) was restyled.`,
+    category: 'APP_VS_WEB',
+    appliesTo: 'WEB_ONLY',
+    order: 27,
+  },
+  {
+    question: "How does the App Home screen decide between 'Live Now' and 'Upcoming Session'?",
+    answer:
+      `Home order: greeting, rotating banner, live/upcoming session card, shortcut tiles, announcements. The banner is always first, below the greeting.
+` +
+      `
+` +
+      `• If any class is live right now, the section is titled 'Live Now' and shows only live sessions (upcoming ones are hidden). The red card shows 'STARTED <time>' and a 'Join' button.
+` +
+      `• If nothing is live, the section is titled 'Upcoming Session' and shows the next class with its time and date.
+` +
+      `
+` +
+      `Live Sessions page: Upcoming and Past rows use the same card style as Home (video tile, time label, title, course and teacher). The active class button says 'Join now'.`,
+    category: 'APP_VS_WEB',
+    appliesTo: 'APP_ONLY',
+    order: 28,
+  },
+  {
+    question: "Checklist: what must be done after deploying the Google Play billing and store changes?",
+    answer:
+      `1. Run the SQL for highlights (see the 'What you get' entry) and run prisma generate, then deploy the website.
+` +
+      `2. Create one-time (consumable) products in Google Play Console named course_<price> for every distinct bundle and course price, and note_<price> for notes. Make sure the Play service account has permission to verify purchases.
+` +
+      `3. For every fixed bundle set Force Class Type to 'Let user choose' unless you really want one plan only.
+` +
+      `4. Rebuild the app fully (flutter clean, flutter pub get, flutter run or build appbundle). Hot reload is not enough.
+` +
+      `5. Test one purchase per source and confirm it shows in Manager > Transactions with the right tag, in the student's My Transactions and in the app Purchase History.`,
+    category: 'PLATFORM_SYSTEM',
+    appliesTo: 'BOTH',
+    order: 29,
+  },
 ]

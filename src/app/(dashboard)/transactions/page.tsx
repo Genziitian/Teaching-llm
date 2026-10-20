@@ -14,6 +14,7 @@ interface Transaction {
   status: string
   createdAt: string
   isExternal?: boolean
+  source?: 'GOOGLE_PLAY' | 'RAZORPAY'
   type?: string
   user: { id: string; name: string; email: string; mobileNumber: string | null }
   course: { id: string; name: string; subject: string | null }
@@ -113,8 +114,15 @@ export default function TransactionsPage() {
     )
   }
 
-  const sourceBadge = (isExternal?: boolean) => {
+  const sourceBadge = (isExternal?: boolean, source?: string) => {
     const isExt = Boolean(isExternal)
+    if (source === 'GOOGLE_PLAY') {
+      return (
+        <span style={{ background: 'rgba(59, 130, 246, 0.15)', color: '#60a5fa', border: '1px solid rgba(59, 130, 246, 0.35)', padding: '3px 10px', borderRadius: '14px', fontSize: '10.5px', fontWeight: '800', display: 'inline-flex', alignItems: 'center', gap: '4px', letterSpacing: '0.04em' }}>
+          ▶ GOOGLE PLAY
+        </span>
+      )
+    }
     return (
       <span style={{
         background: isExt ? 'rgba(99, 102, 241, 0.15)' : 'rgba(16, 185, 129, 0.15)',
@@ -405,7 +413,7 @@ export default function TransactionsPage() {
                   {filteredTransactions.map((tx, i) => (
                     <tr key={tx.id} style={{ borderBottom: '1px solid var(--border)', background: i % 2 === 0 ? 'var(--surface)' : 'var(--surface-2)' }}>
                       <td style={{ padding: '14px 20px', fontSize: '11px', fontWeight: '700', color: 'var(--accent)', fontFamily: 'monospace', wordBreak: 'break-all' }}>{tx.orderId}</td>
-                      <td style={{ padding: '14px 20px' }}>{sourceBadge(tx.isExternal)}</td>
+                      <td style={{ padding: '14px 20px' }}>{sourceBadge(tx.isExternal, tx.source)}</td>
                       <td style={{ padding: '14px 20px' }}>
                         <div style={{ fontSize: '13px', fontWeight: '700', color: 'var(--text-primary)' }}>{tx.user.name}</div>
                         <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>{tx.user.email}</div>
@@ -443,7 +451,7 @@ export default function TransactionsPage() {
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
                     {statusBadge(tx.status)}
-                    {sourceBadge(tx.isExternal)}
+                    {sourceBadge(tx.isExternal, tx.source)}
                   </div>
                   <div style={{ fontSize: '18px', fontWeight: '900', color: 'var(--text-primary)' }}>₹{tx.amount.toLocaleString('en-IN')}</div>
                 </div>

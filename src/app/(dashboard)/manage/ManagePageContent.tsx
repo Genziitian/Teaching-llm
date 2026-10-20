@@ -19,6 +19,7 @@ import {
 } from '@/lib/iitm-taxonomy'
 import { type PlatformQuery, QUERY_CATEGORIES } from '@/lib/queries-master'
 import ClearCourseEnrollmentsModal from '@/components/ClearCourseEnrollmentsModal'
+import CourseProtectionField from '@/components/exam-protection/CourseProtectionField'
 import AcademicTermsModal from '@/components/manage/AcademicTermsModal'
 
 export type Tab = 'courses' | 'offerings' | 'bundles' | 'lectures' | 'events' | 'materials' | 'announcements' | 'notifications' | 'faqs' | 'queries'
@@ -1122,6 +1123,8 @@ export function ManagePageInner({ forcedTab }: ManagePageInnerProps = {}) {
                   />
                 </div>
               </div>
+
+              {userRole === 'MANAGER' && <CourseProtectionField courseId={editId} />}
 
               <div className="ce-row">
                 <div className="ce-field">

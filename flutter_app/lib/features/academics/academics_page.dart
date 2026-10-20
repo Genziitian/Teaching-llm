@@ -53,6 +53,12 @@ class AcademicsPage extends ConsumerWidget {
         route: '/store',
       ),
       (
+        title: 'Exam Protection',
+        gradient: const [Color(0xFF30B350), Color(0xFF168E83)],
+        icon: Symbols.shield_rounded,
+        route: '/exam-protection',
+      ),
+      (
         title: 'Purchase History',
         gradient: const [Color(0xFF7D7AFF), Color(0xFF5E5CE6)],
         icon: Symbols.receipt_long_rounded,

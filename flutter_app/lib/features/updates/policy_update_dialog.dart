@@ -54,7 +54,7 @@ Future<void> checkPolicyUpdateOnLaunch([ApiClient? api]) async {
           useRootNavigator: true,
           barrierDismissible: false,
           barrierColor: Colors.black.withValues(alpha: 0.55),
-          builder: (_) => const PolicyUpdateDialog(),
+          builder: (_) => PolicyUpdateDialog(api: api),
         );
         return;
       }
@@ -66,7 +66,9 @@ Future<void> checkPolicyUpdateOnLaunch([ApiClient? api]) async {
 }
 
 class PolicyUpdateDialog extends StatefulWidget {
-  const PolicyUpdateDialog({super.key});
+  const PolicyUpdateDialog({super.key, this.api});
+
+  final ApiClient? api;
 
   @override
   State<PolicyUpdateDialog> createState() => _PolicyUpdateDialogState();
@@ -126,14 +128,14 @@ class _PolicyUpdateDialogState extends State<PolicyUpdateDialog>
     return Dialog(
       backgroundColor: Colors.transparent,
       elevation: 0,
-      insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+      insetPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
       child: Center(
         child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 420),
+          constraints: const BoxConstraints(maxWidth: 560),
           child: Container(
             decoration: BoxDecoration(
               color: tokens.cardBg,
-              borderRadius: BorderRadius.circular(30),
+              borderRadius: BorderRadius.circular(24),
               border: Border.all(color: tokens.border, width: 0.5),
               boxShadow: [
                 BoxShadow(
@@ -143,9 +145,13 @@ class _PolicyUpdateDialogState extends State<PolicyUpdateDialog>
                 ),
               ],
             ),
-            child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Flexible(
+                  child: SingleChildScrollView(
               physics: const BouncingScrollPhysics(),
-              padding: const EdgeInsets.fromLTRB(24, 30, 24, 22),
+              padding: const EdgeInsets.fromLTRB(20, 22, 20, 8),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -154,10 +160,10 @@ class _PolicyUpdateDialogState extends State<PolicyUpdateDialog>
                     0.0,
                     Center(
                       child: Container(
-                        width: 64,
-                        height: 64,
+                        width: 52,
+                        height: 52,
                         decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(20),
+                          borderRadius: BorderRadius.circular(16),
                           gradient: const LinearGradient(
                             colors: [Color(0xFF7D7AFF), Color(0xFF5E5CE6)],
                             begin: Alignment.topLeft,
@@ -183,7 +189,7 @@ class _PolicyUpdateDialogState extends State<PolicyUpdateDialog>
                       'Updated Policies',
                       textAlign: TextAlign.center,
                       style: TextStyle(
-                        fontSize: 26,
+                        fontSize: 22,
                         fontWeight: FontWeight.w800,
                         letterSpacing: -0.7,
                         color: tokens.textPrimary,
@@ -210,13 +216,35 @@ class _PolicyUpdateDialogState extends State<PolicyUpdateDialog>
                       'We have updated our Terms & Conditions, Privacy Policy, and Refund Policy with comprehensive disclosures:',
                       textAlign: TextAlign.center,
                       style: TextStyle(
-                        fontSize: 15,
+                        fontSize: 13,
                         height: 1.45,
                         color: tokens.textSecondary,
                       ),
                     ),
                   ),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 16),
+                  _rise(
+                    0.18,
+                    const _PolicyHighlightRow(
+                      icon: Symbols.school_rounded,
+                      iconColor: Color(0xFF5E5CE6),
+                      title: 'Courses & Bundles',
+                      description:
+                          'Terms for buying courses and bundles (Recorded, Live Pro, Champion): website via Razorpay, app via Google Play.',
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                  _rise(
+                    0.20,
+                    const _PolicyHighlightRow(
+                      icon: Symbols.emoji_events_rounded,
+                      iconColor: Color(0xFFFF453A),
+                      title: 'Champion Refund Rule',
+                      description:
+                          'If you do not qualify, refund = Champion price minus Live Pro price. Live Pro is not refunded.',
+                    ),
+                  ),
+                  const SizedBox(height: 14),
                   _rise(
                     0.22,
                     const _PolicyHighlightRow(
@@ -227,7 +255,7 @@ class _PolicyUpdateDialogState extends State<PolicyUpdateDialog>
                           'Official terms for purchasing study notes & materials via Google Play Billing.',
                     ),
                   ),
-                  const SizedBox(height: 18),
+                  const SizedBox(height: 14),
                   _rise(
                     0.29,
                     const _PolicyHighlightRow(
@@ -238,7 +266,7 @@ class _PolicyUpdateDialogState extends State<PolicyUpdateDialog>
                           'Transparent pricing with 90-day digital access and instant fulfillment.',
                     ),
                   ),
-                  const SizedBox(height: 18),
+                  const SizedBox(height: 14),
                   _rise(
                     0.36,
                     const _PolicyHighlightRow(
@@ -249,7 +277,16 @@ class _PolicyUpdateDialogState extends State<PolicyUpdateDialog>
                           'Unlocked notes sync to web; refunds follow Google Play policies.',
                     ),
                   ),
-                  const SizedBox(height: 24),
+                ],
+                    ),
+                  ),
+                ),
+                Padding(
+                  padding: EdgeInsets.fromLTRB(20, 12, 20, 16 + MediaQuery.of(context).padding.bottom * 0),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
                   _rise(
                     0.46,
                     Wrap(
@@ -272,34 +309,49 @@ class _PolicyUpdateDialogState extends State<PolicyUpdateDialog>
                       ],
                     ),
                   ),
-                  const SizedBox(height: 22),
+                  const SizedBox(height: 10),
                   _rise(
                     0.54,
                     ApplePressable(
                       onTap: () {
                         HapticFeedback.mediumImpact();
+                        final api = widget.api;
+                        if (api != null) {
+                          unawaited(() async {
+                            try {
+                              await api.post<dynamic>('/api/user/seen-notices',
+                                  body: {
+                                    'key': _kPolicyUpdateSeenKey,
+                                    'accepted': true,
+                                    'platform': 'app',
+                                  });
+                            } catch (_) {}
+                          }());
+                        }
                         Navigator.of(context, rootNavigator: true).pop();
                       },
                       child: Container(
-                        height: 54,
+                        height: 48,
                         alignment: Alignment.center,
                         decoration: BoxDecoration(
                           color: tokens.primaryAccent,
-                          borderRadius: BorderRadius.circular(27),
+                          borderRadius: BorderRadius.circular(24),
                         ),
                         child: Text(
                           'I Understand & Agree',
                           style: TextStyle(
                             color: tokens.isBlack ? Colors.black : Colors.white,
-                            fontSize: 16.5,
+                            fontSize: 15,
                             fontWeight: FontWeight.w700,
                           ),
                         ),
                       ),
                     ),
                   ),
-                ],
-              ),
+                    ],
+                  ),
+                ),
+              ],
             ),
           ),
         ),

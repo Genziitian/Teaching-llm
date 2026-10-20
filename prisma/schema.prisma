@@ -84,6 +84,7 @@ model User {
   comments                Comment[]
   communityMessages       CommunityMessage[]           @relation("CommMsgSender")
   communityReadStates     CommunityReadState[]
+  protectionPurchases     ProtectionPurchase[]
   createdCoupons          Coupon[]                     @relation("CouponCreator")
   couponUsages            CouponUsage[]
   createdCourseBundles    CourseBundle[]               @relation("BundleCreator")
@@ -188,6 +189,8 @@ model Course {
   topics                Topic[]
   upgradeTransactions     UpgradeTransaction[]
   communityMutePrefs      CommunityMutePreference[]
+  protectionPurchases     ProtectionPurchase[]
+  protectionSettings      ProtectionCourse?
   homeworks               Homework[]
 
   @@index([lastMessageAt])
@@ -1316,6 +1319,7 @@ model Coupon {
   createdAt             DateTime      @default(now())
   updatedAt             DateTime      @updatedAt
   createdBy             User          @relation("CouponCreator", fields: [createdById], references: [id])
+  protectionClaim       ProtectionClaim?
   usages                CouponUsage[]
 
   @@index([code])
@@ -1647,3 +1651,86 @@ model HomeworkSubmission {
   @@index([studentId])
 }
 
+
+
+model ProtectionSettings {
+  id        String   @id @default("global")
+  isOpen    Boolean  @default(false)
+  updatedAt DateTime @updatedAt
+}
+
+model ProtectionPurchase {
+  id              String   @id @default(cuid())
+  userId          String
+  courseId        String?
+  courseKey       String
+  courseName      String
+  subject         String
+  academicTerm    String?
+  academicYear    Int?
+  fee             Int
+  status          String   @default("PENDING")
+  providerOrderId String?  @unique
+  paymentId       String?  @unique
+  createdAt       DateTime @default(now())
+  paidAt          DateTime?
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  course          Course?  @relation(fields: [courseId], references: [id], onDelete: SetNull)
+  claim           ProtectionClaim?
+
+  @@unique([userId, courseKey])
+  @@index([status, paidAt])
+}
+
+model ProtectionClaim {
+  id                 String   @id @default(cuid())
+  purchaseId         String   @unique
+  benefit            String
+  status             String   @default("Submitted")
+  reason             String
+  attempted          Boolean
+  marks              Float?
+  message            String   @default("")
+  refundAmount       Int?
+  refundReference    String?
+  deliveredAt        DateTime?
+  couponId           String?  @unique
+  couponRevealedAt   DateTime?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+  purchase           ProtectionPurchase @relation(fields: [purchaseId], references: [id], onDelete: Cascade)
+  coupon             Coupon? @relation(fields: [couponId], references: [id], onDelete: SetNull)
+  proof              ProtectionProof?
+  events             ProtectionClaimEvent[]
+
+  @@index([createdAt])
+}
+
+model ProtectionProof {
+  claimId   String   @id
+  bytes     Bytes
+  mime      String
+  expiresAt DateTime
+  claim     ProtectionClaim @relation(fields: [claimId], references: [id], onDelete: Cascade)
+
+  @@index([expiresAt])
+}
+
+model ProtectionClaimEvent {
+  id        String   @id @default(cuid())
+  claimId   String
+  actorId   String
+  message   String
+  internal  Boolean  @default(false)
+  createdAt DateTime @default(now())
+  claim     ProtectionClaim @relation(fields: [claimId], references: [id], onDelete: Cascade)
+
+  @@index([claimId, createdAt])
+}
+
+model ProtectionCourse {
+  courseId  String @id
+  fee       Int?
+  course    Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  updatedAt DateTime @updatedAt
+}

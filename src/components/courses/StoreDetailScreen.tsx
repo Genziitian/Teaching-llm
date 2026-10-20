@@ -36,7 +36,7 @@ export default function StoreDetailScreen(props: {
   description?: string | null
   price?: ReactNode
   status?: ReactNode
-  compare?: { hasRecorded: boolean; hasLive: boolean; hasChampion?: boolean } | null
+  compare?: { hasRecorded: boolean; hasLive: boolean; hasChampion?: boolean; championPrice?: number; livePrice?: number } | null
   commonPoints?: string[] | null
   sections?: { title: string; items: string[] }[]
   points?: { value: string | null | undefined; canEdit: boolean; onSave: (v: string) => Promise<void> } | null
@@ -169,7 +169,7 @@ export default function StoreDetailScreen(props: {
             )}
 
             {compare?.hasChampion && (
-              <section style={card}><h3 style={h3}>Champion batch terms</h3><ChampionPolicy /></section>
+              <section style={card}><h3 style={h3}>Champion batch terms</h3><ChampionPolicy championPrice={compare.championPrice} livePrice={compare.livePrice} /></section>
             )}
 
             {common && common.length > 0 && (

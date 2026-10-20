@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { getSession } from '@/lib/auth'
+import { paymentSource } from '@/lib/payment-source'
 
 export async function GET() {
   try {
@@ -57,6 +58,7 @@ export async function GET() {
         status: u.status,
         createdAt: u.createdAt,
         type: 'UPGRADE',
+        source: paymentSource(u.razorpayPaymentId, u.orderId),
         isExternal: false,
         courses: [
           {
@@ -77,6 +79,7 @@ export async function GET() {
           status: o.status,
           createdAt: o.createdAt,
           type: 'PURCHASE',
+          source: paymentSource(o.razorpayPaymentId),
           isExternal: o.isExternal,
           courses: o.items.map(item => ({
             id: item.course.id,
@@ -94,6 +97,7 @@ export async function GET() {
         status: 'SUCCESS',
         createdAt: m.createdAt,
         type: 'MENTORSHIP',
+        source: paymentSource(m.orderId, m.razorpayOrderId),
         courses: [{ id: '', name: `Mentorship: ${m.mentorship.mentorName}`, subject: 'Mentorship', accessType: 'LIVE' }]
       })),
       ...testSeries.map(ts => ({
@@ -104,6 +108,7 @@ export async function GET() {
         status: 'SUCCESS',
         createdAt: ts.createdAt,
         type: 'TEST_SERIES',
+        source: paymentSource(ts.razorpayPaymentId),
         courses: [{ id: '', name: `Test Series: ${ts.testSeries.title}`, subject: 'Test Series', accessType: 'RECORDED' }]
       })),
       ...notes.map(n => ({
@@ -114,6 +119,7 @@ export async function GET() {
         status: 'SUCCESS',
         createdAt: n.createdAt,
         type: 'STUDY_NOTE',
+        source: paymentSource(n.orderId),
         courses: [{ id: '', name: `Study Note: ${n.note.title}`, subject: 'Study Notes', accessType: 'RECORDED' }]
       }))
     ].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())

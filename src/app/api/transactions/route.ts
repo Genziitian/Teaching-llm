@@ -3,6 +3,7 @@ import { prisma } from '@/lib/db'
 import { getSession } from '@/lib/auth'
 import { ensureCourseColumns } from '@/lib/course-schema-sync'
 import { getAcademicTerms } from '@/lib/academic-terms-config'
+import { paymentSource } from '@/lib/payment-source'
 
 function isAdminOrManager(role: string) {
   return role === 'MANAGER' || (role === 'ADMIN' || role === 'MODERATOR')
@@ -156,6 +157,7 @@ export async function GET(request: NextRequest) {
         status: u.status,
         createdAt: u.createdAt,
         type: 'UPGRADE',
+        source: paymentSource(u.razorpayPaymentId, u.orderId),
         isExternal: false,
         course: u.course,
         courses: [{ ...u.course, accessType: 'LIVE', price: u.amount }],
@@ -185,6 +187,7 @@ export async function GET(request: NextRequest) {
           rawStatus: o.status,
           createdAt: o.createdAt,
           type: 'PURCHASE',
+          source: paymentSource(o.razorpayPaymentId),
           isExternal: o.isExternal,
           course: { id: firstCourse.id, name: firstCourse.name, subject: firstCourse.subject },
           courses,
@@ -203,6 +206,7 @@ export async function GET(request: NextRequest) {
         status: m.status === 'PAID' ? 'SUCCESS' : m.status,
         createdAt: m.createdAt,
         type: 'MENTORSHIP',
+        source: paymentSource(m.orderId, m.razorpayOrderId),
         course: { id: '', name: `Mentorship: ${m.mentorship.mentorName}`, subject: 'Mentorship' },
         courses: [{ id: '', name: `Mentorship: ${m.mentorship.mentorName}`, subject: 'Mentorship', accessType: 'LIVE', price: m.amount }],
         user: m.user,
@@ -217,6 +221,7 @@ export async function GET(request: NextRequest) {
         status: 'SUCCESS',
         createdAt: ts.createdAt,
         type: 'TEST_SERIES',
+        source: paymentSource(ts.razorpayPaymentId),
         course: { id: '', name: `Test Series: ${ts.testSeries.title}`, subject: 'Test Series' },
         courses: [{ id: '', name: `Test Series: ${ts.testSeries.title}`, subject: 'Test Series', accessType: 'RECORDED', price: ts.amount }],
         user: ts.user,
@@ -231,6 +236,7 @@ export async function GET(request: NextRequest) {
         status: 'SUCCESS',
         createdAt: n.createdAt,
         type: 'STUDY_NOTE',
+        source: paymentSource(n.orderId),
         course: { id: '', name: `Study Note: ${n.note.title}`, subject: 'Study Notes' },
         courses: [{ id: '', name: `Study Note: ${n.note.title}`, subject: 'Study Notes', accessType: 'RECORDED', price: n.note.price }],
         user: n.user,

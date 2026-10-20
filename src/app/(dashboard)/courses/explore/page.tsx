@@ -127,6 +127,7 @@ export default function ExploreCoursesPage() {
   // New store tabs and modals category select state variables
   const [selectedStoreTab, setSelectedStoreTab] = useState<string>('')
   const [selectedNotesTab, setSelectedNotesTab] = useState<string>('')
+  const [showChampionTerms, setShowChampionTerms] = useState(false)
   const [selectedNotesSubjectTab, setSelectedNotesSubjectTab] = useState<string>('')
 
   const [offeringCategory, setOfferingCategory] = useState<string>('')
@@ -2199,6 +2200,18 @@ export default function ExploreCoursesPage() {
       {/* Bundle Choose / Buy Modal */}
       {showBundleModal && activeBundle && (
         <div className="bundle-fs-root" style={{ position: 'fixed', inset: 0, background: 'var(--background, var(--surface-2))', display: 'flex', alignItems: 'stretch', justifyContent: 'center', zIndex: 1250, padding: 0, overflowY: 'auto' }}>
+        {showChampionTerms && (
+          <div onClick={() => setShowChampionTerms(false)} style={{ position: 'fixed', inset: 0, zIndex: 1400, background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
+            <div onClick={e => e.stopPropagation()} style={{ width: '100%', maxWidth: 620, maxHeight: '88dvh', overflowY: 'auto', background: 'var(--surface)', borderRadius: 26, padding: '24px 24px 20px', boxShadow: '0 24px 60px rgba(0,0,0,0.35)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
+                <div style={{ fontSize: 20, fontWeight: 800, letterSpacing: '-0.4px', color: 'var(--text-primary)' }}>Champion Batch: Terms &amp; Conditions</div>
+                <button onClick={() => setShowChampionTerms(false)} aria-label="Close" style={{ width: 34, height: 34, borderRadius: '50%', border: 'none', background: 'var(--surface-hover)', color: 'var(--text-secondary)', fontSize: 18, cursor: 'pointer' }}>&times;</button>
+              </div>
+              <ChampionPolicy championPrice={Number(activeBundle?.championDiscountPrice ?? activeBundle?.championOriginalPrice)} livePrice={Number(activeBundle?.liveDiscountPrice ?? activeBundle?.liveOriginalPrice)} />
+              <button onClick={() => setShowChampionTerms(false)} style={{ marginTop: 18, width: '100%', padding: '14px', borderRadius: 16, border: 'none', background: 'var(--accent)', color: 'var(--button-text, #fff)', fontWeight: 700, fontSize: 16, cursor: 'pointer' }}>Got it</button>
+            </div>
+          </div>
+        )}
           <style>{`.bundle-fs-root .bundle-modal-box{height:100dvh !important;max-height:none !important;max-width:1120px !important;border-radius:0 !important;background:transparent !important;padding:28px clamp(16px,4vw,40px) 32px !important;overflow:auto !important}.bundle-fs-root .bundle-modal-grid{overflow:visible !important}`}</style>
           {(() => {
             const selectedList = activeBundle.allowIndividualPurchase === false ? activeBundle.courses.map((c: any) => c.course.id) : bundleSelectedCoursesToBuy;
@@ -2410,11 +2423,11 @@ export default function ExploreCoursesPage() {
                     let subtitle = '';
                     if (requiresAll) {
                       if (applicability === 'LIVE') subtitle = `Enroll all ${n} subjects in Live Pro to unlock this discount.`;
-                      else if (applicability === 'RECORDED') subtitle = `Enroll all ${n} subjects in Recorded Plus to unlock this discount.`;
+                      else if (applicability === 'RECORDED') subtitle = `Enroll all ${n} subjects in Recorded to unlock this discount.`;
                       else subtitle = `Enroll all ${n} subjects (any class type) to unlock this discount.`;
                     } else {
                       if (applicability === 'LIVE') subtitle = `Applies to Live Pro selections.`;
-                      else if (applicability === 'RECORDED') subtitle = `Applies to Recorded Plus selections.`;
+                      else if (applicability === 'RECORDED') subtitle = `Applies to Recorded selections.`;
                       else subtitle = `Applies to any class type.`;
                     }
 
@@ -2440,7 +2453,7 @@ export default function ExploreCoursesPage() {
                     const champ = activeBundle.championDiscountPrice ?? activeBundle.championOriginalPrice
                     const recO = activeBundle.recordedOriginalPrice, liveO = activeBundle.liveOriginalPrice, champO = activeBundle.championOriginalPrice
                     const plans = [
-                      { key: 'RECORDED', name: 'Recorded Plus', price: rec, orig: recO, note: '', color: '#f59e0b' },
+                      { key: 'RECORDED', name: 'Recorded', price: rec, orig: recO, note: '', color: '#f59e0b' },
                       { key: 'LIVE', name: 'Live Pro', price: live, orig: liveO, note: '', color: '#3b82f6' },
                       { key: 'CHAMPION', name: 'Champion', price: champ, orig: champO, note: activeBundle.championSubtitle || '', color: '#ef4444' },
                     ].filter(pl => Number(pl.price) > 0 && (!forced || forced === pl.key))
@@ -2470,10 +2483,11 @@ export default function ExploreCoursesPage() {
                           })}
                         </div>
                         {eff === 'CHAMPION' && (
-                          <details style={{ marginTop: 14, borderRadius: 18, border: '1px solid var(--border)', background: 'var(--surface)', padding: '4px 18px' }}>
-                            <summary style={{ cursor: 'pointer', padding: '14px 0', fontSize: 15, fontWeight: 700, color: 'var(--text-primary)', listStyle: 'none' }}>Champion terms &amp; conditions <span style={{ color: 'var(--accent)', fontWeight: 600, fontSize: 13 }}>View</span></summary>
-                            <div style={{ paddingBottom: 14 }}><ChampionPolicy /></div>
-                          </details>
+                          <button onClick={() => setShowChampionTerms(true)}
+                            style={{ marginTop: 14, width: '100%', textAlign: 'left', cursor: 'pointer', borderRadius: 18, border: '1px solid var(--border)', background: 'var(--surface)', padding: '16px 18px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', color: 'var(--text-primary)', fontSize: 15, fontWeight: 700 }}>
+                            <span>Champion terms &amp; conditions</span>
+                            <span style={{ color: 'var(--accent)', fontSize: 13, fontWeight: 700 }}>Read all &rarr;</span>
+                          </button>
                         )}
                       </div>
                     )
@@ -2655,7 +2669,7 @@ export default function ExploreCoursesPage() {
                                 const pd = JSON.parse(activeBundle.coursePrices || '{}');
                                 if (pd.bundleDiscountApplicability) discountApplicability = pd.bundleDiscountApplicability;
                               } catch(e) {}
-                              const applicabilityLabel = discountApplicability === 'LIVE' ? 'Live Pro Only' : discountApplicability === 'RECORDED' ? 'Recorded Plus Only' : 'Live & Recorded';
+                              const applicabilityLabel = discountApplicability === 'LIVE' ? 'Live Pro Only' : discountApplicability === 'RECORDED' ? 'Recorded Only' : 'Live & Recorded';
                               return (
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', padding: '10px 14px', borderRadius: '12px', background: 'var(--success-light)', border: '1px solid #dcfce7' }}>
                                   <div>
@@ -3029,7 +3043,7 @@ export default function ExploreCoursesPage() {
 
                 <div style={{ background: '#f0f3ff', padding: '20px', borderRadius: '18px', marginBottom: '24px', border: '2px solid var(--border)' }}>
                   <h4 style={{ fontSize: '14px', fontWeight: '800', color: 'var(--primary)', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    🔴 Live Batch - Pro
+                    🔴 Live Pro
                   </h4>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                     <div>
@@ -3544,7 +3558,7 @@ export default function ExploreCoursesPage() {
                 {editingOffering.hasLive && (
                   <div style={{ background: 'var(--surface)', padding: '20px', borderRadius: '18px', border: '2px solid var(--border)' }}>
                     <h4 style={{ fontSize: '14px', fontWeight: '800', color: 'var(--text-primary)', marginBottom: '16px' }}>
-                      Live Batch
+                      Live Pro
                     </h4>
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                       <div>
@@ -4560,7 +4574,7 @@ export default function ExploreCoursesPage() {
               eyebrow={o.course?.subject || o.category}
               title={o.course?.name || o.name}
               description={o.course?.description}
-              compare={{ hasRecorded: !!o.hasRecorded, hasLive: !!o.hasLive, hasChampion: Number(o.championDiscountPrice ?? o.championOriginalPrice) > 0 }}
+              compare={{ hasRecorded: !!o.hasRecorded, hasLive: !!o.hasLive, hasChampion: Number(o.championDiscountPrice ?? o.championOriginalPrice) > 0, championPrice: Number(o.championDiscountPrice ?? o.championOriginalPrice), livePrice: Number(o.liveDiscountPrice ?? o.liveOriginalPrice) }}
               points={{ value: o.highlights, canEdit: isMgr, onSave: save('course', o.id, '/api/course-offerings') }}
               price={rows.length ? priceBlock(rows) : null}
               ctas={ctas}
@@ -4578,7 +4592,7 @@ export default function ExploreCoursesPage() {
             eyebrow={`Bundle · ${b.courses?.length || 0} courses`}
             title={b.name}
             description={b.description}
-            compare={{ hasRecorded: !!(b.recordedDiscountPrice ?? b.recordedOriginalPrice) || b.forceClassType !== 'LIVE', hasLive: !!(b.liveDiscountPrice ?? b.liveOriginalPrice), hasChampion: Number(b.championDiscountPrice ?? b.championOriginalPrice) > 0 }}
+            compare={{ hasRecorded: !!(b.recordedDiscountPrice ?? b.recordedOriginalPrice) || b.forceClassType !== 'LIVE', hasLive: !!(b.liveDiscountPrice ?? b.liveOriginalPrice), hasChampion: Number(b.championDiscountPrice ?? b.championOriginalPrice) > 0, championPrice: Number(b.championDiscountPrice ?? b.championOriginalPrice), livePrice: Number(b.liveDiscountPrice ?? b.liveOriginalPrice) }}
             points={{ value: b.highlights, canEdit: isMgr, onSave: save('bundle', b.id, '/api/bundle-offerings') }}
             sections={[{ title: b.courseHeadline || 'Included courses', items: (b.courses || []).map((c: any) => c.course?.name || c.course?.subject).filter(Boolean) }]}
             price={(

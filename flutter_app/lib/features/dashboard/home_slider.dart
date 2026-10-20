@@ -19,6 +19,36 @@ const _kDefaultSlides = <Map<String, dynamic>>[
     'href': '/academics',
   },
   {
+    'asset': 'assets/slides/courses-now-in-app-v1.webp',
+    'alt': 'Courses now in the app',
+    'href': '/store',
+  },
+  {
+    'asset': 'assets/slides/choose-your-course-v1.webp',
+    'alt': 'Choose your course',
+    'href': '/store',
+  },
+  {
+    'asset': 'assets/slides/live-and-recorded-v1.webp',
+    'alt': 'Live and recorded learning',
+    'href': '/store',
+  },
+  {
+    'asset': 'assets/slides/personal-teacher-v1.webp',
+    'alt': 'Your pace. Your personal teacher.',
+    'href': 'https://genziitian.in/one-to-one',
+  },
+  {
+    'asset': 'assets/slides/study-resources-v1.webp',
+    'alt': 'Your syllabus. Meet your study kit.',
+    'href': '/free-resources',
+  },
+  {
+    'asset': 'assets/slides/learning-community-v1.webp',
+    'alt': 'Big syllabus. Better together.',
+    'href': '/community',
+  },
+  {
     'asset': 'assets/slides/free-resources-v2.webp',
     'alt': 'Free notes and solved PYQs',
     'href': '/free-resources',
@@ -64,8 +94,11 @@ class _HomeSliderState extends ConsumerState<HomeSlider> {
   final _controller = PageController(viewportFraction: 1.0);
   Timer? _timer;
   int _page = 0;
+  int _timerCount = -1;
 
-  void _restartTimer(int slideCount) {
+  void _restartTimer(int slideCount, {bool force = false}) {
+    if (!force && _timerCount == slideCount && (_timer?.isActive ?? false)) return;
+    _timerCount = slideCount;
     _timer?.cancel();
     if (slideCount <= 1) return;
     _timer = Timer.periodic(const Duration(milliseconds: 4500), (_) {
@@ -110,8 +143,14 @@ class _HomeSliderState extends ConsumerState<HomeSlider> {
           children: [
             AspectRatio(
               aspectRatio: 2400 / 1140,
-              child: PageView.builder(
+              child: Listener(
+                // Pause auto-advance while the user is swiping, then resume.
+                onPointerDown: (_) => _timer?.cancel(),
+                onPointerUp: (_) => _restartTimer(slides.length, force: true),
+                onPointerCancel: (_) => _restartTimer(slides.length, force: true),
+                child: PageView.builder(
                 controller: _controller,
+                physics: const PageScrollPhysics(parent: BouncingScrollPhysics()),
                 itemCount: slides.length,
                 onPageChanged: (i) => setState(() => _page = i),
                 itemBuilder: (_, i) {
@@ -160,6 +199,7 @@ class _HomeSliderState extends ConsumerState<HomeSlider> {
                     ),
                   );
                 },
+              ),
               ),
             ),
             if (slides.length > 1) ...[

@@ -110,8 +110,8 @@ List<String> _availableTypes(Map<String, dynamic> b) {
       mapHas('live')) {
     out.add('LIVE');
   }
-  if (_num(b['championDiscountPrice']) != null ||
-      _num(b['championOriginalPrice']) != null ||
+  if ((_num(b['championDiscountPrice']) ?? 0) > 0 ||
+      (_num(b['championOriginalPrice']) ?? 0) > 0 ||
       tierHas('championDiscount', 'championOriginal') ||
       mapHas('champion')) {
     out.add('CHAMPION');
@@ -120,7 +120,7 @@ List<String> _availableTypes(Map<String, dynamic> b) {
 }
 
 String _typeLabel(String t) =>
-    t == 'RECORDED' ? 'Recorded' : (t == 'CHAMPION' ? 'Live Pro+' : 'Live Pro');
+    t == 'RECORDED' ? 'Recorded' : (t == 'CHAMPION' ? 'Champion' : 'Live Pro');
 
 /// Estimated total (the server calculates the final amount at checkout).
 double? _estimate(Map<String, dynamic> b, String type, List<String> ids) {
@@ -963,6 +963,138 @@ const _kChampionProvides = [
   '1-to-1 mentorship for your strategy and action plan',
 ];
 
+String _refundLine(double? champ, double? live) {
+  if (champ != null && live != null && champ > live) {
+    return 'If you do not qualify, the refund is the extra amount paid for Champion (Champion price minus Live Pro price): ${_money(champ)} - ${_money(live)} = ${_money(champ - live)}. The Live Pro price (${_money(live)}) is not refunded.';
+  }
+  return 'If you do not qualify, the refund is the extra amount paid for Champion (Champion price minus Live Pro price). The Live Pro price is not refunded.';
+}
+
+void _showChampionTerms(BuildContext context, {double? champ, double? live}) {
+  final tokens = context.tokens;
+  showModalBottomSheet<void>(
+    context: context,
+    isScrollControlled: true,
+    backgroundColor: Colors.transparent,
+    builder: (ctx) => DraggableScrollableSheet(
+      initialChildSize: 0.8,
+      minChildSize: 0.5,
+      maxChildSize: 0.95,
+      expand: false,
+      builder: (_, controller) => Container(
+        decoration: BoxDecoration(
+          color: tokens.bg,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+        ),
+        child: ListView(
+          controller: controller,
+          padding: const EdgeInsets.fromLTRB(22, 14, 22, 30),
+          children: [
+            Center(
+              child: Container(
+                width: 38,
+                height: 5,
+                decoration: BoxDecoration(
+                  color: tokens.border,
+                  borderRadius: BorderRadius.circular(3),
+                ),
+              ),
+            ),
+            const SizedBox(height: 18),
+            Text('Champion Batch: Terms & Conditions',
+                style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: -0.6,
+                    height: 1.15,
+                    color: tokens.textPrimary)),
+            const SizedBox(height: 10),
+            Text(
+                'Everything in Live Pro, plus a full refund or free reattempt support when all the conditions below are fulfilled.',
+                style: TextStyle(
+                    fontSize: 15, height: 1.4, color: tokens.textSecondary)),
+            const SizedBox(height: 18),
+            Text('Eligibility criteria',
+                style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w800,
+                    color: tokens.textPrimary)),
+            const SizedBox(height: 10),
+            for (final t in [..._kChampionEligibility, _refundLine(champ, live)])
+              Padding(
+                padding: const EdgeInsets.only(bottom: 10),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Icon(Symbols.check_circle_rounded,
+                        size: 20, color: Color(0xFFFF375F)),
+                    const SizedBox(width: 10),
+                    Expanded(
+                        child: Text(t,
+                            style: TextStyle(
+                                fontSize: 15,
+                                height: 1.4,
+                                color: tokens.textPrimary))),
+                  ],
+                ),
+              ),
+            const SizedBox(height: 10),
+            Text('What we provide',
+                style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w800,
+                    color: tokens.textPrimary)),
+            const SizedBox(height: 10),
+            for (final t in _kChampionProvides)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 10),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Icon(Symbols.check_circle_rounded,
+                        size: 20, color: Color(0xFF30D158)),
+                    const SizedBox(width: 10),
+                    Expanded(
+                        child: Text(t,
+                            style: TextStyle(
+                                fontSize: 15,
+                                height: 1.4,
+                                color: tokens.textPrimary))),
+                  ],
+                ),
+              ),
+            const SizedBox(height: 8),
+            Text(
+                'We provide everything from our side. In return we expect dedication, discipline and focus: 80% attendance, weekly test qualification and active participation.',
+                style: TextStyle(
+                    fontSize: 14.5,
+                    height: 1.4,
+                    fontWeight: FontWeight.w600,
+                    color: tokens.textPrimary)),
+            const SizedBox(height: 20),
+            ApplePressable(
+              onTap: () => Navigator.of(ctx).pop(),
+              child: Container(
+                height: 52,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: const Color(0xFF0A84FF),
+                  borderRadius: BorderRadius.circular(26),
+                ),
+                child: const Text('Got it',
+                    style: TextStyle(
+                        fontSize: 17,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.white)),
+              ),
+            ),
+          ],
+        ),
+      ),
+    ),
+  );
+}
+
 const _kPalette = <Color>[
   Color(0xFF0A84FF), // blue
   Color(0xFF30D158), // green
@@ -1598,6 +1730,59 @@ class _BundleDetailPageState extends ConsumerState<BundleDetailPage> {
             ),
           );
         }),
+      if (types.contains('CHAMPION'))
+        card(
+          'Champion',
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('All things from Live Pro, plus extra promises:',
+                  style: TextStyle(
+                      fontSize: 15,
+                      height: 1.4,
+                      color: tokens.textPrimary)),
+              const SizedBox(height: 12),
+              Container(
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFF375F).withValues(alpha: 0.10),
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Symbols.verified_user_rounded,
+                        size: 22, color: Color(0xFFFF375F)),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                          'Full refund if not qualified',
+                          style: TextStyle(
+                              fontSize: 15.5,
+                              fontWeight: FontWeight.w800,
+                              color: tokens.textPrimary)),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 12),
+              ApplePressable(
+                onTap: () => _showChampionTerms(context,
+                    champ: _estimate(bundle, 'CHAMPION', priceIds),
+                    live: _estimate(bundle, 'LIVE', priceIds)),
+                child: const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 4),
+                  child: Text('Terms & Conditions apply  >',
+                      style: TextStyle(
+                          fontSize: 14.5,
+                          fontWeight: FontWeight.w700,
+                          color: Color(0xFF0A84FF))),
+                ),
+              ),
+            ],
+          ),
+          icon: Symbols.emoji_events_rounded,
+          color: const Color(0xFFFF375F),
+        ),
       if (hasRec || hasLive)
         card(
           hasRec && hasLive
@@ -1798,7 +1983,11 @@ class _BundleDetailPageState extends ConsumerState<BundleDetailPage> {
                       fontWeight: FontWeight.w800,
                       color: tokens.textPrimary)),
               const SizedBox(height: 10),
-              checks(_kChampionEligibility, const Color(0xFFFF375F)),
+              checks([
+                ..._kChampionEligibility,
+                _refundLine(_estimate(bundle, 'CHAMPION', priceIds),
+                    _estimate(bundle, 'LIVE', priceIds)),
+              ], const Color(0xFFFF375F)),
               const SizedBox(height: 4),
               Text('What we provide',
                   style: TextStyle(

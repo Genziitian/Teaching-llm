@@ -600,7 +600,21 @@ class _UpcomingSessionCard extends StatelessWidget {
         .replaceAll(':00 pm', ' PM')
         .replaceAll(':00 am', ' AM');
     final course = ((session['course'] as Map?)?['name'] as String?) ?? '';
-    final date = session['date']?.toString() ?? '';
+    var date = session['date']?.toString() ?? '';
+    final start =
+        DateTime.tryParse(session['startTime']?.toString() ?? '')?.toLocal();
+    if (start != null) {
+      final now = DateTime.now();
+      final d0 = DateTime(now.year, now.month, now.day);
+      final diff = DateTime(start.year, start.month, start.day)
+          .difference(d0)
+          .inDays;
+      if (diff == 0) {
+        date = 'Today';
+      } else if (diff == 1) {
+        date = 'Tomorrow';
+      }
+    }
     final subtitle = isLive
         ? [mentor, course].where((value) => value.isNotEmpty).join(' · ')
         : date;
@@ -663,7 +677,9 @@ class _UpcomingSessionCard extends StatelessWidget {
                       ],
                       Flexible(
                         child: Text(
-                          isLive ? (time.isEmpty ? 'LIVE' : 'STARTED $time') : time,
+                          isLive
+                              ? (time.isEmpty ? 'LIVE' : 'STARTED $time')
+                              : (time.isEmpty ? 'UPCOMING' : 'STARTS AT $time'),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: TextStyle(

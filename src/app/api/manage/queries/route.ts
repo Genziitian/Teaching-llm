@@ -66,6 +66,16 @@ export async function GET() {
       const addedMasterQuestions = new Set([
         'Are Community message and attachment limits the same in the App and on the website?',
         'What are the homework submission limits, and are they the same in the App and on the website?',
+        "How does a student pay for a course or bundle in the App vs on the website?",
+        "Where can I see whether a purchase was paid through Google Play or Razorpay?",
+        "What does the App Purchase History screen show?",
+        "Why do students only see the Live Pro price on a fixed bundle, with no option to choose Recorded or Champion?",
+        "What are the three plans (Recorded, Live Pro, Champion) and what does each include?",
+        "How does the App Buy Course flow work, step by step?",
+        "What is the 'What you get' box on a bundle or course and where does it show?",
+        "What changed in the website store design (details screens, notes, bundle cards)?",
+        "How does the App Home screen decide between 'Live Now' and 'Upcoming Session'?",
+        "Checklist: what must be done after deploying the Google Play billing and store changes?",
       ])
       const missingAddedQueries = MASTER_QUERIES.filter(item =>
         addedMasterQuestions.has(item.question) && !queries.some(query => query.question === item.question)

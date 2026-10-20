@@ -10,7 +10,8 @@ interface Transaction {
   orderId: string
   amount: number
   status: string
-  type: 'PURCHASE' | 'UPGRADE'
+  type: string
+  source?: 'GOOGLE_PLAY' | 'RAZORPAY'
   createdAt: string
   courses: { id: string; name: string; subject: string | null }[]
 }
@@ -168,7 +169,7 @@ export default function MyTransactionsPage() {
                   <div style={{ fontSize: '15px', fontWeight: '700', color: 'var(--text-primary)', marginBottom: '4px' }}>
                     {tx.courses && tx.courses.length > 0 ? tx.courses.map(c => c.name).join(', ') : 'Unknown Course'}
                   </div>
-                  <div style={{ fontSize: '12px', color: 'var(--accent)', fontWeight: '700', fontFamily: 'monospace' }}>{tx.orderId}</div>
+                  <div style={{ fontSize: '12px', color: 'var(--accent)', fontWeight: '700', fontFamily: 'monospace' }}>{tx.orderId}{tx.source === 'GOOGLE_PLAY' ? <span style={{ marginLeft: 8, fontFamily: 'inherit', fontSize: '10.5px', fontWeight: 800, color: '#3b82f6', background: 'rgba(59,130,246,0.12)', padding: '2px 8px', borderRadius: 12 }}>▶ Google Play</span> : <span style={{ marginLeft: 8, fontFamily: 'inherit', fontSize: '10.5px', fontWeight: 800, color: 'var(--text-secondary)', background: 'var(--surface-hover)', padding: '2px 8px', borderRadius: 12 }}>Razorpay</span>}</div>
                 </div>
                 <div style={{ textAlign: 'center', minWidth: '80px' }}>
                   <div style={{ fontSize: '18px', fontWeight: '800', color: 'var(--text-primary)' }}>₹{tx.amount}</div>
@@ -215,6 +216,7 @@ export default function MyTransactionsPage() {
                   </div>
                   <div style={{ fontSize: '11px', color: 'var(--accent)', fontWeight: '700', fontFamily: 'monospace' }}>
                     {tx.orderId}
+                    {tx.source === 'GOOGLE_PLAY' ? <span style={{ marginLeft: 8, fontFamily: 'inherit', fontSize: '10.5px', fontWeight: 800, color: '#3b82f6', background: 'rgba(59,130,246,0.12)', padding: '2px 8px', borderRadius: 12 }}>▶ Google Play</span> : <span style={{ marginLeft: 8, fontFamily: 'inherit', fontSize: '10.5px', fontWeight: 800, color: 'var(--text-secondary)', background: 'var(--surface-hover)', padding: '2px 8px', borderRadius: 12 }}>Razorpay</span>}
                   </div>
                 </div>
 
