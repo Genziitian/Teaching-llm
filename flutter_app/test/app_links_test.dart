@@ -92,7 +92,7 @@ void main() {
     expect(appLinkLocation(Uri.parse('https://class.genziitian.in')),
         '/dashboard');
     expect(appLinkLocation(Uri.parse('/store/courses/course1')),
-        '/courses/course1');
+        '/store/courses/course1');
     expect(appLinkLocation(Uri.parse('/courses/explore')), '/courses');
     final material =
         Uri.parse(appLinkLocation(Uri.parse('/material/pdf1/view')));

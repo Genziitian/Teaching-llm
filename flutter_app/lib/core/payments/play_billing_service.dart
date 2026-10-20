@@ -198,4 +198,170 @@ class PlayBillingService {
       return PlayPaymentResult.failed(e.toString());
     }
   }
+
+  /// Buys a course offering or bundle with Google Play Billing.
+  /// 1) server creates the pending order and tells us the Play product
+  ///    (`course_<rupees>`), 2) Play sheet, 3) server verifies and enrolls.
+  Future<PlayPaymentResult> purchaseCourse({
+    required bool isBundle,
+    required String id,
+    required String accessType, // RECORDED | LIVE | CHAMPION
+    List<String> selectedCourseIds = const [],
+    bool buyAll = true,
+  }) async {
+    final Map<String, dynamic> order;
+    try {
+      final res = await api.post<Map<String, dynamic>>(
+        isBundle
+            ? '/api/bundle-offerings/$id/create-order'
+            : '/api/course-offerings/$id/create-order',
+        body: {
+          'playMode': true,
+          'accessType': accessType,
+          if (isBundle) ...{
+            'buyAll': buyAll,
+            'selectedCourseIds': selectedCourseIds,
+            'perCourseAccessTypes': {
+              for (final c in selectedCourseIds) c: accessType,
+            },
+          },
+        },
+      );
+      order = res.data ?? const <String, dynamic>{};
+    } catch (e) {
+      return PlayPaymentResult.failed(e.toString());
+    }
+
+    if (order['freeCheckout'] == true) {
+      return PlayPaymentResult.success(
+          orderId: (order['orderId'] as String?) ?? '',
+          message: 'Added to My Courses');
+    }
+    final orderId = order['orderId'] as String?;
+    final productId = order['playProductId'] as String?;
+    if (orderId == null || productId == null) {
+      return PlayPaymentResult.failed(
+          'Could not start the purchase. Please try again.');
+    }
+
+    bool available = false;
+    try {
+      available = await _iap.isAvailable();
+    } catch (e) {
+      return PlayPaymentResult.failed('Google Play Billing error: $e');
+    }
+    if (!available) {
+      return PlayPaymentResult.failed(
+          'Google Play Store is not available or not signed in on this device.');
+    }
+
+    final ProductDetailsResponse response;
+    try {
+      response = await _iap.queryProductDetails({productId});
+    } catch (e) {
+      return PlayPaymentResult.failed('Failed to query product $productId: $e');
+    }
+    if (response.notFoundIDs.contains(productId) ||
+        response.productDetails.isEmpty) {
+      return PlayPaymentResult.failed(
+          'Product $productId is not set up in Google Play yet. '
+          'Ask the team to add it in Play Console.');
+    }
+
+    final completer = Completer<PlayPaymentResult>();
+    StreamSubscription<List<PurchaseDetails>>? subscription;
+    subscription = _iap.purchaseStream.listen(
+      (List<PurchaseDetails> purchases) async {
+        for (final purchase in purchases) {
+          if (purchase.productID != productId) continue;
+          switch (purchase.status) {
+            case PurchaseStatus.purchased:
+            case PurchaseStatus.restored:
+              try {
+                final res = await api.post<Map<String, dynamic>>(
+                  '/api/play/verify-course-purchase',
+                  body: {
+                    'orderId': orderId,
+                    'purchaseToken':
+                        purchase.verificationData.serverVerificationData,
+                    'productId': purchase.productID,
+                  },
+                );
+                final data = res.data ?? const <String, dynamic>{};
+                if (data['error'] != null) {
+                  if (!completer.isCompleted) {
+                    completer.complete(
+                        PlayPaymentResult.failed(data['error'].toString()));
+                  }
+                  break;
+                }
+                if (purchase.pendingCompletePurchase) {
+                  await _iap.completePurchase(purchase);
+                }
+                if (!completer.isCompleted) {
+                  completer.complete(PlayPaymentResult.success(
+                    orderId: (data['orderId'] as String?) ?? orderId,
+                    message:
+                        (data['message'] as String?) ?? 'Purchase successful',
+                  ));
+                }
+              } catch (e) {
+                if (!completer.isCompleted) {
+                  completer.complete(
+                      PlayPaymentResult.failed('Verification error: $e'));
+                }
+              }
+              break;
+            case PurchaseStatus.error:
+              if (purchase.pendingCompletePurchase) {
+                await _iap.completePurchase(purchase);
+              }
+              if (!completer.isCompleted) {
+                completer.complete(PlayPaymentResult.failed(
+                    purchase.error?.message ?? 'Purchase failed'));
+              }
+              break;
+            case PurchaseStatus.canceled:
+              if (purchase.pendingCompletePurchase) {
+                await _iap.completePurchase(purchase);
+              }
+              if (!completer.isCompleted) {
+                completer.complete(PlayPaymentResult.cancelled());
+              }
+              break;
+            case PurchaseStatus.pending:
+              break;
+          }
+        }
+      },
+      onError: (error) {
+        if (!completer.isCompleted) {
+          completer.complete(
+              PlayPaymentResult.failed('Billing stream error: $error'));
+        }
+      },
+    );
+
+    try {
+      final launched = await _iap.buyConsumable(
+        purchaseParam:
+            PurchaseParam(productDetails: response.productDetails.first),
+        autoConsume: true,
+      );
+      if (!launched) {
+        await subscription.cancel();
+        return PlayPaymentResult.failed(
+            'Could not open Google Play payment dialog.');
+      }
+      final result = await completer.future.timeout(
+        const Duration(minutes: 10),
+        onTimeout: () => PlayPaymentResult.failed('Checkout timed out.'),
+      );
+      await subscription.cancel();
+      return result;
+    } catch (e) {
+      await subscription.cancel();
+      return PlayPaymentResult.failed(e.toString());
+    }
+  }
 }

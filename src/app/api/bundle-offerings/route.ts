@@ -45,7 +45,7 @@ export async function POST(request: NextRequest) {
       allowIndividualPurchase, forceClassType,
       enableBundleDiscount, bundleDiscountType, bundleDiscountValue, bundleDiscountApplicability, requireAllCourses,
       coursePrices, startingPrice, startingFromText, bannerText, courseHeadline,
-      category
+      category, highlights
     } = data
 
     if (!name || !Array.isArray(courseIds) || courseIds.length === 0) {
@@ -62,6 +62,7 @@ export async function POST(request: NextRequest) {
       data: {
         name,
         description,
+        highlights: String(highlights || '').split('\n').map((x: string) => x.trim()).filter(Boolean).slice(0, 30).join('\n') || null,
         createdById: session.userId,
         recordedOriginalPrice: recordedOriginalPrice ? Number(recordedOriginalPrice) : undefined,
         recordedDiscountPrice: recordedDiscountPrice ? Number(recordedDiscountPrice) : undefined,

@@ -22,6 +22,8 @@ import '../../features/community/general_discussion_page.dart';
 import '../../features/courses/course_detail_page.dart';
 import '../../features/downloads/downloaded_notes_page.dart';
 import '../../features/store/store_note_detail_page.dart';
+import '../../features/store/buy_course_pages.dart';
+import '../../features/store/course_offering_detail_page.dart';
 import '../../features/store/store_notes_page.dart';
 import '../../features/store/store_page.dart';
 import '../../features/academics/purchase_history_page.dart';
@@ -544,12 +546,37 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         caseSensitive: false,
         path: '/store/courses',
-        redirect: (context, state) => '/dashboard',
+        pageBuilder: (context, state) => _buildSmoothPage(
+          key: state.pageKey,
+          child: const BuyCourseLevelsPage(),
+        ),
+      ),
+      GoRoute(
+        caseSensitive: false,
+        path: '/store/course-level/:level',
+        pageBuilder: (context, state) => _buildSmoothPage(
+          key: state.pageKey,
+          child: BuyCourseLevelPage(
+            level: Uri.decodeComponent(state.pathParameters['level'] ?? ''),
+          ),
+        ),
+      ),
+      GoRoute(
+        caseSensitive: false,
+        path: '/store/bundles/:id',
+        pageBuilder: (context, state) => _buildSmoothPage(
+          key: state.pageKey,
+          child: BundleDetailPage(bundleId: state.pathParameters['id'] ?? ''),
+        ),
       ),
       GoRoute(
         caseSensitive: false,
         path: '/store/courses/:id',
-        redirect: (context, state) => '/dashboard',
+        pageBuilder: (context, state) => _buildSmoothPage(
+          key: state.pageKey,
+          child: CourseOfferingDetailPage(
+              offeringId: state.pathParameters['id'] ?? ''),
+        ),
       ),
       GoRoute(
         caseSensitive: false,

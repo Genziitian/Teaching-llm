@@ -15,7 +15,10 @@ export async function POST(
 
     const body = await request.json()
     // body: { buyAll: boolean, accessType: 'RECORDED'|'LIVE'|'CHAMPION', selectedCourseIds?: string[], perCourseAccessTypes?: Record<string,string>, couponCode?: string }
-    const { buyAll, accessType, selectedCourseIds, perCourseAccessTypes, couponCode } = body
+    const { buyAll, accessType, selectedCourseIds, perCourseAccessTypes } = body
+    // Google Play purchases use fixed Play prices, so coupons are not applied.
+    const playMode = body.playMode === true
+    const couponCode = playMode ? null : body.couponCode
 
     if (!['RECORDED', 'LIVE', 'CHAMPION'].includes(accessType)) return NextResponse.json({ error: 'Invalid access type' }, { status: 400 })
 
@@ -248,6 +251,16 @@ export async function POST(
         subtotal,
         bundleDiscountAmount,
         couponDiscountAmount,
+        bundleName: bundle.name
+      })
+    }
+
+    if (playMode) {
+      return NextResponse.json({
+        orderId: order.id,
+        amount: totalAmountPaise,
+        amountRupees: finalAmount,
+        playProductId: `course_${Math.round(finalAmount)}`,
         bundleName: bundle.name
       })
     }

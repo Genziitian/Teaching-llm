@@ -88,6 +88,17 @@ export async function POST(
       }
     })
 
+    if (body.playMode === true) {
+      return NextResponse.json({
+        orderId: order.id,
+        amount: amountInPaise,
+        amountRupees: price,
+        playProductId: `course_${Math.round(price)}`,
+        bundleName: offering.name,
+        courseName: offering.course.name,
+      })
+    }
+
     // Create Razorpay order
     const razorpayOrder = await razorpay.orders.create({
       amount: amountInPaise,

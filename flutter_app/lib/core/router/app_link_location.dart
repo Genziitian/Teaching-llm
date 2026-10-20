@@ -21,7 +21,6 @@ String appLinkLocation(Uri uri) {
     '/': '/dashboard',
     '/menu': '/more',
     '/courses/explore': '/courses',
-    '/store/courses': '/courses',
   };
   final sharedNote = query['note'];
   if (path == '/courses/explore' && sharedNote != null && sharedNote.isNotEmpty) {
@@ -29,9 +28,6 @@ String appLinkLocation(Uri uri) {
     path = '/store/notes/${Uri.encodeComponent(sharedNote)}';
   }
   path = aliases[path] ?? path;
-  if (RegExp(r'^/store/courses/[^/]+$').hasMatch(path)) {
-    path = path.substring('/store'.length);
-  }
 
   final material = RegExp(r'^/material/([^/]+)/view$').firstMatch(path);
   final freeMaterial =

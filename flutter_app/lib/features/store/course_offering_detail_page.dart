@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/auth/auth_providers.dart';
-import '../../core/payments/razorpay_service.dart';
+import '../../core/payments/play_billing_service.dart';
 import '../../shared/widgets/sub_page_header.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_shadows.dart';
@@ -47,13 +47,11 @@ class _CourseOfferingDetailPageState
     if (_buying) return;
     setState(() => _buying = true);
     try {
-      final svc =
-          RazorpayCheckoutService(api: ref.read(apiClientProvider));
-      final result = await svc.purchaseOffering(
-        context: context,
-        offeringId: widget.offeringId,
+      final svc = PlayBillingService(api: ref.read(apiClientProvider));
+      final result = await svc.purchaseCourse(
+        isBundle: false,
+        id: widget.offeringId,
         accessType: _selectedAccess,
-        couponCode: _couponController.text.trim(),
       );
       if (!mounted) return;
       if (result.isSuccess) {
@@ -337,38 +335,6 @@ class _Body extends StatelessWidget {
         const SizedBox(height: 14),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20),
-          child: Container(
-            padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(
-              color: AppColors.surface,
-              borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: AppColors.line),
-            ),
-            child: Row(
-              children: [
-                const Icon(Icons.local_offer_outlined, color: AppColors.brand, size: 20),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: TextField(
-                    controller: couponController,
-                    textCapitalization: TextCapitalization.characters,
-                    style: AppTypography.title.copyWith(fontSize: 13.5),
-                    decoration: const InputDecoration(
-                      hintText: 'Enter coupon code (optional)',
-                      hintStyle: TextStyle(color: AppColors.muted, fontSize: 13),
-                      border: InputBorder.none,
-                      isDense: true,
-                      contentPadding: EdgeInsets.zero,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-        const SizedBox(height: 14),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20),
           child: _InfoCard(),
         ),
         const SizedBox(height: 18),
@@ -544,7 +510,7 @@ class _InfoCard extends StatelessWidget {
               ),
               const SizedBox(width: 10),
               Expanded(
-                child: Text('Secure Razorpay checkout',
+                child: Text('Secure payment with Google Play',
                     style: AppTypography.title.copyWith(fontSize: 13)),
               ),
             ],

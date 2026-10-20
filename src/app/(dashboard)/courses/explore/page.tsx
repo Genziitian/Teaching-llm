@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import Script from 'next/script'
 import useSWR, { mutate as globalMutate } from 'swr'
+import ChampionPolicy from '@/components/courses/ChampionPolicy'
 import StoreDetailScreen from '@/components/courses/StoreDetailScreen'
 import ShareLinkModal, { ShareIcon } from '@/components/ShareLinkModal'
 import { useRouter, useSearchParams } from 'next/navigation'
@@ -96,6 +97,7 @@ export default function ExploreCoursesPage() {
   const [bundleBannerText, setBundleBannerText] = useState('Class starts from 1 June 2026')
   const [bundleCourseHeadline, setBundleCourseHeadline] = useState('Included Courses')
   const [bundleDescription, setBundleDescription] = useState('')
+  const [bundleHighlights, setBundleHighlights] = useState('')
   const [bundleEnableBundleDiscount, setBundleEnableBundleDiscount] = useState(false)
   const [bundleDiscountType, setBundleDiscountType] = useState('PERCENTAGE')
   const [bundleDiscountValue, setBundleDiscountValue] = useState('')
@@ -1106,6 +1108,7 @@ export default function ExploreCoursesPage() {
                           setEditBundleData({ 
                             name: b.name, 
                             description: b.description || '', 
+                            highlights: b.highlights || '', 
                             recordedOriginalPrice: b.recordedOriginalPrice ?? '', 
                             recordedDiscountPrice: b.recordedDiscountPrice ?? '', 
                             liveOriginalPrice: b.liveOriginalPrice ?? '', 
@@ -1115,6 +1118,7 @@ export default function ExploreCoursesPage() {
                             championSubtitle: b.championSubtitle ?? '',
                             courseIds: b.courses.map((c: any) => c.course.id), 
                             allowIndividualPurchase: b.allowIndividualPurchase ?? true, 
+                            forceClassType: b.forceClassType ?? null,
                             enableBundleDiscount: b.enableBundleDiscount ?? false, 
                             bundleDiscountType: b.bundleDiscountType ?? 'PERCENTAGE', 
                             bundleDiscountValue: b.bundleDiscountValue ?? '', 
@@ -2451,6 +2455,8 @@ export default function ExploreCoursesPage() {
                     );
                   })()}
 
+                  {activeBundle.allowIndividualPurchase === false && (activeBundle.forceClassType || bundleGlobalAccessType) === 'CHAMPION' && <ChampionPolicy />}
+
                   {activeBundle.allowIndividualPurchase === false && (
                     <div style={{ padding: '12px 18px', borderRadius: '16px', background: 'var(--info-light)', border: '1px solid var(--border)', marginBottom: '16px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
@@ -3741,6 +3747,12 @@ export default function ExploreCoursesPage() {
               <input type="text" value={editBundleData.description ?? ''} onChange={e => setEditBundleData({...editBundleData, description: e.target.value})} style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1.5px solid var(--border)', fontSize: '14px', boxSizing: 'border-box' }} />
             </div>
 
+            <div style={{ marginBottom: '24px' }}>
+              <label style={{ fontSize: '13px', fontWeight: '700', color: 'var(--text-muted)', textTransform: 'uppercase', display: 'block', marginBottom: '8px' }}>What you get</label>
+              <textarea value={editBundleData.highlights ?? ''} onChange={e => setEditBundleData({...editBundleData, highlights: e.target.value})} rows={5} placeholder={'One point per line, for example:\nLive doubt sessions every week\nPrevious year question practice'} style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1.5px solid var(--border)', fontSize: '14px', boxSizing: 'border-box', resize: 'vertical', fontFamily: 'inherit' }} />
+              <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '6px' }}>Shown to students on the web and in the app, one tick per line.</div>
+            </div>
+
             <div style={{ marginBottom: '24px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
               <div>
                 <label style={{ fontSize: '13px', fontWeight: '700', color: 'var(--text-muted)', display: 'block', marginBottom: '8px' }}>Banner Text</label>
@@ -4180,6 +4192,11 @@ export default function ExploreCoursesPage() {
             </div>
 
             <div style={{ marginBottom: '24px' }}>
+              <label style={{ display: 'block', fontSize: '13px', fontWeight: '700', color: 'var(--text-secondary)', marginBottom: '6px' }}>What you get (one point per line)</label>
+              <textarea value={bundleHighlights} onChange={e => setBundleHighlights(e.target.value)} placeholder={'Live doubt sessions every week\nPrevious year question practice'} rows={4} style={{ width: '100%', padding: '12px', borderRadius: '10px', border: '1.5px solid #dbeafe', fontSize: '14px', resize: 'vertical', boxSizing: 'border-box', fontFamily: 'inherit' }} />
+            </div>
+
+            <div style={{ marginBottom: '24px' }}>
               <label style={{ display: 'block', fontSize: '13px', fontWeight: '700', color: 'var(--text-secondary)', marginBottom: '6px' }}>Courses Start From (₹)</label>
               <input type="number" value={bundleStartingPrice} onChange={e => setBundleStartingPrice(e.target.value)} placeholder="E.g., 499" style={{ width: '100%', padding: '12px', borderRadius: '10px', border: '1.5 solid #dbeafe', fontSize: '14px' }} />
             </div>
@@ -4405,7 +4422,7 @@ export default function ExploreCoursesPage() {
                     const res = await fetch('/api/bundle-offerings', {
                       method: 'POST', headers: { 'Content-Type': 'application/json' },
                       body: JSON.stringify({
-                        name: bundleName, description: bundleDescription, courseIds: bundleSelectedCourses,
+                        name: bundleName, description: bundleDescription, highlights: bundleHighlights, courseIds: bundleSelectedCourses,
                         recordedOriginalPrice: bundleTierPrices[bundleSelectedCourses.length]?.recordedOriginal ? Number(bundleTierPrices[bundleSelectedCourses.length].recordedOriginal) : (bundleRecordedOriginalPrice ? Number(bundleRecordedOriginalPrice) : undefined),
                         recordedDiscountPrice: bundleTierPrices[bundleSelectedCourses.length]?.recordedDiscount ? Number(bundleTierPrices[bundleSelectedCourses.length].recordedDiscount) : (bundleRecordedDiscountPrice ? Number(bundleRecordedDiscountPrice) : undefined),
                         liveOriginalPrice: bundleTierPrices[bundleSelectedCourses.length]?.liveOriginal ? Number(bundleTierPrices[bundleSelectedCourses.length].liveOriginal) : (bundleLiveOriginalPrice ? Number(bundleLiveOriginalPrice) : undefined),

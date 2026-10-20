@@ -201,6 +201,92 @@ class RazorpayCheckoutService {
     }
   }
 
+  /// Buys one or more courses from a bundle (same server flow as the website):
+  /// create-order -> Razorpay WebView -> /api/orders/verify.
+  Future<RazorpayPaymentResult> purchaseBundle({
+    required BuildContext context,
+    required String bundleId,
+    required String bundleName,
+    required String accessType, // 'RECORDED' | 'LIVE' | 'CHAMPION'
+    required List<String> selectedCourseIds,
+    required bool buyAll,
+    String? couponCode,
+  }) async {
+    final Map<String, dynamic> orderData;
+    try {
+      final res = await api.post<Map<String, dynamic>>(
+        '/api/bundle-offerings/$bundleId/create-order',
+        body: {
+          'buyAll': buyAll,
+          'accessType': accessType,
+          'selectedCourseIds': selectedCourseIds,
+          'perCourseAccessTypes': {
+            for (final id in selectedCourseIds) id: accessType,
+          },
+          'couponCode': (couponCode == null || couponCode.trim().isEmpty)
+              ? null
+              : couponCode.trim().toUpperCase(),
+        },
+      );
+      orderData = res.data ?? const <String, dynamic>{};
+    } catch (e) {
+      return RazorpayPaymentResult.failed(e.toString());
+    }
+
+    if (orderData['freeCheckout'] == true) {
+      return RazorpayPaymentResult.success(
+          orderId: (orderData['orderId'] as String?) ?? '',
+          message: 'Added to My Courses');
+    }
+
+    final keyId = orderData['keyId'] as String?;
+    final rzpOrderId = orderData['razorpayOrderId'] as String?;
+    final amount = (orderData['amount'] as num?)?.toInt();
+    if (keyId == null || rzpOrderId == null || amount == null) {
+      return RazorpayPaymentResult.failed(
+          'Payments are not set up for this bundle yet. Please try again later.');
+    }
+    if (!context.mounted) {
+      return RazorpayPaymentResult.failed('Context unmounted');
+    }
+    final raw = await Navigator.of(context).push<Map<String, dynamic>?>(
+      MaterialPageRoute(
+        fullscreenDialog: true,
+        builder: (_) => _RazorpayCheckoutPage(
+          keyId: keyId,
+          orderId: rzpOrderId,
+          amount: amount,
+          currency: (orderData['currency'] as String?) ?? 'INR',
+          description: 'Courses from $bundleName',
+          name: 'GenZ IITian',
+          userName: (orderData['userName'] as String?) ?? '',
+          userEmail: (orderData['userEmail'] as String?) ?? '',
+        ),
+      ),
+    );
+    if (raw == null) return RazorpayPaymentResult.failed('Checkout was cancelled.');
+    if (raw['error'] != null) {
+      return RazorpayPaymentResult.failed(raw['error'] as String);
+    }
+    try {
+      final verify = await api.post<Map<String, dynamic>>(
+        '/api/orders/verify',
+        body: {
+          'razorpay_payment_id': raw['razorpay_payment_id'],
+          'razorpay_order_id': raw['razorpay_order_id'],
+          'razorpay_signature': raw['razorpay_signature'],
+        },
+      );
+      final data = verify.data ?? const <String, dynamic>{};
+      return RazorpayPaymentResult.success(
+        orderId: (data['orderId'] as String?) ?? rzpOrderId,
+        message: (data['message'] as String?) ?? 'Purchase successful',
+      );
+    } catch (e) {
+      return RazorpayPaymentResult.failed('Signature verification failed: $e');
+    }
+  }
+
   /// Kept for API parity with the old native-SDK service. Nothing to dispose
   /// because each checkout creates and tears down its own WebView page.
   void dispose() {}
