@@ -622,6 +622,9 @@ export default function ExploreCoursesPage() {
         .mobile-back-header {
           display: none !important;
         }
+        @media (max-width: 480px) {
+          .support-label { font-size: 12.5px; }
+        }
         @media (max-width: 767px) {
           .mobile-back-header {
             display: flex !important;
@@ -758,7 +761,7 @@ export default function ExploreCoursesPage() {
             }}
           >
             <HelpCircle size={16} strokeWidth={2.5} />
-            Facing any issue? Get Support
+            <span className="support-label">Facing any issue? Get Support</span>
           </a>
 
           {userData?.user?.role === 'MANAGER' && (
@@ -827,20 +830,20 @@ export default function ExploreCoursesPage() {
         {/* Mobile-only Header with Back Button */}
         <div className="mobile-back-header" style={{
           alignItems: 'center',
-          gap: '12px',
-          marginBottom: '20px',
-          padding: '8px 4px 16px',
-          borderBottom: '1px solid rgba(0,0,0,0.06)',
+          gap: '14px',
+          marginBottom: '18px',
+          padding: '4px 2px 4px',
         }}>
           <button
             onClick={mobileHeader.backAction}
             style={{
-              background: 'var(--surface-2)',
-              boxShadow: '3px 3px 6px var(--neu-dark), -3px -3px 6px var(--neu-light)',
-              border: 'none',
+              background: 'var(--surface-hover)',
+              boxShadow: 'none',
+              border: '0.5px solid var(--border)',
               borderRadius: '50%',
-              width: '38px',
-              height: '38px',
+              width: '42px',
+              height: '42px',
+              flexShrink: 0,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -857,10 +860,10 @@ export default function ExploreCoursesPage() {
             </svg>
           </button>
           <div>
-            <span style={{ display: 'block', fontSize: '20px', fontWeight: 800, color: 'var(--text-primary)', fontFamily: "'Outfit', 'Nunito', sans-serif", letterSpacing: '-0.3px', lineHeight: '1.2' }}>
+            <span style={{ display: 'block', fontSize: '22px', fontWeight: 800, color: 'var(--text-primary)', fontFamily: 'inherit', letterSpacing: '-0.03em', lineHeight: '1.15' }}>
               {mobileHeader.title}
             </span>
-            <span style={{ display: 'block', fontSize: '12px', color: 'var(--text-muted)', marginTop: '2px' }}>
+            <span style={{ display: 'block', fontSize: '13.5px', fontWeight: 500, color: 'var(--text-secondary)', marginTop: '3px', letterSpacing: '-0.01em' }}>
               {mobileHeader.subtitle}
             </span>
           </div>
@@ -883,6 +886,7 @@ export default function ExploreCoursesPage() {
             .store-poster:active { transform: scale(0.985); transition-duration: 90ms; }
             .store-poster .art { position: relative; aspect-ratio: 1600 / 560; overflow: hidden; }
             .store-poster .art img { object-position: right center; }
+            .store-poster .artwrap { position: relative; }
             .store-poster .over { position: absolute; z-index: 2; left: clamp(18px, 3vw, 34px); top: 0; bottom: 0; display: flex; flex-direction: column; justify-content: center; align-items: flex-start; gap: clamp(8px, 1.6vw, 16px); max-width: 46%; }
             .store-poster .over h3 { color: #fff; margin: 0; font-size: clamp(24px, 4.4vw, 46px); line-height: 1.02; text-shadow: 0 2px 18px rgba(0,0,0,0.25); }
             .store-poster .art img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform 700ms cubic-bezier(.2,.9,.2,1); }
@@ -898,12 +902,21 @@ export default function ExploreCoursesPage() {
             .store-soon b { color: var(--text-primary); display: block; font-size: 15px; }
             .store-soon span.tag { margin-left: auto; font-size: 12px; font-weight: 700; padding: 5px 11px; border-radius: 999px; background: var(--surface-hover); }
             @keyframes posterIn { from { opacity: 0; transform: translateY(18px) scale(0.98); } to { opacity: 1; transform: none; } }
+            .store-poster .over h3 { overflow-wrap: anywhere; }
             @media (max-width: 720px) {
               .store-posters { grid-template-columns: 1fr; gap: 16px; }
               .store-poster { border-radius: 26px; }
-              .store-poster .art { aspect-ratio: 2 / 1; }
-              .store-poster .over { max-width: 52%; }
+              /* Phones: show the whole picture, put the words below it (never on top). */
+              .store-poster .art { aspect-ratio: 1600 / 700; }
+              .store-poster .art img { object-position: center; }
+              .store-poster .over { position: static; max-width: none; flex-direction: row; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 18px 18px; }
+              .store-poster .over h3 { color: var(--text-primary); text-shadow: none; font-size: 24px; letter-spacing: -0.03em; }
+              .store-poster .go { background: var(--go-bg) !important; color: #fff !important; padding: 11px 18px; font-size: 14.5px; white-space: nowrap; }
               .store-hero { margin-bottom: 16px; }
+            }
+            @media (max-width: 380px) {
+              .store-poster .over h3 { font-size: 21px; }
+              .store-poster .go { padding: 10px 14px; }
             }
             @media (prefers-reduced-motion: reduce) {
               .store-poster, .store-poster .art img, .store-poster .go { transition: none !important; animation: none !important; }
@@ -921,12 +934,13 @@ export default function ExploreCoursesPage() {
               <div key={card.key} className="store-poster" role="button" tabIndex={0}
                 onClick={() => setStoreView(card.key)}
                 onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setStoreView(card.key) } }}>
-                <div className="art">
-                  <img src={card.art} alt="" loading="eager" decoding="async" />
-                  <span className="chip">{card.count}</span>
+                <div className="artwrap">
+                  <div className="art">
+                    <img src={card.art} alt="" loading="eager" decoding="async" />
+                  </div>
                   <div className="over">
                     <h3>{card.title}</h3>
-                    <span className="go" style={{ color: card.key === 'notes' ? '#14633A' : '#2447C9' }}>{card.cta} <ChevronRight size={17} strokeWidth={2.6} /></span>
+                    <span className="go" style={{ color: card.key === 'notes' ? '#14633A' : '#2447C9', ['--go-bg' as any]: card.grad }}>{card.cta} <ChevronRight size={17} strokeWidth={2.6} /></span>
                   </div>
                 </div>
               </div>
@@ -1008,7 +1022,6 @@ export default function ExploreCoursesPage() {
               <i style={{ width: 22, height: 2, borderRadius: 2, background: 'currentColor', display: 'inline-block' }} /> Courses
             </span>
             <h2 style={{ fontSize: 'clamp(28px, 6vw, 40px)', fontWeight: 800, letterSpacing: '-0.035em', lineHeight: 1.05, margin: '8px 0 6px', color: 'var(--text-primary)' }}>Choose your term</h2>
-            <p style={{ fontSize: 'clamp(14px, 2.6vw, 16px)', color: 'var(--text-secondary)', margin: 0 }}>Pick a level to see its batches and bundles.</p>
           </div>
           <div className="level-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(440px, 100%), 1fr))', gap: '22px', margin: '0' }}>
             {visibleCategories.map(cat => {
@@ -1024,7 +1037,7 @@ export default function ExploreCoursesPage() {
                     style={{
                       position: 'relative', overflow: 'hidden', cursor: 'pointer',
                       minWidth: 0,
-                      aspectRatio: '1200 / 640', minHeight: '230px',
+                      aspectRatio: '1200 / 640', minHeight: 'clamp(190px, 30vw, 230px)',
                       borderRadius: '28px', border: '0.5px solid var(--border)',
                       boxShadow: '0 1px 2px rgba(0,0,0,0.04), 0 8px 24px rgba(0,0,0,0.08)',
                       transition: 'transform 0.3s cubic-bezier(0.23,1,0.32,1)',
@@ -1035,15 +1048,10 @@ export default function ExploreCoursesPage() {
                     onMouseUp={e => { e.currentTarget.style.transform = 'translateY(-4px)' }}
                   >
                     <img src={art.src} alt="" loading="lazy" decoding="async" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'right center' }} />
-                    <div style={{ position: 'relative', height: '100%', padding: 'clamp(20px, 3vw, 32px)', display: 'flex', flexDirection: 'column', alignItems: 'flex-start', justifyContent: 'space-between' }}>
-                      <span style={{ fontSize: '14px', fontWeight: 700, color: ink, background: art.dark ? `${art.accent}1f` : 'rgba(255,255,255,0.22)', padding: '6px 12px', borderRadius: '20px' }}>
-                        {courseCount > 0 && `${courseCount} Course${courseCount > 1 ? 's' : ''}`}
-                        {courseCount > 0 && bundleCount > 0 && ' · '}
-                        {bundleCount > 0 && `${bundleCount} Bundle${bundleCount > 1 ? 's' : ''}`}
-                      </span>
+                    <div style={{ position: 'relative', height: '100%', padding: 'clamp(20px, 3vw, 32px)', paddingBottom: 'clamp(34px, 6vw, 56px)', display: 'flex', flexDirection: 'column', alignItems: 'flex-start', justifyContent: 'flex-end' }}>
                       <div>
-                        <h3 style={{ fontSize: 'clamp(32px, 6vw, 50px)', fontWeight: 800, letterSpacing: '-1.5px', color: ink, margin: '0 0 16px', lineHeight: 1.03 }}>{cat}</h3>
-                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '16px', fontWeight: 700, padding: '13px 22px', borderRadius: '999px', background: art.dark ? art.accent : '#fff', color: art.dark ? '#fff' : art.accent }}>
+                        <h3 style={{ fontSize: 'clamp(28px, 5.4vw, 50px)', fontWeight: 800, letterSpacing: '-1.5px', color: ink, margin: '0 0 14px', lineHeight: 1.03, overflowWrap: 'anywhere', maxWidth: '78%' }}>{cat}</h3>
+                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: 'clamp(14px, 1.6vw, 16px)', fontWeight: 700, padding: 'clamp(10px, 1.4vw, 13px) clamp(16px, 2vw, 22px)', borderRadius: '999px', background: art.dark ? art.accent : '#fff', color: art.dark ? '#fff' : art.accent }}>
                           View courses <ChevronRight size={16} strokeWidth={2.6} />
                         </span>
                       </div>
@@ -4582,6 +4590,7 @@ export default function ExploreCoursesPage() {
             eyebrow={[n.category, n.subject].filter(Boolean).join(' · ')}
             title={n.title}
             description={n.description}
+            art={{ src: '/store-art/store-notes.webp', dark: false, accent: '#14633A' }}
             commonPoints={null}
             compare={null}
             onClose={() => setDetailNote(null)}
@@ -4671,6 +4680,7 @@ export default function ExploreCoursesPage() {
           return (
             <StoreDetailScreen
               eyebrow={o.course?.subject || o.category}
+              art={termArtFor(o.category || '')}
               title={o.course?.name || o.name}
               description={o.course?.description}
               compare={{ hasRecorded: !!o.hasRecorded, hasLive: !!o.hasLive, hasChampion: Number(o.championDiscountPrice ?? o.championOriginalPrice) > 0, championPrice: Number(o.championDiscountPrice ?? o.championOriginalPrice), livePrice: Number(o.liveDiscountPrice ?? o.liveOriginalPrice) }}
@@ -4689,6 +4699,7 @@ export default function ExploreCoursesPage() {
         return (
           <StoreDetailScreen
             eyebrow={`Bundle · ${b.courses?.length || 0} courses`}
+            art={termArtFor(b.category || '')}
             title={b.name}
             description={b.description}
             compare={{ hasRecorded: !!(b.recordedDiscountPrice ?? b.recordedOriginalPrice) || b.forceClassType !== 'LIVE', hasLive: !!(b.liveDiscountPrice ?? b.liveOriginalPrice), hasChampion: Number(b.championDiscountPrice ?? b.championOriginalPrice) > 0, championPrice: Number(b.championDiscountPrice ?? b.championOriginalPrice), livePrice: Number(b.liveDiscountPrice ?? b.liveOriginalPrice) }}

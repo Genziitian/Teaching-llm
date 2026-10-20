@@ -56,8 +56,10 @@ class _Slide {
     required this.text,
     required this.asset,
     required this.accent,
+    required this.eyebrow,
     this.tagline,
   });
+  final String eyebrow;
   final String? tagline;
   final String title;
   final String text;
@@ -69,6 +71,7 @@ class _Slide {
 // text; the words below are real text so they stay sharp and editable.
 const _slides = <_Slide>[
   _Slide(
+    eyebrow: 'Story of every BS degree student',
     title: 'It was everywhere.',
     text:
         'Notes in one place, videos in another, updates in a chat you missed. For a new BS student, finding the right support on time was almost impossible.',
@@ -76,6 +79,7 @@ const _slides = <_Slide>[
     accent: Color(0xFF5856D6),
   ),
   _Slide(
+    eyebrow: 'Chapter 2',
     title: 'So we built it.',
     text:
         'Gen-Z IITian began with one idea: IIT-level learning in one place, for everyone, wherever you are.',
@@ -83,9 +87,9 @@ const _slides = <_Slide>[
     accent: Color(0xFFFF9F0A),
   ),
   _Slide(
+    eyebrow: 'Chapter 3',
     title: 'So here we are.',
-    text:
-        'Courses, expert guidance and a community that has your back, from your first attempt to your final degree.',
+    text: '',
     asset: 'assets/onboarding-story/story-3.webp',
     accent: Color(0xFF34C759),
     tagline:
@@ -194,23 +198,23 @@ class _WelcomePageState extends ConsumerState<WelcomePage> {
                 ),
               ),
 
-              // Bottom sheet: words, dots, button.
+              // Floating story card: label, words, button.
               Positioned(
-                left: 0,
-                right: 0,
-                bottom: 0,
+                left: 14,
+                right: 14,
+                bottom: media.padding.bottom + 14,
                 child: Container(
-                  padding: EdgeInsets.fromLTRB(
-                      24, 22, 24, media.padding.bottom + 18),
+                  padding: const EdgeInsets.fromLTRB(22, 20, 22, 16),
                   decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius:
-                        const BorderRadius.vertical(top: Radius.circular(34)),
+                    color: Colors.white.withOpacity(0.94),
+                    borderRadius: BorderRadius.circular(32),
+                    border: Border.all(
+                        color: Colors.white.withOpacity(0.9), width: 1),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.10),
-                        blurRadius: 40,
-                        offset: const Offset(0, -10),
+                        color: _slides[_index].accent.withOpacity(0.22),
+                        blurRadius: 36,
+                        offset: const Offset(0, 14),
                       ),
                     ],
                   ),
@@ -234,31 +238,61 @@ class _WelcomePageState extends ConsumerState<WelcomePage> {
                         child: SizedBox(
                           key: ValueKey(_index),
                           width: double.infinity,
-                          // Fixed height so the sheet does not jump between slides.
-                          height: 132,
+                          // Fixed height so the card does not jump between slides.
+                          height: 150,
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(
-                                _slides[_index].title,
-                                style: AppTypography.h1.copyWith(
-                                  fontSize: 23,
-                                  height: 1.15,
-                                  letterSpacing: -0.6,
-                                  color: AppColors.ink,
-                                ),
+                              Row(
+                                children: [
+                                  Container(
+                                    width: 18,
+                                    height: 2,
+                                    color: _slides[_index].accent,
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Flexible(
+                                    child: Text(
+                                      _slides[_index].eyebrow.toUpperCase(),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: AppTypography.title.copyWith(
+                                        fontSize: 10.5,
+                                        letterSpacing: 1.5,
+                                        fontWeight: FontWeight.w800,
+                                        color: _slides[_index].accent,
+                                      ),
+                                    ),
+                                  ),
+                                ],
                               ),
                               const SizedBox(height: 8),
                               Text(
-                                _slides[_index].text,
-                                maxLines: 5,
-                                overflow: TextOverflow.ellipsis,
-                                style: AppTypography.body.copyWith(
-                                  fontSize: 13.5,
-                                  height: 1.45,
-                                  color: AppColors.muted,
+                                _slides[_index].title,
+                                style: const TextStyle(
+                                  fontFamily: 'serif',
+                                  fontFamilyFallback: ['Georgia', 'Times New Roman'],
+                                  fontSize: 26,
+                                  height: 1.1,
+                                  fontWeight: FontWeight.w700,
+                                  fontStyle: FontStyle.italic,
+                                  letterSpacing: -0.3,
+                                  color: AppColors.ink,
                                 ),
                               ),
+                              if (_slides[_index].text.isNotEmpty) ...[
+                                const SizedBox(height: 8),
+                                Text(
+                                  _slides[_index].text,
+                                  maxLines: 4,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: AppTypography.body.copyWith(
+                                    fontSize: 13,
+                                    height: 1.5,
+                                    color: AppColors.muted,
+                                  ),
+                                ),
+                              ],
                               if (_slides[_index].tagline != null) ...[
                                 const SizedBox(height: 8),
                                 Text(
@@ -266,7 +300,7 @@ class _WelcomePageState extends ConsumerState<WelcomePage> {
                                   maxLines: 2,
                                   overflow: TextOverflow.ellipsis,
                                   style: AppTypography.title.copyWith(
-                                    fontSize: 13.5,
+                                    fontSize: 13,
                                     height: 1.4,
                                     fontWeight: FontWeight.w800,
                                     color: AppColors.brand,
@@ -277,9 +311,7 @@ class _WelcomePageState extends ConsumerState<WelcomePage> {
                           ),
                         ),
                       ),
-                      const SizedBox(height: 14),
-                      _Dots(count: _slides.length, page: page),
-                      const SizedBox(height: 18),
+                      const SizedBox(height: 10),
                       _PrimaryButton(
                         label: isLast ? 'Get Started' : 'Next',
                         icon: isLast ? Icons.arrow_forward : Icons.chevron_right,
@@ -310,20 +342,23 @@ class _TopBar extends StatelessWidget {
         child: Stack(
           alignment: Alignment.center,
           children: [
-            // Plain brand name, centred in the row.
-            Text(
-              'Gen-Z IITian',
-              style: AppTypography.title.copyWith(
-                fontSize: 17,
-                letterSpacing: -0.3,
-                fontWeight: FontWeight.w800,
-                color: AppColors.ink,
-                shadows: [
-                  Shadow(
-                    color: Colors.white.withOpacity(0.7),
-                    blurRadius: 10,
-                  ),
-                ],
+            // Plain brand name, top-left corner.
+            Align(
+              alignment: Alignment.centerLeft,
+              child: Text(
+                'Gen-Z IITian',
+                style: AppTypography.title.copyWith(
+                  fontSize: 17,
+                  letterSpacing: -0.3,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.ink,
+                  shadows: [
+                    Shadow(
+                      color: Colors.white.withOpacity(0.7),
+                      blurRadius: 10,
+                    ),
+                  ],
+                ),
               ),
             ),
             Align(

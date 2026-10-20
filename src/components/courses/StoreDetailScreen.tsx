@@ -30,8 +30,19 @@ export function splitPoints(v?: string | null): string[] {
   return (v || '').split('\n').map(s => s.trim()).filter(Boolean)
 }
 
+const PLAN = { rec: '#0ea5e9', live: '#6366f1', champ: '#f43f5e' }
+const planPill = (c: string): React.CSSProperties => ({ display: 'inline-block', padding: '6px 12px', borderRadius: 999, fontSize: 12, fontWeight: 800, letterSpacing: '0.04em', textTransform: 'uppercase', color: c, background: `color-mix(in srgb, ${c} 14%, transparent)` })
+const planCell = (c: string): React.CSSProperties => ({ borderTop: '0.5px solid var(--border)', background: `color-mix(in srgb, ${c} 5%, transparent)` })
+const NO = new Set(['Not included'])
+const cellVal = (v: string, c: string) => NO.has(v)
+  ? <span style={{ color: 'var(--text-muted, #9ca3af)', fontWeight: 600 }} aria-label="Not included">&mdash;</span>
+  : <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontWeight: 700, color: 'var(--text-primary)' }}>
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M5 12.5l4.5 4.5L19 7.5" /></svg>{v}
+    </span>
+
 export default function StoreDetailScreen(props: {
   eyebrow?: string
+  art?: { src: string; dark: boolean; accent: string } | null
   title: string
   description?: string | null
   price?: ReactNode
@@ -44,7 +55,7 @@ export default function StoreDetailScreen(props: {
   ctas?: DetailCta[]
   onClose: () => void
 }) {
-  const { eyebrow, title, description, price, status, compare, sections = [], points, children, ctas = [], onClose } = props
+  const { eyebrow, art, title, description, price, status, compare, sections = [], points, children, ctas = [], onClose } = props
   const common = props.commonPoints === undefined ? COMMON_POINTS : props.commonPoints
   const [editing, setEditing] = useState(false)
   const [draft, setDraft] = useState('')
@@ -60,8 +71,10 @@ export default function StoreDetailScreen(props: {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  const h3: React.CSSProperties = { fontSize: 18, fontWeight: 800, letterSpacing: '-0.3px', margin: '0 0 12px', color: 'var(--text-primary)' }
-  const card: React.CSSProperties = { background: 'var(--surface)', border: '0.5px solid var(--border)', borderRadius: 22, padding: '22px 22px' }
+  const accent = art?.accent || 'var(--accent)'
+  const h3: React.CSSProperties = { fontSize: 18, fontWeight: 800, letterSpacing: '-0.3px', margin: '0 0 14px', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: 10 }
+  const card: React.CSSProperties = { background: 'var(--surface)', border: '0.5px solid var(--border)', borderRadius: 26, padding: '24px 24px', boxShadow: '0 1px 2px rgba(0,0,0,0.03), 0 10px 28px rgba(0,0,0,0.05)' }
+  const bar = <span aria-hidden style={{ width: 5, height: 18, borderRadius: 3, background: accent, flexShrink: 0 }} />
 
   const check = (
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--success, #10b981)" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, marginTop: 2 }}><path d="M5 12.5l4.5 4.5L19 7.5" /></svg>
@@ -109,8 +122,20 @@ export default function StoreDetailScreen(props: {
       </div>
 
       <div className="sds-wrap" style={{ maxWidth: 1040, margin: '0 auto', padding: '28px 20px 120px' }}>
-        {eyebrow && <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--text-secondary)' }}>{eyebrow}</div>}
-        <h1 style={{ fontSize: 'clamp(28px, 5vw, 40px)', fontWeight: 800, letterSpacing: '-0.8px', lineHeight: 1.1, margin: '8px 0 10px', color: 'var(--text-primary)' }}>{title}</h1>
+        {art ? (
+          <div className="sds-hero" style={{ position: 'relative', overflow: 'hidden', borderRadius: 30, marginBottom: 18, minHeight: 'clamp(190px, 32vw, 300px)', boxShadow: '0 2px 4px rgba(0,0,0,0.05), 0 20px 44px rgba(0,0,0,0.14)' }}>
+            <img src={art.src} alt="" decoding="async" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'right center' }} />
+            <div style={{ position: 'relative', height: '100%', minHeight: 'inherit', padding: 'clamp(20px, 4vw, 40px)', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', alignItems: 'flex-start', gap: 10, maxWidth: '62%' }}>
+              {eyebrow && <span style={{ fontSize: 12, fontWeight: 800, letterSpacing: '0.08em', textTransform: 'uppercase', padding: '6px 12px', borderRadius: 999, color: art.dark ? art.accent : '#fff', background: art.dark ? `${art.accent}1f` : 'rgba(255,255,255,0.22)' }}>{eyebrow}</span>}
+              <h1 style={{ fontSize: 'clamp(26px, 5.4vw, 52px)', fontWeight: 800, letterSpacing: '-1.4px', lineHeight: 1.03, margin: 0, color: art.dark ? art.accent : '#fff', overflowWrap: 'anywhere' }}>{title}</h1>
+            </div>
+          </div>
+        ) : (
+          <>
+            {eyebrow && <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--accent)' }}>{eyebrow}</div>}
+            <h1 style={{ fontSize: 'clamp(28px, 5vw, 40px)', fontWeight: 800, letterSpacing: '-0.8px', lineHeight: 1.1, margin: '8px 0 10px', color: 'var(--text-primary)' }}>{title}</h1>
+          </>
+        )}
         {description && <p style={{ fontSize: 16, lineHeight: 1.55, color: 'var(--text-secondary)', margin: '0 0 24px', whiteSpace: 'pre-wrap', maxWidth: 680 }}>{description}</p>}
         {status}
 
@@ -119,7 +144,7 @@ export default function StoreDetailScreen(props: {
             {(managerList.length > 0 || points?.canEdit) && (
               <section style={card}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-                  <h3 style={{ ...h3, margin: 0 }}>What you get</h3>
+                  <h3 style={{ ...h3, margin: 0 }}>{bar}What you get</h3>
                   {points?.canEdit && !editing && (
                     <button onClick={() => { setDraft(managerList.join('\n')); setEditing(true) }} style={{ background: 'var(--surface-hover)', border: 'none', borderRadius: 999, padding: '7px 14px', fontSize: 13, fontWeight: 600, color: 'var(--accent)', cursor: 'pointer' }}>Edit points</button>
                   )}
@@ -142,24 +167,24 @@ export default function StoreDetailScreen(props: {
 
             {compare && (compare.hasRecorded || compare.hasLive || compare.hasChampion) && (
               <section style={{ ...card, padding: '22px 6px 8px' }}>
-                <h3 style={{ ...h3, padding: '0 16px' }}>{compare.hasChampion ? 'Compare plans' : compare.hasLive && compare.hasRecorded ? 'Live Pro vs Recorded' : compare.hasLive ? 'Live Pro' : 'Recorded batch'}</h3>
+                <h3 style={{ ...h3, padding: '0 18px' }}>{bar}{compare.hasChampion ? 'Compare plans' : compare.hasLive && compare.hasRecorded ? 'Live Pro vs Recorded' : compare.hasLive ? 'Live Pro' : 'Recorded batch'}</h3>
                 <div style={{ overflowX: 'auto' }}>
-                  <table className="sds-table" style={{ width: '100%', borderCollapse: 'collapse' }}>
+                  <table className="sds-table" style={{ width: '100%', borderCollapse: 'separate', borderSpacing: 0 }}>
                     <thead>
-                      <tr style={{ color: 'var(--text-secondary)', fontSize: 12, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                        <th style={{ fontWeight: 700 }}>Feature</th>
-                        {compare.hasRecorded && <th style={{ fontWeight: 700 }}>Recorded</th>}
-                        {compare.hasLive && <th style={{ fontWeight: 700, color: 'var(--accent)' }}>Live Pro</th>}
-                        {compare.hasChampion && <th style={{ fontWeight: 700, color: '#ef4444' }}>Champion</th>}
+                      <tr>
+                        <th style={{ fontWeight: 700, color: 'var(--text-secondary)', fontSize: 12, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Feature</th>
+                        {compare.hasRecorded && <th><span style={planPill(PLAN.rec)}>Recorded</span></th>}
+                        {compare.hasLive && <th><span style={planPill(PLAN.live)}>Live Pro</span></th>}
+                        {compare.hasChampion && <th><span style={planPill(PLAN.champ)}>Champion</span></th>}
                       </tr>
                     </thead>
                     <tbody>
                       {COMPARE_ROWS.map((r, i) => (
-                        <tr key={i} style={{ borderTop: '0.5px solid var(--border)' }}>
-                          <td style={{ color: 'var(--text-secondary)', fontWeight: 600 }}>{r.f}</td>
-                          {compare.hasRecorded && <td style={{ color: r.rec === 'Not included' || r.rec === 'Standard' ? 'var(--text-secondary)' : 'var(--text-primary)' }}>{r.rec}</td>}
-                          {compare.hasLive && <td style={{ fontWeight: 700, color: 'var(--text-primary)' }}>{r.live}</td>}
-                          {compare.hasChampion && <td style={{ fontWeight: 700, color: r.champ === 'Not included' ? 'var(--text-secondary)' : 'var(--text-primary)' }}>{r.champ}</td>}
+                        <tr key={i}>
+                          <td style={{ color: 'var(--text-secondary)', fontWeight: 600, borderTop: '0.5px solid var(--border)' }}>{r.f}</td>
+                          {compare.hasRecorded && <td style={planCell(PLAN.rec)}>{cellVal(r.rec, PLAN.rec)}</td>}
+                          {compare.hasLive && <td style={planCell(PLAN.live)}>{cellVal(r.live, PLAN.live)}</td>}
+                          {compare.hasChampion && <td style={planCell(PLAN.champ)}>{cellVal(r.champ, PLAN.champ)}</td>}
                         </tr>
                       ))}
                     </tbody>
@@ -169,22 +194,22 @@ export default function StoreDetailScreen(props: {
             )}
 
             {compare?.hasChampion && (
-              <section style={card}><h3 style={h3}>Champion batch terms</h3><ChampionPolicy championPrice={compare.championPrice} livePrice={compare.livePrice} /></section>
+              <section style={card}><h3 style={h3}>{bar}Champion batch terms</h3><ChampionPolicy championPrice={compare.championPrice} livePrice={compare.livePrice} /></section>
             )}
 
             {common && common.length > 0 && (
-              <section style={card}><h3 style={h3}>Included with every purchase</h3>{list(common)}</section>
+              <section style={card}><h3 style={h3}>{bar}Included with every purchase</h3>{list(common)}</section>
             )}
 
             {sections.filter(s => s.items.length > 0).map((s, i) => (
-              <section key={i} style={card}><h3 style={h3}>{s.title}</h3>{list(s.items)}</section>
+              <section key={i} style={card}><h3 style={h3}>{bar}{s.title}</h3>{list(s.items)}</section>
             ))}
 
             {children}
           </div>
 
           <aside className="sds-side">
-            <div style={{ ...card, display: 'flex', flexDirection: 'column', gap: 14 }}>
+            <div style={{ ...card, display: 'flex', flexDirection: 'column', gap: 14, background: `linear-gradient(165deg, color-mix(in srgb, ${accent} 14%, var(--surface)) 0%, var(--surface) 62%)`, border: `1px solid color-mix(in srgb, ${accent} 26%, var(--border))` }}>
               {price}
               {ctas.map(ctaBtn)}
             </div>
