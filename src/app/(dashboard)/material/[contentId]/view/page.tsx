@@ -1,7 +1,6 @@
 import { notFound, redirect } from 'next/navigation'
 import { getSession, isAdminOrManager, isStudentEnrolledInContent } from '@/lib/auth'
 import { prisma } from '@/lib/db'
-import MaterialDownloadPage from '@/components/materials/MaterialDownloadPage'
 
 export const dynamic = 'force-dynamic'
 
@@ -43,11 +42,5 @@ export default async function MaterialViewPage({ params }: PageProps) {
     if (!isEnrolled) redirect('/dashboard')
   }
 
-  return (
-    <MaterialDownloadPage
-      downloadUrl={`/api/drive-doc/${content.id}`}
-      title={content.title}
-      backHref={content.topic?.courseId ? `/courses/${content.topic.courseId}` : '/courses'}
-    />
-  )
+  redirect(content.pptUrl)
 }

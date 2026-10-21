@@ -1249,12 +1249,12 @@ export default function LecturePage() {
                         if (isNativeApp) {
                           setDownloadConfirmContentId(content.id)
                         } else {
-                          window.open(`/material/${content.id}/view`, '_blank')
+                          window.open(content.pptUrl, '_blank')
                         }
                       }}
                       style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'var(--accent)', color: 'white', border: 'none', padding: '8px 16px', borderRadius: '8px', cursor: 'pointer', fontWeight: 600, fontSize: '14px' }}
                     >
-                      <Download size={16} /> Download Material
+                      <ExternalLink size={16} /> Open Notes
                     </button>
                   )}
                 </section>
@@ -1397,7 +1397,13 @@ export default function LecturePage() {
                               data-item-id={item.id}
                               onClick={() => {
                                 if (isVideo) handleSelectLecture(item.id);
-                                else handleSelectPdf(item);
+                                else {
+                                  if (item.pptUrl) {
+                                    window.open(item.pptUrl, '_blank');
+                                  } else {
+                                    handleSelectPdf(item);
+                                  }
+                                }
                                 setTimeout(() => {
                                   const container = scrollListRef.current;
                                   const el = container?.querySelector(`[data-item-id="${item.id}"]`) as HTMLElement | null;
@@ -1595,17 +1601,18 @@ export default function LecturePage() {
                       Download Notes
                     </button>
                   ) : (
-                    <Link
-                      href={`/material/${content.id}/view`}
+                    <a
+                      href={content.pptUrl}
                       target="_blank"
                       rel="noopener noreferrer"
                       style={{
                         background: 'var(--accent)', color: 'white', textDecoration: 'none', textAlign: 'center',
                         padding: '10px', borderRadius: '10px', fontSize: '13px', fontWeight: '700',
+                        display: 'block',
                       }}
                     >
-                      Download Notes
-                    </Link>
+                      Open Notes
+                    </a>
                   )}
                 </div>
               ) : (
@@ -1874,20 +1881,20 @@ export default function LecturePage() {
                       Download Notes
                     </button>
                   ) : (
-                    <Link
-                      href={`/material/${content.id}/view`}
+                    <a
+                      href={content.pptUrl}
                       target="_blank"
                       rel="noopener noreferrer"
                       style={{
                         background: 'var(--accent)', color: 'white', textDecoration: 'none', textAlign: 'center',
                         padding: '10px', borderRadius: '10px', fontSize: '13px', fontWeight: '700',
-                        transition: 'opacity 0.2s'
+                        transition: 'opacity 0.2s', display: 'block',
                       }}
                       onMouseEnter={e => (e.currentTarget as HTMLElement).style.opacity = '0.9'}
                       onMouseLeave={e => (e.currentTarget as HTMLElement).style.opacity = '1'}
                     >
-                      Download Notes
-                    </Link>
+                      Open Notes
+                    </a>
                   )}
                 </div>
               ) : (

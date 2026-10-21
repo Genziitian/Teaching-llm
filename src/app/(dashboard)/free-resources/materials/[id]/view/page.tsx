@@ -1,7 +1,6 @@
 import { redirect, notFound } from 'next/navigation'
 import { getSession } from '@/lib/auth'
 import { prisma } from '@/lib/db'
-import MaterialDownloadPage from '@/components/materials/MaterialDownloadPage'
 
 interface PageProps {
   params: Promise<{ id: string }>
@@ -28,13 +27,7 @@ export default async function MaterialViewPage({ params }: PageProps) {
       course: { select: { name: true } },
     },
   })
-  if (!material) return notFound()
+  if (!material || !material.fileUrl) return notFound()
 
-  return (
-    <MaterialDownloadPage
-      downloadUrl={`/api/drive-material/${material.id}`}
-      title={material.title}
-      backHref="/free-resources/materials"
-    />
-  )
+  redirect(material.fileUrl)
 }
