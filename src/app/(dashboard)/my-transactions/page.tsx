@@ -34,7 +34,12 @@ export default function MyTransactionsPage() {
       SUCCESS: { bg: 'var(--success-light)', text: 'var(--success)' },
       PENDING: { bg: '#fef9c3', text: '#ca8a04' },
       FAILED: { bg: 'var(--danger-light)', text: 'var(--danger)' },
+      CANCELLED: { bg: '#fff1d6', text: '#c77700' },
+      STARTED: { bg: '#fff1d6', text: '#c77700' },
+      TIMED_OUT: { bg: 'var(--surface)', text: 'var(--text-secondary)' },
+      PENDING_VERIFY: { bg: '#e0efff', text: '#0a64c8' },
     }
+    const labels: Record<string, string> = { STARTED: 'Waiting for payment', TIMED_OUT: 'Timed out', CANCELLED: 'Cancelled', PENDING_VERIFY: 'Confirming' }
     const c = colors[status] || { bg: 'var(--surface)', text: 'var(--text-secondary)' }
     return (
       <span style={{
@@ -42,7 +47,7 @@ export default function MyTransactionsPage() {
         borderRadius: '20px', fontSize: '11px', fontWeight: '700',
         textTransform: 'uppercase', letterSpacing: '0.05em'
       }}>
-        {status}
+        {labels[status] || status}
       </span>
     )
   }

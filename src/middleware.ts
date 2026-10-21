@@ -3,7 +3,7 @@ import { jwtVerify } from 'jose'
 import { checkRateLimit, isMaintenanceModeActive } from '@/lib/ratelimit'
 import { canBypassMaintenance } from '@/lib/maintenance-access'
 
-const PUBLIC_PATHS = ['/login', '/api/auth/login', '/terminated', '/api/maintenance-status', '/api/external-enroll', '/api/analytics/compute', '/api/app-version', '/download']
+const PUBLIC_PATHS = ['/login', '/api/auth/login', '/terminated', '/api/maintenance-status', '/api/external-enroll', '/api/analytics/compute', '/api/app-version', '/download', '/error/']
 const COOKIE_NAME = 'teaching_llm_token'
 const JWT_SECRET = process.env.JWT_SECRET?.trim() || ''
 

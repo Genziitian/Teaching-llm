@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -11,6 +12,8 @@ import '../../theme/app_typography.dart';
 import '../courses/courses_page.dart' show coursesProvider;
 import 'course_offerings_page.dart' show courseOfferingsProvider;
 import '../../shared/widgets/shimmer_loading.dart';
+import '../payments/payment_result_page.dart';
+import '../../core/payments/payment_attempt_logger.dart';
 
 /// Fetches a single offering by id by filtering the cached list. There's no
 /// dedicated /api/course-offerings/[id] GET endpoint in the backend, but
@@ -47,51 +50,82 @@ class _CourseOfferingDetailPageState
   Future<void> _buy() async {
     if (_buying) return;
     setState(() => _buying = true);
+    var retry = false;
     try {
-      final svc = PlayBillingService(api: ref.read(apiClientProvider));
-      final result = await svc.purchaseCourse(
-        isBundle: false,
-        id: widget.offeringId,
-        accessType: _selectedAccess,
+      final o = ref.read(courseOfferingProvider(widget.offeringId)).value;
+      final name = ((o?['name'] ?? (o?['course'] is Map ? (o!['course'] as Map)['name'] : null)) ?? 'Your course')
+          .toString();
+      final num? price = o?['startingPrice'] is num ? o!['startingPrice'] as num : null;
+      final log = PaymentAttemptLogger(ref.read(apiClientProvider));
+      final attempt = log.start(
+        kind: 'COURSE',
+        itemName: name,
+        itemRef: widget.offeringId,
+        amount: price?.toDouble(),
+        gateway: 'PLAY',
       );
+      PlayPaymentResult result;
+      try {
+        result = await PlayBillingService(api: ref.read(apiClientProvider))
+            .purchaseCourse(
+          isBundle: false,
+          id: widget.offeringId,
+          accessType: _selectedAccess,
+        );
+      } catch (e) {
+        result = PlayPaymentResult.failed('Checkout error: $e');
+      }
+      final attemptId = await attempt;
+      if (result.isSuccess) {
+        unawaited(log.finish(attemptId,
+            status: 'SUCCESS', orderRef: result.orderId));
+      } else {
+        unawaited(log.finish(attemptId,
+            status: result.isCancelled ? 'CANCELLED' : 'FAILED',
+            reason: result.isCancelled
+                ? 'Closed checkout without paying'
+                : (result.errorMessage ?? 'Payment failed')));
+      }
       if (!mounted) return;
       if (result.isSuccess) {
         // Invalidate everything that could reflect the new enrollment so the
         // course immediately shows up under My Courses + Profile.
         ref.invalidate(courseOfferingsProvider);
         ref.invalidate(coursesProvider);
-        await showDialog<void>(
-          context: context,
-          useRootNavigator: true,
-          builder: (_) => AlertDialog(
-            title: const Text('Purchase successful'),
-            content: Text(result.message ??
-                'Your course has been added to My Courses.'),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(context, rootNavigator: true).pop(),
-                child: const Text('OK'),
-              ),
-            ],
-          ),
+        await showPaymentResult(
+          context,
+          outcome: PaymentOutcome.success,
+          title: name,
+          amount: price?.toDouble(),
+          orderId: result.orderId,
+          method: 'Google Play',
+          grants: [
+            _selectedAccess == 'LIVE'
+                ? 'Live classes and recordings'
+                : 'All recorded lectures',
+            'Course materials and notes',
+            'Learn in the app and on the website',
+          ],
+          primaryLabel: 'Go to my courses',
         );
         if (mounted) context.go('/courses');
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-              content:
-                  Text(result.errorMessage ?? 'Payment failed')),
+        final act = await showPaymentResult(
+          context,
+          outcome: result.isCancelled
+              ? PaymentOutcome.cancelled
+              : PaymentOutcome.failed,
+          title: name,
+          amount: price?.toDouble(),
+          method: 'Google Play',
+          reason: result.errorMessage,
         );
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Checkout error: $e')),
-        );
+        if (act == PaymentResultAction.primary) retry = true;
       }
     } finally {
       if (mounted) setState(() => _buying = false);
     }
+    if (retry && mounted) unawaited(_buy());
   }
 
   @override

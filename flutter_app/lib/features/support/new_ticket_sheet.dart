@@ -121,7 +121,7 @@ class _NewTicketSheetState extends ConsumerState<NewTicketSheet> {
                           labelStyle: TextStyle(
                               fontWeight: FontWeight.w600,
                               color: _type == 'GENERAL'
-                                  ? Colors.white
+                                  ? tokens.onPrimaryAccent
                                   : tokens.textPrimary),
                           onSelected: _submitting
                               ? null
@@ -137,7 +137,7 @@ class _NewTicketSheetState extends ConsumerState<NewTicketSheet> {
                           labelStyle: TextStyle(
                               fontWeight: FontWeight.w600,
                               color: _type == 'SUBJECT'
-                                  ? Colors.white
+                                  ? tokens.onPrimaryAccent
                                   : tokens.textPrimary),
                           onSelected: _submitting
                               ? null
@@ -239,7 +239,7 @@ class _NewTicketSheetState extends ConsumerState<NewTicketSheet> {
                             backgroundColor: hasReachedActiveLimit
                                 ? tokens.border
                                 : tokens.primaryAccent,
-                            foregroundColor: Colors.white,
+                            foregroundColor: tokens.onPrimaryAccent,
                             elevation: 0,
                             textStyle: const TextStyle(
                                 fontSize: 17, fontWeight: FontWeight.w600),

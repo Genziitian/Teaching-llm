@@ -182,3 +182,10 @@ extension AppThemeContextExtension on BuildContext {
 
   bool get isBlack => tokens.isBlack;
 }
+
+/// Readable colour for text and icons drawn ON [AppThemeTokens.primaryAccent]:
+/// dark on the white accent used in black mode, white on every other theme.
+extension AppThemeTokensOnAccent on AppThemeTokens {
+  Color get onPrimaryAccent =>
+      primaryAccent.computeLuminance() > 0.6 ? const Color(0xFF000000) : const Color(0xFFFFFFFF);
+}

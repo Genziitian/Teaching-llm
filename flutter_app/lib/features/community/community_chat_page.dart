@@ -407,7 +407,7 @@ class _CommunityChatPageState extends ConsumerState<CommunityChatPage> {
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: tokens.primaryAccent,
-              foregroundColor: Colors.white,
+              foregroundColor: tokens.onPrimaryAccent,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(10),
               ),
@@ -1937,17 +1937,17 @@ class _Composer extends StatelessWidget {
                       ),
                       alignment: Alignment.center,
                       child: sending
-                          ? const SizedBox(
+                          ? SizedBox(
                               width: 16,
                               height: 16,
                               child: CircularProgressIndicator(
                                 strokeWidth: 2,
-                                color: Colors.white,
+                                color: tokens.onPrimaryAccent,
                               ),
                             )
-                          : const Icon(
+                          : Icon(
                               Symbols.arrow_upward_rounded,
-                              color: Colors.white,
+                              color: tokens.onPrimaryAccent,
                               weight: 700,
                               size: 21,
                             ),

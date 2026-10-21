@@ -12,11 +12,12 @@ import '../../theme/app_theme_tokens.dart';
 import '../store/store_notes_data.dart';
 import '../support/support_providers.dart';
 import '../../shared/widgets/shimmer_loading.dart';
+import '../payments/payment_result_page.dart';
 
 /// One row from /api/my-transactions (courses, bundles, notes, upgrades...).
 class _Txn {
   _Txn(this.title, this.type, this.source, this.amount, this.createdAt,
-      this.status, this.orderId);
+      this.status, this.orderId, this.reason);
   final String title;
   final String type;
   final String source; // GOOGLE_PLAY or RAZORPAY
@@ -24,6 +25,7 @@ class _Txn {
   final DateTime? createdAt;
   final String status;
   final String orderId;
+  final String? reason; // why a payment did not complete
 }
 
 final _myTransactionsProvider =
@@ -36,7 +38,6 @@ final _myTransactionsProvider =
   for (final j in list) {
     if (j is! Map) continue;
     final status = (j['status'] ?? '').toString().toUpperCase();
-    if (status != 'SUCCESS' && status != 'PAID') continue;
     final courses = (j['courses'] as List? ?? const [])
         .whereType<Map>()
         .map((c) => (c['name'] ?? '').toString())
@@ -52,6 +53,7 @@ final _myTransactionsProvider =
       DateTime.tryParse((j['createdAt'] ?? '').toString())?.toLocal(),
       status,
       (j['orderId'] ?? '').toString(),
+      (j['failureReason'] as String?),
     ));
   }
   return out;
@@ -187,6 +189,28 @@ String _labelForType(String type) {
   }
 }
 
+bool _isPaid(String s) => s == 'SUCCESS' || s == 'PAID';
+
+(String, Color, PaymentOutcome?) _statusLook(String s, AppThemeTokens tokens) {
+  switch (s) {
+    case 'SUCCESS':
+    case 'PAID':
+      return ('Paid', tokens.success, null);
+    case 'FAILED':
+      return ('Failed', const Color(0xFFFF453A), PaymentOutcome.failed);
+    case 'CANCELLED':
+      return ('Cancelled', const Color(0xFFFF9F0A), PaymentOutcome.cancelled);
+    case 'PENDING_VERIFY':
+      return ('Confirming', const Color(0xFF0A84FF), PaymentOutcome.pending);
+    case 'TIMED_OUT':
+      return ('Timed out', tokens.textMuted, PaymentOutcome.cancelled);
+    case 'STARTED':
+      return ('Waiting for payment', const Color(0xFFFF9F0A), PaymentOutcome.cancelled);
+    default:
+      return ('Not completed', tokens.textMuted, PaymentOutcome.cancelled);
+  }
+}
+
 class _PurchaseCard extends StatelessWidget {
   const _PurchaseCard({required this.item});
   final _Txn item;
@@ -197,8 +221,23 @@ class _PurchaseCard extends StatelessWidget {
     final colors = _colorsForType(item.type);
     final isPlay = item.source == 'GOOGLE_PLAY';
     final srcColor = isPlay ? const Color(0xFF0A84FF) : tokens.textSecondary;
+    final paid = _isPaid(item.status);
+    final look = _statusLook(item.status, tokens);
 
-    return Container(
+    return ApplePressable(
+      onTap: paid || look.$3 == null
+          ? null
+          : () => showPaymentResult(
+                context,
+                outcome: look.$3!,
+                title: item.title,
+                amount: item.amount > 0 ? item.amount : null,
+                orderId: item.orderId.isEmpty ? null : item.orderId,
+                method: isPlay ? 'Google Play' : 'Razorpay',
+                reason: item.reason,
+              ),
+      pressedScale: 0.98,
+      child: Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: tokens.cardBg,
@@ -262,13 +301,21 @@ class _PurchaseCard extends StatelessWidget {
                               color: srcColor)),
                     ),
                     const SizedBox(width: 8),
-                    Text('Paid',
+                    Text(look.$1,
                         style: TextStyle(
                             fontSize: 12.5,
                             fontWeight: FontWeight.w700,
-                            color: tokens.success)),
+                            color: look.$2)),
                   ],
                 ),
+                if (!paid && (item.reason ?? '').isNotEmpty) ...[
+                  const SizedBox(height: 4),
+                  Text(item.reason!,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                          fontSize: 12, height: 1.3, color: tokens.textSecondary)),
+                ],
               ],
             ),
           ),
@@ -278,12 +325,13 @@ class _PurchaseCard extends StatelessWidget {
             style: TextStyle(
               fontSize: 17,
               fontWeight: FontWeight.w800,
-              color: tokens.textPrimary,
+              color: paid ? tokens.textPrimary : tokens.textMuted,
+              decoration: paid ? null : TextDecoration.lineThrough,
             ),
           ),
         ],
       ),
-    );
+    ));
   }
 }
 

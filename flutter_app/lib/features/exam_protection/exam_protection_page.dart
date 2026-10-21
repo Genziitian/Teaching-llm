@@ -791,6 +791,8 @@ class _PageState extends ConsumerState<ExamProtectionPage> {
           context,
           ref.read(apiClientProvider),
           '${c['id']}',
+          itemName: '${c['name'] ?? ''}',
+          fee: c['fee'] is num ? c['fee'] as num : num.tryParse('${c['fee']}'),
         ),
       );
     }

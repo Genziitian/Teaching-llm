@@ -258,9 +258,9 @@ export default function LivePage() {
           background: dotFill, border: `2px solid ${dotColor}`, boxShadow: dotGlow, zIndex: 1, flexShrink: 0,
         }} />
 
-        <div style={{
+        <div className="live-row-card" style={{
           flex: 1, display: 'flex', alignItems: 'center', gap: '20px',
-          padding: '18px 24px', borderRadius: '50px', background: 'var(--surface-2)',
+          padding: '18px 24px', borderRadius: '22px', background: 'var(--surface-2)',
           boxShadow: rowShadow, opacity: isCompleted ? 0.65 : isCancelled ? 0.55 : 1,
           transition: 'all 0.2s ease',
         }}>

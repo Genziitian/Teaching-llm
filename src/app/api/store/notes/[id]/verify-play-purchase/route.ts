@@ -99,6 +99,7 @@ export async function POST(req: Request, { params }: { params: { id: string } })
       userEmail: user.email,
       userName: user.name,
       orderId: finalOrderId,
+      itemType: 'NOTE',
       itemName: access.note.title,
       amount: access.note.price,
       date: new Date().toLocaleDateString(),

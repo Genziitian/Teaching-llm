@@ -155,10 +155,10 @@ class _ShareLinkSheetState extends State<_ShareLinkSheet> {
                 borderRadius: BorderRadius.circular(16),
               ),
               alignment: Alignment.center,
-              child: const Text(
+              child: Text(
                 'Share',
                 style: TextStyle(
-                  color: Colors.white,
+                  color: tokens.onPrimaryAccent,
                   fontSize: 17,
                   fontWeight: FontWeight.w600,
                 ),

@@ -68,6 +68,7 @@ export async function POST(req: Request, { params }: { params: { id: string } })
 
     // Trigger confirmation email and log activity for each booking
     const { sendEmailNotification } = require('@/lib/email-service')
+    const { sendPaymentMail } = require('@/lib/payment-mail')
     const { user: userSession } = session as any;
     for (const booking of result) {
       logActivity({
@@ -84,6 +85,12 @@ export async function POST(req: Request, { params }: { params: { id: string } })
           razorpayPaymentId: razorpay_payment_id
         }
       })
+
+      sendPaymentMail({
+        status: 'SUCCESS', itemType: 'MENTORSHIP', name: booking.user.name, email: booking.user.email,
+        itemName: `Mentorship with ${booking.mentorship.mentorName} - ${booking.slotDate}, ${booking.slotTime}`,
+        amount: booking.amount, paymentId: razorpay_payment_id, orderId: booking.id,
+      }).catch(console.error)
 
       sendEmailNotification('mentorship_confirmed', {
         userEmail: booking.user.email,

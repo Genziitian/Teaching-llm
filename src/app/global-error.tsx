@@ -1,8 +1,8 @@
 'use client'
 
 import * as Sentry from '@sentry/nextjs'
-import NextError from 'next/error'
 import { useEffect } from 'react'
+import ErrorScreen from '@/components/desk-diorama/ErrorScreen'
 
 export default function GlobalError({
   error,
@@ -14,9 +14,9 @@ export default function GlobalError({
   }, [error])
 
   return (
-    <html>
-      <body>
-        <NextError statusCode={500} />
+    <html lang="en">
+      <body style={{ margin: 0 }}>
+        <ErrorScreen kind="500" />
       </body>
     </html>
   )

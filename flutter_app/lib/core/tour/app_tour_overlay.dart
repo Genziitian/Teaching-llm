@@ -227,7 +227,7 @@ class _AppTourOverlayViewState extends State<_AppTourOverlayView> {
                                 : widget.notifier.nextStep,
                             style: ElevatedButton.styleFrom(
                               backgroundColor: tokens.primaryAccent,
-                              foregroundColor: Colors.white,
+                              foregroundColor: tokens.onPrimaryAccent,
                               elevation: 0,
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(10),
@@ -316,7 +316,7 @@ class _AppTourOverlayViewState extends State<_AppTourOverlayView> {
                             onPressed: widget.notifier.confirmSkip,
                             style: ElevatedButton.styleFrom(
                               backgroundColor: tokens.primaryAccent,
-                              foregroundColor: Colors.white,
+                              foregroundColor: tokens.onPrimaryAccent,
                               padding: const EdgeInsets.symmetric(vertical: 12),
                               elevation: 0,
                               shape: RoundedRectangleBorder(

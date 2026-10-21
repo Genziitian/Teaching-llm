@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/services.dart';
@@ -15,8 +16,10 @@ import '../../shared/widgets/sub_page_header.dart';
 import '../../theme/app_theme_tokens.dart';
 import '../courses/courses_page.dart' show coursesProvider;
 import 'course_offerings_page.dart' show courseOfferingsProvider;
-import 'purchase_success_dialog.dart';
 import '../../shared/widgets/shimmer_loading.dart';
+import 'dart:async';
+import '../payments/payment_result_page.dart';
+import '../../core/payments/payment_attempt_logger.dart';
 
 /// /api/bundle-offerings: same data the website store shows.
 final bundleOfferingsProvider =
@@ -1164,6 +1167,57 @@ class _BundleDetailPageState extends ConsumerState<BundleDetailPage> {
   String? _type;
   final Set<String> _selected = <String>{};
   bool _agree = false;
+  final GlobalKey _termsKey = GlobalKey();
+  bool _termsNudge = false;
+  final GlobalKey _batchKey = GlobalKey();
+  bool _batchNudge = false;
+
+  /// Continue tapped with no batch chosen: scroll to the options, flash them
+  /// and show a short warning.
+  void _nudgeBatch() {
+    HapticFeedback.mediumImpact();
+    final ctx = _batchKey.currentContext;
+    if (ctx != null) {
+      Scrollable.ensureVisible(ctx,
+          alignment: 0,
+          duration: const Duration(milliseconds: 360),
+          curve: Curves.easeOutCubic);
+    }
+    setState(() => _batchNudge = true);
+    Future.delayed(const Duration(milliseconds: 1600), () {
+      if (mounted) setState(() => _batchNudge = false);
+    });
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(const SnackBar(
+        content: Text('Please choose a batch to continue.'),
+        duration: Duration(seconds: 2),
+      ));
+  }
+
+  /// Tapped "Accept terms to pay" before ticking the box: scroll to the
+  /// checkbox, flash it and show a short warning.
+  void _nudgeTerms() {
+    HapticFeedback.mediumImpact();
+    final ctx = _termsKey.currentContext;
+    if (ctx != null) {
+      Scrollable.ensureVisible(ctx,
+          alignment: 0.5,
+          duration: const Duration(milliseconds: 420),
+          curve: Curves.easeOutCubic);
+    }
+    setState(() => _termsNudge = true);
+    Future.delayed(const Duration(milliseconds: 1600), () {
+      if (mounted) setState(() => _termsNudge = false);
+    });
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(const SnackBar(
+        content: Text('Please scroll down and accept the Terms to pay.'),
+        duration: Duration(seconds: 2),
+      ));
+  }
+
   bool _buying = false;
   bool _hasBatchChoice = true;
 
@@ -1197,35 +1251,81 @@ class _BundleDetailPageState extends ConsumerState<BundleDetailPage> {
     if (_buying || ids.isEmpty || _type == null || !_agree) return;
     HapticFeedback.mediumImpact();
     setState(() => _buying = true);
+    var retry = false;
     try {
       final all = (b['courses'] as List? ?? const [])
           .map((c) => ((c as Map)['course'] as Map)['id'].toString())
           .toList();
-      final svc = PlayBillingService(api: ref.read(apiClientProvider));
-      final result = await svc.purchaseCourse(
-        isBundle: true,
-        id: widget.bundleId,
-        accessType: _type!,
-        selectedCourseIds: ids,
-        buyAll: ids.length == all.length,
+      final log = PaymentAttemptLogger(ref.read(apiClientProvider));
+      final name = (b['name'] ?? 'Your courses').toString();
+      final amount = _estimate(b, _type!, ids);
+      final attempt = log.start(
+        kind: 'BUNDLE',
+        itemName: name,
+        itemRef: widget.bundleId,
+        amount: amount,
+        gateway: 'PLAY',
       );
+      final svc = PlayBillingService(api: ref.read(apiClientProvider));
+      PlayPaymentResult result;
+      try {
+        result = await svc.purchaseCourse(
+          isBundle: true,
+          id: widget.bundleId,
+          accessType: _type!,
+          selectedCourseIds: ids,
+          buyAll: ids.length == all.length,
+        );
+      } catch (e) {
+        result = PlayPaymentResult.failed('Checkout error: $e');
+      }
+      final attemptId = await attempt;
+      if (result.isSuccess) {
+        unawaited(log.finish(attemptId,
+            status: 'SUCCESS', orderRef: result.orderId));
+      } else {
+        unawaited(log.finish(attemptId,
+            status: result.isCancelled ? 'CANCELLED' : 'FAILED',
+            reason: result.isCancelled
+                ? 'Closed checkout without paying'
+                : (result.errorMessage ?? 'Payment was not completed')));
+      }
       if (!mounted) return;
       if (result.isSuccess) {
         ref.invalidate(coursesProvider);
         ref.invalidate(courseOfferingsProvider);
-        await showPurchaseSuccessDialog(
+        await showPaymentResult(
           context,
-          title: (b['name'] ?? 'Your courses').toString(),
-          offerOpen: false,
+          outcome: PaymentOutcome.success,
+          title: name,
+          amount: amount,
+          orderId: result.orderId,
+          method: 'Google Play',
+          grants: [
+            for (final c in (b['courses'] as List? ?? const []))
+              if (c is Map && c['course'] is Map && ids.contains(((c['course'] as Map)['id']).toString()))
+                '${((c['course'] as Map)['name'] ?? (c['course'] as Map)['subject'] ?? '').toString()} · ${_typeLabel(_type!)}',
+          ],
+          primaryLabel: 'Go to my courses',
         );
         if (mounted) context.go('/courses');
-      } else if (!result.isCancelled) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content: Text(result.errorMessage ?? 'Payment was not completed.')));
+      } else {
+        final act = await showPaymentResult(
+          context,
+          outcome: result.isCancelled
+              ? PaymentOutcome.cancelled
+              : PaymentOutcome.failed,
+          title: name,
+          amount: amount,
+          method: 'Google Play',
+          reason: result.errorMessage,
+        );
+        if (act == PaymentResultAction.primary) retry = true;
       }
     } finally {
       if (mounted) setState(() => _buying = false);
     }
+    if (retry && mounted) unawaited(_buy(b, ids));
   }
 
   @override
@@ -1345,20 +1445,20 @@ class _BundleDetailPageState extends ConsumerState<BundleDetailPage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Container(
-                      width: 24,
-                      height: 24,
+                      width: 22,
+                      height: 22,
                       decoration: BoxDecoration(
                         color: color.withValues(alpha: 0.16),
                         shape: BoxShape.circle,
                       ),
-                      child: Icon(Symbols.check_rounded, size: 15, color: color),
+                      child: Icon(Symbols.check_rounded, size: 14, color: color),
                     ),
-                    const SizedBox(width: 12),
+                    const SizedBox(width: 11),
                     Expanded(
                       child: Text(t,
                           style: TextStyle(
-                              fontSize: 15,
-                              height: 1.4,
+                              fontSize: 13.5,
+                              height: 1.38,
                               color: tokens.textPrimary)),
                     ),
                   ],
@@ -1698,6 +1798,7 @@ class _BundleDetailPageState extends ConsumerState<BundleDetailPage> {
     // ───────── Step 1: Recorded or Live ─────────
     final step1 = <Widget>[
       Padding(
+        key: _batchKey,
         padding: const EdgeInsets.fromLTRB(4, 4, 4, 14),
         child: Text('Choose your batch',
             style: TextStyle(
@@ -1730,10 +1831,19 @@ class _BundleDetailPageState extends ConsumerState<BundleDetailPage> {
                           colors: [c, c.withValues(alpha: 0.72)],
                         )
                       : null,
-                  color: on ? null : tokens.cardBg,
+                  color: on
+                      ? null
+                      : (_batchNudge
+                          ? const Color(0xFFFF9F0A).withValues(alpha: 0.14)
+                          : tokens.cardBg),
                   borderRadius: BorderRadius.circular(22),
                   border: Border.all(
-                      color: on ? c : tokens.border, width: on ? 1.4 : 0.8),
+                      color: on
+                          ? c
+                          : (_batchNudge
+                              ? const Color(0xFFFF9F0A)
+                              : tokens.border),
+                      width: (on || _batchNudge) ? 1.4 : 0.8),
                 ),
                 child: Row(
                   children: [
@@ -1780,7 +1890,7 @@ class _BundleDetailPageState extends ConsumerState<BundleDetailPage> {
             children: [
               Text('All things from Live Pro, plus extra promises:',
                   style: TextStyle(
-                      fontSize: 15,
+                      fontSize: 13,
                       height: 1.4,
                       color: tokens.textPrimary)),
               const SizedBox(height: 12),
@@ -1799,7 +1909,7 @@ class _BundleDetailPageState extends ConsumerState<BundleDetailPage> {
                       child: Text(
                           'Full refund if not qualified',
                           style: TextStyle(
-                              fontSize: 15.5,
+                              fontSize: 13.5,
                               fontWeight: FontWeight.w800,
                               color: tokens.textPrimary)),
                     ),
@@ -1815,7 +1925,7 @@ class _BundleDetailPageState extends ConsumerState<BundleDetailPage> {
                   padding: EdgeInsets.symmetric(vertical: 4),
                   child: Text('Terms & Conditions apply  >',
                       style: TextStyle(
-                          fontSize: 14.5,
+                          fontSize: 13,
                           fontWeight: FontWeight.w700,
                           color: Color(0xFF0A84FF))),
                 ),
@@ -2017,11 +2127,11 @@ class _BundleDetailPageState extends ConsumerState<BundleDetailPage> {
               Text(
                   'Everything in Live Pro, plus a full refund or free reattempt support when all conditions below are fulfilled.',
                   style: TextStyle(
-                      fontSize: 14, height: 1.4, color: tokens.textSecondary)),
-              const SizedBox(height: 14),
+                      fontSize: 13, height: 1.4, color: tokens.textSecondary)),
+              const SizedBox(height: 12),
               Text('Eligibility criteria',
                   style: TextStyle(
-                      fontSize: 14,
+                      fontSize: 13.5,
                       fontWeight: FontWeight.w800,
                       color: tokens.textPrimary)),
               const SizedBox(height: 10),
@@ -2033,7 +2143,7 @@ class _BundleDetailPageState extends ConsumerState<BundleDetailPage> {
               const SizedBox(height: 4),
               Text('What we provide',
                   style: TextStyle(
-                      fontSize: 14,
+                      fontSize: 13.5,
                       fontWeight: FontWeight.w800,
                       color: tokens.textPrimary)),
               const SizedBox(height: 10),
@@ -2043,20 +2153,26 @@ class _BundleDetailPageState extends ConsumerState<BundleDetailPage> {
           icon: Symbols.emoji_events_rounded,
           color: const Color(0xFFFF375F)),
       ApplePressable(
+        key: _termsKey,
         onTap: () {
           HapticFeedback.selectionClick();
           setState(() => _agree = !_agree);
         },
-        child: Container(
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 250),
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
             color: _agree
                 ? tokens.success.withValues(alpha: 0.10)
-                : tokens.cardBg,
+                : (_termsNudge
+                    ? const Color(0xFFFF9F0A).withValues(alpha: 0.14)
+                    : tokens.cardBg),
             borderRadius: BorderRadius.circular(20),
             border: Border.all(
-                color: _agree ? tokens.success : tokens.border,
-                width: _agree ? 1.4 : 0.5),
+                color: _agree
+                    ? tokens.success
+                    : (_termsNudge ? const Color(0xFFFF9F0A) : tokens.border),
+                width: (_agree || _termsNudge) ? 1.4 : 0.5),
           ),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -2136,13 +2252,15 @@ class _BundleDetailPageState extends ConsumerState<BundleDetailPage> {
       barBottom = total == null ? '' : _money(total);
       btnLabel = 'Continue';
       btnEnabled = _type != null;
-      btnTap = btnEnabled ? _next : null;
+      btnTap = btnEnabled ? _next : _nudgeBatch;
     } else {
       barTop = 'Total';
       barBottom = total == null ? 'At checkout' : _money(total);
       btnLabel = _agree ? 'Pay now' : 'Accept terms to pay';
       btnEnabled = _agree && ids.isNotEmpty && !_buying;
-      btnTap = btnEnabled ? () => _buy(bundle, ids) : null;
+      btnTap = btnEnabled
+          ? () => _buy(bundle, ids)
+          : (!_agree && !_buying ? _nudgeTerms : null);
     }
 
     final stepTitles = ['Choose courses', 'Choose batch', 'Review and pay'];

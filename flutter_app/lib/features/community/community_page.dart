@@ -119,10 +119,10 @@ class CommunityPage extends ConsumerWidget {
                                     borderRadius: BorderRadius.circular(14),
                                   ),
                                   alignment: Alignment.center,
-                                  child: const Text(
+                                  child: Text(
                                     'Create Post',
                                     style: TextStyle(
-                                      color: Colors.white,
+                                      color: tokens.onPrimaryAccent,
                                       fontSize: 16,
                                       fontWeight: FontWeight.w700,
                                       letterSpacing: -0.2,

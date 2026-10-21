@@ -894,7 +894,7 @@ export default function SupportPage() {
   // ══════════════════════════════════════════════════════════════════════════
   if (view === 'home') {
     return (
-      <div className="page-container fade-in" style={{ maxHeight: isMobile ? 'calc(100vh - 72px)' : 'calc(100vh - 104px)', overflowY: 'auto', overflowX: 'hidden' }}>
+      <div className="page-container fade-in apple-ui" style={{ maxHeight: isMobile ? 'calc(100vh - 72px)' : 'calc(100vh - 104px)', overflowY: 'auto', overflowX: 'hidden' }}>
         <style>{`
           .mobile-back-header {
             display: none !important;
@@ -1313,7 +1313,7 @@ export default function SupportPage() {
   // ══════════════════════════════════════════════════════════════════════════
   if (view === 'featureRequests') {
     return (
-      <div className="page-container fade-in" style={{ maxHeight: isMobile ? 'calc(100vh - 72px)' : 'calc(100vh - 104px)', display: 'flex', flexDirection: 'column', paddingBottom: '20px' }}>
+      <div className="page-container fade-in apple-ui" style={{ maxHeight: isMobile ? 'calc(100vh - 72px)' : 'calc(100vh - 104px)', display: 'flex', flexDirection: 'column', paddingBottom: '20px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
           <BackButton onClick={() => setView('home')} />
           <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
@@ -1498,7 +1498,7 @@ export default function SupportPage() {
   if (view === 'userReports') {
     const canManageReports = userRole === 'MANAGER' || (userRole === 'ADMIN' || userRole === 'MODERATOR')
     return (
-      <div className="page-container fade-in" style={{ maxHeight: isMobile ? 'calc(100vh - 72px)' : 'calc(100vh - 104px)', display: 'flex', flexDirection: 'column' }}>
+      <div className="page-container fade-in apple-ui" style={{ maxHeight: isMobile ? 'calc(100vh - 72px)' : 'calc(100vh - 104px)', display: 'flex', flexDirection: 'column' }}>
         {confirmDialog}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', gap: '12px' }}>
           <BackButton onClick={() => setView('home')} />
@@ -1637,7 +1637,7 @@ export default function SupportPage() {
     const sendDisabled = (!replyText.trim() && !pendingReplyImage) || uploadingImage
 
     return (
-      <div className="page-container fade-in" style={{ height: isMobile ? 'calc(100vh - 72px)' : 'calc(100vh - 104px)', display: 'flex', flexDirection: 'column' }}>
+      <div className="page-container fade-in apple-ui" style={{ height: isMobile ? 'calc(100vh - 72px)' : 'calc(100vh - 104px)', display: 'flex', flexDirection: 'column' }}>
         {confirmDialog}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px', marginBottom: '16px', flexWrap: 'wrap' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px', minWidth: 0 }}>
@@ -2033,7 +2033,7 @@ export default function SupportPage() {
   // ══════════════════════════════════════════════════════════════════════════
   if (view === 'chatHistory') {
     return (
-      <div className="page-container fade-in" style={{ maxHeight: isMobile ? 'calc(100vh - 72px)' : 'calc(100vh - 104px)', display: 'flex', flexDirection: 'column' }}>
+      <div className="page-container fade-in apple-ui" style={{ maxHeight: isMobile ? 'calc(100vh - 72px)' : 'calc(100vh - 104px)', display: 'flex', flexDirection: 'column' }}>
         {confirmDialog}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
           <BackButton onClick={() => { if (isMobile && selectedHistory) { setSelectedHistory(null) } else { setView('chat'); setSelectedHistory(null) } }} />

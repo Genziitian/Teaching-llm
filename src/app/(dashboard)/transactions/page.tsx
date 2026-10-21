@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useLoadingFact } from '@/hooks/useLoadingFact'
 import LoadingFactCard from '@/components/ui/LoadingFactCard'
+import UnpaidAttempts from '@/components/payments/UnpaidAttempts'
 
 interface Transaction {
   id: string
@@ -46,6 +47,7 @@ export default function TransactionsPage() {
   const [termsList, setTermsList] = useState<Array<{ id: string; name: string; termKey: string; year: number }>>([])
 
   const [searchTerm, setSearchTerm] = useState('')
+  const [view, setView] = useState<'paid' | 'unpaid'>('paid')
 
   useEffect(() => {
     fetch('/api/manage/academic-terms')
@@ -142,6 +144,27 @@ export default function TransactionsPage() {
     )
   }
 
+  const tabs = (
+    <div style={{ display: 'flex', gap: 8, marginBottom: 20, flexWrap: 'wrap' }}>
+      {([['paid', 'Transactions'], ['unpaid', 'Unpaid attempts']] as const).map(([k, label]) => (
+        <button key={k} onClick={() => setView(k)} style={{
+          padding: '9px 18px', borderRadius: 999, border: '1px solid var(--border)', cursor: 'pointer', fontWeight: 700, fontSize: 13.5,
+          background: view === k ? 'var(--primary)' : 'transparent', color: view === k ? '#fff' : 'var(--text-primary)',
+        }}>{label}</button>
+      ))}
+    </div>
+  )
+
+  if (view === 'unpaid') {
+    return (
+      <div className="page-container fade-in">
+        <h1 style={{ margin: '0 0 14px', fontSize: 24, fontWeight: 800, letterSpacing: '-0.02em' }}>Transactions</h1>
+        {tabs}
+        <UnpaidAttempts />
+      </div>
+    )
+  }
+
   return (
     <div className="page-container fade-in">
       <style>{`
@@ -203,6 +226,8 @@ export default function TransactionsPage() {
           Upgrade Transactions
         </span>
       </div>
+
+      {tabs}
 
       {/* Summary Cards */}
       {data?.summary && (

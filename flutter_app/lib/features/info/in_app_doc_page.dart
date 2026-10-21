@@ -626,10 +626,10 @@ class _ContactCard extends StatelessWidget {
                 color: tokens.primaryAccent,
                 borderRadius: BorderRadius.circular(10),
               ),
-              child: const Text(
+              child: Text(
                 'Support →',
                 style: TextStyle(
-                  color: Colors.white,
+                  color: tokens.onPrimaryAccent,
                   fontSize: 12.5,
                   fontWeight: FontWeight.w700,
                 ),

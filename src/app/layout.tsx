@@ -11,6 +11,8 @@ import AppUpdater from '@/components/AppUpdater'
 import SplashOverlay from '@/components/SplashOverlay'
 import { PostHogProvider } from '@/components/PostHogProvider'
 import { ThemeProvider } from '@/components/ThemeProvider'
+import PaymentFeedbackPrompt from '@/components/payments/PaymentFeedbackPrompt'
+import PaymentResultHost from '@/components/payments/PaymentResultHost'
 
 /**
  * Anti-FOUC theme bootstrap. Runs synchronously in <head> BEFORE first paint so
@@ -157,6 +159,8 @@ export default function RootLayout({
                 <CapacitorPlayStoreBanner />
                 <AndroidAppModal />
                 <PolicyUpdateModal />
+                <PaymentResultHost />
+        <PaymentFeedbackPrompt />
                 <ServiceWorkerRegister />
                 <CsrfProvider>{children}</CsrfProvider>
               </LanguageProvider>

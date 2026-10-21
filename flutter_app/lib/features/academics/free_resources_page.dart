@@ -86,25 +86,16 @@ class FreeResourcesPage extends ConsumerWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  _BigCard(
-                    icon: Symbols.menu_book_rounded,
-                    iconBg: [tokens.primaryAccent, const Color(0xFF5E5CE6)],
-                    title: 'Free Courses',
-                    desc: 'Browse and enroll for free.',
-                    loading: coursesAsync.isLoading,
+                  _BannerCard(
+                    asset: 'assets/store/free-courses-banner.webp',
+                    label: 'Free Courses. Browse and enroll for free.',
                     error: coursesAsync.hasError,
                     onTap: () => context.go('/free-resources/courses'),
                   ),
-                  const SizedBox(height: 12),
-                  _BigCard(
-                    icon: Symbols.folder_open_rounded,
-                    iconBg: [
-                      tokens.success,
-                      const Color(0xFF14B8A6),
-                    ],
-                    title: 'Free Materials',
-                    desc: 'Notes, summaries and formula sheets.',
-                    loading: materialsAsync.isLoading,
+                  const SizedBox(height: 14),
+                  _BannerCard(
+                    asset: 'assets/store/free-materials-banner.webp',
+                    label: 'Free Materials. Notes, summaries and formula sheets.',
                     error: materialsAsync.hasError,
                     onTap: () => context.push('/free-resources/materials'),
                   ),
@@ -112,6 +103,73 @@ class FreeResourcesPage extends ConsumerWidget {
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Full-width illustrated banner (3:1, ~30 KB WebP). Tapping opens the section.
+class _BannerCard extends StatelessWidget {
+  const _BannerCard({
+    required this.asset,
+    required this.label,
+    required this.error,
+    required this.onTap,
+  });
+  final String asset;
+  final String label;
+  final bool error;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final tokens = context.tokens;
+    return ApplePressable(
+      onTap: onTap,
+      child: Semantics(
+        button: true,
+        label: label,
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(24),
+            boxShadow: const [
+              BoxShadow(color: Color(0x14000000), blurRadius: 18, offset: Offset(0, 6)),
+            ],
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(24),
+            child: Stack(
+              children: [
+                AspectRatio(
+                  aspectRatio: 3,
+                  child: Image.asset(
+                    asset,
+                    fit: BoxFit.cover,
+                    cacheWidth: 1080,
+                    filterQuality: FilterQuality.medium,
+                    gaplessPlayback: true,
+                    excludeFromSemantics: true,
+                  ),
+                ),
+                if (error)
+                  Positioned(
+                    left: 12,
+                    bottom: 10,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                      decoration: BoxDecoration(
+                        color: tokens.danger,
+                        borderRadius: BorderRadius.circular(999),
+                      ),
+                      child: const Text('Could not load',
+                          style: TextStyle(
+                              color: Colors.white, fontSize: 12, fontWeight: FontWeight.w600)),
+                    ),
+                  ),
+              ],
+            ),
+          ),
         ),
       ),
     );

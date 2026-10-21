@@ -49,6 +49,19 @@ export async function GET() {
       orderBy: { createdAt: 'desc' }
     })
 
+    // Checkout attempts that never became a confirmed payment (failed,
+    // cancelled, abandoned). Matched to an order when we have its id so the
+    // reason shows on that row; the rest are listed on their own.
+    const attempts = await prisma.paymentAttempt.findMany({
+      where: { userId: session.userId, status: { notIn: ['SUCCESS', 'SUPERSEDED'] } },
+      orderBy: { createdAt: 'desc' },
+      take: 100,
+    })
+    const attemptByOrder = new Map(
+      attempts.filter(a => a.orderRef).map(a => [a.orderRef as string, a])
+    )
+    const usedAttempts = new Set<string>()
+
     const transactions = [
       ...upgrades.map(u => ({
         id: u.id,
@@ -76,7 +89,12 @@ export async function GET() {
           orderId: o.razorpayOrderId || o.id,
           paymentId: o.razorpayPaymentId,
           amount: o.amount,
-          status: o.status,
+          status: (() => {
+            const at = o.razorpayOrderId ? attemptByOrder.get(o.razorpayOrderId) : undefined
+            if (at) usedAttempts.add(at.id)
+            return at && o.status === 'PENDING' ? at.status : o.status
+          })(),
+          failureReason: (o.razorpayOrderId && attemptByOrder.get(o.razorpayOrderId)?.reason) || null,
           createdAt: o.createdAt,
           type: 'PURCHASE',
           source: paymentSource(o.razorpayPaymentId),
@@ -122,7 +140,24 @@ export async function GET() {
         source: paymentSource(n.orderId),
         courses: [{ id: '', name: `Study Note: ${n.note.title}`, subject: 'Study Notes', accessType: 'RECORDED' }]
       }))
-    ].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+    ]
+    for (const a of attempts) {
+      if (usedAttempts.has(a.id)) continue
+      transactions.push({
+        id: a.id,
+        orderId: a.orderRef || a.id,
+        paymentId: a.paymentRef,
+        amount: a.amount ?? 0,
+        status: a.status === 'STARTED' && Date.now() - a.createdAt.getTime() >= 24 * 3600 * 1000 ? 'TIMED_OUT' : a.status,
+        createdAt: a.createdAt,
+        type: 'PAYMENT_ATTEMPT',
+        source: a.gateway === 'PLAY' ? 'Google Play' : 'Razorpay',
+        isExternal: false,
+        failureReason: a.reason,
+        courses: [{ id: '', name: a.itemName, subject: a.kind, accessType: 'RECORDED' }],
+      } as any)
+    }
+    transactions.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
 
     return NextResponse.json({ transactions })
   } catch (error) {

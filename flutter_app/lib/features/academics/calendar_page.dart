@@ -309,8 +309,8 @@ class _CalendarPageState extends ConsumerState<CalendarPage> {
                     ),
                   ],
                 ),
-                child: const Icon(Symbols.add_rounded,
-                    weight: 600, size: 30, color: Colors.white),
+                child: Icon(Symbols.add_rounded,
+                    weight: 600, size: 30, color: tokens.onPrimaryAccent),
               ),
             )
           : null,
@@ -1427,18 +1427,18 @@ class _EventEditSheetState extends ConsumerState<_EventEditSheet> {
                   onPressed: _saving ? null : _submit,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: tokens.primaryAccent,
-                    foregroundColor: Colors.white,
+                    foregroundColor: tokens.onPrimaryAccent,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
                   ),
                   child: _saving
-                      ? const SizedBox(
+                      ? SizedBox(
                           width: 20,
                           height: 20,
                           child: CircularProgressIndicator(
                             strokeWidth: 2,
-                            color: Colors.white,
+                            color: tokens.onPrimaryAccent,
                           ),
                         )
                       : Text(

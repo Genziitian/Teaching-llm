@@ -340,7 +340,7 @@ class _PolicyUpdateDialogState extends State<PolicyUpdateDialog>
                         child: Text(
                           'I Understand & Agree',
                           style: TextStyle(
-                            color: tokens.isBlack ? Colors.black : Colors.white,
+                            color: tokens.isBlack ? Colors.black : tokens.onPrimaryAccent,
                             fontSize: 15,
                             fontWeight: FontWeight.w700,
                           ),

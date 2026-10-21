@@ -155,7 +155,7 @@ class _SupportPageState extends ConsumerState<SupportPage> with WidgetsBindingOb
                             letterSpacing: -0.3,
                             color: hasReachedActiveLimit
                                 ? tokens.textMuted
-                                : Colors.white,
+                                : tokens.onPrimaryAccent,
                           ),
                         ),
                       ),
@@ -268,7 +268,7 @@ class _SupportPageState extends ConsumerState<SupportPage> with WidgetsBindingOb
                       labelStyle: TextStyle(
                           fontWeight: FontWeight.w600,
                           color: _filter == filter
-                              ? Colors.white
+                              ? tokens.onPrimaryAccent
                               : tokens.textPrimary),
                       onSelected: (_) => setState(() => _filter = filter)),
               ]),

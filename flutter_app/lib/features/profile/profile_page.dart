@@ -304,18 +304,18 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                               ),
                               alignment: Alignment.center,
                               child: _isSaving
-                                  ? const SizedBox(
+                                  ? SizedBox(
                                       width: 20,
                                       height: 20,
                                       child: CircularProgressIndicator(
                                         strokeWidth: 2.2,
-                                        color: Colors.white,
+                                        color: tokens.onPrimaryAccent,
                                       ),
                                     )
-                                  : const Text(
+                                  : Text(
                                       'Save Changes',
                                       style: TextStyle(
-                                        color: Colors.white,
+                                        color: tokens.onPrimaryAccent,
                                         fontSize: 16,
                                         fontWeight: FontWeight.w600,
                                         letterSpacing: -0.2,
@@ -510,11 +510,11 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                                         border: Border.all(
                                             color: tokens.cardBg, width: 3),
                                       ),
-                                      child: const Icon(
+                                      child: Icon(
                                         Symbols.photo_camera_rounded,
                                         fill: 1,
                                         size: 16,
-                                        color: Colors.white,
+                                        color: tokens.onPrimaryAccent,
                                       ),
                                     ),
                                   ),

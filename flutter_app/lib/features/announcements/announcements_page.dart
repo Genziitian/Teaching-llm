@@ -297,7 +297,7 @@ class _AnnouncementCard extends StatelessWidget {
                 onPressed: () => openCtaLink(context, ctaLink),
                 style: FilledButton.styleFrom(
                   backgroundColor: tokens.primaryAccent,
-                  foregroundColor: Colors.white,
+                  foregroundColor: tokens.onPrimaryAccent,
                   padding: const EdgeInsets.symmetric(
                     horizontal: 14,
                     vertical: 10,

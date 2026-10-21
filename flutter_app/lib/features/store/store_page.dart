@@ -4,12 +4,27 @@ import 'package:material_symbols_icons/symbols.dart';
 import 'package:material_ui/material_ui.dart';
 
 import '../../shared/widgets/apple_pressable.dart';
+import '../payments/payment_feedback_sheet.dart';
 import '../../shared/widgets/sub_page_header.dart';
 import '../../theme/app_theme_tokens.dart';
 
 /// Store home: Buy Course and Premium Notes.
-class StorePage extends StatelessWidget {
+class StorePage extends StatefulWidget {
   const StorePage({super.key});
+
+  @override
+  State<StorePage> createState() => _StorePageState();
+}
+
+class _StorePageState extends State<StorePage> {
+  @override
+  void initState() {
+    super.initState();
+    // Left checkout earlier without paying? Ask what stopped them (once).
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) maybeAskWhatsStopping(context);
+    });
+  }
 
   @override
   Widget build(BuildContext context) {

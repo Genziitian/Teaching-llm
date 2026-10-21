@@ -672,6 +672,30 @@ img {
   box-shadow: 0 4px 12px rgba(255, 255, 255, 0.25) !important;
 }
 }
+/* Black theme: --primary / --accent are white, so anything filled with them
+   (inline-styled buttons, tabs, chips) needs dark text and icons to stay readable. */
+:root[data-theme="black"] [style*="background: var(--primary)"],
+:root[data-theme="black"] [style*="background:var(--primary)"],
+:root[data-theme="black"] [style*="background-color: var(--primary)"],
+:root[data-theme="black"] [style*="background-color:var(--primary)"],
+:root[data-theme="black"] [style*="background: var(--accent)"],
+:root[data-theme="black"] [style*="background:var(--accent)"],
+:root[data-theme="black"] [style*="background-color: var(--accent)"],
+:root[data-theme="black"] [style*="background-color:var(--accent)"] {
+  color: #000000 !important;
+}
+:root[data-theme="black"] [style*="background: var(--primary)"] svg,
+:root[data-theme="black"] [style*="background:var(--primary)"] svg,
+:root[data-theme="black"] [style*="background-color: var(--primary)"] svg,
+:root[data-theme="black"] [style*="background-color:var(--primary)"] svg,
+:root[data-theme="black"] [style*="background: var(--accent)"] svg,
+:root[data-theme="black"] [style*="background:var(--accent)"] svg,
+:root[data-theme="black"] [style*="background-color: var(--accent)"] svg,
+:root[data-theme="black"] [style*="background-color:var(--accent)"] svg {
+  color: #000000 !important;
+}
+:root[data-theme="black"] .pf-chip.on { color: #000000 !important; }
+
 :root[data-theme="black"] .btn-secondary {
   background: #18181b !important;
   color: #ffffff !important;

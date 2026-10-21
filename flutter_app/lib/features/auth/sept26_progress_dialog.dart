@@ -202,7 +202,7 @@ class _Sept26ProgressDialogState extends ConsumerState<Sept26ProgressDialog> {
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: tokens.primaryAccent,
-              foregroundColor: Colors.white,
+              foregroundColor: tokens.onPrimaryAccent,
               shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(10)),
               elevation: 0,

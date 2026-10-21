@@ -913,8 +913,8 @@ class _CommentTile extends StatelessWidget {
                             ),
                             child: Text(
                               role == 'MANAGER' ? 'Manager' : 'Admin',
-                              style: const TextStyle(
-                                color: Colors.white,
+                              style: TextStyle(
+                                color: tokens.onPrimaryAccent,
                                 fontSize: 10,
                                 fontWeight: FontWeight.w700,
                               ),

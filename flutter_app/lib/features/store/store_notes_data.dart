@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/services.dart';
@@ -12,7 +13,8 @@ import '../../core/payments/play_billing_service.dart';
 import '../../core/payments/razorpay_service.dart';
 import '../../theme/app_theme_tokens.dart';
 import '../academics/free_resources_page.dart' show purchasedMaterialsProvider;
-import 'purchase_success_dialog.dart';
+import '../payments/payment_result_page.dart';
+import '../../core/payments/payment_attempt_logger.dart';
 
 enum NoteAccessState { none, active, expired }
 
@@ -327,10 +329,10 @@ Future<bool> _confirmNoteTerms(BuildContext context) async {
                           color: tokens.primaryAccent,
                           borderRadius: BorderRadius.circular(26),
                         ),
-                        child: const Text(
+                        child: Text(
                           'Buy now',
                           style: TextStyle(
-                            color: Colors.white,
+                            color: tokens.onPrimaryAccent,
                             fontSize: 16.5,
                             fontWeight: FontWeight.w700,
                           ),
@@ -361,7 +363,6 @@ Future<bool> buyStoreNote(
   final agreed = await _confirmNoteTerms(context);
   if (!agreed || !context.mounted) return false;
   HapticFeedback.mediumImpact();
-  final messenger = ScaffoldMessenger.of(context);
 
   final isAndroid = !kIsWeb && defaultTargetPlatform == TargetPlatform.android;
   // The price decides the payment method. When the caller did not pass it,
@@ -373,34 +374,66 @@ Future<bool> buyStoreNote(
     } catch (_) {}
   }
 
-  if (isAndroid && effectivePrice > 0) {
-    final playService = PlayBillingService(api: ref.read(apiClientProvider));
-    final result = await playService.purchaseNote(
-      noteId: noteId,
-      price: effectivePrice,
-      title: title,
-    );
+  final usePlay = isAndroid && effectivePrice > 0;
+  final log = PaymentAttemptLogger(ref.read(apiClientProvider));
+  final attempt = log.start(
+    kind: 'NOTE',
+    itemName: title,
+    itemRef: noteId,
+    amount: effectivePrice,
+    gateway: usePlay ? 'PLAY' : 'RAZORPAY',
+  );
+  final method = usePlay ? 'Google Play' : 'Razorpay';
 
-    if (!result.isSuccess) {
-      if (!result.isCancelled) {
-        messenger.showSnackBar(
-          SnackBar(content: Text(result.errorMessage ?? 'Payment failed')),
-        );
-      }
-      return false;
+  bool ok = false;
+  bool cancelled = false;
+  String? orderId;
+  String? failMsg;
+  try {
+    if (usePlay) {
+      final result = await PlayBillingService(api: ref.read(apiClientProvider))
+          .purchaseNote(noteId: noteId, price: effectivePrice, title: title);
+      ok = result.isSuccess;
+      cancelled = result.isCancelled;
+      orderId = result.orderId;
+      failMsg = result.errorMessage;
+    } else {
+      final result = await RazorpayCheckoutService(api: ref.read(apiClientProvider))
+          .purchaseNote(context: context, noteId: noteId);
+      ok = result.isSuccess;
+      orderId = result.orderId;
+      failMsg = (result.errorMessage ?? 'Payment failed')
+          .replaceFirst(RegExp(r'^(Exception: )'), '');
+      cancelled = !ok && failMsg.toLowerCase().contains('cancel');
     }
+  } catch (e) {
+    ok = false;
+    failMsg = 'Checkout error: $e';
+  }
+
+  final attemptId = await attempt;
+  if (ok) {
+    unawaited(log.finish(attemptId, status: 'SUCCESS', orderRef: orderId));
   } else {
-    final service = RazorpayCheckoutService(api: ref.read(apiClientProvider));
-    final result = await service.purchaseNote(context: context, noteId: noteId);
-
-    if (!result.isSuccess) {
-      final msg = (result.errorMessage ?? 'Payment failed').replaceFirst(
-          RegExp(r'^(Exception: )'), '');
-      if (!msg.toLowerCase().contains('cancel')) {
-        messenger.showSnackBar(SnackBar(content: Text(msg)));
-      }
-      return false;
+    unawaited(log.finish(attemptId,
+        status: cancelled ? 'CANCELLED' : 'FAILED',
+        reason: cancelled
+            ? 'Closed checkout without paying'
+            : (failMsg ?? 'Payment failed')));
+    if (!context.mounted) return false;
+    final act = await showPaymentResult(
+      context,
+      outcome: cancelled ? PaymentOutcome.cancelled : PaymentOutcome.failed,
+      title: title,
+      amount: effectivePrice > 0 ? effectivePrice : null,
+      method: method,
+      reason: failMsg,
+    );
+    if (act == PaymentResultAction.primary && context.mounted) {
+      return buyStoreNote(context, ref,
+          noteId: noteId, title: title, price: price);
     }
+    return false;
   }
 
   ref.invalidate(storeNotesProvider);
@@ -427,13 +460,21 @@ Future<bool> buyStoreNote(
     onNotePage = GoRouterState.of(context).uri.path.endsWith('/notes/$noteId');
   } catch (_) {}
 
-  final open = await showPurchaseSuccessDialog(
+  final act = await showPaymentResult(
     context,
+    outcome: PaymentOutcome.success,
     title: title,
+    amount: effectivePrice > 0 ? effectivePrice : null,
+    orderId: orderId,
+    method: method,
     validUntil: validUntil,
-    offerOpen: !onNotePage,
+    grants: const [
+      'Read and download this note any time',
+      'Works in the app and on the website',
+    ],
+    primaryLabel: onNotePage ? 'Done' : 'Open note',
   );
-  if (open && context.mounted) {
+  if (act == PaymentResultAction.primary && !onNotePage && context.mounted) {
     context.push('/store/notes/$noteId');
   }
   return true;

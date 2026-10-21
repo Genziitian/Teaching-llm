@@ -77,10 +77,10 @@ class _StoreNotesPageState extends ConsumerState<StoreNotesPage> {
                     color: tokens.primaryAccent,
                     borderRadius: BorderRadius.circular(15),
                   ),
-                  child: const Text(
+                  child: Text(
                     'Open Purchased Materials',
                     style: TextStyle(
-                        color: Colors.white,
+                        color: tokens.onPrimaryAccent,
                         fontSize: 16,
                         fontWeight: FontWeight.w700),
                   ),

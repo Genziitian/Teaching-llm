@@ -1860,7 +1860,7 @@ class _FeedbackTabContent extends StatelessWidget {
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: tokens.primaryAccent,
-                foregroundColor: Colors.white,
+                foregroundColor: tokens.onPrimaryAccent,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),

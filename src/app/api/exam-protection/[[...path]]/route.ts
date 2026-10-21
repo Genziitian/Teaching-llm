@@ -5,6 +5,7 @@ import Razorpay from 'razorpay';
 import crypto from 'node:crypto';
 import { Prisma } from '@prisma/client';
 import { checkRateLimit } from '@/lib/ratelimit';
+import { sendPaymentMail } from '@/lib/payment-mail';
 import { sendClaimWindowOpenedEmails } from '@/lib/exam-protection/mail';
 import { claimWindow, claimWindowEnd, CLAIM_WINDOW_DAYS, DAY, STUDENT_DAYS, MANAGER_DAYS, REASONS, RULES, cutoff, validFee, parseFee, refundForFee, discountForFee, validateClaimDetails, isSameSubjectBundle } from '@/lib/exam-protection/policy';
 import { check, ProtectionError, cleanupProtectionMedia, limitedForm, proofFile, notify, ownedClaim, claimChange, proofExpiry } from '@/lib/exam-protection/server';
@@ -144,7 +145,9 @@ async function handle(request: NextRequest, context: Context, method: string) {
             check(signature.length === expected.length && crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(expected)), 'Invalid payment signature.');
             const payment = await provider().payments.fetch(paymentId);
             check(payment.order_id === orderId, 'Payment does not match this order.');
-            return json({ success: true, purchase: await capturedPurchase(orderId, session.userId) });
+            const paid: any = await capturedPurchase(orderId, session.userId);
+            sendPaymentMail({ status: 'SUCCESS', itemType: 'PROTECTION', name: session.name, email: session.email, itemName: paid?.courseName ? `Exam Protection - ${paid.courseName}` : 'Exam Protection', amount: paid?.fee ?? null, paymentId, orderId }).catch(() => {});
+            return json({ success: true, purchase: paid });
         }
         if (method === 'POST' && path[0] === 'claims' && path.length === 1) {
             const form = await limitedForm(request), body = JSON.parse(String(form.get('data') || '{}'));

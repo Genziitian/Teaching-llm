@@ -69,6 +69,8 @@ export async function POST(req: Request, { params }: { params: { id: string } })
       userName: user.name,
       orderId: razorpay_payment_id,
       itemName: access.note.title,
+      itemType: 'NOTE',
+      paymentId: razorpay_payment_id,
       amount: access.note.price,
       date: new Date().toLocaleDateString(),
       dashboardUrl: `${process.env.NEXT_PUBLIC_APP_URL || ''}/purchased`

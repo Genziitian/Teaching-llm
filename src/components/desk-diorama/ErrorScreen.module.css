@@ -1,0 +1,63 @@
+.page {
+  --desk: #f4efe6;
+  --ink: #1f1d1b;
+  --grid: #d9d2c344;
+  position: relative;
+  min-height: max(640px, 100vh);
+  min-height: max(640px, 100dvh);
+  display: grid;
+  place-items: center;
+  padding: 56px 7%;
+  overflow: hidden;
+  color: var(--ink);
+  background-color: var(--desk);
+  background-image: linear-gradient(var(--grid) 1px, transparent 1px), linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size: 32px 32px;
+  -webkit-tap-highlight-color: transparent;
+}
+.inner { width: 100%; max-width: 1200px; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr); align-items: center; gap: 32px; }
+.eyebrow { opacity: .7; margin: 0 0 22px; font-size: 11px; font-weight: 600; letter-spacing: .2em; }
+.copy h1 { margin: 0; font-family: Georgia, 'Times New Roman', serif; font-weight: 400; font-size: clamp(44px, 6vw, 84px); line-height: 1; letter-spacing: -.055em; }
+.message { opacity: .75; margin: 22px 0 28px; max-width: 460px; font-size: 15px; line-height: 1.7; }
+.actions { display: flex; flex-wrap: wrap; gap: 12px; }
+.primary, .secondary {
+  display: inline-flex; align-items: center; justify-content: center; gap: 14px;
+  min-height: 48px; padding: 12px 24px; border-radius: 3px;
+  font-size: 14px; font-weight: 500; text-decoration: none;
+  touch-action: manipulation; user-select: none; -webkit-user-select: none;
+  transition: transform 100ms ease-out, background .2s, color .2s, border-color .2s;
+}
+.primary { background: var(--ink); color: var(--desk); }
+.secondary { border: 1.5px solid color-mix(in srgb, var(--ink) 35%, transparent); color: var(--ink); }
+.primary:active, .secondary:active { transform: scale(.97); }
+@media (hover: hover) and (pointer: fine) {
+  .primary:hover { background: #1e8a82; color: #f4efe6; }
+  .secondary:hover { border-color: var(--ink); }
+}
+.primary:focus-visible, .secondary:focus-visible { outline: 3px solid #ff5b3a; outline-offset: 4px; }
+.art { animation: rise .5s cubic-bezier(.2, .8, .2, 1) both; }
+.art img { display: block; width: 100%; height: auto; user-select: none; -webkit-user-select: none; pointer-events: none; }
+.dark { display: none; }
+@keyframes rise { from { opacity: 0; transform: translateY(14px); } }
+
+:global(html[data-theme='dark']) .page, :global(html[data-theme='black']) .page { --desk: #1a1917; --ink: #f4efe6; --grid: #d9d2c30c; }
+:global(html[data-theme='dark']) .light, :global(html[data-theme='black']) .light { display: none; }
+:global(html[data-theme='dark']) .dark, :global(html[data-theme='black']) .dark { display: block; }
+/* crash page renders without the app's theme script, so follow the OS there */
+@media (prefers-color-scheme: dark) {
+  :global(html:not([data-theme])) .page { --desk: #1a1917; --ink: #f4efe6; --grid: #d9d2c30c; }
+  :global(html:not([data-theme])) .light { display: none; }
+  :global(html:not([data-theme])) .dark { display: block; }
+}
+
+@media (max-width: 820px) {
+  .page { align-items: start; padding: 44px 8% 36px; }
+  .inner { grid-template-columns: 1fr; gap: 20px; }
+  .art { max-width: 520px; width: 100%; margin: 0 auto; }
+  .message { font-size: 14px; }
+  .actions > * { flex: 1 1 140px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .art { animation: none; }
+  .primary, .secondary { transition: none; }
+}

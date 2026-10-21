@@ -117,10 +117,10 @@ class _Empty extends StatelessWidget {
                   color: tokens.primaryAccent,
                   borderRadius: BorderRadius.circular(15),
                 ),
-                child: const Text(
+                child: Text(
                   'Visit store',
                   style: TextStyle(
-                    color: Colors.white,
+                    color: tokens.onPrimaryAccent,
                     fontSize: 15.5,
                     fontWeight: FontWeight.w700,
                   ),

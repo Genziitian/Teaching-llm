@@ -280,7 +280,7 @@ class _GeneralDiscussionPageState extends ConsumerState<GeneralDiscussionPage> {
                 onPressed: () => Navigator.pop(ctx),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: tokens.primaryAccent,
-                  foregroundColor: Colors.white,
+                  foregroundColor: tokens.onPrimaryAccent,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(14),
                   ),

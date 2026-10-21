@@ -193,8 +193,8 @@ class _Header extends StatelessWidget {
               color: tokens.primaryAccent,
               borderRadius: BorderRadius.circular(12),
             ),
-            child: const Icon(Icons.support_agent,
-                color: Colors.white, size: 20),
+            child: Icon(Icons.support_agent,
+                color: tokens.onPrimaryAccent, size: 20),
           ),
           const SizedBox(width: 10),
           Expanded(
@@ -279,7 +279,7 @@ class _Bootstrap extends StatelessWidget {
                 onPressed: onRetry,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: tokens.primaryAccent,
-                  foregroundColor: Colors.white,
+                  foregroundColor: tokens.onPrimaryAccent,
                 ),
                 child: const Text('Try again'),
               ),
@@ -418,9 +418,9 @@ class _Bubble extends StatelessWidget {
                               color: tokens.primaryAccent,
                               borderRadius: BorderRadius.circular(4),
                             ),
-                            child: const Text('AGENT',
+                            child: Text('AGENT',
                                 style: TextStyle(
-                                  color: Colors.white,
+                                  color: tokens.onPrimaryAccent,
                                   fontSize: 8,
                                   fontWeight: FontWeight.w800,
                                   letterSpacing: 0.4,
@@ -534,15 +534,15 @@ class _Composer extends StatelessWidget {
                 width: 40,
                 height: 40,
                 child: sending
-                    ? const Padding(
+                    ? Padding(
                         padding: EdgeInsets.all(11),
                         child: CircularProgressIndicator(
                           strokeWidth: 2,
-                          color: Colors.white,
+                          color: tokens.onPrimaryAccent,
                         ),
                       )
-                    : const Icon(Icons.send,
-                        color: Colors.white, size: 16),
+                    : Icon(Icons.send,
+                        color: tokens.onPrimaryAccent, size: 16),
               ),
             ),
           ),

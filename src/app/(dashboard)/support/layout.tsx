@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation'
 
 import { getFullSession } from '@/lib/auth'
+import AppleSurface from '@/components/ui/AppleSurface'
 
 export default async function SupportLayout({
   children,
@@ -17,5 +18,10 @@ export default async function SupportLayout({
     redirect('/dashboard')
   }
 
-  return children
+  return (
+    <>
+      <AppleSurface />
+      {children}
+    </>
+  )
 }

@@ -17,6 +17,7 @@ export default function FreeResourcesPage() {
   const cards = [
     {
       href: '/free-resources/courses',
+      banner: '/images/free-courses-banner.webp',
       title: 'Free Courses',
       description: 'Browse and enroll for free.',
       count: freeCoursesCount,
@@ -32,6 +33,7 @@ export default function FreeResourcesPage() {
     },
     {
       href: '/free-resources/materials',
+      banner: '/images/free-materials-banner.webp',
       title: 'Free Materials',
       description: 'Notes, summaries and formula sheets.',
       count: freeMaterialsCount,
@@ -63,6 +65,10 @@ export default function FreeResourcesPage() {
   return (
     <div className="page-container fade-in">
       <style>{`
+        .free-banner { border-radius: 28px; box-shadow: 0 1px 2px rgba(16,24,40,.06), 0 10px 30px rgba(16,24,40,.10); transition: transform .2s cubic-bezier(.2,.8,.2,1), box-shadow .2s; -webkit-tap-highlight-color: transparent; }
+        .free-banner:active { transform: scale(.985); }
+        @media (hover: hover) { .free-banner:hover { transform: translateY(-3px); box-shadow: 0 2px 4px rgba(16,24,40,.06), 0 16px 40px rgba(16,24,40,.14); } }
+        @media (prefers-reduced-motion: reduce) { .free-banner, .free-banner:hover, .free-banner:active { transition: none; transform: none; } }
         @media (max-width: 768px) {
           .free-resources-grid {
             grid-template-columns: repeat(2, 1fr) !important;
@@ -185,7 +191,20 @@ export default function FreeResourcesPage() {
       </div>
 
       <div className="free-resources-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '24px', width: '100%' }}>
-        {cards.map(card => (
+        {cards.map((card, idx) => (card as any).banner ? (
+          <Link key={card.href} href={card.href} className="free-banner" style={{ gridColumn: '1 / -1', display: 'block', textDecoration: 'none' }} aria-label={`${card.title}. ${card.description}`}>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={(card as any).banner}
+              alt=""
+              width={1200}
+              height={400}
+              loading={idx === 0 ? 'eager' : 'lazy'}
+              decoding="async"
+              style={{ display: 'block', width: '100%', height: 'auto', aspectRatio: '3 / 1', borderRadius: 28, objectFit: 'cover' }}
+            />
+          </Link>
+        ) : (
           <Link key={card.href} href={card.href} style={{ textDecoration: 'none' }}>
             <div className="card free-res-card" style={{
               padding: '32px 24px',

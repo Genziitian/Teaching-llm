@@ -133,6 +133,7 @@ model User {
   homeworkSubmissions     HomeworkSubmission[]         @relation("HomeworkSubmitter")
 
   @@index([role])  // Used by dashboard count: prisma.user.count({ where: { role: 'STUDENT' } })
+  paymentAttempts         PaymentAttempt[]
 }
 
 model Course {
@@ -1213,6 +1214,43 @@ model CourseOffering {
   orderItems            OrderItem[]
 
   @@index([courseId])
+}
+
+/// Every checkout attempt that did not end in a confirmed payment (failed,
+/// cancelled, abandoned, needs verification) so managers can follow up.
+model PaymentAttempt {
+  id             String    @id @default(cuid())
+  userId         String
+  kind           String
+  itemName       String
+  itemRef        String?
+  amount         Float?
+  gateway        String    @default("RAZORPAY")
+  platform       String    @default("WEB")
+  status         String    @default("STARTED")
+  reason         String?
+  orderRef       String?
+  paymentRef     String?
+  followUpStatus String    @default("NEW")
+  followUpNote   String?
+  followedUpBy   String?
+  followedUpAt   DateTime?
+  remindersSent  Int      @default(0)
+  lastReminderAt DateTime?
+  notifiedStatus String?
+  stopReasons    String?
+  stopNote       String?
+  feedbackAt     DateTime?
+  feedbackAskedAt DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([status])
+  @@index([followUpStatus])
+  @@index([createdAt])
+  @@index([orderRef])
 }
 
 model Order {

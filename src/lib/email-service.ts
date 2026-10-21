@@ -1,3 +1,4 @@
+import { sendPaymentMail, paymentMailEnabled } from '@/lib/payment-mail'
 import nodemailer from 'nodemailer'
 
 /**
@@ -99,6 +100,24 @@ export async function sendEmail({
  * Utility to trigger Google App Script webhooks for existing order/mentorship email notifications.
  */
 export async function sendEmailNotification(type: 'mentorship_confirmed' | 'meet_invite' | 'purchase' | 'upgrade', data: any) {
+  // Upgrade payments send no email.
+  if (type === 'upgrade') return
+
+  // New payment emails: when PAYMENT_MAIL_WEBHOOK_URL is set they replace the old purchase email.
+  if (type === 'purchase' && paymentMailEnabled()) {
+    await sendPaymentMail({
+      status: 'SUCCESS',
+      itemType: data.itemType,
+      name: data.userName,
+      email: data.userEmail || data.email,
+      phone: data.phone,
+      itemName: String(data.itemName || ''),
+      amount: typeof data.amount === 'number' ? data.amount : Number(data.amount) || 0,
+      paymentId: data.paymentId,
+      orderId: data.orderId,
+    })
+    return
+  }
   const url = process.env.APP_SCRIPT_URL;
   
   if (!url) {

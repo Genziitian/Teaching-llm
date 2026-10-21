@@ -157,10 +157,10 @@ class WhatsNewDialog extends StatelessWidget {
                       color: tokens.primaryAccent,
                       borderRadius: BorderRadius.circular(25),
                     ),
-                    child: const Text(
+                    child: Text(
                       'Got it, continue',
                       style: TextStyle(
-                        color: Colors.white,
+                        color: tokens.onPrimaryAccent,
                         fontSize: 15.5,
                         fontWeight: FontWeight.w700,
                       ),
