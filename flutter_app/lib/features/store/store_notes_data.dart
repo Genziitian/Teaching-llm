@@ -275,8 +275,8 @@ Future<bool> _confirmNoteTerms(BuildContext context) async {
                             ),
                           ),
                           child: checked
-                              ? const Icon(Icons.check_rounded,
-                                  size: 18, color: Colors.white)
+                              ? Icon(Icons.check_rounded,
+                                  size: 18, color: tokens.onPrimaryAccent)
                               : null,
                         ),
                         const SizedBox(width: 12),

@@ -307,7 +307,7 @@ class _TicketDetailPageState extends ConsumerState<TicketDetailPage>
                                   labelStyle: TextStyle(
                                       fontWeight: FontWeight.w600,
                                       color: data['status'] == status
-                                          ? Colors.white
+                                          ? tokens.onPrimaryAccent
                                           : tokens.textPrimary),
                                   onSelected: _busy
                                       ? null
@@ -526,7 +526,7 @@ class _TicketDetailPageState extends ConsumerState<TicketDetailPage>
                                               weight: 700,
                                               size: 21,
                                               color: can
-                                                  ? Colors.white
+                                                  ? tokens.onPrimaryAccent
                                                   : tokens.textMuted),
                                         ),
                                       );

@@ -1,4 +1,5 @@
 import { prisma } from '@/lib/db'
+import { PLAY_COURSE_PRICES } from '@/lib/play-prices'
 
 export type CouponCheckInput = {
   code: string
@@ -93,8 +94,25 @@ export async function checkCoupon(input: CouponCheckInput): Promise<CouponCheckR
   return { ok: true, coupon, discountAmount: computeCouponDiscount(coupon, input.subtotal) }
 }
 
-/** Google Play sells fixed ₹10-step products, so discounted app totals round UP to the next ₹10 (never above the undiscounted price). */
+/**
+ * Google Play sells fixed-price products (course_<rupees>), one for every whole rupee from ₹10 up.
+ * An app total is rounded to the NEAREST whole rupee (.5 and above goes up: ₹314.10 -> ₹314, ₹314.50 -> ₹315).
+ * It is never below ₹10 (Play minimum) and never above the undiscounted price.
+ * PLAY_PRICE_STEP (default 1) can be set to 10 if only a ₹10 ladder of products exists.
+ */
 export function roundForPlay(subtotal: number, finalAmount: number, anyDiscount: boolean): number {
   if (!anyDiscount || finalAmount <= 0) return finalAmount
-  return Math.min(Math.ceil(finalAmount / 10) * 10, Math.round(subtotal))
+  const cap = Math.round(subtotal)
+  const want = Math.round(finalAmount)
+  // The student never pays more than the exact discounted amount: use the highest Play product
+  // that exists at or below it (and never above the undiscounted price).
+  let best = -1
+  for (const p of PLAY_COURSE_PRICES) {
+    if (p > cap || p > want) break
+    best = p
+  }
+  if (best >= 0) return best
+  // nothing at or below: take the lowest existing product that is not above the undiscounted price
+  const up = PLAY_COURSE_PRICES.find(p => p <= cap)
+  return up ?? cap
 }

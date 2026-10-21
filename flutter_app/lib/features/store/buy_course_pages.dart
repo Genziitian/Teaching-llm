@@ -2474,7 +2474,7 @@ class _BundleDetailPageState extends ConsumerState<BundleDetailPage> {
         padding: const EdgeInsets.fromLTRB(8, 14, 8, 0),
         child: Text(
             couponsOn
-                ? 'Payment is handled securely by Google Play. Discounted totals are rounded up to the nearest ₹10 so they match a Play price.'
+                ? 'Payment is handled securely by Google Play. Discounted totals are rounded to the nearest rupee.'
                 : 'Payment is handled securely by Google Play. The final price is shown in the Play checkout.',
             textAlign: TextAlign.center,
             style: TextStyle(fontSize: 12.5, color: tokens.textMuted)),

@@ -540,4 +540,37 @@ export const MASTER_QUERIES: Omit<PlatformQuery, 'id'>[] = [
     appliesTo: 'BOTH',
     order: 29,
   },
+  {
+    question: "Which Google Play product ids were deleted and can NEVER be used again?",
+    answer: `Google Play never lets you create a product with an id that was deleted once (error: 'Product ID already in use'). On 21 Oct 2026 we deleted 261 course products to free slots under the 1000-product limit. These ids are permanently unusable:
+
+• course_10 to course_48
+• course_51 to course_98, except 59, 69, 79, 89
+• course_102 to course_128
+• course_130 to course_148
+• course_151 to course_197, except 159, 169, 179, 189
+• course_202 to course_228
+• course_230 to course_248
+• course_251 to course_297, except 259, 269, 279, 289
+
+Still existing in those ranges: 59, 69, 79, 89, 159, 169, 179, 189, 259, 269, 279, 289. Also untouched: 49, 50, 99, 100, 101, 129, 149, 150, 198 to 201, 229, 249, 250, 298 to 909, and the products added later (about 288 new ones between 910 and 3996). Notes have only note_ ids that were created separately.
+
+Rule for the App: a discounted price is rounded to the nearest rupee, then the app uses the nearest product that really exists (never above the undiscounted price). Eight exact prices cannot exist any more: 187, 212, 224, 237, 254, 262, 284, 297. Example: a Rs 249 course with 15% off is 211.65, which becomes Rs 212 - that product is gone, so the student pays Rs 201 (nearest existing).
+
+Do not try to create any of the deleted ids again. Keep every coupon's Max discount at 101 so prices stay inside the created list. The full list lives in src/lib/play-prices.ts.`,
+    category: 'PLATFORM_SYSTEM',
+    appliesTo: 'APP_ONLY',
+    order: 30,
+  },
+  {
+    question: "Which more Google Play product ids were deleted in the second round (82 ids near the old prices) and can NEVER be used again?",
+    answer: `Second delete on 21 Oct 2026, made to free room for the new Play prices (web price + Rs 50 per course, + Rs 150 per bundle). Google never reuses a deleted id, so these 82 are gone for good:
+
+course_198, course_200, course_201, course_250, course_298, course_300, course_301, course_302, course_346, course_350, course_351, course_352, course_356, course_357, course_360, course_361, course_362, course_395, course_396, course_400, course_401, course_445, course_446, course_449, course_450, course_451, course_495, course_499, course_500, course_501, course_545, course_549, course_555, course_556, course_560, course_561, course_594, course_595, course_599, course_600, course_601, course_605, course_606, course_609, course_610, course_611, course_644, course_645, course_649, course_650, course_651, course_655, course_659, course_660, course_661, course_694, course_699, course_700, course_701, course_705, course_709, course_715, course_721, course_744, course_749, course_750, course_754, course_755, course_759, course_760, course_793, course_794, course_799, course_800, course_809, course_810, course_844, course_848, course_849, course_858, course_859, course_894
+
+None of them is a price or discount price the app uses. The first round of deleted ids is in the entry 'Which Google Play product ids were deleted and can NEVER be used again?'. Also never creatable: course_262 and course_297 (first round). Do not try to create any of these again. The list of products that exist is in src/lib/play-prices.ts.`,
+    category: 'PLATFORM_SYSTEM',
+    appliesTo: 'APP_ONLY',
+    order: 31,
+  },
 ]

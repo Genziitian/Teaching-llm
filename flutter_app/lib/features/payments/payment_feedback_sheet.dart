@@ -126,7 +126,7 @@ class _FeedbackSheetState extends State<_FeedbackSheet> {
                             style: TextStyle(
                               fontSize: 13.5,
                               fontWeight: FontWeight.w600,
-                              color: _picked.contains(e.key) ? Colors.white : tokens.textPrimary,
+                              color: _picked.contains(e.key) ? tokens.onPrimaryAccent : tokens.textPrimary,
                             )),
                       ),
                     ),
@@ -182,8 +182,8 @@ class _FeedbackSheetState extends State<_FeedbackSheet> {
                           alignment: Alignment.center,
                           decoration: BoxDecoration(
                               color: tokens.primaryAccent, borderRadius: BorderRadius.circular(14)),
-                          child: const Text('Send',
-                              style: TextStyle(fontWeight: FontWeight.w800, color: Colors.white)),
+                          child: Text('Send',
+                              style: TextStyle(fontWeight: FontWeight.w800, color: tokens.onPrimaryAccent)),
                         ),
                       ),
                     ),

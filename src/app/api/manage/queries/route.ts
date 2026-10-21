@@ -76,6 +76,8 @@ export async function GET() {
         "What changed in the website store design (details screens, notes, bundle cards)?",
         "How does the App Home screen decide between 'Live Now' and 'Upcoming Session'?",
         "Checklist: what must be done after deploying the Google Play billing and store changes?",
+        "Which Google Play product ids were deleted and can NEVER be used again?",
+        "Which more Google Play product ids were deleted in the second round (82 ids near the old prices) and can NEVER be used again?",
       ])
       const missingAddedQueries = MASTER_QUERIES.filter(item =>
         addedMasterQuestions.has(item.question) && !queries.some(query => query.question === item.question)

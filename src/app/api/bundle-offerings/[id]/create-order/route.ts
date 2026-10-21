@@ -214,13 +214,18 @@ export async function POST(
     // ── Final amount ──
     let finalAmount = Math.max(0, afterBundleDiscount - couponDiscountAmount)
     if (playMode && appCouponsOn) {
-      // Round up to the next ₹10 (Play product ladder); the extra is taken back from the discount.
+      // Round to the nearest whole rupee (Play product ladder); the difference moves into the discount.
       const rounded = roundForPlay(subtotal, finalAmount, bundleDiscountAmount + couponDiscountAmount > 0)
-      let extra = rounded - finalAmount
-      const fromCoupon = Math.min(extra, couponDiscountAmount)
-      couponDiscountAmount -= fromCoupon
-      extra -= fromCoupon
-      bundleDiscountAmount = Math.max(0, bundleDiscountAmount - extra)
+      let extra = rounded - finalAmount // > 0: student pays a little more (rounded up / ₹10 minimum); < 0: a little less
+      if (extra < 0) {
+        if (appliedCouponId) couponDiscountAmount += -extra
+        else bundleDiscountAmount += -extra
+      } else if (extra > 0) {
+        const fromCoupon = Math.min(extra, couponDiscountAmount)
+        couponDiscountAmount -= fromCoupon
+        extra -= fromCoupon
+        bundleDiscountAmount = Math.max(0, bundleDiscountAmount - extra)
+      }
       finalAmount = rounded
     }
     const totalAmountPaise = Math.round(finalAmount * 100)
