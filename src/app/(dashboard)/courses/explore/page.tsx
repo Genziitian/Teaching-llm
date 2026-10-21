@@ -45,7 +45,7 @@ const TERM_ART: Record<string, { src: string; dark: boolean; accent: string }> =
   qualifier: { src: '/store-art/term-qualifier.webp', dark: true, accent: '#0B1B3F' },
   diploma: { src: '/store-art/term-diploma.webp', dark: true, accent: '#0A5C4E' },
   degree: { src: '/store-art/term-degree.webp', dark: true, accent: '#3A1D00' },
-  're-attempt': { src: '/store-art/term-reattempt.webp', dark: true, accent: '#1B2A5C' },
+  're-attempt': { src: '/store-art/term-reattempt.webp', dark: false, accent: '#1B2A5C' },
 }
 const termArtFor = (name: string) => {
   const l = (name || '').toLowerCase()
