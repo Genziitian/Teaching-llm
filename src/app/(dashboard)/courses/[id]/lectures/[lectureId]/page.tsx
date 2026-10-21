@@ -22,8 +22,11 @@ import {
   FileText,
   Info
 } from 'lucide-react'
+import dynamic from 'next/dynamic'
 import { useLoadingFact } from '@/hooks/useLoadingFact'
 import LoadingFactCard from '@/components/ui/LoadingFactCard'
+// Keep web lecture previews enabled; removing this viewer leaves course PDFs download-only.
+const SecureWebPdfViewerLoader = dynamic(() => import('@/components/pdf/SecureWebPdfViewerLoader'), { ssr: false })
 
 interface Comment {
   id: string
@@ -1336,19 +1339,8 @@ export default function LecturePage() {
                     )}
                   </div>
                 </div>
-                <div className="card" style={{ minHeight: '360px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '12px', padding: '32px', textAlign: 'center' }}>
-                  <FileText size={36} style={{ color: 'var(--accent)' }} />
-                  <p style={{ margin: 0, color: 'var(--text-secondary)' }}>
-                    PDF preview is unavailable on the website. Download the notes to open them, or use the mobile app to read them there.
-                  </p>
-                  {activePdfContent && (
-                    <a
-                      href={`/api/drive-doc/${activePdfContent.id}`}
-                      style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '10px 16px', borderRadius: '9px', background: 'var(--accent)', color: '#fff', fontWeight: 700, textDecoration: 'none' }}
-                    >
-                      <Download size={15} /> Download Notes
-                    </a>
-                  )}
+                <div style={{ minHeight: '700px', overflow: 'hidden' }}>
+                  <SecureWebPdfViewerLoader fileUrl={`/api/drive-doc/${activePdfContent?.id}`} watermarkEmail={currentUser?.email || ""} title={activePdfContent?.title || ""} />
                 </div>
               </>
             )}
