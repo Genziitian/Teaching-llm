@@ -18,12 +18,14 @@ const CATEGORY_LABELS: Record<string, string> = {
   qualifier: 'Qualifier Courses',
   foundation: 'Foundation Courses',
   diploma: 'Diploma Courses',
+  degree: 'Degree Courses',
   notes: 'Notes & PYQs',
 }
 const CATEGORY_TO_VIEW: Record<string, 'courses' | 'notes' | 'mentorship'> = {
   qualifier: 'courses',
   foundation: 'courses',
   diploma: 'courses',
+  degree: 'courses',
   notes: 'notes',
 }
 
@@ -41,8 +43,9 @@ const TERM_ART: Record<string, { src: string; dark: boolean; accent: string }> =
   general: { src: '/store-art/term-general.webp', dark: false, accent: '#3B4FD8' },
   foundation: { src: '/store-art/term-foundation.webp', dark: false, accent: '#1F7A45' },
   qualifier: { src: '/store-art/term-qualifier.webp', dark: true, accent: '#0B1B3F' },
-  diploma: { src: '/store-art/term-diploma.webp', dark: false, accent: '#0A5C4E' },
+  diploma: { src: '/store-art/term-diploma.webp', dark: true, accent: '#0A5C4E' },
   degree: { src: '/store-art/term-degree.webp', dark: true, accent: '#3A1D00' },
+  're-attempt': { src: '/store-art/term-reattempt.webp', dark: true, accent: '#1B2A5C' },
 }
 const termArtFor = (name: string) => {
   const l = (name || '').toLowerCase()
@@ -548,7 +551,7 @@ export default function ExploreCoursesPage() {
   const activeBundles = bundleOfferings || []
 
   // Dynamic Level Tabs for Courses & Bundles
-  const visibleCategories = ['Re-attempt', 'Foundation', 'Qualifier', 'Diploma', 'General'].filter(cat => {
+  const visibleCategories = ['Re-attempt', 'Foundation', 'Qualifier', 'Diploma', 'Degree', 'General'].filter(cat => {
     const hasOfferings = activeOfferings.some((o: any) => (o.category || 'General') === cat)
     const hasBundles = activeBundles.some((b: any) => (b.category || 'General') === cat)
     return hasOfferings || hasBundles
@@ -562,7 +565,7 @@ export default function ExploreCoursesPage() {
 
   // Dynamic Level and Subject Tabs for Store Notes
   const activeNotes = storeNotesData?.notes || []
-  const visibleNotesCategories = ['Re-attempt', 'Foundation', 'Qualifier', 'Diploma', 'General'].filter(cat => {
+  const visibleNotesCategories = ['Re-attempt', 'Foundation', 'Qualifier', 'Diploma', 'Degree', 'General'].filter(cat => {
     return activeNotes.some((n: any) => (n.category || 'General') === cat)
   })
   const currentNotesTab = visibleNotesCategories.includes(selectedNotesTab)
@@ -3110,6 +3113,7 @@ export default function ExploreCoursesPage() {
                     <option value="Foundation">Foundation</option>
                     <option value="Qualifier">Qualifier</option>
                     <option value="Diploma">Diploma</option>
+                    <option value="Degree">Degree</option>
                     <option value="General">General</option>
                   </select>
                 </div>
@@ -3675,6 +3679,7 @@ export default function ExploreCoursesPage() {
                     <option value="Foundation">Foundation</option>
                     <option value="Qualifier">Qualifier</option>
                     <option value="Diploma">Diploma</option>
+                    <option value="Degree">Degree</option>
                     <option value="General">General</option>
                   </select>
                 </div>
@@ -3869,6 +3874,7 @@ export default function ExploreCoursesPage() {
                 <option value="Foundation">Foundation</option>
                 <option value="Qualifier">Qualifier</option>
                 <option value="Diploma">Diploma</option>
+                <option value="Degree">Degree</option>
                 <option value="General">General</option>
               </select>
             </div>
@@ -4317,6 +4323,7 @@ export default function ExploreCoursesPage() {
                 <option value="Foundation">Foundation</option>
                 <option value="Qualifier">Qualifier</option>
                 <option value="Diploma">Diploma</option>
+                <option value="Degree">Degree</option>
                 <option value="General">General</option>
               </select>
             </div>
@@ -4800,6 +4807,7 @@ export default function ExploreCoursesPage() {
                 <option value="Foundation">Foundation</option>
                 <option value="Qualifier">Qualifier</option>
                 <option value="Diploma">Diploma</option>
+                <option value="Degree">Degree</option>
                 <option value="General">General</option>
               </select>
             </div>

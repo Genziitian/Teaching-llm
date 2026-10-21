@@ -1254,7 +1254,7 @@ export default function LecturePage() {
                       }}
                       style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'var(--accent)', color: 'white', border: 'none', padding: '8px 16px', borderRadius: '8px', cursor: 'pointer', fontWeight: 600, fontSize: '14px' }}
                     >
-                      <ExternalLink size={16} /> Open Notes
+                      <ExternalLink size={16} /> Download Notes
                     </button>
                   )}
                 </section>
@@ -1331,7 +1331,7 @@ export default function LecturePage() {
                         }}
                       >
                         <ExternalLink size={15} />
-                        Open Notes
+                        Download Notes
                       </a>
                     )}
                   </div>
@@ -1348,7 +1348,7 @@ export default function LecturePage() {
                       rel="noopener noreferrer"
                       style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '10px 16px', borderRadius: '9px', background: 'var(--accent)', color: '#fff', fontWeight: 700, textDecoration: 'none' }}
                     >
-                      <ExternalLink size={15} /> Open Notes
+                      <ExternalLink size={15} /> Download Notes
                     </a>
                   )}
                 </div>
@@ -1611,7 +1611,7 @@ export default function LecturePage() {
                         display: 'block',
                       }}
                     >
-                      Open Notes
+                      Download Notes
                     </a>
                   )}
                 </div>
@@ -1893,7 +1893,7 @@ export default function LecturePage() {
                       onMouseEnter={e => (e.currentTarget as HTMLElement).style.opacity = '0.9'}
                       onMouseLeave={e => (e.currentTarget as HTMLElement).style.opacity = '1'}
                     >
-                      Open Notes
+                      Download Notes
                     </a>
                   )}
                 </div>
