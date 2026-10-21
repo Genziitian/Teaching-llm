@@ -138,10 +138,10 @@ class _SupportPageState extends ConsumerState<SupportPage> with WidgetsBindingOb
                               ? null
                               : [
                                   BoxShadow(
-                                    color: tokens.primaryAccent
-                                        .withValues(alpha: 0.35),
-                                    blurRadius: 16,
-                                    offset: const Offset(0, 6),
+                                    color: Colors.black
+                                        .withValues(alpha: 0.18),
+                                    blurRadius: 8,
+                                    offset: const Offset(0, 3),
                                   ),
                                 ],
                         ),

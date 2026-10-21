@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -148,32 +149,26 @@ class _SplashOverlayState extends ConsumerState<SplashOverlay>
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // GenZ IITIAN Logo (eases in: fade + slight scale)
-          TweenAnimationBuilder<double>(
-            tween: Tween(begin: 0, end: 1),
-            duration: const Duration(milliseconds: 650),
-            curve: Curves.easeOutCubic,
-            builder: (context, t, child) => Opacity(
-              opacity: t,
-              child: Transform.scale(scale: 0.92 + 0.08 * t, child: child),
-            ),
+          // GenZ IITIAN Logo: springy entrance, soft breathing, light sweep and
+          // slow drifting colour blobs behind it.
+          _AnimatedLogo(
             child: Image.asset(
-            'assets/mobile-login-logo.png',
-            width: 170,
-            height: 65,
-            fit: BoxFit.contain,
-            errorBuilder: (context, error, stackTrace) {
-              return const Text(
-                'GenZ® IITIAN',
-                style: TextStyle(
-                  fontSize: 26,
-                  fontWeight: FontWeight.w900,
-                  color: Color(0xFF0F172A),
-                  letterSpacing: -0.5,
-                ),
-              );
-            },
-          ),
+              'assets/mobile-login-logo.png',
+              width: 170,
+              height: 65,
+              fit: BoxFit.contain,
+              errorBuilder: (context, error, stackTrace) {
+                return const Text(
+                  'GenZ® IITIAN',
+                  style: TextStyle(
+                    fontSize: 26,
+                    fontWeight: FontWeight.w900,
+                    color: Color(0xFF0F172A),
+                    letterSpacing: -0.5,
+                  ),
+                );
+              },
+            ),
           ),
           const SizedBox(height: 40),
 
@@ -227,6 +222,110 @@ class _SplashOverlayState extends ConsumerState<SplashOverlay>
           ],
         ],
       ),
+    );
+  }
+}
+
+
+/// Animated brand mark for the launch splash.
+class _AnimatedLogo extends StatefulWidget {
+  const _AnimatedLogo({required this.child});
+  final Widget child;
+
+  @override
+  State<_AnimatedLogo> createState() => _AnimatedLogoState();
+}
+
+class _AnimatedLogoState extends State<_AnimatedLogo>
+    with TickerProviderStateMixin {
+  late final AnimationController _intro = AnimationController(
+      vsync: this, duration: const Duration(milliseconds: 900))
+    ..forward();
+  late final AnimationController _loop = AnimationController(
+      vsync: this, duration: const Duration(milliseconds: 2400))
+    ..repeat();
+
+  @override
+  void dispose() {
+    _intro.dispose();
+    _loop.dispose();
+    super.dispose();
+  }
+
+  Widget _blob(double dx, double dy, double size, Color color, double phase) {
+    final a = (_loop.value + phase) * 2 * math.pi;
+    return Transform.translate(
+      offset: Offset(dx + math.cos(a) * 10, dy + math.sin(a) * 8),
+      child: Container(
+        width: size,
+        height: size,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          gradient: RadialGradient(colors: [
+            color.withValues(alpha: 0.22),
+            color.withValues(alpha: 0.0),
+          ]),
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: Listenable.merge([_intro, _loop]),
+      builder: (context, _) {
+        final t = Curves.easeOutBack.transform(_intro.value.clamp(0.0, 1.0));
+        final fade = Curves.easeOut.transform((_intro.value * 1.6).clamp(0.0, 1.0));
+        final breathe = 1 + 0.025 * math.sin(_loop.value * 2 * math.pi);
+        // Highlight sweep runs across the logo once per loop.
+        final sweep = -0.6 + 2.2 * _loop.value;
+        return SizedBox(
+          width: 260,
+          height: 150,
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              Opacity(
+                opacity: fade,
+                child: _blob(-70, -18, 130, const Color(0xFFDC2626), 0.0),
+              ),
+              Opacity(
+                opacity: fade,
+                child: _blob(70, 20, 120, const Color(0xFF6366F1), 0.33),
+              ),
+              Opacity(
+                opacity: fade,
+                child: _blob(8, 36, 100, const Color(0xFFFFB800), 0.66),
+              ),
+              Opacity(
+                opacity: fade,
+                child: Transform.scale(
+                  scale: (0.7 + 0.3 * t) * breathe,
+                  child: ShaderMask(
+                    blendMode: BlendMode.srcATop,
+                    shaderCallback: (rect) => LinearGradient(
+                      begin: Alignment.centerLeft,
+                      end: Alignment.centerRight,
+                      colors: const [
+                        Color(0x00FFFFFF),
+                        Color(0x99FFFFFF),
+                        Color(0x00FFFFFF),
+                      ],
+                      stops: [
+                        (sweep - 0.18).clamp(0.0, 1.0),
+                        sweep.clamp(0.0, 1.0),
+                        (sweep + 0.18).clamp(0.0, 1.0),
+                      ],
+                    ).createShader(rect),
+                    child: widget.child,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 }

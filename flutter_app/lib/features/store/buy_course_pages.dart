@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:material_ui/material_ui.dart';
 
+import 'package:dio/dio.dart' show DioException;
 import '../../core/auth/auth_providers.dart';
 import '../../core/payments/play_billing_service.dart';
 import '../../shared/widgets/apple_pressable.dart';
@@ -19,6 +20,7 @@ import 'course_offerings_page.dart' show courseOfferingsProvider;
 import '../../shared/widgets/shimmer_loading.dart';
 import 'dart:async';
 import '../payments/payment_result_page.dart';
+import 'coupon_celebration.dart';
 import '../../core/payments/payment_attempt_logger.dart';
 
 /// /api/bundle-offerings: same data the website store shows.
@@ -126,6 +128,17 @@ List<String> _availableTypes(Map<String, dynamic> b) {
 
 String _typeLabel(String t) =>
     t == 'RECORDED' ? 'Recorded' : (t == 'CHAMPION' ? 'Champion' : 'Live Pro');
+
+/// Manager switch (web Store page): is the coupon box shown in the app?
+final appCouponsEnabledProvider = FutureProvider<bool>((ref) async {
+  try {
+    final res = await ref.watch(apiClientProvider).get<dynamic>('/api/app-flags');
+    final d = res.data;
+    return d is Map && d['couponsEnabled'] == true;
+  } catch (_) {
+    return false;
+  }
+});
 
 /// Estimated total (the server calculates the final amount at checkout).
 double? _estimate(Map<String, dynamic> b, String type, List<String> ids) {
@@ -1219,6 +1232,90 @@ class _BundleDetailPageState extends ConsumerState<BundleDetailPage> {
   }
 
   bool _buying = false;
+
+  // ── Coupon (app) ──
+  final TextEditingController _couponCtl = TextEditingController();
+  String? _couponApplied; // code that was accepted by the server
+  String? _couponKey; // batch + courses the coupon was checked for
+  double _couponSave = 0;
+  double? _couponPayable;
+  String? _couponError;
+  bool _couponBusy = false;
+
+  @override
+  void dispose() {
+    _couponCtl.dispose();
+    super.dispose();
+  }
+
+  String _couponKeyFor(List<String> ids) => '${_type ?? ''}|${(List<String>.of(ids)..sort()).join(',')}';
+
+  Future<void> _applyCoupon(List<String> ids, double? total) async {
+    final code = _couponCtl.text.trim().toUpperCase();
+    if (code.isEmpty || total == null || _couponBusy) return;
+    FocusManager.instance.primaryFocus?.unfocus();
+    setState(() {
+      _couponBusy = true;
+      _couponError = null;
+    });
+    try {
+      final res = await ref.read(apiClientProvider).post<Map<String, dynamic>>(
+        '/api/store/coupons/validate',
+        body: {
+          'code': code,
+          'bundleOfferingId': widget.bundleId,
+          'subtotal': total,
+          'originalSubtotal': total,
+          'playMode': true,
+          'courseIds': ids,
+          'perCourseAccessTypes': {for (final c in ids) c: _type},
+        },
+      );
+      final d = res.data ?? const <String, dynamic>{};
+      if (!mounted) return;
+      HapticFeedback.mediumImpact();
+      setState(() {
+        _couponApplied = (d['code'] ?? code).toString();
+        _couponKey = _couponKeyFor(ids);
+        _couponSave = (d['discountAmount'] as num?)?.toDouble() ?? 0;
+        _couponPayable = (d['payable'] as num?)?.toDouble();
+        _couponBusy = false;
+      });
+      if (_couponSave > 0) {
+        unawaited(showCouponCelebration(context,
+            code: _couponApplied ?? code, saved: _couponSave));
+      }
+    } on DioException catch (e) {
+      final data = e.response?.data;
+      final msg = data is Map && data['error'] is String
+          ? data['error'] as String
+          : 'Could not check this coupon. Please try again.';
+      if (!mounted) return;
+      setState(() {
+        _couponBusy = false;
+        _couponApplied = null;
+        _couponError = msg;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _couponBusy = false;
+        _couponError = 'Could not check this coupon. Please try again.';
+      });
+    }
+  }
+
+  void _removeCoupon() {
+    HapticFeedback.selectionClick();
+    setState(() {
+      _couponApplied = null;
+      _couponKey = null;
+      _couponPayable = null;
+      _couponSave = 0;
+      _couponError = null;
+      _couponCtl.clear();
+    });
+  }
   bool _hasBatchChoice = true;
 
   void _next() {
@@ -1258,7 +1355,8 @@ class _BundleDetailPageState extends ConsumerState<BundleDetailPage> {
           .toList();
       final log = PaymentAttemptLogger(ref.read(apiClientProvider));
       final name = (b['name'] ?? 'Your courses').toString();
-      final amount = _estimate(b, _type!, ids);
+      final amount = (_couponKey == _couponKeyFor(ids) ? _couponPayable : null) ??
+          _estimate(b, _type!, ids);
       final attempt = log.start(
         kind: 'BUNDLE',
         itemName: name,
@@ -1275,6 +1373,7 @@ class _BundleDetailPageState extends ConsumerState<BundleDetailPage> {
           accessType: _type!,
           selectedCourseIds: ids,
           buyAll: ids.length == all.length,
+          couponCode: _couponKey == _couponKeyFor(ids) ? _couponApplied : null,
         );
       } catch (e) {
         result = PlayPaymentResult.failed('Checkout error: $e');
@@ -1375,7 +1474,10 @@ class _BundleDetailPageState extends ConsumerState<BundleDetailPage> {
         ? [for (final c in courseRows) c['id'].toString()]
         : [for (final c in courseRows) if (_selected.contains(c['id'])) c['id'].toString()];
     final priceIds = ids.isNotEmpty ? ids : allIds;
-    final total = _type == null ? null : _estimate(bundle, _type!, ids);
+    final couponsOn = ref.watch(appCouponsEnabledProvider).value ?? false;
+    final baseTotal = _type == null ? null : _estimate(bundle, _type!, ids);
+    final couponOn = couponsOn && _couponApplied != null && _couponKey == _couponKeyFor(ids);
+    final total = (couponOn && _couponPayable != null) ? _couponPayable : baseTotal;
     final allEnrolled = !fixed &&
         courseRows.isNotEmpty &&
         courseRows.every((c) => enrolled.contains(c['id']));
@@ -2091,6 +2193,25 @@ class _BundleDetailPageState extends ConsumerState<BundleDetailPage> {
                 ),
               ),
             Divider(height: 26, thickness: 0.5, color: tokens.border),
+            if (couponOn && _couponSave > 0) ...[
+              Row(
+                children: [
+                  Expanded(
+                    child: Text('Coupon ${_couponApplied!}',
+                        style: TextStyle(
+                            fontSize: 14.5,
+                            fontWeight: FontWeight.w600,
+                            color: tokens.success)),
+                  ),
+                  Text('- ${_money(_couponSave)}',
+                      style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w700,
+                          color: tokens.success)),
+                ],
+              ),
+              const SizedBox(height: 10),
+            ],
             Row(
               children: [
                 Expanded(
@@ -2111,6 +2232,135 @@ class _BundleDetailPageState extends ConsumerState<BundleDetailPage> {
         ),
         icon: Symbols.receipt_long_rounded,
         color: const Color(0xFFFF375F),
+      ),
+      if (couponsOn)
+      card(
+        'Have a coupon?',
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (couponOn)
+              Row(
+                children: [
+                  Icon(Symbols.check_circle_rounded,
+                      size: 22, color: tokens.success),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                        '${_couponApplied!} applied — you save ${_money(_couponSave)}',
+                        style: TextStyle(
+                            fontSize: 14.5,
+                            fontWeight: FontWeight.w700,
+                            color: tokens.textPrimary)),
+                  ),
+                  ApplePressable(
+                    onTap: _removeCoupon,
+                    child: const Padding(
+                      padding: EdgeInsets.all(6),
+                      child: Text('Remove',
+                          style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w700,
+                              color: Color(0xFFFF453A))),
+                    ),
+                  ),
+                ],
+              )
+            else
+              Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: _couponCtl,
+                      textCapitalization: TextCapitalization.characters,
+                      autocorrect: false,
+                      enabled: !_couponBusy,
+                      onChanged: (_) {
+                        if (_couponError != null) {
+                          setState(() => _couponError = null);
+                        }
+                      },
+                      onSubmitted: (_) => _applyCoupon(ids, baseTotal),
+                      style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 0.6,
+                          color: tokens.textPrimary),
+                      decoration: InputDecoration(
+                        hintText: 'Enter coupon code',
+                        hintStyle: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w500,
+                            letterSpacing: 0,
+                            color: tokens.textMuted),
+                        isDense: true,
+                        filled: true,
+                        fillColor: tokens.cardBg,
+                        contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 14, vertical: 14),
+                        border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(14),
+                            borderSide: BorderSide(color: tokens.border)),
+                        enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(14),
+                            borderSide: BorderSide(color: tokens.border)),
+                        focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(14),
+                            borderSide: BorderSide(
+                                color: tokens.textPrimary, width: 1.2)),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  ApplePressable(
+                    onTap: () => _applyCoupon(ids, baseTotal),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 18, vertical: 14),
+                      decoration: BoxDecoration(
+                        color: tokens.textPrimary,
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                      child: _couponBusy
+                          ? SizedBox(
+                              width: 18,
+                              height: 18,
+                              child: CircularProgressIndicator(
+                                  strokeWidth: 2.2,
+                                  color: tokens.cardBg))
+                          : Text('Apply',
+                              style: TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w800,
+                                  color: tokens.cardBg)),
+                    ),
+                  ),
+                ],
+              ),
+            if (_couponError != null)
+              Padding(
+                padding: const EdgeInsets.only(top: 10),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Icon(Symbols.error_rounded,
+                        size: 18, color: Color(0xFFFF453A)),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(_couponError!,
+                          style: const TextStyle(
+                              fontSize: 13.5,
+                              height: 1.35,
+                              fontWeight: FontWeight.w600,
+                              color: Color(0xFFFF453A))),
+                    ),
+                  ],
+                ),
+              ),
+          ],
+        ),
+        icon: Symbols.sell_rounded,
+        color: const Color(0xFF30D158),
       ),
       card('Included with every purchase',
           checks(_kCommonPoints, const Color(0xFF8E8E93)),
@@ -2223,7 +2473,9 @@ class _BundleDetailPageState extends ConsumerState<BundleDetailPage> {
       Padding(
         padding: const EdgeInsets.fromLTRB(8, 14, 8, 0),
         child: Text(
-            'Payment is handled securely by Google Play. The final price is shown in the Play checkout.',
+            couponsOn
+                ? 'Payment is handled securely by Google Play. Discounted totals are rounded up to the nearest ₹10 so they match a Play price.'
+                : 'Payment is handled securely by Google Play. The final price is shown in the Play checkout.',
             textAlign: TextAlign.center,
             style: TextStyle(fontSize: 12.5, color: tokens.textMuted)),
       ),

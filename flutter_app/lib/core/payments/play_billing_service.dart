@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:dio/dio.dart' show DioException;
 import 'package:in_app_purchase/in_app_purchase.dart';
 import '../api/api_client.dart';
 
@@ -208,6 +209,7 @@ class PlayBillingService {
     required String accessType, // RECORDED | LIVE | CHAMPION
     List<String> selectedCourseIds = const [],
     bool buyAll = true,
+    String? couponCode,
   }) async {
     final Map<String, dynamic> order;
     try {
@@ -218,6 +220,8 @@ class PlayBillingService {
         body: {
           'playMode': true,
           'accessType': accessType,
+          if (couponCode != null && couponCode.trim().isNotEmpty)
+            'couponCode': couponCode.trim(),
           if (isBundle) ...{
             'buyAll': buyAll,
             'selectedCourseIds': selectedCourseIds,
@@ -228,6 +232,10 @@ class PlayBillingService {
         },
       );
       order = res.data ?? const <String, dynamic>{};
+    } on DioException catch (e) {
+      final d = e.response?.data;
+      final msg = d is Map && d['error'] is String ? d['error'] as String : null;
+      return PlayPaymentResult.failed(msg ?? e.toString());
     } catch (e) {
       return PlayPaymentResult.failed(e.toString());
     }

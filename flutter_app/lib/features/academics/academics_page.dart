@@ -40,6 +40,7 @@ class AcademicsPage extends ConsumerWidget {
         icon: Symbols.bookmark_rounded,
         route: '/free-resources',
       ),
+      if (ref.watch(authStateProvider).value?.role == 'STUDENT')
       (
         title: 'Purchased Materials',
         gradient: const [Color(0xFFFF9F0A), Color(0xFFF97316)],

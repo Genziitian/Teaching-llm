@@ -15,7 +15,7 @@ export default function CouponManagementPage() {
   const [form, setForm] = useState<any>({
     code: '', discountType: 'PERCENTAGE', discountValue: '', applicability: 'GLOBAL',
     targetBundleIds: '', targetUserEmails: '', targetSubjects: '',
-    minOrderValue: '', isFirstPurchaseOnly: false, isSingleUsePerUser: false,
+    minOrderValue: '', maxDiscount: '', isFirstPurchaseOnly: false, isSingleUsePerUser: false,
     isHidden: false, startDate: '', expiresAt: '', maxUses: '', isActive: true
   })
 
@@ -23,7 +23,7 @@ export default function CouponManagementPage() {
     setForm({
       code: '', discountType: 'PERCENTAGE', discountValue: '', applicability: 'GLOBAL',
       targetBundleIds: '', targetUserEmails: '', targetSubjects: '',
-      minOrderValue: '', isFirstPurchaseOnly: false, isSingleUsePerUser: false,
+      minOrderValue: '', maxDiscount: '', isFirstPurchaseOnly: false, isSingleUsePerUser: false,
       isHidden: false, startDate: '', expiresAt: '', maxUses: '', isActive: true
     })
   }
@@ -131,7 +131,7 @@ export default function CouponManagementPage() {
                 <button onClick={() => toggleActive(c)} style={{ padding: '6px 14px', borderRadius: '8px', background: c.isActive ? 'var(--success-light)' : 'var(--danger-light)', border: c.isActive ? '1px solid #86efac' : '1px solid var(--border)', color: c.isActive ? 'var(--success)' : 'var(--danger)', fontWeight: '700', fontSize: '12px', cursor: 'pointer' }}>
                   {c.isActive ? 'Active' : 'Inactive'}
                 </button>
-                <button onClick={() => { setEditingCoupon(c); setForm({ code: c.code, discountType: c.discountType, discountValue: c.discountValue, applicability: c.applicability, targetBundleIds: c.targetBundleIds || '', targetUserEmails: c.targetUserEmails || '', targetSubjects: c.targetSubjects || '', minOrderValue: c.minOrderValue || '', isFirstPurchaseOnly: c.isFirstPurchaseOnly, isSingleUsePerUser: c.isSingleUsePerUser, isHidden: c.isHidden, startDate: c.startDate ? new Date(c.startDate).toISOString().slice(0, 16) : '', expiresAt: c.expiresAt ? new Date(c.expiresAt).toISOString().slice(0, 16) : '', maxUses: c.maxUses || '', isActive: c.isActive }); setShowCreate(true) }} style={{ padding: '6px 14px', borderRadius: '8px', background: 'var(--surface)', border: '1px solid var(--border)', color: 'var(--text-secondary)', fontWeight: '700', fontSize: '12px', cursor: 'pointer' }}>
+                <button onClick={() => { setEditingCoupon(c); setForm({ code: c.code, discountType: c.discountType, discountValue: c.discountValue, applicability: c.applicability, targetBundleIds: c.targetBundleIds || '', targetUserEmails: c.targetUserEmails || '', targetSubjects: c.targetSubjects || '', minOrderValue: c.minOrderValue || '', maxDiscount: c.maxDiscount || '', isFirstPurchaseOnly: c.isFirstPurchaseOnly, isSingleUsePerUser: c.isSingleUsePerUser, isHidden: c.isHidden, startDate: c.startDate ? new Date(c.startDate).toISOString().slice(0, 16) : '', expiresAt: c.expiresAt ? new Date(c.expiresAt).toISOString().slice(0, 16) : '', maxUses: c.maxUses || '', isActive: c.isActive }); setShowCreate(true) }} style={{ padding: '6px 14px', borderRadius: '8px', background: 'var(--surface)', border: '1px solid var(--border)', color: 'var(--text-secondary)', fontWeight: '700', fontSize: '12px', cursor: 'pointer' }}>
                   Edit
                 </button>
                 <button onClick={() => handleDelete(c)} style={{ padding: '6px 10px', borderRadius: '8px', background: 'var(--danger-light)', border: '1px solid var(--border)', color: 'var(--danger)', fontWeight: '700', fontSize: '12px', cursor: 'pointer' }}>
@@ -207,6 +207,18 @@ export default function CouponManagementPage() {
                 <input type="text" value={form.targetBundleIds} onChange={e => setForm({ ...form, targetBundleIds: e.target.value })} placeholder='["bundleId1","bundleId2"]' style={inputStyle} />
               </div>
             )}
+
+            {form.applicability === 'SUBJECT' && (
+              <div style={{ marginBottom: '16px' }}>
+                <label style={labelStyle}>Target Courses / Subjects (course names, subjects or IDs, comma-separated or JSON array)</label>
+                <input type="text" value={form.targetSubjects} onChange={e => setForm({ ...form, targetSubjects: e.target.value })} placeholder='Physics, Chemistry  or  ["courseId1"]' style={inputStyle} />
+              </div>
+            )}
+
+            <div style={{ marginBottom: '16px' }}>
+              <label style={labelStyle}>Max Discount (optional)</label>
+              <input type="number" min={0} value={form.maxDiscount} onChange={e => setForm({ ...form, maxDiscount: e.target.value })} placeholder="₹ No cap — most a student can save with this coupon" style={inputStyle} />
+            </div>
 
             <div style={{ marginBottom: '16px' }}>
               <label style={labelStyle}>User Email Restrictions (JSON array, optional)</label>

@@ -1344,6 +1344,7 @@ model Coupon {
   targetUserEmails      String?
   targetSubjects        String?
   minOrderValue         Float?
+  maxDiscount           Float?
   isFirstPurchaseOnly   Boolean       @default(false)
   isSingleUsePerUser    Boolean       @default(false)
   isHidden              Boolean       @default(false)
@@ -1772,4 +1773,10 @@ model ProtectionCourse {
   claimsOpenedAt DateTime?
   course    Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
   updatedAt DateTime @updatedAt
+}
+
+model AppFlags {
+  id             String   @id @default("singleton")
+  couponsEnabled Boolean  @default(false)
+  updatedAt      DateTime @updatedAt
 }

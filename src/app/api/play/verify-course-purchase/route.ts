@@ -103,6 +103,23 @@ export async function POST(request: NextRequest) {
       data: { razorpayPaymentId: playOrderId, status: 'SUCCESS' },
     })
 
+    // Count the coupon only once the Play payment is verified.
+    if (order.couponId && order.couponCode) {
+      try {
+        await prisma.$transaction([
+          prisma.coupon.update({
+            where: { id: order.couponId },
+            data: { currentUses: { increment: 1 }, totalRevenueGenerated: { increment: order.amount } },
+          }),
+          prisma.couponUsage.create({
+            data: { couponId: order.couponId, userId: session.userId, orderId: order.id, revenue: order.amount },
+          }),
+        ])
+      } catch (couponError) {
+        console.error('[play verify-course-purchase] Coupon usage tracking failed (non-critical):', couponError)
+      }
+    }
+
     sendEmailNotification('purchase', {
       userEmail: session.email,
       userName: session.name,

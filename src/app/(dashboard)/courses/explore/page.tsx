@@ -66,6 +66,12 @@ export default function ExploreCoursesPage() {
   const { data: staffData } = useSWR('/api/users/staff', fetcher, { revalidateOnFocus: false })
   const { data: courses } = useSWR('/api/courses', fetcher, { revalidateOnFocus: false })
   const [purchasing, setPurchasing] = useState<string | null>(null)
+  const [appCoupons, setAppCoupons] = useState<boolean | null>(null)
+  const [appCouponsBusy, setAppCouponsBusy] = useState(false)
+  useEffect(() => {
+    if (userData?.user?.role !== 'MANAGER') return
+    fetch('/api/app-flags').then(r => r.json()).then(d => setAppCoupons(!!d.couponsEnabled)).catch(() => setAppCoupons(false))
+  }, [userData?.user?.role])
   const [successOrderId, setSuccessOrderId] = useState<string | null>(null)
   const [verifyingPayment, setVerifyingPayment] = useState(false)
   const [purchasedCourse, setPurchasedCourse] = useState<any>(null)
@@ -763,6 +769,35 @@ export default function ExploreCoursesPage() {
             <HelpCircle size={16} strokeWidth={2.5} />
             <span className="support-label">Facing any issue? Get Support</span>
           </a>
+
+          {userData?.user?.role === 'MANAGER' && (
+            <button
+              disabled={appCouponsBusy}
+              onClick={async () => {
+                if (appCoupons === null) {
+                  try { const r = await fetch('/api/app-flags'); const d = await r.json(); setAppCoupons(!!d.couponsEnabled) } catch { setAppCoupons(false) }
+                  return
+                }
+                setAppCouponsBusy(true)
+                try {
+                  const r = await fetch('/api/app-flags', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ couponsEnabled: !appCoupons }) })
+                  const d = await r.json()
+                  if (r.ok) setAppCoupons(!!d.couponsEnabled)
+                  else alert(d.error || 'Could not save')
+                } finally { setAppCouponsBusy(false) }
+              }}
+              title="Show or hide the coupon box in the Google Play app"
+              style={{
+                padding: '10px 16px', borderRadius: '12px', fontSize: '13px', fontWeight: 700, cursor: 'pointer',
+                display: 'flex', alignItems: 'center', gap: '8px', whiteSpace: 'nowrap', flexShrink: 0,
+                border: '1px solid var(--border)', background: appCoupons ? 'var(--success-light, #dcfce7)' : 'var(--surface)',
+                color: appCoupons ? 'var(--success, #16a34a)' : 'var(--text-secondary)'
+              }}
+            >
+              <span style={{ width: 8, height: 8, borderRadius: 999, background: appCoupons ? '#22c55e' : '#9ca3af' }} />
+              {appCoupons === null ? 'App coupons: check status' : appCoupons ? 'App coupons: ON' : 'App coupons: OFF'}
+            </button>
+          )}
 
           {userData?.user?.role === 'MANAGER' && (
             <div style={{ position: 'relative' }}>

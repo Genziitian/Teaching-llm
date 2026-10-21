@@ -104,6 +104,17 @@ const NAV_ITEMS: NavItem[] = [
     ),
   },
   {
+    href: '/free-resources/purchased',
+    label: 'Purchased Materials',
+    roles: ['STUDENT'],
+    icon: (
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+        <path d="M7 11V7a5 5 0 0 1 9.9-1"/>
+      </svg>
+    ),
+  },
+  {
     href: '/community',
     label: 'Community',
     icon: (
@@ -561,6 +572,7 @@ export default function Sidebar({ userRole, userName, userEmail }: SidebarProps)
               const isActive = effectivePath === item.href ||
                 (item.href !== '/dashboard' && item.href !== '/courses/explore' && effectivePath.startsWith(item.href) && 
                  (effectivePath[item.href.length] === '/' || effectivePath[item.href.length] === undefined) && !effectivePath.startsWith('/courses/explore') &&
+                 !(item.href === '/free-resources' && effectivePath.startsWith('/free-resources/purchased')) &&
                  !(item.href === '/manage' && (effectivePath.startsWith('/manage/prompts') || effectivePath.startsWith('/manage/updates') || effectivePath.startsWith('/manage/coupons') || effectivePath.startsWith('/manage/notifications') || effectivePath.startsWith('/manage/contacts') || effectivePath.startsWith('/manage/mail-assigner') || effectivePath.startsWith('/manage/facts'))))
 
               const isStore = item.href === '/courses/explore'

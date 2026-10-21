@@ -13,7 +13,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
     const { 
       code, discountType, discountValue, applicability, 
       targetBundleIds, targetUserEmails, targetSubjects,
-      minOrderValue, isFirstPurchaseOnly, isSingleUsePerUser, isHidden,
+      minOrderValue, maxDiscount, isFirstPurchaseOnly, isSingleUsePerUser, isHidden,
       startDate, expiresAt, maxUses, isActive 
     } = data
 
@@ -26,6 +26,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
     if (targetUserEmails !== undefined) updateData.targetUserEmails = targetUserEmails || null
     if (targetSubjects !== undefined) updateData.targetSubjects = targetSubjects || null
     if (minOrderValue !== undefined) updateData.minOrderValue = minOrderValue ? Number(minOrderValue) : null
+    if (maxDiscount !== undefined) updateData.maxDiscount = maxDiscount ? Number(maxDiscount) : null
     if (isFirstPurchaseOnly !== undefined) updateData.isFirstPurchaseOnly = !!isFirstPurchaseOnly
     if (isSingleUsePerUser !== undefined) updateData.isSingleUsePerUser = !!isSingleUsePerUser
     if (isHidden !== undefined) updateData.isHidden = !!isHidden

@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { getSession } from '@/lib/auth'
 import Razorpay from 'razorpay'
+import { checkCoupon, roundForPlay } from '@/lib/coupon-rules'
+import { getAppCouponsEnabled } from '@/lib/app-flags'
 
 export async function POST(
   request: NextRequest,
@@ -16,9 +18,11 @@ export async function POST(
     const body = await request.json()
     // body: { buyAll: boolean, accessType: 'RECORDED'|'LIVE'|'CHAMPION', selectedCourseIds?: string[], perCourseAccessTypes?: Record<string,string>, couponCode?: string }
     const { buyAll, accessType, selectedCourseIds, perCourseAccessTypes } = body
-    // Google Play purchases use fixed Play prices, so coupons are not applied.
+    // Google Play purchases use fixed ₹10-step Play products: discounts are rounded up to the next ₹10 below.
     const playMode = body.playMode === true
-    const couponCode = playMode ? null : body.couponCode
+    // App coupons (and the ₹10 round-up that goes with them) only run while the manager switch is ON.
+    const appCouponsOn = playMode ? await getAppCouponsEnabled() : true
+    const couponCode = playMode && !appCouponsOn ? null : body.couponCode
 
     if (!['RECORDED', 'LIVE', 'CHAMPION'].includes(accessType)) return NextResponse.json({ error: 'Invalid access type' }, { status: 400 })
 
@@ -125,7 +129,21 @@ export async function POST(
     let appliedCouponId: string | null = null
     let appliedCouponCode: string | null = null
 
-    if (couponCode) {
+    if (couponCode && playMode) {
+      const checked = await checkCoupon({
+        code: couponCode,
+        userId: session.userId,
+        email: session.email,
+        bundleOfferingId: params.id,
+        courseIds: courseEntries.map(e => e.courseId),
+        accessTypes: courseEntries.map(e => e.accessType),
+        subtotal: afterBundleDiscount,
+      })
+      if ('error' in checked) return NextResponse.json({ error: checked.error }, { status: checked.status })
+      couponDiscountAmount = checked.discountAmount
+      appliedCouponId = checked.coupon.id
+      appliedCouponCode = checked.coupon.code
+    } else if (couponCode) {
       const coupon = await prisma.coupon.findUnique({ where: { code: couponCode.toUpperCase() } })
 
       if (coupon && coupon.isActive) {
@@ -185,6 +203,7 @@ export async function POST(
           } else if (coupon.discountType === 'FIXED') {
             couponDiscountAmount = coupon.discountValue
           }
+          if (coupon.maxDiscount != null && coupon.maxDiscount > 0) couponDiscountAmount = Math.min(couponDiscountAmount, coupon.maxDiscount)
           couponDiscountAmount = Math.min(couponDiscountAmount, afterBundleDiscount)
           appliedCouponId = coupon.id
           appliedCouponCode = coupon.code
@@ -193,7 +212,17 @@ export async function POST(
     }
 
     // ── Final amount ──
-    const finalAmount = Math.max(0, afterBundleDiscount - couponDiscountAmount)
+    let finalAmount = Math.max(0, afterBundleDiscount - couponDiscountAmount)
+    if (playMode && appCouponsOn) {
+      // Round up to the next ₹10 (Play product ladder); the extra is taken back from the discount.
+      const rounded = roundForPlay(subtotal, finalAmount, bundleDiscountAmount + couponDiscountAmount > 0)
+      let extra = rounded - finalAmount
+      const fromCoupon = Math.min(extra, couponDiscountAmount)
+      couponDiscountAmount -= fromCoupon
+      extra -= fromCoupon
+      bundleDiscountAmount = Math.max(0, bundleDiscountAmount - extra)
+      finalAmount = rounded
+    }
     const totalAmountPaise = Math.round(finalAmount * 100)
 
     // Create pending order with discount tracking
@@ -261,6 +290,10 @@ export async function POST(
         amount: totalAmountPaise,
         amountRupees: finalAmount,
         playProductId: `course_${Math.round(finalAmount)}`,
+        subtotal,
+        bundleDiscountAmount,
+        couponDiscountAmount,
+        couponCode: appliedCouponCode,
         bundleName: bundle.name
       })
     }

@@ -1433,12 +1433,12 @@ class _LectureGridCard extends ConsumerWidget {
                     decoration: BoxDecoration(
                       gradient: isVideo
                           ? LinearGradient(
-                              colors: [accent, _endOf(accent)],
+                              colors: const [Color(0xFF8E8E93), Color(0xFF636366)],
                               begin: Alignment.topLeft,
                               end: Alignment.bottomRight,
                             )
                           : null,
-                      color: isVideo ? null : accent.withValues(alpha: 0.14),
+                      color: isVideo ? null : const Color(0xFF8E8E93).withValues(alpha: 0.18),
                     ),
                     alignment: Alignment.center,
                     child: isVideo
@@ -1460,7 +1460,7 @@ class _LectureGridCard extends ConsumerWidget {
                             Symbols.description_rounded,
                             fill: 1,
                             size: 30,
-                            color: accent,
+                            color: const Color(0xFF8E8E93),
                           ),
                   ),
                   if (isDownloaded)

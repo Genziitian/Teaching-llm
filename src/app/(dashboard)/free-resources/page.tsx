@@ -3,11 +3,13 @@
 import Link from 'next/link'
 import useSWR from 'swr'
 import { useRouter } from 'next/navigation'
+import { useState } from 'react'
 
 const fetcher = (url: string) => fetch(url).then(r => r.json())
 
 export default function FreeResourcesPage() {
   const router = useRouter()
+  const [query, setQuery] = useState('')
   const { data: courses } = useSWR<any[]>('/api/free-resources/courses', fetcher)
   const { data: materials } = useSWR<any[]>('/api/free-resources/materials', fetcher)
 
@@ -46,20 +48,6 @@ export default function FreeResourcesPage() {
         </svg>
       ),
     },
-    {
-      href: '/free-resources/purchased',
-      title: 'Purchased Materials',
-      description: 'Unlocked through your courses.',
-      count: '30-day',
-      countLabel: 'access expiry',
-      color: 'var(--warning)',
-      gradient: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
-      icon: (
-        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M20 7h-9"/><path d="M14 17H5"/><circle cx="17" cy="17" r="3"/><circle cx="7" cy="7" r="3"/>
-        </svg>
-      ),
-    },
   ]
 
   return (
@@ -69,7 +57,11 @@ export default function FreeResourcesPage() {
         .free-banner:active { transform: scale(.985); }
         @media (hover: hover) { .free-banner:hover { transform: translateY(-3px); box-shadow: 0 2px 4px rgba(16,24,40,.06), 0 16px 40px rgba(16,24,40,.14); } }
         @media (prefers-reduced-motion: reduce) { .free-banner, .free-banner:hover, .free-banner:active { transition: none; transform: none; } }
+        .free-resources-grid { display: flex; flex-direction: column; align-items: center; gap: 20px; width: 100%; }
+        .free-resources-grid .free-banner { width: 100%; max-width: 640px; }
         @media (max-width: 768px) {
+          .free-resources-grid { gap: 16px; }
+          .free-resources-grid .free-banner { border-radius: 22px; }
           .free-resources-grid {
             grid-template-columns: repeat(2, 1fr) !important;
             gap: 12px !important;
@@ -190,9 +182,32 @@ export default function FreeResourcesPage() {
         <h1 className="page-title" style={{ margin: 0, fontSize: '24px', fontWeight: '900', color: 'var(--text-primary)', letterSpacing: '-0.5px' }}>Free Resources</h1>
       </div>
 
-      <div className="free-resources-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '24px', width: '100%' }}>
+      {(() => {
+        const q = query.trim().toLowerCase()
+        const all = [
+          ...((Array.isArray(courses) ? courses : []).map((c: any) => ({ key: 'c' + c.id, title: String(c.name || c.title || ''), sub: 'Free course', href: '/free-resources/courses', course: true }))),
+          ...((Array.isArray(materials) ? materials : []).map((m: any) => ({ key: 'm' + m.id, title: String(m.title || m.name || ''), sub: m.subject ? `Free material · ${m.subject}` : 'Free material', href: '/free-resources/materials', course: false }))),
+        ].filter(r => r.title)
+        const rows = q
+          ? all.filter(r => r.title.toLowerCase().includes(q)).slice(0, 40)
+          : [...all.filter(r => r.course).slice(0, 3), ...all.filter(r => !r.course).slice(0, 3)]
+        ;(globalThis as any).__freeRows = rows
+        return null
+      })()}
+      <div style={{ width: '100%', maxWidth: 640, margin: '0 auto 18px' }}>
+        <input
+          type="search"
+          value={query}
+          onChange={e => setQuery(e.target.value)}
+          placeholder="Search free courses and materials"
+          aria-label="Search free courses and materials"
+          style={{ width: '100%', padding: '14px 16px', borderRadius: 16, border: '1px solid var(--border)', background: 'var(--surface)', color: 'var(--text-primary)', fontSize: 16, outline: 'none' }}
+        />
+      </div>
+
+      <div className="free-resources-grid" style={query.trim() ? { display: 'none' } : undefined}>
         {cards.map((card, idx) => (card as any).banner ? (
-          <Link key={card.href} href={card.href} className="free-banner" style={{ gridColumn: '1 / -1', display: 'block', textDecoration: 'none' }} aria-label={`${card.title}. ${card.description}`}>
+          <Link key={card.href} href={card.href} className="free-banner" style={{ display: 'block', textDecoration: 'none' }} aria-label={`${card.title}. ${card.description}`}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={(card as any).banner}
@@ -201,7 +216,7 @@ export default function FreeResourcesPage() {
               height={400}
               loading={idx === 0 ? 'eager' : 'lazy'}
               decoding="async"
-              style={{ display: 'block', width: '100%', height: 'auto', aspectRatio: '3 / 1', borderRadius: 28, objectFit: 'cover' }}
+              style={{ display: 'block', width: '100%', height: 'auto', aspectRatio: '3 / 1', borderRadius: 'inherit', objectFit: 'cover' }}
             />
           </Link>
         ) : (
@@ -283,6 +298,30 @@ export default function FreeResourcesPage() {
           </Link>
         ))}
       </div>
+
+      {(() => {
+        const rows: any[] = (globalThis as any).__freeRows || []
+        const q = query.trim()
+        return (
+          <div style={{ width: '100%', maxWidth: 640, margin: '22px auto 0' }}>
+            {rows.length > 0 && (
+              <div style={{ fontSize: 17, fontWeight: 800, color: 'var(--text-primary)', margin: '0 4px 10px' }}>{q ? 'Results' : 'Recently added'}</div>
+            )}
+            {rows.length === 0 && q && (
+              <div style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '32px 0' }}>Nothing found for “{query}”</div>
+            )}
+            {rows.map(r => (
+              <Link key={r.key} href={r.href} style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 12, padding: '12px 14px', marginBottom: 8, borderRadius: 16, background: 'var(--surface)', border: '1px solid var(--border)' }}>
+                <div style={{ width: 40, height: 40, borderRadius: 12, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: r.course ? 'rgba(99,102,241,0.16)' : 'rgba(255,184,0,0.18)', color: r.course ? '#6366f1' : '#e0a100', fontWeight: 800 }}>{r.course ? 'C' : 'M'}</div>
+                <div style={{ minWidth: 0, flex: 1 }}>
+                  <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.title}</div>
+                  <div style={{ fontSize: 12.5, color: 'var(--text-muted)' }}>{r.sub}</div>
+                </div>
+              </Link>
+            ))}
+          </div>
+        )
+      })()}
     </div>
   )
 }

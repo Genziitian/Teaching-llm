@@ -35,7 +35,7 @@ export async function POST(request: NextRequest) {
     const { 
       code, discountType, discountValue, applicability, 
       targetBundleIds, targetUserEmails, targetSubjects,
-      minOrderValue, isFirstPurchaseOnly, isSingleUsePerUser, isHidden,
+      minOrderValue, maxDiscount, isFirstPurchaseOnly, isSingleUsePerUser, isHidden,
       startDate, expiresAt, maxUses, isActive 
     } = data
 
@@ -58,6 +58,7 @@ export async function POST(request: NextRequest) {
         targetUserEmails: targetUserEmails || null,
         targetSubjects: targetSubjects || null,
         minOrderValue: minOrderValue ? Number(minOrderValue) : null,
+        maxDiscount: maxDiscount ? Number(maxDiscount) : null,
         isFirstPurchaseOnly: !!isFirstPurchaseOnly,
         isSingleUsePerUser: !!isSingleUsePerUser,
         isHidden: !!isHidden,

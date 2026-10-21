@@ -43,6 +43,9 @@ final playStoreWelcomeServerSeenProvider =
 /// True only while the welcome should be on screen: Android, signed in, not
 /// seen on this phone, and not seen by this account on any phone.
 final playStoreWelcomePendingProvider = Provider<bool>((ref) {
+  // "Welcome to the new app" screen is switched off for everyone.
+  const welcomeEnabled = false;
+  if (!welcomeEnabled) return false;
   if (!playStoreLaunchApplies()) return false;
   if (ref.watch(playStoreLaunchSeenProvider)) return false;
   final user = ref.watch(authStateProvider).value;

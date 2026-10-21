@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { getSession } from '@/lib/auth'
 import Razorpay from 'razorpay'
+import { checkCoupon, roundForPlay } from '@/lib/coupon-rules'
+import { getAppCouponsEnabled } from '@/lib/app-flags'
 
 export async function POST(
   request: NextRequest,
@@ -69,6 +71,28 @@ export async function POST(
       // If they have RECORDED and are buying something, let it proceed (it will be an upgrade)
     }
 
+    // Coupons are used in the Google Play app only (web checkout for single courses is unchanged).
+    const subtotal = price
+    let couponDiscountAmount = 0
+    let appliedCouponId: string | null = null
+    let appliedCouponCode: string | null = null
+    if (body.playMode === true && body.couponCode && (await getAppCouponsEnabled())) {
+      const checked = await checkCoupon({
+        code: body.couponCode,
+        userId: session.userId,
+        email: session.email,
+        courseIds: [offering.courseId],
+        accessTypes: [accessType],
+        subtotal: price,
+      })
+      if ('error' in checked) return NextResponse.json({ error: checked.error }, { status: checked.status })
+      const rounded = roundForPlay(subtotal, price - checked.discountAmount, true)
+      couponDiscountAmount = Math.max(0, subtotal - rounded)
+      price = rounded
+      appliedCouponId = checked.coupon.id
+      appliedCouponCode = checked.coupon.code
+    }
+
     const amountInPaise = Math.round(price * 100)
     
     // Create pending order locally
@@ -76,13 +100,17 @@ export async function POST(
       data: {
         userId: session.userId,
         amount: price,
+        subtotalAmount: subtotal,
+        couponDiscountAmount,
+        couponCode: appliedCouponCode,
+        couponId: appliedCouponId,
         status: 'PENDING',
         items: {
           create: {
             courseOfferingId: offering.id,
             courseId: offering.courseId,
             accessType,
-            price
+            price: subtotal
           }
         }
       }
@@ -94,6 +122,9 @@ export async function POST(
         amount: amountInPaise,
         amountRupees: price,
         playProductId: `course_${Math.round(price)}`,
+        subtotal,
+        couponDiscountAmount,
+        couponCode: appliedCouponCode,
         bundleName: offering.name,
         courseName: offering.course.name,
       })

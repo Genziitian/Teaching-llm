@@ -77,32 +77,228 @@ class FreeResourcesPage extends ConsumerWidget {
           ref.invalidate(freeMaterialsProvider);
           ref.invalidate(purchasedMaterialsProvider);
         },
-        child: ListView(
-          physics: const AlwaysScrollableScrollPhysics(),
-          padding: const EdgeInsets.fromLTRB(0, 16, 0, 24),
-          children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
+        child: _FreeBody(
+          courses: coursesAsync.value ?? const [],
+          materials: materialsAsync.value ?? const [],
+          coursesError: coursesAsync.hasError,
+          materialsError: materialsAsync.hasError,
+        ),
+      ),
+    );
+  }
+}
+
+/// Search + banners + "Recently added", top-aligned so the page never looks empty.
+class _FreeBody extends StatefulWidget {
+  const _FreeBody({
+    required this.courses,
+    required this.materials,
+    required this.coursesError,
+    required this.materialsError,
+  });
+  final List<dynamic> courses;
+  final List<dynamic> materials;
+  final bool coursesError;
+  final bool materialsError;
+
+  @override
+  State<_FreeBody> createState() => _FreeBodyState();
+}
+
+class _FreeBodyState extends State<_FreeBody> {
+  final TextEditingController _q = TextEditingController();
+  String _query = '';
+
+  @override
+  void dispose() {
+    _q.dispose();
+    super.dispose();
+  }
+
+  String _nameOf(dynamic m, {required bool course}) {
+    if (m is! Map) return '';
+    final v = course ? (m['name'] ?? m['title']) : (m['title'] ?? m['name']);
+    return (v ?? '').toString().trim();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final tokens = context.tokens;
+    final q = _query.trim().toLowerCase();
+
+    // (title, subtitle, isCourse)
+    final all = <({String title, String sub, bool course})>[
+      for (final c in widget.courses)
+        if (_nameOf(c, course: true).isNotEmpty)
+          (title: _nameOf(c, course: true), sub: 'Free course', course: true),
+      for (final m in widget.materials)
+        if (_nameOf(m, course: false).isNotEmpty)
+          (
+            title: _nameOf(m, course: false),
+            sub: m is Map && (m['subject'] ?? '').toString().isNotEmpty
+                ? 'Free material · ${m['subject']}'
+                : 'Free material',
+            course: false
+          ),
+    ];
+    final List<({String title, String sub, bool course})> rows;
+    if (q.isEmpty) {
+      final cs = all.where((e) => e.course).take(3);
+      final ms = all.where((e) => !e.course).take(3);
+      rows = [...cs, ...ms];
+    } else {
+      rows = all.where((e) => e.title.toLowerCase().contains(q)).take(40).toList();
+    }
+
+    Widget header(String t) => Padding(
+          padding: const EdgeInsets.fromLTRB(4, 22, 4, 10),
+          child: Text(t,
+              style: TextStyle(
+                  fontSize: 17,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: -0.3,
+                  color: tokens.textPrimary)),
+        );
+
+    return SingleChildScrollView(
+      physics: const AlwaysScrollableScrollPhysics(),
+      keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+      padding: const EdgeInsets.fromLTRB(0, 12, 0, 28),
+      child: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 560),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                TextField(
+                  controller: _q,
+                  onChanged: (v) => setState(() => _query = v),
+                  textInputAction: TextInputAction.search,
+                  style: TextStyle(fontSize: 16, color: tokens.textPrimary),
+                  decoration: InputDecoration(
+                    hintText: 'Search free courses and materials',
+                    hintStyle: TextStyle(fontSize: 15, color: tokens.textMuted),
+                    prefixIcon: Icon(Symbols.search_rounded,
+                        size: 22, color: tokens.textMuted),
+                    suffixIcon: q.isEmpty
+                        ? null
+                        : IconButton(
+                            icon: Icon(Symbols.close_rounded,
+                                size: 20, color: tokens.textMuted),
+                            onPressed: () {
+                              _q.clear();
+                              setState(() => _query = '');
+                            },
+                          ),
+                    isDense: true,
+                    filled: true,
+                    fillColor: tokens.cardBg,
+                    contentPadding: const EdgeInsets.symmetric(vertical: 14),
+                    border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(16),
+                        borderSide: BorderSide(color: tokens.border, width: 0.6)),
+                    enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(16),
+                        borderSide: BorderSide(color: tokens.border, width: 0.6)),
+                    focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(16),
+                        borderSide: BorderSide(color: tokens.textPrimary, width: 1.2)),
+                  ),
+                ),
+                if (q.isEmpty) ...[
+                  const SizedBox(height: 16),
                   _BannerCard(
                     asset: 'assets/store/free-courses-banner.webp',
                     label: 'Free Courses. Browse and enroll for free.',
-                    error: coursesAsync.hasError,
+                    error: widget.coursesError,
                     onTap: () => context.go('/free-resources/courses'),
                   ),
                   const SizedBox(height: 14),
                   _BannerCard(
                     asset: 'assets/store/free-materials-banner.webp',
                     label: 'Free Materials. Notes, summaries and formula sheets.',
-                    error: materialsAsync.hasError,
+                    error: widget.materialsError,
                     onTap: () => context.push('/free-resources/materials'),
                   ),
                 ],
-              ),
+                if (rows.isNotEmpty) header(q.isEmpty ? 'Recently added' : 'Results'),
+                if (rows.isEmpty && q.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 40),
+                    child: Text('Nothing found for "$_query"',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(fontSize: 15, color: tokens.textMuted)),
+                  ),
+                for (final r in rows)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 8),
+                    child: ApplePressable(
+                      onTap: () => r.course
+                          ? context.go('/free-resources/courses')
+                          : context.push('/free-resources/materials'),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 14, vertical: 12),
+                        decoration: BoxDecoration(
+                          color: tokens.cardBg,
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(color: tokens.border, width: 0.5),
+                        ),
+                        child: Row(
+                          children: [
+                            Container(
+                              width: 40,
+                              height: 40,
+                              decoration: BoxDecoration(
+                                color: (r.course
+                                        ? const Color(0xFF6366F1)
+                                        : const Color(0xFFFFB800))
+                                    .withValues(alpha: 0.16),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Icon(
+                                  r.course
+                                      ? Symbols.school_rounded
+                                      : Symbols.description_rounded,
+                                  size: 22,
+                                  color: r.course
+                                      ? const Color(0xFF6366F1)
+                                      : const Color(0xFFE0A100)),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(r.title,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: TextStyle(
+                                          fontSize: 15,
+                                          fontWeight: FontWeight.w700,
+                                          color: tokens.textPrimary)),
+                                  const SizedBox(height: 2),
+                                  Text(r.sub,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: TextStyle(
+                                          fontSize: 12.5,
+                                          color: tokens.textMuted)),
+                                ],
+                              ),
+                            ),
+                            Icon(Symbols.chevron_right_rounded,
+                                size: 22, color: tokens.textMuted),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );

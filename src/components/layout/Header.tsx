@@ -84,6 +84,7 @@ const PAGE_TITLES: Record<string, { title: string; subtitle: string }> = {
   '/feedback':   { title: 'Feedback',           subtitle: 'Average ratings and student reviews.' },
   '/free-resources/courses': { title: 'Free Courses', subtitle: '' },
   '/free-resources/materials': { title: 'Free Materials', subtitle: '' },
+  '/free-resources/purchased': { title: 'Purchased Materials', subtitle: '' },
   '/free-resources': { title: 'Free Resources', subtitle: '' },
   '/transactions': { title: 'Upgrade Transactions', subtitle: 'Monitor student course upgrades and revenue' },
   '/my-transactions': { title: 'My Transaction History', subtitle: 'View all your course transactions and upgrades' },
