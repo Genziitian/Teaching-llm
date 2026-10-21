@@ -3,13 +3,11 @@
 import Link from 'next/link'
 import useSWR from 'swr'
 import { useRouter } from 'next/navigation'
-import { useState } from 'react'
 
 const fetcher = (url: string) => fetch(url).then(r => r.json())
 
 export default function FreeResourcesPage() {
   const router = useRouter()
-  const [query, setQuery] = useState('')
   const { data: courses } = useSWR<any[]>('/api/free-resources/courses', fetcher)
   const { data: materials } = useSWR<any[]>('/api/free-resources/materials', fetcher)
 
@@ -59,6 +57,10 @@ export default function FreeResourcesPage() {
         @media (prefers-reduced-motion: reduce) { .free-banner, .free-banner:hover, .free-banner:active { transition: none; transform: none; } }
         .free-resources-grid { display: flex; flex-direction: column; align-items: center; gap: 20px; width: 100%; }
         .free-resources-grid .free-banner { width: 100%; max-width: 640px; }
+        @media (min-width: 769px) {
+          .free-resources-grid { flex-direction: row; align-items: stretch; justify-content: center; gap: 20px; max-width: 1100px; margin: 0 auto; }
+          .free-resources-grid .free-banner { flex: 1 1 0; min-width: 0; max-width: none; }
+        }
         @media (max-width: 768px) {
           .free-resources-grid { gap: 16px; }
           .free-resources-grid .free-banner { border-radius: 22px; }
@@ -182,30 +184,7 @@ export default function FreeResourcesPage() {
         <h1 className="page-title" style={{ margin: 0, fontSize: '24px', fontWeight: '900', color: 'var(--text-primary)', letterSpacing: '-0.5px' }}>Free Resources</h1>
       </div>
 
-      {(() => {
-        const q = query.trim().toLowerCase()
-        const all = [
-          ...((Array.isArray(courses) ? courses : []).map((c: any) => ({ key: 'c' + c.id, title: String(c.name || c.title || ''), sub: 'Free course', href: '/free-resources/courses', course: true }))),
-          ...((Array.isArray(materials) ? materials : []).map((m: any) => ({ key: 'm' + m.id, title: String(m.title || m.name || ''), sub: m.subject ? `Free material · ${m.subject}` : 'Free material', href: '/free-resources/materials', course: false }))),
-        ].filter(r => r.title)
-        const rows = q
-          ? all.filter(r => r.title.toLowerCase().includes(q)).slice(0, 40)
-          : [...all.filter(r => r.course).slice(0, 3), ...all.filter(r => !r.course).slice(0, 3)]
-        ;(globalThis as any).__freeRows = rows
-        return null
-      })()}
-      <div style={{ width: '100%', maxWidth: 640, margin: '0 auto 18px' }}>
-        <input
-          type="search"
-          value={query}
-          onChange={e => setQuery(e.target.value)}
-          placeholder="Search free courses and materials"
-          aria-label="Search free courses and materials"
-          style={{ width: '100%', padding: '14px 16px', borderRadius: 16, border: '1px solid var(--border)', background: 'var(--surface)', color: 'var(--text-primary)', fontSize: 16, outline: 'none' }}
-        />
-      </div>
-
-      <div className="free-resources-grid" style={query.trim() ? { display: 'none' } : undefined}>
+      <div className="free-resources-grid">
         {cards.map((card, idx) => (card as any).banner ? (
           <Link key={card.href} href={card.href} className="free-banner" style={{ display: 'block', textDecoration: 'none' }} aria-label={`${card.title}. ${card.description}`}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -298,30 +277,6 @@ export default function FreeResourcesPage() {
           </Link>
         ))}
       </div>
-
-      {(() => {
-        const rows: any[] = (globalThis as any).__freeRows || []
-        const q = query.trim()
-        return (
-          <div style={{ width: '100%', maxWidth: 640, margin: '22px auto 0' }}>
-            {rows.length > 0 && (
-              <div style={{ fontSize: 17, fontWeight: 800, color: 'var(--text-primary)', margin: '0 4px 10px' }}>{q ? 'Results' : 'Recently added'}</div>
-            )}
-            {rows.length === 0 && q && (
-              <div style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '32px 0' }}>Nothing found for “{query}”</div>
-            )}
-            {rows.map(r => (
-              <Link key={r.key} href={r.href} style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 12, padding: '12px 14px', marginBottom: 8, borderRadius: 16, background: 'var(--surface)', border: '1px solid var(--border)' }}>
-                <div style={{ width: 40, height: 40, borderRadius: 12, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: r.course ? 'rgba(99,102,241,0.16)' : 'rgba(255,184,0,0.18)', color: r.course ? '#6366f1' : '#e0a100', fontWeight: 800 }}>{r.course ? 'C' : 'M'}</div>
-                <div style={{ minWidth: 0, flex: 1 }}>
-                  <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.title}</div>
-                  <div style={{ fontSize: 12.5, color: 'var(--text-muted)' }}>{r.sub}</div>
-                </div>
-              </Link>
-            ))}
-          </div>
-        )
-      })()}
     </div>
   )
 }

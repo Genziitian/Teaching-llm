@@ -88,7 +88,7 @@ export async function GET(request: NextRequest) {
       where.createdAt = dateFilter
     }
 
-    const [upgradeTransactions, orders, mentorships, testSeries, notes] = await Promise.all([
+    const [upgradeTransactions, orders, mentorships, testSeries, notes, protections] = await Promise.all([
       prisma.upgradeTransaction.findMany({
         where,
         include: {
@@ -146,7 +146,12 @@ export async function GET(request: NextRequest) {
           user: { select: { id: true, name: true, email: true, mobileNumber: true } },
           note: { select: { title: true, price: true } }
         }
-      })
+      }),
+      // Exam Protection purchases (paid only; unpaid attempts live in the Unpaid attempts tab).
+      (prisma as any).protectionPurchase.findMany({
+        where: { ...where, status: 'PAID' },
+        include: { user: { select: { id: true, name: true, email: true, mobileNumber: true } } },
+      }) as Promise<any[]>,
     ])
 
     const transactions = [
@@ -242,6 +247,21 @@ export async function GET(request: NextRequest) {
         user: n.user,
         academicTerm: null,
         academicYear: null,
+        examCycle: null,
+      })),
+      ...protections.map((p: any) => ({
+        id: p.id,
+        orderId: p.providerOrderId || p.id,
+        amount: p.fee,
+        status: 'SUCCESS',
+        createdAt: p.paidAt || p.createdAt,
+        type: 'PROTECTION',
+        source: paymentSource(p.paymentId, p.providerOrderId),
+        course: { id: p.courseId || '', name: `Exam Protection: ${p.courseName}`, subject: p.subject || 'Exam Protection' },
+        courses: [{ id: p.courseId || '', name: `Exam Protection: ${p.courseName}`, subject: p.subject || 'Exam Protection', accessType: 'RECORDED', price: p.fee }],
+        user: p.user,
+        academicTerm: p.academicTerm || null,
+        academicYear: p.academicYear || null,
         examCycle: null,
       }))
     ].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())

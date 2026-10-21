@@ -223,7 +223,7 @@ export default function TransactionsPage() {
           </svg>
         </button>
         <span style={{ fontSize: '20px', fontWeight: 800, color: 'var(--text-primary)', fontFamily: "'Outfit', 'Nunito', sans-serif", letterSpacing: '-0.3px' }}>
-          Upgrade Transactions
+          Transactions
         </span>
       </div>
 
