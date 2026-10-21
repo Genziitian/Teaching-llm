@@ -5,6 +5,7 @@ import { TERMS_AND_CONDITIONS_HTML } from '@/lib/terms-and-conditions'
 import { useState, Suspense, useEffect, useRef } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import MobileLoginExperience from '@/components/auth/MobileLoginExperience'
+import LoginCardsDeck from '@/components/auth/LoginCardsDeck'
 import posthog from 'posthog-js'
 import { useLocalCachedAsset } from '@/hooks/useLocalCachedAsset'
 
@@ -23,10 +24,12 @@ function getSafeRedirect(next: string | null): string {
 
 function PoliciesDropdown({ 
   links, 
-  align = 'left' 
+  align = 'left',
+  variant = 'pill',
 }: { 
   links: Array<{ label: string, icon: string, onClick: () => void }>, 
-  align?: 'left' | 'right' | 'center' 
+  align?: 'left' | 'right' | 'center',
+  variant?: 'pill' | 'text',
 }) {
   const [isOpen, setIsOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
@@ -65,24 +68,26 @@ function PoliciesDropdown({
       <button
         onClick={() => setIsOpen(!isOpen)}
         className="policies-dropdown-trigger"
-        style={{
+        style={variant === 'text' ? { display: 'flex', alignItems: 'center', gap: '6px', fontFamily: 'inherit' } : {
           fontSize: '12px', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '8px', fontWeight: '600',
           padding: '8px 16px', background: 'var(--surface-2)', borderRadius: '50px', border: 'none', cursor: 'pointer',
           boxShadow: 'var(--shadow)', transition: 'all 0.2s ease',
           outline: 'none'
         }}
         onMouseOver={(e) => {
+          if (variant === 'text') return;
           e.currentTarget.style.boxShadow = 'var(--shadow-sm)';
           e.currentTarget.style.color = 'var(--primary)';
         }}
         onMouseOut={(e) => {
+          if (variant === 'text') return;
           if (!isOpen) {
             e.currentTarget.style.boxShadow = 'var(--shadow)';
             e.currentTarget.style.color = 'var(--text-muted)';
           }
         }}
       >
-        <span style={{ fontSize: '14px' }}>⚖️</span>
+        {variant !== 'text' && <span style={{ fontSize: '14px' }}>⚖️</span>}
         <span>Policies</span>
         <span style={{ 
           fontSize: '9px', 
@@ -97,7 +102,7 @@ function PoliciesDropdown({
           className="policies-dropdown-menu"
           style={{
             position: 'absolute',
-            bottom: 'calc(100% + 10px)',
+            ...(variant === 'text' ? { top: 'calc(100% + 10px)' } : { bottom: 'calc(100% + 10px)' }),
             left: align === 'left' ? 0 : align === 'right' ? 'auto' : '50%',
             right: align === 'right' ? 0 : 'auto',
             transform: align === 'center' ? 'translateX(-50%)' : 'none',
@@ -196,180 +201,45 @@ function LoginContent() {
       <div className="mobile-only-login"><MobileLoginExperience /></div>
 
       {/* Desktop login (hidden on mobile via CSS) */}
-      <div className="login-container desktop-only-login">
-      {/* Left Panel - Branding */}
-      <div className="login-left-panel">
-        {/* Logo & Tagline Centered Layout */}
-        <div className="login-logo-container">
-          <div 
-            className="login-logo-card"
-            style={{ 
-            display: 'flex', 
-            flexDirection: 'column',
-            alignItems: 'center', 
-            justifyContent: 'center', 
-            overflow: 'hidden',
-            flexShrink: 0,
-            width: '100%',
-            maxWidth: '320px',
-            minHeight: '200px',
-            padding: '24px 22px 20px',
-            borderRadius: '28px',
-            background: '#ffffff',
-            boxShadow: '0 8px 30px rgba(0,0,0,0.06)',
-            cursor: 'default',
-          }}>
-            <img 
-              src={logoSrc} 
-              alt="GenZ IITIAN Logo" 
-              style={{ 
-                width: '100%',
-                maxWidth: '260px',
-                height: 'auto',
-                maxHeight: '130px',
-                objectFit: 'contain',
-                display: 'block',
-              }} 
-            />
-            <p style={{ fontSize: '17px', color: '#6b6b8a', fontWeight: '600', letterSpacing: '0.02em', marginTop: '12px', textAlign: 'center' }}>
-              Upgrade How You Learn
-            </p>
-          </div>
-        </div>
-          
-          {/* Geometric Characters Composition */}
-          <div className="login-geometric-composition">
-            {/* Purple Rectangle */}
-            <div className="animate-float" style={{ width: '160px', height: '200px', animationDelay: '0s', position: 'relative' }}>
-              <div style={{ width: '100%', height: '100%', background: '#8B5CF6', borderRadius: '24px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', boxShadow: '0 15px 35px rgba(139, 92, 246, 0.35)', transform: 'rotate(-8deg)', transformOrigin: 'center' }}>
-                <div style={{ display: 'flex', gap: '12px' }}>
-                  <div style={{ width: '16px', height: '16px', background: 'white', borderRadius: '50%' }} />
-                  <div style={{ width: '16px', height: '16px', background: 'white', borderRadius: '50%' }} />
+      <div className="lg-root desktop-only-login">
+        <div className="lg-aurora" aria-hidden="true"><i /><i /><i /></div>
+        <div className="lg-grain" aria-hidden="true" />
+        <div className="lg-page">
+          <header className="lg-top">
+            <img src={logoSrc} alt="GenZ IITIAN Logo" className="mobile-login-logo-img lg-logo" />
+            <nav className="lg-links">
+              <PoliciesDropdown links={footerLinksData} align="right" variant="text" />
+              <a href="mailto:admin@genziitian.org" className="lg-link">Contact Us</a>
+            </nav>
+          </header>
+
+          <main className="lg-main">
+            <section className="lg-hero">
+              <h1 className="lg-h1">Upgrade How You <em>Learn</em></h1>
+              <LoginCardsDeck />
+            </section>
+
+            <section className="lg-sheet">
+              <h2 className="lg-title">Welcome Back !</h2>
+
+              {/* Error display */}
+              {displayError && (
+                <div style={{ background: 'rgba(239,68,68,0.08)', color: '#dc2626', padding: '12px 16px', borderRadius: '12px', fontSize: '13px', margin: '16px 0', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                  {displayError}
                 </div>
-                <div style={{ width: '32px', height: '16px', border: '4px solid white', borderTop: 'none', borderRadius: '0 0 16px 16px', marginTop: '12px' }} />
-              </div>
-            </div>
+              )}
 
-            {/* Black Rounded Rectangle */}
-            <div className="animate-float" style={{ width: '180px', height: '220px', animationDelay: '2s', position: 'relative' }}>
-              <div style={{ width: '100%', height: '100%', background: '#111827', borderRadius: '40px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', boxShadow: '0 15px 35px rgba(17, 24, 39, 0.35)', transform: 'rotate(4deg)', transformOrigin: 'center' }}>
-                <div style={{ display: 'flex', gap: '14px' }}>
-                  <div style={{ width: '18px', height: '18px', background: 'white', borderRadius: '50%' }} />
-                  <div style={{ width: '18px', height: '18px', background: 'white', borderRadius: '50%' }} />
-                </div>
-                <div style={{ width: '40px', height: '10px', background: 'white', borderRadius: '5px', marginTop: '16px' }} />
-              </div>
-            </div>
+              <GoogleLoginButton onTermsClick={() => setShowTermsConditions(true)} onPrivacyClick={() => setShowPrivacyPolicy(true)} />
 
-            {/* Orange Semicircle */}
-            <div className="animate-float" style={{ width: '200px', height: '100px', animationDelay: '4s', position: 'relative' }}>
-              <div style={{ width: '100%', height: '100%', background: '#F97316', borderRadius: '100px 100px 0 0', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-end', paddingBottom: '16px', boxShadow: '0 15px 35px rgba(249, 115, 22, 0.35)' }}>
-                <div style={{ display: 'flex', gap: '16px', marginBottom: '10px' }}>
-                  <div style={{ width: '12px', height: '12px', background: 'white', borderRadius: '50%' }} />
-                  <div style={{ width: '12px', height: '12px', background: 'white', borderRadius: '50%' }} />
-                </div>
-                <div style={{ width: '36px', height: '18px', border: '4px solid white', borderTop: 'none', borderRadius: '0 0 18px 18px' }} />
-              </div>
-            </div>
-
-            {/* Yellow Organic Blob */}
-            <div className="animate-float" style={{ width: '180px', height: '180px', animationDelay: '6s', position: 'relative' }}>
-              <div style={{ width: '100%', height: '100%', background: '#FACC15', borderRadius: '50% 50% 30% 70% / 50% 50% 70% 30%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', boxShadow: '0 15px 35px rgba(250, 204, 21, 0.35)', transform: 'rotate(8deg)', transformOrigin: 'center' }}>
-                <div style={{ display: 'flex', gap: '12px' }}>
-                  <div style={{ width: '14px', height: '14px', background: 'white', borderRadius: '50%' }} />
-                  <div style={{ width: '14px', height: '14px', background: 'white', borderRadius: '50%' }} />
-                </div>
-                <div style={{ width: '32px', height: '3px', background: 'white', marginTop: '12px' }} />
-              </div>
-            </div>
-          </div>
-        
-        {/* Footer Links */}
-        <div className="login-footer-links desktop-only-footer-links">
-          <PoliciesDropdown links={footerLinksData} align="left" />
+              <div className="lg-sep" />
+              <a href="https://genziitian.in/courses" target="_blank" rel="noopener noreferrer" className="lg-explore">
+                <span>Explore Courses</span>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+              </a>
+            </section>
+          </main>
         </div>
-      </div>
-
-      {/* Right Panel - Login Form */}
-      <div className="login-right-panel">
-        <div className="modal login-card-container">
-          <h2 className="login-card-title">Welcome Back !</h2>
-
-          {/* Error display */}
-          {displayError && (
-            <div style={{ background: 'rgba(239,68,68,0.08)', color: '#dc2626', padding: '12px 16px', borderRadius: '12px', fontSize: '13px', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-              {displayError}
-            </div>
-          )}
-
-
-
-          <GoogleLoginButton onTermsClick={() => setShowTermsConditions(true)} onPrivacyClick={() => setShowPrivacyPolicy(true)} />
-        </div>
-
-        {/* Explore Courses CTA below the card */}
-        <div style={{ marginTop: '24px', textAlign: 'center' }}>
-          <a 
-            href="https://app.genziitian.in/courses" 
-            target="_blank" 
-            rel="noopener noreferrer"
-            className="login-explore-btn"
-            style={{
-              transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-            }}
-            onMouseOver={e => {
-              e.currentTarget.style.transform = 'translateY(-3px) scale(1.02)';
-              e.currentTarget.style.boxShadow = '0 14px 32px rgba(30, 30, 58, 0.45)';
-            }}
-            onMouseOut={e => {
-              e.currentTarget.style.transform = 'translateY(0) scale(1)';
-              e.currentTarget.style.boxShadow = '0 8px 24px rgba(30, 30, 58, 0.35)';
-            }}
-          >
-            <span>Explore Courses</span>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>
-            </svg>
-          </a>
-        </div>
-        
-        {/* Right Panel Footer (Contact + Mobile Policies) */}
-        <div className="login-right-footer-container">
-          <a
-            href="mailto:admin@genziitian.org"
-            className="login-contact-developer"
-            style={{ 
-              fontSize: '12px', 
-              color: 'var(--text-muted)', 
-              textDecoration: 'none', 
-              display: 'flex', 
-              alignItems: 'center', 
-              gap: '8px', 
-              fontWeight: '600',
-              padding: '8px 16px',
-              background: 'var(--surface-2)',
-              borderRadius: '50px',
-              boxShadow: 'var(--shadow)',
-              transition: 'all 0.2s ease'
-            }}
-            onMouseOver={(e) => {
-              e.currentTarget.style.boxShadow = 'var(--shadow-sm)';
-              e.currentTarget.style.color = 'var(--primary)';
-            }}
-            onMouseOut={(e) => {
-              e.currentTarget.style.boxShadow = 'var(--shadow)';
-              e.currentTarget.style.color = 'var(--text-muted)';
-            }}
-          >
-            <span style={{ fontSize: '14px' }}>✉️</span><span>Contact Us</span>
-          </a>
-
-          <div className="mobile-only-policies-container">
-            <PoliciesDropdown links={footerLinksData} align="right" />
-          </div>
-        </div>
-      </div>
 
       {/* Policy Modals */}
       {[
@@ -544,7 +414,7 @@ function GoogleLoginButton({ onTermsClick, onPrivacyClick }: { onTermsClick?: ()
         size: 'large',
         width: googleBtnRef.current.parentElement?.offsetWidth || 312,
         type: 'standard',
-        shape: 'pill',
+        shape: 'rectangular',
       });
     }
   }, [gsiReady, isCapacitor])
@@ -629,7 +499,7 @@ function GoogleLoginButton({ onTermsClick, onPrivacyClick }: { onTermsClick?: ()
         </div>
       )}
 
-      <p className="login-card-subtitle">
+      <p className="lg-sub">
         Log in or create a new account with Google
       </p>
 
@@ -655,34 +525,10 @@ function GoogleLoginButton({ onTermsClick, onPrivacyClick }: { onTermsClick?: ()
         <button
           onClick={isCapacitor ? handleNativeGoogleSignIn : undefined}
           disabled={isCapacitor ? (!nativeReady || gLoading) : (!gsiReady || gLoading)}
+          className="lg-google"
           style={{
-            width: '100%',
-            padding: '14px 24px',
-            borderRadius: '50px',
-            border: '1px solid rgba(0,0,0,0.08)',
-            background: '#ffffff',
-            boxShadow: '0 4px 12px rgba(0,0,0,0.05)',
             cursor: (isCapacitor ? nativeReady : gsiReady) && !gLoading ? 'pointer' : 'default',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: '12px',
-            fontSize: '16px',
-            fontWeight: '700',
-            color: '#1e1e3a',
-            fontFamily: 'inherit',
-            transition: 'all 0.2s ease',
             opacity: (isCapacitor ? nativeReady : gsiReady) ? 1 : 0.6,
-          }}
-          onMouseOver={(e) => {
-            if ((isCapacitor ? nativeReady : gsiReady) && !gLoading) {
-              e.currentTarget.style.boxShadow = '0 6px 16px rgba(0,0,0,0.1)'
-              e.currentTarget.style.transform = 'translateY(-1px)'
-            }
-          }}
-          onMouseOut={(e) => {
-            e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.05)'
-            e.currentTarget.style.transform = 'none'
           }}
         >
           {gLoading ? (
@@ -817,7 +663,7 @@ function GoogleLoginButton({ onTermsClick, onPrivacyClick }: { onTermsClick?: ()
       )}
 
       <div style={{ marginTop: '16px' }}>
-        <p className="login-terms-text">
+        <p className="lg-terms">
           By continuing, you agree to the <span onClick={onTermsClick} style={{ color: 'var(--text-primary)', cursor: 'pointer', textDecoration: 'underline' }}>Terms & Conditions</span> & <span onClick={onPrivacyClick} style={{ color: 'var(--text-primary)', cursor: 'pointer', textDecoration: 'underline' }}>privacy policy</span>
         </p>
       </div>

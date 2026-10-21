@@ -19,7 +19,7 @@ const RANGE_LABELS: Record<RangeKey, string> = {
   '3m': 'Last 3 Months',
 }
 
-const PIE_COLORS = ['#6366f1', '#10b981', '#f59e0b', '#ec4899', '#0ea5e9', '#8b5cf6', '#14b8a6', '#f97316', '#ef4444', '#84cc16']
+const PIE_COLORS = ['#0a84ff', '#30d158', '#ff9f0a', '#bf5af2', '#64d2ff', '#ff453a', '#5e5ce6', '#ffd60a', '#ac8e68', '#8e8e93']
 
 export default function AnalyticsDashboard() {
   const [range, setRange] = useState<RangeKey>('7d')
@@ -65,9 +65,10 @@ export default function AnalyticsDashboard() {
 
   // ─── Shared Styles ─────────────────────────────────────────────────
   const neuCard: React.CSSProperties = {
-    borderRadius: '20px',
-    background: 'var(--surface-2)',
-    boxShadow: '6px 6px 14px var(--neu-dark), -6px -6px 14px var(--neu-light)',
+    borderRadius: '22px',
+    background: 'var(--surface)',
+    border: '1px solid var(--border)',
+    boxShadow: '0 1px 2px rgba(0,0,0,0.04), 0 8px 24px rgba(0,0,0,0.05)',
     padding: '24px',
   }
 
@@ -80,8 +81,8 @@ export default function AnalyticsDashboard() {
   // ─── Loading / Error ──────────────────────────────────────────────
   if (isLoading && !data) {
     return (
-      <div style={{ padding: '60px', textAlign: 'center', color: '#9999b0' }}>
-        <div className="spinner" style={{ width: 32, height: 32, border: '3px solid #e0e3ea', borderTopColor: '#6366f1', borderRadius: '50%', margin: '0 auto 16px' }} />
+      <div style={{ padding: '60px', textAlign: 'center', color: 'var(--text-muted)' }}>
+        <div className="spinner" style={{ width: 32, height: 32, border: '3px solid #e0e3ea', borderTopColor: '#0a84ff', borderRadius: '50%', margin: '0 auto 16px' }} />
         <div style={{ fontSize: '15px', fontWeight: 700 }}>Loading Analytics...</div>
         <div style={{ marginTop: '8px', fontSize: '13px' }}>Fetching precomputed data</div>
       </div>
@@ -92,7 +93,7 @@ export default function AnalyticsDashboard() {
     return (
       <div style={{ ...neuCard, textAlign: 'center', padding: '60px', color: '#ef4444' }}>
         <div style={{ fontSize: '16px', fontWeight: 700 }}>Error loading analytics</div>
-        <div style={{ marginTop: '8px', fontSize: '13px', color: '#9999b0' }}>{data.error}</div>
+        <div style={{ marginTop: '8px', fontSize: '13px', color: 'var(--text-muted)' }}>{data.error}</div>
       </div>
     )
   }
@@ -142,16 +143,16 @@ export default function AnalyticsDashboard() {
   const levelData = demographics && demographics.iitmLevel ? Object.entries(demographics.iitmLevel).map(([k, v]) => ({ name: k, value: v as number })).filter(d => d.value > 0) : []
   const userTypeData = demographics && demographics.iitmUserType ? Object.entries(demographics.iitmUserType).map(([k, v]) => ({ name: k, value: v as number })).filter(d => d.value > 0) : []
 
-  const YEAR_COLORS = ['#6366f1', '#10b981', '#f59e0b', '#ec4899']
+  const YEAR_COLORS = ['#0a84ff', '#10b981', '#f59e0b', '#ec4899']
   const MONTH_COLORS = ['#f59e0b', '#10b981', '#8b5cf6']
 
   const GENDER_CONFIG: Record<string, { color: string; icon: string }> = {
     MALE:        { color: '#3b82f6', icon: '♂' },
     FEMALE:      { color: '#ec4899', icon: '♀' },
     OTHER:       { color: '#a855f7', icon: '⚧' },
-    UNSPECIFIED: { color: '#9999b0', icon: '?' },
+    UNSPECIFIED: { color: 'var(--text-muted)', icon: '?' },
   }
-  const AGE_COLORS = ['#6366f1', '#10b981', '#f59e0b', '#ec4899', '#9999b0']
+  const AGE_COLORS = ['#0a84ff', '#10b981', '#f59e0b', '#ec4899', 'var(--text-muted)']
 
   // Format daily trend for recharts
   const trendData = dailyTrend.map((d: any) => ({
@@ -183,119 +184,72 @@ export default function AnalyticsDashboard() {
 
   // Custom tooltip style
   const tooltipStyle = {
-    backgroundColor: '#1e1e3a',
-    border: 'none',
+    backgroundColor: 'rgba(28,28,30,0.82)',
+    backdropFilter: 'blur(20px) saturate(180%)',
+    WebkitBackdropFilter: 'blur(20px) saturate(180%)',
+    border: '1px solid rgba(255,255,255,0.12)',
     borderRadius: '12px',
     padding: '10px 14px',
     fontSize: '12px',
+    fontWeight: 500,
     color: '#fff',
-    boxShadow: '0 8px 24px rgba(0,0,0,0.3)',
+    boxShadow: '0 12px 32px rgba(0,0,0,0.28)',
   }
 
   return (
-    <div className="fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
+    <div className="fade-in ad-root" style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+
+      <style>{`
+        .ad-root { font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Inter', system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
+        .ad-card { transition: transform .35s cubic-bezier(.2,.9,.3,1.2), box-shadow .3s ease; }
+        .ad-kpi:hover { transform: translateY(-2px); }
+        .ad-kpi:active { transform: scale(.98); transition-duration: .1s; }
+        .ad-seg { display: inline-flex; padding: 3px; border-radius: 12px; background: var(--surface-2); border: 1px solid var(--border); gap: 2px; flex-wrap: wrap; }
+        .ad-seg button { border: none; background: transparent; color: var(--text-secondary); font: 600 12.5px/1 inherit; padding: 8px 14px; border-radius: 9px; cursor: pointer; letter-spacing: 0; transition: background .25s cubic-bezier(.2,.9,.3,1.1), color .2s, transform .1s ease-out, box-shadow .25s; }
+        .ad-seg button:active { transform: scale(.96); }
+        .ad-seg button[aria-pressed="true"] { background: var(--surface); color: var(--text-primary); box-shadow: 0 1px 2px rgba(0,0,0,.12), 0 2px 8px rgba(0,0,0,.08); }
+        .ad-select { appearance: none; -webkit-appearance: none; border: 1px solid var(--border); background: var(--surface-2); color: var(--text-primary); font: 600 12.5px/1 inherit; padding: 10px 32px 10px 14px; border-radius: 12px; cursor: pointer; outline: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' fill='none' stroke='%238e8e93' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M1 1l4 4 4-4'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; transition: border-color .2s, transform .1s; }
+        .ad-select:focus-visible, .ad-seg button:focus-visible, .ad-sync:focus-visible { outline: 2px solid #0a84ff; outline-offset: 2px; }
+        .ad-sync { display: inline-flex; align-items: center; gap: 8px; border: none; background: #0a84ff; color: #fff; font: 600 12.5px/1 inherit; padding: 10px 16px; border-radius: 12px; cursor: pointer; transition: transform .1s ease-out, opacity .2s, box-shadow .25s; box-shadow: 0 2px 10px rgba(10,132,255,.35); }
+        .ad-sync:active:not(:disabled) { transform: scale(.96); }
+        .ad-sync:disabled { opacity: .55; cursor: not-allowed; box-shadow: none; }
+        .ad-bar { transition: width .7s cubic-bezier(.2,.9,.3,1); }
+        .ad-row { transition: background .2s; border-radius: 12px; }
+        .ad-row:hover { background: var(--surface-2); }
+        .ad-scroll::-webkit-scrollbar { width: 6px } .ad-scroll::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px }
+        @media (max-width: 720px) { .ad-seg button { padding: 8px 10px; font-size: 12px } }
+        @media (prefers-reduced-motion: reduce) { .ad-card, .ad-bar, .ad-seg button, .ad-sync { transition: opacity .2s !important; transform: none !important } }
+        @media (prefers-reduced-transparency: reduce) { .ad-tip { backdrop-filter: none !important; background: var(--surface) !important } }
+        @media (prefers-contrast: more) { .ad-card { border-color: var(--text-secondary) !important } }
+      `}</style>
 
       {/* ─── Timer + Filter Bar ─────────────────────────────────────── */}
-      <div style={{
-        display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-        flexWrap: 'wrap', gap: '16px',
-      }}>
-        <div style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap' }}>
-          <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '14px' }}>
+        <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
+          <div className="ad-seg" role="group" aria-label="Date range">
             {(Object.keys(RANGE_LABELS) as RangeKey[]).map(key => (
-              <button
-                key={key}
-                onClick={() => setRange(key)}
-                style={{
-                  padding: '8px 18px', borderRadius: '50px', border: 'none',
-                  background: range === key ? '#3636e8' : 'var(--surface-2)',
-                  color: range === key ? '#fff' : 'var(--text-secondary)',
-                  boxShadow: range === key
-                    ? '0 4px 12px rgba(54,54,232,0.3)'
-                    : '3px 3px 6px var(--neu-dark), -3px -3px 6px var(--neu-light)',
-                  fontWeight: 700, fontSize: '12px', cursor: 'pointer', transition: 'all 0.2s',
-                }}
-              >
+              <button key={key} aria-pressed={range === key} onClick={() => setRange(key)}>
                 {RANGE_LABELS[key]}
               </button>
             ))}
           </div>
-
-          <select
-            id="course-select"
-            value={selectedCourse}
-            onChange={(e) => setSelectedCourse(e.target.value)}
-            style={{
-              padding: '8px 18px',
-              borderRadius: '50px',
-              border: 'none',
-              background: 'var(--surface-2)',
-              color: 'var(--text-secondary)',
-              boxShadow: '3px 3px 6px var(--neu-dark), -3px -3px 6px var(--neu-light)',
-              fontWeight: 700,
-              fontSize: '12px',
-              cursor: 'pointer',
-              outline: 'none',
-              transition: 'all 0.2s',
-            }}
-          >
+          <select id="course-select" className="ad-select" value={selectedCourse} onChange={(e) => setSelectedCourse(e.target.value)}>
             <option value="all">All Courses</option>
             {activeCourses.map((course: any) => (
-              <option key={course.id} value={course.id}>
-                {course.name}
-              </option>
+              <option key={course.id} value={course.id}>{course.name}</option>
             ))}
           </select>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           {syncStatus ? (
-            <span style={{
-              fontSize: '11px',
-              fontWeight: 700,
-              color: syncStatus.includes('failed') ? 'var(--danger, #ef4444)' : '#10b981',
-            }}>
-              {syncStatus}
-            </span>
+            <span style={{ fontSize: '12px', fontWeight: 600, color: syncStatus.includes('failed') ? '#ff453a' : '#30d158' }}>{syncStatus}</span>
           ) : data?.timer?.lastUpdatedAt ? (
-            <span style={{ fontSize: '11px', fontWeight: 600, color: '#9999b0' }}>
+            <span style={{ fontSize: '12px', fontWeight: 500, color: 'var(--text-muted)' }}>
               Synced {new Date(data.timer.lastUpdatedAt).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}
             </span>
           ) : null}
-          <button
-            type="button"
-            onClick={handleForceSync}
-            disabled={isSyncing}
-            title="Force refresh and recompute analytics data immediately"
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '8px',
-              padding: '10px 20px',
-              borderRadius: '50px',
-              background: isSyncing ? 'var(--surface-2)' : '#6366f1',
-              color: '#ffffff',
-              border: 'none',
-              fontSize: '12px',
-              fontWeight: 800,
-              cursor: isSyncing ? 'not-allowed' : 'pointer',
-              transition: 'all 0.2s ease',
-              boxShadow: isSyncing ? 'none' : '0 4px 14px rgba(99, 102, 241, 0.35)',
-              outline: 'none',
-            }}
-          >
-            <svg
-              width="14"
-              height="14"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              style={{
-                animation: isSyncing ? 'spin 1s linear infinite' : 'none',
-              }}
-            >
+          <button type="button" className="ad-sync" onClick={handleForceSync} disabled={isSyncing} title="Force refresh and recompute analytics data immediately">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ animation: isSyncing ? 'spin 1s linear infinite' : 'none' }}>
               <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/>
             </svg>
             <span>{isSyncing ? 'Syncing...' : 'Sync Data'}</span>
@@ -304,58 +258,76 @@ export default function AnalyticsDashboard() {
       </div>
 
       {/* ─── KPI Cards ──────────────────────────────────────────────── */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '20px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px' }}>
         {[
-          { label: 'Total Students', value: summary.totalUsers, color: '#3636e8' },
-          { label: 'New Users', value: summary.newUsers, color: '#10b981' },
-          { label: 'Returning Users', value: summary.returningUsers, color: '#6366f1' },
-          { label: 'Active Users', value: summary.activeUsers, color: '#f59e0b' },
+          { label: 'Total Students', value: summary.totalUsers, color: '#0a84ff', series: null as string | null },
+          { label: 'New Users', value: summary.newUsers, color: '#30d158', series: 'New Users' },
+          { label: 'Returning Users', value: summary.returningUsers, color: '#bf5af2', series: null as string | null },
+          { label: 'Active Users', value: summary.activeUsers, color: '#ff9f0a', series: 'Active Users' },
         ].map((kpi, i) => (
-          <div key={i} style={{ ...neuCard, position: 'relative', overflow: 'hidden' }}>
-            <div style={kpiAccentBar(kpi.color)} />
-            <div style={{ paddingLeft: '8px' }}>
-              <div style={{ fontSize: '11px', fontWeight: 800, color: '#9999b0', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                {kpi.label}
+          <div key={i} className="ad-card ad-kpi" style={{ ...neuCard, padding: '18px 20px 14px', position: 'relative', overflow: 'hidden', minHeight: '124px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: kpi.color }} />
+                <span style={{ fontSize: '13px', fontWeight: 500, color: 'var(--text-secondary)', letterSpacing: '-0.005em' }}>{kpi.label}</span>
               </div>
-              <div style={{ fontSize: '28px', fontWeight: 900, color: 'var(--text-primary)', marginTop: '8px' }}>
-                {typeof kpi.value === 'number' ? (
-                  Number.isInteger(kpi.value) ? kpi.value.toLocaleString() : kpi.value.toFixed(2)
-                ) : '—'}
+              <div style={{ fontSize: '36px', fontWeight: 700, letterSpacing: '-0.035em', lineHeight: 1.1, color: 'var(--text-primary)', marginTop: '10px', fontVariantNumeric: 'tabular-nums' }}>
+                {typeof kpi.value === 'number' ? (Number.isInteger(kpi.value) ? kpi.value.toLocaleString() : kpi.value.toFixed(2)) : '—'}
               </div>
             </div>
+            {kpi.series && trendData.length > 1 && (
+              <div style={{ height: '34px', margin: '6px -8px -6px' }} aria-hidden>
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart data={trendData} margin={{ top: 2, right: 0, left: 0, bottom: 0 }}>
+                    <defs>
+                      <linearGradient id={`spark${i}`} x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor={kpi.color} stopOpacity={0.35} />
+                        <stop offset="100%" stopColor={kpi.color} stopOpacity={0} />
+                      </linearGradient>
+                    </defs>
+                    <Area type="monotone" dataKey={kpi.series} stroke={kpi.color} strokeWidth={1.75} fill={`url(#spark${i})`} dot={false} isAnimationActive={false} />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </div>
+            )}
           </div>
         ))}
       </div>
 
       {/* ─── Enrollment Trend (Area Chart) ──────────────────────────── */}
-      <div style={neuCard}>
-        <h3 style={{ fontSize: '16px', fontWeight: 800, marginBottom: '20px', color: 'var(--text-primary)' }}>
-          Enrollment Trend ({RANGE_LABELS[range]})
-        </h3>
+      <div className="ad-card" style={neuCard}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '10px', marginBottom: '18px' }}>
+          <h3 style={{ fontSize: '17px', fontWeight: 600, letterSpacing: '-0.012em', margin: 0, color: 'var(--text-primary)' }}>
+            Enrollment Trend ({RANGE_LABELS[range]})
+          </h3>
+          <div style={{ display: 'flex', gap: '14px', fontSize: '12px', fontWeight: 500, color: 'var(--text-secondary)' }}>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}><span style={{ width: 8, height: 8, borderRadius: '50%', background: '#0a84ff' }} />Enrollments</span>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}><span style={{ width: 8, height: 8, borderRadius: '50%', background: '#30d158' }} />Active Users</span>
+          </div>
+        </div>
         {trendData.length === 0 ? (
-          <div style={{ padding: '40px', textAlign: 'center', color: '#9999b0', fontSize: '13px' }}>
+          <div style={{ padding: '48px 0', textAlign: 'center', color: 'var(--text-muted)', fontSize: '13px' }}>
             No data available for this range
           </div>
         ) : (
-          <ResponsiveContainer width="100%" height={280}>
-            <AreaChart data={trendData} margin={{ top: 10, right: 20, left: 0, bottom: 0 }}>
+          <ResponsiveContainer width="100%" height={300}>
+            <AreaChart data={trendData} margin={{ top: 10, right: 12, left: -12, bottom: 0 }}>
               <defs>
                 <linearGradient id="gradEnrollments" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#6366f1" stopOpacity={0.3} />
-                  <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
+                  <stop offset="0%" stopColor="#0a84ff" stopOpacity={0.28} />
+                  <stop offset="100%" stopColor="#0a84ff" stopOpacity={0} />
                 </linearGradient>
                 <linearGradient id="gradActive" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#10b981" stopOpacity={0.3} />
-                  <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
+                  <stop offset="0%" stopColor="#30d158" stopOpacity={0.22} />
+                  <stop offset="100%" stopColor="#30d158" stopOpacity={0} />
                 </linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
-              <XAxis dataKey="date" tick={{ fontSize: 11, fill: '#9999b0' }} tickLine={false} axisLine={false} />
-              <YAxis tick={{ fontSize: 11, fill: '#9999b0' }} tickLine={false} axisLine={false} allowDecimals={false} />
-              <Tooltip contentStyle={tooltipStyle} />
-              <Legend wrapperStyle={{ fontSize: '12px', fontWeight: 600 }} />
-              <Area type="monotone" dataKey="Enrollments" stroke="#6366f1" strokeWidth={2.5} fillOpacity={1} fill="url(#gradEnrollments)" />
-              <Area type="monotone" dataKey="Active Users" stroke="#10b981" strokeWidth={2} fillOpacity={1} fill="url(#gradActive)" />
+              <CartesianGrid vertical={false} stroke="var(--border)" strokeOpacity={0.7} />
+              <XAxis dataKey="date" tick={{ fontSize: 11, fill: 'var(--text-muted)' }} tickLine={false} axisLine={false} tickMargin={10} minTickGap={24} />
+              <YAxis tick={{ fontSize: 11, fill: 'var(--text-muted)' }} tickLine={false} axisLine={false} allowDecimals={false} width={44} />
+              <Tooltip contentStyle={tooltipStyle} cursor={{ stroke: 'var(--text-muted)', strokeOpacity: 0.4, strokeDasharray: '3 3' }} />
+              <Area type="monotone" dataKey="Active Users" stroke="#30d158" strokeWidth={2} fill="url(#gradActive)" dot={trendData.length <= 2} activeDot={{ r: 5, strokeWidth: 2, stroke: 'var(--surface)' }} />
+              <Area type="monotone" dataKey="Enrollments" stroke="#0a84ff" strokeWidth={2.5} fill="url(#gradEnrollments)" dot={trendData.length <= 2} activeDot={{ r: 5, strokeWidth: 2, stroke: 'var(--surface)' }} />
             </AreaChart>
           </ResponsiveContainer>
         )}
@@ -363,107 +335,68 @@ export default function AnalyticsDashboard() {
 
       {/* ─── Top Courses & Course Distribution ──────────────────────── */}
       {selectedCourse === 'all' && (
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))', gap: '16px' }}>
 
-          {/* Top 7 Courses (Bar Chart) */}
-          <div style={neuCard}>
-            <h3 style={{ fontSize: '16px', fontWeight: 800, marginBottom: '20px', color: 'var(--text-primary)' }}>
-              Top Courses
-            </h3>
+          {/* Top Courses (ranked bars) */}
+          <div className="ad-card" style={neuCard}>
+            <h3 style={{ fontSize: '17px', fontWeight: 600, letterSpacing: '-0.012em', margin: '0 0 14px', color: 'var(--text-primary)' }}>Top Courses</h3>
             {topCourses.length === 0 ? (
-              <div style={{ padding: '40px', textAlign: 'center', color: '#9999b0', fontSize: '13px' }}>No data</div>
+              <div style={{ padding: '48px 0', textAlign: 'center', color: 'var(--text-muted)', fontSize: '13px' }}>No data</div>
             ) : (
-              <ResponsiveContainer width="100%" height={Math.max(160, Math.min(280, topCourses.length * 44 + 60))}>
-                <BarChart
-                  data={topCourses.map((c: any) => ({
-                    fullName: c.name,
-                    displayName: c.name.length > 20 ? c.name.substring(0, 18) + '…' : c.name,
-                    Students: c.count,
-                  }))}
-                  layout="vertical"
-                  margin={{ top: 10, right: 30, left: 10, bottom: 5 }}
-                >
-                  <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" horizontal={false} />
-                  <XAxis type="number" tick={{ fontSize: 11, fill: '#9999b0' }} tickLine={false} axisLine={false} allowDecimals={false} />
-                  <YAxis
-                    dataKey="displayName"
-                    type="category"
-                    width={150}
-                    tick={{ fontSize: 11, fill: 'var(--text-secondary, #9999b0)', fontWeight: 600 }}
-                    tickLine={false}
-                    axisLine={false}
-                  />
-                  <Tooltip
-                    contentStyle={tooltipStyle}
-                    cursor={{ fill: 'rgba(99, 102, 241, 0.08)' }}
-                    formatter={(value: any) => [
-                      `${Number(value).toLocaleString('en-IN')} students`,
-                      'Students'
-                    ]}
-                    labelFormatter={(_: any, payload: any) => {
-                      const item = payload?.[0]?.payload
-                      return item?.fullName || _
-                    }}
-                  />
-                  <Bar dataKey="Students" radius={[0, 6, 6, 0]} barSize={topCourses.length === 1 ? 24 : 18}>
-                    {topCourses.map((_: any, i: number) => (
-                      <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />
-                    ))}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
+              <div className="ad-scroll" style={{ display: 'flex', flexDirection: 'column', gap: '2px', maxHeight: '340px', overflowY: 'auto' }}>
+                {(() => {
+                  const maxCount = Math.max(...topCourses.map((c: any) => c.count), 1)
+                  return topCourses.map((c: any, i: number) => (
+                    <div key={i} className="ad-row" title={`${c.name} — ${Number(c.count).toLocaleString('en-IN')} students`} style={{ padding: '9px 10px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '7px' }}>
+                        <span style={{ width: '20px', fontSize: '12px', fontWeight: 600, color: 'var(--text-muted)', fontVariantNumeric: 'tabular-nums' }}>{i + 1}</span>
+                        <span style={{ flex: 1, minWidth: 0, fontSize: '13.5px', fontWeight: 500, color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.name}</span>
+                        <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)', fontVariantNumeric: 'tabular-nums' }}>{Number(c.count).toLocaleString('en-IN')}</span>
+                      </div>
+                      <div style={{ marginLeft: '30px', height: '6px', borderRadius: '3px', background: 'var(--surface-2)', overflow: 'hidden' }}>
+                        <div className="ad-bar" style={{ height: '100%', width: `${Math.max(3, (c.count / maxCount) * 100)}%`, borderRadius: '3px', background: PIE_COLORS[i % PIE_COLORS.length] }} />
+                      </div>
+                    </div>
+                  ))
+                })()}
+              </div>
             )}
           </div>
 
-          {/* Course Distribution (Pie Chart) */}
-          <div style={neuCard}>
-            <h3 style={{ fontSize: '16px', fontWeight: 800, marginBottom: '20px', color: 'var(--text-primary)' }}>
-              Course Distribution
-            </h3>
+          {/* Course Distribution (donut) */}
+          <div className="ad-card" style={neuCard}>
+            <h3 style={{ fontSize: '17px', fontWeight: 600, letterSpacing: '-0.012em', margin: '0 0 14px', color: 'var(--text-primary)' }}>Course Distribution</h3>
             {pieData.length === 0 ? (
-              <div style={{ padding: '40px', textAlign: 'center', color: '#9999b0', fontSize: '13px' }}>No data</div>
+              <div style={{ padding: '48px 0', textAlign: 'center', color: 'var(--text-muted)', fontSize: '13px' }}>No data</div>
             ) : (
-              <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                <ResponsiveContainer width="50%" height={240}>
-                  <PieChart>
-                    <Pie
-                      data={pieData}
-                      cx="50%" cy="50%"
-                      innerRadius={55} outerRadius={90}
-                      paddingAngle={3}
-                      dataKey="value"
-                      strokeWidth={0}
-                    >
-                      {pieData.map((entry: any, i: number) => (
-                        <Cell key={i} fill={entry.fill} />
-                      ))}
-                    </Pie>
-                    <Tooltip
-                      contentStyle={tooltipStyle}
-                      formatter={(value: any, _: any, item: any) => [
-                        `${Number(value).toLocaleString('en-IN')} students (${((Number(value) / totalPieEnrollments) * 100).toFixed(1)}%)`,
-                        item?.payload?.fullName || item?.payload?.name || 'Students'
-                      ]}
-                    />
-                  </PieChart>
-                </ResponsiveContainer>
-                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '6px', maxHeight: '240px', overflowY: 'auto' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                <div style={{ position: 'relative', height: '200px' }}>
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie data={pieData} cx="50%" cy="50%" innerRadius={62} outerRadius={92} paddingAngle={2} cornerRadius={5} dataKey="value" strokeWidth={0}>
+                        {pieData.map((entry: any, i: number) => (<Cell key={i} fill={entry.fill} />))}
+                      </Pie>
+                      <Tooltip
+                        contentStyle={tooltipStyle}
+                        formatter={(value: any, _: any, item: any) => [
+                          `${Number(value).toLocaleString('en-IN')} students (${((Number(value) / totalPieEnrollments) * 100).toFixed(1)}%)`,
+                          item?.payload?.fullName || item?.payload?.name || 'Students'
+                        ]}
+                      />
+                    </PieChart>
+                  </ResponsiveContainer>
+                  <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none' }}>
+                    <span style={{ fontSize: '28px', fontWeight: 700, letterSpacing: '-0.03em', color: 'var(--text-primary)', fontVariantNumeric: 'tabular-nums' }}>{totalPieEnrollments.toLocaleString('en-IN')}</span>
+                    <span style={{ fontSize: '11px', fontWeight: 500, color: 'var(--text-muted)' }}>enrollments</span>
+                  </div>
+                </div>
+                <div className="ad-scroll" style={{ display: 'flex', flexDirection: 'column', gap: '2px', maxHeight: '190px', overflowY: 'auto' }}>
                   {courseDistribution.map((c: any, i: number) => (
-                    <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px' }}>
-                      <span style={{
-                        width: '10px', height: '10px', borderRadius: '3px', flexShrink: 0,
-                        background: PIE_COLORS[i % PIE_COLORS.length],
-                      }} />
-                      <span
-                        title={c.name}
-                        style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontWeight: 600 }}
-                      >
-                        {c.name}
-                      </span>
-                      <span style={{ fontWeight: 800, color: 'var(--text-primary)' }}>{c.count}</span>
-                      <span style={{ color: '#9999b0', fontSize: '11px' }}>
-                        ({((c.count / totalPieEnrollments) * 100).toFixed(1)}%)
-                      </span>
+                    <div key={i} className="ad-row" style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '13px', padding: '6px 10px' }}>
+                      <span style={{ width: '9px', height: '9px', borderRadius: '50%', flexShrink: 0, background: PIE_COLORS[i % PIE_COLORS.length] }} />
+                      <span title={c.name} style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontWeight: 500, color: 'var(--text-primary)' }}>{c.name}</span>
+                      <span style={{ fontWeight: 600, color: 'var(--text-primary)', fontVariantNumeric: 'tabular-nums' }}>{c.count}</span>
+                      <span style={{ color: 'var(--text-muted)', fontSize: '12px', width: '44px', textAlign: 'right', fontVariantNumeric: 'tabular-nums' }}>{((c.count / totalPieEnrollments) * 100).toFixed(1)}%</span>
                     </div>
                   ))}
                 </div>
@@ -474,30 +407,29 @@ export default function AnalyticsDashboard() {
       )}
 
 
-
       {/* ─── Audience Demographics ─────────────────────────────────── */}
       <div>
         {/* Section heading */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
           <div>
-            <h2 style={{ fontSize: '20px', fontWeight: 900, color: 'var(--text-primary)', margin: 0 }}>Audience Demographics</h2>
-            <p style={{ fontSize: '12px', color: '#9999b0', marginTop: '4px', fontWeight: 600 }}>Based on profile data from all active students</p>
+            <h2 style={{ fontSize: '22px', fontWeight: 700, letterSpacing: '-0.022em', color: 'var(--text-primary)', margin: 0 }}>Audience Demographics</h2>
+            <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '4px', fontWeight: 600 }}>Based on profile data from all active students</p>
           </div>
           {!demographics && (
             <span style={{
-              fontSize: '11px', padding: '6px 14px', borderRadius: '50px', fontWeight: 700,
+              fontSize: '11px', padding: '6px 14px', borderRadius: '12px', fontWeight: 700,
               background: '#fef3c7', color: '#d97706'
             }}>Run analytics compute to populate</span>
           )}
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1.4fr', gap: '24px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '16px' }}>
 
           {/* ── Gender Card ── */}
           <div style={neuCard}>
-            <h3 style={{ fontSize: '15px', fontWeight: 800, marginBottom: '20px', color: 'var(--text-primary)' }}>Gender Split</h3>
+            <h3 style={{ fontSize: '17px', fontWeight: 600, letterSpacing: '-0.012em', marginBottom: '20px', color: 'var(--text-primary)' }}>Gender Split</h3>
             {!demographics || genderData.length === 0 ? (
-              <div style={{ padding: '40px 0', textAlign: 'center', color: '#9999b0', fontSize: '13px' }}>No data yet</div>
+              <div style={{ padding: '40px 0', textAlign: 'center', color: 'var(--text-muted)', fontSize: '13px' }}>No data yet</div>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
                 {(['MALE', 'FEMALE', 'OTHER', 'UNSPECIFIED'] as const).map(key => {
@@ -509,9 +441,9 @@ export default function AnalyticsDashboard() {
                     <div key={key}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
                         <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-primary)' }}>{key.charAt(0) + key.slice(1).toLowerCase()}</span>
-                        <span style={{ fontSize: '13px', fontWeight: 800, color: cfg.color }}>{count} <span style={{ fontSize: '11px', color: '#9999b0', fontWeight: 600 }}>({pct}%)</span></span>
+                        <span style={{ fontSize: '13px', fontWeight: 800, color: cfg.color }}>{count} <span style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: 600 }}>({pct}%)</span></span>
                       </div>
-                      <div style={{ height: '8px', borderRadius: '4px', background: '#e0e3ea', overflow: 'hidden' }}>
+                      <div style={{ height: '8px', borderRadius: '4px', background: 'var(--surface-2)', overflow: 'hidden' }}>
                         <div style={{ height: '100%', width: `${pct}%`, background: cfg.color, borderRadius: '4px', transition: 'width 0.6s ease' }} />
                       </div>
                     </div>
@@ -523,9 +455,9 @@ export default function AnalyticsDashboard() {
 
           {/* ── Age Card ── */}
           <div style={neuCard}>
-            <h3 style={{ fontSize: '15px', fontWeight: 800, marginBottom: '20px', color: 'var(--text-primary)' }}>Age Brackets</h3>
+            <h3 style={{ fontSize: '17px', fontWeight: 600, letterSpacing: '-0.012em', marginBottom: '20px', color: 'var(--text-primary)' }}>Age Brackets</h3>
             {!demographics || ageData.length === 0 ? (
-              <div style={{ padding: '40px 0', textAlign: 'center', color: '#9999b0', fontSize: '13px' }}>No data yet</div>
+              <div style={{ padding: '40px 0', textAlign: 'center', color: 'var(--text-muted)', fontSize: '13px' }}>No data yet</div>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
                 {ageData.map((a, i) => {
@@ -534,9 +466,9 @@ export default function AnalyticsDashboard() {
                     <div key={a.name}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
                         <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-primary)' }}>{a.name}</span>
-                        <span style={{ fontSize: '13px', fontWeight: 800, color: AGE_COLORS[i % AGE_COLORS.length] }}>{a.value} <span style={{ fontSize: '11px', color: '#9999b0', fontWeight: 600 }}>({pct}%)</span></span>
+                        <span style={{ fontSize: '13px', fontWeight: 800, color: AGE_COLORS[i % AGE_COLORS.length] }}>{a.value} <span style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: 600 }}>({pct}%)</span></span>
                       </div>
-                      <div style={{ height: '8px', borderRadius: '4px', background: '#e0e3ea', overflow: 'hidden' }}>
+                      <div style={{ height: '8px', borderRadius: '4px', background: 'var(--surface-2)', overflow: 'hidden' }}>
                         <div style={{ height: '100%', width: `${pct}%`, background: AGE_COLORS[i % AGE_COLORS.length], borderRadius: '4px', transition: 'width 0.6s ease' }} />
                       </div>
                     </div>
@@ -548,9 +480,9 @@ export default function AnalyticsDashboard() {
 
           {/* ── State Distribution Card ── */}
           <div style={{ ...neuCard, maxHeight: '380px', display: 'flex', flexDirection: 'column' }}>
-            <h3 style={{ fontSize: '15px', fontWeight: 800, marginBottom: '16px', color: 'var(--text-primary)', flexShrink: 0 }}>State Distribution</h3>
+            <h3 style={{ fontSize: '17px', fontWeight: 600, letterSpacing: '-0.012em', marginBottom: '16px', color: 'var(--text-primary)', flexShrink: 0 }}>State Distribution</h3>
             {!demographics || stateData.length === 0 ? (
-              <div style={{ padding: '40px 0', textAlign: 'center', color: '#9999b0', fontSize: '13px' }}>No location data yet</div>
+              <div style={{ padding: '40px 0', textAlign: 'center', color: 'var(--text-muted)', fontSize: '13px' }}>No location data yet</div>
             ) : (
               <div style={{ overflowY: 'auto', flex: 1, display: 'flex', flexDirection: 'column', gap: '10px', paddingRight: '4px' }}>
                 {stateData.map((s, i) => {
@@ -563,9 +495,9 @@ export default function AnalyticsDashboard() {
                           <span style={{ width: '8px', height: '8px', borderRadius: '2px', background: barColor, flexShrink: 0 }} />
                           <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-primary)' }}>{s.name}</span>
                         </div>
-                        <span style={{ fontSize: '12px', fontWeight: 800, color: 'var(--text-primary)' }}>{s.value} <span style={{ color: '#9999b0', fontWeight: 600 }}>({pct}%)</span></span>
+                        <span style={{ fontSize: '12px', fontWeight: 800, color: 'var(--text-primary)' }}>{s.value} <span style={{ color: 'var(--text-muted)', fontWeight: 600 }}>({pct}%)</span></span>
                       </div>
-                      <div style={{ height: '6px', borderRadius: '3px', background: '#e0e3ea', overflow: 'hidden' }}>
+                      <div style={{ height: '6px', borderRadius: '3px', background: 'var(--surface-2)', overflow: 'hidden' }}>
                         <div style={{ height: '100%', width: `${pct}%`, background: barColor, borderRadius: '3px', transition: 'width 0.6s ease' }} />
                       </div>
                     </div>
@@ -582,18 +514,18 @@ export default function AnalyticsDashboard() {
       <div style={{ marginTop: '32px', marginBottom: '32px' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
           <div>
-            <h2 style={{ fontSize: '20px', fontWeight: 900, color: 'var(--text-primary)', margin: 0 }}>IITM BS Academic Analysis</h2>
-            <p style={{ fontSize: '12px', color: '#9999b0', marginTop: '4px', fontWeight: 600 }}>Cohort year, term, levels and category distributions</p>
+            <h2 style={{ fontSize: '22px', fontWeight: 700, letterSpacing: '-0.022em', color: 'var(--text-primary)', margin: 0 }}>IITM BS Academic Analysis</h2>
+            <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '4px', fontWeight: 600 }}>Cohort year, term, levels and category distributions</p>
           </div>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '24px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '16px' }}>
           
           {/* Cohort Year & Term Card */}
           <div style={neuCard}>
-            <h3 style={{ fontSize: '15px', fontWeight: 800, marginBottom: '16px', color: 'var(--text-primary)' }}>Admission Cohorts</h3>
+            <h3 style={{ fontSize: '17px', fontWeight: 600, letterSpacing: '-0.012em', marginBottom: '16px', color: 'var(--text-primary)' }}>Admission Cohorts</h3>
             {joinYearData.length === 0 && joinMonthData.length === 0 ? (
-              <div style={{ padding: '60px 0', textAlign: 'center', color: '#9999b0', fontSize: '13px' }}>No cohort data available</div>
+              <div style={{ padding: '60px 0', textAlign: 'center', color: 'var(--text-muted)', fontSize: '13px' }}>No cohort data available</div>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                 {/* Year Bar Chart */}
@@ -656,9 +588,9 @@ export default function AnalyticsDashboard() {
 
           {/* Current Level Card */}
           <div style={neuCard}>
-            <h3 style={{ fontSize: '15px', fontWeight: 800, marginBottom: '16px', color: 'var(--text-primary)' }}>Program Levels</h3>
+            <h3 style={{ fontSize: '17px', fontWeight: 600, letterSpacing: '-0.012em', marginBottom: '16px', color: 'var(--text-primary)' }}>Program Levels</h3>
             {levelData.length === 0 ? (
-              <div style={{ padding: '60px 0', textAlign: 'center', color: '#9999b0', fontSize: '13px' }}>No program level data available</div>
+              <div style={{ padding: '60px 0', textAlign: 'center', color: 'var(--text-muted)', fontSize: '13px' }}>No program level data available</div>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', height: 'calc(100% - 36px)' }}>
                 <div style={{ height: '160px', width: '100%' }}>
@@ -675,7 +607,7 @@ export default function AnalyticsDashboard() {
                       >
                         {levelData.map((entry, index) => {
                           const levelColorMap: Record<string, string> = {
-                            Qualifier: '#6366f1',
+                            Qualifier: '#0a84ff',
                             Foundation: '#3b82f6',
                             Diploma: '#8b5cf6',
                             Degree: '#ec4899',
@@ -693,7 +625,7 @@ export default function AnalyticsDashboard() {
                     const total = levelData.reduce((acc, curr) => acc + curr.value, 0) || 1
                     const pct = Math.round((lvl.value / total) * 100)
                     const levelColorMap: Record<string, string> = {
-                      Qualifier: '#6366f1',
+                      Qualifier: '#0a84ff',
                       Foundation: '#3b82f6',
                       Diploma: '#8b5cf6',
                       Degree: '#ec4899',
@@ -704,7 +636,7 @@ export default function AnalyticsDashboard() {
                         <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: badgeColor, flexShrink: 0 }} />
                         <div style={{ display: 'flex', flexDirection: 'column' }}>
                           <span style={{ fontWeight: 700, color: 'var(--text-primary)', fontSize: '11px', whiteSpace: 'nowrap' }}>{lvl.name}</span>
-                          <span style={{ color: '#9999b0', fontSize: '9px' }}>{lvl.value} ({pct}%)</span>
+                          <span style={{ color: 'var(--text-muted)', fontSize: '9px' }}>{lvl.value} ({pct}%)</span>
                         </div>
                       </div>
                     )
@@ -716,9 +648,9 @@ export default function AnalyticsDashboard() {
 
           {/* Student Category Card */}
           <div style={neuCard}>
-            <h3 style={{ fontSize: '15px', fontWeight: 800, marginBottom: '16px', color: 'var(--text-primary)' }}>Student Categories</h3>
+            <h3 style={{ fontSize: '17px', fontWeight: 600, letterSpacing: '-0.012em', marginBottom: '16px', color: 'var(--text-primary)' }}>Student Categories</h3>
             {userTypeData.length === 0 ? (
-              <div style={{ padding: '60px 0', textAlign: 'center', color: '#9999b0', fontSize: '13px' }}>No student category data available</div>
+              <div style={{ padding: '60px 0', textAlign: 'center', color: 'var(--text-muted)', fontSize: '13px' }}>No student category data available</div>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', height: 'calc(100% - 36px)' }}>
                 <div style={{ height: '160px', width: '100%' }}>
@@ -762,7 +694,7 @@ export default function AnalyticsDashboard() {
                           <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: badgeColor, flexShrink: 0 }} />
                           <span style={{ fontWeight: 700, color: 'var(--text-primary)', textTransform: 'capitalize' }}>{t.name.toLowerCase()}</span>
                         </div>
-                        <span style={{ color: '#9999b0', fontWeight: 600, fontSize: '10px' }}>{t.value} ({pct}%)</span>
+                        <span style={{ color: 'var(--text-muted)', fontWeight: 600, fontSize: '10px' }}>{t.value} ({pct}%)</span>
                       </div>
                     )
                   })}
@@ -779,10 +711,10 @@ export default function AnalyticsDashboard() {
         <div style={{ marginTop: '12px' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
             <div>
-              <h2 style={{ fontSize: '20px', fontWeight: 900, color: 'var(--text-primary)', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <h2 style={{ fontSize: '22px', fontWeight: 700, letterSpacing: '-0.022em', color: 'var(--text-primary)', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <span>Batch Distribution (Live vs Recorded)</span>
               </h2>
-              <p style={{ fontSize: '12px', color: '#9999b0', marginTop: '4px', fontWeight: 600 }}>
+              <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '4px', fontWeight: 600 }}>
                 Breakdown of students enrolled in Live vs Recorded batches across all active courses
               </p>
             </div>
@@ -803,42 +735,40 @@ export default function AnalyticsDashboard() {
                   {/* Metric Cards Grid */}
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '20px', marginBottom: '24px' }}>
                     {/* Live Batch Card */}
-                    <div style={{ background: 'var(--surface)', padding: '20px', borderRadius: '16px', border: '1px solid var(--border)', position: 'relative', overflow: 'hidden' }}>
-                      <div style={{ position: 'absolute', top: 0, left: 0, width: '4px', height: '100%', background: '#10b981' }} />
+                    <div style={{ background: 'var(--surface-2)', padding: '20px', borderRadius: '16px', border: '1px solid var(--border)', position: 'relative', overflow: 'hidden' }}>
                       <div style={{ paddingLeft: '8px' }}>
                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                          <span style={{ fontSize: '11px', fontWeight: 800, color: '#9999b0', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Live Batch Students</span>
+                          <span style={{ fontSize: '11px', fontWeight: 500, color: 'var(--text-muted)', letterSpacing: '0' }}>Live Batch Students</span>
                           <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#10b981', display: 'inline-block' }} />
                         </div>
-                        <div style={{ fontSize: '28px', fontWeight: 900, color: 'var(--text-primary)', marginTop: '8px' }}>
+                        <div style={{ fontSize: '32px', fontWeight: 700, letterSpacing: '-0.03em', color: 'var(--text-primary)', marginTop: '8px' }}>
                           {bStats.liveStudents.toLocaleString()}
                         </div>
                         <div style={{ fontSize: '12px', fontWeight: 700, color: '#10b981', marginTop: '4px' }}>
                           {livePct}% of {selectedCourse === 'all' ? 'total' : 'enrolled'} students 
-                          {selectedCourse === 'all' && <span style={{ color: '#9999b0', fontWeight: 600 }}> ({bStats.liveOnlyStudents} Live Only)</span>}
+                          {selectedCourse === 'all' && <span style={{ color: 'var(--text-muted)', fontWeight: 600 }}> ({bStats.liveOnlyStudents} Live Only)</span>}
                         </div>
-                        <div style={{ fontSize: '11px', color: '#9999b0', marginTop: '6px' }}>
+                        <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '6px' }}>
                           {bStats.totalLiveEnrollments.toLocaleString()} total live course enrollments
                         </div>
                       </div>
                     </div>
 
                     {/* Recorded Batch Card */}
-                    <div style={{ background: 'var(--surface)', padding: '20px', borderRadius: '16px', border: '1px solid var(--border)', position: 'relative', overflow: 'hidden' }}>
-                      <div style={{ position: 'absolute', top: 0, left: 0, width: '4px', height: '100%', background: '#f59e0b' }} />
+                    <div style={{ background: 'var(--surface-2)', padding: '20px', borderRadius: '16px', border: '1px solid var(--border)', position: 'relative', overflow: 'hidden' }}>
                       <div style={{ paddingLeft: '8px' }}>
                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                          <span style={{ fontSize: '11px', fontWeight: 800, color: '#9999b0', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Recorded Batch Students</span>
+                          <span style={{ fontSize: '11px', fontWeight: 500, color: 'var(--text-muted)', letterSpacing: '0' }}>Recorded Batch Students</span>
                           <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#f59e0b', display: 'inline-block' }} />
                         </div>
-                        <div style={{ fontSize: '28px', fontWeight: 900, color: 'var(--text-primary)', marginTop: '8px' }}>
+                        <div style={{ fontSize: '32px', fontWeight: 700, letterSpacing: '-0.03em', color: 'var(--text-primary)', marginTop: '8px' }}>
                           {bStats.recordedStudents.toLocaleString()}
                         </div>
                         <div style={{ fontSize: '12px', fontWeight: 700, color: '#f59e0b', marginTop: '4px' }}>
                           {recPct}% of {selectedCourse === 'all' ? 'total' : 'enrolled'} students 
-                          {selectedCourse === 'all' && <span style={{ color: '#9999b0', fontWeight: 600 }}> ({bStats.recordedOnlyStudents} Recorded Only)</span>}
+                          {selectedCourse === 'all' && <span style={{ color: 'var(--text-muted)', fontWeight: 600 }}> ({bStats.recordedOnlyStudents} Recorded Only)</span>}
                         </div>
-                        <div style={{ fontSize: '11px', color: '#9999b0', marginTop: '6px' }}>
+                        <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '6px' }}>
                           {bStats.totalRecordedEnrollments.toLocaleString()} total recorded course enrollments
                         </div>
                       </div>
@@ -846,20 +776,19 @@ export default function AnalyticsDashboard() {
 
                     {/* Both (Dual Access) Card */}
                     {selectedCourse === 'all' && (
-                      <div style={{ background: 'var(--surface)', padding: '20px', borderRadius: '16px', border: '1px solid var(--border)', position: 'relative', overflow: 'hidden' }}>
-                        <div style={{ position: 'absolute', top: 0, left: 0, width: '4px', height: '100%', background: '#8b5cf6' }} />
+                      <div style={{ background: 'var(--surface-2)', padding: '20px', borderRadius: '16px', border: '1px solid var(--border)', position: 'relative', overflow: 'hidden' }}>
                         <div style={{ paddingLeft: '8px' }}>
                           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                            <span style={{ fontSize: '11px', fontWeight: 800, color: '#9999b0', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Both (Live + Recorded)</span>
+                            <span style={{ fontSize: '11px', fontWeight: 500, color: 'var(--text-muted)', letterSpacing: '0' }}>Both (Live + Recorded)</span>
                             <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#8b5cf6', display: 'inline-block' }} />
                           </div>
-                          <div style={{ fontSize: '28px', fontWeight: 900, color: 'var(--text-primary)', marginTop: '8px' }}>
+                          <div style={{ fontSize: '32px', fontWeight: 700, letterSpacing: '-0.03em', color: 'var(--text-primary)', marginTop: '8px' }}>
                             {bStats.bothStudents.toLocaleString()}
                           </div>
                           <div style={{ fontSize: '12px', fontWeight: 700, color: '#8b5cf6', marginTop: '4px' }}>
                             {bothPct}% hybrid enrolled
                           </div>
-                          <div style={{ fontSize: '11px', color: '#9999b0', marginTop: '6px' }}>
+                          <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '6px' }}>
                             Students enrolled in both live & recorded courses
                           </div>
                         </div>
@@ -868,20 +797,19 @@ export default function AnalyticsDashboard() {
 
                     {/* Not Enrolled Card */}
                     {selectedCourse === 'all' && (
-                      <div style={{ background: 'var(--surface)', padding: '20px', borderRadius: '16px', border: '1px solid var(--border)', position: 'relative', overflow: 'hidden' }}>
-                        <div style={{ position: 'absolute', top: 0, left: 0, width: '4px', height: '100%', background: '#ef4444' }} />
+                      <div style={{ background: 'var(--surface-2)', padding: '20px', borderRadius: '16px', border: '1px solid var(--border)', position: 'relative', overflow: 'hidden' }}>
                         <div style={{ paddingLeft: '8px' }}>
                           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                            <span style={{ fontSize: '11px', fontWeight: 800, color: '#9999b0', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Not Enrolled Students</span>
+                            <span style={{ fontSize: '11px', fontWeight: 500, color: 'var(--text-muted)', letterSpacing: '0' }}>Not Enrolled Students</span>
                             <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#ef4444', display: 'inline-block' }} />
                           </div>
-                          <div style={{ fontSize: '28px', fontWeight: 900, color: 'var(--text-primary)', marginTop: '8px' }}>
+                          <div style={{ fontSize: '32px', fontWeight: 700, letterSpacing: '-0.03em', color: 'var(--text-primary)', marginTop: '8px' }}>
                             {(bStats.notEnrolledStudents || 0).toLocaleString()}
                           </div>
                           <div style={{ fontSize: '12px', fontWeight: 700, color: '#ef4444', marginTop: '4px' }}>
                             {notEnrolledPct}% of total students
                           </div>
-                          <div style={{ fontSize: '11px', color: '#9999b0', marginTop: '6px' }}>
+                          <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '6px' }}>
                             Students with no active batch enrollments
                           </div>
                         </div>
@@ -890,20 +818,19 @@ export default function AnalyticsDashboard() {
 
                     {/* Demo Batch Card */}
                     {selectedCourse !== 'all' && bStats.demoStudents > 0 && (
-                      <div style={{ background: 'var(--surface)', padding: '20px', borderRadius: '16px', border: '1px solid var(--border)', position: 'relative', overflow: 'hidden' }}>
-                        <div style={{ position: 'absolute', top: 0, left: 0, width: '4px', height: '100%', background: '#8b5cf6' }} />
+                      <div style={{ background: 'var(--surface-2)', padding: '20px', borderRadius: '16px', border: '1px solid var(--border)', position: 'relative', overflow: 'hidden' }}>
                         <div style={{ paddingLeft: '8px' }}>
                           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                            <span style={{ fontSize: '11px', fontWeight: 800, color: '#9999b0', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Demo Batch Students</span>
+                            <span style={{ fontSize: '11px', fontWeight: 500, color: 'var(--text-muted)', letterSpacing: '0' }}>Demo Batch Students</span>
                             <span style={{ fontSize: '18px' }}>🆓</span>
                           </div>
-                          <div style={{ fontSize: '28px', fontWeight: 900, color: 'var(--text-primary)', marginTop: '8px' }}>
+                          <div style={{ fontSize: '32px', fontWeight: 700, letterSpacing: '-0.03em', color: 'var(--text-primary)', marginTop: '8px' }}>
                             {bStats.demoStudents.toLocaleString()}
                           </div>
                           <div style={{ fontSize: '12px', fontWeight: 700, color: '#8b5cf6', marginTop: '4px' }}>
                             {Math.round((bStats.demoStudents / totalEnrolled) * 100)}% of enrolled students
                           </div>
-                          <div style={{ fontSize: '11px', color: '#9999b0', marginTop: '6px' }}>
+                          <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '6px' }}>
                             Students with trial or demo access to this course
                           </div>
                         </div>
@@ -915,7 +842,7 @@ export default function AnalyticsDashboard() {
                   <div style={{ background: 'var(--surface-2)', padding: '16px 20px', borderRadius: '14px' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px', fontSize: '12px', fontWeight: 700 }}>
                       <span style={{ color: 'var(--text-primary)' }}>Total Course Enrollments Breakdown</span>
-                      <span style={{ color: '#9999b0' }}>
+                      <span style={{ color: 'var(--text-muted)' }}>
                         {(bStats.totalLiveEnrollments + bStats.totalRecordedEnrollments).toLocaleString()} Total Enrollments
                       </span>
                     </div>
@@ -925,7 +852,7 @@ export default function AnalyticsDashboard() {
                       const recEnrPct = Math.round((bStats.totalRecordedEnrollments / totalEnr) * 100)
                       return (
                         <div>
-                          <div style={{ height: '12px', borderRadius: '6px', background: '#e0e3ea', overflow: 'hidden', display: 'flex' }}>
+                          <div style={{ height: '12px', borderRadius: '6px', background: 'var(--surface-2)', overflow: 'hidden', display: 'flex' }}>
                             <div style={{ width: `${liveEnrPct}%`, background: '#10b981', transition: 'width 0.5s ease' }} title={`Live: ${liveEnrPct}%`} />
                             <div style={{ width: `${recEnrPct}%`, background: '#f59e0b', transition: 'width 0.5s ease' }} title={`Recorded: ${recEnrPct}%`} />
                           </div>
@@ -952,24 +879,24 @@ export default function AnalyticsDashboard() {
       )}
 
       {/* ─── Course Growth ────────────────────────── */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '24px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '16px' }}>
 
         {/* Course Growth Table */}
         <div style={neuCard}>
-          <h3 style={{ fontSize: '16px', fontWeight: 800, marginBottom: '20px', color: 'var(--text-primary)' }}>
+          <h3 style={{ fontSize: '17px', fontWeight: 600, letterSpacing: '-0.012em', marginBottom: '20px', color: 'var(--text-primary)' }}>
             Course Growth
           </h3>
           {courseGrowth.length === 0 ? (
-            <div style={{ padding: '40px', textAlign: 'center', color: '#9999b0', fontSize: '13px' }}>No data</div>
+            <div style={{ padding: '40px', textAlign: 'center', color: 'var(--text-muted)', fontSize: '13px' }}>No data</div>
           ) : (
             <div style={{ overflowX: 'auto' }}>
               <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                 <thead>
                   <tr>
-                    <th style={{ textAlign: 'left', padding: '8px 12px', fontSize: '11px', fontWeight: 700, color: '#9999b0', textTransform: 'uppercase', borderBottom: '1px solid #e0e3ea' }}>Course</th>
-                    <th style={{ textAlign: 'right', padding: '8px 12px', fontSize: '11px', fontWeight: 700, color: '#9999b0', textTransform: 'uppercase', borderBottom: '1px solid #e0e3ea' }}>Total</th>
-                    <th style={{ textAlign: 'right', padding: '8px 12px', fontSize: '11px', fontWeight: 700, color: '#9999b0', textTransform: 'uppercase', borderBottom: '1px solid #e0e3ea' }}>Today</th>
-                    <th style={{ textAlign: 'right', padding: '8px 12px', fontSize: '11px', fontWeight: 700, color: '#9999b0', textTransform: 'uppercase', borderBottom: '1px solid #e0e3ea' }}>Growth</th>
+                    <th style={{ textAlign: 'left', padding: '8px 12px', fontSize: '11px', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', borderBottom: '1px solid #e0e3ea' }}>Course</th>
+                    <th style={{ textAlign: 'right', padding: '8px 12px', fontSize: '11px', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', borderBottom: '1px solid #e0e3ea' }}>Total</th>
+                    <th style={{ textAlign: 'right', padding: '8px 12px', fontSize: '11px', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', borderBottom: '1px solid #e0e3ea' }}>Today</th>
+                    <th style={{ textAlign: 'right', padding: '8px 12px', fontSize: '11px', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', borderBottom: '1px solid #e0e3ea' }}>Growth</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -981,14 +908,14 @@ export default function AnalyticsDashboard() {
                       <td style={{ padding: '10px 12px', fontSize: '13px', fontWeight: 800, textAlign: 'right' }}>
                         {cg.totalEnrollments}
                       </td>
-                      <td style={{ padding: '10px 12px', fontSize: '13px', fontWeight: 700, textAlign: 'right', color: '#6366f1' }}>
+                      <td style={{ padding: '10px 12px', fontSize: '13px', fontWeight: 700, textAlign: 'right', color: '#0a84ff' }}>
                         {cg.enrollmentCount}
                       </td>
                       <td style={{ padding: '10px 12px', fontSize: '13px', fontWeight: 800, textAlign: 'right' }}>
                         <span style={{
                           padding: '2px 8px', borderRadius: '12px', fontSize: '11px',
                           background: cg.growthDelta > 0 ? '#dcfce7' : cg.growthDelta < 0 ? '#fee2e2' : '#f3f4f6',
-                          color: cg.growthDelta > 0 ? '#16a34a' : cg.growthDelta < 0 ? '#dc2626' : '#9999b0',
+                          color: cg.growthDelta > 0 ? '#16a34a' : cg.growthDelta < 0 ? '#dc2626' : 'var(--text-muted)',
                         }}>
                           {cg.growthDelta > 0 ? `+${cg.growthDelta}` : cg.growthDelta}
                         </span>
@@ -1007,10 +934,10 @@ export default function AnalyticsDashboard() {
         <div style={{ marginTop: '32px', marginBottom: '32px' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px', flexWrap: 'wrap', gap: '12px' }}>
             <div>
-              <h2 style={{ fontSize: '20px', fontWeight: 900, color: 'var(--text-primary)', margin: 0 }}>
+              <h2 style={{ fontSize: '22px', fontWeight: 700, letterSpacing: '-0.022em', color: 'var(--text-primary)', margin: 0 }}>
                 Term Performance & Revenue
               </h2>
-              <p style={{ fontSize: '12px', color: '#9999b0', marginTop: '4px', fontWeight: 600 }}>
+              <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '4px', fontWeight: 600 }}>
                 Revenue, enrollment and student retention across academic terms
               </p>
             </div>
@@ -1019,11 +946,10 @@ export default function AnalyticsDashboard() {
               onChange={(e) => setSelectedTerm(e.target.value)}
               style={{
                 padding: '8px 18px',
-                borderRadius: '50px',
-                border: 'none',
+                borderRadius: '12px',
+                border: '1px solid var(--border)',
                 background: 'var(--surface-2)',
                 color: 'var(--text-secondary)',
-                boxShadow: '3px 3px 6px var(--neu-dark), -3px -3px 6px var(--neu-light)',
                 fontWeight: 700,
                 fontSize: '12px',
                 cursor: 'pointer',
@@ -1042,72 +968,66 @@ export default function AnalyticsDashboard() {
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px' }}>
 
               {/* Best Term */}
-              <div style={{ background: 'var(--surface)', padding: '18px', borderRadius: '14px', border: '1px solid var(--border)', position: 'relative', overflow: 'hidden' }}>
-                <div style={{ position: 'absolute', top: 0, left: 0, width: '4px', height: '100%', background: '#6366f1', borderRadius: '4px 0 0 4px' }} />
+              <div style={{ background: 'var(--surface-2)', padding: '18px', borderRadius: '14px', border: '1px solid var(--border)', position: 'relative', overflow: 'hidden' }}>
                 <div style={{ paddingLeft: '8px' }}>
-                  <span style={{ fontSize: '11px', fontWeight: 800, color: '#9999b0', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Best Term</span>
+                  <span style={{ fontSize: '11px', fontWeight: 500, color: 'var(--text-muted)', letterSpacing: '0' }}>Best Term</span>
                   <div style={{ fontSize: '18px', fontWeight: 900, color: 'var(--text-primary)', marginTop: '8px' }}>
                     {data.termAnalytics.kpis.bestTermName || 'N/A'}
                   </div>
-                  <div style={{ fontSize: '13px', fontWeight: 700, color: '#6366f1', marginTop: '4px' }}>
+                  <div style={{ fontSize: '13px', fontWeight: 700, color: '#0a84ff', marginTop: '4px' }}>
                     {data.termAnalytics.kpis.bestTermRevenue > 0 ? `\u20B9${data.termAnalytics.kpis.bestTermRevenue.toLocaleString('en-IN')}` : '--'}
                   </div>
                 </div>
               </div>
 
               {/* Cumulative Revenue */}
-              <div style={{ background: 'var(--surface)', padding: '18px', borderRadius: '14px', border: '1px solid var(--border)', position: 'relative', overflow: 'hidden' }}>
-                <div style={{ position: 'absolute', top: 0, left: 0, width: '4px', height: '100%', background: '#10b981', borderRadius: '4px 0 0 4px' }} />
+              <div style={{ background: 'var(--surface-2)', padding: '18px', borderRadius: '14px', border: '1px solid var(--border)', position: 'relative', overflow: 'hidden' }}>
                 <div style={{ paddingLeft: '8px' }}>
-                  <span style={{ fontSize: '11px', fontWeight: 800, color: '#9999b0', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Cumulative Revenue</span>
-                  <div style={{ fontSize: '24px', fontWeight: 900, color: 'var(--text-primary)', marginTop: '8px' }}>
+                  <span style={{ fontSize: '11px', fontWeight: 500, color: 'var(--text-muted)', letterSpacing: '0' }}>Cumulative Revenue</span>
+                  <div style={{ fontSize: '28px', fontWeight: 700, letterSpacing: '-0.028em', color: 'var(--text-primary)', marginTop: '8px' }}>
                     {`\u20B9${data.termAnalytics.kpis.cumulativeRevenue.toLocaleString('en-IN')}`}
                   </div>
-                  <div style={{ fontSize: '12px', color: '#9999b0', marginTop: '4px', fontWeight: 600 }}>Across all terms</div>
+                  <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '4px', fontWeight: 600 }}>Across all terms</div>
                 </div>
               </div>
 
               {/* Avg Revenue / Student */}
-              <div style={{ background: 'var(--surface)', padding: '18px', borderRadius: '14px', border: '1px solid var(--border)', position: 'relative', overflow: 'hidden' }}>
-                <div style={{ position: 'absolute', top: 0, left: 0, width: '4px', height: '100%', background: '#f59e0b', borderRadius: '4px 0 0 4px' }} />
+              <div style={{ background: 'var(--surface-2)', padding: '18px', borderRadius: '14px', border: '1px solid var(--border)', position: 'relative', overflow: 'hidden' }}>
                 <div style={{ paddingLeft: '8px' }}>
-                  <span style={{ fontSize: '11px', fontWeight: 800, color: '#9999b0', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Avg Revenue / Student</span>
-                  <div style={{ fontSize: '24px', fontWeight: 900, color: 'var(--text-primary)', marginTop: '8px' }}>
+                  <span style={{ fontSize: '11px', fontWeight: 500, color: 'var(--text-muted)', letterSpacing: '0' }}>Avg Revenue / Student</span>
+                  <div style={{ fontSize: '28px', fontWeight: 700, letterSpacing: '-0.028em', color: 'var(--text-primary)', marginTop: '8px' }}>
                     {`\u20B9${data.termAnalytics.kpis.averageRevenuePerStudent.toLocaleString('en-IN')}`}
                   </div>
-                  <div style={{ fontSize: '12px', color: '#9999b0', marginTop: '4px', fontWeight: 600 }}>Per enrolled student</div>
+                  <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '4px', fontWeight: 600 }}>Per enrolled student</div>
                 </div>
               </div>
 
               {/* Overall Retention Rate */}
-              <div style={{ background: 'var(--surface)', padding: '18px', borderRadius: '14px', border: '1px solid var(--border)', position: 'relative', overflow: 'hidden' }}>
-                <div style={{ position: 'absolute', top: 0, left: 0, width: '4px', height: '100%', background: '#8b5cf6', borderRadius: '4px 0 0 4px' }} />
+              <div style={{ background: 'var(--surface-2)', padding: '18px', borderRadius: '14px', border: '1px solid var(--border)', position: 'relative', overflow: 'hidden' }}>
                 <div style={{ paddingLeft: '8px' }}>
-                  <span style={{ fontSize: '11px', fontWeight: 800, color: '#9999b0', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Retention Rate</span>
-                  <div style={{ fontSize: '24px', fontWeight: 900, color: 'var(--text-primary)', marginTop: '8px' }}>
+                  <span style={{ fontSize: '11px', fontWeight: 500, color: 'var(--text-muted)', letterSpacing: '0' }}>Retention Rate</span>
+                  <div style={{ fontSize: '28px', fontWeight: 700, letterSpacing: '-0.028em', color: 'var(--text-primary)', marginTop: '8px' }}>
                     {data.termAnalytics.kpis.overallRetentionRate}%
                   </div>
-                  <div style={{ fontSize: '12px', color: '#9999b0', marginTop: '4px', fontWeight: 600 }}>Students returning across terms</div>
+                  <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '4px', fontWeight: 600 }}>Students returning across terms</div>
                 </div>
               </div>
 
               {/* Multi-Course Rate */}
-              <div style={{ background: 'var(--surface)', padding: '18px', borderRadius: '14px', border: '1px solid var(--border)', position: 'relative', overflow: 'hidden' }}>
-                <div style={{ position: 'absolute', top: 0, left: 0, width: '4px', height: '100%', background: '#ec4899', borderRadius: '4px 0 0 4px' }} />
+              <div style={{ background: 'var(--surface-2)', padding: '18px', borderRadius: '14px', border: '1px solid var(--border)', position: 'relative', overflow: 'hidden' }}>
                 <div style={{ paddingLeft: '8px' }}>
-                  <span style={{ fontSize: '11px', fontWeight: 800, color: '#9999b0', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Multi-Course Rate</span>
-                  <div style={{ fontSize: '24px', fontWeight: 900, color: 'var(--text-primary)', marginTop: '8px' }}>
+                  <span style={{ fontSize: '11px', fontWeight: 500, color: 'var(--text-muted)', letterSpacing: '0' }}>Multi-Course Rate</span>
+                  <div style={{ fontSize: '28px', fontWeight: 700, letterSpacing: '-0.028em', color: 'var(--text-primary)', marginTop: '8px' }}>
                     {data.termAnalytics.kpis.multiCoursePurchaseRate}%
                   </div>
-                  <div style={{ fontSize: '12px', color: '#9999b0', marginTop: '4px', fontWeight: 600 }}>Students buying 2+ courses</div>
+                  <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '4px', fontWeight: 600 }}>Students buying 2+ courses</div>
                 </div>
               </div>
 
               {/* Top Revenue Course */}
-              <div style={{ background: 'var(--surface)', padding: '18px', borderRadius: '14px', border: '1px solid var(--border)', position: 'relative', overflow: 'hidden' }}>
-                <div style={{ position: 'absolute', top: 0, left: 0, width: '4px', height: '100%', background: '#0ea5e9', borderRadius: '4px 0 0 4px' }} />
+              <div style={{ background: 'var(--surface-2)', padding: '18px', borderRadius: '14px', border: '1px solid var(--border)', position: 'relative', overflow: 'hidden' }}>
                 <div style={{ paddingLeft: '8px' }}>
-                  <span style={{ fontSize: '11px', fontWeight: 800, color: '#9999b0', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Top Revenue Course</span>
+                  <span style={{ fontSize: '11px', fontWeight: 500, color: 'var(--text-muted)', letterSpacing: '0' }}>Top Revenue Course</span>
                   <div style={{ fontSize: '15px', fontWeight: 900, color: 'var(--text-primary)', marginTop: '8px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={data.termAnalytics.kpis.topRevenueCourse || ''}>
                     {data.termAnalytics.kpis.topRevenueCourse || 'N/A'}
                   </div>
@@ -1123,14 +1043,14 @@ export default function AnalyticsDashboard() {
           {/* Term-by-Term Revenue Comparison */}
           {(data.termAnalytics.termSummaries || []).length > 0 && (
             <div style={{ ...neuCard, marginBottom: '24px' }}>
-              <h3 style={{ fontSize: '16px', fontWeight: 800, marginBottom: '20px', color: 'var(--text-primary)' }}>
+              <h3 style={{ fontSize: '17px', fontWeight: 600, letterSpacing: '-0.012em', marginBottom: '20px', color: 'var(--text-primary)' }}>
                 Term-by-Term Revenue Comparison
               </h3>
               <ResponsiveContainer width="100%" height={300}>
                 <BarChart data={data.termAnalytics.termSummaries}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
-                  <XAxis dataKey="termName" tick={{ fontSize: 11, fontWeight: 700, fill: '#9999b0' }} tickFormatter={(v: string) => v.replace(' Term', '')} />
-                  <YAxis tick={{ fontSize: 11, fill: '#9999b0' }} tickFormatter={(v: number) => `\u20B9${(v / 1000).toFixed(0)}k`} />
+                  <CartesianGrid strokeDasharray="0" stroke="var(--border)" strokeOpacity={0.7} />
+                  <XAxis dataKey="termName" tick={{ fontSize: 11, fontWeight: 700, fill: 'var(--text-muted)' }} tickFormatter={(v: string) => v.replace(' Term', '')} />
+                  <YAxis tick={{ fontSize: 11, fill: 'var(--text-muted)' }} tickFormatter={(v: number) => `\u20B9${(v / 1000).toFixed(0)}k`} />
                   <Tooltip contentStyle={tooltipStyle} formatter={(value: number) => [`\u20B9${value.toLocaleString('en-IN')}`, 'Revenue']} />
                   <Bar dataKey="revenue" fill="#6366f1" radius={[6, 6, 0, 0]} name="Revenue" />
                 </BarChart>
@@ -1141,18 +1061,18 @@ export default function AnalyticsDashboard() {
           {/* Retention Panel */}
           {(data.termAnalytics.retention || []).length > 0 && (
             <div style={{ ...neuCard, marginBottom: '24px' }}>
-              <h3 style={{ fontSize: '16px', fontWeight: 800, marginBottom: '20px', color: 'var(--text-primary)' }}>
+              <h3 style={{ fontSize: '17px', fontWeight: 600, letterSpacing: '-0.012em', marginBottom: '20px', color: 'var(--text-primary)' }}>
                 Student Retention Across Terms
               </h3>
               <div style={{ overflowX: 'auto' }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                   <thead>
                     <tr>
-                      <th style={{ textAlign: 'left', padding: '10px 12px', fontSize: '11px', fontWeight: 700, color: '#9999b0', textTransform: 'uppercase', borderBottom: '1px solid var(--border)' }}>Term</th>
-                      <th style={{ textAlign: 'right', padding: '10px 12px', fontSize: '11px', fontWeight: 700, color: '#9999b0', textTransform: 'uppercase', borderBottom: '1px solid var(--border)' }}>Total Students</th>
-                      <th style={{ textAlign: 'right', padding: '10px 12px', fontSize: '11px', fontWeight: 700, color: '#9999b0', textTransform: 'uppercase', borderBottom: '1px solid var(--border)' }}>New</th>
-                      <th style={{ textAlign: 'right', padding: '10px 12px', fontSize: '11px', fontWeight: 700, color: '#9999b0', textTransform: 'uppercase', borderBottom: '1px solid var(--border)' }}>Returning</th>
-                      <th style={{ textAlign: 'right', padding: '10px 12px', fontSize: '11px', fontWeight: 700, color: '#9999b0', textTransform: 'uppercase', borderBottom: '1px solid var(--border)' }}>Retention Rate</th>
+                      <th style={{ textAlign: 'left', padding: '10px 12px', fontSize: '11px', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', borderBottom: '1px solid var(--border)' }}>Term</th>
+                      <th style={{ textAlign: 'right', padding: '10px 12px', fontSize: '11px', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', borderBottom: '1px solid var(--border)' }}>Total Students</th>
+                      <th style={{ textAlign: 'right', padding: '10px 12px', fontSize: '11px', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', borderBottom: '1px solid var(--border)' }}>New</th>
+                      <th style={{ textAlign: 'right', padding: '10px 12px', fontSize: '11px', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', borderBottom: '1px solid var(--border)' }}>Returning</th>
+                      <th style={{ textAlign: 'right', padding: '10px 12px', fontSize: '11px', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', borderBottom: '1px solid var(--border)' }}>Retention Rate</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -1172,7 +1092,7 @@ export default function AnalyticsDashboard() {
                               {r.retentionRate}%
                             </span>
                           ) : (
-                            <span style={{ color: '#9999b0', fontSize: '12px' }}>First Term</span>
+                            <span style={{ color: 'var(--text-muted)', fontSize: '12px' }}>First Term</span>
                           )}
                         </td>
                       </tr>
@@ -1185,9 +1105,9 @@ export default function AnalyticsDashboard() {
                 <div style={{ marginTop: '20px' }}>
                   <ResponsiveContainer width="100%" height={220}>
                     <BarChart data={data.termAnalytics.retention}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
-                      <XAxis dataKey="termName" tick={{ fontSize: 11, fontWeight: 700, fill: '#9999b0' }} tickFormatter={(v: string) => v.replace(' Term', '')} />
-                      <YAxis tick={{ fontSize: 11, fill: '#9999b0' }} />
+                      <CartesianGrid strokeDasharray="0" stroke="var(--border)" strokeOpacity={0.7} />
+                      <XAxis dataKey="termName" tick={{ fontSize: 11, fontWeight: 700, fill: 'var(--text-muted)' }} tickFormatter={(v: string) => v.replace(' Term', '')} />
+                      <YAxis tick={{ fontSize: 11, fill: 'var(--text-muted)' }} />
                       <Tooltip contentStyle={tooltipStyle} />
                       <Bar dataKey="newStudents" stackId="students" fill="#0ea5e9" name="New Students" radius={[0, 0, 0, 0]} />
                       <Bar dataKey="returningStudents" stackId="students" fill="#10b981" name="Returning Students" radius={[6, 6, 0, 0]} />
@@ -1202,21 +1122,20 @@ export default function AnalyticsDashboard() {
           {/* Exam Cycle Breakdown */}
           {(data.termAnalytics.examCycleStats || []).length > 0 && (
             <div style={{ ...neuCard, marginBottom: '24px' }}>
-              <h3 style={{ fontSize: '16px', fontWeight: 800, marginBottom: '20px', color: 'var(--text-primary)' }}>
+              <h3 style={{ fontSize: '17px', fontWeight: 600, letterSpacing: '-0.012em', marginBottom: '20px', color: 'var(--text-primary)' }}>
                 Exam Stage Breakdown
               </h3>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '16px', marginBottom: '20px' }}>
                 {data.termAnalytics.examCycleStats.map((ec: any, idx: number) => {
-                  const cycleColors = ['#6366f1', '#10b981', '#f59e0b', '#8b5cf6']
+                  const cycleColors = ['#0a84ff', '#10b981', '#f59e0b', '#8b5cf6']
                   return (
-                    <div key={ec.cycle} style={{ background: 'var(--surface)', padding: '16px', borderRadius: '14px', border: '1px solid var(--border)', position: 'relative', overflow: 'hidden' }}>
-                      <div style={{ position: 'absolute', top: 0, left: 0, width: '4px', height: '100%', background: cycleColors[idx % 4], borderRadius: '4px 0 0 4px' }} />
+                    <div key={ec.cycle} style={{ background: 'var(--surface-2)', padding: '16px', borderRadius: '14px', border: '1px solid var(--border)', position: 'relative', overflow: 'hidden' }}>
                       <div style={{ paddingLeft: '8px' }}>
-                        <span style={{ fontSize: '11px', fontWeight: 800, color: '#9999b0', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{ec.label}</span>
-                        <div style={{ fontSize: '20px', fontWeight: 900, color: 'var(--text-primary)', marginTop: '6px' }}>
+                        <span style={{ fontSize: '11px', fontWeight: 500, color: 'var(--text-muted)', letterSpacing: '0' }}>{ec.label}</span>
+                        <div style={{ fontSize: '22px', fontWeight: 700, letterSpacing: '-0.022em', color: 'var(--text-primary)', marginTop: '6px' }}>
                           {`\u20B9${ec.revenue.toLocaleString('en-IN')}`}
                         </div>
-                        <div style={{ fontSize: '12px', color: '#9999b0', marginTop: '4px', fontWeight: 600 }}>
+                        <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '4px', fontWeight: 600 }}>
                           {ec.enrollmentCount.toLocaleString()} students
                         </div>
                       </div>
@@ -1226,9 +1145,9 @@ export default function AnalyticsDashboard() {
               </div>
               <ResponsiveContainer width="100%" height={240}>
                 <BarChart data={data.termAnalytics.examCycleStats} layout="vertical">
-                  <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
-                  <XAxis type="number" tick={{ fontSize: 11, fill: '#9999b0' }} tickFormatter={(v: number) => `\u20B9${(v / 1000).toFixed(0)}k`} />
-                  <YAxis dataKey="label" type="category" width={80} tick={{ fontSize: 11, fontWeight: 700, fill: '#9999b0' }} />
+                  <CartesianGrid strokeDasharray="0" stroke="var(--border)" strokeOpacity={0.7} />
+                  <XAxis type="number" tick={{ fontSize: 11, fill: 'var(--text-muted)' }} tickFormatter={(v: number) => `\u20B9${(v / 1000).toFixed(0)}k`} />
+                  <YAxis dataKey="label" type="category" width={80} tick={{ fontSize: 11, fontWeight: 700, fill: 'var(--text-muted)' }} />
                   <Tooltip contentStyle={tooltipStyle} formatter={(value: number) => [`\u20B9${value.toLocaleString('en-IN')}`, 'Revenue']} />
                   <Bar dataKey="revenue" fill="#6366f1" radius={[0, 6, 6, 0]} name="Revenue" />
                 </BarChart>
@@ -1238,19 +1157,19 @@ export default function AnalyticsDashboard() {
 
           {/* Top Courses by Revenue */}
           {(data.termAnalytics.courseBreakdown || []).length > 0 && (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '24px', marginBottom: '24px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '16px', marginBottom: '24px' }}>
               {/* Revenue Table */}
               <div style={neuCard}>
-                <h3 style={{ fontSize: '15px', fontWeight: 800, marginBottom: '16px', color: 'var(--text-primary)' }}>
+                <h3 style={{ fontSize: '17px', fontWeight: 600, letterSpacing: '-0.012em', marginBottom: '16px', color: 'var(--text-primary)' }}>
                   Top Courses by Revenue
                 </h3>
                 <div style={{ overflowX: 'auto' }}>
                   <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                     <thead>
                       <tr>
-                        <th style={{ textAlign: 'left', padding: '8px 10px', fontSize: '10px', fontWeight: 700, color: '#9999b0', textTransform: 'uppercase', borderBottom: '1px solid var(--border)' }}>Course</th>
-                        <th style={{ textAlign: 'center', padding: '8px 10px', fontSize: '10px', fontWeight: 700, color: '#9999b0', textTransform: 'uppercase', borderBottom: '1px solid var(--border)' }}>Exam</th>
-                        <th style={{ textAlign: 'right', padding: '8px 10px', fontSize: '10px', fontWeight: 700, color: '#9999b0', textTransform: 'uppercase', borderBottom: '1px solid var(--border)' }}>Revenue</th>
+                        <th style={{ textAlign: 'left', padding: '8px 10px', fontSize: '10px', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', borderBottom: '1px solid var(--border)' }}>Course</th>
+                        <th style={{ textAlign: 'center', padding: '8px 10px', fontSize: '10px', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', borderBottom: '1px solid var(--border)' }}>Exam</th>
+                        <th style={{ textAlign: 'right', padding: '8px 10px', fontSize: '10px', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', borderBottom: '1px solid var(--border)' }}>Revenue</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -1258,7 +1177,7 @@ export default function AnalyticsDashboard() {
                         <tr key={`${cb.courseId}-${cb.termId}`}>
                           <td style={{ padding: '10px', fontSize: '12px', fontWeight: 700, maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={cb.courseName}>
                             <div>{cb.courseName}</div>
-                            <div style={{ fontSize: '10px', color: '#9999b0', fontWeight: 600, marginTop: '2px' }}>{cb.termName}</div>
+                            <div style={{ fontSize: '10px', color: 'var(--text-muted)', fontWeight: 600, marginTop: '2px' }}>{cb.termName}</div>
                           </td>
                           <td style={{ padding: '10px', textAlign: 'center' }}>
                             <span style={{
@@ -1267,7 +1186,7 @@ export default function AnalyticsDashboard() {
                               color: cb.examCycle === 'QUIZ_1' ? '#7c3aed' : cb.examCycle === 'QUIZ_2' ? '#059669' : cb.examCycle === 'END_TERM' ? '#d97706' : '#64748b',
                             }}>{cb.examCycleLabel}</span>
                           </td>
-                          <td style={{ padding: '10px', fontSize: '13px', fontWeight: 900, textAlign: 'right', color: '#6366f1' }}>
+                          <td style={{ padding: '10px', fontSize: '13px', fontWeight: 900, textAlign: 'right', color: '#0a84ff' }}>
                             {`\u20B9${cb.revenue.toLocaleString('en-IN')}`}
                           </td>
                         </tr>
@@ -1279,17 +1198,17 @@ export default function AnalyticsDashboard() {
 
               {/* Enrollment Table */}
               <div style={neuCard}>
-                <h3 style={{ fontSize: '15px', fontWeight: 800, marginBottom: '16px', color: 'var(--text-primary)' }}>
+                <h3 style={{ fontSize: '17px', fontWeight: 600, letterSpacing: '-0.012em', marginBottom: '16px', color: 'var(--text-primary)' }}>
                   Top Courses by Students
                 </h3>
                 <div style={{ overflowX: 'auto' }}>
                   <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                     <thead>
                       <tr>
-                        <th style={{ textAlign: 'left', padding: '8px 10px', fontSize: '10px', fontWeight: 700, color: '#9999b0', textTransform: 'uppercase', borderBottom: '1px solid var(--border)' }}>Course</th>
-                        <th style={{ textAlign: 'center', padding: '8px 10px', fontSize: '10px', fontWeight: 700, color: '#9999b0', textTransform: 'uppercase', borderBottom: '1px solid var(--border)' }}>Exam</th>
-                        <th style={{ textAlign: 'right', padding: '8px 10px', fontSize: '10px', fontWeight: 700, color: '#9999b0', textTransform: 'uppercase', borderBottom: '1px solid var(--border)' }}>Students</th>
-                        <th style={{ textAlign: 'right', padding: '8px 10px', fontSize: '10px', fontWeight: 700, color: '#9999b0', textTransform: 'uppercase', borderBottom: '1px solid var(--border)' }}>Returning</th>
+                        <th style={{ textAlign: 'left', padding: '8px 10px', fontSize: '10px', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', borderBottom: '1px solid var(--border)' }}>Course</th>
+                        <th style={{ textAlign: 'center', padding: '8px 10px', fontSize: '10px', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', borderBottom: '1px solid var(--border)' }}>Exam</th>
+                        <th style={{ textAlign: 'right', padding: '8px 10px', fontSize: '10px', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', borderBottom: '1px solid var(--border)' }}>Students</th>
+                        <th style={{ textAlign: 'right', padding: '8px 10px', fontSize: '10px', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', borderBottom: '1px solid var(--border)' }}>Returning</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -1297,7 +1216,7 @@ export default function AnalyticsDashboard() {
                         <tr key={`enr-${cb.courseId}-${cb.termId}`}>
                           <td style={{ padding: '10px', fontSize: '12px', fontWeight: 700, maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={cb.courseName}>
                             <div>{cb.courseName}</div>
-                            <div style={{ fontSize: '10px', color: '#9999b0', fontWeight: 600, marginTop: '2px' }}>{cb.termName}</div>
+                            <div style={{ fontSize: '10px', color: 'var(--text-muted)', fontWeight: 600, marginTop: '2px' }}>{cb.termName}</div>
                           </td>
                           <td style={{ padding: '10px', textAlign: 'center' }}>
                             <span style={{
@@ -1324,8 +1243,8 @@ export default function AnalyticsDashboard() {
           {/* Empty state */}
           {(!data.termAnalytics.termSummaries || data.termAnalytics.termSummaries.length === 0) && (
             <div style={{ ...neuCard, textAlign: 'center', padding: '60px' }}>
-              <div style={{ fontSize: '15px', fontWeight: 700, color: '#9999b0' }}>No term data available yet</div>
-              <div style={{ fontSize: '13px', color: '#9999b0', marginTop: '8px' }}>
+              <div style={{ fontSize: '15px', fontWeight: 700, color: 'var(--text-muted)' }}>No term data available yet</div>
+              <div style={{ fontSize: '13px', color: 'var(--text-muted)', marginTop: '8px' }}>
                 Tag your courses with Academic Term and Exam Stage in the course edit modal to start seeing term insights.
               </div>
             </div>
@@ -1336,22 +1255,22 @@ export default function AnalyticsDashboard() {
 
       {/* ─── App & Website Feedback Stats ────────────────────────── */}
       {feedbackStats && (
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '24px', marginTop: '12px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '16px', marginTop: '12px' }}>
           <div style={neuCard}>
-            <h3 style={{ fontSize: '16px', fontWeight: 800, marginBottom: '20px', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <h3 style={{ fontSize: '17px', fontWeight: 600, letterSpacing: '-0.012em', marginBottom: '20px', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
               <span>App & Website Feedback Statistics</span>
             </h3>
             
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '20px', marginBottom: '24px' }}>
               {/* App Feedback Stats Card */}
-              <div style={{ background: 'var(--surface)', padding: '20px', borderRadius: '16px', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: '16px' }}>
+              <div style={{ background: 'var(--surface-2)', padding: '20px', borderRadius: '16px', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: '16px' }}>
                 <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: 'rgba(54, 54, 232, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#3636e8', fontSize: '12px', fontWeight: 800 }}>
                   APP
                 </div>
                 <div>
-                  <h4 style={{ margin: 0, fontSize: '12px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>App Feedback</h4>
+                  <h4 style={{ margin: 0, fontSize: '12px', color: 'var(--text-muted)', letterSpacing: '0' }}>App Feedback</h4>
                   <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px', marginTop: '4px' }}>
-                    <span style={{ fontSize: '24px', fontWeight: 900, color: 'var(--text-primary)' }}>
+                    <span style={{ fontSize: '28px', fontWeight: 700, letterSpacing: '-0.028em', color: 'var(--text-primary)' }}>
                       {feedbackStats.appAvg ? feedbackStats.appAvg.toFixed(1) : '0.0'}
                     </span>
                     <span style={{ fontSize: '14px', color: '#fbbf24', fontWeight: '700' }}>★</span>
@@ -1361,14 +1280,14 @@ export default function AnalyticsDashboard() {
               </div>
 
               {/* Website Feedback Stats Card */}
-              <div style={{ background: 'var(--surface)', padding: '20px', borderRadius: '16px', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: '16px' }}>
+              <div style={{ background: 'var(--surface-2)', padding: '20px', borderRadius: '16px', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: '16px' }}>
                 <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: 'rgba(16, 185, 129, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#10b981', fontSize: '12px', fontWeight: 800 }}>
                   WEB
                 </div>
                 <div>
-                  <h4 style={{ margin: 0, fontSize: '12px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Website Feedback</h4>
+                  <h4 style={{ margin: 0, fontSize: '12px', color: 'var(--text-muted)', letterSpacing: '0' }}>Website Feedback</h4>
                   <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px', marginTop: '4px' }}>
-                    <span style={{ fontSize: '24px', fontWeight: 900, color: 'var(--text-primary)' }}>
+                    <span style={{ fontSize: '28px', fontWeight: 700, letterSpacing: '-0.028em', color: 'var(--text-primary)' }}>
                       {feedbackStats.webAvg ? feedbackStats.webAvg.toFixed(1) : '0.0'}
                     </span>
                     <span style={{ fontSize: '14px', color: '#fbbf24', fontWeight: '700' }}>★</span>
@@ -1379,7 +1298,7 @@ export default function AnalyticsDashboard() {
             </div>
 
             {/* Rating distribution charts */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '24px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '16px' }}>
               {/* App Distribution */}
               <div>
                 <h4 style={{ fontSize: '13px', fontWeight: 800, color: 'var(--text-secondary)', marginBottom: '12px' }}>App Star Distribution</h4>
