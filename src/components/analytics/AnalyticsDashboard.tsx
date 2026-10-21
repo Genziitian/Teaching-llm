@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import React, { useState } from 'react'
 import useSWR from 'swr'
 import {
   AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell,
@@ -21,7 +21,28 @@ const RANGE_LABELS: Record<RangeKey, string> = {
 
 const PIE_COLORS = ['#0a84ff', '#30d158', '#ff9f0a', '#bf5af2', '#64d2ff', '#ff453a', '#5e5ce6', '#ffd60a', '#ac8e68', '#8e8e93']
 
+class AnalyticsBoundary extends React.Component<{ children: React.ReactNode }, { err: any }> {
+  state = { err: null as any }
+  static getDerivedStateFromError(err: any) { return { err } }
+  render() {
+    if (this.state.err) {
+      return (
+        <div style={{ padding: 24, borderRadius: 16, border: '1px solid #ff453a', color: '#ff453a', fontSize: 13, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+          <b>Analytics display error (send this to support):</b>{'\n'}
+          {String(this.state.err?.message || this.state.err)}{'\n'}
+          {String(this.state.err?.stack || '').split('\n').slice(0, 6).join('\n')}
+        </div>
+      )
+    }
+    return this.props.children
+  }
+}
+
 export default function AnalyticsDashboard() {
+  return <AnalyticsBoundary><AnalyticsDashboardInner /></AnalyticsBoundary>
+}
+
+function AnalyticsDashboardInner() {
   const [range, setRange] = useState<RangeKey>('7d')
   const [selectedCourse, setSelectedCourse] = useState<string>('all')
   const [selectedTerm, setSelectedTerm] = useState<string>('all')
