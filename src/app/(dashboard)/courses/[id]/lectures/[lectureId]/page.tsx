@@ -1311,9 +1311,9 @@ export default function LecturePage() {
                     <h2 style={{ fontSize: '18px', fontWeight: 800, margin: 0, color: 'var(--text-primary)' }}>{activePdfContent?.title}</h2>
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    {activePdfContent && (activePdfContent.pptUrl || activePdfContent.id) && (
+                    {activePdfContent?.pptUrl && (
                       <a
-                        href={`/api/drive-doc/${activePdfContent.id}`}
+                        href={activePdfContent.pptUrl}
                         target="_blank"
                         rel="noopener noreferrer"
                         style={{
@@ -1331,7 +1331,7 @@ export default function LecturePage() {
                         }}
                       >
                         <ExternalLink size={15} />
-                        Download Material
+                        Open Notes
                       </a>
                     )}
                   </div>
@@ -1339,14 +1339,16 @@ export default function LecturePage() {
                 <div className="card" style={{ minHeight: '360px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '12px', padding: '32px', textAlign: 'center' }}>
                   <FileText size={36} style={{ color: 'var(--accent)' }} />
                   <p style={{ margin: 0, color: 'var(--text-secondary)' }}>
-                    PDF preview is unavailable on the website. Download the notes to open them, or use the mobile app to read them there.
+                    Click below to open the notes in a new tab, or use the mobile app to read them directly.
                   </p>
-                  {activePdfContent && (
+                  {activePdfContent?.pptUrl && (
                     <a
-                      href={`/api/drive-doc/${activePdfContent.id}`}
+                      href={activePdfContent.pptUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
                       style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '10px 16px', borderRadius: '9px', background: 'var(--accent)', color: '#fff', fontWeight: 700, textDecoration: 'none' }}
                     >
-                      <Download size={15} /> Download Notes
+                      <ExternalLink size={15} /> Open Notes
                     </a>
                   )}
                 </div>
