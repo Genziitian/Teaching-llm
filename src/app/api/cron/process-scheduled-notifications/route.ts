@@ -15,10 +15,10 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url)
     const secretParam = searchParams.get('secret')
     
-    const cronSecret = process.env.CRON_SECRET || 'teaching_lms_cron_secret_key_123'
+    const cronSecret = process.env.CRON_SECRET?.trim()
     const providedSecret = secretParam || authHeader?.replace('Bearer ', '')
 
-    if (providedSecret !== cronSecret) {
+    if (!cronSecret || providedSecret !== cronSecret) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 

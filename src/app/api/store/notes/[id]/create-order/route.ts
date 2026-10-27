@@ -58,6 +58,22 @@ export async function POST(req: Request, { params }: { params: { id: string } })
     }
 
     const order = await razorpay.orders.create(options)
+    
+    // Create pending order record to bind purchase to this user & note
+    await prisma.order.create({
+      data: {
+        userId: user.id,
+        razorpayOrderId: order.id,
+        amount: price,
+        status: 'PENDING',
+        items: {
+          create: {
+            courseId: note.id,
+          },
+        },
+      },
+    })
+
     // The key id is public (not the secret); fall back to the server one if the public var is missing.
     const publicKeyId = process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || process.env.RAZORPAY_KEY_ID
 

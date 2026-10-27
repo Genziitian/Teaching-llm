@@ -3,7 +3,7 @@ import { jwtVerify } from 'jose'
 import { checkRateLimit, isMaintenanceModeActive } from '@/lib/ratelimit'
 import { canBypassMaintenance } from '@/lib/maintenance-access'
 
-const PUBLIC_PATHS = ['/login', '/api/auth/login', '/terminated', '/api/maintenance-status', '/api/external-enroll', '/api/analytics/compute', '/api/app-version', '/download', '/error/']
+const PUBLIC_PATHS = ['/login', '/terminated', '/api/maintenance-status', '/api/external-enroll', '/api/analytics/compute', '/api/app-version', '/download', '/error/']
 const COOKIE_NAME = 'teaching_llm_token'
 const JWT_SECRET = process.env.JWT_SECRET?.trim() || ''
 
@@ -12,7 +12,6 @@ const WRITE_METHODS = ['POST', 'PUT', 'PATCH', 'DELETE']
 
 // API routes exempt from CSRF header check (called by external services or browser forms)
 const CSRF_EXEMPT_PATHS = [
-  '/api/auth/login',
   '/api/auth/google',
   '/api/auth/logout',
   '/api/sync-queue', // cron job — has its own auth via CRON_SECRET
@@ -98,25 +97,7 @@ export async function middleware(request: NextRequest) {
     )
   }
 
-  // ─── 1. Rate Limiting for Login ───
-  if (pathname === '/api/auth/login' && method === 'POST') {
-    const ip = request.ip ?? request.headers.get('x-forwarded-for') ?? '127.0.0.1'
-    const { success, reset } = await checkRateLimit(`login_${ip}`, 'login')
-    
-    if (!success) {
-      return NextResponse.json(
-        { error: 'Too many login attempts. Please try again later.' },
-        { 
-          status: 429,
-          headers: {
-            'Retry-After': Math.ceil((reset - Date.now()) / 1000).toString(),
-          }
-        }
-      )
-    }
-  }
-
-  // ─── 2. Rate Limiting for ALL Write Operations ───
+  // ─── 1. Rate Limiting for ALL Write Operations ───
   if (pathname.startsWith('/api/') && WRITE_METHODS.includes(method) && !pathname.startsWith('/api/auth/')) {
     const token = getSessionToken(request)
     // Rate limit by user (via JWT userId) or by IP for unauthenticated requests

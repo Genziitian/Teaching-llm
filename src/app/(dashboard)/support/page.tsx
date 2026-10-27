@@ -466,26 +466,6 @@ export default function SupportPage() {
     return () => clearInterval(timer)
   }, [])
 
-  // Poll chat messages
-  useEffect(() => {
-    if (!activeChatId) return
-    const poll = () => fetch(`/api/support/live-chats/${activeChatId}/messages`)
-      .then(r => r.json()).then(d => setChatMsgs(Array.isArray(d) ? d : []))
-    poll()
-    const t = setInterval(poll, 3000)
-    return () => clearInterval(t)
-  }, [activeChatId])
-
-  // Poll chat list when in chat view
-  useEffect(() => {
-    if (view !== 'chat') return
-    const poll = () => fetch('/api/support/live-chats').then(r => r.json()).then(d => setAllChats(Array.isArray(d) ? d : []))
-    poll()
-    const t = setInterval(poll, 4000)
-    return () => clearInterval(t)
-  }, [view])
-
-  useEffect(() => { chatEndRef.current?.scrollIntoView({ behavior: 'smooth' }) }, [chatMsgs])
   useEffect(() => { repliesEndRef.current?.scrollIntoView({ behavior: 'smooth' }) }, [selected?.replies])
 
   // ── ticket actions ──────────────────────────────────────────────────────
@@ -702,48 +682,6 @@ export default function SupportPage() {
     setFeatureRequests(Array.isArray(fresh) ? fresh : [])
   }
 
-  // ── chat actions ────────────────────────────────────────────────────────
-  async function startChat(initialMessage?: string) {
-    const chat = await fetch('/api/support/live-chats', { 
-      method: 'POST', 
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ initialMessage })
-    }).then(r => r.json())
-    setAllChats(prev => [chat, ...prev])
-    setActiveChatId(chat.id)
-    setView('chat')
-    setShowChatStart(false)
-    setChatInitText('')
-  }
-
-  async function joinChat(chatId: string) {
-    await fetch(`/api/support/live-chats/${chatId}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'join' }) })
-    setActiveChatId(chatId)
-    setAllChats(prev => prev.map(c => c.id === chatId ? { ...c, status: 'ACTIVE' } : c))
-  }
-
-  async function closeChat(chatId: string) {
-    await fetch(`/api/support/live-chats/${chatId}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'close' }) })
-    setAllChats(prev => prev.filter(c => c.id !== chatId))
-    if (activeChatId === chatId) setActiveChatId(null)
-  }
-
-  function handleChatImageSelect(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0]
-    if (!file) return
-    if (file.size > 5 * 1024 * 1024) { alert('Image too large. Max 5MB.'); return }
-    if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) { alert('Only JPG, PNG, WEBP allowed.'); return }
-    setPendingChatImage(file)
-    setPendingChatImagePreview(URL.createObjectURL(file))
-  }
-
-  function clearChatImage() {
-    setPendingChatImage(null)
-    if (pendingChatImagePreview) URL.revokeObjectURL(pendingChatImagePreview)
-    setPendingChatImagePreview(null)
-    if (chatImageRef.current) chatImageRef.current.value = ''
-  }
-
   function handleReplyImageSelect(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
     if (!file) return
@@ -861,33 +799,6 @@ export default function SupportPage() {
     await fetch(`/api/support/faq/${id}`, { method: 'DELETE' })
     setFaqs(prev => prev.filter(f => f.id !== id))
   }
-
-  // ── chat history (manager) ───────────────────────────────────────────────
-  async function loadChatHistory() {
-    const data = await fetch('/api/support/chat-history').then(r => r.json())
-    setHistoryChats(Array.isArray(data) ? data : [])
-    setView('chatHistory')
-  }
-
-  async function viewHistory(s: ChatSession) {
-    setSelectedHistory(s)
-    const msgs = await fetch(`/api/support/chat-history/${s.id}`).then(r => r.json())
-    setHistoryMsgs(Array.isArray(msgs) ? msgs : [])
-  }
-
-  async function deleteHistory(id: string) {
-    const allowed = await confirm({
-      title: 'Delete Chat History?',
-      message: 'This chat transcript will be removed permanently.',
-      confirmLabel: 'Delete Transcript',
-      tone: 'danger',
-    })
-    if (!allowed) return
-    await fetch(`/api/support/chat-history/${id}`, { method: 'DELETE' })
-    setHistoryChats(prev => prev.filter(c => c.id !== id))
-    if (selectedHistory?.id === id) { setSelectedHistory(null); setHistoryMsgs([]) }
-  }
-
 
   // ══════════════════════════════════════════════════════════════════════════
   // HOME VIEW
@@ -1206,13 +1117,6 @@ export default function SupportPage() {
                   </div>
                 )}
               </div>
-            )}
-
-            {userRole === 'MANAGER' && (
-              <button onClick={loadChatHistory} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--primary)', fontSize: '13px', fontWeight: '700', fontFamily: 'inherit', display: 'inline-flex', alignItems: 'center', gap: '4px', alignSelf: 'center' }}>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg>
-                View Chat History
-              </button>
             )}
           </div>
         </div>

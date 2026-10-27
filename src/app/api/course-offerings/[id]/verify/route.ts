@@ -51,6 +51,10 @@ export async function POST(
       return NextResponse.json({ error: 'Order not found' }, { status: 404 })
     }
 
+    if (order.userId !== session.userId) {
+      return NextResponse.json({ error: 'Forbidden - order does not belong to you' }, { status: 403 })
+    }
+
     if (order.status === 'SUCCESS') {
       return NextResponse.json({ error: 'Order already processed', orderId: order.id }, { status: 400 })
     }

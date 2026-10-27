@@ -70,15 +70,18 @@ export interface StreamTokenPayload {
   userId: string
   lectureId: string
   role: string
+  type?: 'stream'
 }
 
 export function signStreamToken(userId: string, lectureId: string, role: string): string {
-  return jwt.sign({ userId, lectureId, role }, getJwtSecret(), { expiresIn: '4h' })
+  return jwt.sign({ userId, lectureId, role, type: 'stream' }, getJwtSecret(), { expiresIn: '4h' })
 }
 
 export function verifyStreamToken(token: string): StreamTokenPayload | null {
   try {
-    return jwt.verify(token, getJwtSecret()) as StreamTokenPayload
+    const payload = jwt.verify(token, getJwtSecret()) as StreamTokenPayload
+    if (payload.type && payload.type !== 'stream') return null
+    return payload
   } catch (err) {
     return null
   }
@@ -123,7 +126,7 @@ export async function getSession(): Promise<JWTPayload | null> {
     if (!token) return null
     
     const payload = verifyToken(token)
-    if (!payload) return null
+    if (!payload || (payload as any).type === 'stream') return null
 
     // Security: Verify token version and termination status from DB
     const user = await prisma.user.findUnique({
@@ -156,7 +159,7 @@ export async function getFullSession(): Promise<FullSession | null> {
     if (!token) return null
 
     const jwtPayload = verifyToken(token)
-    if (!jwtPayload) return null
+    if (!jwtPayload || (jwtPayload as any).type === 'stream') return null
 
     // Step 2: Fetch user + settings in PARALLEL — ONE user query covers
     // tokenVersion, isTerminated, enrollments, and profile state. This replaces

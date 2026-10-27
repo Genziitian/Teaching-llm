@@ -31,6 +31,12 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Token audience mismatch' }, { status: 401 })
     }
 
+    // Ensure the Google email is confirmed/verified by Google
+    const isEmailVerified = googlePayload.email_verified === true || googlePayload.email_verified === 'true'
+    if (!isEmailVerified) {
+      return NextResponse.json({ error: 'Google email is not verified' }, { status: 401 })
+    }
+
     const email = googlePayload.email?.toLowerCase()
     const fullName = googlePayload.name || googlePayload.email?.split('@')[0] || 'Google User'
     const firstName = fullName.split(' ')[0] || ''

@@ -13,12 +13,12 @@ export async function GET(request: NextRequest) {
     const authHeader = request.headers.get('authorization')
     const { searchParams } = new URL(request.url)
     const secretParam = searchParams.get('secret')
-    const cronSecret = process.env.CRON_SECRET || 'teaching_lms_cron_secret_key_123'
+    const cronSecret = process.env.CRON_SECRET?.trim()
     const providedSecret = secretParam || authHeader?.replace('Bearer ', '')
 
     const session = await getSession()
     const isManager = session?.role === 'MANAGER' || (session?.role === 'ADMIN' || session?.role === 'MODERATOR')
-    const isAuthorizedCron = providedSecret === cronSecret
+    const isAuthorizedCron = Boolean(cronSecret && providedSecret === cronSecret)
 
     if (!isAuthorizedCron && !isManager) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { readFile } from 'fs/promises'
 import path from 'path'
+import { getSession } from '@/lib/auth'
 
 export async function GET(
   request: NextRequest,
@@ -9,14 +10,27 @@ export async function GET(
   try {
     const { type, id } = params
     
-    // Validate type to prevent traversing
-    const allowedTypes = ['avatars', 'announcements', 'exams', 'updates', 'materials']
+    // Validate type to prevent traversing — exams discontinued
+    const allowedTypes = ['avatars', 'announcements', 'updates', 'materials']
     if (!allowedTypes.includes(type)) {
       return new NextResponse('Not Found', { status: 404 })
     }
 
-    const storageDir = path.join(process.cwd(), 'storage', type)
-    const filePath = path.join(storageDir, id)
+    const storageDir = path.resolve(process.cwd(), 'storage', type)
+    const filePath = path.resolve(storageDir, id)
+
+    // Confine file path to storageDir (prevent traversal)
+    if (!filePath.startsWith(storageDir + path.sep)) {
+      return new NextResponse('Not Found', { status: 404 })
+    }
+
+    // Materials require authenticated session
+    if (type === 'materials') {
+      const session = await getSession()
+      if (!session) {
+        return new NextResponse('Unauthorized', { status: 401 })
+      }
+    }
 
     try {
       const data = await readFile(filePath)

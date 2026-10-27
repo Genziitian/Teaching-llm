@@ -34,6 +34,35 @@ export async function POST(req: Request, { params }: { params: { id: string } })
       return NextResponse.json({ error: 'Invalid signature' }, { status: 400 })
     }
 
+    // Prevent payment replay across notes
+    const alreadyRedeemed = await prisma.storeNoteAccess.findFirst({
+      where: { orderId: razorpay_payment_id },
+    })
+    if (alreadyRedeemed) {
+      return NextResponse.json({ error: 'Payment already redeemed' }, { status: 400 })
+    }
+
+    // Verify order owner and note item if tracked
+    const dbOrder = await prisma.order.findUnique({
+      where: { razorpayOrderId: razorpay_order_id },
+      include: { items: true },
+    })
+    if (dbOrder) {
+      if (dbOrder.userId !== user.id) {
+        return NextResponse.json({ error: 'Order belongs to another user' }, { status: 403 })
+      }
+      if (dbOrder.status === 'SUCCESS') {
+        return NextResponse.json({ error: 'Order already processed' }, { status: 400 })
+      }
+      if (!dbOrder.items.some(i => i.courseId === params.id)) {
+        return NextResponse.json({ error: 'Order was not created for this note' }, { status: 400 })
+      }
+      await prisma.order.update({
+        where: { id: dbOrder.id },
+        data: { status: 'SUCCESS', razorpayPaymentId: razorpay_payment_id },
+      })
+    }
+
     const noteForAccess = await prisma.storeNote.findUnique({ where: { id: params.id } })
     if (!noteForAccess) return NextResponse.json({ error: 'Note not found' }, { status: 404 })
 
