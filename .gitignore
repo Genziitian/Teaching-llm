@@ -80,4 +80,6 @@ output/
 backups/
 **/backups/
 *.bak*
+*.ql-preview*
+_to_delete/
 
