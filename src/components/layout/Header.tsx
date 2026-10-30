@@ -411,7 +411,7 @@ export default function Header({ userName, userRole }: HeaderProps) {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', alignItems: showGreetingHeadline ? 'flex-start' : 'center' }} className={`header-titles ${showGreetingHeadline ? 'header-titles-dashboard' : ''}`}>
         {showGreetingHeadline ? (
           <>
-            <h1 style={{
+            <h1 data-snow="text" style={{
               fontSize: 'clamp(38px, 4vw, 48px)',
               fontWeight: '900',
               color: 'var(--text-primary)',

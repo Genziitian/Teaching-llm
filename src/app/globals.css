@@ -3543,3 +3543,9 @@ button:active:not(:disabled), [role="button"]:active { transition-duration: 100m
 @media (prefers-reduced-motion:reduce){.lg-aurora i,.lg-sheet{animation:none}.lg-slide{transition:none}}
 @media (prefers-reduced-transparency:reduce){.lg-sheet{-webkit-backdrop-filter:none;backdrop-filter:none;background:var(--surface,#fff)}}
 @media (prefers-contrast:more){.lg-sheet,.lg-chip{border-color:currentColor}}
+
+/* Winter snow: hide the cursor while the feather duster is drawn over settled snow (SnowEngine). */
+html.snow-dusting,
+html.snow-dusting * {
+  cursor: none !important;
+}

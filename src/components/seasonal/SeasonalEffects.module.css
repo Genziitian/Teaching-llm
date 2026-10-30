@@ -1,0 +1,217 @@
+/* Snow on/off button: matches the neumorphic round icon buttons in the header. */
+.toggle {
+  position: fixed;
+  right: 96px;
+  bottom: 28px;
+  z-index: 990;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: none;
+  padding: 0;
+  background: var(--sidebar-bg);
+  box-shadow: var(--shadow);
+  color: #4f7bd9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  outline: none;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease, color 0.3s ease;
+  animation: toggleIn 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) 1.2s both;
+}
+:global(:root[data-theme='dark']) .toggle,
+:global(:root[data-theme='black']) .toggle { color: #9cc0ff; }
+.toggle:hover { transform: translateY(-3px) scale(1.06); }
+.toggle:active { transform: scale(0.9); box-shadow: var(--shadow-inset); }
+.toggle:focus-visible { box-shadow: var(--shadow), 0 0 0 3px rgba(79, 123, 217, 0.45); }
+.off { color: var(--text-muted); }
+
+.icon { animation: spin 16s linear infinite; transform-origin: 50% 50%; }
+.off .icon { animation: none; opacity: 0.75; }
+.pop { animation: pop 0.7s cubic-bezier(0.34, 1.56, 0.64, 1), spin 16s linear 0.7s infinite; }
+.off .pop { animation: popOff 0.5s ease; }
+
+.slash {
+  position: absolute;
+  pointer-events: none;
+}
+.slash path { stroke-dasharray: 24; stroke-dashoffset: 24; transition: stroke-dashoffset 0.35s ease; }
+.off .slash path { stroke-dashoffset: 0; }
+
+/* a little cap of snow sitting on the button */
+.mound {
+  position: absolute;
+  top: -4px;
+  left: 9px;
+  right: 9px;
+  height: 11px;
+  border-radius: 12px 14px 5px 5px / 10px 10px 4px 4px;
+  background: linear-gradient(#ffffff 30%, #dbe5f1);
+  box-shadow: 0 1.5px 2px rgba(51, 65, 85, 0.28), inset 0 -1px 1px rgba(148, 163, 184, 0.4);
+  transform-origin: 50% 100%;
+  transition: transform 0.45s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.3s ease;
+}
+.mound::before,
+.mound::after {
+  content: '';
+  position: absolute;
+  background: #fff;
+  border-radius: 50%;
+}
+.mound::before { width: 12px; height: 9px; left: 3px; top: -3px; }
+.mound::after { width: 9px; height: 7px; right: 5px; top: -2px; }
+.off .mound { transform: scaleY(0) translateY(6px); opacity: 0; }
+
+.label {
+  position: absolute;
+  right: calc(100% + 12px);
+  top: 50%;
+  transform: translate(6px, -50%);
+  white-space: nowrap;
+  padding: 7px 12px;
+  border-radius: 999px;
+  background: var(--sidebar-bg);
+  box-shadow: var(--shadow);
+  color: var(--text-primary);
+  font: 600 12.5px/1 'Outfit', 'Nunito', sans-serif;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease, transform 0.25s ease;
+}
+.toggle:hover .label { opacity: 1; transform: translate(0, -50%); }
+
+/* first-visit hint bubble */
+.hint {
+  position: fixed;
+  right: 96px;
+  bottom: 92px;
+  z-index: 990;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  max-width: 300px;
+  padding: 13px 14px 13px 14px;
+  border-radius: 18px;
+  background: var(--sidebar-bg);
+  box-shadow: var(--shadow-md);
+  color: var(--text-primary);
+  font: 500 13.5px/1.45 'Outfit', 'Nunito', sans-serif;
+  transform-origin: calc(100% - 24px) 100%;
+  animation: hintIn 0.55s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+.hint::after {
+  content: '';
+  position: absolute;
+  right: 18px;
+  bottom: -6px;
+  width: 12px;
+  height: 12px;
+  background: var(--sidebar-bg);
+  transform: rotate(45deg);
+  border-radius: 2px;
+}
+.hint strong { font-weight: 700; }
+.hintOut { animation: hintOut 0.3s ease forwards; }
+.hintIcon { flex-shrink: 0; animation: sway 1.6s ease-in-out infinite; transform-origin: 20% 85%; }
+.hintClose {
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0 2px;
+  margin-left: 2px;
+}
+.hintClose:hover { color: var(--text-primary); }
+
+/* "Previewing <date>" pill, shown while a test date is set in Settings */
+.preview {
+  position: fixed;
+  left: 50%;
+  bottom: 24px;
+  z-index: 991;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 8px 8px 14px;
+  border-radius: 999px;
+  background: #111827;
+  color: #fff;
+  font: 600 13px/1 'Outfit', 'Nunito', sans-serif;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  white-space: nowrap;
+  animation: hintIn 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+.preview button {
+  border: 0;
+  border-radius: 999px;
+  padding: 7px 12px;
+  background: rgba(255, 255, 255, 0.14);
+  color: #fff;
+  font: 700 12px/1 'Outfit', 'Nunito', sans-serif;
+  cursor: pointer;
+}
+.preview button:hover { background: rgba(255, 255, 255, 0.24); }
+.previewDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #f59e0b;
+  box-shadow: 0 0 0 4px rgba(245, 158, 11, 0.25);
+  animation: hintPulse 1.6s ease-in-out infinite;
+}
+@keyframes hintPulse { 50% { box-shadow: 0 0 0 7px rgba(245, 158, 11, 0.08); } }
+
+@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes pop {
+  0% { transform: scale(0.6) rotate(-90deg); }
+  60% { transform: scale(1.25) rotate(20deg); }
+  100% { transform: scale(1) rotate(0deg); }
+}
+@keyframes popOff {
+  0% { transform: scale(1); }
+  40% { transform: scale(0.75) rotate(-25deg); }
+  100% { transform: scale(1) rotate(0); }
+}
+@keyframes toggleIn {
+  from { opacity: 0; transform: translateY(18px) scale(0.6); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes hintIn {
+  from { opacity: 0; transform: translateY(10px) scale(0.85); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes hintOut { to { opacity: 0; transform: translateY(6px) scale(0.92); } }
+@keyframes sway {
+  0%, 100% { transform: rotate(-14deg); }
+  50% { transform: rotate(16deg); }
+}
+
+@media (max-width: 767px) {
+  .toggle {
+    right: auto;
+    left: 14px;
+    bottom: calc(76px + max(env(safe-area-inset-bottom, 0px), var(--android-nav-bottom, 0px)));
+    width: 42px;
+    height: 42px;
+  }
+  .mound { left: 7px; right: 7px; }
+  .label { display: none; }
+  .hint {
+    right: 14px;
+    left: 14px;
+    max-width: none;
+    bottom: calc(130px + max(env(safe-area-inset-bottom, 0px), var(--android-nav-bottom, 0px)));
+  }
+  .hint::after { right: auto; left: 15px; }
+  .preview { bottom: calc(80px + max(env(safe-area-inset-bottom, 0px), var(--android-nav-bottom, 0px))); font-size: 12px; }
+  .hint { transform-origin: 24px 100%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .icon, .pop, .hintIcon { animation: none; }
+}

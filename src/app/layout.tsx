@@ -130,6 +130,8 @@ import ServiceWorkerRegister from '@/components/ServiceWorkerRegister'
 import GoogleAnalytics from '@/components/GoogleAnalytics'
 import MicrosoftClarity from '@/components/MicrosoftClarity'
 import { LanguageProvider } from '@/contexts/LanguageContext'
+import SeasonalEffects from '@/components/seasonal/SeasonalEffects'
+import SiteDecor from '@/components/seasonal/SiteDecor'
 
 export default function RootLayout({
   children,
@@ -162,6 +164,8 @@ export default function RootLayout({
                 <PaymentResultHost />
         <PaymentFeedbackPrompt />
                 <ServiceWorkerRegister />
+                <SiteDecor />
+                <SeasonalEffects />
                 <CsrfProvider>{children}</CsrfProvider>
               </LanguageProvider>
             </ThemeProvider>

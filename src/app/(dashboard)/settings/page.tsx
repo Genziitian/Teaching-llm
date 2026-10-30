@@ -7,6 +7,7 @@ import { useTheme } from '@/components/ThemeProvider'
 import { DELETION_REASONS } from '@/lib/deletion-reasons'
 import { useTour } from '@/components/tour/TourContext'
 import { useLanguage } from '@/contexts/LanguageContext'
+import FestiveSettingsCard from '@/components/seasonal/FestiveSettingsCard'
 
 
 function Toggle({ checked, onChange }: { checked: boolean; onChange: (v: boolean) => void }) {
@@ -663,6 +664,9 @@ export default function SettingsPage() {
           </div>
 
         </div>
+
+        {/* ── Festive effects: snow, decorations, greetings (+ preview date for managers) ── */}
+        <FestiveSettingsCard isManager={isManagerUser} isMobile={isMobile} />
 
         {/* ── Sept '26 Term Progress Campaign (Manager only) ── */}
         {isManagerUser && (
