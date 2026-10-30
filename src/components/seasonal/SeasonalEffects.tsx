@@ -70,7 +70,9 @@ export default function SeasonalEffects() {
   const tick = useSeasonalTick()
 
   useEffect(() => {
-    const a = snowAmount()
+    // snow only on laptops / desktops: a mouse or trackpad and a wide screen (no phones, tablets, app)
+    const laptop = window.matchMedia('(hover: hover) and (pointer: fine) and (min-width: 1024px)').matches
+    const a = laptop ? snowAmount() : 0
     setAmount(a)
     if (a <= 0) { setReady(false); return }
     const pref = readSnowPref()
