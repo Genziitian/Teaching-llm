@@ -127,45 +127,6 @@
 }
 .hintClose:hover { color: var(--text-primary); }
 
-/* "Previewing <date>" pill, shown while a test date is set in Settings */
-.preview {
-  position: fixed;
-  left: 50%;
-  bottom: 24px;
-  z-index: 991;
-  transform: translateX(-50%);
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 8px 8px 8px 14px;
-  border-radius: 999px;
-  background: #111827;
-  color: #fff;
-  font: 600 13px/1 'Outfit', 'Nunito', sans-serif;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-  white-space: nowrap;
-  animation: hintIn 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) both;
-}
-.preview button {
-  border: 0;
-  border-radius: 999px;
-  padding: 7px 12px;
-  background: rgba(255, 255, 255, 0.14);
-  color: #fff;
-  font: 700 12px/1 'Outfit', 'Nunito', sans-serif;
-  cursor: pointer;
-}
-.preview button:hover { background: rgba(255, 255, 255, 0.24); }
-.previewDot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: #f59e0b;
-  box-shadow: 0 0 0 4px rgba(245, 158, 11, 0.25);
-  animation: hintPulse 1.6s ease-in-out infinite;
-}
-@keyframes hintPulse { 50% { box-shadow: 0 0 0 7px rgba(245, 158, 11, 0.08); } }
-
 @keyframes spin { to { transform: rotate(360deg); } }
 @keyframes pop {
   0% { transform: scale(0.6) rotate(-90deg); }
@@ -208,7 +169,6 @@
     bottom: calc(130px + max(env(safe-area-inset-bottom, 0px), var(--android-nav-bottom, 0px)));
   }
   .hint::after { right: auto; left: 15px; }
-  .preview { bottom: calc(80px + max(env(safe-area-inset-bottom, 0px), var(--android-nav-bottom, 0px))); font-size: 12px; }
   .hint { transform-origin: 24px 100%; }
 }
 

@@ -29,8 +29,8 @@ export const BANNER_SCHEDULE: { from: string; to: string; banner: FestivalBanner
  * Between two points the amount changes smoothly day by day.
  */
 export const SNOW_CURVE: { date: string; amount: number }[] = [
-  { date: '2026-10-31', amount: 0 },
-  { date: '2026-11-01', amount: 0.12 }, // first light flurries
+  { date: '2026-10-29', amount: 0 },
+  { date: '2026-10-30', amount: 0.12 }, // first light flurries
   { date: '2026-11-20', amount: 0.3 },
   { date: '2026-12-10', amount: 0.6 },
   { date: '2026-12-25', amount: 1 }, // Christmas: full snowfall

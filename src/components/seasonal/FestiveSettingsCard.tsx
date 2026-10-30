@@ -46,7 +46,7 @@ function Toggle({ checked, onChange, disabled }: { checked: boolean; onChange: (
       onClick={() => onChange(!checked)}
       style={{
         width: 46, height: 26, borderRadius: 13, flexShrink: 0, border: 'none', padding: 0,
-        background: checked ? 'var(--primary)' : 'var(--toggle-off)',
+        background: checked ? '#4f46e5' : 'var(--toggle-off)',
         position: 'relative', cursor: disabled ? 'not-allowed' : 'pointer', opacity: disabled ? 0.45 : 1,
         transition: 'background 0.25s ease, opacity 0.2s ease',
       }}

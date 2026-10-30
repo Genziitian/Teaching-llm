@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { usePathname } from 'next/navigation'
-import { isSeasonalRouteBlocked, readPrefs, readSnowPref, realToday, snowAmount, SNOW_HINT_KEY, writePrefs, writeSnowPref } from '@/lib/seasonal/seasons'
+import { isSeasonalRouteBlocked, readSnowPref, snowAmount, SNOW_HINT_KEY, writeSnowPref } from '@/lib/seasonal/seasons'
 import { useSeasonalTick } from './useSeasonalTick'
 import type { SnowEngine } from './snow/SnowEngine'
 import styles from './SeasonalEffects.module.css'
@@ -65,14 +65,11 @@ export default function SeasonalEffects() {
   const [hint, setHint] = useState<'hidden' | 'show' | 'leaving'>('hidden')
   const [touch, setTouch] = useState(false)
   const [pop, setPop] = useState(0)
-  const [previewDate, setPreviewDate] = useState<string | null>(null)
   const engineRef = useRef<SnowEngine | null>(null)
   const firstRun = useRef(true)
   const tick = useSeasonalTick()
 
   useEffect(() => {
-    const p = readPrefs().date
-    setPreviewDate(p && p !== realToday() ? p : null)
     const a = snowAmount()
     setAmount(a)
     if (a <= 0) { setReady(false); return }
@@ -143,19 +140,11 @@ export default function SeasonalEffects() {
     if (!next) dismissHint()
   }
 
-  const pill = previewDate && !blocked ? (
-    <div className={styles.preview} role="status" data-no-snow>
-      <span className={styles.previewDot} />
-      Previewing {new Date(previewDate + 'T12:00:00').toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' })}
-      <button type="button" onClick={() => writePrefs({ date: undefined })}>Back to today</button>
-    </div>
-  ) : null
 
-  if (!ready || blocked) return pill
+  if (!ready || blocked) return null
 
   return (
     <>
-      {pill}
       <button
         type="button"
         className={`${styles.toggle} ${snowOn ? '' : styles.off}`}
