@@ -67,7 +67,8 @@ export default function SettingsPage() {
   }, [])
 
   // Theme preference — wired to the real ThemeProvider (persists + applies live)
-  const { theme, setTheme } = useTheme()
+  const { theme: savedTheme, setTheme, lightHidden } = useTheme()
+  const theme = lightHidden && savedTheme === 'light' ? 'black' : savedTheme
 
   // Language preference
   const { language, setLanguage, t } = useLanguage()
@@ -515,7 +516,7 @@ export default function SettingsPage() {
                   <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '2px' }}>{t('settings.preferences.themeDesc')}</div>
                 </div>
                 <div style={{ display: 'flex', gap: '6px', flexShrink: 0 }}>
-                  {(['light', 'dark', 'black', 'system'] as const).map(t => (
+                  {(['light', 'dark', 'black', 'system'] as const).filter(t => !(lightHidden && t === 'light')).map(t => (
                     <button
                       key={t}
                       onClick={() => setTheme(t)}

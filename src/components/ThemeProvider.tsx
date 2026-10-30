@@ -25,6 +25,19 @@ interface ThemeContextValue {
   theme: ThemeChoice
   resolvedTheme: ResolvedTheme
   setTheme: (t: ThemeChoice) => void
+  /** true while the light theme is switched off (winter season); pickers hide "Light" */
+  lightHidden: boolean
+}
+
+/**
+ * Winter season: the light theme is off until this date (inclusive, visitor's local date).
+ * Anyone on Light (or System while their device is light) sees Black instead. Their saved
+ * choice is kept, so it comes back by itself afterwards. Keep in sync with layout.tsx.
+ */
+export const LIGHT_HIDDEN_UNTIL = 20261231 // YYYYMMDD
+
+export function isLightHidden(d = new Date()): boolean {
+  return d.getFullYear() * 10000 + (d.getMonth() + 1) * 100 + d.getDate() <= LIGHT_HIDDEN_UNTIL
 }
 
 const STORAGE_KEY = 'theme'
@@ -49,7 +62,8 @@ function normalize(v: string | null): ThemeChoice {
 }
 
 function resolve(choice: ThemeChoice): ResolvedTheme {
-  return choice === 'system' ? getSystemTheme() : choice
+  const r = choice === 'system' ? getSystemTheme() : choice
+  return r === 'light' && isLightHidden() ? 'black' : r
 }
 
 /** Push the resolved theme to the DOM, browser chrome, and native shell. */
@@ -100,7 +114,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     if (theme !== 'system') return
     const mq = window.matchMedia('(prefers-color-scheme: dark)')
     const onChange = () => {
-      const r = getSystemTheme()
+      const r = resolve('system')
       setResolvedTheme(r)
       applyResolved(r)
     }
@@ -123,7 +137,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   }, [])
 
   return (
-    <ThemeContext.Provider value={{ theme, resolvedTheme, setTheme }}>
+    <ThemeContext.Provider value={{ theme, resolvedTheme, setTheme, lightHidden: isLightHidden() }}>
       {children}
     </ThemeContext.Provider>
   )
@@ -132,6 +146,6 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 export function useTheme(): ThemeContextValue {
   const ctx = useContext(ThemeContext)
   // Safe fallback if a component renders outside the provider.
-  if (!ctx) return { theme: 'system', resolvedTheme: 'light', setTheme: () => {} }
+  if (!ctx) return { theme: 'system', resolvedTheme: 'light', setTheme: () => {}, lightHidden: false }
   return ctx
 }

@@ -19,8 +19,8 @@ export const BANNER_SCHEDULE: { from: string; to: string; banner: FestivalBanner
   { from: '2000-01-01', to: '2026-11-07', banner: 'quizlab' },
   { from: '2026-11-08', to: '2026-11-09', banner: 'diwali' },
   { from: '2026-11-10', to: '2026-11-14', banner: 'quizlab' },
-  { from: '2026-11-15', to: '2026-11-16', banner: 'chhath' },
-  // 17 Nov – 24 Dec: nothing
+  { from: '2026-11-15', to: '2026-11-15', banner: 'chhath' },
+  // 16 Nov – 24 Dec: nothing
   { from: '2026-12-25', to: '2026-12-26', banner: 'christmas' },
 ]
 
@@ -51,7 +51,6 @@ export type DecorTheme = 'diwali' | 'chhath' | 'christmas'
  */
 export const DECOR_SCHEDULE: { theme: DecorTheme; day: string; until: string }[] = [
   { theme: 'diwali', day: '2026-11-08', until: '2026-11-09' },
-  { theme: 'chhath', day: '2026-11-15', until: '2026-11-16' },
   { theme: 'christmas', day: '2026-12-25', until: '2027-01-01' },
 ]
 const PREP_DAYS = 3
@@ -75,7 +74,7 @@ export function activeDecor(today = seasonalToday()): { theme: DecorTheme; level
   return null
 }
 
-/** Pages where nothing festive appears (exams, videos/live classes, sign-in, payments). */
+/** Pages where nothing festive appears (exams, live classes, video/material viewers, sign-in). */
 const BLOCKED_PREFIXES = [
   '/exam-protection',
   '/live/',
@@ -159,6 +158,7 @@ export function previewMarks(): { date: string; label: string; group: string }[]
     )
   })
   marks.push(
+    { date: FESTIVAL_MAIN_DAY.chhath, label: 'Chhath day', group: 'Chhath' },
     { date: '2026-11-10', label: 'Quiz Lab again', group: 'Banner' },
     { date: '2026-12-10', label: 'Mid December', group: 'Snow' },
     { date: '2027-01-15', label: 'Snow fading', group: 'Snow' },
@@ -193,6 +193,17 @@ export function seasonalToday(): string {
 
 export function realToday(): string {
   return toKey(new Date())
+}
+
+/** The one day each festival screen opens by itself (other festival days show only the corner badge). */
+export const FESTIVAL_MAIN_DAY: Record<'diwali' | 'chhath' | 'christmas', string> = {
+  diwali: '2026-11-08',
+  chhath: '2026-11-15',
+  christmas: '2026-12-25',
+}
+
+export function isFestivalMainDay(festival: 'diwali' | 'chhath' | 'christmas', today = seasonalToday()): boolean {
+  return FESTIVAL_MAIN_DAY[festival] === today
 }
 
 export function activeBanner(today = seasonalToday()): FestivalBanner {
@@ -234,6 +245,10 @@ export function snowAmount(today = seasonalToday()): number {
   return Math.max(0, Math.min(1, amount))
 }
 
+/**
+ * An entry ending in "/" blocks only the pages under it ("/live/" = a live class,
+ * not the Live Sessions list). Other entries block the page itself and everything under it.
+ */
 export function isSeasonalRouteBlocked(pathname: string): boolean {
-  return BLOCKED_PREFIXES.some(p => pathname === p.replace(/\/$/, '') || pathname.startsWith(p))
+  return BLOCKED_PREFIXES.some(p => (p.endsWith('/') ? pathname.startsWith(p) : pathname === p || pathname.startsWith(p + '/')))
 }

@@ -504,8 +504,9 @@ export default function Header({ userName, userRole }: HeaderProps) {
         {/* Appearance Toggle — Light / Dark / Black */}
         <button
           onClick={() => {
-            const { resolvedTheme, setTheme } = themeCtx
-            if (resolvedTheme === 'light') setTheme('dark')
+            const { resolvedTheme, setTheme, lightHidden } = themeCtx
+            if (lightHidden) setTheme(resolvedTheme === 'dark' ? 'black' : 'dark')
+            else if (resolvedTheme === 'light') setTheme('dark')
             else if (resolvedTheme === 'dark') setTheme('black')
             else setTheme('light')
           }}
@@ -514,6 +515,8 @@ export default function Header({ userName, userRole }: HeaderProps) {
               ? 'Switch to Dark Mode'
               : themeCtx.resolvedTheme === 'dark'
               ? 'Switch to Black Mode'
+              : themeCtx.lightHidden
+              ? 'Switch to Dark Mode'
               : 'Switch to Light Mode'
           }
           className="theme-toggle-btn"

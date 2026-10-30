@@ -77,6 +77,8 @@ interface Cap {
   grad: CanvasGradient | null
   /** each card gets its own amount, drift and lumps so no two look alike */
   pers: { seed: number; scale: number; tilt: number; grow: number; fill: number; mounds: { x: number; w: number; h: number }[] }
+  /** 1 where something (sidebar, menu, popup) covers this part of the element */
+  occ: Uint8Array
 }
 
 interface Puff {
@@ -180,6 +182,9 @@ export class SnowEngine {
   /** invisible strip at the bottom of the screen (or on top of the mobile nav) where snow piles up */
   private ground: HTMLDivElement | null = null
   private frameNo = 0
+  /** rects of things snow must not be drawn over (sidebar, open menus) */
+  private blockers: { l: number; t: number; r: number; b: number }[] = []
+  private modalOpen = false
 
   // wind
   private gustStart = -100
@@ -539,7 +544,7 @@ export class SnowEngine {
       h: new Float32Array(0), maxH: new Float32Array(0), base: new Float32Array(0), grow: new Float32Array(0),
       peak: 0, layoutW: -1, layoutH: -1, left: 0, top: 0, baseMin: 0, baseMax: 0,
       hClip, vClip, cl: 0, ct: 0, cr: 0, cb: 0,
-      visible: false, onScreen: false, dirty: true, sparkles: [], gradKey: '', grad: null,
+      visible: false, onScreen: false, dirty: true, sparkles: [], gradKey: '', grad: null, occ: new Uint8Array(0),
       pers: {
         seed: Math.floor(Math.random() * 100000),
         // a few cards get only a dusting, most a good layer, some a thick pile
@@ -671,6 +676,7 @@ export class SnowEngine {
     cap.layoutW = r.width
     cap.layoutH = r.height
     cap.dirty = false
+    cap.occ = new Uint8Array(n)
     cap.gradKey = ''
     const sparkleCount = this.quality === 0 ? 0 : Math.max(1, Math.round((r.width / (cap.kind === 'text' ? 40 : 55)) * (this.quality === 2 ? 1 : 0.5)))
     cap.sparkles = Array.from({ length: sparkleCount }, () => ({ i: Math.floor(Math.random() * n), phase: rand(0, 20), speed: rand(0.6, 1.6) }))
@@ -830,6 +836,7 @@ export class SnowEngine {
 
     const wind = this.wind(dt)
     this.updateCaps(dt)
+    if (this.frameNo % 12 === 0) this.scanCover()
     this.updateFlakes(dt, wind)
     this.updateDuster(dt)
     this.updatePuffs(dt, wind)
@@ -897,7 +904,7 @@ export class SnowEngine {
           if (lx < 0 || lx >= cap.layoutW) continue
           const i = Math.round(lx / cap.colW)
           const b = cap.base[i]
-          if (Number.isNaN(b) || cap.maxH[i] <= 0.2) continue
+          if (Number.isNaN(b) || cap.maxH[i] <= 0.2 || cap.occ[i]) continue
           const sy = cap.top + b - cap.h[i]
           if (f.prevY < sy && f.y >= sy - 0.5 && f.x >= cap.cl && f.x <= cap.cr && sy >= cap.ct && sy <= cap.cb) {
             this.deposit(cap, i, f.size * (ground ? 0.07 : cap.kind === 'text' ? 0.12 : 0.22))
@@ -983,6 +990,110 @@ export class SnowEngine {
     }
   }
 
+  /**
+   * What is really on top of each snowy edge? Samples a few points just inside each
+   * element's top edge with elementFromPoint (the canvas ignores the pointer, so the
+   * page answers). Anything else there (sidebar, dropdown, popup) hides that stretch
+   * of snow. Also notes those covering things so flakes are not drawn over them,
+   * and hides all snow while a large modal is open.
+   */
+  private scanCover() {
+    const W = this.W
+    const H = this.H
+    const blockers: { l: number; t: number; r: number; b: number }[] = []
+    const seen = new Set<Element>()
+    const addBlocker = (el: Element | null) => {
+      if (!el || seen.has(el)) return
+      seen.add(el)
+      const r = el.getBoundingClientRect()
+      if (r.width > 0 && r.height > 0) blockers.push({ l: r.left, t: r.top, r: r.right, b: r.bottom })
+    }
+    // the floating thing that owns a covering element: nearest fixed/absolute ancestor
+    // (a sticky header is not a floating thing: cards scrolling under it are already clipped)
+    const owner = (el: Element): Element | null => {
+      let cur: Element | null = el
+      for (let k = 0; k < 10 && cur && cur !== document.body; k++) {
+        const pos = getComputedStyle(cur).position
+        if (pos === 'fixed' || pos === 'absolute') return cur
+        if (pos === 'sticky') return null
+        cur = cur.parentElement
+      }
+      return null
+    }
+
+    // sidebars (desktop rail + expanded panel + logo plate)
+    document.querySelectorAll('.sidebar-nav, .sidebar-desktop-logo-fixed-container, aside').forEach(el => {
+      const cs = getComputedStyle(el)
+      if (cs.display !== 'none' && cs.visibility !== 'hidden') addBlocker(el)
+    })
+
+    // big modal / popup open?  (role=dialog cards in a corner don't count)
+    let modal = false
+    document.querySelectorAll('[aria-modal="true"], [role="dialog"], .modal-overlay, .modal').forEach(el => {
+      if (modal || this.canvas.contains(el)) return
+      const r = el.getBoundingClientRect()
+      const cs = getComputedStyle(el)
+      if (cs.display !== 'none' && cs.visibility !== 'hidden' && r.width * r.height > W * H * 0.35) modal = true
+    })
+    if (modal !== this.modalOpen) {
+      this.modalOpen = modal
+      this.canvas.style.opacity = modal ? '0' : '1'
+      if (modal) this.setCursorHidden(false)
+    }
+
+    for (const cap of this.visibleCaps) {
+      if (!cap.visible || cap.n === 0) continue
+      const occ = cap.occ
+      occ.fill(0)
+      if (cap.el === this.ground) continue // handled below with the blocker rects
+      const step = 18
+      const w = cap.layoutW
+      const y = cap.top + cap.baseMin + (cap.kind === 'text' ? 2 : 6)
+      if (y < 0 || y > H) continue
+      const samples = Math.max(2, Math.ceil(w / step) + 1)
+      let prevHidden = false
+      let prevCol = 0
+      for (let k = 0; k < samples; k++) {
+        const x = cap.left + Math.min(w - 2, Math.max(2, k * step))
+        const col = Math.min(cap.n - 1, Math.round((x - cap.left) / cap.colW))
+        let hidden = false
+        if (x >= 0 && x <= W) {
+          const hit = document.elementFromPoint(x, y)
+          if (hit && hit !== cap.el && !cap.el.contains(hit) && !hit.contains(cap.el)) {
+            hidden = true
+            addBlocker(owner(hit))
+          }
+        }
+        // fill the columns between this sample and the previous one
+        const from = k === 0 ? 0 : prevCol
+        for (let i = from; i <= col; i++) if (hidden || (prevHidden && i < (from + col) / 2)) occ[i] = 1
+        prevHidden = hidden
+        prevCol = col
+      }
+      if (prevHidden) for (let i = prevCol; i < cap.n; i++) occ[i] = 1
+    }
+    this.blockers = blockers
+
+    // ground snow: hide where a sidebar / panel sits on the bottom edge
+    const g = this.ground && this.caps.get(this.ground)
+    if (g && g.n) {
+      for (let i = 0; i < g.n; i++) {
+        const x = g.left + i * g.colW
+        const y = g.top - 2
+        g.occ[i] = blockers.some(b => x >= b.l && x <= b.r && y >= b.t && y <= b.b) ? 1 : 0
+      }
+    }
+  }
+
+  private covered(x: number, y: number) {
+    const bl = this.blockers
+    for (let i = 0; i < bl.length; i++) {
+      const b = bl[i]
+      if (x >= b.l && x <= b.r && y >= b.t && y <= b.b) return true
+    }
+    return false
+  }
+
   private updateDuster(dt: number) {
     const now = performance.now()
     let over = false
@@ -1002,7 +1113,7 @@ export class SnowEngine {
         let surf = Infinity
         let baseHere = -Infinity
         for (let i = i0; i <= i1; i++) {
-          if (Number.isNaN(cap.base[i])) continue
+          if (Number.isNaN(cap.base[i]) || cap.occ[i]) continue
           maxHere = Math.max(maxHere, cap.h[i])
           surf = Math.min(surf, cap.top + cap.base[i] - cap.h[i])
           baseHere = Math.max(baseHere, cap.top + cap.base[i])
@@ -1015,7 +1126,7 @@ export class SnowEngine {
         let removed = 0
         let sx = 0
         for (let i = i0; i <= i1; i++) {
-          if (Number.isNaN(cap.base[i]) || cap.h[i] <= 0) continue
+          if (Number.isNaN(cap.base[i]) || cap.h[i] <= 0 || cap.occ[i]) continue
           const dx = (i * cap.colW - lx) / R
           const fall = 1 - dx * dx
           if (fall <= 0) continue
@@ -1092,6 +1203,7 @@ export class SnowEngine {
     ctx.clearRect(0, 0, this.canvas.width, this.canvas.height)
     ctx.setTransform(d, 0, 0, d, 0, 0)
 
+    if (this.modalOpen) return
     for (const cap of this.visibleCaps) if (cap.visible) this.drawCap(cap)
     this.drawPuffs()
     this.drawFlakes()
@@ -1103,7 +1215,7 @@ export class SnowEngine {
     const fadeOut = this.stopping ? 1 - smooth(0, 1.6, this.t - this.stopAt) : 1
     for (const f of this.flakes) {
       const spr = this.sprites[f.layer][f.sprite]
-      if (!spr) continue
+      if (!spr || this.covered(f.x, f.y)) continue
       const s = f.size * 2
       ctx.globalAlpha = f.alpha * fadeOut
       ctx.drawImage(spr, f.x - s / 2, f.y - s / 2, s, s)
@@ -1162,9 +1274,10 @@ export class SnowEngine {
     let i = 0
     const shadowOn = this.quality > 0
     while (i < n) {
-      while (i < n && (Number.isNaN(base[i]) || h[i] < minH)) i++
+      const occ = cap.occ
+      while (i < n && (Number.isNaN(base[i]) || h[i] < minH || occ[i])) i++
       const s = i
-      while (i < n && !Number.isNaN(base[i]) && h[i] >= minH && (i === s || Math.abs(base[i] - base[i - 1]) < 3)) i++
+      while (i < n && !Number.isNaN(base[i]) && h[i] >= minH && !occ[i] && (i === s || Math.abs(base[i] - base[i - 1]) < 3)) i++
       const e = i
       if (e - s < 2) continue
       const path = (dy: number) => {
@@ -1227,7 +1340,7 @@ export class SnowEngine {
       ctx.strokeStyle = pal.sparkle
       for (const sp of cap.sparkles) {
         const k = sp.i
-        if (k >= n || Number.isNaN(base[k]) || h[k] < cap.maxH[k] * 0.45 || h[k] < 1.5) continue
+        if (k >= n || Number.isNaN(base[k]) || cap.occ[k] || h[k] < cap.maxH[k] * 0.45 || h[k] < 1.5) continue
         const a = Math.pow(Math.max(0, Math.sin(this.t * sp.speed + sp.phase)), 14)
         if (a < 0.03) continue
         const x = L + k * cw

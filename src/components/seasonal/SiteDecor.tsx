@@ -5,6 +5,7 @@ import type { CSSProperties, ReactNode } from 'react'
 import { usePathname } from 'next/navigation'
 import { activeDecor, isSeasonalRouteBlocked, type DecorTheme } from '@/lib/seasonal/seasons'
 import { useSeasonalTick } from './useSeasonalTick'
+import { CHRISTMAS_ART_CSS, SantaSleigh } from './ChristmasArt'
 
 /**
  * Festival decorations along the top of every page. They go up gradually in
@@ -47,11 +48,213 @@ export default function SiteDecor() {
   return (
     <>
       <style>{CSS}</style>
+      {decor.theme === 'christmas' && <style>{CHRISTMAS_ART_CSS}</style>}
       <div key={`${decor.theme}-${decor.level}`} className={`sd sd-${decor.theme} sd-l${decor.level}`} aria-hidden="true" data-no-snow>
         {decor.level === 4 && <div className="sd-ambient" />}
         <Garland w={w} theme={decor.theme} level={decor.level} />
       </div>
+      {decor.theme === 'christmas' && decor.level >= 2 && <ChristmasGround level={decor.level} mobile={w < 768} />}
+      {decor.theme === 'diwali' && <DiwaliGround level={decor.level} mobile={w < 768} />}
+      {decor.theme === 'christmas' && decor.level >= 3 && <SantaFlight />}
     </>
+  )
+}
+
+/* ───────────────────────── Diwali: diyas, rangoli, urli and sparklers along the bottom ───────────────────────── */
+
+function GroundDiya({ x, s = 1, lit, i }: { x: number; s?: number; lit: boolean; i: number }) {
+  return (
+    <g transform={`translate(${x} 90) scale(${s})`}>
+      <g className="sd-pop-up" style={{ '--i': i } as Css}>
+        {lit && <circle cx="12" cy="-26" r="22" fill="url(#sdDiyaGlow)" className="sd-breathe" />}
+        <path d="M-14 -12 Q 0 2 16 -12 Q 18 -6 14 -4 Q 0 6 -12 -4 Q -16 -6 -14 -12 Z" fill="#b45309" />
+        <path d="M-14 -12 Q 0 -6 16 -12 L 22 -16 Q 18 -9 16 -12" fill="#c2410c" />
+        <path d="M-14 -12 Q 0 -7 16 -12" stroke="#fbbf24" strokeWidth="1.4" fill="none" />
+        {[-7, -1, 5].map(dx => <circle key={dx} cx={dx} cy={-6} r={1} fill="#fde68a" />)}
+        {lit && (
+          <g className="sd-flame" style={{ animationDelay: `${i * -0.23}s` }}>
+            <path d="M19 -15 C 13 -21, 16 -30, 20 -36 C 24 -30, 27 -21, 21 -15 Z" fill="#f97316" />
+            <path d="M20 -16 C 17 -20, 18 -26, 20 -30 C 22 -26, 23 -20, 20 -16 Z" fill="#fde68a" />
+          </g>
+        )}
+      </g>
+    </g>
+  )
+}
+
+function HalfRangoli({ cx, r, i }: { cx: number; r: number; i: number }) {
+  const ring = (n: number, rr: number, rx: number, ry: number, fill: string) =>
+    Array.from({ length: n }, (_, k) => <ellipse key={k} cx={0} cy={-rr} rx={rx} ry={ry} fill={fill} transform={`rotate(${(360 / n) * k})`} />)
+  return (
+    <g transform={`translate(${cx} 92)`} className="sd-rangoli-in" style={{ '--i': i } as Css}>
+      <g transform={`scale(${r / 100})`}>
+        <g className="sd-spin-slow">{ring(20, 82, 8, 18, '#f97316')}{ring(40, 98, 2.4, 2.4, '#fde047')}</g>
+        <g>{ring(14, 56, 9, 18, '#e11d48')}{ring(14, 52, 4, 9, '#fda4af')}</g>
+        <g>{ring(8, 28, 9, 15, '#facc15')}<circle r="14" fill="#7c3aed" /><circle r="7" fill="#fde047" /></g>
+      </g>
+    </g>
+  )
+}
+
+function Urli({ x, lit, i }: { x: number; lit: boolean; i: number }) {
+  return (
+    <g transform={`translate(${x} 90)`}>
+      <g className="sd-pop-up" style={{ '--i': i } as Css}>
+        <ellipse cx="0" cy="-14" rx="38" ry="8" fill="#7c2d12" />
+        <path d="M-38 -14 Q 0 14 38 -14 Z" fill="url(#sdBrass)" />
+        <ellipse cx="0" cy="-14" rx="34" ry="6" fill="#1e3a5f" opacity=".85" />
+        {[[-20, -15, '#f97316'], [-8, -17, '#facc15'], [6, -14, '#ef4444'], [20, -16, '#f97316'], [13, -12, '#facc15'], [-15, -11, '#fb7185']].map(([fx, fy, c], k) => (
+          <g key={k}><circle cx={fx as number} cy={fy as number} r="4" fill={c as string} /><circle cx={fx as number} cy={fy as number} r="2.6" fill="none" stroke="#7c2d12" strokeOpacity=".4" strokeDasharray="1 1.2" /></g>
+        ))}
+        {lit && (
+          <g className="sd-flame" style={{ animationDelay: '-.4s' }}>
+            <path d="M-1 -18 C -5 -22, -3 -28, 0 -32 C 3 -28, 5 -22, 1 -18 Z" fill="#fbbf24" />
+          </g>
+        )}
+      </g>
+    </g>
+  )
+}
+
+function Sparkler({ x, i }: { x: number; i: number }) {
+  return (
+    <g transform={`translate(${x} 90) rotate(-14)`} className="sd-pop-up" style={{ '--i': i } as Css}>
+      <path d="M0 0 L0 -44" stroke="#9ca3af" strokeWidth="2" strokeLinecap="round" />
+      <path d="M0 -30 L0 -44" stroke="#4b5563" strokeWidth="3" strokeLinecap="round" />
+      <circle cx="0" cy="-46" r="8" fill="url(#sdDiyaGlow)" className="sd-breathe" />
+      <g className="sd-sparks">
+        {Array.from({ length: 12 }, (_, k) => {
+          const a = (k / 12) * Math.PI * 2
+          return <path key={k} d={`M0 -46 L${(Math.cos(a) * 14).toFixed(1)} ${(-46 + Math.sin(a) * 14).toFixed(1)}`} stroke={k % 2 ? '#fde68a' : '#fff'} strokeWidth="1.2" strokeLinecap="round" style={{ animationDelay: `${(k % 4) * -0.12}s` }} />
+        })}
+      </g>
+    </g>
+  )
+}
+
+function DiwaliGround({ level, mobile }: { level: Level; mobile: boolean }) {
+  const lit = level >= 3
+  const defs = (
+    <defs>
+      <radialGradient id="sdDiyaGlow"><stop offset="0" stopColor="#ffd27a" stopOpacity=".75" /><stop offset="1" stopColor="#ffb347" stopOpacity="0" /></radialGradient>
+      <linearGradient id="sdBrass" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#fbbf24" /><stop offset="1" stopColor="#92400e" /></linearGradient>
+    </defs>
+  )
+  let n = 0
+  return (
+    <div className="sd-ground" aria-hidden="true" data-no-snow>
+      {!mobile && (
+        <svg className="sd-pile sd-pile-left" viewBox="-30 -20 270 112" width="270" height="112">
+          {defs}
+          <HalfRangoli cx={90} r={level >= 2 ? 62 : 46} i={n++} />
+          {level >= 2 && <><GroundDiya x={18} lit={lit} i={n++} /><GroundDiya x={58} s={0.9} lit={lit} i={n++} /><GroundDiya x={128} s={0.9} lit={lit} i={n++} /></>}
+          {level >= 2 && <Urli x={190} lit={lit} i={n++} />}
+          {level >= 4 && <Sparkler x={232} i={n++} />}
+        </svg>
+      )}
+      <svg className="sd-pile sd-pile-right" viewBox="-30 -20 270 112" width="270" height="112">
+        {defs}
+        <HalfRangoli cx={140} r={level >= 2 ? 62 : 46} i={n++} />
+        {level >= 4 && <Sparkler x={0} i={n++} />}
+        {level >= 2 && <Urli x={50} lit={lit} i={n++} />}
+        {level >= 2 && <><GroundDiya x={108} s={0.9} lit={lit} i={n++} /><GroundDiya x={176} s={0.9} lit={lit} i={n++} /><GroundDiya x={214} lit={lit} i={n++} /></>}
+      </svg>
+    </div>
+  )
+}
+
+/* ───────────────────────── Christmas: gifts along the bottom ───────────────────────── */
+
+type GiftSpec = { x: number; w: number; h: number; c: string; r: string; tilt?: number; min: Level }
+const GIFT_COLORS: Record<string, [string, string]> = {
+  red: ['#ef4444', '#991b1b'], gold: ['#facc15', '#a16207'], green: ['#22c55e', '#166534'],
+  blue: ['#3b82f6', '#1e3a8a'], purple: ['#a855f7', '#6b21a8'], white: ['#f8fafc', '#94a3b8'],
+}
+
+function Gift({ x, w, h, c, r, tilt = 0, i }: GiftSpec & { i: number }) {
+  const [top, bottom] = GIFT_COLORS[c]
+  const id = `sdg-${c}`
+  const lid = 8
+  return (
+    <g className="sd-gift" style={{ '--i': i } as Css} transform={`translate(${x} ${90 - h}) rotate(${tilt} ${w / 2} ${h})`}>
+      <defs>
+        <linearGradient id={id} x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor={top} /><stop offset="1" stopColor={bottom} /></linearGradient>
+      </defs>
+      <rect x={2} y={lid - 1} width={w - 4} height={h - lid + 1} rx={3} fill={`url(#${id})`} />
+      <rect x={0} y={0} width={w} height={lid} rx={2.5} fill={top} />
+      <rect x={0} y={lid - 2} width={w} height={2} fill="#000" opacity=".15" />
+      <rect x={w / 2 - 3.5} y={0} width={7} height={h} fill={r} />
+      <path d={`M${w / 2} 0 C ${w / 2 - 16} -14, ${w / 2 - 20} 2, ${w / 2} 0 Z M${w / 2} 0 C ${w / 2 + 16} -14, ${w / 2 + 20} 2, ${w / 2} 0 Z`} fill={r} stroke="#000" strokeOpacity=".12" />
+      <circle cx={w / 2} cy={0} r={3.2} fill={r} />
+      <rect x={5} y={lid + 3} width={3} height={h - lid - 8} rx={1.5} fill="#fff" opacity=".18" />
+    </g>
+  )
+}
+
+function MiniTree({ x, i }: { x: number; i: number }) {
+  return (
+    <g className="sd-gift" style={{ '--i': i } as Css} transform={`translate(${x} 0)`}>
+      <rect x={24} y={76} width={8} height={14} rx={2} fill="#6b3f1f" />
+      <path d="M28 10 L50 46 L6 46 Z" fill="#166534" />
+      <path d="M28 26 L54 64 L2 64 Z" fill="#15803d" />
+      <path d="M28 44 L58 80 L-2 80 Z" fill="#166534" />
+      {[[22, 40, '#ff4d6d'], [36, 54, '#ffd166'], [16, 70, '#4cc9f0'], [42, 72, '#f72585'], [28, 62, '#80ed99'], [33, 32, '#ffb703']].map(([cx, cy, col], k) => (
+        <circle key={k} cx={cx as number} cy={cy as number} r={2.6} fill={col as string} className="sd-twinkle" style={{ animationDelay: `${k * -0.4}s` }} />
+      ))}
+      <path d="M28 2 l2.4 5 5.4.6-4 3.7 1.1 5.3L28 14l-4.9 2.6 1.1-5.3-4-3.7 5.4-.6z" fill="#ffd166" className="sd-star" />
+    </g>
+  )
+}
+
+function CandyCane({ x, i }: { x: number; i: number }) {
+  return (
+    <g className="sd-gift" style={{ '--i': i } as Css} transform={`translate(${x} 30) rotate(10 10 60)`}>
+      <path d="M8 60 L8 14 C8 2, 26 2, 26 14" fill="none" stroke="#fff" strokeWidth="7" strokeLinecap="round" />
+      <path d="M8 60 L8 14 C8 2, 26 2, 26 14" fill="none" stroke="#dc2626" strokeWidth="7" strokeLinecap="round" strokeDasharray="5 6" />
+    </g>
+  )
+}
+
+const LEFT_PILE: GiftSpec[] = [
+  { x: 58, w: 50, h: 40, c: 'red', r: '#fde68a', min: 2 },
+  { x: 104, w: 34, h: 54, c: 'gold', r: '#b91c1c', min: 3 },
+  { x: 134, w: 40, h: 28, c: 'green', r: '#fef3c7', tilt: -7, min: 2 },
+  { x: 176, w: 30, h: 22, c: 'white', r: '#dc2626', tilt: 9, min: 4 },
+]
+const RIGHT_PILE: GiftSpec[] = [
+  { x: 6, w: 34, h: 26, c: 'purple', r: '#fde68a', tilt: -10, min: 4 },
+  { x: 38, w: 46, h: 46, c: 'blue', r: '#f8fafc', min: 2 },
+  { x: 80, w: 36, h: 32, c: 'red', r: '#22c55e', tilt: 6, min: 3 },
+  { x: 114, w: 30, h: 50, c: 'green', r: '#fde68a', min: 2 },
+]
+
+function ChristmasGround({ level, mobile }: { level: Level; mobile: boolean }) {
+  let n = 0
+  const pile = (gifts: GiftSpec[]) => gifts.filter(g => g.min <= level).map((g, k) => <Gift key={k} {...g} i={n++} />)
+  return (
+    <div className="sd-ground" aria-hidden="true" data-no-snow>
+      {!mobile && (
+        <svg className="sd-pile sd-pile-left" viewBox="-4 -14 216 106" width="216" height="106">
+          {level >= 3 && <MiniTree x={0} i={n++} />}
+          {pile(LEFT_PILE)}
+        </svg>
+      )}
+      <svg className="sd-pile sd-pile-right" viewBox="-4 -14 214 106" width="214" height="106">
+        {pile(RIGHT_PILE)}
+        {level >= 4 && <CandyCane x={150} i={n++} />}
+        {level >= 3 && <MiniTree x={170} i={n++} />}
+      </svg>
+    </div>
+  )
+}
+
+/* ───────────────────────── Christmas: Santa's sleigh flies across ───────────────────────── */
+
+function SantaFlight() {
+  return (
+    <div className="sd-santa-lane" aria-hidden="true" data-no-snow>
+      <div className="sd-santa"><SantaSleigh className="sd-santa-svg" width={340} /></div>
+    </div>
   )
 }
 
@@ -315,8 +518,40 @@ const CSS = `
 @keyframes sdSpin { to { transform: rotate(360deg); } }
 @keyframes sdTwinkle { 0%, 100% { opacity: .35; } 50% { opacity: .85; } }
 
+/* Christmas: gifts along the bottom (under the header, sidebar, menus and modals; the snowbank covers their feet) */
+.sd-ground { position: fixed; left: 0; right: 0; bottom: 0; height: 106px; z-index: 45; pointer-events: none; }
+.sd-pile { position: absolute; bottom: -6px; overflow: visible; filter: drop-shadow(0 6px 8px rgba(0,0,0,.35)); }
+.sd-pile-left { left: max(84px, 5.5vw); }
+.sd-pile-right { right: 168px; }
+.sd-gift { animation: sdGiftIn .7s cubic-bezier(.2,1.6,.4,1) both; animation-delay: calc(.6s + var(--i) * 110ms); }
+.sd-twinkle { animation: sdTwinkleDot 1.8s ease-in-out infinite; }
+.sd-pop-up { animation: sdGiftIn .7s cubic-bezier(.2,1.6,.4,1) both; animation-delay: calc(.5s + var(--i) * 120ms); }
+.sd-rangoli-in { animation: sdFadeIn 1.2s ease both; animation-delay: .3s; }
+.sd-spin-slow { transform-box: fill-box; transform-origin: center; animation: sdSpin 60s linear infinite; }
+.sd-flame { transform-box: fill-box; transform-origin: 50% 100%; animation: sdFlicker 1.3s ease-in-out infinite; filter: drop-shadow(0 0 6px #f59e0b); }
+.sd-sparks path { animation: sdSpark .5s linear infinite; }
+@keyframes sdFlicker { 0%, 100% { transform: scale(1, 1) skewX(0); } 25% { transform: scale(.92, 1.08) skewX(3deg); } 50% { transform: scale(1.05, .95) skewX(-2deg); } 75% { transform: scale(.96, 1.04) skewX(1deg); } }
+@keyframes sdSpark { 0% { opacity: 1; stroke-dasharray: 2 20; stroke-dashoffset: 0; } 100% { opacity: 0; stroke-dasharray: 2 20; stroke-dashoffset: -14; } }
+@keyframes sdFadeIn { from { opacity: 0; } to { opacity: 1; } }
+.sd-star { filter: drop-shadow(0 0 4px #ffd166); }
+@keyframes sdGiftIn { from { opacity: 0; translate: 0 30px; } to { opacity: 1; translate: 0 0; } }
+@keyframes sdTwinkleDot { 0%, 100% { opacity: .35; } 50% { opacity: 1; } }
+
+/* Christmas: Santa's sleigh, every ~45 s across the top of the page */
+.sd-santa-lane { position: fixed; left: 0; right: 0; top: 92px; height: 90px; z-index: 946; pointer-events: none; overflow: hidden; }
+.sd-santa { position: absolute; left: 0; top: 4px; animation: sdSantaFly 46s linear 4s infinite; transform: translateX(-360px); }
+@keyframes sdSantaFly { 0% { transform: translate(-360px, 26px); } 26% { transform: translate(calc(100vw + 20px), -10px); } 100% { transform: translate(calc(100vw + 20px), -10px); } }
+
+@media (max-width: 767px) {
+  .sd-ground { bottom: calc(64px + max(env(safe-area-inset-bottom, 0px), var(--android-nav-bottom, 0px))); height: 80px; }
+  .sd-pile-right { right: 50%; transform: translateX(50%) scale(.72); transform-origin: 50% 100%; }
+  .sd-santa-lane { top: 70px; }
+  .sd-santa-svg { width: 240px; height: 49px; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .sd * { animation: none !important; }
+  .sd-santa-lane { display: none; }
 }
 @media print { .sd { display: none; } }
 `

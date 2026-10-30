@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import dynamic from 'next/dynamic'
 import QuizLabSurprise from '@/components/home/QuizLabSurprise'
-import { activeBanner, type FestivalBanner } from '@/lib/seasonal/seasons'
+import { activeBanner, isFestivalMainDay, type FestivalBanner } from '@/lib/seasonal/seasons'
 import { useSeasonalTick } from './useSeasonalTick'
 
 // Festival art is only downloaded on festival days.
@@ -23,6 +23,6 @@ export default function HomeFestiveSlot() {
   }, [tick])
 
   if (banner === 'quizlab') return <QuizLabSurprise />
-  if (banner === 'diwali' || banner === 'chhath' || banner === 'christmas') return <FestivalGreeting key={`${banner}-${tick}`} festival={banner} />
+  if (banner === 'diwali' || banner === 'chhath' || banner === 'christmas') return <FestivalGreeting key={`${banner}-${tick}`} festival={banner} autoOpen={isFestivalMainDay(banner)} />
   return null
 }

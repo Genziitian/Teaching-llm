@@ -43,6 +43,8 @@ export class FestiveFx {
   private autoOn = false
   private dead = false
   private max: number
+  /** set by the screen to play sounds: name + horizontal position 0..1 */
+  onSound: ((name: 'launch' | 'boom' | 'crackle', x: number) => void) | null = null
 
   constructor(canvas: HTMLCanvasElement) {
     this.c = canvas
@@ -90,10 +92,15 @@ export class FestiveFx {
       kind: kind ?? pick<Kind>(['peony', 'peony', 'willow', 'ring', 'crackle', 'peony']),
       alt: pick(FW_COLORS),
     })
+    this.onSound?.('launch', x0 / Math.max(1, W))
   }
 
   /** Burst right where you are (used for taps). */
-  burst(x: number, y: number, kind: Kind = 'peony', color = pick(FW_COLORS), alt = pick(FW_COLORS)) {
+  burst(x: number, y: number, kind: Kind = 'peony', color = pick(FW_COLORS), alt = pick(FW_COLORS), withSound = false) {
+    if (withSound) {
+      this.onSound?.('boom', x / Math.max(1, this.W))
+      if (kind === 'crackle' || kind === 'willow' || Math.random() < 0.3) this.onSound?.('crackle', x / Math.max(1, this.W))
+    }
     const scale = Math.min(1, Math.max(0.6, this.W / 1200))
     this.flashes.push({ x, y, r: 160 * scale, color, life: 0 })
     const n = kind === 'willow' ? 70 : kind === 'ring' ? 56 : kind === 'heart' ? 64 : 96
@@ -214,7 +221,7 @@ export class FestiveFx {
       }
       if (r.vy >= -20) {
         this.rockets.splice(i, 1)
-        this.burst(r.x, r.y, r.kind, r.color, r.alt)
+        this.burst(r.x, r.y, r.kind, r.color, r.alt, true)
       }
     }
 

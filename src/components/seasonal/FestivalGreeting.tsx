@@ -3,6 +3,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { CSSProperties, PointerEvent as ReactPointerEvent, RefObject } from 'react'
 import { FestiveFx } from './festiveFx'
+import { isMuted, play, setMuted, unlockSound } from './festiveSfx'
+import { CandyCane, Cabin, CHRISTMAS_ART_CSS, DecoTree, Forest, SantaSleigh, Snowman } from './ChristmasArt'
 
 /**
  * Full-screen festival moments: Diwali, Chhath Puja, Christmas.
@@ -20,11 +22,25 @@ export type FestivalId = 'diwali' | 'chhath' | 'christmas'
 
 const SEEN_KEY = (id: FestivalId) => `festival-greeting-seen-${id}-2026`
 const AUTO_PLAY_MS = 5000
+/** Gifts shown when the student opens the "For you" box. */
+export const FESTIVAL_GIFTS: Partial<Record<FestivalId, { code: string; offer: string; valid: string }>> = {
+  diwali: { code: 'HUJDEWR33S', offer: 'Get 10% off on courses', valid: 'Valid till 16 Nov' },
+  christmas: { code: 'EIHSERT43F', offer: 'Get 10% off on courses', valid: 'Valid till 31 Dec' },
+}
+
+const FAMILY_LINE: Record<FestivalId, string> = {
+  diwali: 'GenZ IITian Family ki taraf se aap sabko Diwali ki dher saari shubhkamnayein',
+  chhath: 'GenZ IITian Family ki taraf se aap sabko Chhath Puja ki hardik shubhkamnayein',
+  christmas: 'Warm wishes from the GenZ IITian family',
+}
+/** how long the greeting stays after its title is up (restarts while the student plays) */
+const AUTO_CLOSE_MS = 9000
 
 type Mode = 'none' | 'full' | 'corner'
 type Css = CSSProperties & Record<`--${string}`, string | number>
 type FxRef = RefObject<FestiveFx | null>
 type HostRef = RefObject<HTMLDivElement | null>
+interface SceneProps { fx: FxRef; hostRef: HostRef; onShown: () => void; onActivity: () => void; onHold: () => void }
 
 const reduced = () => {
   try { return window.matchMedia('(prefers-reduced-motion: reduce)').matches } catch { return false }
@@ -90,9 +106,177 @@ function Hint({ text, show }: { text: string; show: boolean }) {
   return <div className={`fg-hint ${show ? '' : 'is-gone'}`} aria-hidden={!show}>{text}</div>
 }
 
+function copyText(text: string): Promise<void> {
+  if (navigator.clipboard?.writeText) return navigator.clipboard.writeText(text)
+  return new Promise(resolve => {
+    const ta = document.createElement('textarea')
+    ta.value = text
+    ta.style.position = 'fixed'
+    ta.style.opacity = '0'
+    document.body.appendChild(ta)
+    ta.select()
+    try { document.execCommand('copy') } catch {}
+    ta.remove()
+    resolve()
+  })
+}
+
+function CouponCode({ code, small = false }: { code: string; small?: boolean }) {
+  const [copied, setCopied] = useState(false)
+  const copy = () => {
+    copyText(code).then(() => {
+      setCopied(true)
+      play('twinkle')
+      window.setTimeout(() => setCopied(false), 1600)
+    }).catch(() => {})
+  }
+  return (
+    <div className={`fg-code ${small ? 'is-small' : ''}`}>
+      <span className="fg-code-text">{code}</span>
+      <button type="button" className={`fg-code-copy ${copied ? 'is-done' : ''}`} onClick={copy} aria-label={copied ? 'Copied' : 'Copy code'}>
+        {copied ? (
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5" /></svg>
+        ) : (
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2.5" /><path d="M5 15V6.5A2.5 2.5 0 0 1 7.5 4H15" /></svg>
+        )}
+      </button>
+    </div>
+  )
+}
+
+function GiftBox({ festival, fx, hostRef, onHold, onShown, enabled }: { festival: FestivalId; fx: FxRef; hostRef: HostRef; onHold: () => void; onShown: () => void; enabled: boolean }) {
+  const gift = FESTIVAL_GIFTS[festival]
+  const ref = useRef<HTMLButtonElement>(null)
+  const [open, setOpen] = useState(false)
+  if (!gift) return null
+  const openGift = () => {
+    if (open) return
+    setOpen(true)
+    onHold()
+    play('chime')
+    const p = centerOf(ref.current, hostRef.current)
+    if (p) fx.current?.sparkle(p.x, p.y - 20, 60, ['#fff7d1', '#ffd166', '#ff8fd8'])
+  }
+  const close = () => { setOpen(false); onShown() }
+  return (
+    <>
+      <button type="button" ref={ref} className={`fg-giftbox ${open ? 'is-open' : ''} ${enabled ? 'is-ready' : ''}`} onClick={openGift} aria-label="Open your gift" tabIndex={enabled ? 0 : -1}>
+        <span className="fg-giftbox-tag">For you</span>
+        <span className="fg-giftbox-rays" />
+        <span className="fg-giftbox-lid"><i /><b /></span>
+        <span className="fg-giftbox-body" />
+      </button>
+      {open && (
+        <div className="fg-coupon-wrap" onClick={e => { if (e.target === e.currentTarget) close() }}>
+          <div className="fg-coupon" role="dialog" aria-label="Your gift">
+            <button type="button" className="fg-coupon-x" onClick={close} aria-label="Close">
+              <svg viewBox="0 0 24 24" width="14" height="14"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" /></svg>
+            </button>
+            <CouponCode code={gift.code} />
+            <div className="fg-coupon-offer">{gift.offer}</div>
+            <div className="fg-coupon-valid">{gift.valid}</div>
+          </div>
+        </div>
+      )}
+    </>
+  )
+}
+
 /* ───────────────────────── Diwali ───────────────────────── */
 
-function DiwaliScene({ fx, hostRef, onClose }: { fx: FxRef; hostRef: HostRef; onClose: () => void }) {
+// marigold swags across the top (in a 1440-wide strip, scaled to the screen)
+const SWAG = (() => {
+  const out: { x: number; y: number; yellow: boolean }[] = []
+  const seg = 240
+  for (let s = 0; s < 6; s++) for (let k = 0; k <= 19; k++) {
+    const t = k / 19
+    out.push({ x: s * seg + t * seg, y: 8 + 4 * 30 * t * (1 - t), yellow: (k + s) % 2 === 1 })
+  }
+  return out
+})()
+const KANDILS = [
+  { left: 4.5, len: 15, hue: '#ef4444', d: 0.9, s: 1 },
+  { left: 14, len: 29, hue: '#f59e0b', d: 1.25, s: 0.78 },
+  { left: 86, len: 25, hue: '#f97316', d: 1.1, s: 0.85 },
+  { left: 95.5, len: 13, hue: '#e11d48', d: 0.95, s: 1 },
+]
+const wireX = (top: number) => 20 + 10 * Math.sin((top / 100) * Math.PI * 5)
+const SIDE_BULBS = Array.from({ length: 17 }, (_, i) => {
+  const top = 8 + i * 5.4
+  return { top, x: wireX(top), c: ['#ffd27a', '#ffb347', '#fff1b8'][i % 3] }
+})
+const WIRE_PATH = Array.from({ length: 51 }, (_, i) => `${i ? 'L' : 'M'}${wireX(i * 2).toFixed(2)} ${i * 2}`).join(' ')
+const PETALS = Array.from({ length: 24 }, (_, i) => ({
+  left: pr(i, 0, 100, 91), delay: pr(i, 0, 11, 93), dur: pr(i, 9, 16, 97), size: pr(i, 9, 15, 99), drift: pr(i, -90, 90, 103), spin: pr(i, 360, 900, 107), yellow: i % 3 === 0,
+}))
+const SIDE_DIYAS = [2.5, 8.5, 14.5]
+
+function Rangoli({ className }: { className: string }) {
+  const petals = (n: number, r: number, rx: number, ry: number, fill: string) =>
+    Array.from({ length: n }, (_, k) => <ellipse key={k} cx={0} cy={-r} rx={rx} ry={ry} fill={fill} transform={`rotate(${(360 / n) * k})`} />)
+  return (
+    <svg className={className} viewBox="-200 -200 400 400" aria-hidden="true">
+      <g className="fg-rg-a">{petals(24, 160, 14, 34, '#f97316')}{Array.from({ length: 48 }, (_, k) => <circle key={k} cx={0} cy={-192} r={4} fill="#fde047" transform={`rotate(${7.5 * k})`} />)}</g>
+      <g className="fg-rg-b">{petals(16, 112, 18, 38, '#e11d48')}{petals(16, 104, 8, 20, '#fda4af')}</g>
+      <g className="fg-rg-c">{petals(8, 58, 20, 34, '#facc15')}{petals(8, 58, 8, 16, '#fff7ed')}<circle r={28} fill="#7c3aed" /><circle r={16} fill="#fde047" /><circle r={6} fill="#fff" /></g>
+    </svg>
+  )
+}
+
+function Kandil({ left, len, hue, d, s }: { left: number; len: number; hue: string; d: number; s: number }) {
+  return (
+    <div className="fg-kandil" style={{ left: `${left}%`, '--len': `${len}vh`, '--hue': hue, '--kd': `${d}s`, '--ks': s } as Css}>
+      <i className="fg-kandil-string" />
+      <div className="fg-kandil-swing">
+        <div className="fg-kandil-glow" />
+        <div className="fg-kandil-cap" />
+        <div className="fg-kandil-body"><span /></div>
+        <div className="fg-kandil-tassels">{[0, 1, 2, 3, 4].map(k => <i key={k} />)}</div>
+      </div>
+    </div>
+  )
+}
+
+function SideLights({ side }: { side: 'left' | 'right' }) {
+  return (
+    <div className={`fg-sidelights fg-sidelights-${side}`} aria-hidden="true">
+      <svg className="fg-sidewire" viewBox="0 0 40 100" preserveAspectRatio="none"><path d={WIRE_PATH} /></svg>
+      {SIDE_BULBS.map((b, i) => <i key={i} style={{ top: `${b.top}%`, left: `${b.x}px`, '--c': b.c, '--bi': i } as Css} />)}
+    </div>
+  )
+}
+
+function DiwaliDecor() {
+  return (
+    <div className="fg-decor" aria-hidden="true">
+      <svg className="fg-swag" viewBox="0 0 1440 60" preserveAspectRatio="xMidYMin slice">
+        {SWAG.map((m, i) => (
+          <g key={i} className="fg-swag-m" style={{ '--i': i } as Css}>
+            <circle cx={m.x} cy={m.y} r="7.4" fill={m.yellow ? '#facc15' : '#f97316'} />
+            <circle cx={m.x} cy={m.y} r="5" fill="none" stroke={m.yellow ? '#a16207' : '#9a3412'} strokeOpacity=".5" strokeDasharray="1.2 1.6" />
+            <circle cx={m.x - 1.8} cy={m.y - 2} r="1.8" fill="#fff7ed" opacity=".7" />
+          </g>
+        ))}
+      </svg>
+      {KANDILS.map((k, i) => <Kandil key={i} {...k} />)}
+      <SideLights side="left" />
+      <SideLights side="right" />
+      <Rangoli className="fg-rangoli-corner fg-rangoli-left" />
+      <Rangoli className="fg-rangoli-corner fg-rangoli-right" />
+      <div className="fg-petals">
+        {PETALS.map((p, i) => (
+          <i key={i} className={p.yellow ? 'is-yellow' : ''} style={{ left: `${p.left}%`, width: p.size, height: p.size * 0.7, animationDelay: `${p.delay}s`, animationDuration: `${p.dur}s`, '--drift': `${p.drift}px`, '--spin': `${p.spin}deg` } as Css} />
+        ))}
+      </div>
+      <div className="fg-side-diyas">
+        {SIDE_DIYAS.map((x, i) => <div key={`l${i}`} className="fg-side-diya" style={{ left: `${x}%` }}><Diya delay={2.2 + (SIDE_DIYAS.length - i) * 0.18} size={0.72 - i * 0.03} /></div>)}
+        {SIDE_DIYAS.map((x, i) => <div key={`r${i}`} className="fg-side-diya" style={{ right: `${x}%` }}><Diya delay={2.2 + (SIDE_DIYAS.length - i) * 0.18} size={0.72 - i * 0.03} /></div>)}
+      </div>
+    </div>
+  )
+}
+
+function DiwaliScene({ fx, hostRef, onShown, onActivity, onHold }: SceneProps) {
   const [lit, setLit] = useState(false)
   const heroRef = useRef<HTMLButtonElement>(null)
 
@@ -105,6 +289,7 @@ function DiwaliScene({ fx, hostRef, onClose }: { fx: FxRef; hostRef: HostRef; on
 
   useEffect(() => {
     if (!lit) return
+    play('ignite')
     const p = centerOf(heroRef.current, hostRef.current)
     if (p) fx.current?.sparkle(p.x, p.y - 30, 70)
     const t1 = window.setTimeout(() => {
@@ -113,13 +298,15 @@ function DiwaliScene({ fx, hostRef, onClose }: { fx: FxRef; hostRef: HostRef; on
       window.setTimeout(() => fx.current?.launch(undefined, undefined, 'ring', '#ff8fd8'), 520)
     }, 1500)
     const t2 = window.setTimeout(() => fx.current?.autoFireworks(true), 2800)
-    return () => { window.clearTimeout(t1); window.clearTimeout(t2); fx.current?.autoFireworks(false) }
-  }, [lit, fx, hostRef])
+    const t3 = window.setTimeout(onShown, 3000)
+    return () => { window.clearTimeout(t1); window.clearTimeout(t2); window.clearTimeout(t3); fx.current?.autoFireworks(false) }
+  }, [lit, fx, hostRef, onShown])
 
   const onSky = (e: ReactPointerEvent) => {
-    if (!lit || (e.target as Element).closest('button') || !hostRef.current) return
+    if (!lit || (e.target as Element).closest('button, .fg-coupon-wrap') || !hostRef.current) return
     const h = hostRef.current.getBoundingClientRect()
     fx.current?.launch(e.clientX - h.left, e.clientY - h.top)
+    onActivity()
   }
 
   return (
@@ -139,6 +326,8 @@ function DiwaliScene({ fx, hostRef, onClose }: { fx: FxRef; hostRef: HostRef; on
         ))}
       </div>
 
+      <DiwaliDecor />
+
       <div className="fg-embers" aria-hidden="true">
         {EMBERS.map((e, i) => (
           <i key={i} style={{ left: `${e.left}%`, width: e.size, height: e.size, animationDelay: `${e.delay}s`, animationDuration: `${e.dur}s`, '--drift': `${e.drift}px` } as Css} />
@@ -148,7 +337,7 @@ function DiwaliScene({ fx, hostRef, onClose }: { fx: FxRef; hostRef: HostRef; on
       <div className="fg-copy fg-copy-diwali">
         <div className="fg-kicker fg-deva">शुभ दीपावली</div>
         <Title text="Happy Diwali" className="fg-title fg-title-gold" />
-        <button type="button" className="fg-cta" onClick={onClose}>Continue</button>
+        <p className="fg-family">{FAMILY_LINE.diwali}</p>
       </div>
 
       <div className="fg-diya-row" aria-hidden="true">
@@ -162,6 +351,8 @@ function DiwaliScene({ fx, hostRef, onClose }: { fx: FxRef; hostRef: HostRef; on
         <Diya delay={0} size={1.9} className="fg-hero-diya" />
       </button>
       <Hint text="Tap the diya" show={!lit} />
+
+      <GiftBox festival="diwali" fx={fx} hostRef={hostRef} onHold={onHold} onShown={onShown} enabled={lit} />
     </div>
   )
 }
@@ -184,12 +375,21 @@ const START_FLOATERS = [
   { x: 14, y: 62, id: -1 }, { x: 31, y: 30, id: -2 }, { x: 68, y: 44, id: -3 }, { x: 86, y: 70, id: -4 },
 ]
 
-function ChhathScene({ fx, hostRef, onClose }: { fx: FxRef; hostRef: HostRef; onClose: () => void }) {
+function ChhathScene({ fx, hostRef, onShown, onActivity }: SceneProps) {
   const [floaters, setFloaters] = useState(START_FLOATERS)
   const [tapped, setTapped] = useState(false)
   const nextId = useRef(1)
 
+  useEffect(() => {
+    const t = window.setTimeout(onShown, 5600)
+    const b = window.setTimeout(() => play('bell'), 3200)
+    return () => { window.clearTimeout(t); window.clearTimeout(b) }
+  }, [onShown])
+
   const onWater = (e: ReactPointerEvent<HTMLDivElement>) => {
+    onActivity()
+    unlockSound()
+    window.setTimeout(() => play('plop', e.clientX / window.innerWidth), 380)
     const r = e.currentTarget.getBoundingClientRect()
     const x = ((e.clientX - r.left) / r.width) * 100
     const y = ((e.clientY - r.top) / r.height) * 100
@@ -234,11 +434,11 @@ function ChhathScene({ fx, hostRef, onClose }: { fx: FxRef; hostRef: HostRef; on
       <div className="fg-copy fg-copy-chhath">
         <div className="fg-kicker fg-deva">छठ पूजा की हार्दिक शुभकामनाएँ</div>
         <Title text="Happy Chhath Puja" className="fg-title fg-title-dawn" />
+        <p className="fg-family">{FAMILY_LINE.chhath}</p>
         <div className="fg-pill">
           <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M12 3l2.6 5.6 6.1.7-4.5 4.2 1.2 6L12 16.6 6.6 19.5l1.2-6L3.3 9.3l6.1-.7z" fill="currentColor" /></svg>
           All the best for your exams
         </div>
-        <button type="button" className="fg-cta" onClick={onClose}>Continue</button>
       </div>
       <Hint text="Tap the water to float a diya" show={!tapped} />
     </div>
@@ -257,7 +457,7 @@ const TREE_BULBS = TREE_ROWS.flatMap((r, ri) => {
   })
 })
 
-function ChristmasScene({ fx, hostRef, onClose }: { fx: FxRef; hostRef: HostRef; onClose: () => void }) {
+function ChristmasScene({ fx, hostRef, onShown, onActivity, onHold }: SceneProps) {
   const [lit, setLit] = useState(false)
   const starRef = useRef<SVGGElement>(null)
   const light = useCallback(() => setLit(true), [])
@@ -279,14 +479,19 @@ function ChristmasScene({ fx, hostRef, onClose }: { fx: FxRef; hostRef: HostRef;
       if (!p) return
       fx.current?.sparkle(p.x, p.y, 90)
       fx.current?.burst(p.x, p.y, 'ring', '#ffd166', '#fff3c4')
+      play('jingle')
+      window.setTimeout(() => play('chime'), 380)
     }, 200)
-    return () => window.clearTimeout(t)
-  }, [lit, fx, hostRef])
+    const t2 = window.setTimeout(onShown, 3000)
+    return () => { window.clearTimeout(t); window.clearTimeout(t2) }
+  }, [lit, fx, hostRef, onShown])
 
   const onTap = (e: ReactPointerEvent) => {
-    if (!lit || (e.target as Element).closest('button') || !hostRef.current) return
+    if (!lit || (e.target as Element).closest('button, .fg-coupon-wrap') || !hostRef.current) return
     const h = hostRef.current.getBoundingClientRect()
     fx.current?.sparkle(e.clientX - h.left, e.clientY - h.top, 30, ['#ffffff', '#cfe8ff', '#ffd166'])
+    play('twinkle', e.clientX / window.innerWidth)
+    onActivity()
   }
 
   return (
@@ -294,15 +499,33 @@ function ChristmasScene({ fx, hostRef, onClose }: { fx: FxRef; hostRef: HostRef;
       <div className="fg-bg fg-bg-xmas" />
       <Stars />
       <div className="fg-moon" aria-hidden="true" />
+      <XmasLights />
+      <div className="fg-baubles" aria-hidden="true">
+        {XMAS_BAUBLES.map((b, i) => (
+          <div key={i} className="fg-bauble" style={{ left: `${b.x}%`, '--len': `${b.len}px`, '--bc': b.c, '--bd': `${i * -0.7}s` } as Css}><i /><b /></div>
+        ))}
+      </div>
+      <div className="fg-santa-lane" aria-hidden="true">
+        <div className="fg-santa-fly" onAnimationStart={() => play('jingle', 0.2)} onAnimationIteration={() => play('jingle', 0.2)}>
+          <SantaSleigh width={300} />
+        </div>
+      </div>
+      <div className="fg-forest fg-forest-left" aria-hidden="true"><Forest seed={2} color="#173352" /></div>
+      <div className="fg-forest fg-forest-right" aria-hidden="true"><Forest seed={5} color="#14304d" /></div>
+      <Cabin className="fg-cabin" />
       <div className="fg-hills" aria-hidden="true"><i /><i /></div>
+      <Snowman className="fg-snowman" size={128} />
+      <CandyCane className="fg-cane-a" size={30} />
+      <CandyCane className="fg-cane-b" size={24} />
       <div className="fg-xmas-layout">
         <div className="fg-copy fg-copy-xmas">
-          <div className="fg-kicker fg-kicker-xmas">Season&apos;s greetings</div>
           <Title text="Merry Christmas" className="fg-title fg-title-xmas" />
-          <button type="button" className="fg-cta" onClick={onClose}>Continue</button>
+          <p className="fg-family">{FAMILY_LINE.christmas}</p>
         </div>
         <div className="fg-xmas-art">
           <div className="fg-tree-glow" aria-hidden="true" />
+          <DecoTree className="fg-side-tree fg-side-tree-l" size={96} />
+          <DecoTree className="fg-side-tree fg-side-tree-r" size={84} />
           <svg className="fg-tree" viewBox="0 -14 300 330" aria-hidden="true">
             <defs>
               <linearGradient id="fgTreeG" x1="0" x2="1">
@@ -342,7 +565,40 @@ function ChristmasScene({ fx, hostRef, onClose }: { fx: FxRef; hostRef: HostRef;
           <Hint text="Tap the star" show={!lit} />
         </div>
       </div>
+      <GiftBox festival="christmas" fx={fx} hostRef={hostRef} onHold={onHold} onShown={onShown} enabled={lit} />
     </div>
+  )
+}
+
+const XMAS_BAUBLES = [
+  { x: 6, len: 70, c: '#ef4444' }, { x: 12, len: 120, c: '#facc15' }, { x: 19, len: 56, c: '#3b82f6' },
+  { x: 81, len: 64, c: '#22c55e' }, { x: 88, len: 118, c: '#ef4444' }, { x: 94, len: 52, c: '#facc15' },
+]
+const XL_COLORS = ['#ff4d6d', '#ffd166', '#4cc9f0', '#80ed99', '#f72585', '#ffb703']
+const XMAS_LIGHTS = (() => {
+  const out: { x: number; y: number; c: string; k: number }[] = []
+  const seg = 240
+  for (let sw = 0; sw < 6; sw++) for (let k = 1; k < 8; k++) {
+    const t = k / 8
+    out.push({ x: sw * seg + t * seg, y: 6 + 4 * 26 * t * (1 - t), c: XL_COLORS[(k + sw * 3) % XL_COLORS.length], k: sw * 7 + k })
+  }
+  return out
+})()
+const XMAS_WIRE = Array.from({ length: 6 }, (_, sw) => `M${sw * 240} 6 Q ${sw * 240 + 120} ${6 + 52} ${sw * 240 + 240} 6`).join(' ')
+
+function XmasLights() {
+  return (
+    <svg className="fg-xlights" viewBox="0 0 1440 50" preserveAspectRatio="xMidYMin slice" aria-hidden="true">
+      <path d={XMAS_WIRE} stroke="#1f3b2a" strokeWidth="2" fill="none" />
+      <path d={XMAS_WIRE} stroke="#166534" strokeWidth="7" fill="none" strokeDasharray="2 3" strokeLinecap="round" opacity=".9" />
+      {XMAS_LIGHTS.map(l => (
+        <g key={l.k} className="fg-xl" style={{ '--c': l.c, '--k': l.k } as Css}>
+          <circle cx={l.x} cy={l.y + 7} r="9" fill={l.c} className="fg-xl-glow" />
+          <rect x={l.x - 2} y={l.y} width="4" height="4" rx="1" fill="#374151" />
+          <ellipse cx={l.x} cy={l.y + 8} rx="3.4" ry="5" fill={l.c} className="fg-xl-core" />
+        </g>
+      ))}
+    </svg>
   )
 }
 
@@ -371,7 +627,7 @@ function BadgeArt({ id }: { id: FestivalId }) {
 
 /* ───────────────────────── main ───────────────────────── */
 
-export default function FestivalGreeting({ festival }: { festival: FestivalId }) {
+export default function FestivalGreeting({ festival, autoOpen = true }: { festival: FestivalId; autoOpen?: boolean }) {
   const [mode, setMode] = useState<Mode>('none')
   const [leaving, setLeaving] = useState(false)
   const [cardOpen, setCardOpen] = useState(false)
@@ -380,25 +636,64 @@ export default function FestivalGreeting({ festival }: { festival: FestivalId })
   const hostRef = useRef<HTMLDivElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const fx = useRef<FestiveFx | null>(null)
+  // auto-close countdown, starts once the greeting is fully shown
+  const [countdown, setCountdown] = useState(0)
+  const autoTimer = useRef<number | undefined>(undefined)
+  const counting = useRef(false)
+  const [muted, setMutedState] = useState(false)
+  const [shown, setShown] = useState(false)
+  useEffect(() => { setMutedState(isMuted()) }, [])
 
   useEffect(() => {
     let seen = false
     try { seen = localStorage.getItem(SEEN_KEY(festival)) === '1' } catch {}
     const forced = new URLSearchParams(window.location.search).get('festival') === festival
-    setMode(seen && !forced ? 'corner' : 'full')
+    // full screen opens by itself only on the main festival day; other days just the corner badge
+    setMode(forced || (!seen && autoOpen) ? 'full' : 'corner')
     return () => window.clearTimeout(timer.current)
-  }, [festival])
+  }, [festival, autoOpen])
 
   const close = useCallback(() => {
+    window.clearTimeout(autoTimer.current)
+    counting.current = false
+    setCountdown(0)
     try { localStorage.setItem(SEEN_KEY(festival), '1') } catch {}
     setLeaving(true)
     timer.current = window.setTimeout(() => { setMode('corner'); setLeaving(false) }, reduced() ? 0 : 650)
   }, [festival])
 
+  const startCountdown = useCallback(() => {
+    window.clearTimeout(autoTimer.current)
+    counting.current = true
+    setShown(true)
+    setCountdown(c => c + 1)
+    autoTimer.current = window.setTimeout(close, AUTO_CLOSE_MS)
+  }, [close])
+  const onActivity = useCallback(() => { if (counting.current) startCountdown() }, [startCountdown])
+  const onHold = useCallback(() => {
+    window.clearTimeout(autoTimer.current)
+    counting.current = false
+    setCountdown(0)
+  }, [])
+
+  // don't close while the student is on another tab; give them the full time when they come back
+  useEffect(() => {
+    if (mode !== 'full') return
+    const onVis = () => {
+      if (!counting.current) return
+      if (document.hidden) { window.clearTimeout(autoTimer.current); setCountdown(0) }
+      else startCountdown()
+    }
+    document.addEventListener('visibilitychange', onVis)
+    return () => { document.removeEventListener('visibilitychange', onVis); window.clearTimeout(autoTimer.current); counting.current = false }
+  }, [mode, run, startCountdown])
+
   // canvas effects live only while the full screen is open
   useEffect(() => {
     if (mode !== 'full' || !canvasRef.current) return
     fx.current = new FestiveFx(canvasRef.current)
+    fx.current.onSound = (name, x) => play(name, x)
+    unlockSound()
     return () => { fx.current?.destroy(); fx.current = null }
   }, [mode, run])
 
@@ -419,12 +714,13 @@ export default function FestivalGreeting({ festival }: { festival: FestivalId })
 
   if (mode === 'none') return null
 
-  const replay = () => { setCardOpen(false); setRun(r => r + 1); setMode('full') }
+  const replay = () => { setCardOpen(false); setCountdown(0); setShown(false); counting.current = false; setRun(r => r + 1); setMode('full') }
   const Scene = festival === 'diwali' ? DiwaliScene : festival === 'chhath' ? ChhathScene : ChristmasScene
 
   return (
     <>
       <style>{CSS}</style>
+      {festival === 'christmas' && <style>{CHRISTMAS_ART_CSS}</style>}
       {mode === 'full' && (
         <div
           ref={hostRef}
@@ -434,11 +730,33 @@ export default function FestivalGreeting({ festival }: { festival: FestivalId })
           aria-modal="true"
           aria-label={MINI[festival].title}
           data-no-snow
+          onPointerDown={unlockSound}
         >
-          <Scene fx={fx} hostRef={hostRef} onClose={close} />
+          <Scene fx={fx} hostRef={hostRef} onShown={startCountdown} onActivity={onActivity} onHold={onHold} />
           <canvas ref={canvasRef} className="fg-canvas" aria-hidden="true" />
           <button type="button" className="fg-x" onClick={close} aria-label="Close">
+            {countdown > 0 && (
+              <svg key={countdown} className="fg-x-ring" viewBox="0 0 44 44" aria-hidden="true" style={{ '--ac': `${AUTO_CLOSE_MS}ms` } as Css}>
+                <circle cx="22" cy="22" r="20.5" />
+              </svg>
+            )}
             <svg viewBox="0 0 24 24" width="18" height="18"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" /></svg>
+          </button>
+          <button
+            type="button"
+            className="fg-mute"
+            onClick={() => { const m = !muted; setMuted(m); setMutedState(m); unlockSound() }}
+            aria-label={muted ? 'Sound on' : 'Sound off'}
+            aria-pressed={!muted}
+          >
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <path d="M11 5 6 9H3v6h3l5 4z" fill="currentColor" stroke="none" />
+              {muted ? <path d="m22 9-6 6M16 9l6 6" /> : <><path d="M15.5 8.5a5 5 0 0 1 0 7" /><path d="M18.5 5.5a9 9 0 0 1 0 13" /></>}
+            </svg>
+          </button>
+          <button type="button" className={`fg-continue ${shown ? 'is-on' : ''}`} onClick={close}>
+            Continue
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
           </button>
         </div>
       )}
@@ -451,7 +769,14 @@ export default function FestivalGreeting({ festival }: { festival: FestivalId })
               </button>
               <div className="fg-mini-art"><BadgeArt id={festival} /></div>
               <div className="fg-mini-title">{MINI[festival].title}</div>
-              <div className="fg-mini-text">{MINI[festival].text}</div>
+              {FESTIVAL_GIFTS[festival] ? (
+                <>
+                  <CouponCode code={FESTIVAL_GIFTS[festival]!.code} small />
+                  <div className="fg-mini-text">{FESTIVAL_GIFTS[festival]!.offer} · {FESTIVAL_GIFTS[festival]!.valid.replace('Valid till', 'till')}</div>
+                </>
+              ) : (
+                <div className="fg-mini-text">{MINI[festival].text}</div>
+              )}
               <button type="button" className="fg-mini-cta" onClick={replay}>
                 <svg viewBox="0 0 24 24" width="13" height="13" aria-hidden="true"><path d="M7 4.5v15l12-7.5z" fill="currentColor" /></svg>
                 Replay
@@ -483,6 +808,136 @@ const CSS = `
 .fg-bg { position: absolute; inset: 0; }
 .fg-x { position: absolute; top: max(16px, env(safe-area-inset-top)); right: 18px; z-index: 20; width: 42px; height: 42px; border-radius: 50%; border: 1px solid rgba(255,255,255,.22); background: rgba(255,255,255,.1); color: #fff; display: flex; align-items: center; justify-content: center; cursor: pointer; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); transition: transform .25s, background .2s; }
 .fg-x:hover { transform: rotate(90deg); background: rgba(255,255,255,.2); }
+.fg-mute { position: absolute; top: max(16px, env(safe-area-inset-top)); right: 70px; z-index: 20; width: 42px; height: 42px; border-radius: 50%; border: 1px solid rgba(255,255,255,.22); background: rgba(255,255,255,.1); color: #fff; display: flex; align-items: center; justify-content: center; cursor: pointer; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); transition: background .2s; }
+.fg-mute:hover { background: rgba(255,255,255,.2); }
+.fg-continue { position: absolute; right: max(28px, env(safe-area-inset-right)); bottom: max(28px, env(safe-area-inset-bottom)); z-index: 20; display: inline-flex; align-items: center; gap: 10px; padding: 14px 22px 14px 26px; border-radius: 999px; border: 1px solid rgba(255,255,255,.35); background: rgba(255,255,255,.14); color: #fff; font: 700 15px/1 'Outfit','Nunito',sans-serif; letter-spacing: .03em; cursor: pointer; backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); box-shadow: 0 10px 30px rgba(0,0,0,.3); opacity: 0; transform: translateY(14px); pointer-events: none; transition: opacity .5s ease, transform .5s cubic-bezier(.2,1.4,.4,1), background .2s; }
+.fg-continue.is-on { opacity: 1; transform: none; pointer-events: auto; }
+.fg-continue:hover { background: rgba(255,255,255,.24); }
+.fg-continue:hover svg { transform: translateX(3px); }
+.fg-continue svg { transition: transform .2s; }
+.fg-diwali .fg-continue { background: linear-gradient(135deg, rgba(253,230,138,.95), rgba(245,158,11,.95)); color: #3b0a0a; border-color: rgba(255,240,200,.6); box-shadow: 0 10px 30px rgba(245,158,11,.45); }
+.fg-family { margin: 18px auto 0; max-width: 720px; font-size: clamp(15px, 1.75vw, 21px); font-weight: 600; line-height: 1.45; letter-spacing: .01em; color: rgba(255,255,255,.92); text-shadow: 0 2px 14px rgba(0,0,0,.45); }
+.fg-diwali .fg-family { color: #ffe9b8; }
+.fg-copy-xmas .fg-family { margin-left: 0; }
+.is-lit .fg-copy .fg-family { animation-delay: 2.3s; }
+.fg-scene-chhath .fg-copy .fg-family { animation-delay: 4.5s; }
+.fg-scene-chhath .fg-copy .fg-pill { animation-delay: 5.1s !important; }
+
+/* Diwali decorations: everything lights up after the first diya */
+.fg-decor { position: absolute; inset: 0; pointer-events: none; z-index: 2; }
+.fg-decor > * { opacity: 0; transition: opacity 1s ease; }
+.is-lit .fg-decor > * { opacity: 1; }
+.fg-swag { position: absolute; top: 10px; left: 0; width: 100%; height: 60px; filter: drop-shadow(0 3px 4px rgba(0,0,0,.4)); }
+.fg-swag-m { opacity: 0; }
+.is-lit .fg-swag-m { animation: fgFadeIn .4s ease forwards; animation-delay: calc(.5s + var(--i) * 6ms); }
+.fg-kandil { position: absolute; top: 0; width: 0; transition-delay: var(--kd) !important; }
+.fg-kandil-string { position: absolute; left: -1px; top: 0; width: 2px; height: var(--len); background: linear-gradient(#b45309, #fbbf24); }
+.fg-kandil-swing { position: absolute; top: var(--len); left: 0; transform-origin: 0 calc(-1 * var(--len)); animation: fgSwing 4.6s ease-in-out infinite; animation-delay: calc(var(--kd) * -2); }
+.fg-kandil-glow { position: absolute; left: calc(-70px * var(--ks)); top: calc(-30px * var(--ks)); width: calc(140px * var(--ks)); height: calc(140px * var(--ks)); border-radius: 50%; background: radial-gradient(circle, color-mix(in srgb, var(--hue) 55%, transparent), transparent 65%); animation: fgBreath 2.4s ease-in-out infinite; }
+.fg-kandil-cap { position: absolute; left: calc(-11px * var(--ks)); top: 0; width: calc(22px * var(--ks)); height: calc(7px * var(--ks)); border-radius: 3px 3px 0 0; background: #92400e; }
+.fg-kandil-body { position: absolute; left: calc(-34px * var(--ks)); top: calc(6px * var(--ks)); width: calc(68px * var(--ks)); height: calc(68px * var(--ks)); background: radial-gradient(circle at 50% 50%, #fff7d6 0 14%, var(--hue) 52%, color-mix(in srgb, var(--hue) 55%, #000) 100%); clip-path: polygon(50% 0, 61% 30%, 95% 25%, 72% 50%, 95% 75%, 61% 70%, 50% 100%, 39% 70%, 5% 75%, 28% 50%, 5% 25%, 39% 30%); filter: drop-shadow(0 0 16px var(--hue)); }
+.fg-kandil-body span { position: absolute; inset: 0; background: radial-gradient(circle, rgba(255,255,255,.55) 0 8%, transparent 30%); }
+.fg-kandil-tassels { position: absolute; left: calc(-9px * var(--ks)); top: calc(72px * var(--ks)); display: flex; gap: 2px; }
+.fg-kandil-tassels i { width: 2.5px; height: calc(30px * var(--ks)); border-radius: 2px; background: linear-gradient(#fbbf24, var(--hue)); transform-origin: 50% 0; animation: fgTassel 1.7s ease-in-out infinite; }
+.fg-kandil-tassels i:nth-child(2n) { animation-delay: .3s; height: calc(24px * var(--ks)); }
+.fg-sidelights { position: absolute; top: 70px; bottom: 120px; width: 40px; transition-delay: .8s !important; }
+.fg-sidelights-left { left: 10px; }
+.fg-sidelights-right { right: 10px; transform: scaleX(-1); }
+.fg-sidewire { position: absolute; inset: 0; width: 40px; height: 100%; overflow: visible; }
+.fg-sidewire path { fill: none; stroke: #3f2a14; stroke-width: 1.2; vector-effect: non-scaling-stroke; }
+.fg-sidelights i { position: absolute; width: 9px; height: 12px; margin: -6px 0 0 -4.5px; border-radius: 50% 50% 45% 45%; background: #5b4a32; transition: background .3s, box-shadow .3s; }
+.is-lit .fg-sidelights i { animation: fgSideOn .3s ease forwards, fgSideTw 2.2s ease-in-out infinite; animation-delay: calc(1s + var(--bi) * 90ms), calc(2.6s + var(--bi) * -.31s); }
+@keyframes fgSideOn { to { background: var(--c); box-shadow: 0 0 10px 2px var(--c), 0 0 22px 4px color-mix(in srgb, var(--c) 50%, transparent); } }
+@keyframes fgSideTw { 0%, 100% { background: var(--c); box-shadow: 0 0 10px 2px var(--c), 0 0 22px 4px color-mix(in srgb, var(--c) 50%, transparent); } 50% { background: color-mix(in srgb, var(--c) 70%, #000); box-shadow: 0 0 4px 1px var(--c); } }
+.fg-rangoli-corner { position: absolute; width: min(46vmin, 420px); height: min(46vmin, 420px); bottom: calc(-1 * min(23vmin, 210px)); filter: drop-shadow(0 0 24px rgba(249,115,22,.35)); transition-delay: 1.4s !important; }
+.is-lit .fg-rangoli-corner { opacity: .5 !important; }
+.fg-rangoli-left { left: calc(-1 * min(23vmin, 210px)); }
+.fg-rangoli-right { right: calc(-1 * min(23vmin, 210px)); }
+.fg-rg-a { animation: fgSpin 80s linear infinite; transform-origin: 0 0; }
+.fg-rg-b { animation: fgSpin 60s linear infinite reverse; transform-origin: 0 0; }
+.fg-rg-c { animation: fgSpin 40s linear infinite; transform-origin: 0 0; }
+.fg-petals { position: absolute; inset: 0; overflow: hidden; transition-delay: 1.8s !important; }
+.fg-petals i { position: absolute; top: -24px; border-radius: 60% 40% 60% 40%; background: radial-gradient(circle at 40% 35%, #ffb36b, #ea580c 70%); opacity: 0; animation: fgPetal linear infinite; }
+.fg-petals i.is-yellow { background: radial-gradient(circle at 40% 35%, #fff3a8, #f59e0b 70%); }
+@keyframes fgSwing { 0%, 100% { transform: rotate(-4deg); } 50% { transform: rotate(4deg); } }
+@keyframes fgTassel { 0%, 100% { transform: rotate(-7deg); } 50% { transform: rotate(7deg); } }
+@keyframes fgPetal { 0% { opacity: 0; transform: translate(0, 0) rotate(0); } 8% { opacity: .95; } 90% { opacity: .9; } 100% { opacity: 0; transform: translate(var(--drift), 108vh) rotate(var(--spin)); } }
+.fg-side-diyas { position: absolute; left: 0; right: 0; bottom: max(26px, env(safe-area-inset-bottom)); height: 70px; transition-delay: 0s !important; }
+.fg-side-diya { position: absolute; bottom: 0; }
+.fg-scene-diwali:not(.is-lit) .fg-side-diya .fg-flame, .fg-scene-diwali:not(.is-lit) .fg-side-diya .fg-diya-glow { animation: none; opacity: 0; }
+
+/* Diwali gift box */
+.fg-diwali .fg-continue { bottom: calc(118px + env(safe-area-inset-bottom)); }
+.fg-giftbox { position: absolute; left: max(64px, 6vw); bottom: calc(126px + env(safe-area-inset-bottom)); z-index: 7; width: 74px; height: 70px; padding: 0; border: 0; background: none; cursor: pointer; opacity: 0; transform: scale(.4) translateY(30px); pointer-events: none; transition: opacity .5s ease 3.2s, transform .7s cubic-bezier(.2,1.6,.4,1) 3.2s; -webkit-tap-highlight-color: transparent; }
+.fg-giftbox.is-ready { opacity: 1; transform: none; pointer-events: auto; animation: fgGiftWiggle 3.4s ease-in-out 5s infinite; }
+.fg-giftbox:hover { animation-play-state: paused; }
+.fg-giftbox.is-open { animation: none; }
+.fg-giftbox-body { position: absolute; left: 6px; right: 6px; bottom: 0; height: 44px; border-radius: 6px; background: linear-gradient(90deg, transparent 42%, #fde68a 42% 58%, transparent 58%), linear-gradient(#e11d48, #9f1239); box-shadow: 0 10px 22px rgba(0,0,0,.45), inset 0 -6px 10px rgba(0,0,0,.2); }
+.fg-giftbox-lid { position: absolute; left: 0; right: 0; bottom: 42px; height: 15px; border-radius: 5px; background: linear-gradient(90deg, transparent 42%, #fde68a 42% 58%, transparent 58%), linear-gradient(#fb7185, #e11d48); box-shadow: 0 3px 6px rgba(0,0,0,.3); transition: transform .6s cubic-bezier(.2,1.4,.4,1), opacity .6s ease; transform-origin: 20% 100%; }
+.fg-giftbox-lid i, .fg-giftbox-lid b { position: absolute; bottom: 12px; width: 18px; height: 14px; border: 4px solid #fbbf24; border-radius: 50% 50% 10% 50%; }
+.fg-giftbox-lid i { left: calc(50% - 19px); transform: rotate(-20deg); }
+.fg-giftbox-lid b { right: calc(50% - 19px); transform: rotate(20deg) scaleX(-1); }
+.fg-giftbox.is-open .fg-giftbox-lid { transform: translate(-14px, -46px) rotate(-38deg); opacity: 0; }
+.fg-giftbox-tag { position: absolute; left: 50%; top: -30px; translate: -50% 0; padding: 5px 11px; border-radius: 999px; background: linear-gradient(135deg, #fde68a, #f59e0b); color: #3b0a0a; font: 800 12px/1 'Outfit','Nunito',sans-serif; letter-spacing: .03em; white-space: nowrap; box-shadow: 0 6px 14px rgba(0,0,0,.35); rotate: -6deg; transition: opacity .3s; }
+.fg-giftbox.is-open .fg-giftbox-tag { opacity: 0; }
+.fg-giftbox-rays { position: absolute; left: 50%; top: 40%; width: 170px; height: 170px; margin: -85px 0 0 -85px; border-radius: 50%; background: repeating-conic-gradient(rgba(255,214,120,.5) 0 8deg, transparent 8deg 24deg); -webkit-mask: radial-gradient(circle, #000 18%, transparent 65%); mask: radial-gradient(circle, #000 18%, transparent 65%); opacity: 0; transform: scale(.4); transition: opacity .5s, transform .8s; pointer-events: none; }
+.fg-giftbox.is-open .fg-giftbox-rays { opacity: 1; transform: scale(1); animation: fgSpin 8s linear infinite; }
+.fg-coupon-wrap { position: absolute; inset: 0; z-index: 25; display: flex; align-items: center; justify-content: center; background: rgba(5,3,12,.45); backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px); animation: fgIn .3s ease both; }
+.fg-coupon { position: relative; width: min(340px, calc(100vw - 40px)); padding: 26px 22px 20px; border-radius: 24px; text-align: center; color: #3b0a0a; background: radial-gradient(120% 90% at 50% 0%, #fff7dd, #fde68a 60%, #f6c453); box-shadow: 0 30px 60px rgba(0,0,0,.5), 0 0 0 1px rgba(255,255,255,.6) inset, 0 0 60px rgba(245,158,11,.35); animation: fgCouponIn .55s cubic-bezier(.2,1.5,.4,1) both; }
+.fg-coupon::before, .fg-coupon::after { content: ''; position: absolute; top: 50%; width: 22px; height: 22px; margin-top: -11px; border-radius: 50%; background: #2a1030; }
+.fg-coupon::before { left: -11px; }
+.fg-coupon::after { right: -11px; }
+.fg-coupon-x { position: absolute; top: 10px; right: 10px; width: 28px; height: 28px; border-radius: 50%; border: 0; background: rgba(59,10,10,.1); color: #3b0a0a; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+.fg-code { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 10px 10px 18px; border-radius: 14px; border: 2px dashed rgba(124,45,18,.45); background: rgba(255,255,255,.65); }
+.fg-code-text { font: 900 24px/1 'Outfit','Nunito',ui-monospace,monospace; letter-spacing: .12em; color: #7c2d12; }
+.fg-code-copy { flex-shrink: 0; width: 40px; height: 40px; border-radius: 12px; border: 0; background: #7c2d12; color: #fff7dd; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: transform .15s, background .2s; }
+.fg-code-copy:active { transform: scale(.9); }
+.fg-code-copy.is-done { background: #15803d; }
+.fg-coupon-offer { margin-top: 14px; font: 800 17px/1.3 'Outfit','Nunito',sans-serif; }
+.fg-coupon-valid { margin-top: 4px; font: 600 13px/1.3 'Outfit','Nunito',sans-serif; color: rgba(59,10,10,.65); }
+.fg-code.is-small { margin: 10px 0 6px; padding: 6px 6px 6px 12px; border-color: rgba(255,255,255,.4); background: rgba(255,255,255,.1); }
+.fg-code.is-small .fg-code-text { font-size: 16px; color: #fde68a; }
+.fg-code.is-small .fg-code-copy { width: 32px; height: 32px; border-radius: 9px; background: rgba(253,230,138,.95); color: #3b0a0a; }
+@keyframes fgGiftWiggle { 0%, 82%, 100% { transform: none; } 86% { transform: rotate(-8deg) scale(1.05); } 90% { transform: rotate(7deg) scale(1.05); } 94% { transform: rotate(-4deg); } }
+@keyframes fgCouponIn { from { opacity: 0; transform: scale(.5) translateY(60px); } to { opacity: 1; transform: none; } }
+
+/* Christmas extras */
+.fg-xlights { position: absolute; top: 0; left: 0; width: 100%; height: 56px; z-index: 3; overflow: visible; }
+.fg-xl-glow { opacity: 0; }
+.fg-xl-core { filter: saturate(.2) brightness(.55); transition: filter .3s; }
+.is-lit .fg-xl-core { filter: none; transition-delay: calc(.3s + var(--k) * 25ms); }
+.is-lit .fg-xl-glow { animation: fgXlOn .3s ease forwards, fgXlTw 1.9s ease-in-out infinite; animation-delay: calc(.3s + var(--k) * 25ms), calc(1.6s + var(--k) * -.29s); }
+@keyframes fgXlOn { to { opacity: .45; } }
+@keyframes fgXlTw { 0%, 100% { opacity: .2; } 50% { opacity: .6; } }
+.fg-baubles { position: absolute; inset: 0; pointer-events: none; z-index: 3; }
+.fg-bauble { position: absolute; top: 18px; width: 0; transform-origin: 0 0; animation: fgSwing 4.4s ease-in-out infinite; animation-delay: var(--bd); }
+.fg-bauble i { position: absolute; left: -.5px; top: 0; width: 1px; height: var(--len); background: #d4af37; }
+.fg-bauble b { position: absolute; left: -15px; top: var(--len); width: 30px; height: 30px; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #fff 0 8%, var(--bc) 30%, color-mix(in srgb, var(--bc) 50%, #000) 100%); box-shadow: 0 6px 14px rgba(0,0,0,.4); }
+.fg-bauble b::before { content: ''; position: absolute; left: 10px; top: -5px; width: 10px; height: 6px; border-radius: 2px; background: #d4af37; }
+.fg-santa-lane { position: absolute; left: 0; right: 0; top: 13%; height: 90px; z-index: 2; pointer-events: none; overflow: hidden; }
+.fg-santa-fly { position: absolute; left: 0; top: 10px; animation: fgSantaFly 15s linear .8s infinite; transform: translateX(-380px); }
+@keyframes fgSantaFly { 0% { transform: translate(-380px, 30px); } 60% { transform: translate(calc(100vw + 40px), -14px); } 100% { transform: translate(calc(100vw + 40px), -14px); } }
+.fg-forest { position: absolute; z-index: 0; height: 9vh; pointer-events: none; }
+.fg-forest svg { height: 100%; }
+.fg-forest-left { left: -2%; width: 66%; bottom: 21vh; }
+.fg-forest-right { right: -4%; width: 72%; bottom: 17vh; }
+.fg-cabin { position: absolute; z-index: 0; right: 1%; bottom: 16.5vh; width: 96px; height: auto; }
+.fg-snowman { position: absolute; z-index: 3; left: 5%; bottom: 3vh; filter: drop-shadow(0 10px 12px rgba(0,0,0,.25)); }
+.fg-cane-a { position: absolute; z-index: 3; left: 31%; bottom: 4vh; rotate: 8deg; }
+.fg-cane-b { position: absolute; z-index: 3; left: 58%; bottom: 2.5vh; rotate: -10deg; }
+.fg-side-tree { position: absolute; bottom: -2%; z-index: 0; filter: drop-shadow(0 12px 16px rgba(0,0,0,.35)); }
+.fg-side-tree-l { left: -26%; }
+.fg-side-tree-r { right: -22%; }
+.fg-christmas .fg-giftbox { left: calc(5% + 140px); bottom: 3.5vh; }
+.fg-christmas .fg-giftbox-body { background: linear-gradient(90deg, transparent 42%, #ef4444 42% 58%, transparent 58%), linear-gradient(#22c55e, #166534); }
+.fg-christmas .fg-giftbox-lid { background: linear-gradient(90deg, transparent 42%, #ef4444 42% 58%, transparent 58%), linear-gradient(#4ade80, #16a34a); }
+.fg-christmas .fg-giftbox-lid i, .fg-christmas .fg-giftbox-lid b { border-color: #ef4444; }
+.fg-christmas .fg-continue { background: linear-gradient(135deg, #ff5d73, #e63946 60%, #b5172d); border-color: rgba(255,200,200,.5); box-shadow: 0 10px 30px rgba(230,57,70,.45); }
+.fg-christmas .fg-coupon::before, .fg-christmas .fg-coupon::after { background: #0b1830; }
+
+.fg-x-ring { position: absolute; inset: -2px; width: calc(100% + 4px); height: calc(100% + 4px); transform: rotate(-90deg); pointer-events: none; }
+.fg-x-ring circle { fill: none; stroke: rgba(255,255,255,.9); stroke-width: 2; stroke-linecap: round; stroke-dasharray: 128.8; stroke-dashoffset: 0; animation: fgCount var(--ac) linear forwards; }
+@keyframes fgCount { to { stroke-dashoffset: 128.8; } }
 
 .fg-stars { position: absolute; inset: 0; pointer-events: none; }
 .fg-stars i { position: absolute; border-radius: 50%; background: #fff; box-shadow: 0 0 6px rgba(255,255,255,.9); animation: fgTwinkle 3s ease-in-out infinite; }
@@ -664,6 +1119,26 @@ const CSS = `
 .fg-mini-x { position: absolute; top: 8px; right: 10px; width: 28px; height: 28px; border-radius: 50%; border: 0; background: rgba(255,255,255,.12); color: #fff; display: flex; align-items: center; justify-content: center; cursor: pointer; }
 
 @media (max-width: 767px) {
+  .fg-diwali .fg-continue { bottom: calc(118px + env(safe-area-inset-bottom)); right: 16px; }
+  .fg-giftbox { left: 22px; bottom: calc(122px + env(safe-area-inset-bottom)); transform-origin: 50% 100%; }
+  .fg-christmas .fg-giftbox { left: 92px; right: auto; bottom: calc(16px + env(safe-area-inset-bottom)); }
+  .fg-snowman { left: 1%; bottom: 1.5vh; width: 76px; height: auto; }
+  .fg-cabin, .fg-cane-b, .fg-side-tree-r, .fg-bauble:nth-child(2), .fg-bauble:nth-child(5) { display: none; }
+  .fg-side-tree-l { display: none; }
+  .fg-cane-a { display: none; }
+  .fg-forest { height: 6vh; }
+  .fg-forest-left { bottom: 19vh; width: 80%; }
+  .fg-forest-right { bottom: 16vh; width: 90%; }
+  .fg-santa-lane { top: 40%; }
+  .fg-santa-fly svg { width: 210px; height: auto; }
+  .fg-code-text { font-size: 20px; }
+  .fg-continue { right: 16px; bottom: max(20px, env(safe-area-inset-bottom)); padding: 12px 18px 12px 20px; font-size: 14px; }
+  .fg-kandil:nth-of-type(2), .fg-kandil:nth-of-type(3) { display: none; }
+  .fg-side-diyas, .fg-swag { display: none; }
+  .fg-sidelights { width: 26px; top: 60px; bottom: 150px; }
+  .fg-sidelights-left { left: 2px; }
+  .fg-sidelights-right { right: 2px; }
+  .fg-family { font-size: 15px; padding: 0 8px; }
   .fg-corner { right: 16px; bottom: 90px; }
   .fg-toran-strand i { width: 13px; height: 13px; }
   .fg-toran-strand:nth-child(2n+1) { display: none; }
@@ -673,11 +1148,12 @@ const CSS = `
   .fg-copy-diwali { translate: 0 -75%; }
   .fg-cane { height: 52%; bottom: 30%; }
   .fg-cane-leaves i { width: 64px; }
-  .fg-xmas-layout { flex-direction: column-reverse; justify-content: center; gap: 18px; padding: 70px 20px 8vh; }
+  .fg-xmas-layout { flex-direction: column; justify-content: space-between; gap: 0; padding: 88px 20px 15vh; }
   .fg-copy-xmas { text-align: center; }
-  .fg-xmas-art { align-self: center; margin-bottom: 0; width: min(62vw, 260px); }
-  .fg-scene-xmas:not(.is-lit) .fg-xmas-art { transform: translateY(16vh); }
-  .fg-hills { height: 12%; }
+  .fg-xmas-art { align-self: center; margin-bottom: 0; width: min(60vw, 250px); }
+  .fg-scene-xmas:not(.is-lit) .fg-xmas-art { transform: none; }
+  .fg-scene-xmas .fg-hint { bottom: auto; top: -54px; }
+  .fg-hills { height: 21%; }
 }
 
 @keyframes fgIn { from { opacity: 0; } to { opacity: 1; } }
