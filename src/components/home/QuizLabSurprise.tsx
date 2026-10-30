@@ -32,7 +32,92 @@ function prefersReducedMotion(): boolean {
   try { return window.matchMedia('(prefers-reduced-motion: reduce)').matches } catch { return false }
 }
 
-const COLORS = ['#22c55e', '#86efac', '#facc15', '#f472b6', '#60a5fa', '#a78bfa', '#ffffff', '#fb923c']
+const COLORS = ['#22c55e', '#86efac', '#facc15', '#f472b6', '#60a5fa', '#a78bfa', '#5eead4', '#fb923c']
+
+/* ───────── Sounds (synthesised with Web Audio, no files) ─────────
+ * Browsers only allow sound after the person has interacted with the page.
+ * Sounds that would play before that are skipped (never queued), and the
+ * first tap anywhere on the surprise unlocks sound for the rest of it.
+ */
+const MUTE_KEY = 'quizlab-sound-muted'
+type SfxName = 'thud' | 'rattle' | 'rise' | 'pop' | 'tada' | 'slap' | 'ding' | 'whoosh' | 'mini'
+
+function createSfx() {
+  let ctx: AudioContext | null = null
+  let master: GainNode | null = null
+  let noiseBuf: AudioBuffer | null = null
+  let muted = false
+  try { muted = localStorage.getItem(MUTE_KEY) === '1' } catch {}
+
+  const ensure = () => {
+    if (ctx) return ctx
+    const AC = (window as any).AudioContext || (window as any).webkitAudioContext
+    if (!AC) return null
+    ctx = new AC() as AudioContext
+    master = ctx.createGain()
+    master.gain.value = 0.35
+    master.connect(ctx.destination)
+    noiseBuf = ctx.createBuffer(1, ctx.sampleRate, ctx.sampleRate)
+    const d = noiseBuf.getChannelData(0)
+    for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1
+    return ctx
+  }
+
+  const tone = (c: AudioContext, o: { f: number; f2?: number; t?: number; dur: number; type?: OscillatorType; vol?: number }) => {
+    const st = c.currentTime + (o.t || 0)
+    const osc = c.createOscillator(); const g = c.createGain()
+    osc.type = o.type || 'sine'
+    osc.frequency.setValueAtTime(o.f, st)
+    if (o.f2) osc.frequency.exponentialRampToValueAtTime(o.f2, st + o.dur)
+    g.gain.setValueAtTime(0.0001, st)
+    g.gain.exponentialRampToValueAtTime(o.vol ?? 0.4, st + 0.008)
+    g.gain.exponentialRampToValueAtTime(0.0001, st + o.dur)
+    osc.connect(g); g.connect(master!)
+    osc.start(st); osc.stop(st + o.dur + 0.05)
+  }
+  const noise = (c: AudioContext, o: { t?: number; dur: number; f: number; f2?: number; q?: number; vol?: number }) => {
+    const st = c.currentTime + (o.t || 0)
+    const src = c.createBufferSource(); src.buffer = noiseBuf
+    const bp = c.createBiquadFilter(); bp.type = 'bandpass'; bp.Q.value = o.q ?? 1
+    bp.frequency.setValueAtTime(o.f, st)
+    if (o.f2) bp.frequency.exponentialRampToValueAtTime(o.f2, st + o.dur)
+    const g = c.createGain()
+    g.gain.setValueAtTime(0.0001, st)
+    g.gain.exponentialRampToValueAtTime(o.vol ?? 0.4, st + 0.01)
+    g.gain.exponentialRampToValueAtTime(0.0001, st + o.dur)
+    src.connect(bp); bp.connect(g); g.connect(master!)
+    src.start(st); src.stop(st + o.dur + 0.05)
+  }
+  const chord = (c: AudioContext, notes: number[], t0: number, step: number, dur: number, vol: number) =>
+    notes.forEach((f, i) => tone(c, { f, t: t0 + i * step, dur, type: 'triangle', vol }))
+
+  const SOUNDS: Record<SfxName, (c: AudioContext) => void> = {
+    thud: c => { tone(c, { f: 150, f2: 55, dur: 0.28, vol: 0.9 }); noise(c, { dur: 0.06, f: 1800, vol: 0.2 }) },
+    rattle: c => { for (let i = 0; i < 6; i++) { noise(c, { t: i * 0.075, dur: 0.05, f: 2400 + i * 180, q: 4, vol: 0.35 }); tone(c, { t: i * 0.075, f: 320 + (i % 2) * 90, dur: 0.06, type: 'square', vol: 0.04 }) } },
+    rise: c => { tone(c, { f: 220, f2: 880, dur: 0.75, type: 'sawtooth', vol: 0.06 }); tone(c, { f: 330, f2: 1320, dur: 0.75, type: 'triangle', vol: 0.08 }); noise(c, { dur: 0.75, f: 600, f2: 4000, q: 2, vol: 0.12 }) },
+    pop: c => {
+      noise(c, { dur: 0.3, f: 900, q: 0.7, vol: 0.9 }); tone(c, { f: 520, f2: 80, dur: 0.32, vol: 0.8 })
+      for (let i = 0; i < 9; i++) tone(c, { t: 0.08 + i * 0.045, f: 1800 + ((i * 373) % 1700), dur: 0.14, vol: 0.1 })
+    },
+    tada: c => { chord(c, [523.25, 659.25, 783.99, 1046.5], 0, 0.09, 0.55, 0.28); chord(c, [523.25, 659.25, 783.99, 1046.5], 0.42, 0, 1.3, 0.13) },
+    slap: c => { tone(c, { f: 280, f2: 120, dur: 0.11, type: 'square', vol: 0.08 }); noise(c, { dur: 0.06, f: 1300, vol: 0.3 }) },
+    ding: c => { tone(c, { f: 1318.5, dur: 0.5, vol: 0.22 }); tone(c, { t: 0.07, f: 1975.5, dur: 0.6, vol: 0.14 }) },
+    whoosh: c => { noise(c, { dur: 0.45, f: 3200, f2: 300, q: 1.5, vol: 0.5 }) },
+    mini: c => { tone(c, { f: 700, f2: 200, dur: 0.16, vol: 0.45 }); noise(c, { dur: 0.12, f: 1200, vol: 0.4 }); chord(c, [783.99, 1046.5, 1318.5], 0.1, 0.08, 0.45, 0.2) },
+  }
+
+  return {
+    get muted() { return muted },
+    setMuted(m: boolean) { muted = m; try { localStorage.setItem(MUTE_KEY, m ? '1' : '0') } catch {} },
+    unlock() { const c = ensure(); if (c && c.state === 'suspended') c.resume().catch(() => {}) },
+    play(name: SfxName) {
+      if (muted) return
+      const c = ensure()
+      if (!c || c.state !== 'running') return
+      try { SOUNDS[name](c) } catch {}
+    },
+  }
+}
 
 // Fixed, pseudo-random spreads so server and client render the same markup.
 const CONFETTI = Array.from({ length: 44 }, (_, i) => ({
@@ -173,7 +258,13 @@ export default function QuizLabSurprise() {
   const [phase, setPhase] = useState<Phase>('enter')
   const [cornerOpen, setCornerOpen] = useState(false)
   const [score, setScore] = useState(0)
+  const [muted, setMuted] = useState(false)
   const timers = useRef<number[]>([])
+  const sfxRef = useRef<ReturnType<typeof createSfx> | null>(null)
+  const sfx = () => {
+    if (!sfxRef.current && typeof window !== 'undefined') sfxRef.current = createSfx()
+    return sfxRef.current
+  }
 
   const clearTimers = () => { timers.current.forEach(t => window.clearTimeout(t)); timers.current = [] }
   const after = (ms: number, fn: () => void) => { timers.current.push(window.setTimeout(fn, ms)) }
@@ -196,6 +287,35 @@ export default function QuizLabSurprise() {
     return clearTimers
   }, [runOpen])
 
+  // Read the saved mute choice once on the client.
+  useEffect(() => { setMuted(Boolean(sfx()?.muted)) }, [])
+
+  // Sounds for each step of the full-screen surprise.
+  useEffect(() => {
+    if (mode !== 'full') return
+    const s = sfx()
+    if (!s) return
+    s.unlock()
+    if (phase === 'enter') [570, 690, 810, 930, 1050].forEach(ms => after(ms, () => s.play('thud')))
+    if (phase === 'wiggle') { s.play('rattle'); after(700, () => s.play('rattle')) }
+    if (phase === 'focus') s.play('rise')
+    if (phase === 'open') s.play('pop')
+    if (phase === 'reveal') {
+      s.play('tada')
+      ;[550, 700, 850].forEach(ms => after(ms, () => s.play('slap')))
+      after(2350, () => s.play('ding'))
+    }
+    if (phase === 'leaving') s.play('whoosh')
+  }, [mode, phase])
+
+  function toggleMute() {
+    const s = sfx()
+    if (!s) return
+    s.setMuted(!s.muted)
+    setMuted(s.muted)
+    if (!s.muted) { s.unlock(); s.play('mini') }
+  }
+
   // Score counter on the right-hand card.
   useEffect(() => {
     if (mode !== 'full' || phase !== 'reveal') return
@@ -215,11 +335,17 @@ export default function QuizLabSurprise() {
   // Lock page scroll and allow Escape while the full-screen reveal is up.
   useEffect(() => {
     if (mode !== 'full') return
-    const prev = document.body.style.overflow
+    const prevBody = document.body.style.overflow
+    const prevHtml = document.documentElement.style.overflow
     document.body.style.overflow = 'hidden'
+    document.documentElement.style.overflow = 'hidden'
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') closeFull() }
     window.addEventListener('keydown', onKey)
-    return () => { document.body.style.overflow = prev; window.removeEventListener('keydown', onKey) }
+    return () => {
+      document.body.style.overflow = prevBody
+      document.documentElement.style.overflow = prevHtml
+      window.removeEventListener('keydown', onKey)
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mode])
 
@@ -241,7 +367,7 @@ export default function QuizLabSurprise() {
       <style>{CSS}</style>
 
       {mode === 'full' && (
-        <div className={`qls-overlay qls-${phase}`} role="dialog" aria-modal="true" aria-label="Quiz Lab is here">
+        <div className={`qls-overlay qls-${phase}`} role="dialog" aria-modal="true" aria-label="Quiz Lab is here" onPointerDown={() => sfx()?.unlock()}>
           {/* Background: aurora, grid, twinkles, rising sparks */}
           <div className="qls-bg" aria-hidden="true">
             <span className="qls-blob qls-blob-1" />
@@ -271,6 +397,29 @@ export default function QuizLabSurprise() {
           )}
 
           {opened && <div className="qls-flash" aria-hidden="true" />}
+
+          {/* Burst effects live on their own layer so they can never cause scrollbars */}
+          <div className="qls-fx" aria-hidden="true">
+            <div className="qls-rays" />
+            <span className="qls-shock" />
+            {opened && <Confetti pieces={CONFETTI} />}
+          </div>
+
+          <div className="qls-brand">
+            <img src={QUIZ_LAB_LOGO} alt="" width={40} height={40} />
+            <div>
+              <b>QUIZ LAB</b>
+              <span>by GenZ IITian</span>
+            </div>
+          </div>
+
+          <button type="button" className="qls-sound" onClick={toggleMute} aria-label={muted ? 'Turn sound on' : 'Turn sound off'} aria-pressed={!muted}>
+            {muted ? (
+              <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M11 5 6 9H2v6h4l5 4V5z" /><path d="m22 9-6 6" /><path d="m16 9 6 6" /></svg>
+            ) : (
+              <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M11 5 6 9H2v6h4l5 4V5z" /><path d="M15.5 8.5a5 5 0 0 1 0 7" /><path d="M19 5a10 10 0 0 1 0 14" /></svg>
+            )}
+          </button>
 
           <button type="button" className="qls-close" onClick={closeFull} aria-label="Close">×</button>
 
@@ -317,8 +466,6 @@ export default function QuizLabSurprise() {
           <div className="qls-scroll">
             <div className="qls-stage">
               <div className="qls-cell">
-                <div className="qls-rays" aria-hidden="true" />
-                <span className="qls-shock" aria-hidden="true" />
 
                 <div className="qls-boxes">
                   <GiftBox className="qls-side qls-outer qls-outer-l" color="#ec4899" ribbon="#fbcfe8" />
@@ -342,8 +489,6 @@ export default function QuizLabSurprise() {
                   )}
                 </div>
 
-                {opened && <Confetti pieces={CONFETTI} />}
-
                 <div className="qls-reveal">
                   <div className="qls-logo-wrap">
                     <span className="qls-ripple" aria-hidden="true" />
@@ -353,6 +498,7 @@ export default function QuizLabSurprise() {
                     <span className="qls-sticker qls-s2">NEW!</span>
                     <span className="qls-sticker qls-s3">NEW</span>
                   </div>
+                  <div className="qls-eyebrow"><i />GenZ IITian presents<i /></div>
                   <h2 className="qls-title">
                     {TITLE_WORDS.map((word, wi) => (
                       <span key={wi} className={`qls-word ${word.accent ? 'is-accent' : ''}`}>
@@ -392,6 +538,7 @@ export default function QuizLabSurprise() {
               <button type="button" className="qls-card-x" onClick={() => setCornerOpen(false)} aria-label="Close">×</button>
               <img className="qls-card-logo" src={QUIZ_LAB_LOGO} alt="" width={72} height={72} />
               <div className="qls-card-title">Quiz Lab <span className="qls-card-new">NEW</span></div>
+              <div className="qls-card-by">by GenZ IITian</div>
               <div className="qls-card-sub">Practice quizzes to test yourself.</div>
               <a className="qls-try qls-try-sm" href={QUIZ_LAB_URL}>Try now →</a>
             </div>
@@ -399,7 +546,12 @@ export default function QuizLabSurprise() {
           <button
             type="button"
             className="qls-corner-btn"
-            onClick={() => setCornerOpen(o => !o)}
+            onClick={() => {
+              setCornerOpen(o => {
+                if (!o) { const s = sfx(); s?.unlock(); window.setTimeout(() => s?.play('mini'), 30) }
+                return !o
+              })
+            }}
             aria-label={cornerOpen ? 'Close Quiz Lab' : 'Open Quiz Lab surprise'}
           >
             <GiftBox className={`qls-mini ${cornerOpen ? 'is-open' : ''}`} color="#16a34a" ribbon="#facc15" />
@@ -475,7 +627,20 @@ const CSS = `
 .qls-close:hover { transform: rotate(90deg); background: rgba(255,255,255,0.16); }
 
 /* Centre column scrolls if the screen is very short */
-.qls-scroll { position: absolute; inset: 0; z-index: 4; overflow-y: auto; overscroll-behavior: contain; }
+.qls-scroll { position: absolute; inset: 0; z-index: 4; overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: none; }
+.qls-scroll::-webkit-scrollbar { display: none; }
+.qls-fx { position: absolute; left: 50%; top: 44%; width: 0; height: 0; z-index: 3; pointer-events: none; }
+.qls-fx .qls-confetti { left: 0; top: 0; }
+.qls-brand { position: absolute; z-index: 8; top: max(14px, env(safe-area-inset-top)); left: max(16px, env(safe-area-inset-left)); display: flex; align-items: center; gap: 10px; padding: 6px 14px 6px 6px; border-radius: 16px; background: rgba(255,255,255,0.07); border: 1px solid rgba(134,239,172,0.25); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); animation: qlsBrandIn 700ms cubic-bezier(.2,1.3,.4,1) 250ms both; }
+.qls-brand img { width: 38px; height: 38px; border-radius: 11px; display: block; box-shadow: 0 0 14px rgba(74,222,128,0.5); }
+.qls-brand b { display: block; font-size: 15px; font-weight: 900; letter-spacing: 0.16em; line-height: 1.1; background: linear-gradient(90deg, #ffffff, #86efac, #ffffff); background-size: 200% 100%; -webkit-background-clip: text; background-clip: text; color: transparent; animation: qlsShimmer 4s linear infinite; }
+.qls-brand span { display: block; margin-top: 2px; font-size: 11.5px; font-weight: 700; color: rgba(236,253,245,0.75); letter-spacing: 0.02em; }
+.qls-sound { position: absolute; top: max(14px, env(safe-area-inset-top)); right: 70px; z-index: 8; width: 44px; height: 44px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.22); background: rgba(255,255,255,0.08); color: #fff; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: background 200ms ease; }
+.qls-sound:hover { background: rgba(255,255,255,0.16); }
+.qls-eyebrow { display: inline-flex; align-items: center; gap: 10px; margin-top: clamp(14px, 2.6vh, 24px); font-size: clamp(11px, 1.5vw, 13px); font-weight: 800; letter-spacing: 0.18em; text-transform: uppercase; color: #86efac; opacity: 0; }
+.qls-eyebrow i { width: 26px; height: 2px; border-radius: 2px; background: currentColor; opacity: 0.7; }
+.qls-overlay.qls-reveal .qls-eyebrow { animation: qlsUp 500ms 500ms ease both; }
+.qls-card-by { margin-top: 2px; font-size: 11px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: #86efac; }
 .qls-stage { min-height: 100%; box-sizing: border-box; padding: clamp(56px, 8vh, 90px) 16px clamp(28px, 5vh, 60px); display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
 .qls-cell { position: relative; display: grid; place-items: center; width: min(100%, 640px); }
 .qls-cell > .qls-boxes, .qls-cell > .qls-reveal { grid-area: 1 / 1; }
@@ -518,12 +683,12 @@ const CSS = `
 .qls-open .qls-center .qls-lid, .qls-reveal .qls-center .qls-lid, .qls-leaving .qls-center .qls-lid { animation: qlsLidOff 650ms cubic-bezier(.3,.7,.4,1) forwards; }
 .qls-reveal .qls-center, .qls-leaving .qls-center { animation: qlsSink 600ms 200ms ease both; }
 .qls-rays {
-  position: absolute; left: 50%; top: 42%; width: min(140vw, 1100px); height: min(140vw, 1100px); transform: translate(-50%, -50%); border-radius: 50%; pointer-events: none; opacity: 0;
+  position: absolute; left: 0; top: 0; width: min(140vw, 1100px); height: min(140vw, 1100px); transform: translate(-50%, -50%); border-radius: 50%; pointer-events: none; opacity: 0;
   background: repeating-conic-gradient(rgba(134,239,172,0.2) 0deg 9deg, transparent 9deg 22deg);
   -webkit-mask: radial-gradient(circle, #000 12%, transparent 62%); mask: radial-gradient(circle, #000 12%, transparent 62%);
 }
 .qls-open .qls-rays, .qls-reveal .qls-rays, .qls-leaving .qls-rays { animation: qlsRaysIn 600ms ease forwards, qlsSpin 16s linear infinite; }
-.qls-shock { position: absolute; left: 50%; top: 42%; width: 120px; height: 120px; margin: -60px 0 0 -60px; border-radius: 50%; border: 4px solid rgba(187,247,208,0.9); opacity: 0; pointer-events: none; }
+.qls-shock { position: absolute; left: 0; top: 0; width: 120px; height: 120px; margin: -60px 0 0 -60px; border-radius: 50%; border: 4px solid rgba(187,247,208,0.9); opacity: 0; pointer-events: none; }
 .qls-open .qls-shock { animation: qlsShock 800ms ease-out forwards; }
 
 .qls-confetti { position: absolute; left: 50%; top: 42%; width: 0; height: 0; pointer-events: none; z-index: 3; }
@@ -547,7 +712,7 @@ const CSS = `
 .qls-overlay.qls-reveal .qls-s2 { animation-delay: 700ms, 1.6s; }
 .qls-overlay.qls-reveal .qls-s3 { animation-delay: 850ms, 1.8s; }
 
-.qls-title { margin: clamp(16px, 3vh, 28px) 0 6px; font-size: clamp(28px, min(7vw, 6vh), 52px); font-weight: 900; letter-spacing: -0.03em; line-height: 1.05; display: flex; flex-wrap: wrap; justify-content: center; gap: 0 0.28em; }
+.qls-title { margin: 6px 0 6px; font-size: clamp(28px, min(7vw, 6vh), 52px); font-weight: 900; letter-spacing: -0.03em; line-height: 1.05; display: flex; flex-wrap: wrap; justify-content: center; gap: 0 0.28em; }
 .qls-word { display: inline-flex; }
 .qls-word.is-accent .qls-letter { background: linear-gradient(90deg, #86efac, #facc15, #4ade80, #86efac); background-size: 300% 100%; -webkit-background-clip: text; background-clip: text; color: transparent; }
 .qls-letter { display: inline-block; opacity: 0; }
@@ -620,7 +785,7 @@ const CSS = `
 
 /* leaving: everything shrinks off toward the corner box */
 .qls-leaving .qls-scroll, .qls-leaving .qls-side-card, .qls-leaving .qls-floats { animation: qlsToCorner 560ms cubic-bezier(.5,0,.75,0) forwards !important; }
-.qls-leaving .qls-bg, .qls-leaving .qls-rain, .qls-leaving .qls-close { animation: qlsFadeOut 560ms ease forwards; }
+.qls-leaving .qls-bg, .qls-leaving .qls-rain, .qls-leaving .qls-close, .qls-leaving .qls-sound, .qls-leaving .qls-brand, .qls-leaving .qls-fx { animation: qlsFadeOut 560ms ease forwards; }
 
 /* ───────── Responsive ───────── */
 @media (min-width: 1180px) and (min-height: 600px) { .qls-side-card { display: block; } }
@@ -637,6 +802,12 @@ const CSS = `
   .qls-feature { font-size: 12.5px; padding: 6px 12px 6px 6px; }
   .qls-float-xp .qls-float-in { font-size: 12px; padding: 6px 10px; }
   .qls-float { --fs: 40px !important; opacity: 0.7; }
+  .qls-brand { padding: 4px 10px 4px 4px; gap: 8px; }
+  .qls-brand img { width: 30px; height: 30px; border-radius: 9px; }
+  .qls-brand b { font-size: 12.5px; }
+  .qls-brand span { font-size: 10px; }
+  .qls-sound { right: 66px; width: 40px; height: 40px; }
+  .qls-close { width: 40px; height: 40px; }
 }
 @media (max-height: 560px) {
   .qls-features { display: none; }
@@ -658,7 +829,8 @@ const CSS = `
 .qls-mini.is-open .qls-lid { animation: qlsMiniLid 380ms ease forwards; }
 .qls-corner-new { position: absolute; top: -8px; right: -10px; padding: 2px 7px; border-radius: 999px; background: #facc15; color: #422006; font-size: 10px; font-weight: 900; letter-spacing: 0.06em; box-shadow: 0 4px 10px rgba(0,0,0,0.3); animation: qlsBadge 1.8s ease-in-out infinite; }
 .qls-card { position: relative; width: 240px; padding: 18px 18px 16px; border-radius: 22px; text-align: center; color: #fff; background: radial-gradient(120% 120% at 50% 0%, #166534, #052e16 75%); border: 1px solid rgba(74,222,128,0.35); box-shadow: 0 20px 44px rgba(0,0,0,0.45); animation: qlsCardPop 420ms cubic-bezier(.2,1.5,.4,1) both; transform-origin: 85% 100%; }
-.qls-card .qls-confetti { top: 54px; }
+.qls-card .qls-confetti { top: 54px; z-index: 0; }
+.qls-card-logo, .qls-card-title, .qls-card-by, .qls-card-sub { position: relative; z-index: 1; }
 .qls-card-x { position: absolute; top: 8px; right: 10px; width: 28px; height: 28px; border-radius: 50%; border: 0; background: rgba(255,255,255,0.12); color: #fff; font-size: 18px; line-height: 1; cursor: pointer; }
 .qls-card-logo { display: block; margin: 0 auto; width: 72px; height: 72px; border-radius: 18px; box-shadow: 0 0 24px rgba(74,222,128,0.6); animation: qlsPopOut 600ms 120ms cubic-bezier(.2,1.6,.4,1) both; }
 .qls-card-title { margin-top: 10px; font-size: 18px; font-weight: 900; display: flex; align-items: center; justify-content: center; gap: 6px; }
@@ -669,6 +841,7 @@ const CSS = `
 
 /* ───────── Keyframes ───────── */
 @keyframes qlsFade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes qlsBrandIn { from { opacity: 0; transform: translateX(-30px) scale(0.9); } to { opacity: 1; transform: none; } }
 @keyframes qlsFadeOut { to { opacity: 0; } }
 @keyframes qlsBreath { 0%,100% { opacity: 0.55; } 50% { opacity: 1; } }
 @keyframes qlsBlob1 { to { transform: translate(18vw, 14vh) scale(1.15); } }
@@ -725,7 +898,7 @@ const CSS = `
 @media (prefers-reduced-motion: reduce) {
   .qls-overlay *, .qls-corner *, .qls-corner-btn { animation: none !important; }
   .qls-overlay .qls-sticker, .qls-overlay .qls-reveal, .qls-overlay .qls-letter, .qls-overlay .qls-feature,
-  .qls-overlay .qls-side-card, .qls-overlay .qls-opt, .qls-overlay .qls-lb-row { opacity: 1 !important; }
+  .qls-overlay .qls-side-card, .qls-overlay .qls-opt, .qls-overlay .qls-lb-row, .qls-overlay .qls-eyebrow { opacity: 1 !important; }
   .qls-overlay .qls-side-card { transform: translateY(-50%) !important; }
   .qls-overlay .qls-boxes, .qls-overlay .qls-rain, .qls-overlay .qls-spark { display: none; }
 }
