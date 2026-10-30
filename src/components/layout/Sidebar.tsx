@@ -7,6 +7,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useUserData } from '@/components/UserDataProvider'
 import { useLocalCachedAsset } from '@/hooks/useLocalCachedAsset'
 import { clearSWRCache } from '@/lib/cache'
+import { QUIZ_LAB_URL, QUIZ_LAB_LOGO } from '@/components/home/QuizLabBanner'
 
 interface NavItem {
   href: string
@@ -15,6 +16,8 @@ interface NavItem {
   roles?: string[]
   protectionPreview?: boolean
   desktopOnly?: boolean
+  /** Link to another site: rendered as a plain <a>, highlighted. */
+  external?: boolean
 }
 
 interface SidebarProps {
@@ -104,14 +107,11 @@ const NAV_ITEMS: NavItem[] = [
     ),
   },
   {
-    href: '/free-resources/purchased',
-    label: 'Purchased Materials',
-    roles: ['STUDENT'],
+    href: QUIZ_LAB_URL,
+    label: 'Quiz Lab',
+    external: true,
     icon: (
-      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
-        <path d="M7 11V7a5 5 0 0 1 9.9-1"/>
-      </svg>
+      <img src={QUIZ_LAB_LOGO} alt="" width={24} height={24} className="quiz-lab-logo" />
     ),
   },
   {
@@ -238,17 +238,6 @@ const NAV_ITEMS: NavItem[] = [
       <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <path d="M3 11l18-5v12L3 14v-3z"/>
         <path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/>
-      </svg>
-    ),
-  },
-  {
-    href: '/my-transactions',
-    label: 'Transactions',
-    roles: ['STUDENT'],
-    desktopOnly: true,
-    icon: (
-      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M12 1v22M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6" />
       </svg>
     ),
   },
@@ -633,6 +622,95 @@ export default function Sidebar({ userRole, userName, userEmail }: SidebarProps)
                              item.href === '/community' ? 'sidebar-community' :
                              item.href === '/support' ? 'sidebar-support' :
                              item.href === '/settings' ? 'sidebar-settings' : undefined
+
+              if (item.external) {
+                return (
+                  <div key={item.href} style={{ width: '100%' }}>
+                    <style>{`
+                      .quiz-lab-link {
+                        background: linear-gradient(135deg, #0d5c33, #16a34a);
+                        border: 1px solid rgba(74, 222, 128, 0.45) !important;
+                        color: #ffffff !important;
+                        overflow: hidden;
+                        animation: quizLabGlow 2.8s ease-in-out infinite;
+                      }
+                      .quiz-lab-link:hover { transform: translateY(-1px); filter: brightness(1.08); }
+                      .quiz-lab-link::after {
+                        content: ''; position: absolute; top: 0; left: -60%; width: 40%; height: 100%; pointer-events: none;
+                        background: linear-gradient(100deg, transparent, rgba(255, 255, 255, 0.35), transparent);
+                        transform: skewX(-20deg); animation: quizLabShine 3.4s ease-in-out infinite;
+                      }
+                      .quiz-lab-logo {
+                        width: 24px; height: 24px; border-radius: 7px; display: block;
+                        box-shadow: 0 0 10px rgba(74, 222, 128, 0.65);
+                        animation: quizLabBob 2.8s ease-in-out infinite;
+                      }
+                      .quiz-lab-new {
+                        margin-left: auto; font-size: 9.5px; font-weight: 800; letter-spacing: 0.08em;
+                        padding: 2px 7px; border-radius: 999px; background: #dcfce7; color: #0d5c33;
+                        position: relative; z-index: 1;
+                      }
+                      @keyframes quizLabGlow {
+                        0%, 100% { box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2), 0 0 0 0 rgba(34, 197, 94, 0); }
+                        50% { box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2), 0 0 16px 2px rgba(34, 197, 94, 0.5); }
+                      }
+                      @keyframes quizLabShine { 0% { left: -60%; } 55%, 100% { left: 130%; } }
+                      @keyframes quizLabBob {
+                        0%, 100% { transform: translateY(0) rotate(0deg); }
+                        50% { transform: translateY(-2px) rotate(-5deg); }
+                      }
+                      @media (prefers-reduced-motion: reduce) {
+                        .quiz-lab-link, .quiz-lab-link::after, .quiz-lab-logo { animation: none !important; }
+                      }
+                    `}</style>
+                    <a
+                      href={item.href}
+                      className="sidebar-link-item quiz-lab-link"
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: isCurrentlyExpanded ? 'flex-start' : 'center',
+                        gap: isCurrentlyExpanded ? '12px' : '0px',
+                        padding: isCurrentlyExpanded ? '10px 16px' : '10px 0',
+                        borderRadius: isTabletDevice ? '10px' : '12px',
+                        textDecoration: 'none',
+                        fontSize: isTabletDevice ? '13px' : '14px',
+                        fontWeight: 800,
+                        transition: 'transform 0.2s ease, filter 0.2s ease',
+                        position: 'relative',
+                        whiteSpace: 'nowrap',
+                        minHeight: 'clamp(40px, 5.2vh, 48px)',
+                        width: '100%',
+                      }}
+                      onClick={() => setIsOpen(false)}
+                      title={!isCurrentlyExpanded ? item.label : undefined}
+                    >
+                      <span
+                        className="sidebar-link-icon"
+                        style={{ flexShrink: 0, display: 'flex', position: 'relative', zIndex: 1, justifyContent: 'center', alignItems: 'center', width: '24px' }}
+                      >
+                        {item.icon}
+                      </span>
+                      <span
+                        className="sidebar-link-label"
+                        style={{
+                          opacity: isCurrentlyExpanded ? 1 : 0,
+                          width: isCurrentlyExpanded ? 'auto' : 0,
+                          overflow: 'hidden',
+                          transition: 'opacity 0.2s ease, width 0.2s ease',
+                          zIndex: 1,
+                          position: 'relative',
+                          whiteSpace: 'nowrap',
+                          marginLeft: isCurrentlyExpanded ? '4px' : '0px',
+                        }}
+                      >
+                        {item.label}
+                      </span>
+                      {isCurrentlyExpanded && <span className="quiz-lab-new">NEW</span>}
+                    </a>
+                  </div>
+                )
+              }
 
               return (
                 <div key={item.href} className={item.desktopOnly ? 'desktop-only-nav-item' : undefined} style={{ width: '100%' }}>

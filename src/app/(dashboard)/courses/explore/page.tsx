@@ -1,13 +1,14 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import Link from 'next/link'
 import Script from 'next/script'
 import useSWR, { mutate as globalMutate } from 'swr'
 import ChampionPolicy from '@/components/courses/ChampionPolicy'
 import StoreDetailScreen from '@/components/courses/StoreDetailScreen'
 import ShareLinkModal, { ShareIcon } from '@/components/ShareLinkModal'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { BookOpen, FileText, Users, ClipboardList, Trash2, Pencil, Sparkles, IndianRupee, Calendar, Plus, ExternalLink, HelpCircle, ChevronRight, X, Info, ArrowLeft, Upload } from 'lucide-react'
+import { BookOpen, FileText, Users, ClipboardList, Trash2, Pencil, Sparkles, IndianRupee, Calendar, Plus, ExternalLink, HelpCircle, ChevronRight, X, Info, ArrowLeft, Upload, LockOpen, Receipt } from 'lucide-react'
 import { normalizeMeetLink } from '@/lib/meet-link'
 import { useLoadingFact } from '@/hooks/useLoadingFact'
 import LoadingFactCard from '@/components/ui/LoadingFactCard'
@@ -939,6 +940,16 @@ export default function ExploreCoursesPage() {
             .store-soon .ic { width: 42px; height: 42px; border-radius: 14px; background: var(--surface-hover); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
             .store-soon b { color: var(--text-primary); display: block; font-size: 15px; }
             .store-soon span.tag { margin-left: auto; font-size: 12px; font-weight: 700; padding: 5px 11px; border-radius: 999px; background: var(--surface-hover); }
+            .store-mine { margin-top: 26px; }
+            .store-mine h4 { margin: 0 0 12px; font-size: 13px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-secondary); }
+            .store-mine-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+            .store-mine-card { display: flex; align-items: center; gap: 14px; padding: 16px 18px; border-radius: 20px; background: var(--surface); border: 0.5px solid var(--border); text-decoration: none; color: var(--text-primary); transition: transform 240ms cubic-bezier(.2,.9,.2,1), box-shadow 240ms ease; }
+            .store-mine-card:hover { transform: translateY(-2px); box-shadow: 0 12px 28px rgba(0,0,0,0.12); }
+            .store-mine-card .ic { width: 42px; height: 42px; border-radius: 14px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; color: #fff; }
+            .store-mine-card b { display: block; font-size: 15.5px; font-weight: 800; letter-spacing: -0.01em; }
+            .store-mine-card span.sub { display: block; font-size: 13px; color: var(--text-secondary); margin-top: 2px; }
+            .store-mine-card .chev { margin-left: auto; color: var(--text-secondary); flex-shrink: 0; }
+            @media (max-width: 720px) { .store-mine-grid { grid-template-columns: 1fr; } }
             @keyframes posterIn { from { opacity: 0; transform: translateY(18px) scale(0.98); } to { opacity: 1; transform: none; } }
             .store-poster .over h3 { overflow-wrap: anywhere; }
             @media (max-width: 720px) {
@@ -989,6 +1000,23 @@ export default function ExploreCoursesPage() {
             <div><b>Book a call with a mentor</b>1-to-1 guidance from IITians</div>
             <span className="tag">Coming soon</span>
           </div>
+          {userData?.user?.role === 'STUDENT' && (
+            <div className="store-mine">
+              <h4>Your purchases</h4>
+              <div className="store-mine-grid">
+                <Link href="/free-resources/purchased" className="store-mine-card">
+                  <span className="ic" style={{ background: 'linear-gradient(135deg, #6366f1, #4338ca)' }}><LockOpen size={20} strokeWidth={2.2} /></span>
+                  <span><b>Purchased Materials</b><span className="sub">Notes and resources you have bought</span></span>
+                  <ChevronRight className="chev" size={18} />
+                </Link>
+                <Link href="/my-transactions" className="store-mine-card">
+                  <span className="ic" style={{ background: 'linear-gradient(135deg, #f59e0b, #b45309)' }}><Receipt size={20} strokeWidth={2.2} /></span>
+                  <span><b>Transactions</b><span className="sub">Your payments and order history</span></span>
+                  <ChevronRight className="chev" size={18} />
+                </Link>
+              </div>
+            </div>
+          )}
         </div>
       )}
 

@@ -12,9 +12,9 @@ export default function PurchasedMaterialsPage() {
   return (
     <div className="page-container fade-in">
       <div style={{ marginBottom: '32px' }}>
-        <Link href="/free-resources" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', color: 'var(--text-secondary)', textDecoration: 'none', fontSize: '14px', fontWeight: '600', marginBottom: '16px' }}>
+        <Link href="/courses/explore" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', color: 'var(--text-secondary)', textDecoration: 'none', fontSize: '14px', fontWeight: '600', marginBottom: '16px' }}>
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
-          Back to Free Resources
+          Back to Store
         </Link>
         <h1 style={{ fontSize: '32px', fontWeight: '900', color: 'var(--text-primary)', margin: 0, letterSpacing: '-0.5px' }}>Purchased Materials</h1>
         <p style={{ color: 'var(--text-secondary)', fontSize: '16px', marginTop: '8px' }}>Access your purchased study notes. Each note stays available until its expiry date shown below.</p>

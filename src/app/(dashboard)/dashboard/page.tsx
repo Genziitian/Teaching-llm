@@ -8,6 +8,7 @@ import Script from 'next/script'
 import { formatISTDate, getEventStatus } from '@/lib/date-utils'
 import { normalizeMeetLink } from '@/lib/meet-link'
 import HomeHeroSlider, { HeroSlide } from '@/components/home/HomeHeroSlider'
+import QuizLabSurprise from '@/components/home/QuizLabSurprise'
 import { colorWithOpacity } from '@/lib/color-utils'
 import { saveDashboardSnapshot, getDashboardSnapshot } from '@/lib/offline-db'
 import OfflineBanner from '@/components/ui/OfflineBanner'
@@ -686,6 +687,8 @@ export default function DashboardPage() {
 
   return (
     <>
+    {/* Quiz Lab launch surprise: full screen the first time, then a corner box. All roles. */}
+    <QuizLabSurprise />
     <div className="page-container fade-in dashboard-home-page" data-tour="dashboard-hero">
       <style>{`
         @media (max-width: 768px) {
