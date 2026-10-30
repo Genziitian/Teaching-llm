@@ -20,6 +20,8 @@ export interface SnowEngineOptions {
   /** 0..1, how heavy the snowfall is today (see seasons.ts). */
   amount: number
   capSelector: string
+  /** looser match (e.g. any box with the site's card shadow); skipped when inside another snowy box */
+  autoSelector?: string
   textCapSelector: string
   excludeSelector: string
   /** 'scattered' fills the screen at once (page load); 'fromTop' starts falling in. */
@@ -73,6 +75,8 @@ interface Cap {
   sparkles: { i: number; phase: number; speed: number }[]
   gradKey: string
   grad: CanvasGradient | null
+  /** each card gets its own amount, drift and lumps so no two look alike */
+  pers: { seed: number; scale: number; tilt: number; grow: number; fill: number; mounds: { x: number; w: number; h: number }[] }
 }
 
 interface Puff {
@@ -97,7 +101,7 @@ interface Palette {
 }
 
 const PALETTES: Record<ThemeName, Palette> = {
-  light: { top: '#ffffff', mid: '#dfe7f2', bottom: '#93a8c6', shadow: 'rgba(51,65,85,0.26)', edge: 'rgba(118,136,164,0.55)', edgeW: 1, sparkle: '#ffffff' },
+  light: { top: '#ffffff', mid: '#f2f6fb', bottom: '#d3deeb', shadow: 'rgba(71,85,105,0.34)', edge: 'rgba(255,255,255,0)', edgeW: 0, sparkle: '#ffffff' },
   dark: { top: '#ffffff', mid: '#eef3fa', bottom: '#b4c3d8', shadow: 'rgba(0,0,0,0.40)', edge: 'rgba(255,255,255,0.95)', edgeW: 0.9, sparkle: '#ffffff' },
   black: { top: '#f8fbff', mid: '#e6edf6', bottom: '#a9b9cf', shadow: 'rgba(0,0,0,0.55)', edge: 'rgba(255,255,255,0.9)', edgeW: 0.9, sparkle: '#ffffff' },
 }
@@ -173,6 +177,9 @@ export class SnowEngine {
   private glyphCache = new Map<string, { left: number; prof: Float32Array; asc: number }>()
 
   private puffs: Puff[] = []
+  /** invisible strip at the bottom of the screen (or on top of the mobile nav) where snow piles up */
+  private ground: HTMLDivElement | null = null
+  private frameNo = 0
 
   // wind
   private gustStart = -100
@@ -229,6 +236,12 @@ export class SnowEngine {
     this.resize()
     this.spawnInitial(this.opts.startMode)
     this.setupObservers()
+    this.ground = document.createElement('div')
+    this.ground.setAttribute('aria-hidden', 'true')
+    this.ground.dataset.seasonal = 'snow-ground'
+    Object.assign(this.ground.style, { position: 'fixed', left: '0', right: '0', height: '40px', top: '100vh', pointerEvents: 'none', visibility: 'hidden' } as Partial<CSSStyleDeclaration>)
+    document.body.appendChild(this.ground)
+    this.placeGround()
     this.rescan()
     window.addEventListener('resize', this.resize, { passive: true })
     window.addEventListener('pointermove', this.onPointerMove, { passive: true })
@@ -282,12 +295,14 @@ export class SnowEngine {
     this.themeMo?.disconnect()
     this.setCursorHidden(false)
     this.caps.clear()
+    this.ground?.remove()
     this.canvas.remove()
   }
 
   /* ───────────────────────── setup ───────────────────────── */
 
   private resize = () => {
+    this.placeGround()
     const maxDpr = this.quality === 2 ? 2 : 1.5
     this.dpr = Math.min(window.devicePixelRatio || 1, maxDpr)
     this.W = window.innerWidth
@@ -321,24 +336,29 @@ export class SnowEngine {
       c.width = c.height = px
       const g = c.getContext('2d')!
       const blob = (cx: number, cy: number, r: number) => {
-        if (light) {
-          // soft shadow a touch below-right, then the white flake: reads as snow on white
-          const sh = g.createRadialGradient(cx + r * 0.12, cy + r * 0.16, 0, cx + r * 0.12, cy + r * 0.16, r * 0.92)
-          sh.addColorStop(0, 'rgba(100,116,139,0.42)')
-          sh.addColorStop(0.55, 'rgba(100,116,139,0.18)')
-          sh.addColorStop(1, 'rgba(100,116,139,0)')
-          g.fillStyle = sh
-          g.beginPath()
-          g.arc(cx + r * 0.12, cy + r * 0.16, r * 0.92, 0, Math.PI * 2)
-          g.fill()
-          const gr = g.createRadialGradient(cx - r * 0.05, cy - r * 0.08, 0, cx, cy, r * 0.72)
-          gr.addColorStop(0, 'rgba(255,255,255,1)')
-          gr.addColorStop(0.5 * soft, 'rgba(255,255,255,1)')
-          gr.addColorStop(0.8, 'rgba(244,248,253,0.75)')
-          gr.addColorStop(1, 'rgba(244,248,253,0)')
+        if (light && soft < 0.7) {
+          // big out-of-focus foreground flakes: one soft cool puff, no bright core (no ring look)
+          const gr = g.createRadialGradient(cx, cy, 0, cx, cy, r)
+          gr.addColorStop(0, 'rgba(226,234,245,0.95)')
+          gr.addColorStop(0.45, 'rgba(196,209,228,0.7)')
+          gr.addColorStop(1, 'rgba(176,192,216,0)')
           g.fillStyle = gr
           g.beginPath()
-          g.arc(cx, cy, r * 0.72, 0, Math.PI * 2)
+          g.arc(cx, cy, r, 0, Math.PI * 2)
+          g.fill()
+          return
+        }
+        if (light) {
+          // against a white page a flake reads as a soft, cool blue-grey puff with a bright centre
+          const gr = g.createRadialGradient(cx - r * 0.18, cy - r * 0.2, 0, cx, cy, r)
+          gr.addColorStop(0, 'rgba(255,255,255,1)')
+          gr.addColorStop(0.22 * soft, 'rgba(246,249,253,1)')
+          gr.addColorStop(0.5, 'rgba(184,199,222,0.85)')
+          gr.addColorStop(0.78, 'rgba(150,169,198,0.35)')
+          gr.addColorStop(1, 'rgba(150,169,198,0)')
+          g.fillStyle = gr
+          g.beginPath()
+          g.arc(cx, cy, r, 0, Math.PI * 2)
           g.fill()
           return
         }
@@ -353,7 +373,7 @@ export class SnowEngine {
         g.fill()
       }
       const r = px / 2
-      if (clump) {
+      if (clump && !light) {
         const parts = 3 + Math.floor(Math.random() * 3)
         for (let i = 0; i < parts; i++) {
           const a = Math.random() * Math.PI * 2
@@ -447,8 +467,21 @@ export class SnowEngine {
   }
 
   /** Find elements that should collect snow; keep existing snow on ones we already track. */
+  private placeGround() {
+    if (!this.ground) return
+    let y = window.innerHeight
+    const nav = document.querySelector('.mobile-bottom-nav')
+    if (nav) {
+      const r = nav.getBoundingClientRect()
+      const cs = getComputedStyle(nav)
+      if (cs.display !== 'none' && cs.visibility !== 'hidden' && r.height > 0 && r.top < window.innerHeight && !nav.classList.contains('hidden')) y = r.top
+    }
+    this.ground.style.top = `${Math.round(y)}px`
+  }
+
   private rescan() {
     if (this.destroyed) return
+    this.placeGround()
     const { capSelector, textCapSelector, excludeSelector } = this.opts
     const found = new Set<Element>()
     const consider = (el: Element, kind: 'box' | 'text') => {
@@ -459,11 +492,19 @@ export class SnowEngine {
       if (!this.caps.has(el)) this.caps.set(el, this.createCap(el, kind))
       else if (this.caps.get(el)!.kind !== kind) this.caps.set(el, this.createCap(el, kind))
     }
+    if (this.ground) { found.add(this.ground); if (!this.caps.has(this.ground)) this.caps.set(this.ground, this.createCap(this.ground, 'box')) }
     document.querySelectorAll(textCapSelector).forEach(el => consider(el, 'text'))
     document.querySelectorAll(capSelector).forEach(el => {
       if ((el as HTMLElement).dataset.snow === 'text') return
       consider(el, 'box')
     })
+    if (this.opts.autoSelector) {
+      const any = `${capSelector}, ${this.opts.autoSelector}`
+      document.querySelectorAll(this.opts.autoSelector).forEach(el => {
+        if (found.has(el) || el.parentElement?.closest(any)) return
+        consider(el, 'box')
+      })
+    }
     Array.from(this.caps.keys()).forEach(el => {
       if (!found.has(el) || !el.isConnected) {
         this.io?.unobserve(el)
@@ -499,6 +540,16 @@ export class SnowEngine {
       peak: 0, layoutW: -1, layoutH: -1, left: 0, top: 0, baseMin: 0, baseMax: 0,
       hClip, vClip, cl: 0, ct: 0, cr: 0, cb: 0,
       visible: false, onScreen: false, dirty: true, sparkles: [], gradKey: '', grad: null,
+      pers: {
+        seed: Math.floor(Math.random() * 100000),
+        // a few cards get only a dusting, most a good layer, some a thick pile
+        scale: kind === 'text' ? rand(0.65, 1.1) : Math.random() < 0.15 ? rand(0.45, 0.6) : rand(0.7, 1.2),
+        // wind-blown: heavier towards one side
+        tilt: kind === 'text' ? rand(-0.3, 0.3) : rand(-0.85, 0.85),
+        grow: rand(0.55, 1.5),
+        fill: rand(0.35, 0.95),
+        mounds: Array.from({ length: kind === 'text' || el === this.ground ? 0 : 1 + Math.floor(Math.random() * 3) }, () => ({ x: rand(0.1, 0.9), w: rand(0.06, 0.2), h: rand(0.25, 0.7) })),
+      },
     }
   }
 
@@ -517,7 +568,16 @@ export class SnowEngine {
     const base = new Float32Array(n).fill(NaN)
     const maxH = new Float32Array(n)
     const grow = new Float32Array(n)
-    const noise = makeNoise(Math.floor(r.width * 13 + r.height * 7) + 11)
+    const noise = makeNoise(cap.pers.seed + 11)
+    const isGround = cap.el === this.ground
+    if (isGround && !cap.pers.mounds.length) {
+      cap.pers.scale = 1
+      cap.pers.tilt = 0.9
+      cap.pers.grow = 0.7
+      cap.pers.fill = 0.55
+      cap.pers.mounds = Array.from({ length: 5 }, (_, k) => ({ x: 0.1 + k * 0.2 + rand(-0.06, 0.06), w: rand(0.04, 0.09), h: rand(0.2, 0.55) }))
+    }
+    const pers = cap.pers
     const amt = this.opts.amount
     let peak = 0
 
@@ -526,7 +586,9 @@ export class SnowEngine {
       const rad = (v: string) => (v.endsWith('%') ? (parseFloat(v) / 100) * r.width : parseFloat(v) || 0)
       const rl = Math.min(rad(cs.borderTopLeftRadius), r.width / 2, r.height / 2)
       const rr = Math.min(rad(cs.borderTopRightRadius), r.width / 2, r.height / 2)
-      peak = clamp(r.width * 0.045, this.isMobile ? 8 : 11, this.isMobile ? 15 : 22) * (0.5 + 0.5 * amt)
+      peak = isGround
+        ? (this.isMobile ? 11 : 20) * (0.45 + 0.55 * amt)
+        : clamp(r.width * 0.045, this.isMobile ? 8 : 11, this.isMobile ? 15 : 22) * (0.5 + 0.5 * amt)
       for (let i = 0; i < n; i++) {
         const x = Math.min(i * cap.colW, r.width)
         let drop = 0
@@ -558,8 +620,12 @@ export class SnowEngine {
       const lump = cap.kind === 'box'
         ? 0.62 + 0.26 * noise(i * cap.colW * 0.028) + 0.12 * noise(i * cap.colW * 0.11 + 7)
         : 0.78 + 0.22 * noise(i * 0.3)
-      maxH[i] = peak * lump * flat * edge
-      grow[i] = 0.6 + 0.8 * noise(i * cap.colW * 0.11 + 30)
+      // drift towards one side + a few soft mounds
+      const u = clamp((i * cap.colW) / Math.max(1, r.width), 0, 1)
+      let shape = Math.max(0.2, 1 + pers.tilt * (u - 0.5) * 1.4)
+      for (const m of pers.mounds) { const d = (u - m.x) / m.w; shape += m.h * Math.exp(-d * d) }
+      maxH[i] = peak * pers.scale * lump * flat * edge * shape
+      grow[i] = (0.6 + 0.8 * noise(i * cap.colW * 0.11 + 30)) * pers.grow
     }
     if (cap.kind === 'box') {
       // rounded, pillow-like ends where the snow meets the corners
@@ -567,7 +633,7 @@ export class SnowEngine {
       while (a < n && maxH[a] < 0.5) a++
       let b = n - 1
       while (b > a && maxH[b] < 0.5) b--
-      const R = peak * 1.1
+      const R = peak * Math.max(0.6, pers.scale) * 1.1
       for (let i = a; i <= b; i++) {
         const d = Math.min(i - a, b - i) * cap.colW
         if (d < R) { const u = 1 - d / R; maxH[i] *= Math.sqrt(Math.max(0, 1 - u * u)) }
@@ -584,7 +650,7 @@ export class SnowEngine {
       }
     } else {
       // it has been snowing for a while: start with a light layer already settled
-      const startFill = this.opts.startMode === 'scattered' ? rand(0.6, 0.8) : 0.08
+      const startFill = this.opts.startMode === 'scattered' ? cap.pers.fill : 0.08
       for (let i = 0; i < n; i++) h[i] = maxH[i] * Math.min(1, startFill * (0.75 + 0.25 * grow[i]))
     }
 
@@ -597,7 +663,9 @@ export class SnowEngine {
     cap.maxH = maxH
     cap.base = base
     cap.grow = grow
-    cap.peak = peak
+    let realPeak = 0
+    for (let i = 0; i < n; i++) if (maxH[i] > realPeak) realPeak = maxH[i]
+    cap.peak = Math.max(2, realPeak)
     cap.baseMin = Number.isFinite(bmin) ? bmin : 0
     cap.baseMax = Number.isFinite(bmax) ? bmax : 0
     cap.layoutW = r.width
@@ -757,6 +825,8 @@ export class SnowEngine {
     this.t += dt
     this.monitor(raw)
     this.rectCache.clear()
+    // the mobile nav slides away on scroll; keep the ground line on top of it
+    if ((this.frameNo = (this.frameNo + 1) % 30) === 0) this.placeGround()
 
     const wind = this.wind(dt)
     this.updateCaps(dt)
@@ -817,10 +887,12 @@ export class SnowEngine {
       else if (f.x < -40) f.x += W + 80
 
       let landed = false
-      if (f.layer > 0 && !this.stopping) {
+      if (!this.stopping) {
         for (let c = 0; c < caps.length; c++) {
           const cap = caps[c]
           if (!cap.visible) continue
+          const ground = cap.el === this.ground
+          if (f.layer === 0 && !ground) continue
           const lx = f.x - cap.left
           if (lx < 0 || lx >= cap.layoutW) continue
           const i = Math.round(lx / cap.colW)
@@ -828,7 +900,7 @@ export class SnowEngine {
           if (Number.isNaN(b) || cap.maxH[i] <= 0.2) continue
           const sy = cap.top + b - cap.h[i]
           if (f.prevY < sy && f.y >= sy - 0.5 && f.x >= cap.cl && f.x <= cap.cr && sy >= cap.ct && sy <= cap.cb) {
-            this.deposit(cap, i, f.size * (cap.kind === 'text' ? 0.12 : 0.22))
+            this.deposit(cap, i, f.size * (ground ? 0.07 : cap.kind === 'text' ? 0.12 : 0.22))
             landed = true
             break
           }
@@ -1067,7 +1139,7 @@ export class SnowEngine {
     const cw = cap.colW
     const L = cap.left
     const T = cap.top
-    const minH = cap.kind === 'text' ? 0.35 : 0.5
+    const minH = this.theme === 'light' ? (cap.kind === 'text' ? 0.9 : 1.8) : cap.kind === 'text' ? 0.35 : 0.5
 
     ctx.save()
     ctx.beginPath()
@@ -1112,15 +1184,24 @@ export class SnowEngine {
         for (let k = e - 1; k >= s; k--) ctx.lineTo(L + k * cw, T + base[k] + 0.7 + dy)
         ctx.closePath()
       }
-      if (shadowOn) {
+      const light = this.theme === 'light'
+      const blur = light && cap.kind === 'box' && this.quality === 2
+      if (shadowOn && (!light || !blur)) {
         ctx.fillStyle = pal.shadow
         if (cap.kind === 'box') { path(3); ctx.globalAlpha = 0.45; ctx.fill(); ctx.globalAlpha = 1 }
         path(cap.kind === 'text' ? 0.9 : 1.4)
         ctx.fill()
       }
       path(0)
+      if (blur) {
+        // white on white needs a soft glow-like shadow, never a hard line
+        ctx.shadowColor = pal.shadow
+        ctx.shadowBlur = 4
+        ctx.shadowOffsetY = 1.2
+      }
       ctx.fillStyle = cap.grad!
       ctx.fill()
+      if (blur) { ctx.shadowColor = 'transparent'; ctx.shadowBlur = 0; ctx.shadowOffsetY = 0 }
       // crisp edge along the top of the snow
       ctx.beginPath()
       let px = L + s * cw
@@ -1133,9 +1214,11 @@ export class SnowEngine {
         px = x
         py = y
       }
-      ctx.strokeStyle = pal.edge
-      ctx.lineWidth = pal.edgeW
-      ctx.stroke()
+      if (pal.edgeW > 0) {
+        ctx.strokeStyle = pal.edge
+        ctx.lineWidth = pal.edgeW
+        ctx.stroke()
+      }
     }
 
     // glints of light on the snow

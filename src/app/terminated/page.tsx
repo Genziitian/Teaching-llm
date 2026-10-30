@@ -42,7 +42,7 @@ export default function TerminatedPage() {
         background: '#e8eaf0',
         borderRadius: '28px',
         padding: '48px 40px',
-        boxShadow: '12px 12px 24px #c5c7cf, -12px -12px 24px #ffffff',
+        boxShadow: '0 8px 24px rgba(15, 23, 42, 0.08)',
         textAlign: 'center',
       }}>
         {/* Error icon */}
@@ -51,7 +51,7 @@ export default function TerminatedPage() {
           height: '80px',
           borderRadius: '50%',
           background: '#e8eaf0',
-          boxShadow: '6px 6px 12px #c5c7cf, -6px -6px 12px #ffffff',
+          boxShadow: '0 1px 2px rgba(15, 23, 42, 0.06)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',

@@ -46,15 +46,14 @@ function Toggle({ checked, onChange, disabled }: { checked: boolean; onChange: (
       onClick={() => onChange(!checked)}
       style={{
         width: 46, height: 26, borderRadius: 13, flexShrink: 0, border: 'none', padding: 0,
-        background: checked ? 'var(--primary)' : '#4b5563',
-        boxShadow: checked ? 'inset 2px 2px 5px rgba(0,0,0,0.2)' : 'inset 2px 2px 4px rgba(0,0,0,0.3), inset -2px -2px 4px rgba(255,255,255,0.05)',
+        background: checked ? 'var(--primary)' : 'var(--toggle-off)',
         position: 'relative', cursor: disabled ? 'not-allowed' : 'pointer', opacity: disabled ? 0.45 : 1,
         transition: 'background 0.25s ease, opacity 0.2s ease',
       }}
     >
       <span style={{
         position: 'absolute', top: 4, left: checked ? 24 : 4, width: 18, height: 18, borderRadius: '50%',
-        background: 'var(--surface)', boxShadow: '1px 1px 4px rgba(0,0,0,0.2)', transition: 'left 0.25s ease',
+        background: '#ffffff', boxShadow: '0 1px 3px rgba(0,0,0,0.25)', transition: 'left 0.25s ease',
       }} />
     </button>
   )
@@ -66,10 +65,23 @@ function fmt(key: string) {
 
 export default function FestiveSettingsCard({ isManager, isMobile }: { isManager: boolean; isMobile: boolean }) {
   const tick = useSeasonalTick()
+  // testing tools for all staff (Manager, Admin, Moderator), not only Managers
+  const [isStaff, setIsStaff] = useState(false)
+  useEffect(() => {
+    fetch('/api/auth/me')
+      .then(r => (r.ok ? r.json() : null))
+      .then(d => {
+        const role = d?.user?.role
+        if (role === 'MANAGER' || role === 'ADMIN' || role === 'MODERATOR') setIsStaff(true)
+      })
+      .catch(() => {})
+  }, [])
+  // also on the local dev server, whatever account you test with
+  const canPreview = isManager || isStaff || process.env.NODE_ENV === 'development'
   const [prefs, setPrefs] = useState<SeasonalPrefs>({})
   const [snowPref, setSnowPref] = useState<'on' | 'off' | null>(null)
   const [today, setToday] = useState('')
-  const [status, setStatus] = useState<{ banner: string; decor: string; snow: number } | null>(null)
+  const [status, setStatus] = useState<{ banner: string; decor: string; snow: number; next: string } | null>(null)
   const [replayed, setReplayed] = useState(false)
 
   useEffect(() => {
@@ -78,10 +90,12 @@ export default function FestiveSettingsCard({ isManager, isMobile }: { isManager
     const d = seasonalToday()
     setToday(d)
     const dec = activeDecor(d)
+    const next = previewMarks().filter(m => m.date > d && (m.label === 'Snow starts' || m.label.endsWith(' day'))).sort((a, b) => (a.date < b.date ? -1 : 1))[0]
     setStatus({
       banner: BANNER_NAMES[activeBanner(d)] ?? 'Nothing',
       decor: dec ? `${DECOR_NAMES[dec.theme]}, level ${dec.level} (${LEVEL_NAMES[dec.level]})` : 'None',
       snow: Math.round(snowAmount(d) * 100),
+      next: next ? `${next.label === 'Snow starts' ? 'Snow starts' : next.label.replace(' day', '')} on ${new Date(next.date + 'T12:00:00').toLocaleDateString(undefined, { day: 'numeric', month: 'short' })}` : '',
     })
   }, [tick])
 
@@ -153,11 +167,20 @@ export default function FestiveSettingsCard({ isManager, isMobile }: { isManager
           </div>
         </div>
 
-        {isManager && (
+        {status && !allOff && (
+          <div style={{ fontSize: 12.5, color: 'var(--text-secondary)', padding: '2px 4px' }}>
+            {status.snow || status.decor !== 'None'
+              ? <>Showing now: {[status.snow ? 'snow' : '', status.decor !== 'None' ? 'decorations' : ''].filter(Boolean).join(' and ')}.</>
+              : <>Nothing festive is scheduled for {previewing ? 'this date' : 'today'}.</>}
+            {status.next && <> Next: <strong style={{ color: 'var(--text-primary)' }}>{status.next}</strong>.</>}
+          </div>
+        )}
+
+        {canPreview && (
           <div style={{ marginTop: 10, padding: isMobile ? 14 : 18, borderRadius: 16, border: `1.5px dashed ${previewing ? '#f59e0b' : 'var(--border)'}`, display: 'flex', flexDirection: 'column', gap: 14 }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap' }}>
               <div>
-                <div style={{ fontSize: 14, fontWeight: 800, color: 'var(--text-primary)' }}>Preview &amp; testing <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-muted)' }}>(managers)</span></div>
+                <div style={{ fontSize: 14, fontWeight: 800, color: 'var(--text-primary)' }}>Preview &amp; testing <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-muted)' }}>(staff only)</span></div>
                 <div style={sub}>Pretend it&apos;s another day to see what students will see. Only affects your browser.</div>
               </div>
               {previewing && (

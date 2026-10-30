@@ -298,7 +298,7 @@ export default function CoursesPage() {
         </div>
 
         {/* Enhanced Card Grid Skeletons */}
-        <div className="grid-3">
+        <div className="grid-3 courses-grid">
           {[1, 2, 3, 4, 5, 6].map(i => (
             <div
               key={i}
@@ -471,6 +471,15 @@ export default function CoursesPage() {
           display: none !important;
         }
 
+        /* Big screens: fit as many ~300px cards per row as there is room for, no empty gaps */
+        @media (min-width: 1024px) {
+          .courses-grid {
+            grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)) !important;
+            gap: 24px !important;
+            --course-card-max: none;
+          }
+        }
+
         @media (max-width: 600px) {
           .courses-header-row { margin-bottom: 18px !important; }
           .courses-search-wrap { width: 100%; }
@@ -493,7 +502,7 @@ export default function CoursesPage() {
         }
       `}</style>
 
-      <div className="grid-3">
+      <div className="grid-3 courses-grid">
         {filtered.map((course: CourseItem) => {
           const isRecorded = ['RECORDED', 'FREE'].includes(course.enrollmentType || '')
           const isLive = course.enrollmentType === 'LIVE'
@@ -530,6 +539,7 @@ export default function CoursesPage() {
 
           const innerCard = (
             <div
+              data-snow
               style={{
                 background: 'var(--surface-2)',
                 borderRadius: 'var(--course-card-radius, 28px)',
@@ -542,7 +552,7 @@ export default function CoursesPage() {
                 display: 'flex',
                 flexDirection: 'column',
                 width: '100%',
-                maxWidth: '420px',
+                maxWidth: 'var(--course-card-max, 420px)',
                 margin: '0 auto',
                 height: '100%',
                 position: 'relative',
@@ -874,6 +884,7 @@ export default function CoursesPage() {
         {helpCard && helpCard.isEnabled && (
           <a href={helpCard.redirectUrl} target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none', display: 'flex' }}>
             <div
+              data-snow
               style={{
                 background: 'var(--surface-2)',
                 borderRadius: '28px',

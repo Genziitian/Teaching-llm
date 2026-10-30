@@ -16,10 +16,7 @@ function Toggle({ checked, onChange }: { checked: boolean; onChange: (v: boolean
       onClick={() => onChange(!checked)}
       style={{
         width: '46px', height: '26px', borderRadius: '13px', flexShrink: 0,
-        background: checked ? 'var(--primary)' : '#4b5563',
-        boxShadow: checked
-          ? 'inset 2px 2px 5px rgba(0,0,0,0.2)'
-          : 'inset 2px 2px 4px rgba(0,0,0,0.3), inset -2px -2px 4px rgba(255,255,255,0.05)',
+        background: checked ? 'var(--primary)' : 'var(--toggle-off)',
         position: 'relative', cursor: 'pointer',
         transition: 'background 0.25s ease',
       }}
@@ -29,8 +26,8 @@ function Toggle({ checked, onChange }: { checked: boolean; onChange: (v: boolean
         top: '4px',
         left: checked ? '24px' : '4px',
         width: '18px', height: '18px', borderRadius: '50%',
-        background: 'var(--surface)',
-        boxShadow: '1px 1px 4px rgba(0,0,0,0.2)',
+        background: '#ffffff',
+        boxShadow: '0 1px 3px rgba(0,0,0,0.25)',
         transition: 'left 0.25s ease',
       }} />
     </div>
@@ -328,7 +325,7 @@ export default function SettingsPage() {
   const insetRow: React.CSSProperties = {
     display: 'flex', justifyContent: 'space-between', alignItems: 'center',
     padding: isMobile ? '12px 14px' : '14px 18px', borderRadius: '14px', background: 'var(--surface-2)',
-    boxShadow: 'inset 3px 3px 6px var(--neu-dark), inset -3px -3px 6px var(--neu-light)',
+    border: '1px solid var(--border)',
     gap: '12px',
   }
 

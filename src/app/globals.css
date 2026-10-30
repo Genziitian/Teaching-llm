@@ -32,15 +32,19 @@
   --text-secondary: #6b6b8a;
   --text-muted: #9999b0;
   --text-inverse: #ffffff;
-  --neu-light: #ffffff;
-  --neu-dark: #c5c7cf;
-  --neu-glow: rgba(255,255,255,0.7);
-  --shadow-sm: 3px 3px 6px #c5c7cf, -3px -3px 6px #ffffff;
-  --shadow: 6px 6px 12px #c5c7cf, -6px -6px 12px #ffffff;
-  --shadow-md: 8px 8px 16px #c2c4cc, -8px -8px 16px #ffffff;
-  --shadow-lg: 12px 12px 24px #bdbfc7, -12px -12px 24px #ffffff;
-  --community-box-shadow: 0 8px 30px rgba(0, 0, 0, 0.03);
-  --shadow-inset: inset 4px 4px 8px #c5c7cf, inset -4px -4px 8px #ffffff;
+  /* Flat, Apple-style light theme: no neumorphic offset pairs. --neu-light goes
+     transparent so inline pairs (…var(--neu-dark), …var(--neu-light)) collapse
+     to one soft shadow; structure comes from hairline borders instead. */
+  --neu-light: transparent;
+  --neu-dark: transparent;
+  --neu-glow: transparent;
+  --toggle-off: #d1d5db;
+  --shadow-sm: 0 0 0 transparent;
+  --shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+  --shadow-md: 0 2px 8px rgba(15, 23, 42, 0.06);
+  --shadow-lg: 0 8px 24px rgba(15, 23, 42, 0.08);
+  --community-box-shadow: none;
+  --shadow-inset: none;
   --radius-sm: 8px;
   --radius: 12px;
   --radius-md: 16px;
@@ -57,8 +61,8 @@
   --community-item-bg: #e8eaf0;
   --community-item-bg-mobile: #ffffff;
   --community-item-text: #1e1e3a;
-  --community-item-shadow-light: #ffffff;
-  --community-item-shadow-dark: #c5c7cf;
+  --community-item-shadow-light: transparent;
+  --community-item-shadow-dark: rgba(15, 23, 42, 0.06);
   --course-icon-bg: color-mix(in srgb, var(--primary-light) 70%, var(--surface) 30%);
   --course-icon-color: #4f46e5;
   --course-icon-border: rgba(79, 70, 229, 0.16);
@@ -210,6 +214,7 @@
      frame on dark, so we drop it. --neu-light goes transparent so the inline
      neumorphic pairs (…var(--neu-dark), …var(--neu-light)) the codemod produced
      collapse to a single clean shadow with no box. --neu-dark is softened. */
+  --toggle-off: #4b5563;
   --neu-light: transparent;
   --neu-dark: #0b0e14;
   --neu-glow: transparent;
@@ -333,6 +338,7 @@
   --quiz-countdown-edit-bg: rgba(255, 255, 255, 0.15);
   --quiz-countdown-edit-icon: #ffffff;
 
+  --toggle-off: #4b5563;
   --neu-light: transparent;
   --neu-dark: #000000;
   --neu-glow: transparent;
@@ -607,6 +613,10 @@ img {
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow);
   border: none;
+}
+/* Light themes only: flat cards with a hairline edge instead of raised depth */
+:root:not([data-theme="dark"]):not([data-theme="black"]) .card {
+  border: 1px solid var(--border);
 }
 
 /* Buttons */

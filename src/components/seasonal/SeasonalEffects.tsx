@@ -23,6 +23,16 @@ const CAP_SELECTOR = [
   '.dashboard-video-box',
   '.qls-card',
   '.store-mine-card',
+  '.community-secondary-panel',
+  '.community-courses-panel',
+].join(', ')
+// Most boxes on the site are styled inline with the neumorphic shadow; catch them all
+// (not inset ones, which are inputs/pressed rows).
+const AUTO_SELECTOR = [
+  '[style*="var(--neu-dark)"]:not([style*="inset"])',
+  '[style*="var(--community-box-shadow)"]',
+  '[style*="box-shadow: var(--shadow)"]',
+  '[style*="box-shadow: var(--shadow-md)"]',
 ].join(', ')
 const TEXT_CAP_SELECTOR = '[data-snow="text"], .stat-card-value'
 const EXCLUDE_SELECTOR = [
@@ -35,6 +45,9 @@ const EXCLUDE_SELECTOR = [
   'form',
   '.sidebar',
   '.mobile-bottom-nav',
+  '.chat-wallpaper',
+  'button',
+  'input',
 ].join(', ')
 
 type IdleHandle = number
@@ -92,6 +105,7 @@ export default function SeasonalEffects() {
           const engine = new SnowEngine({
             amount,
             capSelector: CAP_SELECTOR,
+            autoSelector: AUTO_SELECTOR,
             textCapSelector: TEXT_CAP_SELECTOR,
             excludeSelector: EXCLUDE_SELECTOR,
             startMode,
