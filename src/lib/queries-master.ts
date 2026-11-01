@@ -119,7 +119,7 @@ export const MASTER_QUERIES: Omit<PlatformQuery, 'id'>[] = [
       `• Google OAuth & JWT Authentication (single account works anywhere).\n` +
       `• Course Curriculum & Video Player (YouTube embed with anti-scraping overlay).\n` +
       `• Study materials: website downloads; the mobile app can view downloaded PDFs in-app. The website has no PDF preview.\n` +
-      `• Live Classes (Agora RTC interactive video/audio with real-time room entry).\n` +
+      `• Live Classes (joined through Google Meet, YouTube or Google Drive links).\n` +
       `• Community Chat (Server-Sent Events SSE real-time messaging with attachment sharing).\n` +
       `• Push Notifications (FCM for native mobile, VAPID Web Push for desktop/browsers).\n` +
       `• Helpdesk & Support Tickets (ticket creation, replies, photo attachment, status tracking).\n` +
@@ -140,7 +140,7 @@ export const MASTER_QUERIES: Omit<PlatformQuery, 'id'>[] = [
       `  - Does NOT include entry into live interactive classrooms.\n\n` +
       `• PRO Batch (Live + Recorded):\n` +
       `  - Everything included in the PLUS batch.\n` +
-      `  - Direct entry to Live Interactive Classes (Agora RTC video/audio).\n` +
+      `  - Direct entry to Live Interactive Classes.\n` +
       `  - Real-time Q&A with teachers and priority 1:1 doubt support.\n` +
       `  - Recorded archives of live sessions automatically added after class concludes.`,
     category: 'BATCHES_ENROLLMENT',
@@ -210,8 +210,8 @@ export const MASTER_QUERIES: Omit<PlatformQuery, 'id'>[] = [
   {
     question: 'How do Live Classes work? Who is allowed to join?',
     answer:
-      `• Live classes use Agora RTC real-time video/audio streaming.\n` +
-      `• Only students with active PRO Batch enrollment can generate an Agora join token (/api/agora/token) and enter the live room.\n` +
+      `• Live classes run on Google Meet, YouTube or Google Drive; students join from the class card.\n` +
+      `• Only students with active PRO Batch enrollment can open the live class link.\n` +
       `• PLUS batch students attempting to enter see an upgrade banner prompting them to join PRO.\n` +
       `• Upcoming classes appear on the student dashboard in Indian Standard Time (IST). Live sessions trigger live pulse badges when active.`,
     category: 'LIVE_CLASSES',

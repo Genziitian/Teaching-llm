@@ -325,7 +325,7 @@ function CalendarPageContent() {
         time: targetTime,
         startTime,
         endTime,
-        meetLink: streamProvider === 'AGORA' ? null : (formData.meetLink || null),
+        meetLink: formData.meetLink || null,
         status: formData.status || 'SCHEDULED',
         recurrence,
         interval: recurrence === 'CUSTOM' ? (formData.interval || '1') : null,
@@ -1527,36 +1527,31 @@ function CalendarPageContent() {
                   <option value="MEET">Google Meet (paste link)</option>
                   <option value="YOUTUBE">YouTube (paste link)</option>
                   <option value="DRIVE">Google Drive (paste link)</option>
-                  <option value="AGORA">In-app live class (Agora)</option>
                 </select>
                 <p style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '6px' }}>
-                  {formData.streamProvider === 'AGORA'
-                    ? 'Students will join inside the app. No external link needed.'
-                    : 'Students follow the link below to attend.'}
+                  Students follow the link below to attend.
                 </p>
               </div>
-              {formData.streamProvider !== 'AGORA' && (
-                <div className="form-group">
-                  <label className="form-label">
-                    {formData.streamProvider === 'YOUTUBE' ? 'YouTube Link'
-                      : formData.streamProvider === 'DRIVE' ? 'Google Drive Link'
-                      : 'Meet Link'}
-                  </label>
-                  <input
-                    type="url"
-                    className="form-input"
-                    value={formData.meetLink || ''}
-                    onChange={e => set('meetLink', e.target.value)}
-                    placeholder={
-                      formData.streamProvider === 'YOUTUBE'
-                        ? 'https://www.youtube.com/watch?v=...'
-                        : formData.streamProvider === 'DRIVE'
-                          ? 'https://drive.google.com/file/d/.../view'
-                          : 'https://meet.google.com/...'
-                    }
-                  />
-                </div>
-              )}
+              <div className="form-group">
+                <label className="form-label">
+                  {formData.streamProvider === 'YOUTUBE' ? 'YouTube Link'
+                    : formData.streamProvider === 'DRIVE' ? 'Google Drive Link'
+                    : 'Meet Link'}
+                </label>
+                <input
+                  type="url"
+                  className="form-input"
+                  value={formData.meetLink || ''}
+                  onChange={e => set('meetLink', e.target.value)}
+                  placeholder={
+                    formData.streamProvider === 'YOUTUBE'
+                      ? 'https://www.youtube.com/watch?v=...'
+                      : formData.streamProvider === 'DRIVE'
+                        ? 'https://drive.google.com/file/d/.../view'
+                        : 'https://meet.google.com/...'
+                  }
+                />
+              </div>
               <div className="form-group">
                 <label className="form-label">Type</label>
                 <select

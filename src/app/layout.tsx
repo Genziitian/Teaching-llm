@@ -130,7 +130,6 @@ export const viewport: Viewport = {
 import SWRProvider from '@/components/SWRProvider'
 import ServiceWorkerRegister from '@/components/ServiceWorkerRegister'
 import GoogleAnalytics from '@/components/GoogleAnalytics'
-import MicrosoftClarity from '@/components/MicrosoftClarity'
 import { LanguageProvider } from '@/contexts/LanguageContext'
 import SeasonalEffects from '@/components/seasonal/SeasonalEffects'
 import SiteDecor from '@/components/seasonal/SiteDecor'
@@ -151,7 +150,6 @@ export default function RootLayout({
       </head>
       <body>
         <GoogleAnalytics />
-        <MicrosoftClarity />
         <PostHogProvider>
           <SWRProvider>
             <ThemeProvider>

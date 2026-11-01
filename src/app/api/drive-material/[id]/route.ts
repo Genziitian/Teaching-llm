@@ -163,16 +163,29 @@ function isWebStream(s: any): s is ReadableStream<Uint8Array> {
   return s && typeof (s as ReadableStream).getReader === 'function'
 }
 
+// Pull-based bridge: we only read the next chunk from Google Drive when the
+// viewer's connection is ready for it. The old push-based version read the
+// whole file into server RAM as fast as Drive could send it, so a few students
+// watching (or pausing) long lectures filled the 2 GB limit and crashed the server.
 function nodeToWebReadable(node: NodeJS.ReadableStream): ReadableStream<Uint8Array> {
+  const iterator = (node as any)[Symbol.asyncIterator]() as AsyncIterator<Buffer | string>
   return new ReadableStream<Uint8Array>({
-    start(controller) {
-      node.on('data', (chunk: Buffer) =>
-        controller.enqueue(new Uint8Array(chunk))
-      )
-      node.on('end', () => controller.close())
-      node.on('error', err => controller.error(err))
+    async pull(controller) {
+      try {
+        const { value, done } = await iterator.next()
+        if (done) {
+          controller.close()
+        } else {
+          controller.enqueue(typeof value === 'string' ? new TextEncoder().encode(value) : new Uint8Array(value))
+        }
+      } catch (err) {
+        controller.error(err)
+      }
     },
-    cancel() {
+    async cancel() {
+      try {
+        await iterator.return?.()
+      } catch {}
       ;(node as any).destroy?.()
     },
   })

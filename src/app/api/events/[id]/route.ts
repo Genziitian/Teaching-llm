@@ -58,7 +58,7 @@ export async function PUT(
     } = body
     const resolvedCourseId = courseId ?? classId ?? null
     const normalizedProvider = streamProvider !== undefined
-      ? (['MEET', 'YOUTUBE', 'DRIVE', 'AGORA'].includes(streamProvider) ? streamProvider : 'MEET')
+      ? (['MEET', 'YOUTUBE', 'DRIVE'].includes(streamProvider) ? streamProvider : 'MEET')
       : undefined
 
     const existingEvent = await prisma.courseEvent.findUnique({
@@ -107,13 +107,6 @@ export async function PUT(
     }
     if (normalizedProvider !== undefined) {
       data.streamProvider = normalizedProvider
-      if (normalizedProvider === 'AGORA') {
-        // Pin the channel name on first switch to AGORA so /api/live/token
-        // doesn't need to guess; keep existing channel name if it was set before.
-        if (!existingEvent.agoraChannelName) data.agoraChannelName = `evt_${id}`
-        // Clear meetLink when switching to AGORA so the UI doesn't show a stale link.
-        if (meetLink === undefined) data.meetLink = null
-      }
     }
     
     let updatedEvent

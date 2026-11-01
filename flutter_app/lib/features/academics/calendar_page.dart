@@ -1096,7 +1096,7 @@ class _EventEditSheetState extends ConsumerState<_EventEditSheet> {
   bool _saving = false;
 
   static const _types = ['class', 'live', 'test', 'exam', 'doubt', 'event', 'deadline'];
-  static const _streamProviders = ['MEET', 'YOUTUBE', 'DRIVE', 'AGORA'];
+  static const _streamProviders = ['MEET', 'YOUTUBE', 'DRIVE'];
 
   bool get _isEditing => widget.existing != null;
 
@@ -1109,7 +1109,10 @@ class _EventEditSheetState extends ConsumerState<_EventEditSheet> {
     _descCtrl = TextEditingController(text: (e?['description'] as String?) ?? '');
     _type = (e?['type'] as String?) ?? 'class';
     _courseId = e?['courseId'] as String?;
-    _streamProvider = (e?['streamProvider'] as String?) ?? 'MEET';
+    final savedProvider = (e?['streamProvider'] as String?) ?? 'MEET';
+    // Old in-app (Agora) events fall back to MEET so the dropdown stays valid.
+    _streamProvider =
+        _streamProviders.contains(savedProvider) ? savedProvider : 'MEET';
 
     if (e != null) {
       final startIso = e['startTime'] as String?;

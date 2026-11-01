@@ -209,7 +209,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Whitelist the stream provider; default to MEET so older clients keep working.
-    const normalizedProvider = ['MEET', 'YOUTUBE', 'DRIVE', 'AGORA'].includes(streamProvider)
+    const normalizedProvider = ['MEET', 'YOUTUBE', 'DRIVE'].includes(streamProvider)
       ? streamProvider
       : 'MEET'
 
@@ -222,7 +222,7 @@ export async function POST(request: NextRequest) {
           description: description || null,
           startTime: new Date(startTime),
           endTime: new Date(endTime),
-          meetLink: normalizedProvider === 'AGORA' ? null : (meetLink || null),
+          meetLink: meetLink || null,
           type: type || 'class',
           courseId: isGlobal ? null : targetCid,
           isGlobal: !!isGlobal,
@@ -234,14 +234,6 @@ export async function POST(request: NextRequest) {
           streamProvider: normalizedProvider,
         },
       })
-
-      // For Agora-backed events, deterministically derive the channel name
-      if (normalizedProvider === 'AGORA') {
-        await prisma.courseEvent.update({
-          where: { id: event.id },
-          data: { agoraChannelName: `evt_${event.id}` },
-        })
-      }
 
       // Generate recurring instances
       if (recurrence && recurrence !== 'ONETIME') {
@@ -269,7 +261,7 @@ export async function POST(request: NextRequest) {
               description: description || null,
               startTime: nextStart,
               endTime: nextEnd,
-              meetLink: normalizedProvider === 'AGORA' ? null : (meetLink || null),
+              meetLink: meetLink || null,
               type: type || 'class',
               courseId: isGlobal ? null : targetCid,
               isGlobal: !!isGlobal,
@@ -310,7 +302,7 @@ export async function POST(request: NextRequest) {
               description: description || null,
               startTime: nextStart,
               endTime: new Date(nextStart.getTime() + duration),
-              meetLink: normalizedProvider === 'AGORA' ? null : (meetLink || null),
+              meetLink: meetLink || null,
               type: type || 'class',
               courseId: isGlobal ? null : targetCid,
               isGlobal: !!isGlobal,

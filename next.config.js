@@ -105,19 +105,4 @@ const nextConfig = {
   },
 }
 
-const { withSentryConfig } = require('@sentry/nextjs/config')
-
-module.exports = withSentryConfig(
-  withPWA(nextConfig),
-  {
-    silent: true,
-    org: 'teaching-lms',
-    project: 'teaching-llm',
-    // Disable heavy sourcemap generation and upload to prevent Node.js Out-Of-Memory on 2GB VPS
-    sourcemaps: {
-      disable: true,
-    },
-    telemetry: false,
-  }
-)
-
+module.exports = withPWA(nextConfig)
