@@ -17,8 +17,8 @@ export type FestivalBanner = 'quizlab' | 'diwali' | 'chhath' | 'christmas' | 'no
 /** Inclusive date ranges, YYYY-MM-DD, in the visitor's local time. First match wins. */
 export const BANNER_SCHEDULE: { from: string; to: string; banner: FestivalBanner }[] = [
   { from: '2000-01-01', to: '2026-11-07', banner: 'quizlab' },
-  { from: '2026-11-08', to: '2026-11-09', banner: 'diwali' },
-  { from: '2026-11-10', to: '2026-11-14', banner: 'quizlab' },
+  { from: '2026-11-08', to: '2026-11-08', banner: 'diwali' },
+  { from: '2026-11-09', to: '2026-11-14', banner: 'quizlab' },
   { from: '2026-11-15', to: '2026-11-15', banner: 'chhath' },
   // 16 Nov – 24 Dec: nothing
   { from: '2026-12-25', to: '2026-12-26', banner: 'christmas' },
@@ -50,7 +50,7 @@ export type DecorTheme = 'diwali' | 'chhath' | 'christmas'
  *   festival day+  level 4  everything, glowing (until `until`)
  */
 export const DECOR_SCHEDULE: { theme: DecorTheme; day: string; until: string }[] = [
-  { theme: 'diwali', day: '2026-11-08', until: '2026-11-09' },
+  { theme: 'diwali', day: '2026-11-08', until: '2026-11-08' },
   { theme: 'christmas', day: '2026-12-25', until: '2027-01-01' },
 ]
 const PREP_DAYS = 3

@@ -12,6 +12,16 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url)
     const platform = searchParams.get('platform') || 'WEB'
 
+    // Accounts younger than 7 days are never asked (server-side, so it can't be bypassed)
+    const account = await prisma.user.findUnique({
+      where: { id: session.userId },
+      select: { createdAt: true },
+    })
+    const ageMs = account ? Date.now() - new Date(account.createdAt).getTime() : 0
+    if (!(ageMs >= 7 * 24 * 60 * 60 * 1000)) {
+      return NextResponse.json({ submitted: true })
+    }
+
     const existing = await (prisma as any).appFeedback.findFirst({
       where: { studentId: session.userId, platform }
     })

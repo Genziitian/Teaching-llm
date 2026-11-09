@@ -106,7 +106,8 @@ export default function DashboardPage() {
     const registerDate = new Date(user.createdAt)
     const sevenDaysAgo = new Date()
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7)
-    if (registerDate > sevenDaysAgo) return
+    // Fail closed: a missing/invalid join date must never show the prompt
+    if (!(registerDate.getTime() <= sevenDaysAgo.getTime())) return
 
     // 2. Check snooze in localStorage
     const snoozeUntil = localStorage.getItem('app_feedback_snooze_until')

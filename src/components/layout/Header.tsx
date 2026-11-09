@@ -308,13 +308,14 @@ export default function Header({ userName, userRole }: HeaderProps) {
     }
   }
 
+  // One request for all of them (one request per notification tripped the rate limiter)
   async function markAllRead() {
-    await Promise.all(
-      notifications.filter(n => !n.isRead).map(n =>
-        fetch(`/api/notifications/${n.id}`, { method: 'PUT' })
-      )
-    )
-    mutateNotifications()
+    if (!notifications.some(n => !n.isRead)) return
+    try {
+      await fetch('/api/notifications/read-all', { method: 'POST' })
+    } finally {
+      mutateNotifications()
+    }
   }
 
   async function handleLogout() {

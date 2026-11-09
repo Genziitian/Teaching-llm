@@ -278,7 +278,40 @@ export async function addEmailToPoolCategory(
 /**
  * Assign a user to a Pool Category (finding/rolling over to an available child email)
  */
-export async function getOrAssignPoolCategory(db: any, userEmail: string, categoryId?: string) {
+/** How many users are currently in each pool email (one count per pool, not per user). */
+export async function getPoolCounts(db: any, poolEmails: any[]): Promise<Map<string, number>> {
+  const counts = new Map<string, number>()
+  for (const p of poolEmails) {
+    counts.set(
+      p.groupEmail,
+      await db.user.count({ where: { notificationGroupEmails: { contains: p.groupEmail } } })
+    )
+  }
+  return counts
+}
+
+export type PoolBatch = { poolEmails: any[]; counts: Map<string, number> }
+
+/** Load the active pool mails + their fill counts once, to reuse across many users. */
+export async function buildPoolBatch(db: any, categoryId: string): Promise<PoolBatch> {
+  const poolEmails = await db.notificationPoolEmail.findMany({
+    where: { categoryId, isActive: true },
+    orderBy: { createdAt: 'asc' },
+  })
+  return { poolEmails, counts: await getPoolCounts(db, poolEmails) }
+}
+
+/**
+ * Assign a user to the FIRST active group mail that still has room.
+ * (The serial is only a searchable number now; it no longer decides the group.)
+ * Pass `batch` when assigning many users so counts are loaded once.
+ */
+export async function getOrAssignPoolCategory(
+  db: any,
+  userEmail: string,
+  categoryId?: string,
+  batch?: PoolBatch
+) {
   const normUserEmail = normalizeEmail(userEmail)
 
   const targetUser = await db.user.findUnique({
@@ -302,11 +335,13 @@ export async function getOrAssignPoolCategory(db: any, userEmail: string, catego
   // Permanent unique serial for this user (1, 2, 3…) — used for pool packing + search
   const serial = await ensureUserGroupSerial(db, targetUser.id)
 
-  // Find active email in this category with space
-  const poolEmails = await db.notificationPoolEmail.findMany({
-    where: { categoryId: targetCategory.id, isActive: true },
-    orderBy: { createdAt: 'asc' },
-  })
+  // Active emails in this category (reused across a batch)
+  const poolEmails =
+    batch?.poolEmails ??
+    (await db.notificationPoolEmail.findMany({
+      where: { categoryId: targetCategory.id, isActive: true },
+      orderBy: { createdAt: 'asc' },
+    }))
 
   // CHECK: If user ALREADY has an email belonging to this category, DO NOT assign a second email from the same category!
   const categoryEmailAddresses = poolEmails.map((p: any) => p.groupEmail)
@@ -323,21 +358,13 @@ export async function getOrAssignPoolCategory(db: any, userEmail: string, catego
     }
   }
 
-  // Prefer pool bucket from serial: 1–700 → pool 0, 701–1400 → pool 1, …
-  const preferredIndex = serialToPoolIndex(serial)
+  // First active group that still has room (fill group 1, then 2, then 3 …)
+  const counts = batch?.counts ?? (await getPoolCounts(db, poolEmails))
   let availableEmail: any = null
-
-  if (poolEmails[preferredIndex]) {
-    availableEmail = poolEmails[preferredIndex]
-  } else {
-    for (const p of poolEmails) {
-      const actualCount = await db.user.count({
-        where: { notificationGroupEmails: { contains: p.groupEmail } },
-      })
-      if (actualCount < p.maxCapacity) {
-        availableEmail = p
-        break
-      }
+  for (const p of poolEmails) {
+    if ((counts.get(p.groupEmail) ?? 0) < p.maxCapacity) {
+      availableEmail = p
+      break
     }
   }
 
@@ -376,12 +403,11 @@ export async function getOrAssignPoolCategory(db: any, userEmail: string, catego
     })
 
     // Update pool email count
-    const actualCount = await db.user.count({
-      where: { notificationGroupEmails: { contains: availableEmail.groupEmail } },
-    })
+    const newCount = (counts.get(availableEmail.groupEmail) ?? 0) + 1
+    counts.set(availableEmail.groupEmail, newCount)
     await db.notificationPoolEmail.update({
       where: { id: availableEmail.id },
-      data: { currentCount: actualCount },
+      data: { currentCount: newCount },
     })
 
     // Queue Google Sync ADD job
@@ -412,7 +438,19 @@ export async function getOrAssignPoolCategory(db: any, userEmail: string, catego
 /**
  * Flush category overflow queue
  */
-export async function flushCategoryOverflowQueue(db: any, categoryId: string) {
+/** The background job gives up on a user after this many failed tries (until the server restarts). */
+export const MAX_ASSIGN_ATTEMPTS = 3
+const assignFailures = new Map<string, number>()
+
+export function recordAssignFailure(userId: string) {
+  assignFailures.set(userId, (assignFailures.get(userId) || 0) + 1)
+}
+function hasGivenUp(userId: string) {
+  return (assignFailures.get(userId) || 0) >= MAX_ASSIGN_ATTEMPTS
+}
+export type RetryOptions = { limitRetries?: boolean }
+
+export async function flushCategoryOverflowQueue(db: any, categoryId: string, opts: RetryOptions = {}) {
   const pendingUsers = await db.user.findMany({
     where: {
       pendingPoolCategoryIds: { contains: categoryId },
@@ -425,13 +463,21 @@ export async function flushCategoryOverflowQueue(db: any, categoryId: string) {
     return { totalPending: 0, assigned: 0 }
   }
 
+  const batch = await buildPoolBatch(db, categoryId)
   let assignedCount = 0
   for (const user of pendingUsers) {
-    const res = await getOrAssignPoolCategory(db, user.email, categoryId)
-    if (res.assigned && res.newlyAssigned) {
-      assignedCount++
-    } else if (res.pending) {
-      break // filled up again
+    if (opts.limitRetries && hasGivenUp(user.id)) continue
+    try {
+      const res = await getOrAssignPoolCategory(db, user.email, categoryId, batch)
+      if (res.assigned && res.newlyAssigned) {
+        assignedCount++
+      } else if (res.pending) {
+        break // filled up again
+      }
+      assignFailures.delete(user.id)
+    } catch (err) {
+      recordAssignFailure(user.id)
+      console.error('[pool] flush failed for one user, continuing:', user.email, err)
     }
   }
 
@@ -444,7 +490,7 @@ export async function flushCategoryOverflowQueue(db: any, categoryId: string) {
 // In-memory guard to prevent concurrent bulk assignment runs from creating duplicate jobs
 let _bulkAssignRunning = false
 
-export async function assignAllUsersToPoolCategory(db: any, categoryId?: string) {
+export async function assignAllUsersToPoolCategory(db: any, categoryId?: string, opts: RetryOptions = {}) {
   // Prevent concurrent runs (e.g. user clicking button 4 times, or auto-sync overlapping)
   if (_bulkAssignRunning) {
     return { count: 0, categoryName: '', message: 'Bulk assignment already in progress. Please wait.' }
@@ -493,6 +539,7 @@ export async function assignAllUsersToPoolCategory(db: any, categoryId?: string)
     })
 
     let count = 0
+    const batch = await buildPoolBatch(db, targetCategory.id)
     // Track processed user emails to prevent double-processing within same run
     const processedEmails = new Set<string>()
 
@@ -500,13 +547,21 @@ export async function assignAllUsersToPoolCategory(db: any, categoryId?: string)
       const normEmail = normalizeEmail(user.email)
       if (processedEmails.has(normEmail)) continue
       processedEmails.add(normEmail)
+      if (opts.limitRetries && hasGivenUp(user.id)) continue
 
-      const res = await getOrAssignPoolCategory(db, user.email, targetCategory.id)
-      if (res.assigned && res.newlyAssigned) {
-        count++
-      } else if (res.pending) {
-        // Pool filled up to capacity, stop loop immediately!
-        break
+      try {
+        const res = await getOrAssignPoolCategory(db, user.email, targetCategory.id, batch)
+        if (res.assigned && res.newlyAssigned) {
+          count++
+        } else if (res.pending) {
+          // Pool filled up to capacity, stop loop immediately!
+          break
+        }
+        assignFailures.delete(user.id)
+      } catch (err) {
+        // One bad user must not stop everyone else. The job retries, up to MAX_ASSIGN_ATTEMPTS.
+        recordAssignFailure(user.id)
+        console.error('[pool] assign failed for one user, continuing:', user.email, err)
       }
     }
 

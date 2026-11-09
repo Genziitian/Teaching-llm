@@ -4,7 +4,6 @@ import { useState, type CSSProperties } from 'react'
 import Link from 'next/link'
 import useSWR from 'swr'
 import { DEFAULT_MEMBERS_PER_GROUP } from '@/lib/notification-group-pool'
-import { poolIndexToSerialRange } from '@/lib/notification-group-constants'
 
 type PoolEmail = {
   id: string
@@ -90,8 +89,6 @@ export default function MailAssignerPageContent() {
   const [newGroupEmail, setNewGroupEmail] = useState('')
   const [busyAction, setBusyAction] = useState<string | null>(null)
   const [status, setStatus] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
-  const [lastResult, setLastResult] = useState<AssignResult | null>(null)
-  const [lastRemoveResult, setLastRemoveResult] = useState<AssignResult | null>(null)
   const [live, setLive] = useState<LiveProgress | null>(null)
 
   const categoryId = selectedCategoryId || defaultCategory?.id || ''
@@ -100,27 +97,19 @@ export default function MailAssignerPageContent() {
   const allPoolEmails = activeCategory?.emails || []
   const activePoolEmails = allPoolEmails.filter(e => e.isActive)
   const activePoolCount = activePoolEmails.length
-  const inactivePoolCount = allPoolEmails.filter(e => !e.isActive).length
   const poolsNeeded = Math.max(
     1,
     Math.ceil(Math.max(totalUsersCount, 1) / MEMBERS_PER_GROUP)
   )
   const poolsShortBy = Math.max(0, poolsNeeded - activePoolCount)
   const canRunAssigner = !!categoryId && activePoolCount >= poolsNeeded && totalUsersCount > 0
-  const hasAssignedUsers = totalAssignedUsersCount > 0 || allPoolEmails.some(e => e.currentCount > 0)
-
-  // Planned map: 1st active pool = serials 1–700, 2nd = 701–1400, …
-  const serialPlan = activePoolEmails.map((email, poolIndex) => {
-    const { serialFrom, serialTo } = poolIndexToSerialRange(poolIndex, totalUsersCount, MEMBERS_PER_GROUP)
-    const coversUsers = totalUsersCount > 0 && serialFrom <= totalUsersCount
-    return {
-      ...email,
-      poolIndex,
-      groupNumber: poolIndex + 1,
-      serialFrom: coversUsers ? serialFrom : null,
-      serialTo: coversUsers ? serialTo : null,
-    }
-  })
+  const waitingUsers: number = Math.max(
+    0,
+    data?.totalUnassignedUsersCount ?? totalUsersCount - totalAssignedUsersCount
+  )
+  const assignedPct = totalUsersCount > 0 ? Math.round((totalAssignedUsersCount / totalUsersCount) * 100) : 0
+  const freeSlots = activePoolEmails.reduce((n, e) => n + Math.max(0, e.maxCapacity - e.currentCount), 0)
+  const hasRoom = freeSlots >= waitingUsers
 
   const postJson = async (action: string, body: Record<string, unknown> = {}) => {
     const res = await fetch('/api/admin/notification-groups', {
@@ -149,8 +138,6 @@ export default function MailAssignerPageContent() {
     try {
       const json = await postJson(action, body)
       setStatus({ type: 'success', text: json.message || 'Done' })
-      if (action === 'SERIAL_RESET_ASSIGN') setLastResult(json)
-      if (action === 'REMOVE_ALL_POOL_MEMBERS') setLastRemoveResult(json)
       await mutate()
       return json
     } catch (err) {
@@ -278,14 +265,12 @@ export default function MailAssignerPageContent() {
       pushLiveLine('Phase 2: packing by serial into Google Group pools…')
       let offset = 0
       let guard = 0
-      let lastJson: any = null
       while (guard < 500) {
         const json = await postJson('SERIAL_RESET_ASSIGN', {
           categoryId,
           offset,
           limit: 75,
         })
-        lastJson = json
         totalAdd += json.addJobsQueued || 0
         offset = json.nextOffset ?? offset + (json.processed || 0)
         const recentLines = (json.recent || []).map(
@@ -314,11 +299,6 @@ export default function MailAssignerPageContent() {
         guard++
       }
 
-      setLastResult({
-        ...lastJson,
-        addJobsQueued: totalAdd,
-        message: `Finished. Queued ${totalAdd} ADD jobs total. Process them on Google Sync.`,
-      })
       setStatus({
         type: 'success',
         text: `Finished packing. Queued ${totalAdd} ADD jobs — open Google Sync to process.`,
@@ -362,125 +342,56 @@ export default function MailAssignerPageContent() {
     await postAction('RECONCILE_GOOGLE')
   }
 
-  const handleEnsureSerials = async () => {
-    const ok = window.confirm(
-      'Assign a unique serial number to every user who is missing one?\n\nExisting serials are never changed. Live progress will open.'
-    )
-    if (!ok) return
-
-    setBusyAction('ENSURE_SERIALS')
-    setStatus(null)
-    setLive({
-      open: true,
-      title: 'Assign missing serials — live',
-      phase: 'Assigning missing serials',
-      detail: 'Starting…',
-      percent: 0,
-      processed: 0,
-      total: totalUsersCount,
-      addJobsQueued: 0,
-      lines: [{ t: Date.now(), text: 'Started serial backfill' }],
-      done: false,
-    })
-
-    try {
-      let guard = 0
-      while (guard < 200) {
-        const ens = await postJson('ENSURE_SERIALS', { limit: 150 })
-        const withSerial = ens.withSerial ?? 0
-        const total = ens.totalUsers ?? totalUsersCount
-        const last = (ens.lastAssigned || [])
-          .map((r: { email: string; serial: number }) => `#${r.serial} ${r.email}`)
-          .join(' · ')
-        setLive(prev =>
-          prev
-            ? {
-                ...prev,
-                processed: withSerial,
-                total,
-                percent: total > 0 ? Math.round((withSerial / total) * 100) : 0,
-                detail: ens.message || '',
-                lines: [
-                  ...prev.lines,
-                  { t: Date.now(), text: ens.message || `Batch +${ens.backfilled}` },
-                  ...(last ? [{ t: Date.now(), text: `Recent: ${last}` }] : []),
-                ].slice(-40),
-              }
-            : prev
-        )
-        if (ens.done) break
-        guard++
-      }
-      setStatus({ type: 'success', text: 'All users now have a unique serial.' })
-      setLive(prev =>
-        prev
-          ? {
-              ...prev,
-              done: true,
-              phase: 'Complete',
-              percent: 100,
-              detail: 'All missing serials assigned.',
-            }
-          : prev
-      )
-      await mutate()
-    } catch (err) {
-      const text = err instanceof Error ? err.message : 'Request failed'
-      setStatus({ type: 'error', text })
-      setLive(prev => (prev ? { ...prev, error: text, detail: text } : prev))
-    } finally {
-      setBusyAction(null)
+  /** Add only the users who have no group mail yet. Nobody already assigned is touched. */
+  const handleAssignNew = async () => {
+    if (!categoryId || waitingUsers === 0) return
+    const json = await postAction('ASSIGN_ALL_CATEGORY', { categoryId })
+    if (json) {
+      setStatus({
+        type: 'success',
+        text: `${json.count ?? 0} users added. Google membership updates in the background.`,
+      })
     }
   }
 
-  const waitingMessage = (() => {
-    if (canRunAssigner) {
-      return `Ready for Step 2 — ${activePoolCount}/${poolsNeeded} active pool emails for ${totalUsersCount.toLocaleString()} users at ${MEMBERS_PER_GROUP}/group.`
-    }
-    if (activePoolCount === 0 && inactivePoolCount > 0) {
-      return `Waiting — ${inactivePoolCount} group mail(s) exist but are inactive. Activate them until you have ${poolsNeeded} active.`
-    }
-    if (activePoolCount === 0) {
-      return `Waiting — no group mails yet. Add emails until you have ${poolsNeeded} active, then unlock Step 2.`
-    }
-    return `Waiting — ${activePoolCount} active / need ${poolsNeeded}. Add or activate ${poolsShortBy} more.`
-  })()
+  const pill: CSSProperties = { padding: '7px 14px', borderRadius: 999, fontWeight: 700, fontSize: 13 }
 
   return (
-    <div style={{ maxWidth: 960, margin: '0 auto', padding: '24px 20px 60px' }}>
-      <div
-        style={{
-          display: 'flex',
-          flexWrap: 'wrap',
-          justifyContent: 'space-between',
-          alignItems: 'flex-start',
-          gap: 16,
-          marginBottom: 24,
-        }}
-      >
-        <div>
+    <div className="ma-wrap">
+      <style>{`
+        .ma-wrap{max-width:960px;margin:0 auto;padding:20px 16px 60px}
+        .ma-top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:18px}
+        .ma-top-actions{display:flex;gap:8px;flex-shrink:0}
+        .ma-hero{padding:22px;border-radius:20px;margin-bottom:16px;display:grid;gap:16px}
+        .ma-hero-row{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap}
+        .ma-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px}
+        .ma-pools{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;margin-bottom:14px}
+        .ma-add{display:flex;gap:8px}
+        .ma-add input{flex:1;min-width:0}
+        @media (max-width:640px){
+          .ma-wrap{padding:14px 12px 48px}
+          .ma-hero{padding:16px}
+          .ma-hero-row{flex-direction:column;align-items:stretch}
+          .ma-hero-row .btn{width:100%;justify-content:center}
+          .ma-stats{gap:8px}
+          .ma-pools{grid-template-columns:1fr}
+          .ma-add{flex-direction:column}
+          .ma-add .btn{width:100%}
+        }
+      `}</style>
+
+      <div className="ma-top">
+        <div style={{ minWidth: 0 }}>
           <Link
             href="/manage"
             style={{ fontSize: 13, fontWeight: 600, color: 'var(--primary)', textDecoration: 'none' }}
           >
-            ← Back to Management
+            ← Back
           </Link>
-          <div
-            style={{
-              fontSize: 12,
-              fontWeight: 700,
-              letterSpacing: '0.08em',
-              color: 'var(--text-muted)',
-              textTransform: 'uppercase',
-              marginTop: 10,
-            }}
-          >
-            Notification Groups
-          </div>
           <h1
             style={{
-              margin: '4px 0 6px',
-              fontSize: 26,
+              margin: '8px 0 4px',
+              fontSize: 'clamp(22px, 5vw, 28px)',
               fontWeight: 800,
               color: 'var(--text-primary)',
               letterSpacing: '-0.02em',
@@ -488,59 +399,27 @@ export default function MailAssignerPageContent() {
           >
             Mail Assigner
           </h1>
-          <p style={{ margin: 0, fontSize: 14, color: 'var(--text-muted)', lineHeight: 1.45, maxWidth: 620 }}>
-            Every user gets a serial (1, 2, 3…). Group 1 = serials 1–{MEMBERS_PER_GROUP}, Group 2 ={' '}
-            {MEMBERS_PER_GROUP + 1}–{MEMBERS_PER_GROUP * 2}, and so on. Capacity is fixed at {MEMBERS_PER_GROUP}.
-            Course mails are never touched.
+          <p style={{ margin: 0, fontSize: 13.5, color: 'var(--text-muted)' }}>
+            New users are added to a notification group automatically.
           </p>
         </div>
-
-        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-          <Link
-            href="/google-sync"
-            className="btn btn-secondary"
-            style={{ padding: '9px 14px', borderRadius: 12, fontWeight: 700, fontSize: 13, textDecoration: 'none' }}
-          >
-            Google Sync →
+        <div className="ma-top-actions">
+          <Link href="/google-sync" className="btn btn-secondary" style={{ ...pill, textDecoration: 'none' }}>
+            Google Sync
           </Link>
-          <button
-            type="button"
-            onClick={() => mutate()}
-            className="btn btn-secondary"
-            style={{ padding: '9px 14px', borderRadius: 12, fontWeight: 600, fontSize: 13 }}
-          >
-            Refresh
+          <button type="button" onClick={() => mutate()} className="btn btn-secondary" style={pill} aria-label="Refresh">
+            ↻
           </button>
         </div>
       </div>
 
-      <div
-        className="card"
-        style={{
-          padding: '14px 16px',
-          borderRadius: 14,
-          marginBottom: 16,
-          fontSize: 13,
-          color: 'var(--text-muted)',
-          lineHeight: 1.55,
-        }}
-      >
-        <strong style={{ color: 'var(--text-primary)' }}>How serials tell you what&apos;s done:</strong> after Step 2,
-        each user stores <code>notificationGroupSerial</code>. Serials{' '}
-        <strong style={{ color: 'var(--text-primary)' }}>1–{MEMBERS_PER_GROUP}</strong> belong to the 1st pool email,{' '}
-        <strong style={{ color: 'var(--text-primary)' }}>
-          {MEMBERS_PER_GROUP + 1}–{MEMBERS_PER_GROUP * 2}
-        </strong>{' '}
-        to the 2nd, etc. That&apos;s how you know block 1 is filled and the next block starts at{' '}
-        {MEMBERS_PER_GROUP + 1}. Google membership is synced via jobs; use Reconcile if Google drifts from DB.
-      </div>
-
       {status && (
         <div
+          role="status"
           style={{
-            marginBottom: 16,
-            padding: '12px 16px',
-            borderRadius: 14,
+            marginBottom: 14,
+            padding: '11px 14px',
+            borderRadius: 12,
             fontSize: 13.5,
             fontWeight: 600,
             background: status.type === 'success' ? 'rgba(16,185,129,0.12)' : 'rgba(239,68,68,0.12)',
@@ -552,311 +431,220 @@ export default function MailAssignerPageContent() {
         </div>
       )}
 
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
-          gap: 14,
-          marginBottom: 20,
-        }}
-      >
+      {error && <p style={{ color: '#EF4444', fontSize: 13 }}>Could not load. Tap refresh.</p>}
+
+      <div className="card ma-hero">
+        <div className="ma-hero-row">
+          <div>
+            <div style={{ fontSize: 13, color: 'var(--text-muted)', fontWeight: 600 }}>
+              {waitingUsers === 0 ? 'Everyone is assigned' : 'Waiting for a group'}
+            </div>
+            <div style={{ fontSize: 'clamp(28px, 8vw, 38px)', fontWeight: 800, color: 'var(--text-primary)', lineHeight: 1.1 }}>
+              {isLoading ? '…' : waitingUsers === 0 ? '✓' : waitingUsers.toLocaleString()}
+              {waitingUsers > 0 && (
+                <span style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-muted)' }}> users</span>
+              )}
+            </div>
+          </div>
+          <button
+            type="button"
+            className="btn btn-primary"
+            disabled={!!busyAction || waitingUsers === 0 || !hasRoom || !categoryId}
+            onClick={handleAssignNew}
+            style={{
+              padding: '13px 22px',
+              borderRadius: 999,
+              fontWeight: 800,
+              fontSize: 14,
+              border: 'none',
+              background: 'linear-gradient(135deg, #0EA5E9, #2563EB)',
+              opacity: waitingUsers === 0 || !hasRoom ? 0.5 : 1,
+            }}
+          >
+            {busyAction === 'ASSIGN_ALL_CATEGORY'
+              ? 'Assigning…'
+              : waitingUsers === 0
+                ? 'Nothing to assign'
+                : `Assign ${waitingUsers.toLocaleString()} now`}
+          </button>
+        </div>
+
+        <div>
+          <div style={{ height: 8, borderRadius: 999, background: 'rgba(255,255,255,0.08)', overflow: 'hidden' }}>
+            <div
+              style={{
+                height: '100%',
+                width: `${assignedPct}%`,
+                background: 'linear-gradient(90deg, #0EA5E9, #2563EB)',
+                transition: 'width .3s ease',
+              }}
+            />
+          </div>
+          <div style={{ fontSize: 12.5, color: 'var(--text-muted)', marginTop: 6 }}>
+            {totalAssignedUsersCount.toLocaleString()} of {totalUsersCount.toLocaleString()} assigned
+          </div>
+        </div>
+
+        {!isLoading && waitingUsers > 0 && !hasRoom && (
+          <div
+            style={{
+              padding: '10px 12px',
+              borderRadius: 12,
+              fontSize: 13,
+              fontWeight: 600,
+              background: 'rgba(245,158,11,0.12)',
+              border: '1px solid rgba(245,158,11,0.35)',
+              color: '#F59E0B',
+            }}
+          >
+            Groups are full. Add {Math.max(1, Math.ceil((waitingUsers - freeSlots) / MEMBERS_PER_GROUP))} more group mail below.
+          </div>
+        )}
+      </div>
+
+      <div className="ma-stats">
         {[
-          { label: 'Total users', value: totalUsersCount.toLocaleString() },
-          { label: 'Assigned in DB', value: totalAssignedUsersCount.toLocaleString() },
-          { label: 'Active pool mails', value: `${activePoolCount}` },
-          { label: 'Pools needed', value: `${poolsNeeded}` },
-          { label: 'Per group', value: `${MEMBERS_PER_GROUP} (fixed)` },
+          { label: 'Users', value: totalUsersCount.toLocaleString() },
+          { label: 'Groups', value: `${activePoolCount}` },
+          { label: 'Free slots', value: freeSlots.toLocaleString() },
         ].map(stat => (
-          <div key={stat.label} className="card" style={{ padding: '16px 18px', borderRadius: 16 }}>
+          <div key={stat.label} className="card" style={{ padding: '12px 14px', borderRadius: 14 }}>
             <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
               {stat.label}
             </div>
-            <div style={{ fontSize: 20, fontWeight: 800, color: 'var(--text-primary)', marginTop: 4 }}>
+            <div style={{ fontSize: 'clamp(17px, 4.5vw, 22px)', fontWeight: 800, color: 'var(--text-primary)', marginTop: 2 }}>
               {isLoading ? '…' : stat.value}
             </div>
           </div>
         ))}
       </div>
 
-      <div className="card" style={{ padding: '20px 22px', borderRadius: 18, marginBottom: 18 }}>
-        <label style={{ display: 'grid', gap: 6, marginBottom: 18, maxWidth: 420 }}>
-          <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase' }}>
-            Pool category
-          </span>
-          <select
-            value={categoryId}
-            onChange={e => setSelectedCategoryId(e.target.value)}
-            disabled={isLoading || categories.length === 0}
-            style={fieldStyle}
-          >
-            {categories.length === 0 && <option value="">No pools yet</option>}
-            {categories.map(c => (
-              <option key={c.id} value={c.id}>
-                {c.name}{c.isDefault ? ' (default)' : ''}
-              </option>
-            ))}
-          </select>
-        </label>
-
-        <div
-          style={{
-            marginBottom: 14,
-            padding: '12px 14px',
-            borderRadius: 12,
-            fontSize: 13.5,
-            fontWeight: 650,
-            lineHeight: 1.45,
-            background: canRunAssigner ? 'rgba(16,185,129,0.12)' : 'rgba(245,158,11,0.12)',
-            border: `1px solid ${canRunAssigner ? 'rgba(16,185,129,0.3)' : 'rgba(245,158,11,0.35)'}`,
-            color: canRunAssigner ? '#10B981' : '#F59E0B',
-          }}
+      {categories.length > 1 && (
+        <select
+          value={categoryId}
+          onChange={e => setSelectedCategoryId(e.target.value)}
+          disabled={isLoading}
+          style={{ ...fieldStyle, width: '100%', marginBottom: 14 }}
+          aria-label="Pool category"
         >
-          {isLoading ? 'Loading pool status…' : waitingMessage}
-        </div>
+          {categories.map(c => (
+            <option key={c.id} value={c.id}>
+              {c.name}{c.isDefault ? ' (default)' : ''}
+            </option>
+          ))}
+        </select>
+      )}
 
-        {error && (
-          <p style={{ color: '#EF4444', fontSize: 13, marginBottom: 12 }}>Failed to load pools.</p>
+      <div className="ma-pools">
+        {allPoolEmails.length === 0 && !isLoading && (
+          <p style={{ color: 'var(--text-muted)', fontSize: 13, margin: 0 }}>No group mails yet. Add one below.</p>
         )}
-
-        <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 10 }}>
-          Serial map · pool emails {activeCategory ? `· ${activeCategory.name}` : ''}
-        </div>
-
-        {serialPlan.length > 0 && (
-          <div
-            style={{
-              marginBottom: 12,
-              padding: '12px 14px',
-              borderRadius: 12,
-              background: 'rgba(14,165,233,0.08)',
-              border: '1px solid rgba(14,165,233,0.22)',
-              display: 'grid',
-              gap: 6,
-            }}
-          >
-            <div style={{ fontSize: 12, fontWeight: 800, color: 'var(--text-primary)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-              Planned ranges (active pools, in order)
-            </div>
-            {serialPlan.map(row => (
-              <div key={row.id} style={{ fontSize: 13, color: 'var(--text-primary)' }}>
-                <strong>Group {row.groupNumber}</strong>
-                {' · '}
-                {row.serialFrom != null ? (
-                  <>
-                    serials <strong>#{row.serialFrom}–#{row.serialTo}</strong>
-                  </>
-                ) : (
-                  <span style={{ color: 'var(--text-muted)' }}>not needed for current user count</span>
-                )}
-                {' → '}
-                <span style={{ color: 'var(--text-muted)' }}>{row.groupEmail}</span>
-              </div>
-            ))}
-            {poolsShortBy > 0 && (
-              <div style={{ fontSize: 12.5, color: '#F59E0B', marginTop: 4 }}>
-                Need {poolsShortBy} more active pool mail(s) to cover serials up to #{totalUsersCount}.
-              </div>
-            )}
-          </div>
-        )}
-
-        <div style={{ display: 'grid', gap: 8, marginBottom: 14 }}>
-          {allPoolEmails.length === 0 && !isLoading && (
-            <p style={{ color: 'var(--text-muted)', fontSize: 13, fontStyle: 'italic', margin: 0 }}>
-              No Group Mail in this pool yet.
-            </p>
-          )}
-          {allPoolEmails.map(email => {
-            const pct = email.percentage ?? Math.round((email.currentCount / Math.max(1, email.maxCapacity)) * 100)
-            const planIdx = activePoolEmails.findIndex(e => e.id === email.id)
-            const range =
-              email.isActive && planIdx >= 0
-                ? poolIndexToSerialRange(planIdx, totalUsersCount, MEMBERS_PER_GROUP)
-                : null
-            return (
-              <div
-                key={email.id}
-                style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  gap: 12,
-                  padding: '12px 14px',
-                  borderRadius: 12,
-                  background: 'var(--bg-secondary, rgba(0,0,0,0.22))',
-                  border: email.isActive ? '1px solid transparent' : '1px solid rgba(245,158,11,0.25)',
-                  fontSize: 13,
-                  flexWrap: 'wrap',
-                }}
-              >
-                <div style={{ flex: 1, minWidth: 180 }}>
-                  <div style={{ fontWeight: 650, color: 'var(--text-primary)' }}>{email.groupEmail}</div>
-                  <div style={{ color: 'var(--text-muted)', marginTop: 2 }}>
-                    {email.currentCount}/{MEMBERS_PER_GROUP} in DB
-                    {email.isActive ? ' · active' : ' · inactive'}
-                    {range && range.serialFrom <= totalUsersCount && (
-                      <>
-                        {' · '}
-                        <span style={{ color: '#7DD3FC' }}>
-                          serials #{range.serialFrom}–#{range.serialTo}
-                        </span>
-                      </>
-                    )}
+        {allPoolEmails.map((email, idx) => {
+          const pct = Math.min(100, email.percentage ?? Math.round((email.currentCount / Math.max(1, email.maxCapacity)) * 100))
+          const full = pct >= 100
+          return (
+            <div
+              key={email.id}
+              className="card"
+              style={{
+                padding: '14px 16px',
+                borderRadius: 16,
+                display: 'grid',
+                gap: 10,
+                opacity: email.isActive ? 1 : 0.6,
+              }}
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10 }}>
+                <div style={{ minWidth: 0 }}>
+                  <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-muted)' }}>Group {idx + 1}</div>
+                  <div
+                    style={{ fontSize: 13.5, fontWeight: 700, color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+                    title={email.groupEmail}
+                  >
+                    {email.groupEmail.split('@')[0]}
                   </div>
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                  <span style={{ color: email.isFull ? '#F59E0B' : '#10B981', fontWeight: 700, minWidth: 40, textAlign: 'right' }}>
-                    {pct}%
-                  </span>
-                  <button
-                    type="button"
-                    className="btn btn-secondary"
-                    disabled={!!busyAction}
-                    onClick={() => handleToggleActive(email)}
-                    style={{ padding: '7px 12px', borderRadius: 999, fontSize: 12, fontWeight: 700 }}
-                  >
-                    {email.isActive ? 'Deactivate' : 'Activate'}
-                  </button>
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={email.isActive}
+                  aria-label={email.isActive ? 'Deactivate group' : 'Activate group'}
+                  disabled={!!busyAction}
+                  onClick={() => handleToggleActive(email)}
+                  style={{
+                    width: 40,
+                    height: 24,
+                    borderRadius: 999,
+                    border: 'none',
+                    padding: 2,
+                    cursor: 'pointer',
+                    flexShrink: 0,
+                    background: email.isActive ? '#4f46e5' : 'var(--toggle-off, rgba(120,120,140,0.4))',
+                    display: 'flex',
+                    justifyContent: email.isActive ? 'flex-end' : 'flex-start',
+                    transition: 'background .2s',
+                  }}
+                >
+                  <span style={{ width: 20, height: 20, borderRadius: '50%', background: '#fff' }} />
+                </button>
+              </div>
+              <div>
+                <div style={{ height: 6, borderRadius: 999, background: 'rgba(255,255,255,0.08)', overflow: 'hidden' }}>
+                  <div style={{ height: '100%', width: `${pct}%`, background: full ? '#F59E0B' : '#10B981' }} />
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: 'var(--text-muted)', marginTop: 6, gap: 8 }}>
+                  <span>{email.currentCount}/{MEMBERS_PER_GROUP}</span>
                 </div>
               </div>
-            )
-          })}
-        </div>
+            </div>
+          )
+        })}
+      </div>
 
-        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-          <input
-            type="email"
-            placeholder="e.g. notifications-group-1@genziitian.org"
-            value={newGroupEmail}
-            onChange={e => setNewGroupEmail(e.target.value)}
-            style={{ ...fieldStyle, flex: 1, minWidth: 220, fontSize: 13.5 }}
-          />
+      <div className="ma-add" style={{ marginBottom: 22 }}>
+        <input
+          type="email"
+          placeholder="new-group@genziitian.org"
+          value={newGroupEmail}
+          onChange={e => setNewGroupEmail(e.target.value)}
+          style={{ ...fieldStyle, fontSize: 13.5 }}
+        />
+        <button type="button" className="btn btn-secondary" disabled={!!busyAction} onClick={handleAddPoolEmail} style={pill}>
+          {busyAction === 'ADD_EMAIL_TO_CATEGORY' ? 'Adding…' : '+ Add group'}
+        </button>
+      </div>
+
+      <details className="card" style={{ padding: '12px 16px', borderRadius: 16 }}>
+        <summary style={{ cursor: 'pointer', fontWeight: 700, fontSize: 13.5, color: 'var(--text-muted)' }}>
+          Advanced
+        </summary>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 12 }}>
+          <button type="button" className="btn btn-secondary" disabled={!!busyAction} onClick={handleReconcile} style={pill}>
+            {busyAction === 'RECONCILE_GOOGLE' ? 'Checking…' : 'Fix Google mismatch'}
+          </button>
           <button
             type="button"
             className="btn btn-secondary"
-            disabled={!!busyAction}
-            onClick={handleAddPoolEmail}
-            style={{ padding: '10px 14px', borderRadius: 999, fontWeight: 700, fontSize: 13 }}
+            disabled={!!busyAction || !categoryId}
+            onClick={handleRemoveAll}
+            style={{ ...pill, border: '1px solid rgba(239,68,68,0.4)', color: '#FCA5A5' }}
           >
-            {busyAction === 'ADD_EMAIL_TO_CATEGORY' ? 'Adding…' : '+ Add Group Mail'}
+            {busyAction === 'REMOVE_ALL_POOL_MEMBERS' ? 'Removing…' : 'Remove everyone'}
+          </button>
+          <button
+            type="button"
+            className="btn btn-secondary"
+            disabled={!!busyAction || !canRunAssigner}
+            onClick={handleRunAssigner}
+            style={pill}
+          >
+            {busyAction === 'SERIAL_RESET_ASSIGN' && live?.phase ? `${live.percent}%` : 'Rebuild all groups'}
           </button>
         </div>
-      </div>
-
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, alignItems: 'center', marginBottom: 18 }}>
-        <button
-          type="button"
-          className="btn btn-secondary"
-          disabled={!!busyAction || !categoryId}
-          onClick={handleRemoveAll}
-          style={{
-            padding: '12px 18px',
-            borderRadius: 999,
-            fontWeight: 800,
-            fontSize: 13.5,
-            border: '1px solid rgba(239,68,68,0.4)',
-            color: '#FCA5A5',
-          }}
-        >
-          {busyAction === 'REMOVE_ALL_POOL_MEMBERS'
-            ? 'Removing…'
-            : hasAssignedUsers
-              ? 'Step 1 · Remove all members'
-              : 'Step 1 · Remove all (DB already empty)'}
-        </button>
-
-        <button
-          type="button"
-          className="btn btn-primary"
-          disabled={!!busyAction || !canRunAssigner}
-          onClick={handleRunAssigner}
-          style={{
-            padding: '12px 20px',
-            borderRadius: 999,
-            fontWeight: 800,
-            fontSize: 14,
-            background: canRunAssigner
-              ? 'linear-gradient(135deg, #0EA5E9, #2563EB)'
-              : 'rgba(100,116,139,0.45)',
-            border: 'none',
-            boxShadow: canRunAssigner ? '0 4px 14px rgba(37, 99, 235, 0.35)' : 'none',
-            opacity: canRunAssigner ? 1 : 0.65,
-            cursor: canRunAssigner && !busyAction ? 'pointer' : 'not-allowed',
-          }}
-        >
-          {busyAction === 'SERIAL_RESET_ASSIGN'
-            ? live?.phase
-              ? `${live.phase}… ${live.percent}%`
-              : 'Assigning…'
-            : canRunAssigner
-              ? 'Step 2 · Assign serials & ADD'
-              : `Waiting — need ${poolsShortBy || poolsNeeded} active mail(s)`}
-        </button>
-
-        <button
-          type="button"
-          className="btn btn-secondary"
-          disabled={!!busyAction}
-          onClick={handleEnsureSerials}
-          style={{ padding: '12px 16px', borderRadius: 999, fontWeight: 700, fontSize: 13 }}
-        >
-          {busyAction === 'ENSURE_SERIALS' ? 'Assigning serials…' : 'Assign missing serials'}
-        </button>
-
-        <button
-          type="button"
-          className="btn btn-secondary"
-          disabled={!!busyAction}
-          onClick={handleReconcile}
-          style={{ padding: '12px 16px', borderRadius: 999, fontWeight: 700, fontSize: 13 }}
-        >
-          {busyAction === 'RECONCILE_GOOGLE' ? 'Reconciling…' : 'Reconcile Google vs DB'}
-        </button>
-      </div>
-
-      {lastRemoveResult && (
-        <div className="card" style={{ padding: '14px 16px', borderRadius: 14, marginBottom: 12 }}>
-          <div style={{ fontWeight: 800, fontSize: 13, marginBottom: 6 }}>Last remove</div>
-          <div style={{ fontSize: 13, color: 'var(--text-muted)' }}>
-            Cleared {lastRemoveResult.clearedUsers} users · {lastRemoveResult.removeJobsQueued} REMOVE jobs queued
-          </div>
-        </div>
-      )}
-
-      {lastResult && (
-        <div
-          className="card"
-          style={{
-            padding: '16px 18px',
-            borderRadius: 16,
-            border: '1px solid rgba(14,165,233,0.25)',
-            background: 'rgba(14,165,233,0.08)',
-          }}
-        >
-          <div style={{ fontWeight: 800, fontSize: 14, marginBottom: 8, color: 'var(--text-primary)' }}>
-            Last serial assign
-          </div>
-          <div style={{ fontSize: 13, color: 'var(--text-muted)', lineHeight: 1.5 }}>
-            Users: {lastResult.totalUsers} · ADD {lastResult.addJobsQueued} · already in correct group (DB){' '}
-            {lastResult.unchangedCount}
-          </div>
-          {lastResult.distribution && lastResult.distribution.length > 0 && (
-            <div style={{ marginTop: 12, display: 'grid', gap: 6 }}>
-              {lastResult.distribution
-                .filter(d => d.memberCount > 0)
-                .map(d => (
-                  <div key={d.groupEmail} style={{ fontSize: 13, color: 'var(--text-primary)' }}>
-                    <strong>Group {d.groupNumber ?? '?'}</strong>
-                    {' · '}
-                    serials #{d.serialFrom}–#{d.serialTo}
-                    {' · '}
-                    {d.groupEmail} ({d.memberCount}/{d.maxCapacity})
-                  </div>
-                ))}
-            </div>
-          )}
-        </div>
-      )}
+        <p style={{ margin: '10px 0 0', fontSize: 12, color: 'var(--text-muted)' }}>
+          Rebuild is for a full reset only: remove everyone first, then rebuild.
+        </p>
+      </details>
 
       {live?.open && (
         <div

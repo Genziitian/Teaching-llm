@@ -585,15 +585,6 @@ export default function CoursesPage() {
                   EXPIRED
                 </div>
               )}
-              {isLive && (
-                <div style={{
-                  position: 'absolute', top: 0, left: '-100%', width: '50%', height: '100%',
-                  background: 'linear-gradient(to right, transparent, rgba(255,255,255,0.6), transparent)',
-                  transform: 'skewX(-25deg)',
-                  animation: 'proShine 3s infinite ease-in-out',
-                  zIndex: 10, pointerEvents: 'none'
-                }} />
-              )}
               {/* Gradient Banner */}
               <div style={{
                 height: 'var(--course-banner-height, 100px)',
@@ -782,18 +773,10 @@ export default function CoursesPage() {
                       <span>
                         ⚡ Upgrade to PRO — ₹{course.liveUpgradePrice}
                       </span>
-                      
-                      {/* Shine effect overlay */}
-                      <div style={{
-                        position: 'absolute', top: 0, left: '-100%', width: '50%', height: '100%',
-                        background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent)',
-                        transform: 'skewX(-25deg)',
-                        transition: 'left 0.75s',
-                      }} className="button-shine" />
+
                     </button>
                     
                     <style dangerouslySetInnerHTML={{ __html: `
-                      button:hover .button-shine { left: 150% !important; }
                       @keyframes fadeIn { from { opacity: 0; transform: translate(-50%, 5px); } to { opacity: 1; transform: translate(-50%, 0); } }
                     `}} />
                   </div>

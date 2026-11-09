@@ -22,6 +22,22 @@ import ClearCourseEnrollmentsModal from '@/components/ClearCourseEnrollmentsModa
 import CourseProtectionField from '@/components/exam-protection/CourseProtectionField'
 import AcademicTermsModal from '@/components/manage/AcademicTermsModal'
 
+const NOTIF_TEMPLATES = [
+  { key: 'OFFER', label: 'Offer', title: 'Limited time offer on courses', body: 'Get a special discount on selected courses. The offer ends soon, tap to see details.', ctaText: 'View offer', ctaLink: '/courses/explore', category: 'PROMOTIONAL' },
+  { key: 'LIVE', label: 'Live class', title: 'Live class starting soon', body: 'Your live session starts in a few minutes. Tap to join.', ctaText: 'Join class', ctaLink: '/live', category: 'ALERT' },
+  { key: 'MATERIAL', label: 'New material', title: 'New study material added', body: 'Fresh notes and practice sets are now available in Materials.', ctaText: 'Open materials', ctaLink: '/materials', category: 'ACADEMIC' },
+  { key: 'SCHEDULE', label: 'Schedule change', title: 'Schedule update', body: 'We have updated the schedule. Please check the new timings.', ctaText: 'See update', ctaLink: '/announcements', category: 'ALERT' },
+]
+
+const NOTIF_LINKS = [
+  { value: '/courses/explore', label: 'Explore courses' },
+  { value: '/live', label: 'Live classes' },
+  { value: '/materials', label: 'Materials' },
+  { value: '/calendar', label: 'Events calendar' },
+  { value: '/announcements', label: 'Announcements' },
+  { value: '/profile', label: 'Profile' },
+]
+
 export type Tab = 'courses' | 'offerings' | 'bundles' | 'lectures' | 'events' | 'materials' | 'announcements' | 'notifications' | 'faqs' | 'queries'
 
 interface ManagePageInnerProps {
@@ -187,6 +203,7 @@ export function ManagePageInner({ forcedTab }: ManagePageInnerProps = {}) {
   const [materialSourceType, setMaterialSourceType] = useState<'FILE' | 'LINK'>('FILE')
 
   // Dedicated states for Advanced Inline Notification Dashboard
+  const [customLink, setCustomLink] = useState(false)
   const [inlineNotif, setInlineNotif] = useState({
     presetStyle: '',
     title: '',
@@ -357,7 +374,7 @@ export function ManagePageInner({ forcedTab }: ManagePageInnerProps = {}) {
       const data = await res.json()
       if (res.ok && data.url) {
         setInlineNotif(p => ({ ...p, imageUrl: data.url }))
-        alert('Banner image uploaded successfully!')
+        alert('Image uploaded.')
       } else {
         alert(`Upload failed: ${data.error || 'Unknown error'}`)
       }
@@ -370,7 +387,7 @@ export function ManagePageInner({ forcedTab }: ManagePageInnerProps = {}) {
 
   async function handleSendCampaign() {
     if (!inlineNotif.title || !inlineNotif.body) {
-      alert('Campaign Title and Message Body are required.')
+      alert('Add a title and a message.')
       return
     }
 
@@ -408,9 +425,10 @@ export function ManagePageInner({ forcedTab }: ManagePageInnerProps = {}) {
         throw new Error(data.error || 'Failed to create campaign')
       }
 
-      alert(inlineNotif.sendLater ? '🎉 Notification campaign scheduled successfully!' : '🚀 Notification broadcasted successfully!')
+      alert(inlineNotif.sendLater ? 'Notification scheduled.' : 'Notification sent.')
       
       // Reset form
+      setCustomLink(false)
       setInlineNotif({
         presetStyle: '',
         title: '',
@@ -2040,441 +2058,209 @@ export function ManagePageInner({ forcedTab }: ManagePageInnerProps = {}) {
 
 
       {tab === 'notifications' ? (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-          {/* Custom scoped styles for premium UI */}
+        <div className="nc-page">
           <style dangerouslySetInnerHTML={{__html: `
-            .notif-console-container {
-              display: grid;
-              grid-template-columns: 1.2fr 1fr;
-              gap: 28px;
-              width: 100%;
-              align-items: start;
+            .nc-page{display:flex;flex-direction:column;gap:20px;width:100%}
+            .nc-head{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap}
+            .nc-h2{margin:0;font-size:22px;font-weight:800;color:var(--text-primary);letter-spacing:-0.01em}
+            .nc-sub{margin:4px 0 0;font-size:14px;color:var(--text-muted)}
+            .nc-stats{display:flex;gap:10px}
+            .nc-stat{display:flex;flex-direction:column;align-items:flex-start;min-width:92px;padding:10px 16px;border-radius:14px;background:var(--surface);border:1px solid var(--border)}
+            .nc-stat b{font-size:20px;font-weight:800;color:var(--text-primary);line-height:1.1}
+            .nc-stat span{font-size:12px;color:var(--text-muted);margin-top:2px}
+            .nc-grid{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:20px;align-items:start}
+            .nc-card{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:24px;display:flex;flex-direction:column;gap:18px;min-width:0}
+            .nc-side{display:flex;flex-direction:column;gap:20px;min-width:0}
+            .nc-sec{font-size:13px;font-weight:800;color:var(--text-primary);display:flex;align-items:center;gap:8px;padding-top:6px;border-top:1px solid var(--border);margin-top:2px}
+            .nc-card > .nc-sec:first-child{border-top:none;padding-top:0;margin-top:0}
+            .nc-opt{font-size:11px;font-weight:600;color:var(--text-muted)}
+            .nc-field{display:flex;flex-direction:column;gap:6px;min-width:0}
+            .nc-label{font-size:13px;font-weight:600;color:var(--text-secondary);display:flex;justify-content:space-between;align-items:center;gap:8px}
+            .nc-count{font-size:12px;font-weight:500;color:var(--text-muted)}
+            .nc-input{width:100%;box-sizing:border-box;padding:11px 14px;border-radius:12px;border:1.5px solid var(--border);background:var(--surface-2);font-size:14px;color:var(--text-primary);font-family:inherit;transition:border-color .15s,box-shadow .15s}
+            .nc-input:focus{outline:none;border-color:#4f46e5;box-shadow:0 0 0 3px rgba(79,70,229,.18)}
+            .nc-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+            .nc-chips{display:flex;flex-wrap:wrap;gap:8px}
+            .nc-chip{padding:8px 14px;border-radius:999px;border:1.5px solid var(--border);background:transparent;color:var(--text-secondary);font-size:13px;font-weight:600;cursor:pointer;transition:all .15s}
+            .nc-chip.on{background:#4f46e5;border-color:#4f46e5;color:#fff}
+            .nc-seg{display:flex;padding:4px;border-radius:12px;background:var(--surface-2);border:1px solid var(--border);gap:4px}
+            .nc-seg button{flex:1;padding:9px 10px;border:none;border-radius:9px;background:transparent;color:var(--text-secondary);font-size:13px;font-weight:700;cursor:pointer;transition:all .15s;white-space:nowrap}
+            .nc-seg button.on{background:#4f46e5;color:#fff}
+            .nc-btn{padding:10px 14px;border-radius:12px;border:1.5px solid var(--border);background:var(--surface);color:var(--text-primary);font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap}
+            .nc-btn:disabled{opacity:.6;cursor:not-allowed}
+            .nc-imgrow{display:flex;gap:8px;flex-wrap:wrap}
+            .nc-imgrow .nc-input{flex:1;min-width:180px}
+            .nc-thumb{display:flex;align-items:center;gap:12px}
+            .nc-thumb-img{width:96px;height:54px;border-radius:10px;background-size:cover;background-position:center;border:1px solid var(--border);flex-shrink:0}
+            .nc-hint{font-size:12px;color:var(--text-muted);margin:0}
+            .nc-send{width:100%;padding:14px 20px;border-radius:14px;border:none;background:#4f46e5;color:#fff;font-size:15px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:opacity .15s}
+            .nc-send:disabled{opacity:.45;cursor:not-allowed}
+            .nc-why{font-size:12.5px;color:var(--text-muted);text-align:center;margin:8px 0 0}
+            .nc-preview-title{display:flex;justify-content:space-between;align-items:center}
+            .nc-preview-title h3{margin:0;font-size:15px;font-weight:800;color:var(--text-primary)}
+            .nc-preview-title span{font-size:12px;color:var(--text-muted)}
+            .nc-stage{border-radius:18px;padding:22px 16px 26px;background:linear-gradient(160deg,#1f1a3a 0%,#0d0b18 100%);display:flex;flex-direction:column;align-items:center;gap:16px}
+            .nc-clock{color:rgba(255,255,255,.9);font-size:40px;font-weight:300;letter-spacing:-.02em;line-height:1}
+            .nc-push{width:100%;max-width:340px;background:rgba(255,255,255,.96);color:#111827;border-radius:18px;padding:12px 14px;display:flex;flex-direction:column;gap:6px;box-shadow:0 10px 25px rgba(0,0,0,.35)}
+            .nc-push-top{display:flex;align-items:center;gap:8px;font-size:12px;color:#6b7280;font-weight:600}
+            .nc-push-logo{width:18px;height:18px;border-radius:5px;background:#4f46e5;color:#fff;font-size:10px;font-weight:800;display:flex;align-items:center;justify-content:center}
+            .nc-push-top .grow{flex:1;color:#374151}
+            .nc-push-title{margin:0;font-size:14px;font-weight:800;color:#111827;line-height:1.3;word-break:break-word}
+            .nc-push-body{margin:0;font-size:13px;color:#4b5563;line-height:1.4;word-break:break-word}
+            .nc-push-img{width:100%;aspect-ratio:2/1;border-radius:10px;background-size:cover;background-position:center;margin-top:4px}
+            .nc-push-cta{align-self:flex-start;margin-top:4px;padding:6px 12px;border-radius:8px;background:#eef2ff;color:#4338ca;font-size:12px;font-weight:700}
+            .nc-ph{opacity:.45}
+            .nc-log-head{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+            .nc-log-head h3{margin:0;font-size:15px;font-weight:800;color:var(--text-primary)}
+            .nc-log-tools{display:flex;gap:10px;flex-wrap:wrap}
+            .nc-log-tools .nc-input{flex:1;min-width:140px;padding:9px 12px}
+            .nc-log-tools .nc-seg{flex-shrink:0}
+            .nc-log-tools .nc-seg button{padding:7px 12px}
+            .nc-list{display:flex;flex-direction:column;gap:10px;max-height:420px;overflow-y:auto;padding-right:2px}
+            .nc-item{padding:14px;border-radius:14px;background:var(--surface-2);border:1px solid var(--border);display:flex;flex-direction:column;gap:8px}
+            .nc-item-top{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+            .nc-pill{font-size:11px;font-weight:800;padding:3px 9px;border-radius:999px}
+            .nc-item-meta{font-size:12px;color:var(--text-muted)}
+            .nc-item-title{margin:0;font-size:14px;font-weight:700;color:var(--text-primary);word-break:break-word}
+            .nc-item-body{margin:0;font-size:13px;color:var(--text-secondary);line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;word-break:break-word}
+            .nc-item-foot{font-size:12px;color:var(--text-muted);display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap}
+            .nc-empty{padding:28px 12px;text-align:center;color:var(--text-muted);font-size:13.5px}
+            @media (max-width:1024px){.nc-grid{grid-template-columns:1fr}}
+            @media (max-width:640px){
+              .nc-card{padding:16px;border-radius:16px}
+              .nc-row{grid-template-columns:1fr}
+              .nc-input{font-size:16px}
+              .nc-stats{width:100%}
+              .nc-stat{flex:1}
+              .nc-imgrow .nc-btn{flex:1}
             }
-            @media (max-width: 1024px) {
-              .notif-console-container {
-                grid-template-columns: 1fr;
-              }
-            }
-            .notif-glow-card {
-              background: var(--surface);
-              border: 1px solid rgba(226, 232, 240, 0.8);
-              border-radius: 24px;
-              box-shadow: 0 10px 30px rgba(0, 0, 0, 0.03);
-              padding: 28px;
-              transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-              display: flex;
-              flex-direction: column;
-              gap: 20px;
-            }
-            @media (hover: hover) and (pointer: fine) {
-.notif-glow-card:hover {
-              box-shadow: 0 20px 40px rgba(99, 102, 241, 0.06);
-              border-color: rgba(99, 102, 241, 0.2);
-            }
-}
-            .section-title {
-              font-size: 18px;
-              font-weight: 800;
-              color: var(--text-primary);
-              display: flex;
-              align-items: center;
-              gap: 8px;
-              margin: 0;
-              padding-bottom: 12px;
-              border-bottom: 1px solid var(--border);
-            }
-            .input-group {
-              display: flex;
-              flex-direction: column;
-              gap: 6px;
-              width: 100%;
-            }
-            .input-label {
-              font-size: 12.5px;
-              font-weight: 700;
-              color: var(--text-secondary);
-              display: flex;
-              align-items: center;
-              justify-content: space-between;
-            }
-            .char-limit {
-              font-size: 10.5px;
-              font-weight: 500;
-              color: var(--text-muted);
-            }
-            .premium-input {
-              width: 100%;
-              padding: 12px 16px;
-              border-radius: 12px;
-              border: 1.5px solid var(--border);
-              background: var(--surface-2);
-              font-size: 14px;
-              color: var(--text-primary);
-              transition: all 0.2s ease;
-            }
-            .premium-input:focus {
-              outline: none;
-              border-color: #6366f1;
-              background: var(--surface);
-              box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.12);
-            }
-            .chip-container {
-              display: flex;
-              gap: 8px;
-              flex-wrap: wrap;
-              margin-top: 4px;
-            }
-            .category-chip {
-              padding: 8px 16px;
-              border-radius: 50px;
-              font-size: 12.5px;
-              font-weight: 700;
-              cursor: pointer;
-              transition: all 0.2s ease;
-              border: 2px solid transparent;
-            }
-            .category-chip.active {
-              box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-            }
-            .phone-preview-card {
-              border: 12px solid #202022;
-              border-radius: 36px;
-              background: linear-gradient(150deg, #1f1a3a 0%, #0d0b18 100%);
-              padding: 16px;
-              width: 100%;
-              max-width: 290px;
-              height: 480px;
-              display: flex;
-              flex-direction: column;
-              position: relative;
-              overflow: hidden;
-              box-shadow: 0 20px 50px rgba(0,0,0,0.25);
-              margin: 0 auto;
-            }
-            .phone-notch {
-              width: 110px;
-              height: 18px;
-              background: #202022;
-              border-radius: 0 0 14px 14px;
-              position: absolute;
-              top: 0;
-              left: 50%;
-              transform: translateX(-50%);
-              z-index: 10;
-            }
-            .phone-status-bar {
-              display: flex;
-              justify-content: space-between;
-              font-size: 10px;
-              color: #a78bfa;
-              margin-bottom: 24px;
-              padding-top: 4px;
-              font-weight: 600;
-            }
-            .push-notification-banner {
-              width: 100%;
-              background: rgba(255, 255, 255, 0.96);
-              backdrop-filter: blur(20px);
-              border-radius: 18px;
-              padding: 12px;
-              display: flex;
-              flex-direction: column;
-              gap: 6px;
-              box-shadow: 0 10px 25px rgba(0,0,0,0.4);
-              animation: slideDown 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28);
-              transform-origin: top center;
-            }
-            @keyframes slideDown {
-              0% { transform: translateY(-40px) scale(0.95); opacity: 0; }
-              100% { transform: translateY(0) scale(1); opacity: 1; }
-            }
-            .push-header {
-              display: flex;
-              align-items: center;
-              justify-content: space-between;
-            }
-            .push-app-badge {
-              display: flex;
-              align-items: center;
-              gap: 6px;
-            }
-            .push-logo {
-              width: 16px;
-              height: 16px;
-              border-radius: 4px;
-              background: #6366f1;
-              color: white;
-              display: flex;
-              align-items: center;
-              justify-content: center;
-              font-size: 9px;
-              font-weight: 900;
-            }
-            .push-app-name {
-              font-size: 10.5px;
-              font-weight: 800;
-              color: var(--text-primary);
-            }
-            .push-time {
-              font-size: 9.5px;
-              color: var(--text-muted);
-            }
-            .push-title {
-              font-size: 12.5px;
-              font-weight: 800;
-              color: var(--text-primary);
-              margin: 0;
-            }
-            .push-body {
-              font-size: 10.5px;
-              color: var(--text-secondary);
-              line-height: 1.35;
-              margin: 0;
-            }
-            .push-banner-img {
-              width: 100%;
-              height: 110px;
-              background-size: cover;
-              background-position: center;
-              border-radius: 10px;
-              margin-top: 4px;
-              border: 1px solid rgba(0,0,0,0.05);
-            }
-            .push-cta-btn {
-              width: 100%;
-              padding: 8px;
-              border-radius: 8px;
-              background: var(--border);
-              border: 1px solid var(--border);
-              color: #6366f1;
-              font-size: 11px;
-              font-weight: 800;
-              text-align: center;
-              margin-top: 4px;
-              transition: background 0.2s;
-            }
-            .metric-bar {
-              display: grid;
-              grid-template-columns: repeat(3, 1fr);
-              gap: 16px;
-              width: 100%;
-            }
-            .metric-card {
-              background: var(--surface);
-              border: 1.5px solid var(--border);
-              border-radius: 16px;
-              padding: 16px;
-              text-align: center;
-              box-shadow: 0 4px 6px -1px rgba(0,0,0,0.01), 0 2px 4px -1px rgba(0,0,0,0.01);
-            }
-            .metric-num {
-              font-size: 20px;
-              font-weight: 800;
-              color: #6366f1;
-              line-height: 1;
-              margin-bottom: 4px;
-            }
-            .metric-label {
-              font-size: 11px;
-              font-weight: 700;
-              color: var(--text-secondary);
-              text-transform: uppercase;
-              letter-spacing: 0.05em;
-            }
-            .history-item-card {
-              background: var(--surface);
-              border: 1px solid var(--border);
-              border-radius: 18px;
-              padding: 18px;
-              box-shadow: 0 4px 10px rgba(0,0,0,0.01);
-              transition: all 0.2s ease;
-              display: flex;
-              flex-direction: column;
-              gap: 12px;
-            }
-            @media (hover: hover) and (pointer: fine) {
-.history-item-card:hover {
-              transform: translateX(3px);
-              box-shadow: 0 8px 20px rgba(99, 102, 241, 0.04);
-              border-color: rgba(99, 102, 241, 0.1);
-            }
-}
           `}} />
 
-          {/* Quick Metrics Bar */}
-          <div className="metric-bar">
-            <div className="metric-card">
-              <div className="metric-num" style={{ color: 'var(--accent)' }}>{campaigns.filter(c => c.status === 'SENT').length}</div>
-              <div className="metric-label">Delivered</div>
+          <div className="nc-head">
+            <div>
+              <h2 className="nc-h2">Send a notification</h2>
+              <p className="nc-sub">Write a message, choose who gets it, then send it now or later.</p>
             </div>
-            <div className="metric-card">
-              <div className="metric-num" style={{ color: 'var(--warning)' }}>{campaigns.filter(c => c.status === 'PENDING').length}</div>
-              <div className="metric-label">Scheduled</div>
-            </div>
-            <div className="metric-card">
-              <div className="metric-num" style={{ color: 'var(--success)' }}>100%</div>
-              <div className="metric-label">Channel Health</div>
+            <div className="nc-stats">
+              <div className="nc-stat"><b>{campaigns.filter(c => c.status === 'SENT').length}</b><span>Sent</span></div>
+              <div className="nc-stat"><b>{campaigns.filter(c => c.status === 'PENDING').length}</b><span>Scheduled</span></div>
             </div>
           </div>
 
-          <div className="notif-console-container">
-            {/* LEFT COLUMN: Sender Console */}
-            <div className="notif-glow-card">
-              <h3 className="section-title">
-                <span style={{ fontSize: '20px' }}>🚀</span> Advanced Broadcast Console
-              </h3>
-
-              {/* Presets Select */}
-              <div className="input-group">
-                <label className="input-label" style={{ color: 'var(--accent)' }}>
-                  <span>🎨 Quick Swiggy / Zomato Presets</span>
-                  <span style={{ fontSize: '10px', background: 'var(--primary-light)', color: 'var(--accent)', padding: '2px 8px', borderRadius: '5px' }}>Engage instantly</span>
-                </label>
-                <select
-                  className="premium-input"
-                  value={inlineNotif.presetStyle || ''}
-                  onChange={e => {
-                    const val = e.target.value
-                    if (val === 'PROMO') {
-                      setInlineNotif(p => ({
-                        ...p,
-                        presetStyle: val,
-                        title: '🍔 Hungry for Success? 50% Off is Served!',
-                        body: 'Satisfy your learning cravings. Get comprehensive lectures, IITian study notes, and masterclass blueprints for half-off. Limited portions remaining! ⚡',
-                        ctaText: 'Claim 50% Deal 🎁',
-                        ctaLink: '/courses/explore',
-                        category: 'PROMOTIONAL',
-                      }))
-                    } else if (val === 'LIVE_NOW') {
-                      setInlineNotif(p => ({
-                        ...p,
-                        presetStyle: val,
-                        title: '🚨 Boom! IITian session starting in 2 minutes!',
-                        body: 'The exam syllabus analysis, high-yield cheat sheets, and direct qualifier mock review is starting. Quick, tap to join the pro livestream room! 🎥',
-                        ctaText: 'Enter Live Stream 📲',
-                        ctaLink: '/live',
-                        category: 'ALERT',
-                      }))
-                    } else if (val === 'NEW_MATERIAL') {
-                      setInlineNotif(p => ({
-                        ...p,
-                        presetStyle: val,
-                        title: '📚 Dropped: May Term solved blueprint notes!',
-                        body: 'We just uploaded the handwritten formulas, solved practice sets, and last-year exam banks to supercharge your test scores. Score high! 🧠',
-                        ctaText: 'Get Blueprint Notes 📂',
-                        ctaLink: '/materials',
-                        category: 'ACADEMIC',
-                      }))
-                    } else if (val === 'ALERT') {
-                      setInlineNotif(p => ({
-                        ...p,
-                        presetStyle: val,
-                        title: '⚠️ ATTENTION: Mock schedule overlap fixed!',
-                        body: 'We adjusted the exam dates to prevent slot overlaps with qualifiers. Open to review the final schedule blueprint immediately to update your calendar. 🗓️',
-                        ctaText: 'See New Schedule 📢',
-                        ctaLink: '/announcements',
-                        category: 'ALERT',
-                      }))
-                    } else {
-                      setInlineNotif(p => ({ ...p, presetStyle: '' }))
-                    }
-                  }}
-                  style={{ border: '2px dashed #6366f1', background: 'var(--surface-2)' }}
-                >
-                  <option value="">-- Choose High-Converting Preset --</option>
-                  <option value="PROMO">🏷️ Promotional Deal / Offer (Zomato Style)</option>
-                  <option value="LIVE_NOW">🚨 Live Class Alert (Instant Swiggy Style)</option>
-                  <option value="NEW_MATERIAL">📚 Study Notes & PDF Release Alert</option>
-                  <option value="ALERT">📢 High-Alert Syllabus Reschedule</option>
-                </select>
-              </div>
-
-              {/* Category Badge Chips */}
-              <div className="input-group">
-                <label className="input-label">Category</label>
-                <div className="chip-container">
-                  {[
-                    { key: 'PROMOTIONAL', label: '🏷️ Promo', bg: 'var(--danger-light)', text: 'var(--danger)', border: 'var(--border)' },
-                    { key: 'ACADEMIC', label: '📚 Academic', bg: 'var(--primary-light)', text: '#3730a3', border: 'var(--border)' },
-                    { key: 'ALERT', label: '🚨 System Alert', bg: 'var(--warning-light)', text: 'var(--warning)', border: 'var(--border)' },
-                    { key: 'GENERAL', label: '📢 General Info', bg: 'var(--success-light)', text: '#065f46', border: '#a7f3d0' }
-                  ].map(c => {
-                    const isActive = inlineNotif.category === c.key
-                    return (
-                      <button
-                        key={c.key}
-                        type="button"
-                        onClick={() => setInlineNotif(p => ({ ...p, category: c.key }))}
-                        className={`category-chip ${isActive ? 'active' : ''}`}
-                        style={{
-                          background: isActive ? c.bg : 'var(--surface)',
-                          color: isActive ? c.text : 'var(--text-secondary)',
-                          borderColor: isActive ? c.border : 'transparent',
-                        }}
-                      >
-                        {c.label}
-                      </button>
-                    )
-                  })}
+          <div className="nc-grid">
+            {/* LEFT: compose */}
+            <div className="nc-card">
+              <div className="nc-field">
+                <div className="nc-label">Start from a template</div>
+                <div className="nc-chips">
+                  {NOTIF_TEMPLATES.map(t => (
+                    <button
+                      key={t.key}
+                      type="button"
+                      className={`nc-chip ${inlineNotif.presetStyle === t.key ? 'on' : ''}`}
+                      onClick={() => {
+                        setCustomLink(false)
+                        setInlineNotif(p => ({ ...p, presetStyle: t.key, title: t.title, body: t.body, ctaText: t.ctaText, ctaLink: t.ctaLink, category: t.category }))
+                      }}
+                    >
+                      {t.label}
+                    </button>
+                  ))}
                 </div>
               </div>
 
-              {/* Campaign Title */}
-              <div className="input-group">
-                <div className="input-label">
-                  <span>Campaign Title *</span>
-                  <span className="char-limit">{inlineNotif.title.length}/50 chars</span>
+              <div className="nc-sec">Message</div>
+
+              <div className="nc-field">
+                <div className="nc-label">
+                  <span>Title</span>
+                  <span className="nc-count">{inlineNotif.title.length}/50</span>
                 </div>
                 <input
                   type="text"
-                  className="premium-input"
+                  className="nc-input"
                   value={inlineNotif.title}
-                  onChange={e => {
-                    if (e.target.value.length <= 50) {
-                      setInlineNotif(p => ({ ...p, title: e.target.value }))
-                    }
-                  }}
-                  placeholder="e.g. 🍔 Hungry for success? 50% Off is Served!"
+                  maxLength={50}
+                  onChange={e => setInlineNotif(p => ({ ...p, title: e.target.value.slice(0, 50) }))}
+                  placeholder="Short and clear"
                 />
               </div>
 
-              {/* Message Body */}
-              <div className="input-group">
-                <div className="input-label">
-                  <span>Message Body *</span>
-                  <span className="char-limit">{inlineNotif.body.length}/150 chars</span>
+              <div className="nc-field">
+                <div className="nc-label">
+                  <span>Message</span>
+                  <span className="nc-count">{inlineNotif.body.length}/150</span>
                 </div>
                 <textarea
-                  className="premium-input"
+                  className="nc-input"
                   rows={3}
                   value={inlineNotif.body}
-                  onChange={e => {
-                    if (e.target.value.length <= 150) {
-                      setInlineNotif(p => ({ ...p, body: e.target.value }))
-                    }
-                  }}
-                  placeholder="e.g. Satisfy your learning cravings. Get video courses for half-off..."
+                  maxLength={150}
+                  onChange={e => setInlineNotif(p => ({ ...p, body: e.target.value.slice(0, 150) }))}
+                  placeholder="What should students know?"
                   style={{ resize: 'vertical' }}
                 />
               </div>
 
-              {/* Banner Image with Upload */}
-              <div className="input-group">
-                <label className="input-label">Banner Image Visual (Optional)</label>
-                <div style={{ display: 'flex', gap: '10px' }}>
+              <div className="nc-sec">Button and image <span className="nc-opt">Optional</span></div>
+
+              <div className="nc-row">
+                <div className="nc-field">
+                  <div className="nc-label">Button text</div>
                   <input
                     type="text"
-                    className="premium-input"
+                    className="nc-input"
+                    value={inlineNotif.ctaText}
+                    onChange={e => setInlineNotif(p => ({ ...p, ctaText: e.target.value }))}
+                    placeholder="e.g. View offer"
+                  />
+                </div>
+                <div className="nc-field">
+                  <div className="nc-label">Opens</div>
+                  <select
+                    className="nc-input"
+                    value={customLink || (!!inlineNotif.ctaLink && !NOTIF_LINKS.some(l => l.value === inlineNotif.ctaLink)) ? '__custom__' : inlineNotif.ctaLink}
+                    onChange={e => {
+                      if (e.target.value === '__custom__') {
+                        setCustomLink(true)
+                        setInlineNotif(p => ({ ...p, ctaLink: '' }))
+                      } else {
+                        setCustomLink(false)
+                        setInlineNotif(p => ({ ...p, ctaLink: e.target.value }))
+                      }
+                    }}
+                  >
+                    <option value="">Nothing (just open the app)</option>
+                    {NOTIF_LINKS.map(l => <option key={l.value} value={l.value}>{l.label}</option>)}
+                    <option value="__custom__">Custom link</option>
+                  </select>
+                </div>
+              </div>
+
+              {(customLink || (!!inlineNotif.ctaLink && !NOTIF_LINKS.some(l => l.value === inlineNotif.ctaLink))) && (
+                <div className="nc-field">
+                  <input
+                    type="text"
+                    className="nc-input"
+                    value={inlineNotif.ctaLink}
+                    onChange={e => setInlineNotif(p => ({ ...p, ctaLink: e.target.value }))}
+                    placeholder="/courses/your-course-id or https://..."
+                  />
+                </div>
+              )}
+
+              <div className="nc-field">
+                <div className="nc-label">Banner image</div>
+                <div className="nc-imgrow">
+                  <input
+                    type="text"
+                    className="nc-input"
                     value={inlineNotif.imageUrl}
                     onChange={e => setInlineNotif(p => ({ ...p, imageUrl: e.target.value }))}
-                    placeholder="https://example.com/banner.png"
-                    style={{ flex: 1 }}
+                    placeholder="Paste an image link"
                   />
-                  <button type="button" onClick={() => { setRecentPhotosPage(1); fetchRecentPhotos(1); setShowRecentModal(true); }} className="btn btn-ghost" style={{ border: '1.5px solid #6366f1', color: 'var(--accent)', display: 'flex', alignItems: 'center', whiteSpace: 'nowrap', padding: '10px 14px', fontSize: '13px', cursor: 'pointer', background: 'var(--surface)' }}>
-                    🕒 Choose from Recent
-                  </button>
-                  <label className="btn btn-ghost" style={{ border: '1.5px solid var(--neu-dark)', cursor: 'pointer', display: 'flex', alignItems: 'center', whiteSpace: 'nowrap', padding: '10px 14px', fontSize: '13px', background: 'var(--surface)' }}>
-                    {isUploadingImage ? 'Uploading...' : '📂 Upload Banner'}
+                  <label className="nc-btn" style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', cursor: isUploadingImage ? 'not-allowed' : 'pointer' }}>
+                    {isUploadingImage ? 'Uploading...' : 'Upload'}
                     <input
                       type="file"
                       accept="image/*"
@@ -2486,356 +2272,211 @@ export function ManagePageInner({ forcedTab }: ManagePageInnerProps = {}) {
                       }}
                     />
                   </label>
-                </div>
-                <p style={{ fontSize: '11px', color: 'var(--text-secondary)', marginTop: '4px', marginBottom: 0, lineHeight: '1.4' }}>
-                  💡 <strong>Recommended:</strong> 2:1 or 16:9 aspect ratio (e.g. <code>1024x512 px</code> or <code>1200x675 px</code>) with main content centered. Compress under <code>80-100 KB</code> (WebP/JPG format) for fast loading.
-                </p>
-              </div>
-
-              {/* CTA Configuration */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '12px' }}>
-                <div className="input-group">
-                  <label className="input-label">CTA Button Label</label>
-                  <input
-                    type="text"
-                    className="premium-input"
-                    value={inlineNotif.ctaText}
-                    onChange={e => setInlineNotif(p => ({ ...p, ctaText: e.target.value }))}
-                    placeholder="e.g. Claim 50% Off 🎁"
-                  />
-                </div>
-                <div className="input-group">
-                  <label className="input-label">CTA Link Destination</label>
-                  <select
-                    className="premium-input"
-                    value={inlineNotif.ctaLink}
-                    onChange={e => setInlineNotif(p => ({ ...p, ctaLink: e.target.value }))}
+                  <button
+                    type="button"
+                    className="nc-btn"
+                    onClick={() => { setRecentPhotosPage(1); fetchRecentPhotos(1); setShowRecentModal(true) }}
                   >
-                    <option value="">-- Choose or Write Custom --</option>
-                    <option value="/courses/explore">Explore Batches 🛍️</option>
-                    <option value="/materials">Prep Materials / Handouts 📂</option>
-                    <option value="/calendar">Events Schedule 🗓️</option>
-                    <option value="/announcements">News & Updates 📢</option>
-                    <option value="/profile">Student Profile 👤</option>
-                  </select>
+                    Recent
+                  </button>
                 </div>
-              </div>
-
-              {/* Optional Custom CTA Link Field */}
-              <div className="input-group">
-                <input
-                  type="text"
-                  className="premium-input"
-                  value={inlineNotif.ctaLink}
-                  onChange={e => setInlineNotif(p => ({ ...p, ctaLink: e.target.value }))}
-                  placeholder="Or enter custom URL/route, e.g. /courses/clg123"
-                />
-              </div>
-
-              {/* Target Audience */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.2fr', gap: '12px' }}>
-                <div className="input-group">
-                  <label className="input-label">Audience Segment</label>
-                  <select
-                    className="premium-input"
-                    value={inlineNotif.targetType}
-                    onChange={e => setInlineNotif(p => ({ ...p, targetType: e.target.value as any, targetId: '' }))}
-                  >
-                    {userRole !== 'MODERATOR' && <option value="ALL">All Registered Students</option>}
-                    <option value="COURSE">Specific Course Batch</option>
-                    {userRole !== 'MODERATOR' && <option value="BUNDLE">Specific Bundle Pack</option>}
-                  </select>
-                </div>
-
-                {inlineNotif.targetType === 'COURSE' && (
-                  <div className="input-group">
-                    <label className="input-label">Select Course Batch *</label>
-                    <select
-                      className="premium-input"
-                      value={inlineNotif.targetId}
-                      onChange={e => setInlineNotif(p => ({ ...p, targetId: e.target.value }))}
-                    >
-                      <option value="">-- Select Course --</option>
-                      {courses.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-                    </select>
+                {inlineNotif.imageUrl ? (
+                  <div className="nc-thumb">
+                    <div className="nc-thumb-img" style={{ backgroundImage: `url(${inlineNotif.imageUrl})` }} />
+                    <button type="button" className="nc-btn" onClick={() => setInlineNotif(p => ({ ...p, imageUrl: '' }))}>Remove</button>
                   </div>
-                )}
-
-                {inlineNotif.targetType === 'BUNDLE' && (
-                  <div className="input-group">
-                    <label className="input-label">Select Course Bundle *</label>
-                    <select
-                      className="premium-input"
-                      value={inlineNotif.targetId}
-                      onChange={e => setInlineNotif(p => ({ ...p, targetId: e.target.value }))}
-                    >
-                      <option value="">-- Select Bundle --</option>
-                      {bundles.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
-                    </select>
-                  </div>
+                ) : (
+                  <p className="nc-hint">Best size 1200 x 675 px, under 100 KB.</p>
                 )}
               </div>
 
-              {/* Delivery Timing */}
-              <div className="input-group">
-                <label className="input-label">Broadcast Delivery Timing</label>
-                <div style={{ display: 'flex', gap: '20px', marginTop: '6px' }}>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', fontWeight: '600', cursor: 'pointer' }}>
-                    <input
-                      type="radio"
-                      name="inlineTiming"
-                      checked={!inlineNotif.sendLater}
-                      onChange={() => setInlineNotif(p => ({ ...p, sendLater: false }))}
-                      style={{ cursor: 'pointer', width: '16px', height: '16px' }}
-                    />
-                    ⚡ Instant Broadcast
-                  </label>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', fontWeight: '600', cursor: 'pointer' }}>
-                    <input
-                      type="radio"
-                      name="inlineTiming"
-                      checked={inlineNotif.sendLater}
-                      onChange={() => setInlineNotif(p => ({ ...p, sendLater: true, scheduledFor: new Date(Date.now() + 10 * 60 * 1000).toISOString().slice(0, 16) }))}
-                      style={{ cursor: 'pointer', width: '16px', height: '16px' }}
-                    />
-                    🗓️ Schedule for later (IST)
-                  </label>
-                </div>
+              <div className="nc-sec">Who gets it</div>
+
+              <div className="nc-seg" role="tablist" aria-label="Audience">
+                {([
+                  ...(userRole !== 'MODERATOR' ? [{ k: 'ALL', l: 'All students' }] : []),
+                  { k: 'COURSE', l: 'One course' },
+                  ...(userRole !== 'MODERATOR' ? [{ k: 'BUNDLE', l: 'One bundle' }] : []),
+                ] as { k: 'ALL' | 'COURSE' | 'BUNDLE'; l: string }[]).map(o => (
+                  <button
+                    key={o.k}
+                    type="button"
+                    className={inlineNotif.targetType === o.k ? 'on' : ''}
+                    onClick={() => setInlineNotif(p => ({ ...p, targetType: o.k, targetId: '' }))}
+                  >
+                    {o.l}
+                  </button>
+                ))}
+              </div>
+
+              {inlineNotif.targetType === 'COURSE' && (
+                <select
+                  className="nc-input"
+                  value={inlineNotif.targetId}
+                  onChange={e => setInlineNotif(p => ({ ...p, targetId: e.target.value }))}
+                >
+                  <option value="">Choose a course</option>
+                  {courses.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                </select>
+              )}
+
+              {inlineNotif.targetType === 'BUNDLE' && (
+                <select
+                  className="nc-input"
+                  value={inlineNotif.targetId}
+                  onChange={e => setInlineNotif(p => ({ ...p, targetId: e.target.value }))}
+                >
+                  <option value="">Choose a bundle</option>
+                  {bundles.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
+                </select>
+              )}
+
+              <div className="nc-sec">When</div>
+
+              <div className="nc-seg" role="tablist" aria-label="Timing">
+                <button type="button" className={!inlineNotif.sendLater ? 'on' : ''} onClick={() => setInlineNotif(p => ({ ...p, sendLater: false }))}>
+                  Send now
+                </button>
+                <button
+                  type="button"
+                  className={inlineNotif.sendLater ? 'on' : ''}
+                  onClick={() => setInlineNotif(p => ({ ...p, sendLater: true, scheduledFor: p.scheduledFor || new Date(Date.now() + 10 * 60 * 1000).toISOString().slice(0, 16) }))}
+                >
+                  Schedule
+                </button>
               </div>
 
               {inlineNotif.sendLater && (
-                <div className="input-group">
-                  <label className="input-label">Scheduled Date & Time (Indian Standard Time)</label>
+                <div className="nc-field">
                   <input
                     type="datetime-local"
-                    className="premium-input"
+                    className="nc-input"
                     value={inlineNotif.scheduledFor}
                     onChange={e => setInlineNotif(p => ({ ...p, scheduledFor: e.target.value }))}
                   />
-                  <p style={{ fontSize: '11px', color: 'var(--text-secondary)', margin: 0 }}>
-                    Campaign will broadcast automatically to target audience at the specified local time.
-                  </p>
+                  <p className="nc-hint">Sent automatically at this time (India time).</p>
                 </div>
               )}
 
-              {/* Launch Broadcast Button */}
-              <button
-                type="button"
-                onClick={handleSendCampaign}
-                disabled={isSendingCampaign || isUploadingImage || !inlineNotif.title || !inlineNotif.body}
-                className="btn btn-primary"
-                style={{
-                  width: '100%',
-                  padding: '14px 20px',
-                  borderRadius: '14px',
-                  fontSize: '15px',
-                  fontWeight: '800',
-                  background: 'linear-gradient(135deg, #6366f1 0%, #4F46E5 100%)',
-                  border: 'none',
-                  boxShadow: '0 8px 20px rgba(99,102,241,0.2)',
-                  color: 'white',
-                  cursor: (isSendingCampaign || isUploadingImage || !inlineNotif.title || !inlineNotif.body) ? 'not-allowed' : 'pointer',
-                  opacity: (isSendingCampaign || isUploadingImage || !inlineNotif.title || !inlineNotif.body) ? 0.6 : 1,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '8px'
-                }}
-              >
-                {isSendingCampaign ? (
-                  <>
-                    <svg className="animate-spin" width="16" height="16" fill="none" viewBox="0 0 24 24" style={{ marginRight: '6px' }}>
-                      <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" style={{ opacity: 0.25 }}></circle>
-                      <path fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                    Executing Broadcast...
-                  </>
-                ) : inlineNotif.sendLater ? (
-                  '🗓️ Schedule Push Campaign'
-                ) : (
-                  '🚀 Broadcast Push Notification'
-                )}
-              </button>
+              {(() => {
+                const reason =
+                  !inlineNotif.title || !inlineNotif.body ? 'Add a title and a message to continue.'
+                  : inlineNotif.targetType !== 'ALL' && !inlineNotif.targetId ? 'Choose who should receive it.'
+                  : inlineNotif.sendLater && !inlineNotif.scheduledFor ? 'Pick a date and time.'
+                  : ''
+                const blocked = !!reason || isSendingCampaign || isUploadingImage
+                return (
+                  <div>
+                    <button
+                      type="button"
+                      className="nc-send"
+                      disabled={blocked}
+                      onClick={() => {
+                        if (inlineNotif.targetType === 'ALL' && !inlineNotif.sendLater && !window.confirm('Send this notification to all students now?')) return
+                        handleSendCampaign()
+                      }}
+                    >
+                      {isSendingCampaign ? 'Sending...' : inlineNotif.sendLater ? 'Schedule notification' : 'Send notification'}
+                    </button>
+                    {reason && !isSendingCampaign && <p className="nc-why">{reason}</p>}
+                  </div>
+                )
+              })()}
             </div>
 
-            {/* PREVIEW & HISTORY PANEL */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-              {/* Smartphone Real-time Preview */}
-              <div className="notif-glow-card" style={{ padding: '20px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border)', paddingBottom: '12px', marginBottom: '16px' }}>
-                  <h4 style={{ fontSize: '13px', fontWeight: '800', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em', margin: 0 }}>
-                    📱 Push Notification Live Preview
-                  </h4>
-                  <span style={{ fontSize: '11px', color: 'var(--success)', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                    <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--success)' }}></span> Pushed Live
-                  </span>
+            {/* RIGHT: preview + history */}
+            <div className="nc-side">
+              <div className="nc-card">
+                <div className="nc-preview-title">
+                  <h3>Preview</h3>
+                  <span>How it looks on a phone</span>
                 </div>
-
-                <div className="phone-preview-card">
-                  <div className="phone-notch"></div>
-                  <div className="phone-status-bar">
-                    <span>09:41</span>
-                    <span>🔋 100%</span>
-                  </div>
-
-                  <div className="push-notification-banner">
-                    <div className="push-header">
-                      <div className="push-app-badge">
-                        <div className="push-logo" style={{
-                          background: inlineNotif.category === 'ALERT' ? 'var(--warning)' : inlineNotif.category === 'ACADEMIC' ? '#1e1a3a' : 'var(--accent)'
-                        }}>G</div>
-                        <span className="push-app-name">GENz IITian</span>
-                      </div>
-                      <span className="push-time">now</span>
+                <div className="nc-stage">
+                  <div className="nc-clock">9:41</div>
+                  <div className="nc-push">
+                    <div className="nc-push-top">
+                      <span className="nc-push-logo">G</span>
+                      <span className="grow">GenZ IITian</span>
+                      <span>now</span>
                     </div>
-
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                      <h5 className="push-title">{inlineNotif.title || '⚡ IITian Live Batch starts today!'}</h5>
-                      <p className="push-body">
-                        {inlineNotif.body || "Get live classes, study materials, and tests designed by IITians. Tap to enroll instantly!"}
-                      </p>
-                    </div>
-
-                    {inlineNotif.imageUrl && (
-                      <div className="push-banner-img" style={{ backgroundImage: `url(${inlineNotif.imageUrl})` }}></div>
-                    )}
-
-                    {inlineNotif.ctaText && (
-                      <div className="push-cta-btn">{inlineNotif.ctaText}</div>
-                    )}
+                    <p className={`nc-push-title ${inlineNotif.title ? '' : 'nc-ph'}`}>{inlineNotif.title || 'Notification title'}</p>
+                    <p className={`nc-push-body ${inlineNotif.body ? '' : 'nc-ph'}`}>{inlineNotif.body || 'Your message appears here.'}</p>
+                    {inlineNotif.imageUrl && <div className="nc-push-img" style={{ backgroundImage: `url(${inlineNotif.imageUrl})` }} />}
+                    {inlineNotif.ctaText && <div className="nc-push-cta">{inlineNotif.ctaText}</div>}
                   </div>
                 </div>
               </div>
 
-              {/* RIGHT COLUMN: Broadcast History */}
-              <div className="notif-glow-card">
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border)', paddingBottom: '12px' }}>
-                  <h3 style={{ fontSize: '16px', fontWeight: '800', color: 'var(--text-primary)', margin: 0 }}>
-                    📰 Broadcast Logs & Audit
-                  </h3>
-                  <span style={{ fontSize: '11px', background: 'var(--surface)', color: 'var(--text-secondary)', padding: '2px 8px', borderRadius: '6px', fontWeight: '700' }}>
-                    Total: {campaigns.length}
-                  </span>
+              <div className="nc-card">
+                <div className="nc-log-head">
+                  <h3>History</h3>
+                  <span className="nc-item-meta">{campaigns.length} total</span>
                 </div>
 
-                {/* Filters Row */}
-                <div style={{ display: 'flex', gap: '10px', width: '100%' }}>
+                <div className="nc-log-tools">
                   <input
                     type="text"
-                    className="premium-input"
+                    className="nc-input"
                     value={notifSearch}
                     onChange={e => setNotifSearch(e.target.value)}
-                    placeholder="Search logs..."
-                    style={{ flex: 1, padding: '8px 12px', fontSize: '13px', borderRadius: '8px' }}
+                    placeholder="Search"
                   />
-                  <select
-                    className="premium-input"
-                    value={notifStatusFilter}
-                    onChange={e => setNotifStatusFilter(e.target.value as any)}
-                    style={{ width: '120px', padding: '8px 12px', fontSize: '13px', borderRadius: '8px' }}
-                  >
-                    <option value="ALL">All Status</option>
-                    <option value="SENT">Delivered</option>
-                    <option value="PENDING">Scheduled</option>
-                  </select>
+                  <div className="nc-seg">
+                    {([['ALL', 'All'], ['SENT', 'Sent'], ['PENDING', 'Scheduled']] as const).map(([k, l]) => (
+                      <button key={k} type="button" className={notifStatusFilter === k ? 'on' : ''} onClick={() => setNotifStatusFilter(k as any)}>{l}</button>
+                    ))}
+                  </div>
                 </div>
 
-                {/* History List */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', maxHeight: '380px', overflowY: 'auto', paddingRight: '4px' }}>
-                  {campaigns
-                    .filter(c => {
-                      const matchesSearch = c.title.toLowerCase().includes(notifSearch.toLowerCase()) || c.body.toLowerCase().includes(notifSearch.toLowerCase())
+                <div className="nc-list">
+                  {(() => {
+                    const rows = campaigns.filter(c => {
+                      const q = notifSearch.toLowerCase()
+                      const matchesSearch = c.title.toLowerCase().includes(q) || c.body.toLowerCase().includes(q)
                       const matchesStatus = notifStatusFilter === 'ALL' || c.status === notifStatusFilter
                       return matchesSearch && matchesStatus
                     })
-                    .map((item: any) => {
+                    if (rows.length === 0) {
+                      return <div className="nc-empty">{campaigns.length === 0 ? 'No notifications sent yet.' : 'Nothing matches your search.'}</div>
+                    }
+                    return rows.map((item: any) => {
                       const isSent = item.status === 'SENT'
                       const isPending = item.status === 'PENDING'
+                      const audience = item.targetType === 'ALL' ? 'All students' : item.targetType === 'COURSE' ? 'One course' : 'One bundle'
+                      const when = isSent && item.sentAt ? item.sentAt : isPending && item.scheduledFor ? item.scheduledFor : null
                       return (
-                        <div key={item.id} className="history-item-card" style={{
-                          borderLeft: `5px solid ${isSent ? 'var(--success)' : isPending ? 'var(--warning)' : 'var(--danger)'}`,
-                          background: isPending ? 'var(--warning-light)' : 'var(--surface)'
-                        }}>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
-                            <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
-                              <span style={{
-                                fontSize: '9px',
-                                fontWeight: '900',
-                                padding: '2px 6px',
-                                borderRadius: '6px',
+                        <div key={item.id} className="nc-item">
+                          <div className="nc-item-top">
+                            <span
+                              className="nc-pill"
+                              style={{
                                 background: isSent ? 'var(--success-light)' : isPending ? 'var(--warning-light)' : 'var(--danger-light)',
-                                color: isSent ? '#065f46' : isPending ? 'var(--warning)' : 'var(--danger)',
-                                textTransform: 'uppercase'
-                              }}>
-                                {item.status}
-                              </span>
-                              <span style={{ fontSize: '11px', color: 'var(--text-secondary)', fontWeight: '700' }}>
-                                Target: {item.targetType}
-                              </span>
-                            </div>
-                            <span style={{ fontSize: '9px', color: 'var(--text-muted)', fontFamily: 'monospace' }}>
-                              {item.id.slice(0, 8)}...
+                                color: isSent ? '#047857' : isPending ? 'var(--warning)' : 'var(--danger)',
+                              }}
+                            >
+                              {isSent ? 'Sent' : isPending ? 'Scheduled' : 'Failed'}
                             </span>
+                            <span className="nc-item-meta">{audience}</span>
                           </div>
-
-                          <div style={{ display: 'flex', gap: '12px' }}>
-                            <div style={{ flex: 1 }}>
-                              <h4 style={{ fontSize: '12.5px', fontWeight: '800', color: 'var(--text-primary)', margin: 0 }}>
-                                {item.title}
-                              </h4>
-                              <p style={{ fontSize: '11px', color: 'var(--text-secondary)', marginTop: '3px', lineHeight: '1.4', margin: '4px 0 0 0' }}>
-                                {item.body}
-                              </p>
-                              {item.ctaText && (
-                                <div style={{ display: 'flex', gap: '4px', alignItems: 'center', marginTop: '6px' }}>
-                                  <span style={{ fontSize: '9px', fontWeight: '800', color: 'var(--accent)', background: 'var(--primary-light)', padding: '2px 6px', borderRadius: '4px' }}>
-                                    CTA: {item.ctaText}
-                                  </span>
-                                  {item.ctaLink && (
-                                    <span style={{ fontSize: '9px', color: 'var(--text-secondary)', fontFamily: 'monospace' }}>
-                                      → {item.ctaLink}
-                                    </span>
-                                  )}
-                                </div>
-                              )}
+                          <div style={{ display: 'flex', gap: 12 }}>
+                            <div style={{ flex: 1, minWidth: 0 }}>
+                              <p className="nc-item-title">{item.title}</p>
+                              <p className="nc-item-body">{item.body}</p>
                             </div>
                             {item.imageUrl && (
-                              <div style={{
-                                width: '70px',
-                                height: '44px',
-                                backgroundSize: 'cover',
-                                backgroundImage: `url(${item.imageUrl})`,
-                                backgroundPosition: 'center',
-                                borderRadius: '6px',
-                                flexShrink: 0
-                              }}></div>
+                              <div style={{ width: 64, height: 40, borderRadius: 8, flexShrink: 0, backgroundSize: 'cover', backgroundPosition: 'center', backgroundImage: `url(${item.imageUrl})` }} />
                             )}
                           </div>
-
-                          <div style={{
-                            display: 'flex',
-                            justifyContent: 'space-between',
-                            alignItems: 'center',
-                            fontSize: '10px',
-                            color: 'var(--text-muted)',
-                            borderTop: '1px solid #f8fafc',
-                            paddingTop: '6px',
-                            marginTop: '2px'
-                          }}>
-                            <div>Sender: <strong>{item.createdBy?.name || 'Manager'}</strong></div>
-                            <div>
-                              {isSent && item.sentAt && `${new Date(item.sentAt).toLocaleString('en-IN', { hour12: true })}`}
-                              {isPending && item.scheduledFor && `Sched: ${new Date(item.scheduledFor).toLocaleString('en-IN', { hour12: true })}`}
-                            </div>
+                          <div className="nc-item-foot">
+                            <span>{item.createdBy?.name || 'Manager'}</span>
+                            <span>
+                              {when ? new Date(when).toLocaleString('en-IN', { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit', hour12: true }) : ''}
+                            </span>
                           </div>
                         </div>
                       )
-                    })}
-                  {campaigns.length === 0 && (
-                    <div style={{ padding: '20px', textAlign: 'center', color: 'var(--text-muted)', fontSize: '12px' }}>
-                      No sent notifications in log history.
-                    </div>
-                  )}
+                    })
+                  })()}
                 </div>
               </div>
             </div>
@@ -3577,7 +3218,7 @@ export function ManagePageInner({ forcedTab }: ManagePageInnerProps = {}) {
               display: 'flex', justifyContent: 'space-between', alignItems: 'center'
             }}>
               <h3 style={{ fontSize: '18px', fontWeight: '800', color: '#fff', margin: 0 }}>
-                🕒 Choose from Recent Photos
+                Recent images
               </h3>
               <button onClick={() => setShowRecentModal(false)} style={{ background: 'rgba(255,255,255,0.2)', border: 'none', color: '#fff', width: '32px', height: '32px', borderRadius: '50%', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
@@ -3594,7 +3235,6 @@ export function ManagePageInner({ forcedTab }: ManagePageInnerProps = {}) {
                 </div>
               ) : recentPhotos.length === 0 ? (
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '220px', gap: '8px', border: '2px dashed #cbd5e1', borderRadius: '16px', padding: '20px' }}>
-                  <span style={{ fontSize: '32px' }}>📷</span>
                   <span style={{ fontSize: '14px', color: 'var(--text-secondary)', fontWeight: '700' }}>No recently uploaded photos</span>
                   <span style={{ fontSize: '11px', color: 'var(--text-muted)', textAlign: 'center' }}>Upload a new photo to get started.</span>
                 </div>

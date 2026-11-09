@@ -484,23 +484,6 @@ export default function CourseEditPage() {
                 />
               </div>
 
-              <div style={{
-                display: 'flex', alignItems: 'center', gap: '10px',
-                padding: '12px 14px', borderRadius: '12px',
-                background: 'var(--surface)', border: '1px solid var(--border)',
-              }}>
-                <input
-                  type="checkbox"
-                  id="isDemoInput"
-                  checked={contentForm.isDemo}
-                  onChange={e => setContentForm(f => ({ ...f, isDemo: e.target.checked }))}
-                  style={{ width: '18px', height: '18px', cursor: 'pointer' }}
-                />
-                <label htmlFor="isDemoInput" style={{ fontSize: '13px', fontWeight: '700', color: 'var(--text-primary)', cursor: 'pointer' }}>
-                   Mark as Demo Lecture (Sample access for non-enrolled students)
-                </label>
-              </div>
-
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
                 <div>
                   <label style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text-secondary)', display: 'block', marginBottom: '6px' }}>

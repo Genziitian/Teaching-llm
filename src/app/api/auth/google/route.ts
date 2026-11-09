@@ -5,6 +5,8 @@ import { logActivity, ACTION, MODULE } from '@/lib/activity-log'
 import { v4 as uuidv4 } from 'uuid'
 import { queueGoogleGroupSyncJobs } from '@/lib/google-group-sync'
 import { scheduleWelcomeSequence } from '@/lib/welcome-notifications'
+import { getOrAssignPoolCategory, recordAssignFailure } from '@/lib/notification-group-pool'
+import { triggerGoogleGroupSyncProcessing } from '@/lib/google-group-sync'
 
 
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID
@@ -85,6 +87,15 @@ export async function POST(request: NextRequest) {
 
       // Trigger staggered welcome push notifications campaign (non-blocking)
       scheduleWelcomeSequence(user.id).catch(console.error)
+
+      // Auto-assign the notification Google Group (serial + pool mail). Never blocks signup;
+      // the /api/cron/assign-notification-groups job catches anyone this misses.
+      getOrAssignPoolCategory(prisma, user.email)
+        .then(() => triggerGoogleGroupSyncProcessing())
+        .catch(err => {
+          recordAssignFailure(user.id) // counts as try #1; the job retries up to 3 total
+          console.error('[Google signup] Notification group assign failed:', err)
+        })
 
       // Auto-enroll in demo course if one exists
       const demoCourse = await prisma.course.findFirst({
