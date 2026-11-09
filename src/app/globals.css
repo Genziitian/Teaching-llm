@@ -3559,3 +3559,37 @@ html.snow-dusting,
 html.snow-dusting * {
   cursor: none !important;
 }
+
+/* ── Login (desktop): use the full width, add life ───────────────── */
+@media (min-width:1100px){
+  .lg-page{max-width:clamp(1240px,86vw,1680px);padding-left:clamp(32px,5vw,96px);padding-right:clamp(32px,5vw,96px)}
+  .lg-main{grid-template-columns:minmax(0,1.25fr) minmax(0,.75fr);gap:clamp(48px,6vw,120px)}
+  .lg-h1{font-size:clamp(64px,6.2vw,112px);max-width:11ch}
+  .lg-deck{width:min(clamp(600px,46vw,820px),100%)}
+  .lg-sheet{width:min(clamp(460px,30vw,540px),100%)}
+}
+/* entrance: the headline, deck and chips arrive one after another */
+.lg-h1{animation:lgRise .9s cubic-bezier(.2,.8,.2,1) both}
+.lg-deckwrap{animation:lgRise 1s .15s cubic-bezier(.2,.8,.2,1) both}
+.lg-chips{animation:lgRise 1s .3s cubic-bezier(.2,.8,.2,1) both}
+.lg-sheet{animation-delay:.2s}
+/* the word "Learn" shimmers slowly */
+.lg-h1 em{background-size:220% 100%;animation:lgShimmer 6s ease-in-out infinite alternate}
+/* the card stack breathes */
+.lg-deck{animation:lgFloat 7s ease-in-out infinite}
+.lg-deck:hover,.lg-deck:active{animation-play-state:paused}
+/* soft light behind the sign-in card */
+.lg-sheet{position:relative}
+.lg-sheet::before{content:"";position:absolute;inset:-1px;border-radius:inherit;padding:1px;pointer-events:none;
+  background:conic-gradient(from var(--lg-spin,0deg),transparent 0 70%,rgba(125,122,255,.7) 82%,rgba(255,127,160,.7) 92%,transparent 100%);
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;
+  animation:lgSpin 8s linear infinite;opacity:.75}
+@property --lg-spin{syntax:"<angle>";initial-value:0deg;inherits:false}
+.lg-aurora i{animation-duration:12s}
+.lg-chip:hover{transform:translateY(-2px);border-color:var(--lg-acc);color:var(--lg-ink)}
+@keyframes lgFloat{0%,100%{transform:translateY(0) rotate(0)}50%{transform:translateY(-10px) rotate(-.4deg)}}
+@keyframes lgShimmer{from{background-position:0 0}to{background-position:100% 0}}
+@keyframes lgSpin{to{--lg-spin:360deg}}
+@media (prefers-reduced-motion:reduce){
+  .lg-h1,.lg-deckwrap,.lg-chips,.lg-deck,.lg-h1 em,.lg-sheet::before{animation:none}
+}

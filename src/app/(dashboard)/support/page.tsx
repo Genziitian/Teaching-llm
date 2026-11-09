@@ -10,6 +10,7 @@ import StaffRoleBadge from '@/components/StaffRoleBadge'
 
 interface Ticket {
   id: string
+  ticketNumber?: number | null
   title: string
   description: string
   type: string
@@ -17,6 +18,7 @@ interface Ticket {
   priority: string
   classId?: string
   class?: { id: string; name: string; color: string }
+  course?: { id: string; name: string; color: string } | null
   user: { id: string; name: string; role: string }
   assignedTo?: { id: string; name: string; role: string } | null
   replies: Reply[]
@@ -102,6 +104,11 @@ function getRelativeTime(dateStr: string, status: string): string {
   return `${verb} ${Math.floor(days / 7)} week${Math.floor(days / 7) !== 1 ? 's' : ''} ago`
 }
 
+// New tickets have a real serial number; old ones (no ticketNumber) keep their legacy display number.
+function ticketNo(t: { id: string; ticketNumber?: number | null }): string {
+  return t.ticketNumber != null ? String(t.ticketNumber) : shortId(t.id)
+}
+
 function shortId(id: string): string {
   const hash = id.split('').reduce((a, c) => a + c.charCodeAt(0), 0)
   return String(8000 + (hash % 2000))
@@ -173,8 +180,13 @@ function CreateTicketModal({
             <label className="form-label">Issue Type</label>
             <div style={{ display: 'flex', gap: '8px' }}>
               {['GENERAL', 'SUBJECT'].map(t => (
-                <button key={t} onClick={() => setForm((f: any) => ({ ...f, type: t }))} style={{ flex: 1, padding: '10px', borderRadius: '14px', border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontSize: '13px', fontWeight: '700', background: form.type === t ? 'var(--primary)' : 'var(--surface-2)', color: form.type === t ? '#fff' : 'var(--text-secondary)', boxShadow: form.type === t ? '4px 4px 10px rgba(54,54,232,0.3)' : '4px 4px 8px var(--neu-dark), -4px -4px 8px var(--neu-light)' }}>
-                  {t === 'GENERAL' ? '📋 General Support' : '📚 Subject Related'}
+                <button key={t} onClick={() => setForm((f: any) => ({ ...f, type: t }))} style={{ flex: 1, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '10px', borderRadius: '14px', border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontSize: '13px', fontWeight: '700', background: form.type === t ? 'var(--primary)' : 'var(--surface-2)', color: form.type === t ? '#fff' : 'var(--text-secondary)', boxShadow: form.type === t ? '4px 4px 10px rgba(54,54,232,0.3)' : '4px 4px 8px var(--neu-dark), -4px -4px 8px var(--neu-light)' }}>
+                  {t === 'GENERAL' ? (
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M3 18v-6a9 9 0 0118 0v6" /><path d="M21 19a2 2 0 01-2 2h-1a2 2 0 01-2-2v-3a2 2 0 012-2h3zM3 19a2 2 0 002 2h1a2 2 0 002-2v-3a2 2 0 00-2-2H3z" /></svg>
+                  ) : (
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 016.5 17H20" /><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z" /></svg>
+                  )}
+                  <span>{t === 'GENERAL' ? 'General Support' : 'Subject Related'}</span>
                 </button>
               ))}
             </div>
@@ -823,6 +835,13 @@ export default function SupportPage() {
             order: 0;
             padding: 28px;
           }
+          .faq-col-wrap {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+            order: 0;
+            min-width: 0;
+          }
           .chat-actions-col {
             display: flex;
             flex-direction: column;
@@ -845,6 +864,10 @@ export default function SupportPage() {
             }
             .support-grid {
               grid-template-columns: 1fr !important;
+              gap: 16px !important;
+            }
+            .faq-col-wrap {
+              order: 2 !important;
               gap: 16px !important;
             }
             .faq-card-col {
@@ -909,7 +932,8 @@ export default function SupportPage() {
 
         <div className="support-grid">
 
-          {/* FAQ Card (Left Side on desktop, last on mobile) */}
+          {/* Left Column: FAQ + Request a Feature (last on mobile) */}
+          <div className="faq-col-wrap">
           <div className="faq-card-col" style={{ ...card }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
               <div style={{ width: '52px', height: '52px', borderRadius: '16px', background: 'var(--primary-light)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -992,6 +1016,43 @@ export default function SupportPage() {
             </div>
           </div>
 
+            {/* Request a Feature Box */}
+            {(userRole !== 'ADMIN' && userRole !== 'MODERATOR') && (
+              <div className="ticket-box-pad" style={{ width: '100%', borderRadius: '24px', background: 'var(--surface-2)', border: '1.5px solid var(--border)', boxShadow: 'inset 0 1px 0 var(--neu-glow)', textAlign: 'left' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div>
+                    <div style={{ fontSize: '12px', fontWeight: '800', color: '#8b5cf6', letterSpacing: '0.03em', marginBottom: '4px', textTransform: 'uppercase' }}>
+                      💡 Request a Feature
+                    </div>
+                    <div style={{ fontSize: '13px', color: 'var(--text-secondary)', lineHeight: '1.5' }}>
+                      Have an idea? Tell us what you&apos;d love to see.
+                    </div>
+                  </div>
+                  <button onClick={() => setShowFeatureModal(true)} className="btn" style={{ borderRadius: '50px', padding: '10px 20px', background: 'linear-gradient(135deg, #8b5cf6, #6366f1)', color: '#fff', border: 'none', fontWeight: 700, fontSize: '13px', cursor: 'pointer' }}>+ Request</button>
+                </div>
+                {featureRequests.length > 0 && (
+                  <div style={{ marginTop: '16px', borderTop: '1px solid rgba(139,92,246,0.15)', paddingTop: '14px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+                      <span style={{ fontSize: '13px', fontWeight: 800, color: 'var(--text-primary)' }}>Your Requests</span>
+                      <button onClick={() => setView('featureRequests')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#8b5cf6', fontSize: '12px', fontWeight: '700', fontFamily: 'inherit' }}>View All →</button>
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                      {featureRequests.slice(0, 3).map(fr => (
+                        <div key={fr.id} onClick={() => setView('featureRequests')} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '10px 12px', background: 'var(--surface)', borderRadius: '14px', cursor: 'pointer', border: '1px solid var(--border)' }}>
+                          <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: fr.status === 'PENDING' ? '#f59e0b' : fr.status === 'ACCEPTED' ? '#10b981' : fr.status === 'REJECTED' ? '#ef4444' : '#6366f1', flexShrink: 0 }} />
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <div style={{ fontSize: '13px', fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: 'var(--text-primary)' }}>{fr.title}</div>
+                            <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>{fr.status} · {new Date(fr.createdAt).toLocaleDateString()}</div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
           {/* Right Column (Chat + Tickets) — first on mobile */}
           <div className="chat-actions-col">
             
@@ -1036,6 +1097,36 @@ export default function SupportPage() {
                 </div>
               )}
 
+              {/* Quick ticket typing bar — always visible */}
+              {(userRole === 'STUDENT' || userRole === 'ADMIN' || userRole === 'MODERATOR') && !hasReachedActiveLimit && (
+                <div style={{ marginTop: '6px', display: 'flex', alignItems: 'flex-end', gap: '10px', padding: '10px 10px 10px 16px', background: 'var(--surface)', border: '1.5px solid var(--border)', borderRadius: '18px' }}>
+                  <textarea
+                    value={form.description}
+                    onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
+                    onKeyDown={e => {
+                      if (e.key === 'Enter' && !e.shiftKey && form.description.trim()) {
+                        e.preventDefault()
+                        setTicketError(null)
+                        setShowCreate(true)
+                      }
+                    }}
+                    placeholder="Explain me your problem..."
+                    rows={2}
+                    style={{ flex: 1, minWidth: 0, background: 'transparent', border: 'none', outline: 'none', resize: 'none', color: 'var(--text-primary)', fontSize: '13.5px', lineHeight: '1.5', fontFamily: 'inherit', padding: '4px 0' }}
+                  />
+                  <button
+                    onClick={() => { setTicketError(null); setShowCreate(true) }}
+                    disabled={!form.description.trim()}
+                    aria-label="Continue to ticket"
+                    title="Continue"
+                    className="btn btn-primary"
+                    style={{ borderRadius: '50px', width: '40px', height: '40px', padding: 0, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, opacity: form.description.trim() ? 1 : 0.45, cursor: form.description.trim() ? 'pointer' : 'not-allowed' }}
+                  >
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="22" y1="2" x2="11" y2="13" /><polygon points="22 2 15 22 11 13 2 9 22 2" /></svg>
+                  </button>
+                </div>
+              )}
+
               {/* History Section inside the box */}
               <div style={{ marginTop: '20px', borderTop: '1px solid #d9dcff', paddingTop: '20px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
@@ -1068,6 +1159,26 @@ export default function SupportPage() {
               </div>
             </div>
 
+            {/* WhatsApp Card */}
+            {userRole !== 'MANAGER' && (
+              <a
+                href="https://wa.me/917254926179"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="ticket-box-pad"
+                style={{ width: '100%', display: 'flex', alignItems: 'center', gap: '16px', borderRadius: '24px', background: 'var(--surface-2)', border: '1.5px solid rgba(37,211,102,0.35)', boxShadow: 'inset 0 1px 0 var(--neu-glow)', textDecoration: 'none', textAlign: 'left' }}
+              >
+                <div style={{ width: '48px', height: '48px', borderRadius: '14px', background: '#25D366', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, boxShadow: '0 4px 12px rgba(37,211,102,0.35)' }}>
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20.5 3.5A11.8 11.8 0 0 0 12 0C5.4 0 0 5.4 0 12c0 2.1.6 4.2 1.6 6L0 24l6.2-1.6A12 12 0 0 0 12 24c6.6 0 12-5.4 12-12 0-3.2-1.2-6.2-3.5-8.5zM12 22a10 10 0 0 1-5.1-1.4l-.4-.2-3.7 1 1-3.6-.2-.4A10 10 0 1 1 12 22zm5.5-7.5c-.3-.2-1.8-.9-2.1-1-.3-.1-.5-.2-.7.2-.2.3-.8 1-1 1.2-.2.2-.4.2-.7.1-.3-.2-1.3-.5-2.4-1.5-.9-.8-1.5-1.8-1.7-2.1-.2-.3 0-.5.1-.6l.5-.5c.1-.2.2-.3.3-.5.1-.2 0-.4 0-.5-.1-.2-.7-1.7-1-2.3-.2-.6-.5-.5-.7-.5h-.6c-.2 0-.5.1-.8.4-.3.3-1 1-1 2.5s1.1 2.9 1.2 3.1c.2.2 2.1 3.3 5.2 4.6.7.3 1.3.5 1.7.6.7.2 1.4.2 1.9.1.6-.1 1.8-.7 2-1.4.3-.7.3-1.3.2-1.4-.1-.1-.3-.2-.6-.4z"/></svg>
+                </div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontSize: '12px', fontWeight: 800, color: '#25D366', letterSpacing: '0.03em', marginBottom: '4px', textTransform: 'uppercase' }}>Connect on WhatsApp</div>
+                  <div style={{ fontSize: '13px', color: 'var(--text-secondary)', lineHeight: '1.5' }}>Need a quick reply? Chat with our support team directly.</div>
+                </div>
+                <span style={{ flexShrink: 0, padding: '10px 18px', borderRadius: '50px', background: '#25D366', color: '#fff', fontSize: '13px', fontWeight: 700, whiteSpace: 'nowrap' }}>Chat now →</span>
+              </a>
+            )}
+
             {userRole === 'MANAGER' && (
               <div className="ticket-box-pad" style={{ width: '100%', borderRadius: '24px', background: 'var(--surface-2)', border: '1.5px solid var(--border)', boxShadow: 'inset 0 1px 0 var(--neu-glow)', textAlign: 'left' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '14px' }}>
@@ -1086,41 +1197,6 @@ export default function SupportPage() {
               </div>
             )}
 
-            {/* Request a Feature Box */}
-            {(userRole !== 'ADMIN' && userRole !== 'MODERATOR') && (
-              <div className="ticket-box-pad" style={{ width: '100%', borderRadius: '24px', background: 'var(--surface-2)', border: '1.5px solid var(--border)', boxShadow: 'inset 0 1px 0 var(--neu-glow)', textAlign: 'left' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <div>
-                    <div style={{ fontSize: '12px', fontWeight: '800', color: '#8b5cf6', letterSpacing: '0.03em', marginBottom: '4px', textTransform: 'uppercase' }}>
-                      💡 Request a Feature
-                    </div>
-                    <div style={{ fontSize: '13px', color: 'var(--text-secondary)', lineHeight: '1.5' }}>
-                      Have an idea? Tell us what you&apos;d love to see.
-                    </div>
-                  </div>
-                  <button onClick={() => setShowFeatureModal(true)} className="btn" style={{ borderRadius: '50px', padding: '10px 20px', background: 'linear-gradient(135deg, #8b5cf6, #6366f1)', color: '#fff', border: 'none', fontWeight: 700, fontSize: '13px', cursor: 'pointer' }}>+ Request</button>
-                </div>
-                {featureRequests.length > 0 && (
-                  <div style={{ marginTop: '16px', borderTop: '1px solid rgba(139,92,246,0.15)', paddingTop: '14px' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-                      <span style={{ fontSize: '13px', fontWeight: 800, color: 'var(--text-primary)' }}>Your Requests</span>
-                      <button onClick={() => setView('featureRequests')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#8b5cf6', fontSize: '12px', fontWeight: '700', fontFamily: 'inherit' }}>View All →</button>
-                    </div>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                      {featureRequests.slice(0, 3).map(fr => (
-                        <div key={fr.id} onClick={() => setView('featureRequests')} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '10px 12px', background: 'var(--surface)', borderRadius: '14px', cursor: 'pointer', border: '1px solid var(--border)' }}>
-                          <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: fr.status === 'PENDING' ? '#f59e0b' : fr.status === 'ACCEPTED' ? '#10b981' : fr.status === 'REJECTED' ? '#ef4444' : '#6366f1', flexShrink: 0 }} />
-                          <div style={{ flex: 1, minWidth: 0 }}>
-                            <div style={{ fontSize: '13px', fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: 'var(--text-primary)' }}>{fr.title}</div>
-                            <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>{fr.status} · {new Date(fr.createdAt).toLocaleDateString()}</div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
           </div>
         </div>
 
@@ -1539,7 +1615,10 @@ export default function SupportPage() {
     const timeOf = (d: string) => formatIST(d, { hour: '2-digit', minute: '2-digit', hour12: true })
     const classChip = (t: Ticket) => {
       if (userRole === 'MANAGER' && t.type === 'GENERAL') return <span style={neutralChip}>General</span>
-      return t.class ? <span style={chip(t.class.color)}>{t.class.name}</span> : null
+      const subj = t.course || t.class
+      if (subj) return <span style={chip(subj.color)}>{subj.name}</span>
+      if (userRole === 'MANAGER' && t.type === 'SUBJECT') return <span style={neutralChip}>Subject</span>
+      return null
     }
     const sendDisabled = (!replyText.trim() && !pendingReplyImage) || uploadingImage
 
@@ -1595,7 +1674,7 @@ export default function SupportPage() {
                 <div key={t.id} className={`st-ticket${active ? ' st-ticket--active' : ''}`} onClick={() => setSelected(active ? null : t)}
                   style={{ padding: '14px 16px', borderRadius: '14px', cursor: 'pointer', flexShrink: 0 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
-                    <span style={{ fontSize: '12px', color: 'var(--text-secondary)', fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}>#{shortId(t.id)}</span>
+                    <span style={{ fontSize: '12px', color: 'var(--text-secondary)', fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}>#{ticketNo(t)}</span>
                     <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexShrink: 0 }}>
                       <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>{dayOf(t.createdAt)}, {timeOf(t.createdAt)}</span>
                       {userRole === 'MANAGER' && (
@@ -1657,7 +1736,7 @@ export default function SupportPage() {
               <div style={{ padding: '16px 20px', borderBottom: `1px solid ${line}` }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '12px' }}>
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: '12px', color: 'var(--text-secondary)', fontWeight: 600, marginBottom: '4px', fontVariantNumeric: 'tabular-nums' }}>Ticket #{shortId(selected.id)}</div>
+                    <div style={{ fontSize: '12px', color: 'var(--text-secondary)', fontWeight: 600, marginBottom: '4px', fontVariantNumeric: 'tabular-nums' }}>Ticket #{ticketNo(selected)}</div>
                     <div style={{ fontSize: '17px', fontWeight: 700, color: 'var(--text-primary)', lineHeight: 1.3, wordBreak: 'break-word' }}>{selected.title}</div>
                     <div style={{ display: 'flex', gap: '6px', marginTop: '10px', flexWrap: 'wrap' }}>
                       <span style={chip(STATUS_COLORS[selected.status])}><span style={dot(STATUS_COLORS[selected.status])} />{statusLabel(selected.status)}</span>

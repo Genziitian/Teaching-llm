@@ -615,6 +615,7 @@ model LoginLog {
 
 model SupportTicket {
   id           String        @id @default(cuid())
+  ticketNumber Int?          @unique @default(dbgenerated("nextval('\"SupportTicket_ticketNumber_seq\"'::regclass)"))
   title        String
   description  String
   type         String        @default("GENERAL")
