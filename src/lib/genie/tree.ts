@@ -70,6 +70,11 @@ export const UI: Record<string, L> = {
   },
   startOver: { en: 'Start over', hi: 'Phir se shuru karo' },
   back: { en: 'Back', hi: 'Peeche' },
+  waSolved: { en: 'Did that solve it?', hi: 'Kya isse problem solve ho gayi?' },
+  improving: {
+    en: "Sorry about that. We're improving our support every day and will do better. You can still chat with an agent here.",
+    hi: 'Sorry iske liye. Hum apna support roz behtar bana rahe hain. Aap yahin agent se chat bhi kar sakte ho.',
+  },
   connecting: {
     en: 'Connecting you to a support agent… This can take up to 5 minutes. If nobody is free, your chat is saved as a ticket automatically.',
     hi: 'Aapko support agent se jod rahe hain… 5 minute tak lag sakte hain. Agar koi free nahi hua to chat apne aap ticket ban jayegi.',
@@ -93,7 +98,7 @@ export const UI: Record<string, L> = {
 
 const t = (en: string, hi: string): L => ({ en, hi })
 
-export const GENIE_TREE: GenieNode = {
+const FLAT_TREE: GenieNode = {
   id: 'root',
   q: UI.greeting,
   options: [
@@ -562,6 +567,73 @@ export const GENIE_TREE: GenieNode = {
         answer: t('No problem, our team can help with that.', 'Koi baat nahi, hamari team isme help kar sakti hai.'),
       },
     },
+  ],
+}
+
+// ── keep every screen to 5 options max: split big lists into sub-categories, end each with "Other" ──
+function findNode(n: GenieNode, id: string): GenieNode | null {
+  if (n.id === id && n.options) return n
+  for (const o of n.options || []) { const f = findNode(o.next, id); if (f) return f }
+  return null
+}
+const SUBGROUPS: Record<string, { id: string; label: L; ids: string[] }[]> = {
+  video: [
+    { id: 'video.g-videos', label: t('Videos', 'Videos'), ids: ['video.not-playing', 'video.download'] },
+    { id: 'video.g-live', label: t('Live classes & recordings', 'Live classes aur recordings'), ids: ['video.join-live', 'video.live-issue', 'video.plus-live', 'video.recording'] },
+  ],
+  study: [
+    { id: 'study.g-notes', label: t('Notes & practice', 'Notes aur practice'), ids: ['study.notes', 'study.missing', 'study.test', 'study.quizlab'] },
+    { id: 'study.g-mentor', label: t('Mentors & community', 'Mentors aur community'), ids: ['study.mentor', 'study.community'] },
+    { id: 'study.g-progress', label: t('Progress & certificates', 'Progress aur certificates'), ids: ['study.progress', 'study.certificate'] },
+  ],
+  pay: [
+    { id: 'pay.g-problem', label: t('Payment problems', 'Payment ki problem'), ids: ['pay.failed', 'pay.no-course', 'pay.twice'] },
+    { id: 'pay.g-billing', label: t('Refunds & billing', 'Refund aur billing'), ids: ['pay.refund', 'pay.history', 'pay.emi', 'pay.invoice'] },
+  ],
+  account: [
+    { id: 'account.g-login', label: t('Login & profile', 'Login aur profile'), ids: ['account.login', 'account.profile'] },
+    { id: 'account.g-safety', label: t('Account safety', 'Account safety'), ids: ['account.suspended', 'account.email', 'account.sharing'] },
+  ],
+}
+for (const [nodeId, groups] of Object.entries(SUBGROUPS)) {
+  const n = findNode(FLAT_TREE, nodeId)
+  if (!n || !n.options) continue
+  const all = n.options
+  n.options = groups.map(g => ({
+    id: g.id, label: g.label,
+    next: { id: g.id, q: t('Which one is closest?', 'Inme se kaunsa sabse close hai?'), options: all.filter(o => g.ids.includes(o.id)) },
+  }))
+}
+const OTHER_LABELS = ['Something else', 'Other']
+;(function addOther(n: GenieNode) {
+  if (!n.options) return
+  n.options.forEach(o => addOther(o.next))
+  if (n.id === 'root') return
+  const last = n.options[n.options.length - 1]
+  if (last && OTHER_LABELS.includes(last.label.en)) return
+  n.options.push({
+    id: `${n.id}.other-team`, label: t('Other', 'Other'),
+    next: {
+      id: `${n.id}.other-team`, ticketType: 'GENERAL', needsAgent: true,
+      answer: t('No problem, our team can help with that.', 'Koi baat nahi, hamari team isme help kar sakti hai.'),
+    },
+  })
+})(FLAT_TREE)
+
+const pick = (ids: string[]) => (FLAT_TREE.options || []).filter(o => ids.includes(o.id))
+const group = (id: string, label: L, ids: string[]) => ({
+  id, label,
+  next: { id, q: t('Which one is closest?', 'Inme se kaunsa sabse close hai?'), options: pick(ids) },
+})
+
+/** Top level shows three groups first; the detailed topics open inside them. */
+export const GENIE_TREE: GenieNode = {
+  id: 'root',
+  q: UI.greeting,
+  options: [
+    group('g-academic', t('Academic', 'Academic'), ['video', 'study', 'doubt']),
+    group('g-technical', t('Technical', 'Technical'), ['account', 'app', 'course']),
+    group('g-other', t('Other', 'Other'), ['buy', 'pay', 'other']),
   ],
 }
 

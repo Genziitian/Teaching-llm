@@ -15,7 +15,7 @@ import { MAX_IMAGE_BYTES, POLL_MS, SEND_GAP_MS } from '@/lib/genie/limits'
  * (waiting → live → moved to ticket / ended). The agent's name is never shown.
  */
 
-type Stage = 'browse' | 'solved' | 'handoff' | 'describe'
+type Stage = 'browse' | 'solved' | 'handoff' | 'describe' | 'wacheck'
 interface Msg { from: 'bot' | 'me'; text: L; link?: { label: L; href: string } }
 interface StackItem { id: string; msgLen: number; chosen?: L }
 interface AgentSession {
@@ -78,10 +78,17 @@ function softBeep() {
 }
 
 function Sparkle({ size = 24 }: { size?: number }) {
+  // Robot face — Genie is a bot
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <path d="M10 3l1.9 5.1L17 10l-5.1 1.9L10 17l-1.9-5.1L3 10l5.1-1.9L10 3z" />
-      <path d="M18.5 14l.9 2.1 2.1.9-2.1.9-.9 2.1-.9-2.1-2.1-.9 2.1-.9.9-2.1z" />
+      <line x1="12" y1="3" x2="12" y2="6.5" />
+      <circle cx="12" cy="2.6" r="1" />
+      <rect x="4" y="6.5" width="16" height="12" rx="4" />
+      <circle cx="9" cy="12" r="1.2" fill="currentColor" />
+      <circle cx="15" cy="12" r="1.2" fill="currentColor" />
+      <line x1="9.5" y1="15.4" x2="14.5" y2="15.4" />
+      <line x1="2" y1="11" x2="2" y2="14" />
+      <line x1="22" y1="11" x2="22" y2="14" />
     </svg>
   )
 }
@@ -139,7 +146,7 @@ export default function GenieWidget({ userRole }: { userRole: string }) {
         const s = JSON.parse(raw)
         if (Array.isArray(s.msgs) && s.msgs.length && Array.isArray(s.stack) && s.stack.every((x: StackItem) => NODES[x.id])) {
           setMsgs(s.msgs); setStack(s.stack)
-          setStage(s.stage === 'solved' || s.stage === 'handoff' || s.stage === 'describe' ? s.stage : 'browse')
+          setStage(s.stage === 'solved' || s.stage === 'handoff' || s.stage === 'describe' || s.stage === 'wacheck' ? s.stage : 'browse')
           setLeafId(s.leafId && NODES[s.leafId] ? s.leafId : null)
           setOpen(!!s.open)
           restored = true
@@ -277,6 +284,18 @@ export default function GenieWidget({ userRole }: { userRole: string }) {
     }
   }
 
+  function answerWhatsapp(ok: boolean) {
+    if (ok) {
+      const next: Msg[] = [...msgs, { from: 'me', text: UI.yes }, { from: 'bot', text: UI.glad }, { from: 'bot', text: UI.greeting }]
+      setMsgs(next)
+      setStack([{ id: 'root', msgLen: next.length }])
+      setStage('browse'); setLeafId(null)
+    } else {
+      setMsgs(m => [...m, { from: 'me', text: UI.no }, { from: 'bot', text: UI.improving }])
+      setStage('handoff')
+    }
+  }
+
   function startAgent() {
     setMsgs(m => [...m, { from: 'me', text: UI.agentHere }, { from: 'bot', text: UI.describe }])
     setStage('describe')
@@ -357,7 +376,7 @@ export default function GenieWidget({ userRole }: { userRole: string }) {
         <div ref={panelRef} tabIndex={-1} role="dialog" aria-label={`${GENIE_NAME} support chat`} className="genie-panel">
           <div className="genie-head">
             <span className="genie-avatar"><Sparkle size={18} /></span>
-            <div className="genie-title">{GENIE_NAME}</div>
+            <div className="genie-title">{GENIE_NAME} <span className="genie-title-sub">the BOT</span></div>
             <div className="genie-lang" role="group" aria-label="Language">
               <button type="button" className={lang === 'en' ? 'on' : ''} onClick={() => setLang('en')}>EN</button>
               <button type="button" className={lang === 'hi' ? 'on' : ''} onClick={() => setLang('hi')}>Hinglish</button>
@@ -434,11 +453,18 @@ export default function GenieWidget({ userRole }: { userRole: string }) {
               </div>
             )}
 
+            {stage === 'wacheck' && !agentActive && !agentEnded && (
+              <div className="genie-opts row">
+                <button type="button" className="genie-opt ok" onClick={() => answerWhatsapp(true)}>{t(UI.yes)}</button>
+                <button type="button" className="genie-opt" onClick={() => answerWhatsapp(false)}>{t(UI.no)}</button>
+              </div>
+            )}
+
             {stage === 'handoff' && !agentActive && !agentEnded && (
               <div className="genie-opts">
                 <button type="button" className="genie-opt agent" onClick={startAgent}>{t(UI.agentHere)}</button>
                 <a className="genie-opt wa" href={WHATSAPP_URL} target="_blank" rel="noopener noreferrer"
-                   onClick={() => setMsgs(m => [...m, { from: 'bot', text: UI.whatsappSent }])}>
+                   onClick={() => { setMsgs(m => [...m, { from: 'bot', text: UI.whatsappSent }, { from: 'bot', text: UI.waSolved }]); setStage('wacheck') }}>
                   {t(UI.whatsapp)}
                 </a>
               </div>
@@ -524,10 +550,11 @@ const CSS = `
 .genie-hello-t{font-size:13.5px;font-weight:800}
 .genie-hello-s{font-size:12px;color:var(--text-secondary,#a1a1aa);margin-top:2px}
 .genie-hello-x{position:absolute;top:6px;right:8px;background:none;border:none;color:var(--text-muted,#71717a);font-size:18px;line-height:1;cursor:pointer}
-.genie-panel{position:fixed;right:24px;bottom:92px;z-index:1000;width:380px;max-width:calc(100vw - 24px);height:min(560px,calc(100vh - 120px));display:flex;flex-direction:column;border-radius:22px;overflow:hidden;background:var(--surface,#0f0f10);color:var(--text-primary,#f4f4f5);border:1px solid var(--border,#2a2a2e);box-shadow:0 16px 48px rgba(0,0,0,.5);animation:genieIn .2s ease;outline:none}
+.genie-panel{--surface:#ffffff;--surface-2:#f3f4f8;--border:#e3e4ea;--text-primary:#17171c;--text-secondary:#555560;--text-muted:#8a8a96;position:fixed;right:24px;bottom:92px;z-index:1000;width:380px;max-width:calc(100vw - 24px);height:min(560px,calc(100vh - 120px));display:flex;flex-direction:column;border-radius:22px;overflow:hidden;background:var(--surface,#0f0f10);color:var(--text-primary,#f4f4f5);border:1px solid var(--border,#2a2a2e);box-shadow:0 16px 48px rgba(0,0,0,.35);animation:genieIn .2s ease;outline:none}
 .genie-head{display:flex;align-items:center;gap:10px;padding:12px 14px;border-bottom:1px solid var(--border,#2a2a2e)}
 .genie-avatar{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;background:linear-gradient(135deg,#8b5cf6,#6366f1);flex-shrink:0}
 .genie-title{font-size:14.5px;font-weight:800;flex:1}
+.genie-title-sub{font-size:11px;font-weight:800;letter-spacing:.06em;color:#6366f1;margin-left:2px}
 .genie-lang{display:inline-flex;background:var(--surface-2,#161618);border:1px solid var(--border,#2a2a2e);border-radius:50px;padding:2px}
 .genie-lang button{border:none;background:none;color:var(--text-secondary,#a1a1aa);font:inherit;font-size:11.5px;font-weight:700;padding:4px 10px;border-radius:50px;cursor:pointer}
 .genie-lang button.on{background:var(--text-primary,#fff);color:var(--surface,#000)}
@@ -537,18 +564,21 @@ const CSS = `
 .genie-row{display:flex}
 .genie-row.me{justify-content:flex-end}
 .genie-bubble{max-width:86%;padding:9px 12px;border-radius:16px;font-size:13px;line-height:1.55;white-space:pre-wrap;word-break:break-word}
-.genie-bubble.bot{background:var(--surface-2,#161618);border:1px solid var(--border,#2a2a2e);border-bottom-left-radius:5px}
+.genie-bubble.bot{background:var(--surface-2);border:none;border-bottom-left-radius:5px}
 .genie-bubble.me{background:linear-gradient(135deg,#8b5cf6,#6366f1);color:#fff;border-bottom-right-radius:5px}
-.genie-a{color:#a5b4fc;text-decoration:underline;word-break:break-all}
+.genie-a{color:#4f46e5;text-decoration:underline;word-break:break-all}
 .genie-go{display:inline-block;margin-top:8px;padding:6px 12px;border-radius:50px;font-size:12px;font-weight:700;text-decoration:none;background:var(--text-primary,#fff);color:var(--surface,#000)}
-.genie-opts{display:flex;flex-direction:column;gap:6px;margin-top:2px}
+.genie-opts{display:flex;flex-direction:row;flex-wrap:wrap;gap:6px;margin-top:2px}
 .genie-opts.row{flex-direction:row;flex-wrap:wrap}
-.genie-opt{display:block;text-align:left;text-decoration:none;font:inherit;font-size:13px;font-weight:700;padding:10px 13px;border-radius:14px;cursor:pointer;color:var(--text-primary,#f4f4f5);background:var(--surface-2,#161618);border:1.5px solid var(--border,#2a2a2e);transition:border-color .12s,background .12s}
-.genie-opt:hover{border-color:#6366f1}
+.genie-opt{display:inline-block;text-align:left;text-decoration:none;font:inherit;font-size:12.5px;font-weight:700;line-height:1.3;padding:7px 13px;border-radius:50px;cursor:pointer;color:#4338ca;background:#fff;border:1.5px solid #a5b4fc;transition:background .12s,border-color .12s}
+.genie-opt:hover{background:#eef2ff;border-color:#6366f1}
 .genie-opt:focus-visible{outline:2px solid #8b5cf6;outline-offset:2px}
-.genie-opt.ok{border-color:rgba(16,185,129,.5)}
-.genie-opt.agent{border-color:#6366f1;background:rgba(99,102,241,.12)}
-.genie-opt.wa{border-color:rgba(37,211,102,.4);color:#25D366}
+.genie-opt.ok{border-color:#34d399;color:#047857}
+.genie-opt.ok:hover{background:#ecfdf5}
+.genie-opt.agent{border-color:#6366f1;background:#6366f1;color:#fff}
+.genie-opt.agent:hover{background:#4f46e5}
+.genie-opt.wa{border-color:#86efac;color:#15803d}
+.genie-opt.wa:hover{background:#f0fdf4}
 .genie-compose{padding:10px 12px 0;border-top:1px solid var(--border,#2a2a2e)}
 .genie-compose textarea{width:100%;resize:none;box-sizing:border-box;background:var(--surface-2,#161618)!important;color:var(--text-primary,#fff)!important;border:1.5px solid var(--border,#2a2a2e)!important;border-radius:12px;padding:9px 11px;font:inherit;font-size:13px;line-height:1.5;outline:none}
 .genie-compose textarea:focus{border-color:#6366f1!important;box-shadow:none!important}
