@@ -3,6 +3,7 @@ import { prisma } from '@/lib/db'
 import { requireSupportSession, ticketInclude, ticketVisibilityWhere, autoCloseInactiveTickets } from '@/lib/support-ticket-access'
 import { logActivity, ACTION, MODULE } from '@/lib/activity-log'
 import { sendNewTicketNotificationToManagers } from '@/lib/system-notifications'
+import { MAX_ACTIVE_TICKETS } from '@/lib/support-limits'
 
 export async function GET(request: NextRequest) {
   try {
@@ -60,9 +61,9 @@ export async function POST(request: NextRequest) {
         status: { notIn: ['RESOLVED', 'CLOSED'] },
       },
     })
-    if (activeTicketCount >= 3) {
+    if (activeTicketCount >= MAX_ACTIVE_TICKETS) {
       return NextResponse.json(
-        { error: 'You already have 3 active tickets. Please wait until your existing tickets are resolved or closed before submitting a new one.' },
+        { error: `You already have ${MAX_ACTIVE_TICKETS} active tickets. Please wait until your existing tickets are resolved or closed before submitting a new one.` },
         { status: 400 }
       )
     }

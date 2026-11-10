@@ -44,7 +44,8 @@ export async function requireTicketAccess(id: string) {
   return { session: auth.session!, ticket }
 }
 
-export const TICKET_AUTO_CLOSE_DAYS = 10
+export { TICKET_AUTO_CLOSE_DAYS } from '@/lib/support-limits'
+import { TICKET_AUTO_CLOSE_DAYS } from '@/lib/support-limits'
 
 export async function autoCloseInactiveTickets() {
   try {

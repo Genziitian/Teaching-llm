@@ -38,9 +38,9 @@ class _NewTicketSheetState extends ConsumerState<NewTicketSheet> {
             .where((t) => t['status'] != 'RESOLVED' && t['status'] != 'CLOSED')
             .length ??
         0;
-    if (activeCount >= 3) {
+    if (activeCount >= 5) {
       setState(() => _error =
-          'You already have 3 active tickets. Please wait until your existing tickets are resolved or closed before submitting a new one.');
+          'You already have 5 active tickets. Please wait until your existing tickets are resolved or closed before submitting a new one.');
       return;
     }
     if (_description.text.trim().isEmpty ||
@@ -77,7 +77,7 @@ class _NewTicketSheetState extends ConsumerState<NewTicketSheet> {
             .where((t) => t['status'] != 'RESOLVED' && t['status'] != 'CLOSED')
             .length ??
         0;
-    final hasReachedActiveLimit = activeCount >= 3;
+    final hasReachedActiveLimit = activeCount >= 5;
     return PopScope(
       canPop: !_submitting,
       child: Padding(
@@ -207,7 +207,7 @@ class _NewTicketSheetState extends ConsumerState<NewTicketSheet> {
                             const SizedBox(width: 10),
                             Expanded(
                               child: Text(
-                                'You already have 3 active tickets. You cannot create a new ticket until a manager resolves or closes an existing ticket.',
+                                'You already have 5 active tickets. You cannot create a new ticket until a manager resolves or closes an existing ticket.',
                                 style: TextStyle(
                                   fontSize: 12.5,
                                   fontWeight: FontWeight.w600,

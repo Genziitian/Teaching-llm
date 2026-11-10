@@ -658,6 +658,13 @@ model ChatSession {
   messages  ChatMessage[]
   agent     User?         @relation("ChatAgent", fields: [agentId], references: [id])
   student   User          @relation("ChatStudent", fields: [studentId], references: [id])
+  ticketId    String?       @unique
+  joinedAt    DateTime?
+  movedReason String?
+  rating      Int?
+  context     String?
+
+  @@index([type, status])
 }
 
 model Faq {

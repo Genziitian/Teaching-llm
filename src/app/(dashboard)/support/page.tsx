@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState, useRef, useCallback } from 'react'
+import { MAX_ACTIVE_TICKETS, ticketNo } from '@/lib/support-limits'
 import { useRouter } from 'next/navigation'
 import { useConfirmDialog } from '@/hooks/useConfirmDialog'
 import { formatIST } from '@/lib/date-utils'
@@ -104,16 +105,6 @@ function getRelativeTime(dateStr: string, status: string): string {
   return `${verb} ${Math.floor(days / 7)} week${Math.floor(days / 7) !== 1 ? 's' : ''} ago`
 }
 
-// New tickets have a real serial number; old ones (no ticketNumber) keep their legacy display number.
-function ticketNo(t: { id: string; ticketNumber?: number | null }): string {
-  return t.ticketNumber != null ? String(t.ticketNumber) : shortId(t.id)
-}
-
-function shortId(id: string): string {
-  const hash = id.split('').reduce((a, c) => a + c.charCodeAt(0), 0)
-  return String(8000 + (hash % 2000))
-}
-
 function formatMessageDate(dateStr: string): string {
   const date = new Date(dateStr)
   return date.toLocaleString([], {
@@ -168,7 +159,7 @@ function CreateTicketModal({
           {hasReachedActiveLimit && (
             <div style={{ padding: '12px 14px', borderRadius: '12px', background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.25)', color: '#ef4444', fontSize: '12.5px', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '8px' }}>
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-              <span>You already have 3 active tickets. You cannot submit a new ticket until a manager resolves or closes an existing ticket.</span>
+              <span>You already have {MAX_ACTIVE_TICKETS} active tickets. You cannot submit a new ticket until a manager resolves or closes an existing ticket.</span>
             </div>
           )}
           {ticketError && (
@@ -344,7 +335,7 @@ export default function SupportPage() {
   const [submittingTicket, setSubmittingTicket] = useState(false)
 
   const activeTicketsCount = tickets.filter(t => t.status !== 'RESOLVED' && t.status !== 'CLOSED').length
-  const hasReachedActiveLimit = userRole === 'STUDENT' && activeTicketsCount >= 3
+  const hasReachedActiveLimit = userRole === 'STUDENT' && activeTicketsCount >= MAX_ACTIVE_TICKETS
 
   // FAQ
   const [faqs, setFaqs] = useState<Faq[]>([])
@@ -456,6 +447,21 @@ export default function SupportPage() {
     }
   }, [])
 
+  // Deep link from Genie / manager popup: /support?ticket=ID opens that ticket
+  const [deepTicketId, setDeepTicketId] = useState<string | null>(null)
+  useEffect(() => {
+    const id = new URLSearchParams(window.location.search).get('ticket')
+    if (id) {
+      setDeepTicketId(id)
+      window.history.replaceState({}, '', window.location.pathname)
+    }
+  }, [])
+  useEffect(() => {
+    if (!deepTicketId) return
+    const found = tickets.find(t => t.id === deepTicketId)
+    if (found) { setSelected(found); setView('allTickets'); setDeepTicketId(null) }
+  }, [deepTicketId, tickets])
+
   // Poll tickets so replies immediately move tickets to the top and refresh statuses
   useEffect(() => {
     const poll = async () => {
@@ -484,7 +490,7 @@ export default function SupportPage() {
   async function submitTicket() {
     if ((userRole === 'MANAGER' && !form.title.trim()) || !form.description.trim()) return
     if (hasReachedActiveLimit) {
-      setTicketError('You have reached the maximum of 3 active tickets. Please wait until an existing ticket is resolved or closed.')
+      setTicketError(`You have reached the maximum of ${MAX_ACTIVE_TICKETS} active tickets. Please wait until an existing ticket is resolved or closed.`)
       return
     }
     setSubmittingTicket(true)
@@ -842,6 +848,18 @@ export default function SupportPage() {
             order: 0;
             min-width: 0;
           }
+          .quick-ticket-bar:focus-within {
+            border-color: color-mix(in srgb, var(--text-primary) 28%, transparent) !important;
+          }
+          textarea.quick-ticket-input,
+          textarea.quick-ticket-input:focus,
+          :root[data-theme="black"] textarea.quick-ticket-input,
+          :root[data-theme="black"] textarea.quick-ticket-input:focus {
+            background: transparent !important;
+            border: none !important;
+            box-shadow: none !important;
+            outline: none !important;
+          }
           .chat-actions-col {
             display: flex;
             flex-direction: column;
@@ -1074,11 +1092,11 @@ export default function SupportPage() {
                   hasReachedActiveLimit ? (
                     <button 
                       disabled 
-                      title="You already have 3 active tickets. Please wait until your existing tickets are resolved or closed."
+                      title={`You already have ${MAX_ACTIVE_TICKETS} active tickets. Please wait until your existing tickets are resolved or closed.`}
                       className="btn" 
                       style={{ borderRadius: '50px', padding: '10px 18px', background: 'var(--surface)', color: 'var(--text-muted)', border: '1px solid var(--border)', cursor: 'not-allowed', opacity: 0.8, fontSize: '12px', fontWeight: '700' }}
                     >
-                      Limit Reached (3/3 Active)
+                      Limit Reached ({MAX_ACTIVE_TICKETS}/{MAX_ACTIVE_TICKETS} Active)
                     </button>
                   ) : (
                     <button onClick={() => { setTicketError(null); setShowCreate(true) }} className="btn btn-primary" style={{ borderRadius: '50px', padding: '10px 20px' }}>+ New Ticket</button>
@@ -1086,44 +1104,14 @@ export default function SupportPage() {
                 ) : (
                   <div style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: '600' }}>Review tickets below</div>
                 )}
-                <a href="https://wa.me/917254926179" target="_blank" rel="noopener noreferrer" aria-label="Chat on WhatsApp" title="Chat on WhatsApp" style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '40px', height: '40px', borderRadius: '50%', background: '#25D366', color: '#fff', boxShadow: '0 4px 12px rgba(37,211,102,0.4)', textDecoration: 'none', flexShrink: 0 }}><svg width="21" height="21" viewBox="0 0 24 24" fill="currentColor"><path d="M20.5 3.5A11.8 11.8 0 0 0 12 0C5.4 0 0 5.4 0 12c0 2.1.6 4.2 1.6 6L0 24l6.2-1.6A12 12 0 0 0 12 24c6.6 0 12-5.4 12-12 0-3.2-1.2-6.200-3.500-8.500zM12 22a10 10 0 0 1-5.100-1.400l-.4-.2-3.700 1 1-3.600-.2-.4A10 10 0 1 1 12 22zm5.500-7.500c-.3-.2-1.800-.9-2.100-1-.3-.1-.5-.2-.7.200-.2.300-.8 1-1 1.200-.2.200-.4.200-.7.100-.3-.2-1.300-.5-2.400-1.500-.9-.8-1.500-1.800-1.700-2.100-.2-.3 0-.5.100-.6l.5-.5c.1-.2.200-.3.300-.5.100-.2 0-.4 0-.5-.1-.2-.7-1.700-1-2.300-.2-.6-.5-.5-.7-.5h-.6c-.2 0-.5.100-.8.400-.3.300-1 1-1 2.500s1.100 2.900 1.200 3.100c.2.200 2.100 3.300 5.200 4.600.7.300 1.300.5 1.700.6.700.2 1.400.2 1.900.1.600-.1 1.800-.7 2-1.400.3-.7.300-1.300.2-1.400-.1-.1-.3-.2-.6-.4z"/></svg></a>
+                
                 </div>
               </div>
 
               {hasReachedActiveLimit && (
                 <div style={{ marginTop: '10px', padding: '10px 14px', borderRadius: '12px', background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.25)', color: '#ef4444', fontSize: '12px', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-                  <span>You have 3 active tickets. You cannot create a new ticket until a manager resolves or closes an existing ticket.</span>
-                </div>
-              )}
-
-              {/* Quick ticket typing bar — always visible */}
-              {(userRole === 'STUDENT' || userRole === 'ADMIN' || userRole === 'MODERATOR') && !hasReachedActiveLimit && (
-                <div style={{ marginTop: '6px', display: 'flex', alignItems: 'flex-end', gap: '10px', padding: '10px 10px 10px 16px', background: 'var(--surface)', border: '1.5px solid var(--border)', borderRadius: '18px' }}>
-                  <textarea
-                    value={form.description}
-                    onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
-                    onKeyDown={e => {
-                      if (e.key === 'Enter' && !e.shiftKey && form.description.trim()) {
-                        e.preventDefault()
-                        setTicketError(null)
-                        setShowCreate(true)
-                      }
-                    }}
-                    placeholder="Explain me your problem..."
-                    rows={2}
-                    style={{ flex: 1, minWidth: 0, background: 'transparent', border: 'none', outline: 'none', resize: 'none', color: 'var(--text-primary)', fontSize: '13.5px', lineHeight: '1.5', fontFamily: 'inherit', padding: '4px 0' }}
-                  />
-                  <button
-                    onClick={() => { setTicketError(null); setShowCreate(true) }}
-                    disabled={!form.description.trim()}
-                    aria-label="Continue to ticket"
-                    title="Continue"
-                    className="btn btn-primary"
-                    style={{ borderRadius: '50px', width: '40px', height: '40px', padding: 0, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, opacity: form.description.trim() ? 1 : 0.45, cursor: form.description.trim() ? 'pointer' : 'not-allowed' }}
-                  >
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="22" y1="2" x2="11" y2="13" /><polygon points="22 2 15 22 11 13 2 9 22 2" /></svg>
-                  </button>
+                  <span>You have {MAX_ACTIVE_TICKETS} active tickets. You cannot create a new ticket until a manager resolves or closes an existing ticket.</span>
                 </div>
               )}
 
@@ -1157,27 +1145,38 @@ export default function SupportPage() {
                   </div>
                 )}
               </div>
-            </div>
 
-            {/* WhatsApp Card */}
-            {userRole !== 'MANAGER' && (
-              <a
-                href="https://wa.me/917254926179"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="ticket-box-pad"
-                style={{ width: '100%', display: 'flex', alignItems: 'center', gap: '16px', borderRadius: '24px', background: 'var(--surface-2)', border: '1.5px solid rgba(37,211,102,0.35)', boxShadow: 'inset 0 1px 0 var(--neu-glow)', textDecoration: 'none', textAlign: 'left' }}
-              >
-                <div style={{ width: '48px', height: '48px', borderRadius: '14px', background: '#25D366', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, boxShadow: '0 4px 12px rgba(37,211,102,0.35)' }}>
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20.5 3.5A11.8 11.8 0 0 0 12 0C5.4 0 0 5.4 0 12c0 2.1.6 4.2 1.6 6L0 24l6.2-1.6A12 12 0 0 0 12 24c6.6 0 12-5.4 12-12 0-3.2-1.2-6.2-3.5-8.5zM12 22a10 10 0 0 1-5.1-1.4l-.4-.2-3.7 1 1-3.6-.2-.4A10 10 0 1 1 12 22zm5.5-7.5c-.3-.2-1.8-.9-2.1-1-.3-.1-.5-.2-.7.2-.2.3-.8 1-1 1.2-.2.2-.4.2-.7.1-.3-.2-1.3-.5-2.4-1.5-.9-.8-1.5-1.8-1.7-2.1-.2-.3 0-.5.1-.6l.5-.5c.1-.2.2-.3.3-.5.1-.2 0-.4 0-.5-.1-.2-.7-1.7-1-2.3-.2-.6-.5-.5-.7-.5h-.6c-.2 0-.5.1-.8.4-.3.3-1 1-1 2.5s1.1 2.9 1.2 3.1c.2.2 2.1 3.3 5.2 4.6.7.3 1.3.5 1.7.6.7.2 1.4.2 1.9.1.6-.1 1.8-.7 2-1.4.3-.7.3-1.3.2-1.4-.1-.1-.3-.2-.6-.4z"/></svg>
+              {/* Quick ticket typing bar — always visible */}
+              {(userRole === 'STUDENT' || userRole === 'ADMIN' || userRole === 'MODERATOR') && !hasReachedActiveLimit && (
+                <div className="quick-ticket-bar" style={{ marginTop: '16px', display: 'flex', alignItems: 'flex-end', gap: '10px', padding: '10px 10px 10px 16px', background: 'var(--surface)', border: '1.5px solid var(--border)', borderRadius: '18px', transition: 'border-color 0.15s' }}>
+                  <textarea
+                    className="quick-ticket-input"
+                    value={form.description}
+                    onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
+                    onKeyDown={e => {
+                      if (e.key === 'Enter' && !e.shiftKey && form.description.trim()) {
+                        e.preventDefault()
+                        setTicketError(null)
+                        setShowCreate(true)
+                      }
+                    }}
+                    placeholder="Explain me your problem..."
+                    rows={2}
+                    style={{ flex: 1, minWidth: 0, background: 'transparent', border: 'none', outline: 'none', resize: 'none', color: 'var(--text-primary)', fontSize: '13.5px', lineHeight: '1.5', fontFamily: 'inherit', padding: '4px 0' }}
+                  />
+                  <button
+                    onClick={() => { setTicketError(null); setShowCreate(true) }}
+                    disabled={!form.description.trim()}
+                    aria-label="Continue to ticket"
+                    title="Continue"
+                    className="btn btn-primary"
+                    style={{ borderRadius: '50px', width: '40px', height: '40px', padding: 0, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, opacity: form.description.trim() ? 1 : 0.45, cursor: form.description.trim() ? 'pointer' : 'not-allowed' }}
+                  >
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="22" y1="2" x2="11" y2="13" /><polygon points="22 2 15 22 11 13 2 9 22 2" /></svg>
+                  </button>
                 </div>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: '12px', fontWeight: 800, color: '#25D366', letterSpacing: '0.03em', marginBottom: '4px', textTransform: 'uppercase' }}>Connect on WhatsApp</div>
-                  <div style={{ fontSize: '13px', color: 'var(--text-secondary)', lineHeight: '1.5' }}>Need a quick reply? Chat with our support team directly.</div>
-                </div>
-                <span style={{ flexShrink: 0, padding: '10px 18px', borderRadius: '50px', background: '#25D366', color: '#fff', fontSize: '13px', fontWeight: 700, whiteSpace: 'nowrap' }}>Chat now →</span>
-              </a>
-            )}
+              )}
+            </div>
 
             {userRole === 'MANAGER' && (
               <div className="ticket-box-pad" style={{ width: '100%', borderRadius: '24px', background: 'var(--surface-2)', border: '1.5px solid var(--border)', boxShadow: 'inset 0 1px 0 var(--neu-glow)', textAlign: 'left' }}>
@@ -1638,7 +1637,7 @@ export default function SupportPage() {
             <div style={{ minWidth: 0 }}>
               <div style={{ fontSize: '17px', fontWeight: 700, color: 'var(--text-primary)', lineHeight: 1.2 }}>{isStudent ? 'My tickets' : 'Tickets'}</div>
               <div style={{ fontSize: '12.5px', color: 'var(--text-secondary)', marginTop: '2px' }}>
-                {tickets.length} ticket{tickets.length !== 1 ? 's' : ''}{isStudent ? ` · ${activeTicketsCount} of 3 active` : ''}
+                {tickets.length} ticket{tickets.length !== 1 ? 's' : ''}{isStudent ? ` · ${activeTicketsCount} of ${MAX_ACTIVE_TICKETS} active` : ''}
               </div>
             </div>
           </div>
@@ -1649,12 +1648,12 @@ export default function SupportPage() {
               disabled={hasReachedActiveLimit}
               className="btn btn-primary btn-sm"
               style={{ borderRadius: '10px', padding: '9px 16px', fontSize: '13px', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '6px', ...(hasReachedActiveLimit ? { opacity: 0.6, cursor: 'not-allowed' } : {}) }}
-              title={hasReachedActiveLimit ? 'Active ticket limit reached (3/3). Wait for resolution or closure.' : undefined}
+              title={hasReachedActiveLimit ? `Active ticket limit reached (${MAX_ACTIVE_TICKETS}/${MAX_ACTIVE_TICKETS}). Wait for resolution or closure.` : undefined}
             >
               {!hasReachedActiveLimit && <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></svg>}
-              {hasReachedActiveLimit ? 'Limit reached (3/3)' : 'New ticket'}
+              {hasReachedActiveLimit ? `Limit reached (${MAX_ACTIVE_TICKETS}/${MAX_ACTIVE_TICKETS})` : 'New ticket'}
             </button>
-            <a href="https://wa.me/917254926179" target="_blank" rel="noopener noreferrer" aria-label="Chat on WhatsApp" title="Chat on WhatsApp" style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '38px', height: '38px', borderRadius: '50%', background: '#25D366', color: '#fff', boxShadow: '0 4px 12px rgba(37,211,102,0.4)', textDecoration: 'none', flexShrink: 0 }}><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M20.5 3.5A11.8 11.8 0 0 0 12 0C5.4 0 0 5.4 0 12c0 2.1.6 4.2 1.6 6L0 24l6.2-1.6A12 12 0 0 0 12 24c6.6 0 12-5.4 12-12 0-3.2-1.2-6.200-3.500-8.500zM12 22a10 10 0 0 1-5.100-1.400l-.4-.2-3.700 1 1-3.600-.2-.4A10 10 0 1 1 12 22zm5.500-7.500c-.3-.2-1.800-.9-2.100-1-.3-.1-.5-.2-.7.200-.2.300-.8 1-1 1.200-.2.200-.4.200-.7.100-.3-.2-1.300-.5-2.400-1.500-.9-.8-1.500-1.800-1.700-2.100-.2-.3 0-.5.100-.6l.5-.5c.1-.2.200-.3.300-.5.100-.2 0-.4 0-.5-.1-.2-.7-1.700-1-2.300-.2-.6-.5-.5-.7-.5h-.6c-.2 0-.5.100-.8.400-.3.300-1 1-1 2.500s1.100 2.900 1.200 3.100c.2.200 2.100 3.300 5.200 4.600.7.300 1.300.5 1.700.6.700.2 1.400.2 1.900.1.600-.1 1.800-.7 2-1.400.3-.7.300-1.300.2-1.400-.1-.1-.3-.2-.6-.4z"/></svg></a>
+            
             </div>
           )}
         </div>

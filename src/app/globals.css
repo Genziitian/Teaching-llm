@@ -825,8 +825,28 @@ img {
 :root[data-theme="black"] input:not([type="checkbox"]):not([type="radio"]):focus,
 :root[data-theme="black"] textarea:focus,
 :root[data-theme="black"] select:focus {
-  border-color: #ffffff !important;
-  box-shadow: 0 0 0 1px #ffffff !important;
+  border-color: rgba(255, 255, 255, 0.4) !important;
+  box-shadow: none !important;
+}
+
+/* Inputs designed without a border (chat boxes, search bars, inline editors)
+   sit inside their own container: keep them borderless in the black theme,
+   so they don't show a box inside the box. */
+:root[data-theme="black"] input:not([type="checkbox"]):not([type="radio"])[style*="border: none"],
+:root[data-theme="black"] input:not([type="checkbox"]):not([type="radio"])[style*="border: 0"],
+:root[data-theme="black"] textarea[style*="border: none"],
+:root[data-theme="black"] textarea[style*="border: 0"],
+:root[data-theme="black"] input:not([type="checkbox"]):not([type="radio"])[style*="border: none"]:focus,
+:root[data-theme="black"] input:not([type="checkbox"]):not([type="radio"])[style*="border: 0"]:focus,
+:root[data-theme="black"] textarea[style*="border: none"]:focus,
+:root[data-theme="black"] textarea[style*="border: 0"]:focus {
+  border: none !important;
+  box-shadow: none !important;
+  outline: none !important;
+}
+:root[data-theme="black"] input:not([type="checkbox"]):not([type="radio"])[style*="background: transparent"],
+:root[data-theme="black"] textarea[style*="background: transparent"] {
+  background: transparent !important;
 }
 
 :root[data-theme="black"] th {

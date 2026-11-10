@@ -56,12 +56,12 @@ class _SupportPageState extends ConsumerState<SupportPage> with WidgetsBindingOb
             .where((t) => t['status'] != 'RESOLVED' && t['status'] != 'CLOSED')
             .length ??
         0;
-    if (activeCount >= 3) {
+    if (activeCount >= 5) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text(
-                'You already have 3 active tickets. Please wait until an existing ticket is resolved or closed.'),
+                'You already have 5 active tickets. Please wait until an existing ticket is resolved or closed.'),
             backgroundColor: Colors.red,
           ),
         );
@@ -84,7 +84,7 @@ class _SupportPageState extends ConsumerState<SupportPage> with WidgetsBindingOb
             .where((t) => t['status'] != 'RESOLVED' && t['status'] != 'CLOSED')
             .length ??
         0;
-    final hasReachedActiveLimit = role == 'STUDENT' && activeCount >= 3;
+    final hasReachedActiveLimit = role == 'STUDENT' && activeCount >= 5;
 
     final links = <Widget>[
       if (manager)
@@ -147,7 +147,7 @@ class _SupportPageState extends ConsumerState<SupportPage> with WidgetsBindingOb
                         ),
                         child: Text(
                           hasReachedActiveLimit
-                              ? 'Limit Reached (3/3 Active)'
+                              ? 'Limit Reached (5/5 Active)'
                               : 'New Ticket',
                           style: TextStyle(
                             fontSize: 17,
@@ -224,7 +224,7 @@ class _SupportPageState extends ConsumerState<SupportPage> with WidgetsBindingOb
                     const SizedBox(width: 10),
                     Expanded(
                       child: Text(
-                        'You have 3 active tickets. You cannot create a new ticket until a manager resolves or closes an existing ticket.',
+                        'You have 5 active tickets. You cannot create a new ticket until a manager resolves or closes an existing ticket.',
                         style: TextStyle(
                           fontSize: 13.5,
                           fontWeight: FontWeight.w500,

@@ -5,7 +5,8 @@ import Sidebar from '@/components/layout/Sidebar'
 import Header from '@/components/layout/Header'
 import MobileBottomNav from '@/components/layout/MobileBottomNav'
 import UpdateOverlay from '@/components/UpdateOverlay'
-import SupportFloatingButton from '@/components/ui/SupportFloatingButton'
+import GenieWidget from '@/components/genie/GenieWidget'
+import GenieAgentAlerts from '@/components/genie/GenieAgentAlerts'
 import ProfileSetupBlocker from '@/components/ProfileSetupBlocker'
 import IdentitySetupBlocker from '@/components/IdentitySetupBlocker'
 import DynamicPromptBlocker from '@/components/DynamicPromptBlocker'
@@ -61,7 +62,8 @@ export default async function DashboardLayout({
             <main className="dashboard-scroll-region">
               {children}
             </main>
-            <SupportFloatingButton />
+            <GenieWidget userRole={session.role} />
+            <GenieAgentAlerts userRole={session.role} />
             <MobileBottomNav userRole={session.role} />
           </div>
           <LoadingFactsHydrator />

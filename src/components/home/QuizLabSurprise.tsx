@@ -530,7 +530,8 @@ export default function QuizLabSurprise() {
         </div>
       )}
 
-      {mode === 'corner' && (
+      {/* Corner gift box removed (Nov 2026) — kept behind `false` so it can be restored easily. */}
+      {false && mode === 'corner' && (
         <div className={`qls-corner ${cornerOpen ? 'is-open' : ''}`}>
           {cornerOpen && (
             <div className="qls-card" role="dialog" aria-label="Quiz Lab">

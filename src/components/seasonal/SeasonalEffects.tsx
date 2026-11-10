@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { usePathname } from 'next/navigation'
-import { isSeasonalRouteBlocked, readSnowPref, snowAmount, SNOW_HINT_KEY, writeSnowPref } from '@/lib/seasonal/seasons'
+import { isSeasonalRouteBlocked, readSnowPref, snowAmount, SNOW_HINT_KEY } from '@/lib/seasonal/seasons'
 import { useSeasonalTick } from './useSeasonalTick'
 import type { SnowEngine } from './snow/SnowEngine'
 import styles from './SeasonalEffects.module.css'
@@ -60,11 +60,10 @@ const cancelIdle = (h: IdleHandle) =>
 export default function SeasonalEffects() {
   const pathname = usePathname() || '/'
   const [amount, setAmount] = useState(0)
-  const [snowOn, setSnowOn] = useState(false)
+  const [snowOn, setSnowOn] = useState(false) // set from the Settings preference
   const [ready, setReady] = useState(false)
   const [hint, setHint] = useState<'hidden' | 'show' | 'leaving'>('hidden')
   const [touch, setTouch] = useState(false)
-  const [pop, setPop] = useState(0)
   const engineRef = useRef<SnowEngine | null>(null)
   const firstRun = useRef(true)
   const tick = useSeasonalTick()
@@ -134,39 +133,11 @@ export default function SeasonalEffects() {
     return () => { window.clearTimeout(show); window.clearTimeout(hide) }
   }, [active, dismissHint])
 
-  const toggle = () => {
-    const next = !snowOn
-    setSnowOn(next)
-    setPop(p => p + 1)
-    writeSnowPref(next)
-    if (!next) dismissHint()
-  }
-
-
   if (!ready || blocked) return null
 
   return (
     <>
-      <button
-        type="button"
-        className={`${styles.toggle} ${snowOn ? '' : styles.off}`}
-        onClick={toggle}
-        aria-pressed={snowOn}
-        aria-label={snowOn ? 'Turn snow off' : 'Turn snow on'}
-        data-no-snow
-      >
-        <span className={styles.mound} aria-hidden="true" />
-        <svg key={pop} className={`${styles.icon} ${pop ? styles.pop : ''}`} viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
-          <g fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M12 2.5v19M3.8 7.25l16.4 9.5M3.8 16.75l16.4-9.5" />
-            <path d="M9.6 4.2 12 6.3l2.4-2.1M9.6 19.8 12 17.7l2.4 2.1M4.3 10.2l3.1.9-.7-3.1M19.7 13.8l-3.1-.9.7 3.1M4.3 13.8l3.1-.9-.7 3.1M19.7 10.2l-3.1.9.7-3.1" />
-          </g>
-        </svg>
-        <svg className={styles.slash} viewBox="0 0 24 24" width="24" height="24" aria-hidden="true">
-          <path d="M4 20 20 4" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-        </svg>
-        <span className={styles.label}>{snowOn ? 'Snow on' : 'Snow off'}</span>
-      </button>
+      {/* Snow on/off lives in Settings only — no floating toggle on pages. */}
 
       {hint !== 'hidden' && (
         <div className={`${styles.hint} ${hint === 'leaving' ? styles.hintOut : ''}`} role="status" data-no-snow>
