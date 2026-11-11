@@ -99,7 +99,7 @@ function StudentFeedbackView({ userId }: { userId: string }) {
   if (isLoading) return <div className="page-container animate-pulse" />
 
   return (
-    <div className="page-container fade-in" style={{ maxWidth: '900px', margin: '0 auto', padding: 'clamp(16px, 4vw, 32px)' }}>
+    <div className="gz-page fade-in" style={{ maxWidth: 900 }}>
       <style>{`
         .mobile-back-header {
           display: none !important;
@@ -490,7 +490,7 @@ function ManagerFeedbackView() {
   if (isLoading) return <div className="page-container animate-pulse" />
 
   return (
-    <div className="page-container fade-in" style={{ padding: 'clamp(16px, 4vw, 32px)' }}>
+    <div className="gz-page fade-in">
       <style dangerouslySetInnerHTML={{__html: `
         @media (min-width: 768px) {
           .feedback-mobile-header {
@@ -1368,7 +1368,7 @@ function AdminFeedbackView({ user }: { user: any }) {
   }
 
   return (
-    <div className="page-container fade-in" style={{ padding: 'clamp(16px, 4vw, 32px)', maxWidth: '900px', margin: '0 auto' }}>
+    <div className="gz-page fade-in" style={{ maxWidth: 900 }}>
       {/* Mobile back header */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '28px' }}>
         <button

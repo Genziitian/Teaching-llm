@@ -96,6 +96,28 @@ function validate(body: unknown): { table: string; calls: Call[] } | { error: st
   return { table, calls: out }
 }
 
+async function run(v: { table: string; calls: Call[] }): Promise<NextResponse> {
+    if (SUPER_MANAGER_TABLES.has(v.table)) {
+      const sg = await requireSuperManager()
+      if ('response' in sg) return sg.response
+    }
+
+    let q: any = storefrontDb().from(v.table)
+    for (const c of v.calls) {
+      q = q[c.m](...c.a)
+    }
+    const res = await q
+    const err = res?.error
+    return NextResponse.json({
+      data: res?.data ?? null,
+      error: err
+        ? { message: err.message ?? 'Error', code: err.code ?? null, details: err.details ?? null, hint: err.hint ?? null }
+        : null,
+      count: typeof res?.count === 'number' ? res.count : null,
+      status: typeof res?.status === 'number' ? res.status : 200,
+    })
+}
+
 export async function POST(request: NextRequest) {
   try {
     // Parse + validate before auth work, but only act after the guard passes.
@@ -116,25 +138,34 @@ export async function POST(request: NextRequest) {
     const v = validate(parsed)
     if ('error' in v) return bad(v.error)
 
-    if (SUPER_MANAGER_TABLES.has(v.table)) {
-      const sg = await requireSuperManager()
-      if ('response' in sg) return sg.response
-    }
+    return await run(v)
+  } catch (error) {
+    return storefrontError('db-proxy', error)
+  }
+}
 
-    let q: any = storefrontDb().from(v.table)
-    for (const c of v.calls) {
-      q = q[c.m](...c.a)
+// Read-only variant: the browser sends select-only chains as GET ?q=<base64url JSON> so plain
+// reads are not counted as writes by the global POST rate limit. Writes must use POST.
+export async function GET(request: NextRequest) {
+  try {
+    const g = await requireManager()
+    if ('response' in g) return g.response
+
+    const q = new URL(request.url).searchParams.get('q') || ''
+    if (!q || q.length > 8000) return bad('Invalid query', q ? 414 : 400)
+
+    let parsed: unknown
+    try {
+      parsed = JSON.parse(Buffer.from(q, 'base64url').toString('utf8'))
+    } catch {
+      return bad('Invalid query')
     }
-    const res = await q
-    const err = res?.error
-    return NextResponse.json({
-      data: res?.data ?? null,
-      error: err
-        ? { message: err.message ?? 'Error', code: err.code ?? null, details: err.details ?? null, hint: err.hint ?? null }
-        : null,
-      count: typeof res?.count === 'number' ? res.count : null,
-      status: typeof res?.status === 'number' ? res.status : 200,
-    })
+    const v = validate(parsed)
+    if ('error' in v) return bad(v.error)
+    if (v.calls[0].m !== 'select' || v.calls.some((c) => ['insert', 'update', 'upsert', 'delete'].includes(c.m))) {
+      return bad('GET is read-only', 405)
+    }
+    return await run(v)
   } catch (error) {
     return storefrontError('db-proxy', error)
   }

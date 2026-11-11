@@ -640,8 +640,9 @@ export default function CourseDetailPage() {
     {/* Desktop layout */}
     <div className="page-container fade-in course-detail-desktop-only">
       {/* Course Header Banner */}
-      <div className="card" style={{ overflow: 'hidden', marginBottom: '20px' }}>
+      <div className="card gz-chead" style={{ overflow: 'hidden', marginBottom: '20px' }}>
         <div 
+          className="gz-chead__bg"
           onMouseEnter={() => setShowUpgradeHint(true)}
           onMouseLeave={() => setShowUpgradeHint(false)}
           style={{
@@ -882,7 +883,8 @@ export default function CourseDetailPage() {
             return (
               <button
                 key={tab}
-                className="tab-underline-hover"
+                className="tab-underline-hover gz-tab"
+                data-active={isActive ? 'true' : 'false'}
                 onClick={() => {
                   if (tab === 'community') {
                     openCourseCommunity()

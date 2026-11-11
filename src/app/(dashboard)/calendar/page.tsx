@@ -789,107 +789,20 @@ function CalendarPageContent() {
       </div>
 
       {/* ───────────── DESKTOP CALENDAR (>768px) ───────────── */}
-      <div className="page-header calendar-desktop-only" style={{ marginBottom: '32px' }}>
-        <div style={{ 
-          display: 'flex', 
-          alignItems: 'center', 
-          gap: '4px',
-          background: 'var(--surface-hover)',
-          padding: '4px',
-          borderRadius: '50px',
-        }}>
-          <button onClick={goToday} className="btn btn-sm" style={{ 
-            background: 'transparent', 
-            boxShadow: 'none',
-            color: 'var(--text-primary)',
-            fontWeight: '700'
-          }}>Today</button>
-          <div style={{ width: '1px', height: '20px', background: 'var(--border)', margin: '0 4px' }} />
-          <button onClick={prevMonth} style={{ 
-            width: '32px', height: '32px', borderRadius: '50%',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            color: 'var(--text-secondary)', transition: 'all 0.2s'
-          }} className="hover:bg-white/50">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-              <polyline points="15 18 9 12 15 6"/>
-            </svg>
-          </button>
-          <button onClick={nextMonth} style={{ 
-            width: '32px', height: '32px', borderRadius: '50%',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            color: 'var(--text-secondary)', transition: 'all 0.2s'
-          }} className="hover:bg-white/50">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-              <polyline points="9 18 15 12 9 6"/>
-            </svg>
-          </button>
-        </div>
-
-        <h2 style={{ 
-          fontSize: '30px', 
-          fontWeight: '700', 
-          letterSpacing: '-0.03em',
-          color: 'var(--text-primary)',
-          margin: 0,
-        }}>
-          {monthName}
-        </h2>
-
+      <div className="calendar-desktop-only gz-cal-bar">
+        <button onClick={goToday} className="gz-btn gz-btn--ghost">Today</button>
+        <button onClick={prevMonth} aria-label="Previous month" className="gz-btn gz-btn--ghost gz-btn--icon">‹</button>
+        <button onClick={nextMonth} aria-label="Next month" className="gz-btn gz-btn--ghost gz-btn--icon">›</button>
+        <h2 className="gz-cal-title">{monthName}</h2>
         {isManager && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <button
-              onClick={handleSyncLiveSessions}
-              disabled={syncing}
-              className="btn"
-              style={{
-                padding: '10px 20px',
-                fontWeight: '700',
-                background: 'var(--surface-hover)',
-                color: 'var(--accent)',
-                border: 'none',
-                borderRadius: '50px',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '8px',
-                cursor: syncing ? 'wait' : 'pointer',
-                opacity: syncing ? 0.7 : 1,
-              }}
-              title="Sync today's scheduled classes to live sessions"
-            >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ animation: syncing ? 'spin 1s linear infinite' : 'none' }}>
-                <path d="M21.5 2v6h-6M2 22v-6h6M21.34 15.57a10 10 0 1 1-.92-10.45l3.08 2.88L2 22l-3.08-2.88a10 10 0 1 1 .92 10.45"/>
-              </svg>
-              {syncing ? 'Syncing...' : 'Sync Live Sessions'}
+          <div className="gz-cal-actions">
+            <button onClick={handleSyncLiveSessions} disabled={syncing} className="gz-btn gz-btn--ghost" title="Sync today's scheduled classes to live sessions">
+              {syncing ? 'Syncing…' : 'Sync Live Sessions'}
             </button>
-            <button
-              onClick={() => openBulkManager()}
-              className="btn"
-              style={{
-                padding: '10px 20px',
-                fontWeight: '700',
-                background: 'var(--surface-hover)',
-                color: 'var(--text-primary)',
-                border: 'none',
-                borderRadius: '50px',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '8px',
-                cursor: 'pointer',
-              }}
-              title="Manage, select and bulk delete events after any date"
-            >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <polyline points="3 6 5 6 21 6" />
-                <path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2" />
-              </svg>
+            <button onClick={() => openBulkManager()} className="gz-btn gz-btn--ghost" title="Manage, select and bulk delete events after any date">
               Manage &amp; Clean Up
             </button>
-            <button onClick={() => openCreate()} className="btn btn-primary" style={{ padding: '10px 22px', fontWeight: '600', borderRadius: '50px' }}>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
-                <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
-              </svg>
-              Add Event
-            </button>
+            <button onClick={() => openCreate()} className="gz-btn">+ Add Event</button>
           </div>
         )}
       </div>
@@ -897,10 +810,10 @@ function CalendarPageContent() {
       {/* Calendar Grid */}
       <div className="card calendar-desktop-only" style={{
         overflow: 'hidden',
-        borderRadius: '22px',
-        border: '0.5px solid var(--border)',
+        borderRadius: '14px',
+        border: '1px solid var(--gz-line)',
         boxShadow: 'none',
-        background: 'var(--surface)'
+        background: 'var(--gz-panel)'
       }}>
         {/* Day headers */}
         <div style={{
@@ -913,10 +826,12 @@ function CalendarPageContent() {
             <div key={d} style={{
               padding: '14px 12px 10px',
               textAlign: 'right',
-              fontSize: '12px',
-              fontWeight: '600',
-              color: 'var(--text-secondary)',
-              letterSpacing: '0.02em',
+              fontFamily: 'var(--gz-mono)',
+              fontSize: '10.5px',
+              fontWeight: '400',
+              textTransform: 'uppercase',
+              color: 'var(--gz-ink-4)',
+              letterSpacing: '0.05em',
             }}>
               {d}
             </div>
@@ -1025,15 +940,16 @@ function CalendarPageContent() {
       </div>
 
       {/* Events This Month List */}
-      <div className="calendar-desktop-only" style={{ marginTop: '40px' }}>
+      <div className="calendar-desktop-only" style={{ marginTop: '20px' }}>
         <h3 style={{
-          fontSize: '15px',
-          fontWeight: '800',
-          marginBottom: '16px',
-          color: 'var(--text-secondary)',
+          fontFamily: 'var(--gz-mono)',
+          fontSize: '10.5px',
+          fontWeight: '400',
+          marginBottom: '10px',
+          color: 'var(--gz-ink-4)',
           textTransform: 'uppercase',
-          letterSpacing: '0.1em'
-        }}>Events This Month</h3>
+          letterSpacing: '0.06em'
+        }}>Events this month</h3>
         {events.length === 0 ? (
           <div className="card" style={{ padding: '30px', textAlign: 'center', color: 'var(--text-muted)', background: 'var(--surface-2)', backdropFilter: 'blur(10px)' }}>
             No events this month
@@ -1133,14 +1049,14 @@ function CalendarPageContent() {
                       </div>
                     </div>
                     <span style={{
-                      fontSize: '10px', padding: '4px 12px', borderRadius: '50px', fontWeight: '700',
+                      fontSize: '11.5px', padding: '2px 8px', borderRadius: '6px', fontWeight: '500',
                       background: 'var(--bg)',
                       color: 'var(--text-secondary)',
                     }}>
                       {ev.course?.name || 'Global'}
                     </span>
                     <span style={{
-                      fontSize: '10px', padding: '4px 12px', borderRadius: '50px', fontWeight: '700',
+                      fontSize: '11.5px', padding: '2px 8px', borderRadius: '6px', fontWeight: '500',
                       background: tc.bg + '20',
                       color: tc.bg === '#FFC107' ? '#b48a04' : tc.bg, // Adjust contrast for yellow
                     }}>
@@ -1173,9 +1089,9 @@ function CalendarPageContent() {
       {/* Event Detail Popover */}
       {selectedEvent && (
         <div className="modal-overlay" onClick={() => setSelectedEvent(null)}>
-          <div className="modal" onClick={e => e.stopPropagation()} style={{ maxWidth: 'min(440px, calc(100vw - 32px))', borderRadius: '28px' }}>
+          <div className="modal" onClick={e => e.stopPropagation()} style={{ maxWidth: 'min(440px, calc(100vw - 32px))', borderRadius: '18px' }}>
             <div className="modal-header" style={{ border: 'none', padding: '24px 24px 0' }}>
-              <h3 style={{ fontSize: '18px', fontWeight: '800', color: 'var(--text-primary)' }}>Event Details</h3>
+              <h3 style={{ fontSize: '17px', fontWeight: '600', color: 'var(--text-primary)' }}>Event Details</h3>
               <button onClick={() => setSelectedEvent(null)} style={{ color: 'var(--text-muted)', transition: 'all 0.2s' }} className="hover:rotate-90">
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                   <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
@@ -1190,7 +1106,7 @@ function CalendarPageContent() {
               {selectedEvent.description && (
                 <div>
                   <div style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: '600', textTransform: 'uppercase', marginBottom: '4px' }}>Description</div>
-                  <div style={{ fontSize: '13px', color: '#3a3a5c' }}>{selectedEvent.description}</div>
+                  <div style={{ fontSize: '13px', color: 'var(--gz-ink-2)' }}>{selectedEvent.description}</div>
                 </div>
               )}
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>

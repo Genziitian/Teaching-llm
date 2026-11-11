@@ -384,8 +384,7 @@ export default function ProfilePage() {
 
   const insetRow: React.CSSProperties = {
     display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-    padding: isMobile ? '10px 14px' : '14px 18px', borderRadius: '14px', background: 'var(--surface-2)',
-    boxShadow: 'inset 3px 3px 6px var(--neu-dark), inset -3px -3px 6px var(--neu-light)',
+    padding: '11px 0', borderRadius: 0, background: 'transparent', borderTop: '1px solid var(--gz-line)',
     gap: '16px',
   }
 
@@ -415,7 +414,7 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="page-container fade-in mobile-profile-page" style={{ padding: isMobile ? '12px' : '20px', paddingBottom: '24px' }}>
+    <div className="gz-page fade-in mobile-profile-page">
       <div style={{ maxWidth: '960px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '24px' }}>
 
         {/* ── Back & Settings ── */}

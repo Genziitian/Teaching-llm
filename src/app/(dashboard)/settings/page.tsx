@@ -295,14 +295,13 @@ export default function SettingsPage() {
 
   const insetRow: React.CSSProperties = {
     display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-    padding: isMobile ? '12px 14px' : '14px 18px', borderRadius: '14px', background: 'var(--surface-2)',
-    border: '1px solid var(--border)',
-    gap: '12px',
+    padding: '11px 0', borderRadius: 0, background: 'transparent', borderTop: '1px solid var(--gz-line)',
+    gap: '16px',
   }
 
 
   return (
-    <div className="page-container fade-in" style={{ padding: isMobile ? '12px' : '20px' }}>
+    <div className="gz-page fade-in" style={{ maxWidth: 760 }}>
       <style>{`
         .mobile-back-header {
           display: none !important;

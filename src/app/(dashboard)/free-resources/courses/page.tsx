@@ -61,7 +61,7 @@ export default function FreeCoursesPage() {
 
   if (isLoading) {
     return (
-      <div className="page-container fade-in">
+      <div className="gz-page fade-in">
         {loadingFact && (
           <div style={{ marginBottom: '24px', display: 'flex', justifyContent: 'center' }}>
             <LoadingFactCard fact={loadingFact} />
@@ -83,176 +83,60 @@ export default function FreeCoursesPage() {
   }
 
   return (
-    <div className="page-container fade-in">
-
-
-      <div className="grid-3" style={{ marginTop: '24px' }}>
-        {courses.map(course => (
-          <div
-            key={course.id}
-            style={{
-              background: 'var(--surface-2)',
-              borderRadius: '28px',
-              boxShadow: '8px 8px 16px var(--neu-dark), -8px -8px 16px var(--neu-light)',
-              overflow: 'hidden',
-              display: 'flex',
-              flexDirection: 'column',
-              width: '100%',
-              height: '100%',
-            }}
-          >
-            {/* Gradient Banner */}
-            <div style={{
-              height: '100px',
-              background: `linear-gradient(135deg, ${course.color || 'var(--accent)'}ee, ${course.color || 'var(--accent)'}99)`,
-              position: 'relative',
-              overflow: 'hidden',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}>
-              <div style={{ position: 'absolute', width: '130px', height: '130px', borderRadius: '50%', background: 'rgba(255,255,255,0.12)', top: '-50px', right: '-30px' }} />
-              <div style={{ position: 'absolute', width: '70px', height: '70px', borderRadius: '50%', background: 'rgba(255,255,255,0.08)', bottom: '-20px', left: '24px' }} />
-              <CourseIconBadge
-                type={course.courseIconType || course.icon}
-                size={58}
-                iconSize={28}
-                radius="50%"
-                style={{
-                  background: 'rgba(255,255,255,0.25)',
-                  color: '#ffffff',
-                  border: '1px solid rgba(255,255,255,0.28)',
-                  backdropFilter: 'blur(4px)',
-                  boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-                  zIndex: 1,
-                }}
-              />
-            </div>
-
-            {/* Card Body */}
-            <div style={{ padding: '18px 20px 16px', display: 'flex', flexDirection: 'column', flex: 1 }}>
-              <h3 style={{
-                fontSize: '16px',
-                fontWeight: '700',
-                color: 'var(--text-primary)',
-                marginBottom: '4px',
-                lineHeight: '1.3',
-                display: '-webkit-box',
-                WebkitLineClamp: 2,
-                WebkitBoxOrient: 'vertical',
-                overflow: 'hidden',
-              }}>
-                {course.name}
-              </h3>
-
-              {course.subject && (
-                <span style={{
-                  display: 'inline-block',
-                  padding: '3px 12px',
-                  borderRadius: '50px',
-                  background: (course.color || 'var(--accent)') + '18',
-                  color: (course.color || 'var(--accent)'),
-                  fontSize: '12px',
-                  fontWeight: '700',
-                  marginBottom: '8px',
-                  letterSpacing: '0.02em',
-                  width: 'fit-content',
-                }}>
-                  {course.subject}
-                </span>
-              )}
-
-              {course.teacherName && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '14px' }}>
-                  <UserAvatar user={{ name: course.teacherName }} size={24} />
-                  <span style={{ fontSize: '12.5px', color: 'var(--text-muted)', fontWeight: '500' }}>
-                    {course.teacherName}
-                  </span>
-                </div>
-              )}
-
-              {/* Stats row */}
-              <div style={{
-                display: 'flex',
-                gap: '10px',
-                paddingTop: '12px',
-                borderTop: '1.5px solid rgba(0,0,0,0.06)',
-                marginTop: 'auto',
-                marginBottom: '16px'
-              }}>
-                <div style={{
-                  flex: 1, padding: '8px 10px', borderRadius: '14px',
-                  background: 'var(--surface-2)', boxShadow: 'inset 3px 3px 6px var(--neu-dark), inset -3px -3px 6px var(--neu-light)',
-                  textAlign: 'center',
-                }}>
-                  <div style={{ fontSize: '15px', fontWeight: '800', color: 'var(--text-primary)' }}>{course._count?.topics || 0}</div>
-                  <div style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: '600' }}>Topics</div>
-                </div>
-                <div style={{
-                  flex: 1, padding: '8px 10px', borderRadius: '14px',
-                  background: 'var(--surface-2)', boxShadow: 'inset 3px 3px 6px var(--neu-dark), inset -3px -3px 6px var(--neu-light)',
-                  textAlign: 'center',
-                }}>
-                  <div style={{ fontSize: '15px', fontWeight: '800', color: 'var(--text-primary)' }}>{course._count?.lectures || 0}</div>
-                  <div style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: '600' }}>Lectures</div>
-                </div>
-                <div style={{
-                  flex: 1, padding: '8px 10px', borderRadius: '14px',
-                  background: 'var(--surface-2)', boxShadow: 'inset 3px 3px 6px var(--neu-dark), inset -3px -3px 6px var(--neu-light)',
-                  textAlign: 'center',
-                }}>
-                  <div style={{ fontSize: '15px', fontWeight: '800', color: 'var(--text-primary)' }}>{course._count?.materials || 0}</div>
-                  <div style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: '600' }}>Materials</div>
-                </div>
+    <div className="gz-page fade-in">
+      <div className="gz-cc-grid">
+        {courses.map(course => {
+          const tint = course.color && /^#/.test(course.color) ? course.color : 'var(--gz-ink)'
+          return (
+            <div key={course.id} className="gz-cc">
+              <div className="gz-cc__banner" style={{ background: `color-mix(in srgb, ${tint} 12%, var(--gz-shell))` }}>
+                <span className="gz-cc__pill">Free</span>
+                <CourseIconBadge
+                  type={course.courseIconType || course.icon}
+                  size={52}
+                  iconSize={26}
+                  radius="14px"
+                  style={{ background: 'var(--gz-panel)', color: tint, border: '1px solid var(--gz-line)', boxShadow: 'none' }}
+                />
               </div>
-
-              {/* Managing Tools */}
-              <div style={{ display: 'flex', gap: '8px' }}>
-                <button
-                  className="btn btn-ghost"
-                  title="Share"
-                  aria-label="Share course"
-                  onClick={() => setShareCourse({ id: course.id, name: course.name })}
-                  style={{ padding: '0 14px', borderRadius: '50px', display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '44px', height: 'auto', color: 'var(--accent)' }}
-                >
-                  <ShareIcon size={18} />
-                </button>
-                {course.isEnrolled ? (
-                  <>
-                    <button 
-                      disabled={loadingId === course.id}
-                      className="btn" 
-                      style={{ flex: 1, background: 'var(--success)', color: 'white', border: 'none', borderRadius: '50px', fontWeight: '700', padding: '12px 20px', fontSize: '14.5px', minHeight: '44px', height: 'auto' }}
-                      onClick={() => { window.location.href = `/courses/${course.id}` }}
-                    >
-                      Open Course
-                    </button>
-                    <button 
-                      disabled={loadingId === course.id}
-                      className="btn btn-ghost" 
-                      title="Unenroll"
-                      onClick={() => handleEnroll(course.id, true)}
-                      style={{ padding: '0 16px', color: 'var(--danger)', borderColor: 'var(--danger-light)', borderRadius: '50px', display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '44px', height: 'auto' }}
-                    >
-                      {loadingId === course.id ? '...' : (
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-                      )}
-                    </button>
-                  </>
-                ) : (
-                  <button 
-                    disabled={loadingId === course.id}
-                    className="btn btn-primary" 
-                    style={{ flex: 1, borderRadius: '50px', fontWeight: '700', background: 'var(--primary)', border: 'none', padding: '12px 20px', fontSize: '14.5px', minHeight: '44px', height: 'auto' }}
-                    onClick={() => handleEnroll(course.id, false)}
-                  >
-                    {loadingId === course.id ? 'Enrolling...' : 'Enroll for Free'}
+              <div className="gz-cc__body">
+                <div className="gz-cc__name">{course.name}</div>
+                <div className="gz-cc__meta">
+                  {course.subject && <span className="gz-cc__tag" style={{ color: tint, background: `color-mix(in srgb, ${tint} 10%, transparent)` }}>{course.subject}</span>}
+                  {course.teacherName && (
+                    <span className="gz-cc__who"><UserAvatar user={{ name: course.teacherName }} size={20} />{course.teacherName}</span>
+                  )}
+                </div>
+                <div className="gz-cc__stats">
+                  <div><b>{course._count?.topics || 0}</b><span>Topics</span></div>
+                  <div><b>{course._count?.lectures || 0}</b><span>Lectures</span></div>
+                  <div><b>{course._count?.materials || 0}</b><span>Materials</span></div>
+                </div>
+                <div className="gz-cc__actions">
+                  <button className="gz-btn gz-btn--ghost gz-btn--icon" title="Share" aria-label="Share course" onClick={() => setShareCourse({ id: course.id, name: course.name })}>
+                    <ShareIcon size={16} />
                   </button>
-                )}
+                  {course.isEnrolled ? (
+                    <>
+                      <button disabled={loadingId === course.id} className="gz-btn" style={{ flex: 1 }} onClick={() => { window.location.href = `/courses/${course.id}` }}>
+                        Open Course
+                      </button>
+                      <button disabled={loadingId === course.id} className="gz-btn gz-btn--ghost gz-btn--icon gz-cc__x" title="Unenroll" aria-label="Unenroll" onClick={() => handleEnroll(course.id, true)}>
+                        {loadingId === course.id ? '…' : (
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                        )}
+                      </button>
+                    </>
+                  ) : (
+                    <button disabled={loadingId === course.id} className="gz-btn" style={{ flex: 1 }} onClick={() => handleEnroll(course.id, false)}>
+                      {loadingId === course.id ? 'Enrolling…' : 'Enroll for Free'}
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
-          </div>
-        ))}
+          )
+        })}
       </div>
       <ShareLinkModal
         open={!!shareCourse}

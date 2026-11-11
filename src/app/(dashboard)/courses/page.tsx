@@ -540,6 +540,7 @@ export default function CoursesPage() {
           const innerCard = (
             <div
               data-snow
+              className={`gz-course${isLive && !isCourseExpired ? ' is-pro' : ''}`}
               style={{
                 background: 'var(--surface-2)',
                 borderRadius: 'var(--course-card-radius, 28px)',
@@ -586,7 +587,7 @@ export default function CoursesPage() {
                 </div>
               )}
               {/* Gradient Banner */}
-              <div style={{
+              <div className="gz-course__banner" style={{
                 height: 'var(--course-banner-height, 100px)',
                 background: isRecorded || isFreeOrDemo ? 'linear-gradient(135deg, #4b5563, #6b7280)' : courseCardBannerBg,
                 position: 'relative',
@@ -820,28 +821,28 @@ export default function CoursesPage() {
                 )}
 
                 {/* Stats row */}
-                <div style={{
+                <div className="gz-course__stats" style={{
                   display: 'flex',
                   gap: 'var(--course-stats-gap, 10px)',
                   paddingTop: '12px',
                   borderTop: '1.5px solid rgba(0,0,0,0.06)',
                   marginTop: 'auto',
                 }}>
-                  <div style={{
+                  <div className="gz-course__stat" style={{
                     flex: 1, padding: 'var(--course-stats-padding, 8px 10px)', borderRadius: '14px',
                     background: 'var(--surface-2)', boxShadow: 'inset 3px 3px 6px var(--neu-dark), inset -3px -3px 6px var(--neu-light)', textAlign: 'center',
                   }}>
                     <div style={{ fontSize: 'var(--course-stats-font-size, 15px)', fontWeight: '800', color: 'var(--text-primary)' }}>{course._count?.topics || 0}</div>
                     <div style={{ fontSize: 'var(--course-stats-label-size, 11px)', color: 'var(--text-muted)', fontWeight: '600' }}>Topics</div>
                   </div>
-                  <div style={{
+                  <div className="gz-course__stat" style={{
                     flex: 1, padding: 'var(--course-stats-padding, 8px 10px)', borderRadius: '14px',
                     background: 'var(--surface-2)', boxShadow: 'inset 3px 3px 6px var(--neu-dark), inset -3px -3px 6px var(--neu-light)', textAlign: 'center',
                   }}>
                     <div style={{ fontSize: 'var(--course-stats-font-size, 15px)', fontWeight: '800', color: 'var(--text-primary)' }}>{course._count?.lectures || 0}</div>
                     <div style={{ fontSize: 'var(--course-stats-label-size, 11px)', color: 'var(--text-muted)', fontWeight: '600' }}>Lectures</div>
                   </div>
-                  <div style={{
+                  <div className="gz-course__stat" style={{
                     flex: 1, padding: 'var(--course-stats-padding, 8px 10px)', borderRadius: '14px',
                     background: 'var(--surface-2)', boxShadow: 'inset 3px 3px 6px var(--neu-dark), inset -3px -3px 6px var(--neu-light)', textAlign: 'center',
                   }}>
@@ -868,6 +869,7 @@ export default function CoursesPage() {
           <a href={helpCard.redirectUrl} target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none', display: 'flex' }}>
             <div
               data-snow
+              className="gz-course gz-course--help"
               style={{
                 background: 'var(--surface-2)',
                 borderRadius: '28px',
@@ -890,7 +892,7 @@ export default function CoursesPage() {
               }}
             >
               {/* Simple Gradient Banner */}
-              <div style={{
+              <div className="gz-course__banner" style={{
                 height: '100px',
                 background: `linear-gradient(135deg, #6366f1ee, #6366f199)`,
                 position: 'relative',
@@ -930,7 +932,7 @@ export default function CoursesPage() {
                   {helpCard.title}
                 </h3>
 
-                <button style={{
+                <button className="gz-course__cta" style={{
                   width: '100%',
                   padding: '12px',
                   borderRadius: '16px',
