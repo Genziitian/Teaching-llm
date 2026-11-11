@@ -34,7 +34,7 @@ interface ThemeContextValue {
  * Anyone on Light (or System while their device is light) sees Black instead. Their saved
  * choice is kept, so it comes back by itself afterwards. Keep in sync with layout.tsx.
  */
-export const LIGHT_HIDDEN_UNTIL = 20261231 // YYYYMMDD
+export const LIGHT_HIDDEN_UNTIL = 20000101 // YYYYMMDD — redesign branch: Light is on (was 20261231)
 
 export function isLightHidden(d = new Date()): boolean {
   return d.getFullYear() * 10000 + (d.getMonth() + 1) * 100 + d.getDate() <= LIGHT_HIDDEN_UNTIL

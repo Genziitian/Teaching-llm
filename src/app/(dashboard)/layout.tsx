@@ -1,3 +1,4 @@
+import './redesign.css'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { getFullSession } from '@/lib/auth'

@@ -127,7 +127,7 @@ export default function TransactionsPage() {
     }
     return (
       <span style={{
-        background: isExt ? 'rgba(99, 102, 241, 0.15)' : 'rgba(16, 185, 129, 0.15)',
+        background: isExt ? 'color-mix(in srgb, var(--primary) 15%, transparent)' : 'rgba(16, 185, 129, 0.15)',
         color: isExt ? '#818cf8' : '#34d399',
         border: `1px solid ${isExt ? 'rgba(99, 102, 241, 0.35)' : 'rgba(16, 185, 129, 0.35)'}`,
         padding: '3px 10px',
@@ -256,11 +256,11 @@ export default function TransactionsPage() {
               onClick={() => setFilter(f.key)}
               style={{
                 padding: '8px 18px', borderRadius: '20px', fontSize: '13px', fontWeight: '700',
-                border: filter === f.key ? '2px solid #6366f1' : '2px solid var(--border)',
+                border: filter === f.key ? '2px solid var(--primary)' : '2px solid var(--border)',
                 background: filter === f.key ? 'var(--primary-light)' : 'white',
                 color: filter === f.key ? 'var(--accent)' : 'var(--text-secondary)',
                 cursor: 'pointer', transition: 'all 0.2s',
-                boxShadow: filter === f.key ? '0 4px 12px rgba(99,102,241,0.2)' : 'none'
+                boxShadow: filter === f.key ? '0 4px 12px color-mix(in srgb, var(--primary) 20%, transparent)' : 'none'
               }}
             >
               {f.label}
@@ -325,7 +325,7 @@ export default function TransactionsPage() {
                 padding: '8px 14px',
                 borderRadius: '10px',
                 background: 'var(--surface)',
-                border: selectedTerm !== 'all' ? '1.5px solid #6366f1' : '1px solid var(--border)',
+                border: selectedTerm !== 'all' ? '1.5px solid var(--primary)' : '1px solid var(--border)',
                 color: 'var(--text-primary)',
                 fontSize: '12px',
                 fontWeight: 600,
@@ -354,7 +354,7 @@ export default function TransactionsPage() {
                 padding: '8px 14px',
                 borderRadius: '10px',
                 background: 'var(--surface)',
-                border: selectedExam !== 'all' ? '1.5px solid #6366f1' : '1px solid var(--border)',
+                border: selectedExam !== 'all' ? '1.5px solid var(--primary)' : '1px solid var(--border)',
                 color: 'var(--text-primary)',
                 fontSize: '12px',
                 fontWeight: 600,

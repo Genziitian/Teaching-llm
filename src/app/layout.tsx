@@ -25,7 +25,7 @@ const THEME_INIT_SCRIPT = `
     var sys = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
     var r = (c === 'dark' || c === 'light' || c === 'black') ? c : sys;
     var now = new Date();
-    if (r === 'light' && now.getFullYear() * 10000 + (now.getMonth() + 1) * 100 + now.getDate() <= 20261231) r = 'black';
+    if (r === 'light' && now.getFullYear() * 10000 + (now.getMonth() + 1) * 100 + now.getDate() <= 20000101) r = 'black';
     var d = document.documentElement;
     d.setAttribute('data-theme', r);
     d.style.colorScheme = (r === 'dark' || r === 'black') ? 'dark' : 'light';

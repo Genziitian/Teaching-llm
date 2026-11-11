@@ -857,7 +857,7 @@ export default function CourseEditPage() {
                           <span>{item.title}</span>
                           {(item as any).isDemo && (
                             <span style={{
-                              background: 'linear-gradient(135deg, #6366f1, #4f46e5)',
+                              background: 'linear-gradient(135deg, var(--primary), var(--primary))',
                               color: '#fff', padding: '2px 8px', borderRadius: '12px',
                               fontSize: '10px', fontWeight: '800', letterSpacing: '0.04em'
                             }}>

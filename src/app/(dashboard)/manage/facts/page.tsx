@@ -20,7 +20,7 @@ const fetcher = (url: string) => fetch(url).then(res => res.json())
 
 const rarityColors: Record<LoadingFactRarity, { bg: string; color: string; border: string }> = {
   COMMON: { bg: 'var(--surface-2)', color: 'var(--text-secondary)', border: 'var(--border)' },
-  RARE: { bg: 'rgba(99,102,241,0.12)', color: '#818cf8', border: 'rgba(99,102,241,0.35)' },
+  RARE: { bg: 'color-mix(in srgb, var(--primary) 12%, transparent)', color: '#818cf8', border: 'color-mix(in srgb, var(--primary) 35%, transparent)' },
   ULTRA_RARE: { bg: 'rgba(245,158,11,0.12)', color: '#f59e0b', border: 'rgba(245,158,11,0.35)' },
 }
 

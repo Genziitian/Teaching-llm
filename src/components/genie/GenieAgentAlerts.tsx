@@ -119,13 +119,13 @@ export default function GenieAgentAlerts({ userRole }: { userRole: string }) {
 
 const CSS = `
 .gaa-wrap{position:fixed;left:20px;bottom:20px;z-index:1100;display:flex;flex-direction:column;gap:10px;width:340px;max-width:calc(100vw - 24px)}
-.gaa-card{padding:14px;border-radius:16px;background:var(--surface,#161618);color:var(--text-primary,#fff);border:1.5px solid #6366f1;box-shadow:0 12px 32px rgba(0,0,0,.5);animation:gaaIn .2s ease}
+.gaa-card{padding:14px;border-radius:16px;background:var(--surface,#161618);color:var(--text-primary,#fff);border:1.5px solid var(--primary);box-shadow:0 12px 32px rgba(0,0,0,.5);animation:gaaIn .2s ease}
 .gaa-top{display:flex;gap:6px;align-items:baseline;font-size:13px}.gaa-top span{color:var(--text-secondary,#a1a1aa);font-size:12px}
 .gaa-msg{margin-top:6px;font-size:13px;line-height:1.45;max-height:64px;overflow:hidden;word-break:break-word}
 .gaa-ctx{margin-top:4px;font-size:11.5px;color:var(--text-muted,#71717a);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .gaa-btns{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap}
 .gaa-btns button,.gaa-live button{font:inherit;font-size:12px;font-weight:800;padding:7px 12px;border-radius:50px;cursor:pointer;border:1.5px solid var(--border,#2a2a2e);background:var(--surface-2,#1f1f23);color:var(--text-primary,#fff)}
-.gaa-btns button.gaa-join{background:linear-gradient(135deg,#8b5cf6,#6366f1);border-color:transparent;color:#fff}
+.gaa-btns button.gaa-join{background:linear-gradient(135deg,#8b5cf6,var(--primary));border-color:transparent;color:#fff}
 .gaa-btns button:disabled,.gaa-live button:disabled{opacity:.5;cursor:not-allowed}
 .gaa-ghost{color:var(--text-secondary,#a1a1aa)!important}
 .gaa-live{display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:50px;background:var(--surface,#161618);border:1px solid var(--border,#2a2a2e);color:var(--text-primary,#fff);font-size:12.5px}

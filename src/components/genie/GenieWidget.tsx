@@ -541,7 +541,7 @@ export default function GenieWidget({ userRole }: { userRole: string }) {
 }
 
 const CSS = `
-.genie-fab{position:fixed;right:24px;bottom:24px;z-index:1000;width:56px;height:56px;border-radius:50%;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#fff;background:linear-gradient(135deg,#8b5cf6,#6366f1);box-shadow:0 6px 18px rgba(0,0,0,.4);transition:transform .15s}
+.genie-fab{position:fixed;right:24px;bottom:24px;z-index:1000;width:56px;height:56px;border-radius:50%;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#fff;background:linear-gradient(135deg,#8b5cf6,var(--primary));box-shadow:0 6px 18px rgba(0,0,0,.4);transition:transform .15s}
 .genie-fab:hover{transform:translateY(-2px)}
 .genie-fab:focus-visible{outline:2px solid #fff;outline-offset:3px}
 .genie-fab-label{position:absolute;right:68px;white-space:nowrap;padding:7px 12px;border-radius:50px;font-size:12.5px;font-weight:700;background:var(--surface,#161618);color:var(--text-primary,#fff);border:1px solid var(--border,#2a2a2e);opacity:0;transform:translateX(6px);pointer-events:none;transition:opacity .15s,transform .15s}
@@ -552,9 +552,9 @@ const CSS = `
 .genie-hello-x{position:absolute;top:6px;right:8px;background:none;border:none;color:var(--text-muted,#71717a);font-size:18px;line-height:1;cursor:pointer}
 .genie-panel{--surface:#ffffff;--surface-2:#f3f4f8;--border:#e3e4ea;--text-primary:#17171c;--text-secondary:#555560;--text-muted:#8a8a96;position:fixed;right:24px;bottom:92px;z-index:1000;width:380px;max-width:calc(100vw - 24px);height:min(560px,calc(100vh - 120px));display:flex;flex-direction:column;border-radius:22px;overflow:hidden;background:var(--surface,#0f0f10);color:var(--text-primary,#f4f4f5);border:1px solid var(--border,#2a2a2e);box-shadow:0 16px 48px rgba(0,0,0,.35);animation:genieIn .2s ease;outline:none}
 .genie-head{display:flex;align-items:center;gap:10px;padding:12px 14px;border-bottom:1px solid var(--border,#2a2a2e)}
-.genie-avatar{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;background:linear-gradient(135deg,#8b5cf6,#6366f1);flex-shrink:0}
+.genie-avatar{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;background:linear-gradient(135deg,#8b5cf6,var(--primary));flex-shrink:0}
 .genie-title{font-size:14.5px;font-weight:800;flex:1}
-.genie-title-sub{font-size:11px;font-weight:800;letter-spacing:.06em;color:#6366f1;margin-left:2px}
+.genie-title-sub{font-size:11px;font-weight:800;letter-spacing:.06em;color:var(--primary);margin-left:2px}
 .genie-lang{display:inline-flex;background:var(--surface-2,#161618);border:1px solid var(--border,#2a2a2e);border-radius:50px;padding:2px}
 .genie-lang button{border:none;background:none;color:var(--text-secondary,#a1a1aa);font:inherit;font-size:11.5px;font-weight:700;padding:4px 10px;border-radius:50px;cursor:pointer}
 .genie-lang button.on{background:var(--text-primary,#fff);color:var(--surface,#000)}
@@ -565,33 +565,33 @@ const CSS = `
 .genie-row.me{justify-content:flex-end}
 .genie-bubble{max-width:86%;padding:9px 12px;border-radius:16px;font-size:13px;line-height:1.55;white-space:pre-wrap;word-break:break-word}
 .genie-bubble.bot{background:var(--surface-2);border:none;border-bottom-left-radius:5px}
-.genie-bubble.me{background:linear-gradient(135deg,#8b5cf6,#6366f1);color:#fff;border-bottom-right-radius:5px}
-.genie-a{color:#4f46e5;text-decoration:underline;word-break:break-all}
+.genie-bubble.me{background:linear-gradient(135deg,#8b5cf6,var(--primary));color:#fff;border-bottom-right-radius:5px}
+.genie-a{color:var(--primary);text-decoration:underline;word-break:break-all}
 .genie-go{display:inline-block;margin-top:8px;padding:6px 12px;border-radius:50px;font-size:12px;font-weight:700;text-decoration:none;background:var(--text-primary,#fff);color:var(--surface,#000)}
 .genie-opts{display:flex;flex-direction:row;flex-wrap:wrap;gap:6px;margin-top:2px}
 .genie-opts.row{flex-direction:row;flex-wrap:wrap}
 .genie-opt{display:inline-block;text-align:left;text-decoration:none;font:inherit;font-size:12.5px;font-weight:700;line-height:1.3;padding:7px 13px;border-radius:50px;cursor:pointer;color:#4338ca;background:#fff;border:1.5px solid #a5b4fc;transition:background .12s,border-color .12s}
-.genie-opt:hover{background:#eef2ff;border-color:#6366f1}
+.genie-opt:hover{background:#eef2ff;border-color:var(--primary)}
 .genie-opt:focus-visible{outline:2px solid #8b5cf6;outline-offset:2px}
 .genie-opt.ok{border-color:#34d399;color:#047857}
 .genie-opt.ok:hover{background:#ecfdf5}
-.genie-opt.agent{border-color:#6366f1;background:#6366f1;color:#fff}
-.genie-opt.agent:hover{background:#4f46e5}
+.genie-opt.agent{border-color:var(--primary);background:var(--primary);color:#fff}
+.genie-opt.agent:hover{background:var(--primary)}
 .genie-opt.wa{border-color:#86efac;color:#15803d}
 .genie-opt.wa:hover{background:#f0fdf4}
 .genie-compose{padding:10px 12px 0;border-top:1px solid var(--border,#2a2a2e)}
 .genie-compose textarea{width:100%;resize:none;box-sizing:border-box;background:var(--surface-2,#161618)!important;color:var(--text-primary,#fff)!important;border:1.5px solid var(--border,#2a2a2e)!important;border-radius:12px;padding:9px 11px;font:inherit;font-size:13px;line-height:1.5;outline:none}
-.genie-compose textarea:focus{border-color:#6366f1!important;box-shadow:none!important}
+.genie-compose textarea:focus{border-color:var(--primary)!important;box-shadow:none!important}
 .genie-compose-row{display:flex;align-items:center;justify-content:space-between;padding:6px 0 2px}
 .genie-count{font-size:11px;color:var(--text-muted,#71717a)}
-.genie-send{border:none;border-radius:50px;padding:7px 16px;font:inherit;font-size:12.5px;font-weight:800;cursor:pointer;color:#fff;background:linear-gradient(135deg,#8b5cf6,#6366f1)}
+.genie-send{border:none;border-radius:50px;padding:7px 16px;font:inherit;font-size:12.5px;font-weight:800;cursor:pointer;color:#fff;background:linear-gradient(135deg,#8b5cf6,var(--primary))}
 .genie-send:disabled{opacity:.45;cursor:not-allowed}
 .genie-foot{padding:4px 14px 8px}
 .genie-nav{display:flex;justify-content:space-between;min-height:22px}
 .genie-nav button{border:none;background:none;color:var(--text-secondary,#a1a1aa);font:inherit;font-size:12px;font-weight:700;cursor:pointer;padding:3px 0}
 .genie-nav button:hover{color:var(--text-primary,#fff)}
 .genie-note{text-align:center;font-size:10.5px;color:var(--text-muted,#71717a);margin-top:2px}
-.genie-pin{display:flex;justify-content:space-between;align-items:center;padding:9px 14px;font-size:12.5px;font-weight:800;text-decoration:none;color:var(--text-primary,#fff);background:rgba(99,102,241,.14);border-bottom:1px solid var(--border,#2a2a2e)}
+.genie-pin{display:flex;justify-content:space-between;align-items:center;padding:9px 14px;font-size:12.5px;font-weight:800;text-decoration:none;color:var(--text-primary,#fff);background:color-mix(in srgb, var(--primary) 14%, transparent);border-bottom:1px solid var(--border,#2a2a2e)}
 .genie-sys{align-self:center;text-align:center;font-size:12px;color:var(--text-secondary,#a1a1aa);padding:6px 10px;margin:4px 0}
 .genie-sys.end{border:1px dashed var(--border,#2a2a2e);border-radius:14px;padding:12px}
 .genie-rate-q{margin:6px 0;font-weight:700;color:var(--text-primary,#fff)}

@@ -325,7 +325,7 @@ export default function AnnouncementsPage() {
     padding: '12px 28px', borderRadius: '50px', border: 'none',
     background: 'var(--primary)', color: '#fff', fontSize: '14px', fontWeight: 700,
     fontFamily: 'inherit', cursor: 'pointer',
-    boxShadow: '4px 4px 10px rgba(54,54,232,0.35), -2px -2px 6px var(--neu-glow)',
+    boxShadow: '4px 4px 10px color-mix(in srgb, var(--primary) 35%, transparent), -2px -2px 6px var(--neu-glow)',
     transition: 'all 0.2s ease',
   }
 
@@ -490,7 +490,7 @@ export default function AnnouncementsPage() {
                   fontFamily: 'inherit', cursor: 'pointer',
                   background:  isActive ? 'var(--primary)' : 'transparent',
                   color:       isActive ? '#fff'    : 'var(--text-secondary)',
-                  boxShadow:   isActive ? '3px 3px 8px rgba(54,54,232,0.35), -2px -2px 6px var(--neu-glow)' : 'none',
+                  boxShadow:   isActive ? '3px 3px 8px color-mix(in srgb, var(--primary) 35%, transparent), -2px -2px 6px var(--neu-glow)' : 'none',
                   transition: 'all 0.2s',
                 }}
               >
@@ -498,7 +498,7 @@ export default function AnnouncementsPage() {
                 {tab === 'all' && announcements.length > 0 && (
                   <span style={{
                     marginLeft: '6px', padding: '1px 7px', borderRadius: '50px',
-                    background: isActive ? 'rgba(255,255,255,0.22)' : 'rgba(54,54,232,0.1)',
+                    background: isActive ? 'rgba(255,255,255,0.22)' : 'color-mix(in srgb, var(--primary) 10%, transparent)',
                     color:      isActive ? '#fff' : 'var(--primary)',
                     fontSize: '11px', fontWeight: 700,
                   }}>
@@ -550,7 +550,7 @@ export default function AnnouncementsPage() {
                   <select
                     value={selectedTemplateId}
                     onChange={e => handleSelectTemplate(e.target.value)}
-                    style={{ ...neuInput, cursor: 'pointer', appearance: 'none', background: 'rgba(54, 54, 232, 0.06)', border: '1px solid rgba(54, 54, 232, 0.15)', fontWeight: 600, color: 'var(--primary)' }}
+                    style={{ ...neuInput, cursor: 'pointer', appearance: 'none', background: 'color-mix(in srgb, var(--primary) 6%, transparent)', border: '1px solid color-mix(in srgb, var(--primary) 15%, transparent)', fontWeight: 600, color: 'var(--primary)' }}
                   >
                     <option value="" style={{ color: 'var(--text-secondary)' }}>-- Choose a previous announcement to autofill fields --</option>
                     {announcements.slice(0, 10).map(a => (
@@ -791,7 +791,7 @@ export default function AnnouncementsPage() {
                                 cursor: 'pointer',
                                 flexShrink: 0,
                                 background: '#f2f3f7',
-                                border: isSelected ? '2px solid #3636e8' : '1px solid rgba(0,0,0,0.1)',
+                                border: isSelected ? '2px solid var(--primary)' : '1px solid rgba(0,0,0,0.1)',
                                 boxShadow: isSelected
                                   ? '0 0 8px rgba(54,54,232,0.4)'
                                   : '2px 2px 5px rgba(0,0,0,0.06)',
@@ -942,7 +942,7 @@ export default function AnnouncementsPage() {
                       {isNew && (
                         <span style={{
                           padding: '3px 9px', borderRadius: '50px',
-                          background: 'rgba(54,54,232,0.12)', color: 'var(--primary)',
+                          background: 'color-mix(in srgb, var(--primary) 12%, transparent)', color: 'var(--primary)',
                           fontSize: '11px', fontWeight: 800,
                         }}>
                           NEW
@@ -1011,12 +1011,12 @@ export default function AnnouncementsPage() {
                             gap: '8px',
                             padding: '10px 22px',
                             borderRadius: '50px',
-                            background: 'linear-gradient(135deg, #3636e8, #6366f1)',
+                            background: 'linear-gradient(135deg, var(--primary), var(--primary))',
                             color: '#fff',
                             fontSize: '13.5px',
                             fontWeight: 700,
                             textDecoration: 'none',
-                            boxShadow: '0 4px 12px rgba(54,54,232,0.25), inset 1px 1px 0 var(--neu-glow)',
+                            boxShadow: '0 4px 12px color-mix(in srgb, var(--primary) 25%, transparent), inset 1px 1px 0 var(--neu-glow)',
                             transition: 'all 0.15s ease',
                           }}
                         >

@@ -65,7 +65,7 @@ export default function CompanyPage() {
     padding: '10px 24px', borderRadius: '50px', border: 'none',
     background: 'var(--primary)', color: '#fff', fontSize: '14px', fontWeight: 700,
     fontFamily: 'inherit', cursor: 'pointer',
-    boxShadow: '4px 4px 10px rgba(54,54,232,0.35), -2px -2px 6px var(--neu-glow)',
+    boxShadow: '4px 4px 10px color-mix(in srgb, var(--primary) 35%, transparent), -2px -2px 6px var(--neu-glow)',
     transition: 'all 0.2s ease',
   }
 
@@ -234,7 +234,7 @@ export default function CompanyPage() {
         .custom-page-content p { margin-bottom: 1em; }
         .custom-page-content ul, .custom-page-content ol { padding-left: 1.5em; margin-bottom: 1em; }
         .custom-page-content li { margin-bottom: 0.4em; }
-        .custom-page-content a { color: #3636e8; text-decoration: underline; font-weight: 600; word-break: break-all; }
+        .custom-page-content a { color: var(--primary); text-decoration: underline; font-weight: 600; word-break: break-all; }
         .custom-page-content strong, .custom-page-content b { font-weight: 700; color: #1e1e3a; }
         .custom-page-content img, .custom-page-content video, .custom-page-content iframe { max-width: 100%; height: auto; border-radius: 12px; }
         .custom-page-content table { display: block; overflow-x: auto; max-width: 100%; }

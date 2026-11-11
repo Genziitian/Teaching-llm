@@ -1209,8 +1209,8 @@ function CurriculumTab({
                                 width: '36px',
                                 height: '36px',
                                 borderRadius: '50%',
-                                background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(79, 70, 229, 0.2))',
-                                border: '1.5px solid rgba(99, 102, 241, 0.4)',
+                                background: 'linear-gradient(135deg, color-mix(in srgb, var(--primary) 20%, transparent), color-mix(in srgb, var(--primary) 20%, transparent))',
+                                border: '1.5px solid color-mix(in srgb, var(--primary) 40%, transparent)',
                                 display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'center',
@@ -1234,12 +1234,12 @@ function CurriculumTab({
                                     width: '100%',
                                     padding: '8px 16px',
                                     borderRadius: '50px',
-                                    background: 'linear-gradient(135deg, #6366f1, #4f46e5)',
+                                    background: 'linear-gradient(135deg, var(--primary), var(--primary))',
                                     color: '#ffffff',
                                     fontWeight: '800',
                                     fontSize: '11px',
                                     border: 'none',
-                                    boxShadow: '0 4px 10px rgba(99, 102, 241, 0.25)',
+                                    boxShadow: '0 4px 10px color-mix(in srgb, var(--primary) 25%, transparent)',
                                     cursor: 'pointer',
                                   }}>
                                     Unlock Now
@@ -1297,7 +1297,7 @@ function CurriculumTab({
                   padding: '10px 24px', borderRadius: '50px',
                   border: 'none', background: 'var(--primary)',
                   color: '#ffffff', fontWeight: 700, fontSize: '13px',
-                  cursor: 'pointer', boxShadow: '0 2px 8px rgba(54,54,232,0.25)'
+                  cursor: 'pointer', boxShadow: '0 2px 8px color-mix(in srgb, var(--primary) 25%, transparent)'
                 }}
               >
                 Download
@@ -1349,7 +1349,7 @@ function CurriculumTab({
                   padding: '10px 24px', borderRadius: '50px',
                   border: 'none', background: 'var(--primary)',
                   color: '#ffffff', fontWeight: 700, fontSize: '13px',
-                  cursor: 'pointer', boxShadow: '0 2px 8px rgba(54,54,232,0.25)'
+                  cursor: 'pointer', boxShadow: '0 2px 8px color-mix(in srgb, var(--primary) 25%, transparent)'
                 }}
               >
                 Continue

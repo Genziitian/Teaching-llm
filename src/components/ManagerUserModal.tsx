@@ -322,7 +322,7 @@ export default function ManagerUserModal({ userId, onClose, onUpdate, mode = 'mo
                     <div style={{ fontSize: '13px', color: 'var(--text-muted)', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '4px' }}>
                       {(formData.role || user.role).charAt(0) + (formData.role || user.role).slice(1).toLowerCase()} Account
                       {(formData.role || user.role) !== 'STUDENT' && (
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#6366f1" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round">
                           <polyline points="20 6 9 17 4 12"/>
                         </svg>
                       )}
@@ -910,9 +910,9 @@ export default function ManagerUserModal({ userId, onClose, onUpdate, mode = 'mo
                 disabled={saving}
                 style={{ 
                   flex: 1.5, padding: '16px', borderRadius: '20px', border: 'none', 
-                  background: 'linear-gradient(135deg, #6366f1, #3636e8)', 
+                  background: 'linear-gradient(135deg, var(--primary), var(--primary))', 
                   fontWeight: '700', color: '#fff', cursor: 'pointer',
-                  boxShadow: '0 8px 16px rgba(54,54,232,0.2)',
+                  boxShadow: '0 8px 16px color-mix(in srgb, var(--primary) 20%, transparent)',
                   display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px',
                   fontSize: '15px', transition: 'all 0.2s'
                 }}>
@@ -1335,9 +1335,9 @@ export default function ManagerUserModal({ userId, onClose, onUpdate, mode = 'mo
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: '8px',
-                background: 'linear-gradient(135deg, #6366f1, #3636e8)',
+                background: 'linear-gradient(135deg, var(--primary), var(--primary))',
                 color: '#fff',
-                boxShadow: '0 4px 14px rgba(99, 102, 241, 0.3)'
+                boxShadow: '0 4px 14px color-mix(in srgb, var(--primary) 30%, transparent)'
               }}
             >
               {saving ? 'Updating...' : <>Update Profile <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></>}

@@ -808,7 +808,7 @@ export default function ExploreCoursesPage() {
               <button
                 onClick={() => setShowCreateDropdown(!showCreateDropdown)}
                 style={{
-                  background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
+                  background: 'linear-gradient(135deg, var(--primary), #8b5cf6)',
                   color: 'white',
                   padding: '10px 18px',
                   borderRadius: '12px',
@@ -820,7 +820,7 @@ export default function ExploreCoursesPage() {
                   alignItems: 'center',
                   justifyContent: 'center',
                   gap: '6px',
-                  boxShadow: '0 4px 12px rgba(99, 102, 241, 0.3)',
+                  boxShadow: '0 4px 12px color-mix(in srgb, var(--primary) 30%, transparent)',
                   transition: 'all 0.2s ease',
                   flexShrink: 0,
                   whiteSpace: 'nowrap'
@@ -1005,7 +1005,7 @@ export default function ExploreCoursesPage() {
               <h4>Your purchases</h4>
               <div className="store-mine-grid">
                 <Link href="/free-resources/purchased" className="store-mine-card">
-                  <span className="ic" style={{ background: 'linear-gradient(135deg, #6366f1, #4338ca)' }}><LockOpen size={20} strokeWidth={2.2} /></span>
+                  <span className="ic" style={{ background: 'linear-gradient(135deg, var(--primary), #4338ca)' }}><LockOpen size={20} strokeWidth={2.2} /></span>
                   <span><b>Purchased Materials</b><span className="sub">Notes and resources you have bought</span></span>
                   <ChevronRight className="chev" size={18} />
                 </Link>
@@ -1060,15 +1060,15 @@ export default function ExploreCoursesPage() {
           display: 'inline-flex', alignItems: 'center', gap: '10px',
           padding: '8px 14px 8px 16px',
           borderRadius: '50px',
-          background: 'linear-gradient(135deg, rgba(99,102,241,0.10), rgba(139,92,246,0.10))',
-          border: '1px solid rgba(99, 102, 241, 0.20)',
+          background: 'linear-gradient(135deg, color-mix(in srgb, var(--primary) 10%, transparent), rgba(139,92,246,0.10))',
+          border: '1px solid color-mix(in srgb, var(--primary) 20%, transparent)',
           color: 'var(--primary)', fontSize: '12.5px', fontWeight: 800,
           marginBottom: '14px',
         }}>
-          <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--accent)', boxShadow: '0 0 6px #6366f1' }} />
+          <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--accent)', boxShadow: '0 0 6px var(--primary)' }} />
           Showing: {CATEGORY_LABELS[activeCategory]}
           <button onClick={clearCategory} aria-label="Clear filter" style={{
-            background: 'rgba(99,102,241,0.15)', border: 'none', borderRadius: '50%',
+            background: 'color-mix(in srgb, var(--primary) 15%, transparent)', border: 'none', borderRadius: '50%',
             width: '22px', height: '22px', cursor: 'pointer',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             color: 'var(--primary)',
@@ -1598,7 +1598,7 @@ export default function ExploreCoursesPage() {
                   } catch { alert('Failed to fetch bookings') }
                   finally { setLoadingAllBookings(false) }
                 }}
-                style={{ padding: '8px 16px', borderRadius: '50px', background: 'var(--primary)', color: 'var(--button-text, #fff)', border: 'none', fontWeight: '700', fontSize: '13px', cursor: 'pointer', boxShadow: '0 4px 12px rgba(54,54,232,0.2)' }}
+                style={{ padding: '8px 16px', borderRadius: '50px', background: 'var(--primary)', color: 'var(--button-text, #fff)', border: 'none', fontWeight: '700', fontSize: '13px', cursor: 'pointer', boxShadow: '0 4px 12px color-mix(in srgb, var(--primary) 20%, transparent)' }}
               >
                 📋 View All Bookings
               </button>
@@ -1974,7 +1974,7 @@ export default function ExploreCoursesPage() {
                           disabled={true}
                           style={{
                             width: '100%', padding: '11px', borderRadius: '50px',
-                            border: '2px solid #6366f1', background: 'var(--surface-2)',
+                            border: '2px solid var(--primary)', background: 'var(--surface-2)',
                             color: 'var(--accent)', fontSize: '13px', fontWeight: '800',
                             cursor: 'not-allowed',
                             opacity: 0.6,
@@ -2021,7 +2021,7 @@ export default function ExploreCoursesPage() {
                             color: 'var(--button-text, #fff)', fontSize: '13px', fontWeight: '800',
                             cursor: 'not-allowed',
                             opacity: 0.6,
-                            boxShadow: '0 8px 16px rgba(99,102,241,0.35)',
+                            boxShadow: '0 8px 16px color-mix(in srgb, var(--primary) 35%, transparent)',
                             transition: 'all 0.2s',
                           }}
                         >
@@ -2069,7 +2069,7 @@ export default function ExploreCoursesPage() {
                           color: 'var(--button-text, #fff)', fontSize: '13px', fontWeight: '800',
                           cursor: 'not-allowed',
                           opacity: 0.6,
-                          boxShadow: '0 8px 16px rgba(99,102,241,0.35)',
+                          boxShadow: '0 8px 16px color-mix(in srgb, var(--primary) 35%, transparent)',
                           transition: 'all 0.2s',
                         }}
                       >
@@ -2114,7 +2114,7 @@ export default function ExploreCoursesPage() {
                         disabled={!!purchasing}
                         style={{
                           width: '100%', padding: '11px', borderRadius: '50px',
-                          border: '2px solid #6366f1', background: 'var(--surface-2)',
+                          border: '2px solid var(--primary)', background: 'var(--surface-2)',
                           color: 'var(--accent)', fontSize: '13px', fontWeight: '800',
                           cursor: purchasing ? 'not-allowed' : 'pointer',
                           opacity: purchasing ? 0.5 : 1,
@@ -2152,7 +2152,7 @@ export default function ExploreCoursesPage() {
                         disabled={true}
                         style={{
                           width: '100%', padding: '11px', borderRadius: '50px',
-                          border: '2px solid #6366f1', background: 'var(--surface-2)',
+                          border: '2px solid var(--primary)', background: 'var(--surface-2)',
                           color: 'var(--accent)', fontSize: '13px', fontWeight: '800',
                           cursor: 'not-allowed',
                           opacity: 0.6,
@@ -2177,7 +2177,7 @@ export default function ExploreCoursesPage() {
                       }}
                       onMouseEnter={e => {
                         e.currentTarget.style.transform = 'scale(1.02)'
-                        e.currentTarget.style.boxShadow = '0 8px 20px rgba(99, 102, 241, 0.15)'
+                        e.currentTarget.style.boxShadow = '0 8px 20px color-mix(in srgb, var(--primary) 15%, transparent)'
                         e.currentTarget.style.borderColor = 'var(--accent)'
                       }}
                       onMouseLeave={e => {
@@ -2235,7 +2235,7 @@ export default function ExploreCoursesPage() {
                       }}
                       onMouseEnter={e => {
                         e.currentTarget.style.transform = 'scale(1.02)'
-                        e.currentTarget.style.boxShadow = '0 8px 20px rgba(99, 102, 241, 0.15)'
+                        e.currentTarget.style.boxShadow = '0 8px 20px color-mix(in srgb, var(--primary) 15%, transparent)'
                         e.currentTarget.style.borderColor = 'var(--accent)'
                       }}
                       onMouseLeave={e => {
@@ -2275,7 +2275,7 @@ export default function ExploreCoursesPage() {
                           color: 'var(--button-text, #fff)', fontSize: '13px', fontWeight: '800',
                           cursor: purchasing ? 'not-allowed' : 'pointer',
                           opacity: purchasing ? 0.5 : 1,
-                          boxShadow: '0 8px 16px rgba(99,102,241,0.35)',
+                          boxShadow: '0 8px 16px color-mix(in srgb, var(--primary) 35%, transparent)',
                           transition: 'all 0.2s',
                         }}
                       >
@@ -2408,8 +2408,8 @@ export default function ExploreCoursesPage() {
                   onClick={(e) => { e.preventDefault(); e.stopPropagation(); setShowBatchComparisonModal(true) }}
                   style={{
                     padding: '8px 14px', borderRadius: '12px',
-                    background: 'rgba(99,102,241,0.08)',
-                    border: '1.5px solid rgba(99,102,241,0.2)', cursor: 'pointer',
+                    background: 'color-mix(in srgb, var(--primary) 8%, transparent)',
+                    border: '1.5px solid color-mix(in srgb, var(--primary) 20%, transparent)', cursor: 'pointer',
                     display: 'flex', alignItems: 'center', gap: '6px',
                     color: 'var(--accent)', fontSize: '12px', fontWeight: '800',
                     whiteSpace: 'nowrap'
@@ -2501,7 +2501,7 @@ export default function ExploreCoursesPage() {
 
                           <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
                             {!activeBundle.allowIndividualPurchase ? (
-                              <div style={{ fontSize: '11px', fontWeight: '800', color: 'var(--accent)', background: 'rgba(99,102,241,0.06)', padding: '6px 12px', borderRadius: '8px', textTransform: 'uppercase' }}>
+                              <div style={{ fontSize: '11px', fontWeight: '800', color: 'var(--accent)', background: 'color-mix(in srgb, var(--primary) 6%, transparent)', padding: '6px 12px', borderRadius: '8px', textTransform: 'uppercase' }}>
                                 ✨ Part of Package
                               </div>
                             ) : (
@@ -2977,11 +2977,11 @@ export default function ExploreCoursesPage() {
                             width: '100%', 
                             padding: '20px', 
                             borderRadius: '18px', 
-                            background: (isAllEnrolled || selectedList.length === 0) ? 'var(--surface)' : 'linear-gradient(135deg, #6366f1, #4f46e5)', 
+                            background: (isAllEnrolled || selectedList.length === 0) ? 'var(--surface)' : 'linear-gradient(135deg, var(--primary), var(--primary))', 
                             color: (isAllEnrolled || selectedList.length === 0) ? 'var(--text-muted)' : '#fff', 
                             fontWeight: '1000', 
                             fontSize: '17px', 
-                            boxShadow: (isAllEnrolled || selectedList.length === 0) ? 'none' : '0 15px 30px rgba(99, 102, 241, 0.35)', 
+                            boxShadow: (isAllEnrolled || selectedList.length === 0) ? 'none' : '0 15px 30px color-mix(in srgb, var(--primary) 35%, transparent)', 
                             border: 'none', 
                             cursor: (isProcessing || isAllEnrolled || selectedList.length === 0) ? 'not-allowed' : 'pointer',
                             textTransform: 'uppercase',
@@ -3470,7 +3470,7 @@ export default function ExploreCoursesPage() {
                 disabled={!selectedCourse || creating}
                 style={{
                   flex: 1, padding: '14px', borderRadius: '12px', border: 'none',
-                  background: !selectedCourse || creating ? '#d0d5e0' : 'linear-gradient(135deg, #6366f1, #8b5cf6)',
+                  background: !selectedCourse || creating ? '#d0d5e0' : 'linear-gradient(135deg, var(--primary), #8b5cf6)',
                   color: '#fff', fontWeight: '700', fontSize: '14px',
                   cursor: !selectedCourse || creating ? 'not-allowed' : 'pointer',
                   opacity: creating ? 0.8 : 1
@@ -3505,7 +3505,7 @@ export default function ExploreCoursesPage() {
             </button>
             <div style={{
               width: '64px', height: '64px', borderRadius: '50%',
-              background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
+              background: 'linear-gradient(135deg, var(--primary), #8b5cf6)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               margin: '0 auto 24px',
               animation: 'spin 1s linear infinite'
@@ -3642,18 +3642,18 @@ export default function ExploreCoursesPage() {
               onClick={() => { setUpgradeSuccessOrderId(null); router.push('/courses') }}
               style={{
                 width: '100%', padding: '16px', borderRadius: '18px', border: 'none',
-                background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
+                background: 'linear-gradient(135deg, var(--primary), #8b5cf6)',
                 color: 'white', fontWeight: '700', fontSize: '15px', cursor: 'pointer',
-                boxShadow: '0 4px 12px rgba(99, 102, 241, 0.3)',
+                boxShadow: '0 4px 12px color-mix(in srgb, var(--primary) 30%, transparent)',
                 transition: 'all 0.2s'
               }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.transform = 'translateY(-2px)'
-                e.currentTarget.style.boxShadow = '0 8px 16px rgba(99, 102, 241, 0.4)'
+                e.currentTarget.style.boxShadow = '0 8px 16px color-mix(in srgb, var(--primary) 40%, transparent)'
               }}
               onMouseLeave={(e) => {
                 e.currentTarget.style.transform = 'translateY(0)'
-                e.currentTarget.style.boxShadow = '0 4px 12px rgba(99, 102, 241, 0.3)'
+                e.currentTarget.style.boxShadow = '0 4px 12px color-mix(in srgb, var(--primary) 30%, transparent)'
               }}
             >
               Go to My Courses 🚀
@@ -3849,7 +3849,7 @@ export default function ExploreCoursesPage() {
                 }}
                 style={{
                   flex: 1, padding: '14px', borderRadius: '12px', border: 'none',
-                  background: editSaving ? 'var(--text-muted)' : 'linear-gradient(135deg, #6366f1, #8b5cf6)',
+                  background: editSaving ? 'var(--text-muted)' : 'linear-gradient(135deg, var(--primary), #8b5cf6)',
                   color: '#fff', fontWeight: '700', fontSize: '14px',
                   cursor: editSaving ? 'not-allowed' : 'pointer',
                 }}
@@ -4193,7 +4193,7 @@ export default function ExploreCoursesPage() {
                 }}
                 style={{
                   flex: 1, padding: '14px', borderRadius: '12px', border: 'none',
-                  background: editBundleSaving ? 'var(--text-muted)' : 'linear-gradient(135deg, #6366f1, #8b5cf6)',
+                  background: editBundleSaving ? 'var(--text-muted)' : 'linear-gradient(135deg, var(--primary), #8b5cf6)',
                   color: '#fff', fontWeight: '700', fontSize: '14px',
                   cursor: editBundleSaving ? 'not-allowed' : 'pointer',
                 }}
@@ -4297,7 +4297,7 @@ export default function ExploreCoursesPage() {
             </button>
             <div className="spinner" style={{
               width: '40px', height: '40px', border: '4px solid #f3f3f3',
-              borderTop: '4px solid #6366f1', borderRadius: '50%',
+              borderTop: '4px solid var(--primary)', borderRadius: '50%',
               margin: '0 auto 20px'
             }} />
             <h3 style={{ fontSize: '18px', fontWeight: '800', color: 'var(--text-primary)', marginBottom: '8px' }}>Processing...</h3>
@@ -4627,7 +4627,7 @@ export default function ExploreCoursesPage() {
                   } catch { alert('Error creating bundle') }
                   finally { setCreating(false) }
                 }}
-                style={{ flex: 1, padding: '14px', borderRadius: '12px', border: 'none', background: creating ? 'var(--text-muted)' : 'linear-gradient(135deg, #6366f1, #8b5cf6)', color: '#fff', fontWeight: '700', fontSize: '14px', cursor: creating ? 'not-allowed' : 'pointer' }}
+                style={{ flex: 1, padding: '14px', borderRadius: '12px', border: 'none', background: creating ? 'var(--text-muted)' : 'linear-gradient(135deg, var(--primary), #8b5cf6)', color: '#fff', fontWeight: '700', fontSize: '14px', cursor: creating ? 'not-allowed' : 'pointer' }}
               >
                 {creating ? 'Creating...' : 'Create Bundle'}
               </button>
@@ -5172,7 +5172,7 @@ export default function ExploreCoursesPage() {
 
             <div style={{ background: 'var(--surface)', padding: '20px', borderRadius: '24px', border: '1.5px solid var(--border)' }}>
               {/* Mentorship Note */}
-              <div style={{ marginBottom: '12px', padding: '10px 14px', background: 'rgba(54,54,232,0.05)', borderRadius: '14px', border: '1px solid rgba(54,54,232,0.1)', display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
+              <div style={{ marginBottom: '12px', padding: '10px 14px', background: 'color-mix(in srgb, var(--primary) 5%, transparent)', borderRadius: '14px', border: '1px solid color-mix(in srgb, var(--primary) 10%, transparent)', display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
                 <span style={{ fontSize: '16px' }}>📧</span>
                 <p style={{ fontSize: '11.5px', color: 'var(--text-secondary)', margin: 0, lineHeight: '1.4', fontWeight: '600' }}>
                   <strong>Note:</strong> A Google Meet invite will be sent to your email after payment. Access it in the <span style={{ color: 'var(--primary)' }}>"Live Sessions"</span> tab or Calendar.

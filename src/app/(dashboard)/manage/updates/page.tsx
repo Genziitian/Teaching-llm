@@ -534,7 +534,7 @@ export default function ManageUpdatesPage() {
                   <button type="button" onClick={() => fileInputRef.current?.click()} className="btn btn-sm" style={{ background: 'var(--surface)', border: '1px solid #cbd5e1', fontSize: '12px' }}>
                     {uploading ? 'Uploading…' : '📷 Choose Image'}
                   </button>
-                  <button type="button" onClick={() => { setRecentPhotosPage(1); fetchRecentPhotos(1); setShowRecentModal(true); }} className="btn btn-sm" style={{ background: 'var(--surface)', border: '1.5px solid #6366f1', color: 'var(--accent)', fontSize: '12px', display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}>
+                  <button type="button" onClick={() => { setRecentPhotosPage(1); fetchRecentPhotos(1); setShowRecentModal(true); }} className="btn btn-sm" style={{ background: 'var(--surface)', border: '1.5px solid var(--primary)', color: 'var(--accent)', fontSize: '12px', display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}>
                     🕒 Choose from Recent
                   </button>
                   {imageUrl ? (
@@ -567,7 +567,7 @@ export default function ManageUpdatesPage() {
                       onClick={() => setAnimation(anim.id)}
                       style={{
                         padding: '8px 14px', borderRadius: '10px', fontSize: '12px', fontWeight: '600',
-                        border: animation === anim.id ? '2px solid #6366f1' : '1px solid #cbd5e1',
+                        border: animation === anim.id ? '2px solid var(--primary)' : '1px solid #cbd5e1',
                         background: animation === anim.id ? 'var(--primary-light)' : '#fff',
                         color: animation === anim.id ? 'var(--primary)' : 'var(--text-secondary)',
                         cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px',
@@ -621,7 +621,7 @@ export default function ManageUpdatesPage() {
                           onClick={() => setFrequency(f)}
                           style={{
                             padding: '8px 20px', borderRadius: '8px', fontSize: '13px', fontWeight: '600',
-                            border: frequency === f ? '2px solid #6366f1' : '1px solid #cbd5e1',
+                            border: frequency === f ? '2px solid var(--primary)' : '1px solid #cbd5e1',
                             background: frequency === f ? 'var(--primary-light)' : '#fff',
                             color: frequency === f ? 'var(--primary)' : 'var(--text-secondary)',
                             cursor: 'pointer',
@@ -802,7 +802,7 @@ export default function ManageUpdatesPage() {
             onClick={e => e.stopPropagation()}
           >
             <div style={{
-              background: 'linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)',
+              background: 'linear-gradient(135deg, var(--primary) 0%, #7c3aed 100%)',
               padding: '24px 28px', position: 'relative', flexShrink: 0,
               display: 'flex', justifyContent: 'space-between', alignItems: 'center'
             }}>
@@ -819,7 +819,7 @@ export default function ManageUpdatesPage() {
             <div style={{ padding: '24px', overflowY: 'auto', flex: 1, background: 'var(--surface)' }}>
               {recentPhotosLoading ? (
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '220px', gap: '12px' }}>
-                  <div style={{ width: '40px', height: '40px', border: '3px solid var(--border)', borderTop: '3px solid #6366f1', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
+                  <div style={{ width: '40px', height: '40px', border: '3px solid var(--border)', borderTop: '3px solid var(--primary)', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
                   <span style={{ fontSize: '13px', color: 'var(--text-secondary)', fontWeight: '600' }}>Loading recent photos…</span>
                 </div>
               ) : recentPhotos.length === 0 ? (
@@ -851,7 +851,7 @@ export default function ManageUpdatesPage() {
                       onMouseEnter={e => {
                         e.currentTarget.style.transform = 'translateY(-2px)'
                         e.currentTarget.style.borderColor = 'var(--accent)'
-                        e.currentTarget.style.boxShadow = '0 10px 15px rgba(99, 102, 241, 0.15)'
+                        e.currentTarget.style.boxShadow = '0 10px 15px color-mix(in srgb, var(--primary) 15%, transparent)'
                       }}
                       onMouseLeave={e => {
                         e.currentTarget.style.transform = 'none'

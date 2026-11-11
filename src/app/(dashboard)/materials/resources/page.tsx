@@ -246,7 +246,7 @@ export default function StudyResourcesPage() {
                 display: 'flex', alignItems: 'center', gap: '8px',
                 padding: '11px 20px', borderRadius: '50px',
                 background: 'var(--primary)', color: '#ffffff',
-                boxShadow: '4px 4px 10px rgba(54,54,232,0.35)',
+                boxShadow: '4px 4px 10px color-mix(in srgb, var(--primary) 35%, transparent)',
                 border: 'none', cursor: 'pointer', fontSize: '13px', fontWeight: '700',
                 transition: 'all 0.2s'
               }}
@@ -422,7 +422,7 @@ export default function StudyResourcesPage() {
                     style={{
                       width: '42px', height: '42px', borderRadius: '50%', border: 'none',
                       background: 'var(--primary)', color: '#ffffff',
-                      boxShadow: '4px 4px 10px rgba(54,54,232,0.3)',
+                      boxShadow: '4px 4px 10px color-mix(in srgb, var(--primary) 30%, transparent)',
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
                       cursor: 'pointer', flexShrink: 0, transition: 'all 0.15s',
                       textDecoration: 'none',

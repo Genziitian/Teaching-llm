@@ -81,7 +81,7 @@ export default function CouponManagementPage() {
     <div className="dashboard-inner-page" style={{ padding: '24px 32px' }}>
       {confirmDialog}
       <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', marginBottom: '24px' }}>
-        <button onClick={() => { resetForm(); setEditingCoupon(null); setShowCreate(true) }} style={{ padding: '10px 20px', borderRadius: '12px', background: 'linear-gradient(135deg, #6366f1, #8b5cf6)', color: '#fff', fontWeight: '700', fontSize: '14px', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', boxShadow: '0 4px 12px rgba(99,102,241,0.3)' }}>
+        <button onClick={() => { resetForm(); setEditingCoupon(null); setShowCreate(true) }} style={{ padding: '10px 20px', borderRadius: '12px', background: 'linear-gradient(135deg, var(--primary), #8b5cf6)', color: '#fff', fontWeight: '700', fontSize: '14px', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', boxShadow: '0 4px 12px color-mix(in srgb, var(--primary) 30%, transparent)' }}>
           + Create Coupon
         </button>
       </div>
@@ -245,7 +245,7 @@ export default function CouponManagementPage() {
 
             <div style={{ display: 'flex', gap: '12px' }}>
               <button onClick={() => { setShowCreate(false); setEditingCoupon(null) }} style={{ flex: 1, padding: '14px', borderRadius: '12px', border: '2px solid var(--border)', background: 'var(--surface)', color: 'var(--text-primary)', fontWeight: '700', fontSize: '14px', cursor: 'pointer' }}>Cancel</button>
-              <button disabled={saving} onClick={handleSave} style={{ flex: 1, padding: '14px', borderRadius: '12px', border: 'none', background: saving ? 'var(--text-muted)' : 'linear-gradient(135deg, #6366f1, #8b5cf6)', color: '#fff', fontWeight: '700', fontSize: '14px', cursor: saving ? 'not-allowed' : 'pointer' }}>
+              <button disabled={saving} onClick={handleSave} style={{ flex: 1, padding: '14px', borderRadius: '12px', border: 'none', background: saving ? 'var(--text-muted)' : 'linear-gradient(135deg, var(--primary), #8b5cf6)', color: '#fff', fontWeight: '700', fontSize: '14px', cursor: saving ? 'not-allowed' : 'pointer' }}>
                 {saving ? 'Saving...' : editingCoupon ? 'Update Coupon' : 'Create Coupon'}
               </button>
             </div>

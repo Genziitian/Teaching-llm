@@ -8,6 +8,7 @@ import Script from 'next/script'
 import { formatISTDate, getEventStatus } from '@/lib/date-utils'
 import { normalizeMeetLink } from '@/lib/meet-link'
 import HomeHeroSlider, { HeroSlide } from '@/components/home/HomeHeroSlider'
+import AttendanceHeatmap from '@/components/home/AttendanceHeatmap'
 import HomeFestiveSlot from '@/components/seasonal/HomeFestiveSlot'
 import { colorWithOpacity } from '@/lib/color-utils'
 import { saveDashboardSnapshot, getDashboardSnapshot } from '@/lib/offline-db'
@@ -845,134 +846,61 @@ export default function DashboardPage() {
       {/* Offline Banner Indicator */}
       <OfflineBanner cachedAt={cachedAt} />
 
-      {/* Stats Grid */}
-      <div
-        className="dashboard-stats-grid"
-        style={{
-          marginBottom: isMobile ? '16px' : '24px',
-          marginTop: isMobile ? '16px' : '-8px',
-          display: 'grid',
-          gridTemplateColumns: isMobile ? '1fr' : 'repeat(4, 1fr)',
-          gap: isMobile ? '12px' : '20px'
-        }}
-      >
-        {statCards.filter(c => !c.isSupport && c.label !== 'Active Sessions' && !isMobile).map((card) => {
-          const mobileHero = isMobile && card.isTimer
-          const cardHref = (card as { href?: string }).href
-          return (
-          <div 
-            key={card.label} 
-            className="stat-card" 
-            role={cardHref ? 'link' : undefined}
-            tabIndex={cardHref ? 0 : undefined}
-            onKeyDown={cardHref ? (e) => { if (e.key === 'Enter') router.push(cardHref) } : undefined}
-            onClick={() => {
-              if (cardHref) {
-                router.push(cardHref)
-              } else if (card.label === 'Total Courses' || card.label === 'Lectures') {
-                router.push('/courses')
-              }
-            }}
-            style={{
-              background: mobileHero
-                ? 'linear-gradient(135deg, var(--surface) 0%, var(--surface) 55%, var(--primary-light) 100%)'
-                : (card.isTimer ? card.bg : undefined),
-              padding: mobileHero ? '22px 22px' : (isMobile ? '12px 14px' : '22px 24px'),
-              gap: isMobile ? '14px' : '20px',
-              borderRadius: mobileHero ? '22px' : (isMobile ? '16px' : '20px'),
-              border: mobileHero ? '1px solid rgba(99, 102, 241, 0.10)' : undefined,
-              boxShadow: mobileHero ? '0 12px 30px -10px rgba(15, 23, 42, 0.12), 0 4px 10px -2px rgba(15, 23, 42, 0.04)' : undefined,
-              position: 'relative', overflow: 'hidden',
-              cursor: cardHref ? 'pointer' : 'default',
-            } as React.CSSProperties}
-          >
-            {mobileHero && (
-              <span style={{ position: 'absolute', top: '-40px', right: '-30px', width: '140px', height: '140px', borderRadius: '50%', background: 'radial-gradient(circle, rgba(99,102,241,0.10), transparent 70%)', pointerEvents: 'none' }} />
-            )}
-            <div style={{
-              display: 'flex',
-              width: '100%',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              height: '100%',
-              position: 'relative',
-              zIndex: 1
-            }}>
-              {/* Left stack: Icon & Label */}
-              <div style={{ 
-                display: 'flex', 
-                flexDirection: 'column', 
-                justifyContent: 'space-between', 
-                height: '100%', 
-                alignItems: 'flex-start' 
-              }}>
-                <div className="stat-card-icon" style={{
-                  background: mobileHero ? 'linear-gradient(135deg, #6366f1, #4f46e5)' : (card.isTimer ? 'rgba(255,255,255,0.4)' : card.bg),
-                  color: mobileHero ? '#ffffff' : card.color,
-                  width: mobileHero ? '48px' : (isMobile ? '36px' : '48px'),
-                  height: mobileHero ? '48px' : (isMobile ? '36px' : '48px'),
-                  borderRadius: mobileHero ? '14px' : (isMobile ? '10px' : '14px'),
-                  boxShadow: mobileHero ? '0 8px 18px rgba(99,102,241,0.35)' : undefined,
-                  flexShrink: 0,
-                }}>
-                  {card.icon}
-                </div>
-                <div className="stat-card-label" style={{
-                  color: mobileHero ? 'var(--accent)' : (card.isTimer && (examCountdown?.daysLeft ?? 0) > 0 ? 'var(--quiz-countdown-label-color)' : undefined),
-                  fontSize: mobileHero ? '10.5px' : undefined,
-                  fontWeight: mobileHero ? 800 : undefined,
-                  letterSpacing: mobileHero ? '0.08em' : undefined,
-                }}>
-                  {card.label}
-                </div>
-              </div>
-
-              {/* Right: Value (number) */}
-              <div className="stat-card-value" style={{
-                fontSize: mobileHero 
-                  ? '26px' 
-                  : (isMobile 
-                      ? '24px' 
-                      : (card.isTimer ? '36px' : '48px')),
-                fontWeight: 900,
-                color: mobileHero ? 'var(--text-primary)' : 'var(--text-primary)',
-                letterSpacing: '-0.02em',
-                lineHeight: 1,
-                marginRight: card.isTimer ? '24px' : '48px', // Shift non-timer numbers further left to center them
-              }}>
-                {card.value}
-              </div>
-            </div>
-
-            {card.isTimer && isManager && (
-              <button
-                onClick={() => {
+      {/* Stats Grid (desktop; phones use the compact blocks further down) */}
+      {!isMobile && (
+        <div className="gz-grid-stats" style={{ marginBottom: '16px' }}>
+          {(() => {
+            const nextUp = upNextSessions[0]
+            const nextUpLabel = nextUp
+              ? 'Next: ' + new Date(nextUp.startTime).toLocaleString('en-GB', { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit', hour12: true })
+              : 'Nothing scheduled'
+            const daysLeft = examCountdown?.daysLeft ?? 0
+            const TOTAL_TICKS = 30
+            const ticksFilled = Math.max(0, Math.min(TOTAL_TICKS, TOTAL_TICKS - daysLeft))
+            const items: {
+              key: string; label: string; hint?: string; value: React.ReactNode; unit: string; foot: string
+              link?: string; href?: string; onLink?: () => void; ticks?: boolean
+            }[] = [
+              { key: 'courses', label: t('dashboard.stats.totalCourses'), value: stats?.totalCourses ?? 0, unit: 'enrolled', foot: 'All enrolled courses', link: 'Open →', href: '/courses' },
+              { key: 'lectures', label: t('dashboard.stats.lectures'), value: stats?.totalLectures ?? 0, unit: 'available', foot: 'Across all courses', link: 'Browse →', href: '/courses' },
+              isStudentView
+                ? { key: 'upcoming', label: t('dashboard.stats.upcomingSessions'), value: upNextCount, unit: 'scheduled', foot: nextUpLabel, link: 'Live →', href: '/live' }
+                : { key: 'students', label: t('dashboard.stats.studentsEnrolled'), value: (stats?.totalStudents ?? 0).toLocaleString('en-IN'), unit: 'students', foot: 'All courses', link: 'Manage →', href: '/admin' },
+              {
+                key: 'exam', label: t('dashboard.stats.examCountdown'), hint: examCountdown?.title || undefined, value: daysLeft, unit: 'Days', foot: 'days left', ticks: true,
+                link: isManager ? 'Edit' : undefined,
+                onLink: isManager ? () => {
                   setTimerTitle(examCountdown?.title || 'Exam Countdown')
                   setTimerDays(examCountdown?.daysLeft || 0)
                   setIsEditingTimer(true)
-                }}
-                style={{
-                  position: 'absolute',
-                  top: '10px',
-                  right: '10px',
-                  width: '24px',
-                  height: '24px',
-                  borderRadius: '50%',
-                  background: 'var(--quiz-countdown-edit-bg)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  border: 'none',
-                  cursor: 'pointer'
-                }}
-              >
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--quiz-countdown-edit-icon)" strokeWidth="2.5"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-              </button>
-            )}
-          </div>
-          )
-        })}
-      </div>
+                } : undefined,
+              },
+            ]
+            return items.map(it => (
+              <div key={it.key} className="gz-stat">
+                <div className="gz-stat__head"><span>{it.label}</span><span>{it.hint}</span></div>
+                <div className="gz-stat__body">
+                  <div className="gz-stat__num"><b>{it.value}</b><span>{it.unit}</span></div>
+                  {it.ticks && (
+                    <div className="gz-ticks" aria-hidden="true">
+                      {Array.from({ length: TOTAL_TICKS }, (_, i) => <span key={i} className={i < ticksFilled ? 'on' : ''} />)}
+                    </div>
+                  )}
+                  <div className="gz-stat__foot">
+                    <span>{it.foot}</span>
+                    {it.link && (it.onLink
+                      ? <button type="button" onClick={it.onLink} style={{ background: 'none', border: 'none', padding: 0, font: 'inherit', fontWeight: 500, color: 'var(--gz-ink)', cursor: 'pointer' }}>{it.link}</button>
+                      : <Link href={it.href || '#'}>{it.link}</Link>)}
+                  </div>
+                </div>
+              </div>
+            ))
+          })()}
+        </div>
+      )}
+
+      {/* Attendance heatmap — PLACEHOLDER data (see component) */}
+      {!isMobile && <div style={{ marginBottom: '16px' }}><AttendanceHeatmap /></div>}
 
       {/* Manager Specific Cards (Active Sessions & Support) */}
       {isManager && (
@@ -1131,7 +1059,7 @@ export default function DashboardPage() {
                 alignItems: 'center',
                 justifyContent: 'center',
                 color: 'var(--primary)',
-                boxShadow: '0 4px 12px rgba(54,54,232,0.1)'
+                boxShadow: '0 4px 12px color-mix(in srgb, var(--primary) 10%, transparent)'
               }}>
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                   <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
@@ -1335,7 +1263,7 @@ export default function DashboardPage() {
                             transition: 'box-shadow 0.15s',
                           }}
                         >
-                          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#6366f1" strokeWidth="2.5">
+                          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" strokeWidth="2.5">
                             <polyline points="9 18 15 12 9 6"/>
                           </svg>
                         </button>
@@ -1661,12 +1589,12 @@ export default function DashboardPage() {
                     position: 'relative', overflow: 'hidden',
                   }}
                 >
-                  <span style={{ position: 'absolute', top: 0, left: 0, width: '4px', height: '100%', background: 'linear-gradient(180deg, #6366f1, #4f46e5)' }} />
+                  <span style={{ position: 'absolute', top: 0, left: 0, width: '4px', height: '100%', background: 'linear-gradient(180deg, var(--primary), var(--primary))' }} />
                   <div style={{
                     width: '48px', height: '48px', borderRadius: '14px', flexShrink: 0,
-                    background: 'linear-gradient(135deg, #6366f1, #4f46e5)', color: '#ffffff',
+                    background: 'linear-gradient(135deg, var(--primary), var(--primary))', color: '#ffffff',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    boxShadow: '0 8px 18px rgba(99,102,241,0.40)',
+                    boxShadow: '0 8px 18px color-mix(in srgb, var(--primary) 40%, transparent)',
                   }}>
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
                   </div>
@@ -1923,302 +1851,78 @@ export default function DashboardPage() {
         </>
       )}
 
-      {/* ── Row 3: Video Box (Left) + Announcements (Right) [Web View Grid] ── */}
-      <div className="dashboard-video-announcements-row">
-        {/* How to Use Me — button that opens the walkthrough on YouTube (Web View Only) */}
-        {!isMobile && (
-          <a
-            className="dashboard-video-box dashboard-video-box-web-only"
-            href="https://youtu.be/kFu0yHDSeWM?si=PHHL4K3RLr5uoE6-"
-            target="_blank"
-            rel="noopener noreferrer"
-            aria-label="How to Use Me — view the platform walkthrough on YouTube"
-          >
-            <span className="dashboard-video-box__icon">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                <polygon points="6 3 20 12 6 21 6 3"/>
-              </svg>
-            </span>
-            <span style={{ flex: 1, minWidth: 0 }}>
-              <span style={{ display: 'block', fontSize: '15.5px', fontWeight: 700, color: 'var(--text-primary)' }}>
-                How to Use Me
-              </span>
-              <span style={{ display: 'block', fontSize: '12.5px', color: 'var(--text-secondary)', marginTop: '2px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                Platform walkthrough &amp; student guide
-              </span>
-            </span>
-            <span className="dashboard-video-box__cta">
-              View now
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                <path d="M7 17L17 7M8 7h9v9"/>
-              </svg>
-            </span>
-          </a>
+      {/* ── Announcements (left) + shortcuts (right) ── */}
+      <div className="gz-row" style={{ alignItems: 'flex-start', marginBottom: '24px' }}>
+        {announcements.length > 0 && (
+          <div className="gz-panel gz-ann announcements-web-container">
+            <div className="gz-ann__head">
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span style={{ fontWeight: 500, fontSize: '14px' }}>{t('dashboard.announcements.title')}</span>
+                <span className="gz-badge">{announcements.length}</span>
+              </div>
+              <Link href="/announcements" className="gz-ann__all">{t('dashboard.announcements.viewAll')} →</Link>
+            </div>
+            {announcements.map((a: any) => {
+              const { body: parsedBody, metadata } = parseAnnouncementContent(a.content)
+              const isHighPriority = metadata.importance === 'high'
+              const formattedDate = new Date(a.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })
+
+              let dot = '#3b74c4'
+              let badgeLabel = 'General'
+              let badgeCls = 'blue'
+              if (isHighPriority || a.type === 'error') { dot = '#d64533'; badgeLabel = isHighPriority ? 'Important' : 'Alert'; badgeCls = 'red' }
+              else if (a.type === 'warning') { dot = '#c98a1b'; badgeLabel = 'Update'; badgeCls = 'amber' }
+              else if (a.type === 'success') { dot = '#2a9d5c'; badgeLabel = 'Success'; badgeCls = 'green' }
+              const hasCta = Boolean(metadata.ctaText && metadata.ctaLink)
+
+              return (
+                <div key={a.id} className="gz-ann__row announcement-compact-row">
+                  <span className="gz-ann__dot" style={{ background: dot }} />
+                  <span style={{ flex: 1, minWidth: 0 }}>
+                    <span className="gz-ann__top">
+                      <span style={{ fontWeight: 500, display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+                        {a.title}
+                        <span className={`gz-pill gz-pill--${badgeCls}`} style={{ fontSize: '10.5px', padding: '1px 6px' }}>{badgeLabel}</span>
+                      </span>
+                      <span className="gz-mono gz-ann__date">{formattedDate}</span>
+                    </span>
+                    <span className="gz-ann__body">{parsedBody}</span>
+                    {hasCta && (
+                      <a
+                        href={metadata.ctaLink}
+                        target={metadata.ctaLink!.startsWith('http') ? '_blank' : '_self'}
+                        rel="noopener noreferrer"
+                        className="gz-btn gz-btn--ghost"
+                        style={{ height: '28px', padding: '0 10px', fontSize: '12px', marginTop: '8px', borderRadius: '8px' }}
+                      >
+                        {metadata.ctaText} →
+                      </a>
+                    )}
+                  </span>
+                </div>
+              )
+            })}
+          </div>
         )}
 
-        {/* Right: Announcements (Compact Square) */}
-        {announcements.length > 0 && (
-          <div
-            className="card dashboard-announcements-compact-card announcements-web-container"
-            style={{
-              padding: '20px 24px',
-              borderRadius: '20px',
-              background: 'var(--surface)',
-              border: '1px solid var(--border)',
-              boxShadow: 'none',
-              display: 'flex',
-              flexDirection: 'column',
-              overflow: 'hidden',
-            }}
-          >
-            <div
-              style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                paddingBottom: '14px',
-                borderBottom: '1px solid var(--border)',
-                marginBottom: '4px',
-                flexWrap: 'wrap',
-                gap: '8px',
-              }}
+        {!isMobile && (
+          <div className="gz-aside">
+            <a
+              className="gz-card-link"
+              href="https://youtu.be/kFu0yHDSeWM?si=PHHL4K3RLr5uoE6-"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="How to Use Me — view the platform walkthrough on YouTube"
             >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <h3 style={{ fontSize: '16px', fontWeight: '700', color: 'var(--text-primary)', margin: 0 }}>
-                  {t('dashboard.announcements.title')}
-                </h3>
-                <span style={{
-                  fontSize: '11px',
-                  fontWeight: '700',
-                  padding: '2px 8px',
-                  borderRadius: '10px',
-                  background: 'var(--surface-2)',
-                  color: 'var(--text-secondary)',
-                }}>
-                  {announcements.length}
-                </span>
-              </div>
-              <Link
-                href="/announcements"
-                style={{
-                  fontSize: '13px',
-                  fontWeight: '600',
-                  color: 'var(--primary)',
-                  textDecoration: 'none',
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '4px',
-                  transition: 'opacity 0.15s ease',
-                }}
-              >
-                {t('dashboard.announcements.viewAll')} →
-              </Link>
-            </div>
-
-            <div
-              className="dashboard-announcements-scroll"
-              style={{
-                display: 'flex',
-                flexDirection: 'column',
-                overflowY: 'auto',
-                maxHeight: '340px',
-                paddingRight: '4px',
-              }}
-            >
-              {announcements.map((a, index) => {
-                const { body: parsedBody, metadata } = parseAnnouncementContent(a.content)
-                const isHighPriority = metadata.importance === 'high'
-                const formattedDate = new Date(a.createdAt).toLocaleDateString('en-GB', {
-                  day: '2-digit',
-                  month: '2-digit',
-                  year: 'numeric',
-                })
-
-                let iconSvg = (
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M22 17H2a3 3 0 0 0 3-3V9a7 7 0 0 1 14 0v5a3 3 0 0 0 3 3zm-8.27 4a2 2 0 0 1-3.46 0"/>
-                  </svg>
-                )
-                let iconColor = 'var(--primary, #4f46e5)'
-                let iconBg = 'rgba(79, 70, 229, 0.1)'
-                let badgeLabel = 'General'
-                let badgeColor = 'var(--primary, #4f46e5)'
-                let badgeBg = 'rgba(79, 70, 229, 0.08)'
-
-                if (isHighPriority || a.type === 'error') {
-                  iconColor = 'var(--danger, #ef4444)'
-                  iconBg = 'rgba(239, 68, 68, 0.1)'
-                  badgeLabel = isHighPriority ? 'Important' : 'Alert'
-                  badgeColor = '#ef4444'
-                  badgeBg = 'rgba(239, 68, 68, 0.08)'
-                  iconSvg = (
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <circle cx="12" cy="12" r="10"/>
-                      <line x1="12" y1="8" x2="12" y2="12"/>
-                      <line x1="12" y1="16" x2="12.01" y2="16"/>
-                    </svg>
-                  )
-                } else if (a.type === 'warning') {
-                  iconColor = '#f59e0b'
-                  iconBg = 'rgba(245, 158, 11, 0.1)'
-                  badgeLabel = 'Update'
-                  badgeColor = '#d97706'
-                  badgeBg = 'rgba(245, 158, 11, 0.08)'
-                  iconSvg = (
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
-                      <line x1="12" y1="9" x2="12" y2="13"/>
-                      <line x1="12" y1="17" x2="12.01" y2="17"/>
-                    </svg>
-                  )
-                } else if (a.type === 'success') {
-                  iconColor = '#10b981'
-                  iconBg = 'rgba(16, 185, 129, 0.1)'
-                  badgeLabel = 'Success'
-                  badgeColor = '#059669'
-                  badgeBg = 'rgba(16, 185, 129, 0.08)'
-                  iconSvg = (
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
-                      <polyline points="22 4 12 14.01 9 11.01"/>
-                    </svg>
-                  )
-                }
-
-                const isLast = index === announcements.length - 1
-                const hasCta = Boolean(metadata.ctaText && metadata.ctaLink)
-
-                return (
-                  <div
-                    key={a.id}
-                    className="announcement-compact-row"
-                    style={{
-                      padding: '13px 0',
-                      borderBottom: isLast ? 'none' : '1px solid var(--border)',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      gap: '7px',
-                      maxWidth: '100%',
-                      boxSizing: 'border-box',
-                    }}
-                  >
-                    {/* Top Row: Icon + Title + Badge + Date */}
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0, flex: 1 }}>
-                        <div
-                          style={{
-                            width: '32px',
-                            height: '32px',
-                            borderRadius: '8px',
-                            background: iconBg,
-                            color: iconColor,
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            flexShrink: 0,
-                          }}
-                        >
-                          {iconSvg}
-                        </div>
-                        <div style={{ minWidth: 0, flex: 1, display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
-                          <span
-                            style={{
-                              fontSize: '13.5px',
-                              fontWeight: '700',
-                              color: 'var(--text-primary)',
-                              lineHeight: '1.25',
-                            }}
-                          >
-                            {a.title}
-                          </span>
-                          <span
-                            style={{
-                              fontSize: '10px',
-                              fontWeight: '700',
-                              padding: '1px 6px',
-                              borderRadius: '4px',
-                              background: badgeBg,
-                              color: badgeColor,
-                              letterSpacing: '0.02em',
-                              whiteSpace: 'nowrap',
-                            }}
-                          >
-                            {badgeLabel}
-                          </span>
-                        </div>
-                      </div>
-                      <span
-                        style={{
-                          fontSize: '11.5px',
-                          color: 'var(--text-muted)',
-                          fontWeight: '500',
-                          whiteSpace: 'nowrap',
-                          flexShrink: 0,
-                        }}
-                      >
-                        {formattedDate}
-                      </span>
-                    </div>
-
-                    {/* Bottom Row: Description + CTA Button */}
-                    <div
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                        gap: '10px',
-                        paddingLeft: '42px',
-                      }}
-                    >
-                      <div
-                        style={{
-                          fontSize: '12.5px',
-                          color: 'var(--text-secondary)',
-                          lineHeight: '1.4',
-                          display: '-webkit-box',
-                          WebkitLineClamp: 1,
-                          WebkitBoxOrient: 'vertical',
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis',
-                          flex: 1,
-                        }}
-                      >
-                        {parsedBody}
-                      </div>
-
-                      {hasCta && (
-                        <a
-                          href={metadata.ctaLink}
-                          target={metadata.ctaLink!.startsWith('http') ? '_blank' : '_self'}
-                          rel="noopener noreferrer"
-                          style={{
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            gap: '4px',
-                            padding: '5px 12px',
-                            borderRadius: '8px',
-                            background: 'var(--button-background, var(--primary))',
-                            color: 'var(--button-text, #ffffff)',
-                            fontSize: '11.5px',
-                            fontWeight: '700',
-                            textDecoration: 'none',
-                            whiteSpace: 'nowrap',
-                            flexShrink: 0,
-                            transition: 'opacity 0.15s ease',
-                          }}
-                        >
-                          <span>{metadata.ctaText}</span>
-                          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                            <polyline points="9 18 15 12 9 6"></polyline>
-                          </svg>
-                        </a>
-                      )}
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
+              <span className="gz-card-link__ico">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><polygon points="6 3 20 12 6 21 6 3" /></svg>
+              </span>
+              <span className="gz-card-link__text">
+                <span className="gz-card-link__title">How to Use Me</span>
+                <span className="gz-card-link__sub">Platform walkthrough &amp; student guide</span>
+              </span>
+              <span className="gz-card-link__go">View now ↗</span>
+            </a>
           </div>
         )}
       </div>
@@ -2295,7 +1999,7 @@ export default function DashboardPage() {
         }} onClick={e => e.stopPropagation()}>
           {upgrading ? (
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '60px 20px' }}>
-              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#6366f1" strokeWidth="2" style={{ animation: 'spin 1s linear infinite', marginBottom: '24px' }}>
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" strokeWidth="2" style={{ animation: 'spin 1s linear infinite', marginBottom: '24px' }}>
                 <circle cx="12" cy="12" r="10" strokeOpacity="0.25"/><path d="M12 2a10 10 0 0 1 10 10" strokeOpacity="1"/>
               </svg>
               <h2 style={{ fontSize: '20px', fontWeight: '800', color: 'var(--text-primary)', marginBottom: '12px' }}>Processing Payment...</h2>
@@ -2335,9 +2039,9 @@ export default function DashboardPage() {
                   onClick={() => handleUpgrade(upgradeModalCourse.id)}
                   style={{
                     flex: 1.5, padding: '16px', borderRadius: '18px', border: 'none',
-                    background: 'linear-gradient(135deg, #6366f1, #4f46e5)',
+                    background: 'linear-gradient(135deg, var(--primary), var(--primary))',
                     color: 'white', fontWeight: '700', cursor: 'pointer',
-                    boxShadow: '0 4px 12px rgba(79, 70, 229, 0.3)',
+                    boxShadow: '0 4px 12px color-mix(in srgb, var(--primary) 30%, transparent)',
                     display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px'
                   }}
                 >
@@ -2425,7 +2129,7 @@ export default function DashboardPage() {
             {offering.hasRecorded && (
               <div style={{
                 padding: '16px', borderRadius: '20px',
-                background: 'var(--surface-2, rgba(99, 102, 241, 0.02))',
+                background: 'var(--surface-2, color-mix(in srgb, var(--primary) 2%, transparent))',
                 border: '1.5px solid var(--border)',
                 boxShadow: '0 4px 12px rgba(0,0,0,0.02)'
               }}>
@@ -2466,10 +2170,10 @@ export default function DashboardPage() {
             {offering.hasLive && (
               <div style={{
                 padding: '16px', borderRadius: '20px',
-                background: 'var(--surface-2, rgba(99, 102, 241, 0.02))',
+                background: 'var(--surface-2, color-mix(in srgb, var(--primary) 2%, transparent))',
                 border: '1.5px solid var(--accent)',
                 position: 'relative',
-                boxShadow: '0 8px 24px rgba(99,102,241,0.08)'
+                boxShadow: '0 8px 24px color-mix(in srgb, var(--primary) 8%, transparent)'
               }}>
                 <div style={{
                   position: 'absolute', top: '12px', right: '16px',
@@ -2574,7 +2278,7 @@ export default function DashboardPage() {
               width: '100%', padding: '16px', borderRadius: '18px', border: 'none',
               background: 'linear-gradient(135deg, var(--accent) 0%, var(--primary) 100%)',
               color: 'white', fontWeight: '700', fontSize: '15px', cursor: 'pointer',
-              boxShadow: '0 4px 12px rgba(99, 102, 241, 0.3)',
+              boxShadow: '0 4px 12px color-mix(in srgb, var(--primary) 30%, transparent)',
             }}
           >
             Got it, let&apos;s go! 🚀
@@ -2629,7 +2333,7 @@ export default function DashboardPage() {
                 <tr style={{ borderBottom: '1px solid #2d3748', background: '#171923' }}>
                   <th style={{ padding: '14px 16px', fontWeight: '700', color: '#a0aec0', width: '40%' }}>FEATURES</th>
                   <th style={{ padding: '14px 16px', fontWeight: '800', color: '#d69e2e', textAlign: 'center', width: '30%', background: 'rgba(214, 158, 46, 0.05)' }}>PLUS</th>
-                  <th style={{ padding: '14px 16px', fontWeight: '800', color: '#6366f1', textAlign: 'center', width: '30%', background: 'rgba(99, 102, 241, 0.05)' }}>PRO</th>
+                  <th style={{ padding: '14px 16px', fontWeight: '800', color: 'var(--primary)', textAlign: 'center', width: '30%', background: 'color-mix(in srgb, var(--primary) 5%, transparent)' }}>PRO</th>
                 </tr>
               </thead>
               <tbody>
@@ -2653,7 +2357,7 @@ export default function DashboardPage() {
                     <td style={{
                       padding: '12px 16px', textAlign: 'center', fontWeight: '700',
                       color: row.pro.includes('✅') ? '#48bb78' : '#e53e3e',
-                      background: 'rgba(99, 102, 241, 0.02)'
+                      background: 'color-mix(in srgb, var(--primary) 2%, transparent)'
                     }}>
                       {row.pro}
                     </td>
@@ -2672,9 +2376,9 @@ export default function DashboardPage() {
               }}
               style={{
                 padding: '12px 32px', borderRadius: '50px', border: 'none',
-                background: 'linear-gradient(135deg, #6366f1, #4f46e5)', color: '#ffffff',
+                background: 'linear-gradient(135deg, var(--primary), var(--primary))', color: '#ffffff',
                 fontSize: '14px', fontWeight: '800', cursor: 'pointer',
-                boxShadow: '0 4px 15px rgba(99, 102, 241, 0.3)', transition: 'all 0.2s'
+                boxShadow: '0 4px 15px color-mix(in srgb, var(--primary) 30%, transparent)', transition: 'all 0.2s'
               }}
               onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-1px)'}
               onMouseLeave={e => e.currentTarget.style.transform = 'translateY(0)'}
@@ -2739,7 +2443,7 @@ export default function DashboardPage() {
         }}>
           <div className="spinner" style={{
             width: '40px', height: '40px', border: '4px solid #f3f3f3',
-            borderTop: '4px solid #6366f1', borderRadius: '50%',
+            borderTop: '4px solid var(--primary)', borderRadius: '50%',
             margin: '0 auto 20px',
             animation: 'spin 1s linear infinite'
           }} />

@@ -97,12 +97,12 @@ function RequestPermissionModal({
         <div style={{ position: 'relative', marginBottom: '22px' }}>
           <div style={{
             position: 'absolute', inset: '-10px', borderRadius: '50%',
-            background: 'rgba(54,54,232,0.13)', animation: 'pnsPulse 2.2s infinite',
+            background: 'color-mix(in srgb, var(--primary) 13%, transparent)', animation: 'pnsPulse 2.2s infinite',
           }} />
           <div style={{
             width: '68px', height: '68px', borderRadius: '50%',
-            background: 'linear-gradient(135deg, #3636e8, #6366f1)',
-            boxShadow: '0 8px 20px rgba(54,54,232,0.28)',
+            background: 'linear-gradient(135deg, var(--primary), var(--primary))',
+            boxShadow: '0 8px 20px color-mix(in srgb, var(--primary) 28%, transparent)',
             display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative',
           }}>
             <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -127,8 +127,8 @@ function RequestPermissionModal({
               width: '100%', border: 'none', borderRadius: '50px',
               padding: '14px 20px', fontFamily: 'inherit', fontSize: '14px', fontWeight: '700',
               cursor: 'pointer', color: '#fff',
-              background: 'linear-gradient(135deg, #3636e8, #6366f1)',
-              boxShadow: '4px 4px 10px rgba(54,54,232,0.25), inset 1px 1px 0 var(--neu-glow)',
+              background: 'linear-gradient(135deg, var(--primary), var(--primary))',
+              boxShadow: '4px 4px 10px color-mix(in srgb, var(--primary) 25%, transparent), inset 1px 1px 0 var(--neu-glow)',
               transition: 'all 0.2s ease',
             }}
           >
@@ -280,7 +280,7 @@ function PermissionDeniedModal({ onDismiss }: { onDismiss: () => void }) {
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <span style={{
                   width: '18px', height: '18px', borderRadius: '50%', flexShrink: 0,
-                  background: 'linear-gradient(135deg, #6366f1, #3636e8)',
+                  background: 'linear-gradient(135deg, var(--primary), var(--primary))',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   fontSize: '10px', fontWeight: '800', color: '#fff',
                 }}>

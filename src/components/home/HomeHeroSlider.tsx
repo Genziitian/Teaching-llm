@@ -26,13 +26,13 @@ export default function HomeHeroSlider({ slides, intervalMs = 4500 }: Props) {
         document.documentElement.classList.contains('is-native') ||
         Boolean((window as any).Capacitor?.isNativePlatform?.() || (window as any).Capacitor?.isNative)
       )
-      
+
       const isPWA = typeof window !== 'undefined' && (
         window.matchMedia?.('(display-mode: standalone)').matches ||
         (window.navigator as any)?.standalone === true ||
         (typeof document !== 'undefined' && document.referrer?.includes('android-app://'))
       )
-      
+
       return Boolean(isNative || isPWA)
     }
 
@@ -55,6 +55,8 @@ export default function HomeHeroSlider({ slides, intervalMs = 4500 }: Props) {
 
   if (!isApp || slides.length === 0) return null
 
+  const go = (i: number) => setIndex((i + slides.length) % slides.length)
+
   function onTouchStart(e: React.TouchEvent) {
     touchStartX.current = e.touches[0].clientX
     touchDeltaX.current = 0
@@ -66,10 +68,7 @@ export default function HomeHeroSlider({ slides, intervalMs = 4500 }: Props) {
   }
   function onTouchEnd() {
     const dx = touchDeltaX.current
-    if (Math.abs(dx) > 50) {
-      if (dx < 0) setIndex(i => (i + 1) % slides.length)
-      else setIndex(i => (i - 1 + slides.length) % slides.length)
-    }
+    if (Math.abs(dx) > 50) go(dx < 0 ? index + 1 : index - 1)
     touchStartX.current = null
     touchDeltaX.current = 0
     setTimeout(() => setPaused(false), 1500)
@@ -86,79 +85,52 @@ export default function HomeHeroSlider({ slides, intervalMs = 4500 }: Props) {
 
   return (
     <div
-      className="home-hero-slider"
-      style={{ marginBottom: '24px' }}
+      className="home-hero-slider gz-panel gz-hero"
       onTouchStart={onTouchStart}
       onTouchMove={onTouchMove}
       onTouchEnd={onTouchEnd}
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
     >
-      {/* Slide viewport */}
-      <div style={{
-        width: '100%',
-        aspectRatio: '16 / 9',
-        borderRadius: '20px',
-        overflow: 'hidden',
-        position: 'relative',
-        boxShadow: '0 18px 36px -12px rgba(15, 23, 42, 0.25), 0 6px 12px -4px rgba(15, 23, 42, 0.08)',
-        background: 'var(--text-primary)',
-      }}>
-        {/* Stacked slides — translateX based on index for smooth slide animation */}
-        <div style={{
-          display: 'flex',
-          width: `${slides.length * 100}%`,
-          height: '100%',
-          transform: `translateX(-${index * (100 / slides.length)}%)`,
-          transition: 'transform 0.45s cubic-bezier(0.65, 0, 0.35, 1)',
-        }}>
+      <div className="gz-hero__viewport">
+        <div
+          className="gz-hero__track"
+          style={{ width: `${slides.length * 100}%`, transform: `translateX(-${index * (100 / slides.length)}%)` }}
+        >
           {slides.map((s, i) => (
             <button
               key={s.image}
               onClick={() => handleSlideClick(s.href)}
               aria-label={s.alt}
-              style={{
-                flex: `0 0 ${100 / slides.length}%`,
-                position: 'relative',
-                height: '100%',
-                padding: 0, border: 'none', cursor: 'pointer',
-                background: 'transparent',
-                overflow: 'hidden',
-              }}
+              className="gz-hero__slide"
+              style={{ flex: `0 0 ${100 / slides.length}%` }}
             >
-              <img
-                src={s.image}
-                alt={s.alt}
-                loading={i === 0 ? 'eager' : 'lazy'}
-                style={{
-                  width: '100%', height: '100%',
-                  objectFit: 'cover', objectPosition: 'center',
-                  display: 'block',
-                }}
-              />
+              <img src={s.image} alt={s.alt} loading={i === 0 ? 'eager' : 'lazy'} />
             </button>
           ))}
         </div>
       </div>
 
-      {/* Dot indicators */}
       {slides.length > 1 && (
-        <div style={{ display: 'flex', justifyContent: 'center', gap: '6px', marginTop: '12px' }}>
-          {slides.map((_, i) => (
-            <button
-              key={i}
-              onClick={() => setIndex(i)}
-              aria-label={`Go to slide ${i + 1}`}
-              style={{
-                width: i === index ? '24px' : '6px',
-                height: '6px', borderRadius: '50px',
-                background: i === index ? 'var(--primary)' : 'var(--text-muted)',
-                border: 'none', cursor: 'pointer',
-                transition: 'all 0.3s ease',
-                padding: 0,
-              }}
-            />
-          ))}
+        <div className="gz-hero__bar">
+          <div className="gz-hero__dots">
+            {slides.map((_, i) => (
+              <button
+                key={i}
+                onClick={() => setIndex(i)}
+                aria-label={`Go to slide ${i + 1}`}
+                style={{ width: i === index ? 20 : 5, background: i === index ? 'var(--gz-ink)' : 'var(--gz-line-hover)' }}
+              />
+            ))}
+          </div>
+          <div className="gz-hero__arrows">
+            <button aria-label="Previous slide" onClick={() => go(index - 1)}>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6" /></svg>
+            </button>
+            <button aria-label="Next slide" onClick={() => go(index + 1)}>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6" /></svg>
+            </button>
+          </div>
         </div>
       )}
     </div>

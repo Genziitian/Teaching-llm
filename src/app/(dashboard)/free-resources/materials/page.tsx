@@ -39,7 +39,7 @@ function FilterSelect({
           color: '#6b6b8a',
         }}
       >
-        <span style={{ color: '#4F46E5', display: 'inline-flex' }}>{icon}</span>
+        <span style={{ color: 'var(--primary)', display: 'inline-flex' }}>{icon}</span>
         {label}
       </label>
       <div style={{ position: 'relative' }}>

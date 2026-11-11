@@ -77,7 +77,7 @@ export default function LoadingFactCard({ fact, className = '', style = {} }: Lo
             left: 0,
             right: 0,
             height: '2.5px',
-            background: 'linear-gradient(90deg, #6366F1, #8B5CF6, #EC4899, #6366F1)',
+            background: 'linear-gradient(90deg, var(--primary), #8B5CF6, #EC4899, var(--primary))',
             backgroundSize: '200% 100%',
             animation: 'rareShimmer 3s linear infinite',
           }}
@@ -121,9 +121,9 @@ export default function LoadingFactCard({ fact, className = '', style = {} }: Lo
               fontWeight: 800,
               letterSpacing: '0.08em',
               textTransform: 'uppercase',
-              background: 'linear-gradient(135deg, #4F46E5, #7C3AED)',
+              background: 'linear-gradient(135deg, var(--primary), #7C3AED)',
               color: '#FFFFFF',
-              boxShadow: '0 2px 8px rgba(79, 70, 229, 0.3)',
+              boxShadow: '0 2px 8px color-mix(in srgb, var(--primary) 30%, transparent)',
             }}
           >
             RARE ✨
@@ -143,7 +143,7 @@ export default function LoadingFactCard({ fact, className = '', style = {} }: Lo
           whiteSpace: 'pre-line',
         }}
       >
-        <span style={{ fontWeight: 700, color: isUltraRare ? '#EF4444' : isRare ? '#6366F1' : 'var(--text-primary, #0F172A)' }}>
+        <span style={{ fontWeight: 700, color: isUltraRare ? '#EF4444' : isRare ? 'var(--primary)' : 'var(--text-primary, #0F172A)' }}>
           Fact :{' '}
         </span>
         {fact.text}

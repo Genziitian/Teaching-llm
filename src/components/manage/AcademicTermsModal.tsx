@@ -506,7 +506,7 @@ export default function AcademicTermsModal({ isOpen, onClose, onUpdated }: Acade
                     padding: '8px 22px',
                     borderRadius: '8px',
                     border: 'none',
-                    background: '#6366f1',
+                    background: 'var(--primary)',
                     color: '#fff',
                     fontSize: '12px',
                     fontWeight: 700,
@@ -528,7 +528,7 @@ export default function AcademicTermsModal({ isOpen, onClose, onUpdated }: Acade
                   type="button"
                   onClick={handleStartAdd}
                   style={{
-                    background: '#6366f1',
+                    background: 'var(--primary)',
                     color: '#fff',
                     border: 'none',
                     padding: '8px 16px',

@@ -61,7 +61,7 @@ export default function GlobalUploadProgressModal() {
         fontFamily: 'inherit'
       }}>
         <div style={{
-          width: '56px', height: '56px', borderRadius: '50%', background: 'rgba(54,54,232,0.08)',
+          width: '56px', height: '56px', borderRadius: '50%', background: 'color-mix(in srgb, var(--primary) 8%, transparent)',
           display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--primary)',
           marginBottom: '4px'
         }}>

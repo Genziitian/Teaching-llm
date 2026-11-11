@@ -501,7 +501,7 @@ function RecordedSessionRow({ session }: { session: CourseEvent }) {
         background: 'var(--primary-light)',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         color: 'var(--accent)', flexShrink: 0,
-        boxShadow: '0 4px 10px rgba(99,102,241,0.15)',
+        boxShadow: '0 4px 10px color-mix(in srgb, var(--primary) 15%, transparent)',
       }}>
         <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
           <polygon points="6 4 20 12 6 20 6 4" />

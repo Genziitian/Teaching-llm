@@ -567,7 +567,7 @@ export default function LecturePage() {
                 ? '2px solid var(--border)' 
                 : 'none',
             paddingLeft: depth > 0 && !isHighlighted ? '16px' : isHighlighted ? '12px' : '0',
-            backgroundColor: isHighlighted ? 'rgba(54, 54, 232, 0.05)' : 'transparent',
+            backgroundColor: isHighlighted ? 'color-mix(in srgb, var(--primary) 5%, transparent)' : 'transparent',
             paddingTop: isHighlighted ? '8px' : '0',
             paddingBottom: isHighlighted ? '8px' : '0',
             paddingRight: isHighlighted ? '12px' : '0',
@@ -583,7 +583,7 @@ export default function LecturePage() {
                 {comment.user.role !== 'STUDENT' && (
                   <span style={{ 
                     fontSize: '10px', 
-                    background: 'linear-gradient(135deg, #3636e8, #6366f1)', 
+                    background: 'linear-gradient(135deg, var(--primary), var(--primary))', 
                     color: '#fff', 
                     padding: '1px 8px', 
                     borderRadius: '50px', 
@@ -714,7 +714,7 @@ export default function LecturePage() {
             width: '80px', height: '80px', borderRadius: '50%',
             background: 'var(--surface)', color: 'var(--accent)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            boxShadow: '0 8px 16px rgba(99, 102, 241, 0.15)'
+            boxShadow: '0 8px 16px color-mix(in srgb, var(--primary) 15%, transparent)'
           }}>
             <span style={{ fontSize: '36px' }}>🔒</span>
           </div>
@@ -734,9 +734,9 @@ export default function LecturePage() {
                 onClick={() => handleUnlockClick(content.topic?.course?.id || params.id as string)}
                 style={{
                   width: '100%', padding: '16px', borderRadius: '50px', border: 'none',
-                  background: 'linear-gradient(135deg, #6366f1, #4f46e5)',
+                  background: 'linear-gradient(135deg, var(--primary), var(--primary))',
                   color: 'white', fontWeight: '800', fontSize: '15px', cursor: 'pointer',
-                  boxShadow: '0 8px 20px rgba(99, 102, 241, 0.3)',
+                  boxShadow: '0 8px 20px color-mix(in srgb, var(--primary) 30%, transparent)',
                   transition: 'all 0.2s',
                 }}
                 onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-1px)'}
@@ -796,7 +796,7 @@ export default function LecturePage() {
             }}>
               <div className="spinner" style={{
                 width: '40px', height: '40px', border: '4px solid #f3f3f3',
-                borderTop: '4px solid #6366f1', borderRadius: '50%',
+                borderTop: '4px solid var(--primary)', borderRadius: '50%',
                 margin: '0 auto 20px',
                 animation: 'spin 1s linear infinite'
               }} />
@@ -878,7 +878,7 @@ export default function LecturePage() {
                 {offering.hasRecorded && (
                   <div style={{
                     padding: '16px', borderRadius: '20px',
-                    background: 'var(--surface-2, rgba(99, 102, 241, 0.02))',
+                    background: 'var(--surface-2, color-mix(in srgb, var(--primary) 2%, transparent))',
                     border: '1.5px solid var(--border)',
                     boxShadow: '0 4px 12px rgba(0,0,0,0.02)'
                   }}>
@@ -919,10 +919,10 @@ export default function LecturePage() {
                 {offering.hasLive && (
                   <div style={{
                     padding: '16px', borderRadius: '20px',
-                    background: 'var(--surface-2, rgba(99, 102, 241, 0.02))',
+                    background: 'var(--surface-2, color-mix(in srgb, var(--primary) 2%, transparent))',
                     border: '1.5px solid var(--accent)',
                     position: 'relative',
-                    boxShadow: '0 8px 24px rgba(99,102,241,0.08)'
+                    boxShadow: '0 8px 24px color-mix(in srgb, var(--primary) 8%, transparent)'
                   }}>
                     <div style={{
                       position: 'absolute', top: '12px', right: '16px',
@@ -1048,7 +1048,7 @@ export default function LecturePage() {
                     <tr style={{ borderBottom: '1px solid #2d3748', background: '#171923' }}>
                       <th style={{ padding: '14px 16px', fontWeight: '700', color: '#a0aec0', width: '40%' }}>FEATURES</th>
                       <th style={{ padding: '14px 16px', fontWeight: '800', color: '#d69e2e', textAlign: 'center', width: '30%', background: 'rgba(214, 158, 46, 0.05)' }}>PLUS</th>
-                      <th style={{ padding: '14px 16px', fontWeight: '800', color: '#6366f1', textAlign: 'center', width: '30%', background: 'rgba(99, 102, 241, 0.05)' }}>PRO</th>
+                      <th style={{ padding: '14px 16px', fontWeight: '800', color: 'var(--primary)', textAlign: 'center', width: '30%', background: 'color-mix(in srgb, var(--primary) 5%, transparent)' }}>PRO</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -1072,7 +1072,7 @@ export default function LecturePage() {
                         <td style={{
                           padding: '12px 16px', textAlign: 'center', fontWeight: '700',
                           color: row.pro.includes('✅') ? '#48bb78' : '#e53e3e',
-                          background: 'rgba(99, 102, 241, 0.02)'
+                          background: 'color-mix(in srgb, var(--primary) 2%, transparent)'
                         }}>
                           {row.pro}
                         </td>
@@ -1091,9 +1091,9 @@ export default function LecturePage() {
                   }}
                   style={{
                     padding: '12px 32px', borderRadius: '50px', border: 'none',
-                    background: 'linear-gradient(135deg, #6366f1, #4f46e5)', color: '#ffffff',
+                    background: 'linear-gradient(135deg, var(--primary), var(--primary))', color: '#ffffff',
                     fontSize: '14px', fontWeight: '800', cursor: 'pointer',
-                    boxShadow: '0 4px 15px rgba(99, 102, 241, 0.3)', transition: 'all 0.2s'
+                    boxShadow: '0 4px 15px color-mix(in srgb, var(--primary) 30%, transparent)', transition: 'all 0.2s'
                   }}
                   onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-1px)'}
                   onMouseLeave={e => e.currentTarget.style.transform = 'translateY(0)'}
@@ -1130,7 +1130,7 @@ export default function LecturePage() {
                   width: '100%', padding: '16px', borderRadius: '18px', border: 'none',
                   background: 'linear-gradient(135deg, var(--accent) 0%, var(--primary) 100%)',
                   color: 'white', fontWeight: '700', fontSize: '15px', cursor: 'pointer',
-                  boxShadow: '0 4px 12px rgba(99, 102, 241, 0.3)',
+                  boxShadow: '0 4px 12px color-mix(in srgb, var(--primary) 30%, transparent)',
                 }}
               >
                 Got it, let&apos;s go! 🚀
@@ -1274,7 +1274,7 @@ export default function LecturePage() {
                 <section style={{ background: 'var(--surface)', padding: '24px', borderRadius: '24px', boxShadow: '0 4px 12px rgba(0,0,0,0.03)', marginTop: '24px' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
                     <h2 style={{ fontSize: '18px', fontWeight: '800', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <MessageSquare size={20} color="#6366f1" /> Discussion & Q&A
+                      <MessageSquare size={20} color="var(--primary)" /> Discussion & Q&A
                     </h2>
                     <span style={{ fontSize: '13px', color: 'var(--text-muted)', fontWeight: '600' }}>{comments.length} Comment{comments.length !== 1 ? 's' : ''}</span>
                   </div>
@@ -1629,7 +1629,7 @@ export default function LecturePage() {
             }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
                 <h2 style={{ fontSize: '16px', fontWeight: '800', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <MessageSquare size={18} color="#6366f1" />
+                  <MessageSquare size={18} color="var(--primary)" />
                   Discussion & Q&A
                 </h2>
                 <span style={{ fontSize: '12px', color: 'var(--text-muted)', fontWeight: '600' }}>
@@ -1769,7 +1769,7 @@ export default function LecturePage() {
             }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
                 <h2 style={{ fontSize: '18px', fontWeight: '800', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <MessageSquare size={20} color="#6366f1" />
+                  <MessageSquare size={20} color="var(--primary)" />
                   Discussion & Q&A
                 </h2>
                 <span style={{ fontSize: '13px', color: 'var(--text-muted)', fontWeight: '600' }}>

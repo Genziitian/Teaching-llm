@@ -680,12 +680,12 @@ export default function CoursesPage() {
                       fontSize: '9px',
                       padding: '2px 8px',
                       borderRadius: '6px',
-                      background: 'rgba(99, 102, 241, 0.15)',
+                      background: 'color-mix(in srgb, var(--primary) 15%, transparent)',
                       color: 'var(--accent)',
                       fontWeight: '800',
                       letterSpacing: '0.05em',
                       textTransform: 'uppercase',
-                      border: '1px solid rgba(99, 102, 241, 0.3)',
+                      border: '1px solid color-mix(in srgb, var(--primary) 30%, transparent)',
                     }}>
                       DEMO
                     </span>
@@ -939,7 +939,7 @@ export default function CoursesPage() {
                   border: 'none',
                   fontSize: '14px',
                   fontWeight: '700',
-                  boxShadow: '4px 4px 8px rgba(99, 102, 241, 0.3)',
+                  boxShadow: '4px 4px 8px color-mix(in srgb, var(--primary) 30%, transparent)',
                   cursor: 'pointer'
                 }}>
                   {helpCard.buttonText || 'Enroll in More'}
@@ -1068,7 +1068,7 @@ export default function CoursesPage() {
           >
             {upgrading ? (
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '20px 0' }}>
-                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#6366f1" strokeWidth="2" style={{ animation: 'spin 1s linear infinite', marginBottom: '24px' }}>
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" strokeWidth="2" style={{ animation: 'spin 1s linear infinite', marginBottom: '24px' }}>
                   <circle cx="12" cy="12" r="10" strokeOpacity="0.25"/><path d="M12 2a10 10 0 0 1 10 10" strokeOpacity="1"/>
                 </svg>
                 <h2 style={{ fontSize: '20px', fontWeight: '800', color: 'var(--text-primary)', marginBottom: '12px' }}>Processing Payment...</h2>
@@ -1111,9 +1111,9 @@ export default function CoursesPage() {
                     onClick={() => handleUpgrade(upgradeModalCourse.id)}
                     style={{
                       flex: 1.5, padding: '16px', borderRadius: '18px', border: 'none',
-                      background: 'linear-gradient(135deg, #6366f1, #4f46e5)',
+                      background: 'linear-gradient(135deg, var(--primary), var(--primary))',
                       color: 'white', fontWeight: '700', cursor: 'pointer',
-                      boxShadow: '0 4px 12px rgba(79, 70, 229, 0.3)',
+                      boxShadow: '0 4px 12px color-mix(in srgb, var(--primary) 30%, transparent)',
                       display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px'
                     }}
                   >
@@ -1200,7 +1200,7 @@ export default function CoursesPage() {
               {offering.hasRecorded && (
                 <div style={{
                   padding: '16px', borderRadius: '20px',
-                  background: 'var(--surface-2, rgba(99, 102, 241, 0.02))',
+                  background: 'var(--surface-2, color-mix(in srgb, var(--primary) 2%, transparent))',
                   border: '1.5px solid var(--border)',
                   boxShadow: '0 4px 12px rgba(0,0,0,0.02)'
                 }}>
@@ -1241,10 +1241,10 @@ export default function CoursesPage() {
               {offering.hasLive && (
                 <div style={{
                   padding: '16px', borderRadius: '20px',
-                  background: 'var(--surface-2, rgba(99, 102, 241, 0.02))',
+                  background: 'var(--surface-2, color-mix(in srgb, var(--primary) 2%, transparent))',
                   border: '1.5px solid var(--accent)',
                   position: 'relative',
-                  boxShadow: '0 8px 24px rgba(99,102,241,0.08)'
+                  boxShadow: '0 8px 24px color-mix(in srgb, var(--primary) 8%, transparent)'
                 }}>
                   <div style={{
                     position: 'absolute', top: '12px', right: '16px',
@@ -1349,7 +1349,7 @@ export default function CoursesPage() {
                 width: '100%', padding: '16px', borderRadius: '18px', border: 'none',
                 background: 'linear-gradient(135deg, var(--accent) 0%, var(--primary) 100%)',
                 color: 'white', fontWeight: '700', fontSize: '15px', cursor: 'pointer',
-                boxShadow: '0 4px 12px rgba(99, 102, 241, 0.3)',
+                boxShadow: '0 4px 12px color-mix(in srgb, var(--primary) 30%, transparent)',
               }}
             >
               Got it, let&apos;s go! 🚀
@@ -1404,7 +1404,7 @@ export default function CoursesPage() {
                   <tr style={{ borderBottom: '1px solid #2d3748', background: '#171923' }}>
                     <th style={{ padding: '14px 16px', fontWeight: '700', color: '#a0aec0', width: '40%' }}>FEATURES</th>
                     <th style={{ padding: '14px 16px', fontWeight: '800', color: '#d69e2e', textAlign: 'center', width: '30%', background: 'rgba(214, 158, 46, 0.05)' }}>PLUS</th>
-                    <th style={{ padding: '14px 16px', fontWeight: '800', color: '#6366f1', textAlign: 'center', width: '30%', background: 'rgba(99, 102, 241, 0.05)' }}>PRO</th>
+                    <th style={{ padding: '14px 16px', fontWeight: '800', color: 'var(--primary)', textAlign: 'center', width: '30%', background: 'color-mix(in srgb, var(--primary) 5%, transparent)' }}>PRO</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -1428,7 +1428,7 @@ export default function CoursesPage() {
                       <td style={{
                         padding: '12px 16px', textAlign: 'center', fontWeight: '700',
                         color: row.pro.includes('✅') ? '#48bb78' : '#e53e3e',
-                        background: 'rgba(99, 102, 241, 0.02)'
+                        background: 'color-mix(in srgb, var(--primary) 2%, transparent)'
                       }}>
                         {row.pro}
                       </td>
@@ -1447,9 +1447,9 @@ export default function CoursesPage() {
                 }}
                 style={{
                   padding: '12px 32px', borderRadius: '50px', border: 'none',
-                  background: 'linear-gradient(135deg, #6366f1, #4f46e5)', color: '#ffffff',
+                  background: 'linear-gradient(135deg, var(--primary), var(--primary))', color: '#ffffff',
                   fontSize: '14px', fontWeight: '800', cursor: 'pointer',
-                  boxShadow: '0 4px 15px rgba(99, 102, 241, 0.3)', transition: 'all 0.2s'
+                  boxShadow: '0 4px 15px color-mix(in srgb, var(--primary) 30%, transparent)', transition: 'all 0.2s'
                 }}
                 onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-1px)'}
                 onMouseLeave={e => e.currentTarget.style.transform = 'translateY(0)'}
@@ -1514,7 +1514,7 @@ export default function CoursesPage() {
           }}>
             <div className="spinner" style={{
               width: '40px', height: '40px', border: '4px solid #f3f3f3',
-              borderTop: '4px solid #6366f1', borderRadius: '50%',
+              borderTop: '4px solid var(--primary)', borderRadius: '50%',
               margin: '0 auto 20px'
             }} />
             <h3 style={{ fontSize: '18px', fontWeight: '800', color: 'var(--text-primary)', marginBottom: '8px' }}>Processing...</h3>

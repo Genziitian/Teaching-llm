@@ -156,7 +156,7 @@ export default function DynamicPromptBlocker() {
                     <div key={opt} onClick={() => handleAnswerChange(q.id, opt)} style={{
                       flex: 1, padding: '12px', borderRadius: '12px', textAlign: 'center', cursor: 'pointer',
                       fontSize: '14px', fontWeight: 700,
-                      border: answers[q.id] === opt ? '2px solid #6366f1' : '2px solid #e0e3ea',
+                      border: answers[q.id] === opt ? '2px solid var(--primary)' : '2px solid #e0e3ea',
                       background: answers[q.id] === opt ? '#eff0fe' : 'var(--surface)',
                       color: answers[q.id] === opt ? 'var(--accent)' : 'var(--text-secondary)',
                       transition: 'all 0.2s'
@@ -173,7 +173,7 @@ export default function DynamicPromptBlocker() {
                     <div key={opt} onClick={() => handleAnswerChange(q.id, opt)} style={{
                       padding: '12px 16px', borderRadius: '12px', cursor: 'pointer',
                       fontSize: '14px', fontWeight: 600,
-                      border: answers[q.id] === opt ? '2px solid #6366f1' : '2px solid #e0e3ea',
+                      border: answers[q.id] === opt ? '2px solid var(--primary)' : '2px solid #e0e3ea',
                       background: answers[q.id] === opt ? '#eff0fe' : 'var(--surface)',
                       color: answers[q.id] === opt ? 'var(--accent)' : 'var(--text-primary)',
                       transition: 'all 0.2s'
@@ -202,7 +202,7 @@ export default function DynamicPromptBlocker() {
             style={{
               marginTop: '10px', width: '100%', padding: '12px',
               fontSize: '15px', fontWeight: 800,
-              boxShadow: '0 8px 20px rgba(99,102,241,0.3)',
+              boxShadow: '0 8px 20px color-mix(in srgb, var(--primary) 30%, transparent)',
               display: 'flex', justifyContent: 'center', alignItems: 'center',
               opacity: submitting ? 0.7 : 1
             }}

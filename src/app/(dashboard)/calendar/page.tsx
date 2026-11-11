@@ -723,7 +723,7 @@ function CalendarPageContent() {
                 background: 'var(--primary)', color: '#fff', border: 'none', cursor: 'pointer',
                 borderRadius: '50%', width: '40px', height: '40px',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                boxShadow: '0 6px 14px rgba(54,54,232,0.4)',
+                boxShadow: '0 6px 14px color-mix(in srgb, var(--primary) 40%, transparent)',
               }} aria-label="Add event">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
               </button>
@@ -1392,7 +1392,7 @@ function CalendarPageContent() {
                                 gap: '10px',
                                 padding: '6px 8px',
                                 borderRadius: '8px',
-                                background: isChecked ? 'rgba(54, 54, 232, 0.08)' : 'transparent',
+                                background: isChecked ? 'color-mix(in srgb, var(--primary) 8%, transparent)' : 'transparent',
                                 cursor: 'pointer',
                                 transition: 'background 0.15s ease'
                               }}
@@ -1593,7 +1593,7 @@ function CalendarPageContent() {
 
               {/* Weekdays Notice */}
               {formData.recurrence === 'WEEKDAYS' && (
-                <div style={{ padding: '8px 12px', borderRadius: '12px', background: 'rgba(54, 54, 232, 0.08)', fontSize: '12px', color: 'var(--primary)', fontWeight: '600' }}>
+                <div style={{ padding: '8px 12px', borderRadius: '12px', background: 'color-mix(in srgb, var(--primary) 8%, transparent)', fontSize: '12px', color: 'var(--primary)', fontWeight: '600' }}>
                   🗓️ Classes will only be scheduled Monday through Friday (weekends automatically skipped).
                 </div>
               )}

@@ -18,10 +18,10 @@ export default function DashboardLoading() {
           right: 0,
           height: '3px',
           zIndex: 99999,
-          background: 'linear-gradient(90deg, #6366f1, #3b82f6, #ec4899, #6366f1)',
+          background: 'linear-gradient(90deg, var(--primary), #3b82f6, #ec4899, var(--primary))',
           backgroundSize: '200% 100%',
           animation: 'routeTransitionProgress 1.4s ease-in-out infinite',
-          boxShadow: '0 1px 8px rgba(99, 102, 241, 0.4)',
+          boxShadow: '0 1px 8px color-mix(in srgb, var(--primary) 40%, transparent)',
         }}
       />
       <style>{`
