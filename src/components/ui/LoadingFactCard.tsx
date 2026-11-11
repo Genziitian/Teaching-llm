@@ -9,6 +9,10 @@ export interface LoadingFactCardProps {
   style?: React.CSSProperties;
 }
 
+/**
+ * Loading fact tile in the redesign's "sunk" style: mono label, hairline border, no shadows.
+ * Rare / Ultra rare facts keep a visible badge (coupon facts depend on it).
+ */
 export default function LoadingFactCard({ fact, className = '', style = {} }: LoadingFactCardProps) {
   if (!fact) return null;
 
@@ -20,165 +24,40 @@ export default function LoadingFactCard({ fact, className = '', style = {} }: Lo
     <div
       role="status"
       aria-live="polite"
-      className={`genz-loading-fact-card ${className}`}
-      style={{
-        width: '100%',
-        maxWidth: '480px',
-        margin: '0 auto',
-        padding: '14px 18px',
-        borderRadius: '16px',
-        textAlign: 'center',
-        position: 'relative',
-        boxSizing: 'border-box',
-        overflow: 'hidden',
-        backdropFilter: 'blur(12px)',
-        WebkitBackdropFilter: 'blur(12px)',
-        transition: 'all 0.25s ease-out',
-        animation: 'loadingFactFadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
-        // Base styling with CSS variable fallbacks for perfect light/dark contrast
-        backgroundColor: isUltraRare
-          ? 'var(--surface, #ffffff)'
-          : isRare
-          ? 'var(--surface, #ffffff)'
-          : 'var(--surface, #ffffff)',
-        border: isUltraRare
-          ? '1.5px solid #F59E0B'
-          : isRare
-          ? '1.5px solid #6366F1'
-          : '1px solid var(--border, rgba(15, 23, 42, 0.08))',
-        boxShadow: isUltraRare
-          ? '0 10px 25px -5px rgba(245, 158, 11, 0.25), 0 8px 10px -6px rgba(220, 38, 38, 0.2)'
-          : isRare
-          ? '0 10px 25px -5px rgba(99, 102, 241, 0.2), 0 4px 6px -4px rgba(99, 102, 241, 0.1)'
-          : 'var(--social-card-shadow, 0 4px 20px rgba(0, 0, 0, 0.05))',
-        ...style,
-      }}
+      className={`genz-loading-fact-card${isUltraRare ? ' is-ultra' : isRare ? ' is-rare' : ''} ${className}`}
+      style={style}
     >
-      {/* Subtle glowing ambient background effect for Rare & Ultra Rare */}
-      {isUltraRare && (
-        <div
-          style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            right: 0,
-            height: '3px',
-            background: 'linear-gradient(90deg, #F59E0B, #EF4444, #EC4899, #F59E0B)',
-            backgroundSize: '200% 100%',
-            animation: 'ultraRareShimmer 2.5s linear infinite',
-          }}
-        />
-      )}
-      {isRare && !isUltraRare && (
-        <div
-          style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            right: 0,
-            height: '2.5px',
-            background: 'linear-gradient(90deg, var(--primary), #8B5CF6, #EC4899, var(--primary))',
-            backgroundSize: '200% 100%',
-            animation: 'rareShimmer 3s linear infinite',
-          }}
-        />
-      )}
+      <div className="genz-loading-fact-card__head">
+        <span className="genz-loading-fact-card__label">Fact</span>
+        {isUltraRare && <span className="genz-loading-fact-card__badge genz-loading-fact-card__badge--ultra">{isCoupon ? 'Ultra rare 💎' : 'Ultra rare 🔥'}</span>}
+        {isRare && <span className="genz-loading-fact-card__badge">Rare ✨</span>}
+      </div>
+      <p className="genz-loading-fact-card__text">{fact.text}</p>
 
-      {/* Rarity Indicator: Never show for Common, show for Rare & Ultra Rare */}
-      {isUltraRare && (
-        <div style={{ marginBottom: '8px', display: 'flex', justifyContent: 'center' }}>
-          <span
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '4px',
-              padding: '2px 10px',
-              borderRadius: '999px',
-              fontSize: '11px',
-              fontWeight: 800,
-              letterSpacing: '0.08em',
-              textTransform: 'uppercase',
-              background: 'linear-gradient(135deg, #EF4444, #F59E0B)',
-              color: '#FFFFFF',
-              boxShadow: '0 2px 8px rgba(239, 68, 68, 0.35)',
-            }}
-          >
-            {isCoupon ? 'ULTRA RARE 💎' : 'ULTRA RARE 🔥'}
-          </span>
-        </div>
-      )}
-
-      {isRare && (
-        <div style={{ marginBottom: '8px', display: 'flex', justifyContent: 'center' }}>
-          <span
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '4px',
-              padding: '2px 10px',
-              borderRadius: '999px',
-              fontSize: '11px',
-              fontWeight: 800,
-              letterSpacing: '0.08em',
-              textTransform: 'uppercase',
-              background: 'linear-gradient(135deg, var(--primary), #7C3AED)',
-              color: '#FFFFFF',
-              boxShadow: '0 2px 8px color-mix(in srgb, var(--primary) 30%, transparent)',
-            }}
-          >
-            RARE ✨
-          </span>
-        </div>
-      )}
-
-      {/* Fact Text - High contrast guaranteed in light/dark themes */}
-      <p
-        style={{
-          margin: 0,
-          fontSize: '13.5px',
-          lineHeight: '1.55',
-          fontWeight: isUltraRare ? 600 : 500,
-          color: 'var(--text-primary, #0F172A)',
-          wordBreak: 'break-word',
-          whiteSpace: 'pre-line',
-        }}
-      >
-        <span style={{ fontWeight: 700, color: isUltraRare ? '#EF4444' : isRare ? 'var(--primary)' : 'var(--text-primary, #0F172A)' }}>
-          Fact :{' '}
-        </span>
-        {fact.text}
-      </p>
-
-      {/* Keyframe animations for animations */}
       <style>{`
-        @keyframes loadingFactFadeIn {
-          from {
-            opacity: 0;
-            transform: translateY(6px) scale(0.98);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0) scale(1);
-          }
+        .genz-loading-fact-card {
+          width: 100%; max-width: 480px; margin: 0 auto; box-sizing: border-box; text-align: left;
+          padding: 12px 14px 13px; border-radius: 12px;
+          background: var(--gz-panel, var(--surface, #fff)); border: 1px solid var(--gz-line, var(--border, #e7e7e3));
+          color: var(--gz-ink, var(--text-primary, #171717));
+          font-family: 'Geist', system-ui, -apple-system, sans-serif;
+          animation: loadingFactFadeIn .3s cubic-bezier(.16, 1, .3, 1);
         }
-        @keyframes ultraRareShimmer {
-          0% { background-position: 0% 50%; }
-          100% { background-position: 200% 50%; }
+        .genz-loading-fact-card.is-rare { border-color: var(--gz-ink, var(--text-primary, #171717)); }
+        .genz-loading-fact-card.is-ultra { border-color: #d64533; }
+        .genz-loading-fact-card__head { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+        .genz-loading-fact-card__label {
+          font-family: 'Geist Mono', ui-monospace, monospace; font-size: 10.5px; letter-spacing: .06em;
+          text-transform: uppercase; color: var(--gz-ink-4, var(--text-muted, #8a8a86));
         }
-        @keyframes rareShimmer {
-          0% { background-position: 0% 50%; }
-          100% { background-position: 200% 50%; }
+        .genz-loading-fact-card__badge {
+          font-size: 11px; font-weight: 500; padding: 1px 7px; border-radius: 6px;
+          background: var(--gz-chip, #f1f1ee); color: var(--gz-ink-2, var(--text-primary, #55554f));
         }
-        @media (max-width: 480px) {
-          .genz-loading-fact-card {
-            max-width: 90% !important;
-            padding: 12px 14px !important;
-          }
-          .genz-loading-fact-card p {
-            font-size: 12.5px !important;
-            line-height: 1.5 !important;
-          }
-        }
+        .genz-loading-fact-card__badge--ultra { background: #fbeeeb; color: #b23b2b; }
+        .genz-loading-fact-card__text { margin: 0; font-size: 13.5px; line-height: 1.55; word-break: break-word; white-space: pre-line; }
+        @keyframes loadingFactFadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+        @media (max-width: 480px) { .genz-loading-fact-card { max-width: 100%; } .genz-loading-fact-card__text { font-size: 12.5px; } }
       `}</style>
     </div>
   );

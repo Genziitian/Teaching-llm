@@ -80,6 +80,7 @@ export default function CoursesPage() {
 
   const courses = Array.isArray(data) ? data : (data as any)?.courses || []
   const [search, setSearch] = useState('')
+  const [batchTab, setBatchTab] = useState<'all' | 'pro' | 'one' | 'general'>('all')
   const [debouncedSearch, setDebouncedSearch] = useState('')
   const [infoModalCourse, setInfoModalCourse] = useState<CourseItem | null>(null)
   const [upgradeModalCourse, setUpgradeModalCourse] = useState<CourseItem | null>(null)
@@ -102,10 +103,30 @@ export default function CoursesPage() {
     return () => clearTimeout(handler)
   }, [search])
 
+  const isOneOnOne = (c: CourseItem) => /(^|\s)1\s*[:×x]\s*1\b/i.test(c.name || '')
+  const batchKind = (c: CourseItem): 'pro' | 'one' | 'general' | 'plus' => {
+    if (c.enrollmentType === 'FREE' || c.isDemo) return 'general'
+    if (isOneOnOne(c)) return 'one'
+    if (c.enrollmentType === 'RECORDED') return 'plus'
+    return 'pro'
+  }
   const filtered = courses.filter((c: CourseItem) =>
-    c.name.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
-    c.subject?.toLowerCase().includes(debouncedSearch.toLowerCase())
+    (c.name.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
+      c.subject?.toLowerCase().includes(debouncedSearch.toLowerCase())) &&
+    (batchTab === 'all' || batchKind(c) === batchTab || (batchTab === 'pro' && batchKind(c) === 'plus'))
   )
+  // Banner art: the same illustrations the Store uses, picked from the course's term / name
+  const courseArt = (c: CourseItem & { academicTerm?: string | null }) => {
+    const t = `${(c as any).academicTerm || ''} ${c.subject || ''} ${c.name || ''}`.toLowerCase()
+    if (/crash/.test(t)) return '/store-art/store-course.webp'
+    if (/re-?attempt/.test(t)) return '/store-art/term-reattempt.webp'
+    if (/qualifier/.test(t)) return '/store-art/term-qualifier.webp'
+    if (/diploma/.test(t)) return '/store-art/term-diploma.webp'
+    if (/degree/.test(t)) return '/store-art/term-degree.webp'
+    if (/foundation/.test(t)) return '/store-art/term-foundation.webp'
+    if (batchKind(c) === 'general') return '/store-art/term-general.webp'
+    return '/store-art/store-course.webp'
+  }
 
   async function handleUpgrade(courseId: string) {
     setIsProcessing(true)
@@ -373,19 +394,18 @@ export default function CoursesPage() {
           Failed to load courses. {error.message}
         </div>
       ) : null}
-      <div className="courses-header-row" style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '12px', flexWrap: 'wrap', marginBottom: '32px' }}>
-        <div className="courses-search-wrap" style={{ position: 'relative' }}>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#000000" strokeWidth="2.5" style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)' }}>
-            <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
-          </svg>
-          <input
-            type="text"
-            placeholder="Search courses..."
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            className="search-input courses-search-input"
-            style={{ width: '260px', borderRadius: '50px', paddingLeft: '40px' }}
-          />
+      <div className="gz-courses-bar">
+        <input
+          type="text"
+          placeholder="Search courses…"
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+          className="gz-input gz-courses-bar__search"
+        />
+        <div className="gz-tabs">
+          {([['all', 'All'], ['pro', 'PRO'], ['one', '1:1'], ['general', 'General']] as const).map(([k, label]) => (
+            <button key={k} className={batchTab === k ? 'is-on' : ''} onClick={() => setBatchTab(k)}>{label}</button>
+          ))}
         </div>
       </div>
       <style>{`
@@ -502,450 +522,88 @@ export default function CoursesPage() {
         }
       `}</style>
 
-      <div className="grid-3 courses-grid">
+        <div className="gz-cc-grid gz-cc-grid--courses">
         {filtered.map((course: CourseItem) => {
+          const kind = batchKind(course)
           const isRecorded = ['RECORDED', 'FREE'].includes(course.enrollmentType || '')
-          const isLive = course.enrollmentType === 'LIVE'
           const isFreeOrDemo = course.enrollmentType === 'FREE' || !!course.isDemo
-          const coursePalette = getCourseDisplayPalette(course.color, resolvedTheme)
-          const liveCardGlow = coursePalette.isRefinedLightPalette ? coursePalette.softBorder : colorWithOpacity(course.color, '40')
-          const liveCardHoverGlow = coursePalette.isRefinedLightPalette ? coursePalette.softBorder : colorWithOpacity(course.color, '60')
-          const courseCardBannerBg = coursePalette.isRefinedLightPalette
-            ? coursePalette.background
-            : (isGradient(course.color) ? course.color : `linear-gradient(135deg, ${extractHex(course.color)}ee, ${extractHex(course.color)}99)`)
-          const courseSubjectBg = coursePalette.isRefinedLightPalette ? coursePalette.softBg : colorWithOpacity(course.color, '18')
-          const courseTeacherBg = coursePalette.isRefinedLightPalette ? coursePalette.softBg : colorWithOpacity(course.color, '14')
           const hasUpgradePrice = isRecorded && !isFreeOrDemo && course.liveUpgradePrice != null && course.liveUpgradePrice > 0
-          
-          const courseOffering = Array.isArray(offeringsData)
-            ? offeringsData.find((o: any) => o.courseId === course.id)
-            : null
-          const plusPrice = (courseOffering?.hasRecorded && courseOffering?.recordedDiscountPrice != null && courseOffering.recordedDiscountPrice > 0)
-            ? courseOffering.recordedDiscountPrice
-            : (courseOffering?.hasLive && courseOffering?.liveDiscountPrice != null && courseOffering.liveDiscountPrice > 0)
-              ? courseOffering.liveDiscountPrice
-              : null
-          
-          // Determine batch type: General (free/demo), PRO (live), or Plus (recorded)
-          const getBatchBadge = () => {
-            if (isFreeOrDemo) return { text: 'General Batch', color: '#bae6fd' }
-            if (isLive) return { text: 'PRO Batch', color: '#fff' }
-            if (isRecorded) return { text: 'PLUS', color: '#ffffff' }
-            return { text: 'General Batch', color: '#bae6fd' }
-          }
-          const batchBadge = getBatchBadge()
-
+          const batchLabel = kind === 'general' ? 'General Batch' : kind === 'one' ? '1:1 Batch' : kind === 'plus' ? 'PLUS' : 'PRO Batch'
           const isCourseExpired = (course as any).isExpired
+          const tint = /^#/.test(course.color || '') ? course.color : 'var(--gz-ink)'
 
-          const innerCard = (
-            <div
-              data-snow
-              className={`gz-course${isLive && !isCourseExpired ? ' is-pro' : ''}`}
-              style={{
-                background: 'var(--surface-2)',
-                borderRadius: 'var(--course-card-radius, 28px)',
-                boxShadow: (isLive && !isCourseExpired)
-                  ? `8px 8px 16px var(--neu-dark), -8px -8px 16px var(--neu-light), 0 0 0 2px ${liveCardGlow}`
-                  : '8px 8px 16px var(--neu-dark), -8px -8px 16px var(--neu-light)',
-                overflow: 'hidden',
-                cursor: isCourseExpired ? 'default' : 'pointer',
-                transition: 'all 0.25s ease',
-                display: 'flex',
-                flexDirection: 'column',
-                width: '100%',
-                maxWidth: 'var(--course-card-max, 420px)',
-                margin: '0 auto',
-                height: '100%',
-                position: 'relative',
-                filter: isCourseExpired ? 'grayscale(100%) opacity(0.85)' : 'none',
-              }}
-              onMouseEnter={e => {
-                if (isCourseExpired) return;
-                e.currentTarget.style.transform = 'translateY(-4px)'
-                e.currentTarget.style.boxShadow = isLive
-                  ? `12px 12px 24px var(--neu-dark), -12px -12px 24px var(--neu-light), 0 0 0 2px ${liveCardHoverGlow}`
-                  : '12px 12px 24px var(--neu-dark), -12px -12px 24px var(--neu-light)'
-                if (!isFreeOrDemo && isRecorded) setShowUpgradeHint(course.id)
-              }}
-              onMouseLeave={e => {
-                if (isCourseExpired) return;
-                e.currentTarget.style.transform = 'translateY(0)'
-                e.currentTarget.style.boxShadow = isLive
-                  ? `8px 8px 16px var(--neu-dark), -8px -8px 16px var(--neu-light), 0 0 0 2px ${liveCardGlow}`
-                  : '8px 8px 16px var(--neu-dark), -8px -8px 16px var(--neu-light)'
-                setShowUpgradeHint(null)
-              }}
+          const inner = (
+            <div data-snow className={`gz-cc${isCourseExpired ? ' is-expired' : ''}`}
+              onMouseEnter={() => { if (!isCourseExpired && !isFreeOrDemo && isRecorded) setShowUpgradeHint(course.id) }}
+              onMouseLeave={() => setShowUpgradeHint(null)}
             >
-              {isCourseExpired && (
-                <div style={{
-                  position: 'absolute', top: 0, left: 0, right: 0, height: '100px',
-                  background: 'rgba(0,0,0,0.6)', zIndex: 20,
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  color: 'white', fontSize: '20px', fontWeight: '900', letterSpacing: '0.1em'
-                }}>
-                  EXPIRED
-                </div>
-              )}
-              {/* Gradient Banner */}
-              <div className="gz-course__banner" style={{
-                height: 'var(--course-banner-height, 100px)',
-                background: isRecorded || isFreeOrDemo ? 'linear-gradient(135deg, #4b5563, #6b7280)' : courseCardBannerBg,
-                position: 'relative',
-                overflow: 'hidden',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}>
-                <div style={{ position: 'absolute', width: '130px', height: '130px', borderRadius: '50%', background: 'rgba(255,255,255,0.12)', top: '-50px', right: '-30px' }} />
-                <div style={{ position: 'absolute', width: '70px', height: '70px', borderRadius: '50%', background: 'rgba(255,255,255,0.08)', bottom: '-20px', left: '24px' }} />
-                <CourseIconBadge
-                  type={course.courseIconType || course.icon}
-                  size="var(--course-icon-size, 58px)"
-                  iconSize={28}
-                  radius="18px"
-                  style={{
-                    backdropFilter: 'blur(4px)',
-                    boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-                    zIndex: 1,
-                  }}
-                />
-
-                {/* Batch badge on banner */}
-                {(isLive || isRecorded || isFreeOrDemo) && (
-                  <div style={{
-                    position: 'absolute', top: '10px', left: '12px',
-                    display: 'flex', flexDirection: 'column', gap: '4px', zIndex: 10,
-                  }}>
-                    <div style={{
-                      padding: 'var(--course-badge-padding, 3px 10px)', borderRadius: '20px',
-                      background: isLive ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.3)',
-                      backdropFilter: 'blur(8px)',
-                      fontSize: 'var(--course-badge-font, 10px)', fontWeight: '800', color: batchBadge.color,
-                      letterSpacing: '0.06em',
-                      width: 'fit-content',
-                    }}>
-                      {batchBadge.text}
-                    </div>
-                  </div>
+              <div className="gz-cc__banner gz-cc__banner--art">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={courseArt(course)} alt="" loading="lazy" decoding="async" />
+                <span className="gz-cc__pill">{batchLabel}</span>
+                {isCourseExpired && <span className="gz-cc__expired">Expired</span>}
+                {isRecorded && !isFreeOrDemo && !isManager && (
+                  <button
+                    className="gz-cc__info"
+                    onClick={e => { e.preventDefault(); e.stopPropagation(); setInfoModalCourse(course) }}
+                    title="Compare PRO vs PLUS"
+                    aria-label="Compare PRO and PLUS batches"
+                  >i</button>
                 )}
-
-                    {/* Info button for recorded non-free users + tooltip */}
-                    {isRecorded && !isFreeOrDemo && !isManager && (
-                      <div style={{ position: 'absolute', top: '10px', right: '12px' }}>
-                        <button
-                          onClick={(e) => { e.preventDefault(); e.stopPropagation(); setInfoModalCourse(course) }}
-                          style={{
-                            width: '28px', height: '28px', borderRadius: '50%',
-                            background: 'rgba(255,255,255,0.3)', backdropFilter: 'blur(8px)',
-                            border: 'none', cursor: 'pointer',
-                            display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            color: '#fff', fontSize: '14px', fontWeight: '800',
-                          }}
-                          title={`Compare PRO vs ${isFreeOrDemo ? 'General Batch' : 'PLUS'}`}
-                        >
-                          i
-                        </button>
-                        <div style={{
-                          position: 'absolute', top: 'calc(100% + 8px)', right: '0',
-                          background: '#0f172a', color: '#ffffff', padding: '8px 14px', borderRadius: '12px',
-                          fontSize: '11px', fontWeight: '600', width: '200px', textAlign: 'center',
-                          boxShadow: '0 8px 25px rgba(0,0,0,0.4)', pointerEvents: 'none',
-                          opacity: showUpgradeHint === course.id ? 1 : 0, 
-                          transform: showUpgradeHint === course.id ? 'translateY(0)' : 'translateY(5px)',
-                          transition: 'all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1)', zIndex: 100,
-                          lineHeight: '1.4'
-                        }}>
-                          Click here to see difference between PLUS AND PRO batches
-                          <div style={{ position: 'absolute', bottom: '100%', right: '10px', border: '6px solid transparent', borderBottomColor: '#0f172a' }} />
-                        </div>
-                      </div>
-                    )}
               </div>
 
-              {/* Card Body */}
-              <div style={{ padding: 'var(--course-card-padding, 18px 20px 16px)', display: 'flex', flexDirection: 'column', flex: 1 }}>
-                <h3 style={{ 
-                  fontSize: 'var(--course-title-size, 16px)', 
-                  fontWeight: '700', 
-                  color: 'var(--text-primary)', 
-                  marginBottom: '4px', 
-                  lineHeight: '1.3',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                  flexWrap: 'wrap',
-                }}>
-                  <span>{course.name}</span>
-                  {course.isDemo && (
-                    <span style={{
-                      fontSize: '9px',
-                      padding: '2px 8px',
-                      borderRadius: '6px',
-                      background: 'color-mix(in srgb, var(--primary) 15%, transparent)',
-                      color: 'var(--accent)',
-                      fontWeight: '800',
-                      letterSpacing: '0.05em',
-                      textTransform: 'uppercase',
-                      border: '1px solid color-mix(in srgb, var(--primary) 30%, transparent)',
-                    }}>
-                      DEMO
-                    </span>
-                  )}
-                </h3>
+              <div className="gz-cc__body">
+                <div className="gz-cc__name">
+                  {course.name}
+                  {course.isDemo && <span className="gz-cc__tag" style={{ marginLeft: 8, background: 'var(--gz-chip)', color: 'var(--gz-ink-2)' }}>DEMO</span>}
+                </div>
+                <div className="gz-cc__meta">
+                  {course.subject && <span className="gz-cc__tag" style={{ color: tint, background: `color-mix(in srgb, ${tint} 10%, transparent)` }}>{course.subject}</span>}
+                  {course.teacherName && <span className="gz-cc__who">{course.teacherName}</span>}
+                </div>
 
-                {course.subject && (
-                  <span style={{
-                    display: 'inline-block',
-                    padding: '3px 12px',
-                    borderRadius: '50px',
-                    background: isRecorded ? 'var(--surface-2)' : courseSubjectBg,
-                    color: isRecorded ? 'var(--text-secondary)' : coursePalette.accent,
-                    fontSize: '12px',
-                    fontWeight: '700',
-                    marginBottom: '8px',
-                    letterSpacing: '0.02em',
-                  }}>
-                    {course.subject}
-                  </span>
-                )}
-
-                {/* Show description for LIVE users and General Batch */}
-                {(!isRecorded || isFreeOrDemo) && course.description && (
-                  <p style={{
-                    fontSize: '13px',
-                    color: 'var(--text-secondary)',
-                    lineHeight: '1.55',
-                    marginBottom: '14px',
-                    display: 'var(--course-desc-display, -webkit-box)',
-                    WebkitLineClamp: 2,
-                    WebkitBoxOrient: 'vertical',
-                    overflow: 'hidden',
-                  }}>
-                    {course.description}
-                  </p>
-                )}
-
-                {/* Show teacher */}
-                {course.teacherName && (
-                  <div style={{ display: 'var(--course-teacher-display, flex)', alignItems: 'center', gap: '6px', marginBottom: 'var(--course-teacher-margin, 14px)' }}>
-                    <TeacherIcon size={24} color={coursePalette.accent} background={courseTeacherBg} />
-                    <span style={{ fontSize: '12.5px', color: 'var(--text-muted)', fontWeight: '500' }}>
-                      {course.teacherName}
-                    </span>
-                  </div>
-                )}
-
-                {/* Upgrade button for RECORDED users */}
                 {hasUpgradePrice && (
-                  <div style={{ position: 'relative', marginTop: 'auto' }}>
-                    <button
-                      onClick={(e) => { e.preventDefault(); e.stopPropagation(); setUpgradeModalCourse(course) }}
-                      style={{
-                        width: '100%',
-                        padding: 'var(--course-upgrade-padding, 14px 16px)',
-                        borderRadius: '50px',
-                        border: 'none',
-                        background: 'var(--primary)',
-                        color: '#fff',
-                        fontSize: 'var(--course-upgrade-font-size, 13px)',
-                        fontWeight: '800',
-                        cursor: 'pointer',
-                        marginBottom: '4px',
-                        boxShadow: '0 8px 16px rgba(30, 30, 58, 0.4)',
-                        transition: 'all 0.25s',
-                        letterSpacing: '0.02em',
-                        display: 'flex',
-                        flexDirection: 'var(--course-upgrade-flex-dir, row)' as any,
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        position: 'relative',
-                        overflow: 'hidden',
-                      }}
-                    >
-                      <span style={{ 
-                        position: 'var(--course-badge-pos, absolute)' as any,
-                        left: 'var(--course-badge-left, 12px)',
-                        margin: 'var(--course-optional-margin, 0)',
-                        fontSize: '8px', background: 'rgba(255,255,255,0.15)', padding: '2px 8px', borderRadius: '20px', 
-                        color: '#fff', letterSpacing: '0.05em', fontWeight: '900', border: '1px solid rgba(255,255,255,0.2)' 
-                      }}>
-                        OPTIONAL
-                      </span>
-                      <span>
-                        ⚡ Upgrade to PRO — ₹{course.liveUpgradePrice}
-                      </span>
-
-                    </button>
-                    
-                    <style dangerouslySetInnerHTML={{ __html: `
-                      @keyframes fadeIn { from { opacity: 0; transform: translate(-50%, 5px); } to { opacity: 1; transform: translate(-50%, 0); } }
-                    `}} />
-                  </div>
+                  <button className="gz-btn" onClick={e => { e.preventDefault(); e.stopPropagation(); setUpgradeModalCourse(course) }}>
+                    ⚡ Upgrade to PRO — ₹{course.liveUpgradePrice}
+                  </button>
                 )}
 
-                {/* Mobile-only Course Feedback option */}
                 {isStudent && !feedbacks.some((f: any) => f.courseId === course.id) && (
                   <button
-                    onClick={(e) => {
-                      e.preventDefault()
-                      e.stopPropagation()
-                      setSelectedFeedbackCourse(course)
-                    }}
-                    className="mobile-only-feedback-btn"
-                    style={{
-                      width: '100%',
-                      padding: '10px 14px',
-                      borderRadius: '50px',
-                      border: 'none',
-                      background: 'var(--surface)',
-                      color: 'var(--warning)',
-                      fontSize: '12.5px',
-                      fontWeight: '800',
-                      cursor: 'pointer',
-                      marginTop: '8px',
-                      marginBottom: '10px',
-                      boxShadow: '4px 4px 8px var(--neu-dark), -4px -4px 8px var(--neu-light)',
-                      display: 'none',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      gap: '6px',
-                      fontFamily: "'Outfit', 'Nunito', sans-serif",
-                    }}
+                    className="gz-btn gz-btn--ghost mobile-only-feedback-btn"
+                    onClick={e => { e.preventDefault(); e.stopPropagation(); setSelectedFeedbackCourse(course) }}
                   >
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M12 20h9" />
-                      <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
-                    </svg>
                     Give Feedback
                   </button>
                 )}
 
-                {/* Stats row */}
-                <div className="gz-course__stats" style={{
-                  display: 'flex',
-                  gap: 'var(--course-stats-gap, 10px)',
-                  paddingTop: '12px',
-                  borderTop: '1.5px solid rgba(0,0,0,0.06)',
-                  marginTop: 'auto',
-                }}>
-                  <div className="gz-course__stat" style={{
-                    flex: 1, padding: 'var(--course-stats-padding, 8px 10px)', borderRadius: '14px',
-                    background: 'var(--surface-2)', boxShadow: 'inset 3px 3px 6px var(--neu-dark), inset -3px -3px 6px var(--neu-light)', textAlign: 'center',
-                  }}>
-                    <div style={{ fontSize: 'var(--course-stats-font-size, 15px)', fontWeight: '800', color: 'var(--text-primary)' }}>{course._count?.topics || 0}</div>
-                    <div style={{ fontSize: 'var(--course-stats-label-size, 11px)', color: 'var(--text-muted)', fontWeight: '600' }}>Topics</div>
-                  </div>
-                  <div className="gz-course__stat" style={{
-                    flex: 1, padding: 'var(--course-stats-padding, 8px 10px)', borderRadius: '14px',
-                    background: 'var(--surface-2)', boxShadow: 'inset 3px 3px 6px var(--neu-dark), inset -3px -3px 6px var(--neu-light)', textAlign: 'center',
-                  }}>
-                    <div style={{ fontSize: 'var(--course-stats-font-size, 15px)', fontWeight: '800', color: 'var(--text-primary)' }}>{course._count?.lectures || 0}</div>
-                    <div style={{ fontSize: 'var(--course-stats-label-size, 11px)', color: 'var(--text-muted)', fontWeight: '600' }}>Lectures</div>
-                  </div>
-                  <div className="gz-course__stat" style={{
-                    flex: 1, padding: 'var(--course-stats-padding, 8px 10px)', borderRadius: '14px',
-                    background: 'var(--surface-2)', boxShadow: 'inset 3px 3px 6px var(--neu-dark), inset -3px -3px 6px var(--neu-light)', textAlign: 'center',
-                  }}>
-                    <div style={{ fontSize: 'var(--course-stats-font-size, 15px)', fontWeight: '800', color: 'var(--text-primary)' }}>{course._count?.materials || 0}</div>
-                    <div style={{ fontSize: 'var(--course-stats-label-size, 11px)', color: 'var(--text-muted)', fontWeight: '600' }}>Materials</div>
-                  </div>
+                <div className="gz-cc__stats">
+                  <div><b>{course._count?.topics || 0}</b><span>Topics</span></div>
+                  <div><b>{course._count?.lectures || 0}</b><span>Lectures</span></div>
+                  <div><b>{course._count?.materials || 0}</b><span>Materials</span></div>
                 </div>
               </div>
             </div>
           )
 
           return isCourseExpired ? (
-            <div key={course.id} style={{ display: 'flex' }}>
-              {innerCard}
-            </div>
+            <div key={course.id} style={{ display: 'flex' }}>{inner}</div>
           ) : (
-            <Link key={course.id} href={`/courses/${course.id}`} style={{ textDecoration: 'none', display: 'flex' }}>
-              {innerCard}
-            </Link>
+            <Link key={course.id} href={`/courses/${course.id}`} style={{ textDecoration: 'none', color: 'inherit', display: 'flex' }}>{inner}</Link>
           )
         })}
 
         {helpCard && helpCard.isEnabled && (
-          <a href={helpCard.redirectUrl} target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none', display: 'flex' }}>
-            <div
-              data-snow
-              className="gz-course gz-course--help"
-              style={{
-                background: 'var(--surface-2)',
-                borderRadius: '28px',
-                boxShadow: '8px 8px 16px var(--neu-dark), -8px -8px 16px var(--neu-light)',
-                overflow: 'hidden',
-                cursor: 'pointer',
-                transition: 'all 0.25s ease',
-                display: 'flex',
-                flexDirection: 'column',
-                width: '100%',
-                height: '100%',
-              }}
-              onMouseEnter={e => {
-                e.currentTarget.style.transform = 'translateY(-4px)'
-                e.currentTarget.style.boxShadow = '12px 12px 24px var(--neu-dark), -12px -12px 24px var(--neu-light)'
-              }}
-              onMouseLeave={e => {
-                e.currentTarget.style.transform = 'translateY(0)'
-                e.currentTarget.style.boxShadow = '8px 8px 16px var(--neu-dark), -8px -8px 16px var(--neu-light)'
-              }}
-            >
-              {/* Simple Gradient Banner */}
-              <div className="gz-course__banner" style={{
-                height: '100px',
-                background: `linear-gradient(135deg, #6366f1ee, #6366f199)`,
-                position: 'relative',
-                overflow: 'hidden',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}>
-                <div style={{ position: 'absolute', width: '130px', height: '130px', borderRadius: '50%', background: 'rgba(255,255,255,0.12)', top: '-50px', right: '-30px' }} />
-                <div style={{ position: 'absolute', width: '70px', height: '70px', borderRadius: '50%', background: 'rgba(255,255,255,0.08)', bottom: '-20px', left: '24px' }} />
-                <div style={{
-                  width: '58px',
-                  height: '58px',
-                  borderRadius: '50%',
-                  background: 'rgba(255,255,255,0.25)',
-                  backdropFilter: 'blur(4px)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  color: 'white',
-                  boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-                  zIndex: 1,
-                }} className="help-icon-float">
-                  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-                </div>
+          <a href={helpCard.redirectUrl} target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none', color: 'inherit', display: 'flex' }}>
+            <div data-snow className="gz-cc gz-cc--help">
+              <div className="gz-cc__banner gz-cc__banner--help">
+                <span className="help-icon-float gz-cc__arrow">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                </span>
               </div>
-
-              {/* Card Body */}
-              <div style={{ padding: '24px 20px', display: 'flex', flexDirection: 'column', flex: 1, justifyContent: 'center', alignItems: 'center', textAlign: 'center' }}>
-                <h3 style={{ 
-                  fontSize: '18px', 
-                  fontWeight: '800', 
-                  color: 'var(--text-primary)', 
-                  marginBottom: '20px', 
-                  lineHeight: '1.3',
-                }}>
-                  {helpCard.title}
-                </h3>
-
-                <button className="gz-course__cta" style={{
-                  width: '100%',
-                  padding: '12px',
-                  borderRadius: '16px',
-                  background: 'var(--accent)',
-                  color: 'white',
-                  border: 'none',
-                  fontSize: '14px',
-                  fontWeight: '700',
-                  boxShadow: '4px 4px 8px color-mix(in srgb, var(--primary) 30%, transparent)',
-                  cursor: 'pointer'
-                }}>
-                  {helpCard.buttonText || 'Enroll in More'}
-                </button>
+              <div className="gz-cc__body" style={{ alignItems: 'center', textAlign: 'center', justifyContent: 'center' }}>
+                <div className="gz-cc__name">{helpCard.title}</div>
+                <span className="gz-btn" style={{ width: '100%' }}>{helpCard.buttonText || 'Enroll in More'}</span>
               </div>
             </div>
           </a>

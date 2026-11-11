@@ -22,17 +22,28 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<any | null>(null);
+  const [allowed, setAllowed] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     let cancelled = false;
     (async () => {
       try {
-        const res = await fetch('/api/auth/me', { credentials: 'same-origin' });
+        const [res, accessRes] = await Promise.all([
+          fetch('/api/auth/me', { credentials: 'same-origin' }),
+          fetch('/api/storefront/access', { credentials: 'same-origin' }),
+        ]);
         const json = res.ok ? await res.json() : null;
-        if (!cancelled) setUser(json?.user ?? null);
+        const access = accessRes.ok ? await accessRes.json() : null;
+        if (!cancelled) {
+          setUser(json?.user ?? null);
+          setAllowed(Boolean(access?.allowed));
+        }
       } catch {
-        if (!cancelled) setUser(null);
+        if (!cancelled) {
+          setUser(null);
+          setAllowed(false);
+        }
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -42,7 +53,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
   }, []);
 
-  const isManager = user?.role === 'MANAGER';
+  const isManager = allowed;
   const value: AuthContextType = {
     user,
     profile: user,

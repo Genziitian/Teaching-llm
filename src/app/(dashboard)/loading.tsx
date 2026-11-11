@@ -18,10 +18,10 @@ export default function DashboardLoading() {
           right: 0,
           height: '3px',
           zIndex: 99999,
-          background: 'linear-gradient(90deg, var(--primary), #3b82f6, #ec4899, var(--primary))',
+          background: 'linear-gradient(90deg, var(--gz-ink, #171717), transparent 50%, var(--gz-ink, #171717))',
           backgroundSize: '200% 100%',
           animation: 'routeTransitionProgress 1.4s ease-in-out infinite',
-          boxShadow: '0 1px 8px color-mix(in srgb, var(--primary) 40%, transparent)',
+          
         }}
       />
       <style>{`
@@ -43,7 +43,7 @@ export default function DashboardLoading() {
         className="card skeleton"
         style={{
           height: '110px',
-          borderRadius: '20px',
+          borderRadius: '14px',
           marginBottom: '20px',
           width: '100%',
         }}
@@ -64,7 +64,7 @@ export default function DashboardLoading() {
             className="card skeleton"
             style={{
               height: '240px',
-              borderRadius: '20px',
+              borderRadius: '14px',
             }}
           />
         ))}

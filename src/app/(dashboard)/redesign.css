@@ -726,7 +726,7 @@ body .live-row-card {
 }
 body .live-row-card > div[style*="border-radius: 50%"] { box-shadow: none !important; border: 1px solid var(--gz-line); background: var(--gz-card) !important; }
 body .live-row-card span[style*="border-radius: 50px"] { border-radius: 6px !important; font-family: var(--gz-mono); font-weight: 500 !important; letter-spacing: .05em !important; box-shadow: none !important; }
-body .live-row-card a[href] {
+body .live-row-card a[href] { /* live join stays green below */
   background: var(--gz-ink) !important; color: var(--gz-panel) !important;
   border-radius: 10px !important; box-shadow: none !important;
   height: 36px; padding: 0 16px !important; font-weight: 500 !important; font-size: 13.5px !important;
@@ -800,3 +800,45 @@ body .calendar-desktop-only [style*="repeat(7, 1fr)"] > div { border-color: var(
 .gz-cal-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 14px; }
 .gz-cal-title { flex: 1 1 160px; margin: 0 0 0 8px; font-size: 18px; font-weight: 600; letter-spacing: -0.02em; }
 .gz-cal-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+
+/* ───────── Courses list: art cards + toolbar (matches the design screenshot) ───────── */
+.gz-courses-bar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 14px; }
+.gz-courses-bar__search { flex: 1 1 260px; }
+.gz-cc-grid--courses { grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); }
+.gz-cc__banner--art { height: 150px; overflow: hidden; background: var(--gz-shell); }
+.gz-cc__banner--art img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.gz-cc__banner--help { background: var(--gz-shell); height: 150px; }
+.gz-cc__arrow { width: 52px; height: 52px; border-radius: 50%; background: var(--gz-panel); border: 1px solid var(--gz-line); display: flex; align-items: center; justify-content: center; color: var(--gz-ink); }
+.gz-cc--help .gz-cc__body { flex: 1; }
+.gz-cc__info { position: absolute; top: 8px; right: 8px; width: 26px; height: 26px; border-radius: 50%; border: 1px solid var(--gz-line); background: var(--gz-panel); color: var(--gz-ink); font-weight: 600; cursor: pointer; }
+.gz-cc__expired { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,.55); color: #fff; font-family: var(--gz-mono); letter-spacing: .1em; text-transform: uppercase; }
+.gz-cc.is-expired { filter: grayscale(1) opacity(.85); }
+.mobile-only-feedback-btn { display: none; }
+@media (max-width: 767px) { .gz-cc-grid--courses { grid-template-columns: 1fr 1fr; gap: 10px; } .gz-cc__banner--art, .gz-cc__banner--help { height: 96px; } .mobile-only-feedback-btn { display: inline-flex; } }
+
+/* Course page header: text left, art right (as in the design) */
+body .gz-chead__bg { display: flex !important; flex-wrap: wrap; gap: 16px; align-items: stretch; padding: 6px !important; }
+body .gz-chead__bg > div[style*="justify-content: space-between"] { flex: 1 1 340px; padding: 14px 16px; }
+body .gz-chead__art { flex: 0 1 320px; min-width: 220px; height: 150px; object-fit: cover; border-radius: 10px; display: block; }
+
+/* Topic accordion rows: numbered tile, hairline card */
+body .gz-topic { background: var(--gz-panel) !important; border: 1px solid var(--gz-line) !important; border-radius: 14px !important; box-shadow: none !important; min-height: 0 !important; }
+body .gz-topic > div[style*="position: absolute"] { display: none !important; }
+body .gz-topic__no { width: 36px !important; height: 36px !important; border-radius: 9px !important; background: var(--gz-chip) !important; border: 0 !important; color: var(--gz-ink-2) !important; font-family: var(--gz-mono); font-size: 12px !important; font-weight: 400 !important; }
+body .gz-topic span[style*="font-weight: 900"], body .gz-topic span[style*="font-weight:900"] { font-weight: 500 !important; font-size: 14px !important; color: var(--gz-ink) !important; }
+body .gz-topic span[style*="font-weight: 700"] { font-weight: 400 !important; color: var(--gz-ink-3) !important; }
+/* Lecture rows */
+body .gz-topic-wrap .lecture-card { background: var(--gz-panel) !important; border: 1px solid var(--gz-line) !important; border-radius: 12px !important; box-shadow: none !important; min-height: 0 !important; padding: 10px 14px !important; }
+body .gz-topic-wrap .lecture-card > div > div > div[style*="width: 40px"] { background: var(--gz-chip) !important; color: var(--gz-ink-2) !important; font-family: var(--gz-mono); font-weight: 400 !important; }
+body .gz-topic-wrap .lecture-card h4 { font-weight: 500 !important; font-size: 14px !important; }
+body .gz-topic-wrap .lecture-card span[style*="text-transform: uppercase"] { background: transparent !important; border: 1px solid var(--gz-line-2); color: var(--gz-ink-2) !important; font-family: var(--gz-mono); font-weight: 400 !important; border-radius: 6px !important; padding: 2px 7px !important; }
+body .gz-topic-wrap .lecture-card button { border-radius: 8px !important; }
+
+/* Live Sessions timeline (design): hairline rail, small dots, mono times */
+.live-sessions-desktop-only div[style*="width: 2px"][style*="position: absolute"] { width: 1px !important; background: var(--gz-line-2) !important; left: 15px !important; }
+.live-sessions-desktop-only div[style*="width: 16px"][style*="border-radius: 50%"] { width: 10px !important; height: 10px !important; left: -38px !important; border-width: 1.5px !important; box-shadow: 0 0 0 4px var(--gz-card) !important; }
+.live-sessions-desktop-only .live-row-card > div[style*="width: 120px"] { width: 96px !important; }
+.live-sessions-desktop-only .live-row-card > div[style*="width: 120px"] > div:first-child { font-family: var(--gz-mono); font-size: 13px !important; font-weight: 400 !important; }
+.live-sessions-desktop-only .live-row-card span[style*="font-size: 15px"] { font-weight: 600 !important; }
+.live-sessions-desktop-only .live-row-card a[href]:first-of-type { min-width: 136px; justify-content: center; }
+body .live-row-card a[href][style*="var(--success)"] { background: var(--gz-green) !important; color: #fff !important; }

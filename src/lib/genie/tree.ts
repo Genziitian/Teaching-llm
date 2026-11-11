@@ -34,15 +34,16 @@ export const WHATSAPP_URL = 'https://wa.me/917254926179'
 
 export const UI: Record<string, L> = {
   hello: { en: "Hi, I'm GenZie 👋", hi: 'Hi, main GenZie hoon 👋' },
-  helloSub: { en: 'Need help? Ask me.', hi: 'Help chahiye? Mujhse poocho.' },
+  helloSub: { en: 'Need help? Tap here.', hi: 'Help chahiye? Yahan tap karo.' },
   greeting: {
-    en: "Hi {name}! I'm GenZie. Ask me your doubts or how to prepare for Quiz 2.",
-    hi: 'Hi {name}! Main GenZie hoon. Mujhse apne doubts poocho ya Quiz 2 ki preparation kaise karein, woh poocho.',
+    en: "Hi {name}! I'm GenZie. Pick an option below for your doubts or exam help.",
+    hi: 'Hi {name}! Main GenZie hoon. Apne doubts ya exam ki help ke liye neeche se ek option chuno.',
   },
   pickLang: {
     en: 'Which language would you like to use?\nAap kaunsi language use karna chahoge?',
     hi: 'Which language would you like to use?\nAap kaunsi language use karna chahoge?',
   },
+  langAsk: { en: 'Would you like to continue in English or Hinglish?', hi: 'Aap English ya Hinglish mein continue karna chahoge?' },
   solved: { en: 'Did this solve it?', hi: 'Kya isse problem solve hui?' },
   yes: { en: 'Yes, solved', hi: 'Haan, ho gaya' },
   no: { en: 'No, I still need help', hi: 'Nahi, abhi bhi help chahiye' },
@@ -1016,7 +1017,7 @@ const OTHER_LABELS = ['Something else', 'Other']
   })
 })(FLAT_TREE)
 
-const pick = (ids: string[]) => (FLAT_TREE.options || []).filter(o => ids.includes(o.id))
+const pick = (ids: string[]) => ids.map(id => (FLAT_TREE.options || []).find(o => o.id === id)).filter((o): o is GenZieOption => !!o)
 const group = (id: string, label: L, ids: string[], withOther = true) => ({
   id, label,
   next: {
@@ -1039,8 +1040,8 @@ export const GENIE_TREE: GenZieNode = {
   id: 'root',
   q: UI.greeting,
   options: [
-    ...pick(['exam', 'syl']),
-    group('g-academic', t('Academic', 'Academic'), ['video', 'study', 'doubt', 'prog']),
+    group('g-iitm', t('IITM BS', 'IITM BS'), ['exam', 'syl', 'prog']),
+    group('g-academic', t('Academic', 'Academic'), ['video', 'study', 'doubt']),
     group('g-technical', t('Technical', 'Technical'), ['account', 'app', 'course']),
     group('g-other', t('Other', 'Other'), ['buy', 'pay', 'other'], false),
   ],

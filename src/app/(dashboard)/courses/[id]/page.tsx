@@ -75,6 +75,18 @@ function isCardActionElement(target: EventTarget | null) {
   return target instanceof HTMLElement && !!target.closest('a, button, input, select, textarea, [role="button"], [role="menu"], [role="menuitem"]')
 }
 
+function courseArtFor(c: any): string {
+  const t = `${c?.academicTerm || ''} ${c?.subject || ''} ${c?.name || ''}`.toLowerCase()
+  if (/crash/.test(t)) return '/store-art/store-course.webp'
+  if (/re-?attempt/.test(t)) return '/store-art/term-reattempt.webp'
+  if (/qualifier/.test(t)) return '/store-art/term-qualifier.webp'
+  if (/diploma/.test(t)) return '/store-art/term-diploma.webp'
+  if (/degree/.test(t)) return '/store-art/term-degree.webp'
+  if (/foundation/.test(t)) return '/store-art/term-foundation.webp'
+  if (c?.enrollmentType === 'FREE' || c?.isDemo) return '/store-art/term-general.webp'
+  return '/store-art/store-course.webp'
+}
+
 export default function CourseDetailPage() {
   const params = useParams()
   const router = useRouter()
@@ -778,6 +790,8 @@ export default function CourseDetailPage() {
                 </button>
               )}
           </div>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img className="gz-chead__art" src={courseArtFor(course)} alt="" />
         </div>
       </div>
 
@@ -1091,9 +1105,9 @@ export default function CourseDetailPage() {
 	                  : `Lecture${topicItemCount !== 1 ? 's' : ''}`
 
 	                return (
-	                  <div key={topic.id} style={{ display: 'flex', flexDirection: 'column', gap: expandedTopics.has(topic.id) ? '16px' : '0' }}>
+	                  <div key={topic.id} className="gz-topic-wrap" style={{ display: 'flex', flexDirection: 'column', gap: expandedTopics.has(topic.id) ? '10px' : '0' }}>
 	                    {/* Topic Accordion Header */}
-	                    <div style={{
+	                    <div className="gz-topic" style={{
 	                      display: 'flex',
 	                      alignItems: 'center',
 	                      width: '100%',
@@ -1123,7 +1137,7 @@ export default function CourseDetailPage() {
 	                          textAlign: 'left',
 	                        }}
 	                      >
-	                        <div style={{
+	                        <div className="gz-topic__no" style={{
 	                          width: '42px', height: '42px',
 	                          borderRadius: '11px',
 	                          background: coursePalette.softBg,
@@ -1133,7 +1147,7 @@ export default function CourseDetailPage() {
 	                          fontSize: '16px', fontWeight: '900', flexShrink: 0,
 	                          lineHeight: 1,
 	                        }}>
-	                          {topicNumber}
+	                          {String(topicNumber).padStart(2, '0')}
 	                        </div>
 	                        <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: '2px' }}>
 	                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>

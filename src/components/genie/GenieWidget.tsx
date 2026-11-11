@@ -16,7 +16,7 @@ import { MAX_IMAGE_BYTES, POLL_MS, SEND_GAP_MS } from '@/lib/genie/limits'
  */
 
 type Stage = 'lang' | 'browse' | 'solved' | 'handoff' | 'describe' | 'wacheck'
-interface Msg { from: 'bot' | 'me'; text: L; link?: { label: L; href: string } }
+interface Msg { from: 'bot' | 'me'; text: L; link?: { label: L; href: string }; kind?: 'langAsk' }
 interface StackItem { id: string; msgLen: number; chosen?: L }
 interface AgentSession {
   id: string
@@ -104,6 +104,7 @@ export default function GenieWidget({ userRole, userName }: { userRole: string; 
   const [lang, setLang] = useState<GenieLang>('en')
   const [msgs, setMsgs] = useState<Msg[]>([])
   const [stage, setStage] = useState<Stage>('browse')
+  const [langAsked, setLangAsked] = useState(false)
   const [stack, setStack] = useState<StackItem[]>([{ id: 'root', msgLen: 1 }])
   const [leafId, setLeafId] = useState<string | null>(null)
   const [draft, setDraft] = useState('')
@@ -144,6 +145,7 @@ export default function GenieWidget({ userRole, userName }: { userRole: string; 
       setStage('lang')
     }
     setStack([{ id: 'root', msgLen: 1 }])
+    setLangAsked(false)
     setLeafId(null); setDraft(''); setPendingImg(null); setNotice(null)
   }, [greet])
 
@@ -165,6 +167,7 @@ export default function GenieWidget({ userRole, userName }: { userRole: string; 
           setMsgs(s.msgs); setStack(s.stack)
           setStage(s.stage === 'lang' || s.stage === 'solved' || s.stage === 'handoff' || s.stage === 'describe' || s.stage === 'wacheck' ? s.stage : 'browse')
           setLeafId(s.leafId && NODES[s.leafId] ? s.leafId : null)
+          setLangAsked(!!s.langAsked)
           setOpen(!!s.open)
           restored = true
         }
@@ -175,8 +178,8 @@ export default function GenieWidget({ userRole, userName }: { userRole: string; 
 
   useEffect(() => {
     if (!mounted) return
-    try { sessionStorage.setItem(STORE_KEY, JSON.stringify({ open, msgs, stack, stage, leafId })) } catch {}
-  }, [mounted, open, msgs, stack, stage, leafId])
+    try { sessionStorage.setItem(STORE_KEY, JSON.stringify({ open, msgs, stack, stage, leafId, langAsked })) } catch {}
+  }, [mounted, open, msgs, stack, stage, leafId, langAsked])
 
 
   function setReq(id: string | null) {
@@ -297,6 +300,7 @@ export default function GenieWidget({ userRole, userName }: { userRole: string; 
       return
     }
     add.push({ from: 'bot', text: next.answer || UI.glad, link: next.link })
+    if (!langAsked) { add.push({ from: 'bot', text: UI.langAsk, kind: 'langAsk' }); setLangAsked(true) }
     setStack(s => [...s, { id: next.id, msgLen: msgs.length, chosen: opt.label }])
     setLeafId(next.id)
     if (next.needsAgent) {
@@ -307,6 +311,14 @@ export default function GenieWidget({ userRole, userName }: { userRole: string; 
       setStage('solved')
     }
     setMsgs(m => [...m, ...add])
+  }
+
+  /** Asked once, after the first answer: switch language for the rest of the chat. */
+  function switchLang(l: GenieLang) {
+    setLang(l)
+    langChosen.current = true
+    try { localStorage.setItem(LANG_KEY, l) } catch {}
+    setMsgs(m => m.map(x => (x.kind === 'langAsk' ? { ...x, kind: undefined } : x)))
   }
 
   function goBack() {
@@ -492,8 +504,15 @@ export default function GenieWidget({ userRole, userName }: { userRole: string; 
             {options.length > 0 && (
               <div className="genie-opts">
                 {options.map((o, i) => (
-                  <button key={o.id} type="button" className="genie-opt" onClick={() => choose(i)}>{t(o.label)}</button>
+                  <button key={o.id} type="button" className={o.id === 'g-iitm' ? 'genie-opt tab' : 'genie-opt'} onClick={() => choose(i)}>{t(o.label)}</button>
                 ))}
+              </div>
+            )}
+
+            {(stage === 'solved' || stage === 'handoff') && !agentActive && !agentEnded && msgs.some(m => m.kind === 'langAsk') && (
+              <div className="genie-opts row">
+                <button type="button" className="genie-opt" onClick={() => switchLang('en')}>English</button>
+                <button type="button" className="genie-opt" onClick={() => switchLang('hi')}>Hinglish</button>
               </div>
             )}
 
@@ -624,6 +643,8 @@ const CSS = `
 .genie-opt.ok{border-color:#34d399;color:#047857}
 .genie-opt.ok:hover{background:#ecfdf5}
 .genie-opt.agent{border-color:#2563eb;background:#2563eb;color:#fff}
+.genie-opt.tab{border-color:#2563eb;background:#2563eb;color:#fff}
+.genie-opt.tab:hover{background:#1d4ed8;border-color:#1d4ed8}
 .genie-opt.agent:hover{background:#1d4ed8}
 .genie-opt.wa{border-color:#86efac;color:#15803d}
 .genie-opt.wa:hover{background:#f0fdf4}
