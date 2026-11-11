@@ -329,8 +329,8 @@ https://class.genziitian.in/download`
         display: 'flex', alignItems: 'center', gap: '14px',
         padding: '18px 18px',
         borderRadius: '24px',
-        background: 'linear-gradient(135deg, #3636e8, #6366f1)',
-        boxShadow: '6px 6px 16px rgba(54,54,232,0.25), -6px -6px 14px var(--neu-light)',
+        background: 'linear-gradient(135deg, var(--primary), var(--primary))',
+        boxShadow: '6px 6px 16px color-mix(in srgb, var(--primary) 25%, transparent), -6px -6px 14px var(--neu-light)',
         textDecoration: 'none', color: '#fff',
         marginBottom: '6px',
       }}>

@@ -60,7 +60,7 @@ export default function PromptResponsesPage() {
         </div>
         <div style={{ display: 'flex', gap: '12px' }}>
           <div style={{ padding: '12px 24px', borderRadius: '16px', background: 'var(--surface)', boxShadow: '4px 4px 10px rgba(0,0,0,0.03)', display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <Users size={20} color="#6366f1" />
+            <Users size={20} color="var(--primary)" />
             <div>
               <div style={{ fontSize: '18px', fontWeight: 900, color: 'var(--text-primary)' }}>{responses.length}</div>
               <div style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase' }}>Total Responses</div>

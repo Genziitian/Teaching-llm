@@ -15,8 +15,8 @@ import { MAX_IMAGE_BYTES, POLL_MS, SEND_GAP_MS } from '@/lib/genie/limits'
  * (waiting → live → moved to ticket / ended). The agent's name is never shown.
  */
 
-type Stage = 'browse' | 'solved' | 'handoff' | 'describe' | 'wacheck'
-interface Msg { from: 'bot' | 'me'; text: L; link?: { label: L; href: string } }
+type Stage = 'lang' | 'browse' | 'solved' | 'handoff' | 'describe' | 'wacheck'
+interface Msg { from: 'bot' | 'me'; text: L; link?: { label: L; href: string }; kind?: 'langAsk' }
 interface StackItem { id: string; msgLen: number; chosen?: L }
 interface AgentSession {
   id: string
@@ -33,11 +33,14 @@ const HELLO_KEY = 'genie-hello-seen-v1'
 const REQ_KEY = 'genie-req-v1'
 
 // Index every node by id so a saved chat can be restored.
-const NODES: Record<string, GenieNode> = {}
-;(function index(n: GenieNode) {
-  NODES[n.id] = n
-  n.options?.forEach(o => index(o.next))
-})(GENIE_TREE)
+function indexTree(root: GenieNode): Record<string, GenieNode> {
+  const map: Record<string, GenieNode> = {}
+  ;(function walk(n: GenieNode) {
+    map[n.id] = n
+    n.options?.forEach(o => walk(o.next))
+  })(root)
+  return map
+}
 
 const fill = (l: L, vars: Record<string, string | number>): L => {
   const f = (s: string) => s.replace(/\{(\w+)\}/g, (_, k) => String(vars[k] ?? ''))
@@ -93,7 +96,7 @@ function Sparkle({ size = 24 }: { size?: number }) {
   )
 }
 
-export default function GenieWidget({ userRole }: { userRole: string }) {
+export default function GenieWidget({ userRole, userName }: { userRole: string; userName?: string }) {
   const pathname = usePathname() || ''
   const [mounted, setMounted] = useState(false)
   const [isNative, setIsNative] = useState(false)
@@ -101,6 +104,7 @@ export default function GenieWidget({ userRole }: { userRole: string }) {
   const [lang, setLang] = useState<GenieLang>('en')
   const [msgs, setMsgs] = useState<Msg[]>([])
   const [stage, setStage] = useState<Stage>('browse')
+  const [langAsked, setLangAsked] = useState(false)
   const [stack, setStack] = useState<StackItem[]>([{ id: 'root', msgLen: 1 }])
   const [leafId, setLeafId] = useState<string | null>(null)
   const [draft, setDraft] = useState('')
@@ -111,6 +115,7 @@ export default function GenieWidget({ userRole }: { userRole: string }) {
   const [agent, setAgent] = useState<AgentSession | null>(null)
   const [agentMsgs, setAgentMsgs] = useState<AgentMsg[]>([])
   const [rated, setRated] = useState(false)
+  const [loaded, setLoaded] = useState(false)
   const lastSend = useRef(0)
   const reqId = useRef<string | null>(null)
   const seenAgent = useRef<number | null>(null)
@@ -121,14 +126,28 @@ export default function GenieWidget({ userRole }: { userRole: string }) {
 
   const hiddenRole = userRole === 'MANAGER' || userRole === 'ADMIN' || userRole === 'MODERATOR'
   const t = useCallback((l: L) => l[lang], [lang])
+  const firstName = (userName || '').trim().split(/\s+/)[0] || 'there'
+  const langChosen = useRef(false)
+  // The question/answer tree: built-in first, then the live one from the database (editable by managers)
+  const [tree, setTree] = useState<GenieNode>(GENIE_TREE)
+  const NODES = useMemo(() => indexTree(tree), [tree])
   const agentActive = !!agent && (agent.status === 'WAITING' || agent.status === 'LIVE')
   const agentEnded = !!agent && agent.status === 'ENDED' && (agent.rating == null || rated) && reqId.current === agent.id
 
+  const greet = useCallback(() => fill(UI.greeting, { name: firstName }), [firstName])
+
   const resetChat = useCallback(() => {
-    setMsgs([{ from: 'bot', text: UI.greeting }])
+    if (langChosen.current) {
+      setMsgs([{ from: 'bot', text: greet() }])
+      setStage('browse')
+    } else {
+      setMsgs([{ from: 'bot', text: UI.pickLang }])
+      setStage('lang')
+    }
     setStack([{ id: 'root', msgLen: 1 }])
-    setStage('browse'); setLeafId(null); setDraft(''); setPendingImg(null); setNotice(null)
-  }, [])
+    setLangAsked(false)
+    setLeafId(null); setDraft(''); setPendingImg(null); setNotice(null)
+  }, [greet])
 
   // ── start-up: restore language + the chat in progress ──
   useEffect(() => {
@@ -137,7 +156,7 @@ export default function GenieWidget({ userRole }: { userRole: string }) {
       document.documentElement.classList.contains('is-native') ||
       !!(window as any).Capacitor?.isNativePlatform?.()
     )
-    try { const l = localStorage.getItem(LANG_KEY); if (l === 'en' || l === 'hi') setLang(l) } catch {}
+    try { const l = localStorage.getItem(LANG_KEY); if (l === 'en' || l === 'hi') { setLang(l); langChosen.current = true } } catch {}
     try { reqId.current = sessionStorage.getItem(REQ_KEY) } catch {}
     let restored = false
     try {
@@ -146,8 +165,9 @@ export default function GenieWidget({ userRole }: { userRole: string }) {
         const s = JSON.parse(raw)
         if (Array.isArray(s.msgs) && s.msgs.length && Array.isArray(s.stack) && s.stack.every((x: StackItem) => NODES[x.id])) {
           setMsgs(s.msgs); setStack(s.stack)
-          setStage(s.stage === 'solved' || s.stage === 'handoff' || s.stage === 'describe' || s.stage === 'wacheck' ? s.stage : 'browse')
+          setStage(s.stage === 'lang' || s.stage === 'solved' || s.stage === 'handoff' || s.stage === 'describe' || s.stage === 'wacheck' ? s.stage : 'browse')
           setLeafId(s.leafId && NODES[s.leafId] ? s.leafId : null)
+          setLangAsked(!!s.langAsked)
           setOpen(!!s.open)
           restored = true
         }
@@ -158,10 +178,9 @@ export default function GenieWidget({ userRole }: { userRole: string }) {
 
   useEffect(() => {
     if (!mounted) return
-    try { sessionStorage.setItem(STORE_KEY, JSON.stringify({ open, msgs, stack, stage, leafId })) } catch {}
-  }, [mounted, open, msgs, stack, stage, leafId])
+    try { sessionStorage.setItem(STORE_KEY, JSON.stringify({ open, msgs, stack, stage, leafId, langAsked })) } catch {}
+  }, [mounted, open, msgs, stack, stage, leafId, langAsked])
 
-  useEffect(() => { try { localStorage.setItem(LANG_KEY, lang) } catch {} }, [lang])
 
   function setReq(id: string | null) {
     reqId.current = id
@@ -176,6 +195,7 @@ export default function GenieWidget({ userRole }: { userRole: string }) {
       const d = await r.json()
       setAgent(d.session || null)
       setAgentMsgs(Array.isArray(d.messages) ? d.messages : [])
+      setLoaded(true)
     } catch {}
   }, [])
 
@@ -188,8 +208,25 @@ export default function GenieWidget({ userRole }: { userRole: string }) {
     return () => window.clearInterval(id)
   }, [polling, agentActive, open, refresh])
 
+  // live tree from the database (falls back silently to the built-in one)
+  useEffect(() => {
+    if (!polling) return
+    let dead = false
+    fetch('/api/genie/tree', { cache: 'no-store' })
+      .then(r => (r.ok ? r.json() : null))
+      .then(d => { if (!dead && d?.tree?.id === 'root' && Array.isArray(d.tree.options)) setTree(d.tree) })
+      .catch(() => {})
+    return () => { dead = true }
+  }, [polling])
+
+  // if the tree changed under an open chat and its path no longer exists, start the menu again
+  useEffect(() => {
+    if (stack.some(x => !NODES[x.id])) resetChat()
+  }, [NODES]) // eslint-disable-line react-hooks/exhaustive-deps
+
   // status transitions
   useEffect(() => {
+    if (!loaded) return
     const st = agent?.status || null
     const prev = prevStatus.current
     prevStatus.current = st
@@ -201,7 +238,7 @@ export default function GenieWidget({ userRole }: { userRole: string }) {
       resetChat()
       if (no) setMsgs(m => [...m, { from: 'bot', text: fill(UI.movedTicket, { n: no }) }])
     }
-  }, [agent]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [agent, loaded]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // new agent message while the box is closed → soft sound + reopen
   useEffect(() => {
@@ -237,21 +274,33 @@ export default function GenieWidget({ userRole }: { userRole: string }) {
     return () => window.removeEventListener('keydown', onKey)
   }, [open])
 
-  const node = NODES[stack[stack.length - 1].id]
+  const node = NODES[stack[stack.length - 1].id] || NODES.root
 
   // ── actions ──
+  function chooseLang(l: GenieLang) {
+    langChosen.current = true
+    setLang(l)
+    try { localStorage.setItem(LANG_KEY, l) } catch {}
+    const label: L = l === 'en' ? { en: 'English', hi: 'English' } : { en: 'Hinglish', hi: 'Hinglish' }
+    const g = greet()
+    setMsgs(m => [...m, { from: 'me', text: label }, { from: 'bot', text: g }])
+    setStack([{ id: 'root', msgLen: msgs.length + 2 }])
+    setStage('browse')
+  }
+
   function choose(i: number) {
     const opt = node.options?.[i]
     if (!opt) return
     const next = opt.next
     const add: Msg[] = [{ from: 'me', text: opt.label }]
     if (next.options) {
-      add.push({ from: 'bot', text: next.q || UI.greeting })
+      add.push({ from: 'bot', text: next.q || greet() })
       setStack(s => [...s, { id: next.id, msgLen: msgs.length, chosen: opt.label }])
       setMsgs(m => [...m, ...add])
       return
     }
     add.push({ from: 'bot', text: next.answer || UI.glad, link: next.link })
+    if (!langAsked) { add.push({ from: 'bot', text: UI.langAsk, kind: 'langAsk' }); setLangAsked(true) }
     setStack(s => [...s, { id: next.id, msgLen: msgs.length, chosen: opt.label }])
     setLeafId(next.id)
     if (next.needsAgent) {
@@ -264,6 +313,14 @@ export default function GenieWidget({ userRole }: { userRole: string }) {
     setMsgs(m => [...m, ...add])
   }
 
+  /** Asked once, after the first answer: switch language for the rest of the chat. */
+  function switchLang(l: GenieLang) {
+    setLang(l)
+    langChosen.current = true
+    try { localStorage.setItem(LANG_KEY, l) } catch {}
+    setMsgs(m => m.map(x => (x.kind === 'langAsk' ? { ...x, kind: undefined } : x)))
+  }
+
   function goBack() {
     if (stack.length < 2) return
     const top = stack[stack.length - 1]
@@ -274,7 +331,7 @@ export default function GenieWidget({ userRole }: { userRole: string }) {
 
   function answerSolved(ok: boolean) {
     if (ok) {
-      const next: Msg[] = [...msgs, { from: 'me', text: UI.yes }, { from: 'bot', text: UI.glad }, { from: 'bot', text: UI.greeting }]
+      const next: Msg[] = [...msgs, { from: 'me', text: UI.yes }, { from: 'bot', text: UI.glad }, { from: 'bot', text: greet() }]
       setMsgs(next)
       setStack([{ id: 'root', msgLen: next.length }])
       setStage('browse'); setLeafId(null)
@@ -286,7 +343,7 @@ export default function GenieWidget({ userRole }: { userRole: string }) {
 
   function answerWhatsapp(ok: boolean) {
     if (ok) {
-      const next: Msg[] = [...msgs, { from: 'me', text: UI.yes }, { from: 'bot', text: UI.glad }, { from: 'bot', text: UI.greeting }]
+      const next: Msg[] = [...msgs, { from: 'me', text: UI.yes }, { from: 'bot', text: UI.glad }, { from: 'bot', text: greet() }]
       setMsgs(next)
       setStack([{ id: 'root', msgLen: next.length }])
       setStage('browse'); setLeafId(null)
@@ -377,10 +434,6 @@ export default function GenieWidget({ userRole }: { userRole: string }) {
           <div className="genie-head">
             <span className="genie-avatar"><Sparkle size={18} /></span>
             <div className="genie-title">{GENIE_NAME} <span className="genie-title-sub">the BOT</span></div>
-            <div className="genie-lang" role="group" aria-label="Language">
-              <button type="button" className={lang === 'en' ? 'on' : ''} onClick={() => setLang('en')}>EN</button>
-              <button type="button" className={lang === 'hi' ? 'on' : ''} onClick={() => setLang('hi')}>Hinglish</button>
-            </div>
             <button type="button" className="genie-x" onClick={() => setOpen(false)} aria-label={t(UI.close)}>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
             </button>
@@ -396,10 +449,13 @@ export default function GenieWidget({ userRole }: { userRole: string }) {
             {msgs.map((m, i) => (
               <div key={i} className={`genie-row ${m.from}`}>
                 <div className={`genie-bubble ${m.from}`}>
+                  {m.link && m.link.href.startsWith('http') && (
+                    <a href={m.link.href} target="_blank" rel="noopener noreferrer" className="genie-go" style={{ marginTop: 0, marginBottom: 8 }}>{t(m.link.label)} →</a>
+                  )}
                   {linkify(t(m.text))}
-                  {m.link && (m.link.href.startsWith('http')
-                    ? <a href={m.link.href} target="_blank" rel="noopener noreferrer" className="genie-go">{t(m.link.label)} →</a>
-                    : <Link href={m.link.href} className="genie-go">{t(m.link.label)} →</Link>)}
+                  {m.link && !m.link.href.startsWith('http') && (
+                    <Link href={m.link.href} className="genie-go">{t(m.link.label)} →</Link>
+                  )}
                 </div>
               </div>
             ))}
@@ -438,11 +494,25 @@ export default function GenieWidget({ userRole }: { userRole: string }) {
               </div>
             )}
 
+            {stage === 'lang' && !agentActive && !agentEnded && (
+              <div className="genie-opts">
+                <button type="button" className="genie-opt" onClick={() => chooseLang('en')}>English</button>
+                <button type="button" className="genie-opt" onClick={() => chooseLang('hi')}>Hinglish</button>
+              </div>
+            )}
+
             {options.length > 0 && (
               <div className="genie-opts">
                 {options.map((o, i) => (
-                  <button key={o.id} type="button" className="genie-opt" onClick={() => choose(i)}>{t(o.label)}</button>
+                  <button key={o.id} type="button" className={o.id === 'g-iitm' ? 'genie-opt tab' : 'genie-opt'} onClick={() => choose(i)}>{t(o.label)}</button>
                 ))}
+              </div>
+            )}
+
+            {(stage === 'solved' || stage === 'handoff') && !agentActive && !agentEnded && msgs.some(m => m.kind === 'langAsk') && (
+              <div className="genie-opts row">
+                <button type="button" className="genie-opt" onClick={() => switchLang('en')}>English</button>
+                <button type="button" className="genie-opt" onClick={() => switchLang('hi')}>Hinglish</button>
               </div>
             )}
 
@@ -528,20 +598,20 @@ export default function GenieWidget({ userRole }: { userRole: string }) {
         type="button"
         className="genie-fab"
         onClick={() => { setOpen(o => !o); if (hello) dismissHello() }}
-        aria-label={open ? 'Close Genie' : 'Ask Genie'}
+        aria-label={open ? 'Close GenZie' : 'Ask GenZie'}
         aria-expanded={open}
       >
         {open
           ? <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><polyline points="6 9 12 15 18 9" /></svg>
           : <Sparkle size={24} />}
-        {!open && <span className="genie-fab-label">Ask Genie</span>}
+        {!open && <span className="genie-fab-label">Ask GenZie</span>}
       </button>
     </>
   )
 }
 
 const CSS = `
-.genie-fab{position:fixed;right:24px;bottom:24px;z-index:1000;width:56px;height:56px;border-radius:50%;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#fff;background:linear-gradient(135deg,#8b5cf6,#6366f1);box-shadow:0 6px 18px rgba(0,0,0,.4);transition:transform .15s}
+.genie-fab{position:fixed;right:24px;bottom:24px;z-index:1000;width:56px;height:56px;border-radius:50%;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#fff;background:#2563eb;box-shadow:0 6px 18px rgba(0,0,0,.4);transition:transform .15s}
 .genie-fab:hover{transform:translateY(-2px)}
 .genie-fab:focus-visible{outline:2px solid #fff;outline-offset:3px}
 .genie-fab-label{position:absolute;right:68px;white-space:nowrap;padding:7px 12px;border-radius:50px;font-size:12.5px;font-weight:700;background:var(--surface,#161618);color:var(--text-primary,#fff);border:1px solid var(--border,#2a2a2e);opacity:0;transform:translateX(6px);pointer-events:none;transition:opacity .15s,transform .15s}
@@ -552,12 +622,9 @@ const CSS = `
 .genie-hello-x{position:absolute;top:6px;right:8px;background:none;border:none;color:var(--text-muted,#71717a);font-size:18px;line-height:1;cursor:pointer}
 .genie-panel{--surface:#ffffff;--surface-2:#f3f4f8;--border:#e3e4ea;--text-primary:#17171c;--text-secondary:#555560;--text-muted:#8a8a96;position:fixed;right:24px;bottom:92px;z-index:1000;width:380px;max-width:calc(100vw - 24px);height:min(560px,calc(100vh - 120px));display:flex;flex-direction:column;border-radius:22px;overflow:hidden;background:var(--surface,#0f0f10);color:var(--text-primary,#f4f4f5);border:1px solid var(--border,#2a2a2e);box-shadow:0 16px 48px rgba(0,0,0,.35);animation:genieIn .2s ease;outline:none}
 .genie-head{display:flex;align-items:center;gap:10px;padding:12px 14px;border-bottom:1px solid var(--border,#2a2a2e)}
-.genie-avatar{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;background:linear-gradient(135deg,#8b5cf6,#6366f1);flex-shrink:0}
+.genie-avatar{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;background:#2563eb;flex-shrink:0}
 .genie-title{font-size:14.5px;font-weight:800;flex:1}
-.genie-title-sub{font-size:11px;font-weight:800;letter-spacing:.06em;color:#6366f1;margin-left:2px}
-.genie-lang{display:inline-flex;background:var(--surface-2,#161618);border:1px solid var(--border,#2a2a2e);border-radius:50px;padding:2px}
-.genie-lang button{border:none;background:none;color:var(--text-secondary,#a1a1aa);font:inherit;font-size:11.5px;font-weight:700;padding:4px 10px;border-radius:50px;cursor:pointer}
-.genie-lang button.on{background:var(--text-primary,#fff);color:var(--surface,#000)}
+.genie-title-sub{font-size:11px;font-weight:800;letter-spacing:.06em;color:#2563eb;margin-left:2px}
 .genie-x{border:none;background:none;color:var(--text-muted,#71717a);cursor:pointer;padding:6px;display:flex}
 .genie-x:hover{color:var(--text-primary,#fff)}
 .genie-body{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:8px}
@@ -565,38 +632,40 @@ const CSS = `
 .genie-row.me{justify-content:flex-end}
 .genie-bubble{max-width:86%;padding:9px 12px;border-radius:16px;font-size:13px;line-height:1.55;white-space:pre-wrap;word-break:break-word}
 .genie-bubble.bot{background:var(--surface-2);border:none;border-bottom-left-radius:5px}
-.genie-bubble.me{background:linear-gradient(135deg,#8b5cf6,#6366f1);color:#fff;border-bottom-right-radius:5px}
-.genie-a{color:#4f46e5;text-decoration:underline;word-break:break-all}
+.genie-bubble.me{background:#2563eb;color:#fff;border-bottom-right-radius:5px}
+.genie-a{color:#2563eb;text-decoration:underline;word-break:break-all}
 .genie-go{display:inline-block;margin-top:8px;padding:6px 12px;border-radius:50px;font-size:12px;font-weight:700;text-decoration:none;background:var(--text-primary,#fff);color:var(--surface,#000)}
 .genie-opts{display:flex;flex-direction:row;flex-wrap:wrap;gap:6px;margin-top:2px}
 .genie-opts.row{flex-direction:row;flex-wrap:wrap}
-.genie-opt{display:inline-block;text-align:left;text-decoration:none;font:inherit;font-size:12.5px;font-weight:700;line-height:1.3;padding:7px 13px;border-radius:50px;cursor:pointer;color:#4338ca;background:#fff;border:1.5px solid #a5b4fc;transition:background .12s,border-color .12s}
-.genie-opt:hover{background:#eef2ff;border-color:#6366f1}
-.genie-opt:focus-visible{outline:2px solid #8b5cf6;outline-offset:2px}
+.genie-opt{display:inline-block;text-align:left;text-decoration:none;font:inherit;font-size:12.5px;font-weight:700;line-height:1.3;padding:7px 13px;border-radius:50px;cursor:pointer;color:#1d4ed8;background:#fff;border:1.5px solid #93c5fd;transition:background .12s,border-color .12s}
+.genie-opt:hover{background:#eff6ff;border-color:#2563eb}
+.genie-opt:focus-visible{outline:2px solid #2563eb;outline-offset:2px}
 .genie-opt.ok{border-color:#34d399;color:#047857}
 .genie-opt.ok:hover{background:#ecfdf5}
-.genie-opt.agent{border-color:#6366f1;background:#6366f1;color:#fff}
-.genie-opt.agent:hover{background:#4f46e5}
+.genie-opt.agent{border-color:#2563eb;background:#2563eb;color:#fff}
+.genie-opt.tab{border-color:#2563eb;background:#2563eb;color:#fff}
+.genie-opt.tab:hover{background:#1d4ed8;border-color:#1d4ed8}
+.genie-opt.agent:hover{background:#1d4ed8}
 .genie-opt.wa{border-color:#86efac;color:#15803d}
 .genie-opt.wa:hover{background:#f0fdf4}
 .genie-compose{padding:10px 12px 0;border-top:1px solid var(--border,#2a2a2e)}
 .genie-compose textarea{width:100%;resize:none;box-sizing:border-box;background:var(--surface-2,#161618)!important;color:var(--text-primary,#fff)!important;border:1.5px solid var(--border,#2a2a2e)!important;border-radius:12px;padding:9px 11px;font:inherit;font-size:13px;line-height:1.5;outline:none}
-.genie-compose textarea:focus{border-color:#6366f1!important;box-shadow:none!important}
+.genie-compose textarea:focus{border-color:#2563eb!important;box-shadow:none!important}
 .genie-compose-row{display:flex;align-items:center;justify-content:space-between;padding:6px 0 2px}
 .genie-count{font-size:11px;color:var(--text-muted,#71717a)}
-.genie-send{border:none;border-radius:50px;padding:7px 16px;font:inherit;font-size:12.5px;font-weight:800;cursor:pointer;color:#fff;background:linear-gradient(135deg,#8b5cf6,#6366f1)}
+.genie-send{border:none;border-radius:50px;padding:7px 16px;font:inherit;font-size:12.5px;font-weight:800;cursor:pointer;color:#fff;background:#2563eb}
 .genie-send:disabled{opacity:.45;cursor:not-allowed}
 .genie-foot{padding:4px 14px 8px}
 .genie-nav{display:flex;justify-content:space-between;min-height:22px}
 .genie-nav button{border:none;background:none;color:var(--text-secondary,#a1a1aa);font:inherit;font-size:12px;font-weight:700;cursor:pointer;padding:3px 0}
 .genie-nav button:hover{color:var(--text-primary,#fff)}
 .genie-note{text-align:center;font-size:10.5px;color:var(--text-muted,#71717a);margin-top:2px}
-.genie-pin{display:flex;justify-content:space-between;align-items:center;padding:9px 14px;font-size:12.5px;font-weight:800;text-decoration:none;color:var(--text-primary,#fff);background:rgba(99,102,241,.14);border-bottom:1px solid var(--border,#2a2a2e)}
+.genie-pin{display:flex;justify-content:space-between;align-items:center;padding:9px 14px;font-size:12.5px;font-weight:800;text-decoration:none;color:var(--text-primary,#fff);background:rgba(37,99,235,.10);border-bottom:1px solid var(--border,#2a2a2e)}
 .genie-sys{align-self:center;text-align:center;font-size:12px;color:var(--text-secondary,#a1a1aa);padding:6px 10px;margin:4px 0}
 .genie-sys.end{border:1px dashed var(--border,#2a2a2e);border-radius:14px;padding:12px}
 .genie-rate-q{margin:6px 0;font-weight:700;color:var(--text-primary,#fff)}
 .genie-thanks{margin-top:6px;font-weight:700;color:#34d399}
-.genie-dots{display:inline-block;width:8px;height:8px;border-radius:50%;background:#8b5cf6;margin-right:8px;animation:geniePulse 1.2s ease-in-out infinite}
+.genie-dots{display:inline-block;width:8px;height:8px;border-radius:50%;background:#2563eb;margin-right:8px;animation:geniePulse 1.2s ease-in-out infinite}
 @keyframes geniePulse{0%,100%{opacity:.3}50%{opacity:1}}
 .genie-img{display:block;max-width:100%;max-height:180px;border-radius:10px;margin-top:6px}
 .genie-chip{position:relative;display:inline-block;margin-bottom:6px}

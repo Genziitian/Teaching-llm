@@ -1,3 +1,4 @@
+import './redesign.css'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { getFullSession } from '@/lib/auth'
@@ -62,7 +63,7 @@ export default async function DashboardLayout({
             <main className="dashboard-scroll-region">
               {children}
             </main>
-            <GenieWidget userRole={session.role} />
+            <GenieWidget userRole={session.role} userName={session.name} />
             <GenieAgentAlerts userRole={session.role} />
             <MobileBottomNav userRole={session.role} />
           </div>

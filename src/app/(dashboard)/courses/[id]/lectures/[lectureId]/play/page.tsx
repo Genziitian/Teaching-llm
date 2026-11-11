@@ -113,7 +113,7 @@ export default function PlayDriveVideoPage() {
         display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
         minHeight: '100vh', background: '#090d16', color: '#fff', gap: '16px', padding: '24px'
       }}>
-        <Loader2 className="animate-spin" size={36} color="#6366f1" />
+        <Loader2 className="animate-spin" size={36} color="var(--primary)" />
         <span style={{ fontSize: '15px', color: '#94a3b8', fontWeight: '500' }}>
           {tokenLoading ? 'Authenticating secure player...' : 'Loading player...'}
         </span>
@@ -180,7 +180,7 @@ export default function PlayDriveVideoPage() {
           <ChevronLeft size={20} />
         </button>
         <div style={{ minWidth: 0 }}>
-          <div style={{ fontSize: '14px', fontWeight: '700', color: '#6366f1', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          <div style={{ fontSize: '14px', fontWeight: '700', color: 'var(--primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
             {content.topic.course.name}
           </div>
           <div style={{ fontSize: '12px', color: '#94a3b8', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>

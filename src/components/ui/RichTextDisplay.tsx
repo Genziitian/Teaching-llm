@@ -95,7 +95,7 @@ export function RichTextDisplay({ text }: { text: string | undefined | null }) {
                 boxShadow: '0 4px 20px rgba(0,0,0,0.15)'
               }}>
                 {lang && (
-                  <div style={{ position: 'absolute', top: 0, right: '16px', background: '#3636e8', color: '#fff', fontSize: '10px', padding: '4px 10px', borderBottomLeftRadius: '8px', borderBottomRightRadius: '8px', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.05em', opacity: 0.8 }}>
+                  <div style={{ position: 'absolute', top: 0, right: '16px', background: 'var(--primary)', color: '#fff', fontSize: '10px', padding: '4px 10px', borderBottomLeftRadius: '8px', borderBottomRightRadius: '8px', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.05em', opacity: 0.8 }}>
                     {lang}
                   </div>
                 )}

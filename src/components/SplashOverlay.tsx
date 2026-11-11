@@ -129,99 +129,73 @@ export default function SplashOverlay() {
   if (!mounted || (!showLoader && !promoVisible)) return null
 
   return (
-    <div
-      style={{
-        position: 'fixed',
-        inset: 0,
-        zIndex: 999999, // Render on top of everything
-        backgroundColor: '#ffffff',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        fontFamily: 'system-ui, -apple-system, sans-serif',
-        userSelect: 'none',
-      }}
-    >
-      {showLoader ? <div
-          style={{
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            width: '100%',
-            maxWidth: '380px',
-            padding: '0 16px',
-            animation: 'splashFadeIn 0.3s ease-out',
-            textAlign: 'center',
-          }}
-        >
-          {/* GenZ IITIAN Logo */}
+    <div className="gz-splash" role="presentation">
+      {showLoader ? (
+        <div className="gz-splash__card">
+          {/* GenZ IITIAN logo */}
           <img
             src={logoSrc}
             alt="GenZ IITIAN"
             onLoad={() => setImageLoaded(true)}
-            style={{
-              width: '160px',
-              height: 'auto',
-              marginBottom: '32px',
-            }}
+            className="gz-splash__logo"
           />
 
-          {/* Loading Bar Container */}
-          <div
-            style={{
-              width: '240px',
-              maxWidth: '100%',
-              height: '6px',
-              backgroundColor: '#f1f5f9',
-              borderRadius: '999px',
-              overflow: 'hidden',
-              position: 'relative',
-            }}
-          >
-            {/* Dynamic Loading progress */}
-            <div
-              style={{
-                width: `${progress}%`,
-                height: '100%',
-                backgroundColor: '#dc2626', // Red branding color
-                borderRadius: '999px',
-                transition: 'width 0.1s linear',
-              }}
-            />
+          {/* Progress */}
+          <div className="gz-splash__bar" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(progress)}>
+            <div className="gz-splash__fill" style={{ width: `${progress}%` }} />
           </div>
-          <span
-            style={{
-              marginTop: '12px',
-              fontSize: '13px',
-              color: '#64748b',
-              fontWeight: '600',
-              letterSpacing: '0.05em',
-            }}
-          >
-            LOADING...
-          </span>
+          <div className="gz-splash__status">
+            <span>Loading</span>
+            <span>{Math.round(progress)}%</span>
+          </div>
 
           {fact && (
-            <div style={{ marginTop: '24px', width: '100%' }}>
+            <div className="gz-splash__fact">
               <LoadingFactCard fact={fact} />
             </div>
           )}
-      </div> : (
+        </div>
+      ) : (
         <img
           src={promo.image}
           alt="GenZ IITian promotion"
-          style={{ width: '100%', height: '100%', objectFit: 'contain', backgroundColor: '#ffffff' }}
+          style={{ width: '100%', height: '100%', objectFit: 'contain', backgroundColor: 'var(--gz-splash-bg)' }}
         />
       )}
 
-      {/* Embedded keyframe styles for smooth load transitions */}
       <style>{`
-        @keyframes splashFadeIn {
-          from { opacity: 0; transform: scale(0.98); }
-          to { opacity: 1; transform: scale(1); }
+        .gz-splash {
+          --gz-splash-bg: #ececea; --gz-splash-card: #fbfbfa; --gz-splash-line: #e7e7e3;
+          --gz-splash-ink: #171717; --gz-splash-ink3: #6b6b68; --gz-splash-ink4: #8a8a86; --gz-splash-track: #e7e7e3;
+          position: fixed; inset: 0; z-index: 999999; background: var(--gz-splash-bg);
+          display: flex; align-items: center; justify-content: center; padding: 16px; user-select: none;
+          font-family: 'Geist', system-ui, -apple-system, 'Segoe UI', sans-serif; color: var(--gz-splash-ink);
         }
+        :root[data-theme="dark"] .gz-splash {
+          --gz-splash-bg: #0c0c0d; --gz-splash-card: #151517; --gz-splash-line: #26262a;
+          --gz-splash-ink: #ededeb; --gz-splash-ink3: #a1a19c; --gz-splash-ink4: #77777a; --gz-splash-track: #26262a;
+        }
+        :root[data-theme="black"] .gz-splash {
+          --gz-splash-bg: #000; --gz-splash-card: #0a0a0a; --gz-splash-line: #1e1e1e;
+          --gz-splash-ink: #f2f2f0; --gz-splash-ink3: #a1a19c; --gz-splash-ink4: #77777a; --gz-splash-track: #1e1e1e;
+        }
+        .gz-splash__card {
+          width: 100%; max-width: 400px; background: var(--gz-splash-card); border: 1px solid var(--gz-splash-line);
+          border-radius: 18px; padding: 32px 28px 24px; display: flex; flex-direction: column; align-items: center;
+          animation: splashFadeIn .3s ease-out;
+        }
+        .gz-splash__logo { width: 150px; height: auto; margin-bottom: 28px; }
+        :root[data-theme="dark"] .gz-splash__logo, :root[data-theme="black"] .gz-splash__logo { filter: invert(1) hue-rotate(180deg); }
+        .gz-splash__bar { width: 100%; height: 4px; border-radius: 999px; background: var(--gz-splash-track); overflow: hidden; }
+        .gz-splash__fill { height: 100%; background: var(--gz-splash-ink); border-radius: 999px; transition: width .1s linear; }
+        .gz-splash__status {
+          width: 100%; display: flex; justify-content: space-between; margin-top: 10px;
+          font-family: 'Geist Mono', ui-monospace, monospace; font-size: 10.5px; letter-spacing: .06em;
+          text-transform: uppercase; color: var(--gz-splash-ink4);
+        }
+        .gz-splash__fact { width: 100%; margin-top: 22px; }
+        @keyframes splashFadeIn { from { opacity: 0; transform: scale(.98); } to { opacity: 1; transform: scale(1); } }
+        @media (prefers-reduced-motion: reduce) { .gz-splash__card { animation: none; } .gz-splash__fill { transition: none; } }
       `}</style>
     </div>
   )

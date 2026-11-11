@@ -109,7 +109,7 @@ export default function ConfirmDialog({
               cursor: loading ? 'not-allowed' : 'pointer',
               color: '#fff',
               background: confirmBg,
-              boxShadow: '0 4px 12px ' + (tone === 'danger' ? 'rgba(239,68,68,0.3)' : 'rgba(54,54,232,0.3)'),
+              boxShadow: '0 4px 12px ' + (tone === 'danger' ? 'rgba(239,68,68,0.3)' : 'color-mix(in srgb, var(--primary) 30%, transparent)'),
               opacity: loading ? 0.7 : 1,
               transition: 'all 0.2s ease'
             }}

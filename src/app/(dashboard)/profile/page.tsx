@@ -384,8 +384,7 @@ export default function ProfilePage() {
 
   const insetRow: React.CSSProperties = {
     display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-    padding: isMobile ? '10px 14px' : '14px 18px', borderRadius: '14px', background: 'var(--surface-2)',
-    boxShadow: 'inset 3px 3px 6px var(--neu-dark), inset -3px -3px 6px var(--neu-light)',
+    padding: '11px 0', borderRadius: 0, background: 'transparent', borderTop: '1px solid var(--gz-line)',
     gap: '16px',
   }
 
@@ -415,7 +414,7 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="page-container fade-in mobile-profile-page" style={{ padding: isMobile ? '12px' : '20px', paddingBottom: '24px' }}>
+    <div className="gz-page fade-in mobile-profile-page">
       <div style={{ maxWidth: '960px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '24px' }}>
 
         {/* ── Back & Settings ── */}
@@ -529,7 +528,7 @@ export default function ProfilePage() {
           {/* ── Personal Information ── */}
           <div className="card" style={{ padding: isMobile ? '16px' : '28px', display: 'flex', flexDirection: 'column' }}>
             <h3 style={{ fontSize: '15px', fontWeight: '700', color: 'var(--text-primary)', marginBottom: '18px', display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#3636e8" strokeWidth="2">
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" strokeWidth="2">
                 <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
                 <circle cx="12" cy="7" r="4"/>
               </svg>
@@ -693,7 +692,7 @@ export default function ProfilePage() {
                   background: 'var(--primary-light)', border: '1px solid #d4d4ff',
                   display: 'flex', gap: '10px', alignItems: 'flex-start', marginTop: '4px'
                 }}>
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6366f1" strokeWidth="2" style={{ flexShrink: 0, marginTop: '1px' }}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" strokeWidth="2" style={{ flexShrink: 0, marginTop: '1px' }}>
                     <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
                   </svg>
                   <p style={{ fontSize: '12px', color: '#4b4bcc', lineHeight: 1.5, margin: 0 }}>
@@ -707,7 +706,7 @@ export default function ProfilePage() {
           {/* ── Account Details ── */}
           <div className="card" style={{ padding: isMobile ? '16px' : '28px', display: 'flex', flexDirection: 'column' }}>
             <h3 style={{ fontSize: '15px', fontWeight: '700', color: 'var(--text-primary)', marginBottom: '18px', display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#3636e8" strokeWidth="2">
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" strokeWidth="2">
                 <circle cx="12" cy="12" r="10"/>
                 <line x1="12" y1="16" x2="12" y2="12"/>
                 <line x1="12" y1="8" x2="12.01" y2="8"/>
@@ -920,9 +919,9 @@ export default function ProfilePage() {
               fontSize: isMobile ? '13px' : undefined,
               fontWeight: isMobile ? '600' : undefined,
               borderRadius: isMobile ? '50px' : undefined,
-              border: isMobile ? '1.5px solid rgba(99,102,241,0.25)' : undefined,
+              border: isMobile ? '1.5px solid color-mix(in srgb, var(--primary) 25%, transparent)' : undefined,
               color: isMobile ? 'var(--accent)' : undefined,
-              background: isMobile ? 'rgba(99,102,241,0.06)' : undefined,
+              background: isMobile ? 'color-mix(in srgb, var(--primary) 6%, transparent)' : undefined,
             }}
           >
             Discard

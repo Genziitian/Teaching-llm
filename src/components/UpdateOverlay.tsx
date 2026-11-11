@@ -265,7 +265,7 @@ export default function UpdateOverlay() {
               }} style={{
                 background: 'var(--primary)', color: '#fff', border: 'none', padding: '14px',
                 borderRadius: '12px', fontSize: '15px', fontWeight: '700', cursor: 'pointer',
-                boxShadow: '0 4px 14px rgba(54,54,232,0.25)', width: '100%', transition: 'transform 0.1s'
+                boxShadow: '0 4px 14px color-mix(in srgb, var(--primary) 25%, transparent)', width: '100%', transition: 'transform 0.1s'
               }}>
                 {currentUpdate.ctaText}
               </button>

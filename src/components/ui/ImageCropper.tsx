@@ -120,7 +120,7 @@ export default function ImageCropper({ image, aspect = 16 / 9, onCropComplete, o
               padding: '10px 24px', borderRadius: '50px', border: 'none',
               background: 'var(--primary)', color: '#fff',
               fontSize: '14px', fontWeight: 700, cursor: 'pointer',
-              boxShadow: '0 4px 12px rgba(54,54,232,0.4)'
+              boxShadow: '0 4px 12px color-mix(in srgb, var(--primary) 40%, transparent)'
             }}
           >
             Apply Crop

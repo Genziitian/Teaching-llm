@@ -107,7 +107,7 @@ export default function PromptsAdminPage() {
       </div>
 
       {isCreating && (
-        <div className="card" style={{ padding: '24px', marginBottom: '30px', borderTop: '4px solid #6366f1' }}>
+        <div className="card" style={{ padding: '24px', marginBottom: '30px', borderTop: '4px solid var(--primary)' }}>
           <h2 style={{ fontSize: '18px', fontWeight: 700, marginBottom: '20px' }}>{editingPromptId ? 'Edit Prompt' : 'Create New Prompt'}</h2>
           
           <div className="form-group">

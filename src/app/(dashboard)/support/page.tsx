@@ -171,7 +171,7 @@ function CreateTicketModal({
             <label className="form-label">Issue Type</label>
             <div style={{ display: 'flex', gap: '8px' }}>
               {['GENERAL', 'SUBJECT'].map(t => (
-                <button key={t} onClick={() => setForm((f: any) => ({ ...f, type: t }))} style={{ flex: 1, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '10px', borderRadius: '14px', border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontSize: '13px', fontWeight: '700', background: form.type === t ? 'var(--primary)' : 'var(--surface-2)', color: form.type === t ? '#fff' : 'var(--text-secondary)', boxShadow: form.type === t ? '4px 4px 10px rgba(54,54,232,0.3)' : '4px 4px 8px var(--neu-dark), -4px -4px 8px var(--neu-light)' }}>
+                <button key={t} onClick={() => setForm((f: any) => ({ ...f, type: t }))} style={{ flex: 1, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '10px', borderRadius: '14px', border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontSize: '13px', fontWeight: '700', background: form.type === t ? 'var(--primary)' : 'var(--surface-2)', color: form.type === t ? '#fff' : 'var(--text-secondary)', boxShadow: form.type === t ? '4px 4px 10px color-mix(in srgb, var(--primary) 30%, transparent)' : '4px 4px 8px var(--neu-dark), -4px -4px 8px var(--neu-light)' }}>
                   {t === 'GENERAL' ? (
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M3 18v-6a9 9 0 0118 0v6" /><path d="M21 19a2 2 0 01-2 2h-1a2 2 0 01-2-2v-3a2 2 0 012-2h3zM3 19a2 2 0 002 2h1a2 2 0 002-2v-3a2 2 0 00-2-2H3z" /></svg>
                   ) : (
@@ -955,7 +955,7 @@ export default function SupportPage() {
           <div className="faq-card-col" style={{ ...card }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
               <div style={{ width: '52px', height: '52px', borderRadius: '16px', background: 'var(--primary-light)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#3636e8" strokeWidth="2">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" strokeWidth="2">
                   <circle cx="12" cy="12" r="10" /><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3" /><line x1="12" y1="17" x2="12.01" y2="17" strokeWidth="2.5" strokeLinecap="round" />
                 </svg>
               </div>
@@ -1046,7 +1046,7 @@ export default function SupportPage() {
                       Have an idea? Tell us what you&apos;d love to see.
                     </div>
                   </div>
-                  <button onClick={() => setShowFeatureModal(true)} className="btn" style={{ borderRadius: '50px', padding: '10px 20px', background: 'linear-gradient(135deg, #8b5cf6, #6366f1)', color: '#fff', border: 'none', fontWeight: 700, fontSize: '13px', cursor: 'pointer' }}>+ Request</button>
+                  <button onClick={() => setShowFeatureModal(true)} className="btn" style={{ borderRadius: '50px', padding: '10px 20px', background: 'linear-gradient(135deg, #8b5cf6, var(--primary))', color: '#fff', border: 'none', fontWeight: 700, fontSize: '13px', cursor: 'pointer' }}>+ Request</button>
                 </div>
                 {featureRequests.length > 0 && (
                   <div style={{ marginTop: '16px', borderTop: '1px solid rgba(139,92,246,0.15)', paddingTop: '14px' }}>
@@ -1057,7 +1057,7 @@ export default function SupportPage() {
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                       {featureRequests.slice(0, 3).map(fr => (
                         <div key={fr.id} onClick={() => setView('featureRequests')} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '10px 12px', background: 'var(--surface)', borderRadius: '14px', cursor: 'pointer', border: '1px solid var(--border)' }}>
-                          <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: fr.status === 'PENDING' ? '#f59e0b' : fr.status === 'ACCEPTED' ? '#10b981' : fr.status === 'REJECTED' ? '#ef4444' : '#6366f1', flexShrink: 0 }} />
+                          <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: fr.status === 'PENDING' ? '#f59e0b' : fr.status === 'ACCEPTED' ? '#10b981' : fr.status === 'REJECTED' ? '#ef4444' : 'var(--primary)', flexShrink: 0 }} />
                           <div style={{ flex: 1, minWidth: 0 }}>
                             <div style={{ fontSize: '13px', fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: 'var(--text-primary)' }}>{fr.title}</div>
                             <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>{fr.status} · {new Date(fr.createdAt).toLocaleDateString()}</div>
@@ -1278,7 +1278,7 @@ export default function SupportPage() {
                 <button
                   onClick={submitFeatureRequest}
                   disabled={!featureForm.title.trim() || !featureForm.description.trim() || submittingFeature}
-                  style={{ padding: '13px', borderRadius: '14px', background: (!featureForm.title.trim() || !featureForm.description.trim()) ? 'var(--text-muted)' : 'linear-gradient(135deg, #8b5cf6, #6366f1)', color: '#fff', border: 'none', fontSize: '14px', fontWeight: 800, cursor: 'pointer', fontFamily: 'inherit', opacity: submittingFeature ? 0.6 : 1, marginTop: '4px' }}
+                  style={{ padding: '13px', borderRadius: '14px', background: (!featureForm.title.trim() || !featureForm.description.trim()) ? 'var(--text-muted)' : 'linear-gradient(135deg, #8b5cf6, var(--primary))', color: '#fff', border: 'none', fontSize: '14px', fontWeight: 800, cursor: 'pointer', fontFamily: 'inherit', opacity: submittingFeature ? 0.6 : 1, marginTop: '4px' }}
                 >
                   {submittingFeature ? 'Submitting...' : 'Submit Feature Request'}
                 </button>
@@ -1303,7 +1303,7 @@ export default function SupportPage() {
               {featureRequests.length} feature request{featureRequests.length !== 1 ? 's' : ''}
             </span>
             {(userRole === 'STUDENT' || (userRole === 'ADMIN' || userRole === 'MODERATOR')) && (
-              <button onClick={() => setShowFeatureModal(true)} className="btn btn-primary btn-sm" style={{ background: 'linear-gradient(135deg, #8b5cf6, #6366f1)', border: 'none', borderRadius: '50px', padding: '8px 16px' }}>
+              <button onClick={() => setShowFeatureModal(true)} className="btn btn-primary btn-sm" style={{ background: 'linear-gradient(135deg, #8b5cf6, var(--primary))', border: 'none', borderRadius: '50px', padding: '8px 16px' }}>
                 + Request
               </button>
             )}
@@ -1336,7 +1336,7 @@ export default function SupportPage() {
                           background: 'var(--surface-2)',
                           fontSize: '12px',
                           fontWeight: 700,
-                          color: fr.status === 'PENDING' ? '#f59e0b' : fr.status === 'ACCEPTED' ? '#10b981' : fr.status === 'REJECTED' ? '#ef4444' : '#6366f1',
+                          color: fr.status === 'PENDING' ? '#f59e0b' : fr.status === 'ACCEPTED' ? '#10b981' : fr.status === 'REJECTED' ? '#ef4444' : 'var(--primary)',
                           outline: 'none',
                           cursor: 'pointer',
                         }}
@@ -1465,7 +1465,7 @@ export default function SupportPage() {
                 <button
                   onClick={submitFeatureRequest}
                   disabled={!featureForm.title.trim() || !featureForm.description.trim() || submittingFeature}
-                  style={{ padding: '13px', borderRadius: '14px', background: (!featureForm.title.trim() || !featureForm.description.trim()) ? 'var(--text-muted)' : 'linear-gradient(135deg, #8b5cf6, #6366f1)', color: '#fff', border: 'none', fontSize: '14px', fontWeight: 800, cursor: 'pointer', fontFamily: 'inherit', opacity: submittingFeature ? 0.6 : 1, marginTop: '4px' }}
+                  style={{ padding: '13px', borderRadius: '14px', background: (!featureForm.title.trim() || !featureForm.description.trim()) ? 'var(--text-muted)' : 'linear-gradient(135deg, #8b5cf6, var(--primary))', color: '#fff', border: 'none', fontSize: '14px', fontWeight: 800, cursor: 'pointer', fontFamily: 'inherit', opacity: submittingFeature ? 0.6 : 1, marginTop: '4px' }}
                 >
                   {submittingFeature ? 'Submitting...' : 'Submit Feature Request'}
                 </button>
@@ -2037,7 +2037,7 @@ export default function SupportPage() {
             ) : historyChats.map(c => (
               <div key={c.id}
                 onClick={() => viewHistory(c)}
-                style={{ padding: '14px 16px', borderRadius: '18px', cursor: 'pointer', ...neu, outline: selectedHistory?.id === c.id ? '2px solid #3636e8' : 'none' }}>
+                style={{ padding: '14px 16px', borderRadius: '18px', cursor: 'pointer', ...neu, outline: selectedHistory?.id === c.id ? '2px solid var(--primary)' : 'none' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div 
@@ -2103,7 +2103,7 @@ export default function SupportPage() {
                               gap: '2px',
                               padding: '1px 5px',
                               borderRadius: '50px',
-                              background: 'linear-gradient(135deg, #3636e8, #6366f1)',
+                              background: 'linear-gradient(135deg, var(--primary), var(--primary))',
                               color: '#fff',
                               fontSize: '8px',
                               fontWeight: '800',

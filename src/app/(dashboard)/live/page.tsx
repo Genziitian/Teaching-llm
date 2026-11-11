@@ -406,7 +406,7 @@ export default function LivePage() {
           ) : (
             <div style={{
               width: '38px', height: '38px', borderRadius: '50%', flexShrink: 0, background: 'var(--surface-2)',
-              boxShadow: isNextUpcoming ? '3px 3px 6px var(--neu-dark), -3px -3px 6px var(--neu-light), 0 0 0 2px rgba(54,54,232,0.15)' : '3px 3px 6px var(--neu-dark), -3px -3px 6px var(--neu-light)',
+              boxShadow: isNextUpcoming ? '3px 3px 6px var(--neu-dark), -3px -3px 6px var(--neu-light), 0 0 0 2px color-mix(in srgb, var(--primary) 15%, transparent)' : '3px 3px 6px var(--neu-dark), -3px -3px 6px var(--neu-light)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
             }}>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={isNextUpcoming ? 'var(--primary)' : 'var(--text-muted)'} strokeWidth="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
@@ -607,7 +607,7 @@ export default function LivePage() {
             {offering.hasRecorded && (
               <div style={{
                 padding: '16px', borderRadius: '20px',
-                background: 'var(--surface-2, rgba(99, 102, 241, 0.02))',
+                background: 'var(--surface-2, color-mix(in srgb, var(--primary) 2%, transparent))',
                 border: '1.5px solid var(--border)',
                 boxShadow: '0 4px 12px rgba(0,0,0,0.02)'
               }}>
@@ -648,10 +648,10 @@ export default function LivePage() {
             {offering.hasLive && (
               <div style={{
                 padding: '16px', borderRadius: '20px',
-                background: 'var(--surface-2, rgba(99, 102, 241, 0.02))',
+                background: 'var(--surface-2, color-mix(in srgb, var(--primary) 2%, transparent))',
                 border: '1.5px solid var(--accent)',
                 position: 'relative',
-                boxShadow: '0 8px 24px rgba(99,102,241,0.08)'
+                boxShadow: '0 8px 24px color-mix(in srgb, var(--primary) 8%, transparent)'
               }}>
                 <div style={{
                   position: 'absolute', top: '12px', right: '16px',
@@ -756,7 +756,7 @@ export default function LivePage() {
               width: '100%', padding: '16px', borderRadius: '18px', border: 'none',
               background: 'linear-gradient(135deg, var(--accent) 0%, var(--primary) 100%)',
               color: 'white', fontWeight: '700', fontSize: '15px', cursor: 'pointer',
-              boxShadow: '0 4px 12px rgba(99, 102, 241, 0.3)',
+              boxShadow: '0 4px 12px color-mix(in srgb, var(--primary) 30%, transparent)',
             }}
           >
             Got it, let&apos;s go! 🚀
@@ -811,7 +811,7 @@ export default function LivePage() {
                 <tr style={{ borderBottom: '1px solid #2d3748', background: '#171923' }}>
                   <th style={{ padding: '14px 16px', fontWeight: '700', color: '#a0aec0', width: '40%' }}>FEATURES</th>
                   <th style={{ padding: '14px 16px', fontWeight: '800', color: '#d69e2e', textAlign: 'center', width: '30%', background: 'rgba(214, 158, 46, 0.05)' }}>PLUS</th>
-                  <th style={{ padding: '14px 16px', fontWeight: '800', color: '#6366f1', textAlign: 'center', width: '30%', background: 'rgba(99, 102, 241, 0.05)' }}>PRO</th>
+                  <th style={{ padding: '14px 16px', fontWeight: '800', color: 'var(--primary)', textAlign: 'center', width: '30%', background: 'color-mix(in srgb, var(--primary) 5%, transparent)' }}>PRO</th>
                 </tr>
               </thead>
               <tbody>
@@ -835,7 +835,7 @@ export default function LivePage() {
                     <td style={{
                       padding: '12px 16px', textAlign: 'center', fontWeight: '700',
                       color: row.pro.includes('✅') ? '#48bb78' : '#e53e3e',
-                      background: 'rgba(99, 102, 241, 0.02)'
+                      background: 'color-mix(in srgb, var(--primary) 2%, transparent)'
                     }}>
                       {row.pro}
                     </td>
@@ -854,9 +854,9 @@ export default function LivePage() {
               }}
               style={{
                 padding: '12px 32px', borderRadius: '50px', border: 'none',
-                background: 'linear-gradient(135deg, #6366f1, #4f46e5)', color: '#ffffff',
+                background: 'linear-gradient(135deg, var(--primary), var(--primary))', color: '#ffffff',
                 fontSize: '14px', fontWeight: '800', cursor: 'pointer',
-                boxShadow: '0 4px 15px rgba(99, 102, 241, 0.3)', transition: 'all 0.2s'
+                boxShadow: '0 4px 15px color-mix(in srgb, var(--primary) 30%, transparent)', transition: 'all 0.2s'
               }}
               onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-1px)'}
               onMouseLeave={e => e.currentTarget.style.transform = 'translateY(0)'}
@@ -881,7 +881,7 @@ export default function LivePage() {
         }}>
           <div className="spinner" style={{
             width: '40px', height: '40px', border: '4px solid #f3f3f3',
-            borderTop: '4px solid #6366f1', borderRadius: '50%',
+            borderTop: '4px solid var(--primary)', borderRadius: '50%',
             margin: '0 auto 20px',
             animation: 'spin 1s linear infinite'
           }} />

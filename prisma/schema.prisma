@@ -1786,5 +1786,42 @@ model ProtectionCourse {
 model AppFlags {
   id             String   @id @default("singleton")
   couponsEnabled Boolean  @default(false)
+  hiddenMenus    String?  // comma-separated sidebar hrefs hidden from non-managers; NULL = default
   updatedAt      DateTime @updatedAt
+}
+
+// Genie support assistant: editable question/answer graph (nodes = menus or answers, options = links between them)
+model GenieNode {
+  id          String        @id
+  kind        String        @default("menu") // menu | answer
+  questionEn  String?
+  questionHi  String?
+  answerEn    String?
+  answerHi    String?
+  linkLabelEn String?
+  linkLabelHi String?
+  linkHref    String?
+  needsAgent  Boolean       @default(false)
+  ticketType  String?
+  x           Float?
+  y           Float?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  outgoing    GenieOption[] @relation("GenieOptionFrom")
+  incoming    GenieOption[] @relation("GenieOptionTo")
+}
+
+model GenieOption {
+  id        String     @id @default(cuid())
+  fromId    String
+  toId      String
+  labelEn   String
+  labelHi   String
+  sortOrder Int        @default(0)
+  from      GenieNode  @relation("GenieOptionFrom", fields: [fromId], references: [id], onDelete: Cascade)
+  to        GenieNode  @relation("GenieOptionTo", fields: [toId], references: [id], onDelete: Cascade)
+
+  @@unique([fromId, toId])
+  @@index([fromId])
+  @@index([toId])
 }

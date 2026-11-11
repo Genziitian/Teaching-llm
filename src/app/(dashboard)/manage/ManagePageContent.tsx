@@ -2030,7 +2030,7 @@ export function ManagePageInner({ forcedTab }: ManagePageInnerProps = {}) {
                 fontSize: '13px',
                 fontWeight: '500',
                 color: tab === t.key ? 'var(--accent)' : 'var(--text-secondary)',
-                borderBottom: tab === t.key ? '2px solid #6366f1' : '2px solid transparent',
+                borderBottom: tab === t.key ? '2px solid var(--primary)' : '2px solid transparent',
                 background: 'none',
                 cursor: 'pointer',
                 transition: 'all 0.15s',
@@ -2078,14 +2078,14 @@ export function ManagePageInner({ forcedTab }: ManagePageInnerProps = {}) {
             .nc-label{font-size:13px;font-weight:600;color:var(--text-secondary);display:flex;justify-content:space-between;align-items:center;gap:8px}
             .nc-count{font-size:12px;font-weight:500;color:var(--text-muted)}
             .nc-input{width:100%;box-sizing:border-box;padding:11px 14px;border-radius:12px;border:1.5px solid var(--border);background:var(--surface-2);font-size:14px;color:var(--text-primary);font-family:inherit;transition:border-color .15s,box-shadow .15s}
-            .nc-input:focus{outline:none;border-color:#4f46e5;box-shadow:0 0 0 3px rgba(79,70,229,.18)}
+            .nc-input:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px color-mix(in srgb, var(--primary) 18%, transparent)}
             .nc-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
             .nc-chips{display:flex;flex-wrap:wrap;gap:8px}
             .nc-chip{padding:8px 14px;border-radius:999px;border:1.5px solid var(--border);background:transparent;color:var(--text-secondary);font-size:13px;font-weight:600;cursor:pointer;transition:all .15s}
-            .nc-chip.on{background:#4f46e5;border-color:#4f46e5;color:#fff}
+            .nc-chip.on{background:var(--primary);border-color:var(--primary);color:#fff}
             .nc-seg{display:flex;padding:4px;border-radius:12px;background:var(--surface-2);border:1px solid var(--border);gap:4px}
             .nc-seg button{flex:1;padding:9px 10px;border:none;border-radius:9px;background:transparent;color:var(--text-secondary);font-size:13px;font-weight:700;cursor:pointer;transition:all .15s;white-space:nowrap}
-            .nc-seg button.on{background:#4f46e5;color:#fff}
+            .nc-seg button.on{background:var(--primary);color:#fff}
             .nc-btn{padding:10px 14px;border-radius:12px;border:1.5px solid var(--border);background:var(--surface);color:var(--text-primary);font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap}
             .nc-btn:disabled{opacity:.6;cursor:not-allowed}
             .nc-imgrow{display:flex;gap:8px;flex-wrap:wrap}
@@ -2093,7 +2093,7 @@ export function ManagePageInner({ forcedTab }: ManagePageInnerProps = {}) {
             .nc-thumb{display:flex;align-items:center;gap:12px}
             .nc-thumb-img{width:96px;height:54px;border-radius:10px;background-size:cover;background-position:center;border:1px solid var(--border);flex-shrink:0}
             .nc-hint{font-size:12px;color:var(--text-muted);margin:0}
-            .nc-send{width:100%;padding:14px 20px;border-radius:14px;border:none;background:#4f46e5;color:#fff;font-size:15px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:opacity .15s}
+            .nc-send{width:100%;padding:14px 20px;border-radius:14px;border:none;background:var(--primary);color:#fff;font-size:15px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:opacity .15s}
             .nc-send:disabled{opacity:.45;cursor:not-allowed}
             .nc-why{font-size:12.5px;color:var(--text-muted);text-align:center;margin:8px 0 0}
             .nc-preview-title{display:flex;justify-content:space-between;align-items:center}
@@ -2103,7 +2103,7 @@ export function ManagePageInner({ forcedTab }: ManagePageInnerProps = {}) {
             .nc-clock{color:rgba(255,255,255,.9);font-size:40px;font-weight:300;letter-spacing:-.02em;line-height:1}
             .nc-push{width:100%;max-width:340px;background:rgba(255,255,255,.96);color:#111827;border-radius:18px;padding:12px 14px;display:flex;flex-direction:column;gap:6px;box-shadow:0 10px 25px rgba(0,0,0,.35)}
             .nc-push-top{display:flex;align-items:center;gap:8px;font-size:12px;color:#6b7280;font-weight:600}
-            .nc-push-logo{width:18px;height:18px;border-radius:5px;background:#4f46e5;color:#fff;font-size:10px;font-weight:800;display:flex;align-items:center;justify-content:center}
+            .nc-push-logo{width:18px;height:18px;border-radius:5px;background:var(--primary);color:#fff;font-size:10px;font-weight:800;display:flex;align-items:center;justify-content:center}
             .nc-push-top .grow{flex:1;color:#374151}
             .nc-push-title{margin:0;font-size:14px;font-weight:800;color:#111827;line-height:1.3;word-break:break-word}
             .nc-push-body{margin:0;font-size:13px;color:#4b5563;line-height:1.4;word-break:break-word}
@@ -2922,7 +2922,7 @@ export function ManagePageInner({ forcedTab }: ManagePageInnerProps = {}) {
                     alignItems: 'center',
                     justifyContent: 'space-between',
                     marginBottom: '10px',
-                    boxShadow: '0 8px 16px rgba(54,54,232,0.15)'
+                    boxShadow: '0 8px 16px color-mix(in srgb, var(--primary) 15%, transparent)'
                   }}>
                     <div>
                       <div style={{ fontSize: '11px', fontWeight: '700', opacity: 0.8, textTransform: 'uppercase', letterSpacing: '0.05em' }}>System Mapping</div>
@@ -3213,7 +3213,7 @@ export function ManagePageInner({ forcedTab }: ManagePageInnerProps = {}) {
             onClick={e => e.stopPropagation()}
           >
             <div style={{
-              background: 'linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)',
+              background: 'linear-gradient(135deg, var(--primary) 0%, #7c3aed 100%)',
               padding: '24px 28px', position: 'relative', flexShrink: 0,
               display: 'flex', justifyContent: 'space-between', alignItems: 'center'
             }}>
@@ -3230,7 +3230,7 @@ export function ManagePageInner({ forcedTab }: ManagePageInnerProps = {}) {
             <div style={{ padding: '24px', overflowY: 'auto', flex: 1, background: 'var(--surface)' }}>
               {recentPhotosLoading ? (
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '220px', gap: '12px' }}>
-                  <div style={{ width: '40px', height: '40px', border: '3px solid var(--border)', borderTop: '3px solid #6366f1', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
+                  <div style={{ width: '40px', height: '40px', border: '3px solid var(--border)', borderTop: '3px solid var(--primary)', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
                   <span style={{ fontSize: '13px', color: 'var(--text-secondary)', fontWeight: '600' }}>Loading recent photos…</span>
                 </div>
               ) : recentPhotos.length === 0 ? (
@@ -3262,7 +3262,7 @@ export function ManagePageInner({ forcedTab }: ManagePageInnerProps = {}) {
                         if (!canHover()) return
                         e.currentTarget.style.transform = 'translateY(-2px)'
                         e.currentTarget.style.borderColor = 'var(--accent)'
-                        e.currentTarget.style.boxShadow = '0 10px 15px rgba(99, 102, 241, 0.15)'
+                        e.currentTarget.style.boxShadow = '0 10px 15px color-mix(in srgb, var(--primary) 15%, transparent)'
                       }}
                       onMouseLeave={e => {
                         e.currentTarget.style.transform = 'none'
@@ -3606,7 +3606,7 @@ function CourseIconTypeModal({
                   padding: '12px',
                   cursor: 'pointer',
                   fontFamily: 'inherit',
-                  boxShadow: selected ? '0 10px 22px rgba(79, 70, 229, 0.14)' : 'none',
+                  boxShadow: selected ? '0 10px 22px color-mix(in srgb, var(--primary) 14%, transparent)' : 'none',
                 }}
               >
                 <CourseIconBadge type={option.type} size={46} iconSize={23} radius={14} />

@@ -579,7 +579,7 @@ export default function MailAssignerPageContent() {
                     padding: 2,
                     cursor: 'pointer',
                     flexShrink: 0,
-                    background: email.isActive ? '#4f46e5' : 'var(--toggle-off, rgba(120,120,140,0.4))',
+                    background: email.isActive ? 'var(--primary)' : 'var(--toggle-off, rgba(120,120,140,0.4))',
                     display: 'flex',
                     justifyContent: email.isActive ? 'flex-end' : 'flex-start',
                     transition: 'background .2s',

@@ -99,7 +99,7 @@ function StudentFeedbackView({ userId }: { userId: string }) {
   if (isLoading) return <div className="page-container animate-pulse" />
 
   return (
-    <div className="page-container fade-in" style={{ maxWidth: '900px', margin: '0 auto', padding: 'clamp(16px, 4vw, 32px)' }}>
+    <div className="gz-page fade-in" style={{ maxWidth: 900 }}>
       <style>{`
         .mobile-back-header {
           display: none !important;
@@ -490,7 +490,7 @@ function ManagerFeedbackView() {
   if (isLoading) return <div className="page-container animate-pulse" />
 
   return (
-    <div className="page-container fade-in" style={{ padding: 'clamp(16px, 4vw, 32px)' }}>
+    <div className="gz-page fade-in">
       <style dangerouslySetInnerHTML={{__html: `
         @media (min-width: 768px) {
           .feedback-mobile-header {
@@ -733,10 +733,10 @@ function ManagerFeedbackView() {
                   </p>
                 </div>
                 <div style={{ 
-                  background: isAppOrWeb ? 'rgba(54,54,232,0.05)' : 'var(--surface)', 
+                  background: isAppOrWeb ? 'color-mix(in srgb, var(--primary) 5%, transparent)' : 'var(--surface)', 
                   padding: '6px 14px', borderRadius: '50px', 
                   fontSize: '12px', fontWeight: '700', 
-                  color: f.course.id === 'APP' ? '#3636e8' : f.course.id === 'WEB' ? '#10b981' : 'var(--primary)', 
+                  color: f.course.id === 'APP' ? 'var(--primary)' : f.course.id === 'WEB' ? '#10b981' : 'var(--primary)', 
                   border: '1px solid var(--border)' 
                 }}>
                   {f.course.name}
@@ -957,7 +957,7 @@ function ForceFeedbackSettingsModal({
                   padding: '14px 16px',
                   borderRadius: '14px',
                   border: hasChanged ? '1.5px solid var(--primary)' : '1px solid var(--border)',
-                  background: hasChanged ? 'rgba(99, 102, 241, 0.04)' : 'var(--surface)',
+                  background: hasChanged ? 'color-mix(in srgb, var(--primary) 4%, transparent)' : 'var(--surface)',
                   cursor: 'pointer',
                   width: '100%',
                   textAlign: 'left',
@@ -1020,7 +1020,7 @@ function ForceFeedbackSettingsModal({
                       fontSize: '9px',
                       fontWeight: '800',
                       color: 'var(--primary)',
-                      background: 'rgba(99, 102, 241, 0.1)',
+                      background: 'color-mix(in srgb, var(--primary) 10%, transparent)',
                       padding: '2px 6px',
                       borderRadius: '6px',
                       marginLeft: '4px',
@@ -1368,7 +1368,7 @@ function AdminFeedbackView({ user }: { user: any }) {
   }
 
   return (
-    <div className="page-container fade-in" style={{ padding: 'clamp(16px, 4vw, 32px)', maxWidth: '900px', margin: '0 auto' }}>
+    <div className="gz-page fade-in" style={{ maxWidth: 900 }}>
       {/* Mobile back header */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '28px' }}>
         <button

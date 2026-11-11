@@ -75,6 +75,18 @@ function isCardActionElement(target: EventTarget | null) {
   return target instanceof HTMLElement && !!target.closest('a, button, input, select, textarea, [role="button"], [role="menu"], [role="menuitem"]')
 }
 
+function courseArtFor(c: any): string {
+  const t = `${c?.academicTerm || ''} ${c?.subject || ''} ${c?.name || ''}`.toLowerCase()
+  if (/crash/.test(t)) return '/store-art/store-course.webp'
+  if (/re-?attempt/.test(t)) return '/store-art/term-reattempt.webp'
+  if (/qualifier/.test(t)) return '/store-art/term-qualifier.webp'
+  if (/diploma/.test(t)) return '/store-art/term-diploma.webp'
+  if (/degree/.test(t)) return '/store-art/term-degree.webp'
+  if (/foundation/.test(t)) return '/store-art/term-foundation.webp'
+  if (c?.enrollmentType === 'FREE' || c?.isDemo) return '/store-art/term-general.webp'
+  return '/store-art/store-course.webp'
+}
+
 export default function CourseDetailPage() {
   const params = useParams()
   const router = useRouter()
@@ -640,8 +652,9 @@ export default function CourseDetailPage() {
     {/* Desktop layout */}
     <div className="page-container fade-in course-detail-desktop-only">
       {/* Course Header Banner */}
-      <div className="card" style={{ overflow: 'hidden', marginBottom: '20px' }}>
+      <div className="card gz-chead" style={{ overflow: 'hidden', marginBottom: '20px' }}>
         <div 
+          className="gz-chead__bg"
           onMouseEnter={() => setShowUpgradeHint(true)}
           onMouseLeave={() => setShowUpgradeHint(false)}
           style={{
@@ -777,6 +790,8 @@ export default function CourseDetailPage() {
                 </button>
               )}
           </div>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img className="gz-chead__art" src={courseArtFor(course)} alt="" />
         </div>
       </div>
 
@@ -882,7 +897,8 @@ export default function CourseDetailPage() {
             return (
               <button
                 key={tab}
-                className="tab-underline-hover"
+                className="tab-underline-hover gz-tab"
+                data-active={isActive ? 'true' : 'false'}
                 onClick={() => {
                   if (tab === 'community') {
                     openCourseCommunity()
@@ -1089,9 +1105,9 @@ export default function CourseDetailPage() {
 	                  : `Lecture${topicItemCount !== 1 ? 's' : ''}`
 
 	                return (
-	                  <div key={topic.id} style={{ display: 'flex', flexDirection: 'column', gap: expandedTopics.has(topic.id) ? '16px' : '0' }}>
+	                  <div key={topic.id} className="gz-topic-wrap" style={{ display: 'flex', flexDirection: 'column', gap: expandedTopics.has(topic.id) ? '10px' : '0' }}>
 	                    {/* Topic Accordion Header */}
-	                    <div style={{
+	                    <div className="gz-topic" style={{
 	                      display: 'flex',
 	                      alignItems: 'center',
 	                      width: '100%',
@@ -1121,7 +1137,7 @@ export default function CourseDetailPage() {
 	                          textAlign: 'left',
 	                        }}
 	                      >
-	                        <div style={{
+	                        <div className="gz-topic__no" style={{
 	                          width: '42px', height: '42px',
 	                          borderRadius: '11px',
 	                          background: coursePalette.softBg,
@@ -1131,7 +1147,7 @@ export default function CourseDetailPage() {
 	                          fontSize: '16px', fontWeight: '900', flexShrink: 0,
 	                          lineHeight: 1,
 	                        }}>
-	                          {topicNumber}
+	                          {String(topicNumber).padStart(2, '0')}
 	                        </div>
 	                        <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: '2px' }}>
 	                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -1745,7 +1761,7 @@ export default function CourseDetailPage() {
                                   alignItems: 'center',
                                   textAlign: 'center',
                                   cursor: 'pointer',
-                                  boxShadow: '0 20px 40px rgba(0, 0, 0, 0.4), 0 0 50px rgba(99, 102, 241, 0.15)',
+                                  boxShadow: '0 20px 40px rgba(0, 0, 0, 0.4), 0 0 50px color-mix(in srgb, var(--primary) 15%, transparent)',
                                   maxWidth: '340px',
                                   width: '100%',
                                   pointerEvents: 'auto',
@@ -1756,8 +1772,8 @@ export default function CourseDetailPage() {
                                   width: '44px',
                                   height: '44px',
                                   borderRadius: '50%',
-                                  background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(79, 70, 229, 0.2))',
-                                  border: '1.5px solid rgba(99, 102, 241, 0.4)',
+                                  background: 'linear-gradient(135deg, color-mix(in srgb, var(--primary) 20%, transparent), color-mix(in srgb, var(--primary) 20%, transparent))',
+                                  border: '1.5px solid color-mix(in srgb, var(--primary) 40%, transparent)',
                                   display: 'flex',
                                   alignItems: 'center',
                                   justifyContent: 'center',
@@ -1779,12 +1795,12 @@ export default function CourseDetailPage() {
                                   width: '100%',
                                   padding: '10px 20px',
                                   borderRadius: '50px',
-                                  background: 'linear-gradient(135deg, #6366f1, #4f46e5)',
+                                  background: 'linear-gradient(135deg, var(--primary), var(--primary))',
                                   color: '#ffffff',
                                   fontWeight: '800',
                                   fontSize: '13px',
                                   border: 'none',
-                                  boxShadow: '0 4px 12px rgba(99, 102, 241, 0.3)',
+                                  boxShadow: '0 4px 12px color-mix(in srgb, var(--primary) 30%, transparent)',
                                   cursor: 'pointer',
                                 }}>
                                   Unlock Now
@@ -1881,7 +1897,7 @@ export default function CourseDetailPage() {
           }} onClick={e => e.stopPropagation()}>
             {upgrading ? (
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '60px 20px' }}>
-                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#6366f1" strokeWidth="2" style={{ animation: 'spin 1s linear infinite', marginBottom: '24px' }}>
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" strokeWidth="2" style={{ animation: 'spin 1s linear infinite', marginBottom: '24px' }}>
                   <circle cx="12" cy="12" r="10" strokeOpacity="0.25"/><path d="M12 2a10 10 0 0 1 10 10" strokeOpacity="1"/>
                 </svg>
                 <h2 style={{ fontSize: '20px', fontWeight: '800', color: 'var(--text-primary)', marginBottom: '12px' }}>Processing Payment...</h2>
@@ -1921,9 +1937,9 @@ export default function CourseDetailPage() {
                     onClick={() => handleUpgrade(upgradeModalCourse.id)}
                     style={{ 
                       flex: 1.5, padding: '16px', borderRadius: '18px', border: 'none', 
-                      background: 'linear-gradient(135deg, #6366f1, #4f46e5)', 
+                      background: 'linear-gradient(135deg, var(--primary), var(--primary))', 
                       color: 'white', fontWeight: '700', cursor: 'pointer',
-                      boxShadow: '0 4px 12px rgba(79, 70, 229, 0.3)',
+                      boxShadow: '0 4px 12px color-mix(in srgb, var(--primary) 30%, transparent)',
                       display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px'
                     }}
                   >
@@ -2000,7 +2016,7 @@ export default function CourseDetailPage() {
           }}>
             <div className="spinner" style={{
               width: '40px', height: '40px', border: '4px solid #f3f3f3',
-              borderTop: '4px solid #6366f1', borderRadius: '50%',
+              borderTop: '4px solid var(--primary)', borderRadius: '50%',
               margin: '0 auto 20px'
             }} />
             <h3 style={{ fontSize: '18px', fontWeight: '800', color: 'var(--text-primary)', marginBottom: '8px' }}>Processing...</h3>
@@ -2092,7 +2108,7 @@ export default function CourseDetailPage() {
           }} onClick={e => e.stopPropagation()}>
             {upgrading ? (
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '60px 20px' }}>
-                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#6366f1" strokeWidth="2" style={{ animation: 'spin 1s linear infinite', marginBottom: '24px' }}>
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" strokeWidth="2" style={{ animation: 'spin 1s linear infinite', marginBottom: '24px' }}>
                   <circle cx="12" cy="12" r="10" strokeOpacity="0.25"/><path d="M12 2a10 10 0 0 1 10 10" strokeOpacity="1"/>
                 </svg>
                 <h2 style={{ fontSize: '20px', fontWeight: '800', color: 'var(--text-primary)', marginBottom: '12px' }}>Processing Payment...</h2>
@@ -2132,9 +2148,9 @@ export default function CourseDetailPage() {
                     onClick={() => handleUpgrade(upgradeModalCourse.id)}
                     style={{
                       flex: 1.5, padding: '16px', borderRadius: '18px', border: 'none',
-                      background: 'linear-gradient(135deg, #6366f1, #4f46e5)',
+                      background: 'linear-gradient(135deg, var(--primary), var(--primary))',
                       color: 'white', fontWeight: '700', cursor: 'pointer',
-                      boxShadow: '0 4px 12px rgba(79, 70, 229, 0.3)',
+                      boxShadow: '0 4px 12px color-mix(in srgb, var(--primary) 30%, transparent)',
                       display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px'
                     }}
                   >
@@ -2211,7 +2227,7 @@ export default function CourseDetailPage() {
           }}>
             <div className="spinner" style={{
               width: '40px', height: '40px', border: '4px solid #f3f3f3',
-              borderTop: '4px solid #6366f1', borderRadius: '50%',
+              borderTop: '4px solid var(--primary)', borderRadius: '50%',
               margin: '0 auto 20px'
             }} />
             <h3 style={{ fontSize: '18px', fontWeight: '800', color: 'var(--text-primary)', marginBottom: '8px' }}>Processing...</h3>
@@ -2268,7 +2284,7 @@ export default function CourseDetailPage() {
                   top: '40px',
                   right: '50%',
                   transform: 'translateX(50%)',
-                  background: '#6366f1',
+                  background: 'var(--primary)',
                   color: 'white',
                   padding: '10px 16px',
                   borderRadius: '12px',
@@ -2291,7 +2307,7 @@ export default function CourseDetailPage() {
                   marginLeft: '-5px',
                   borderWidth: '5px',
                   borderStyle: 'solid',
-                  borderColor: 'transparent transparent #6366f1 transparent'
+                  borderColor: 'transparent transparent var(--primary) transparent'
                 }} />
               </div>
             </div>
@@ -2353,7 +2369,7 @@ export default function CourseDetailPage() {
               {offering.hasRecorded && (
                 <div style={{
                   padding: '16px', borderRadius: '20px',
-                  background: 'var(--surface-2, rgba(99, 102, 241, 0.02))',
+                  background: 'var(--surface-2, color-mix(in srgb, var(--primary) 2%, transparent))',
                   border: '1.5px solid var(--border)',
                   boxShadow: '0 4px 12px rgba(0,0,0,0.02)'
                 }}>
@@ -2394,10 +2410,10 @@ export default function CourseDetailPage() {
               {offering.hasLive && (
                 <div style={{
                   padding: '16px', borderRadius: '20px',
-                  background: 'var(--surface-2, rgba(99, 102, 241, 0.02))',
+                  background: 'var(--surface-2, color-mix(in srgb, var(--primary) 2%, transparent))',
                   border: '1.5px solid var(--accent)',
                   position: 'relative',
-                  boxShadow: '0 8px 24px rgba(99,102,241,0.08)'
+                  boxShadow: '0 8px 24px color-mix(in srgb, var(--primary) 8%, transparent)'
                 }}>
                   <div style={{
                     position: 'absolute', top: '12px', right: '16px',
@@ -2553,7 +2569,7 @@ export default function CourseDetailPage() {
               onClick={() => { setSuccessOrderId(null); window.location.reload() }}
               style={{
                 width: '100%', padding: '16px', borderRadius: '18px', border: 'none',
-                background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
+                background: 'linear-gradient(135deg, var(--primary), #8b5cf6)',
                 color: 'white', fontWeight: '700', fontSize: '15px', cursor: 'pointer',
               }}
             >
@@ -2627,7 +2643,7 @@ export default function CourseDetailPage() {
                   <tr style={{ borderBottom: '1px solid #2d3748', background: '#171923' }}>
                     <th style={{ padding: '14px 16px', fontWeight: '700', color: '#a0aec0', width: '40%' }}>FEATURES</th>
                     <th style={{ padding: '14px 16px', fontWeight: '800', color: '#d69e2e', textAlign: 'center', width: '30%', background: 'rgba(214, 158, 46, 0.05)' }}>PLUS</th>
-                    <th style={{ padding: '14px 16px', fontWeight: '800', color: '#6366f1', textAlign: 'center', width: '30%', background: 'rgba(99, 102, 241, 0.05)' }}>PRO</th>
+                    <th style={{ padding: '14px 16px', fontWeight: '800', color: 'var(--primary)', textAlign: 'center', width: '30%', background: 'color-mix(in srgb, var(--primary) 5%, transparent)' }}>PRO</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -2651,7 +2667,7 @@ export default function CourseDetailPage() {
                       <td style={{
                         padding: '12px 16px', textAlign: 'center', fontWeight: '700',
                         color: row.pro.includes('✅') ? '#48bb78' : '#e53e3e',
-                        background: 'rgba(99, 102, 241, 0.02)'
+                        background: 'color-mix(in srgb, var(--primary) 2%, transparent)'
                       }}>
                         {row.pro}
                       </td>
@@ -2670,9 +2686,9 @@ export default function CourseDetailPage() {
                 }}
                 style={{
                   padding: '12px 32px', borderRadius: '50px', border: 'none',
-                  background: 'linear-gradient(135deg, #6366f1, #4f46e5)', color: '#ffffff',
+                  background: 'linear-gradient(135deg, var(--primary), var(--primary))', color: '#ffffff',
                   fontSize: '14px', fontWeight: '800', cursor: 'pointer',
-                  boxShadow: '0 4px 15px rgba(99, 102, 241, 0.3)', transition: 'all 0.2s'
+                  boxShadow: '0 4px 15px color-mix(in srgb, var(--primary) 30%, transparent)', transition: 'all 0.2s'
                 }}
                 onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-1px)'}
                 onMouseLeave={e => e.currentTarget.style.transform = 'translateY(0)'}

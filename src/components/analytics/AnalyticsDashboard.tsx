@@ -558,7 +558,7 @@ function AnalyticsDashboardInner() {
                       <XAxis dataKey="name" stroke="#9999b0" fontSize={11} tickLine={false} />
                       <YAxis stroke="#9999b0" fontSize={11} tickLine={false} />
                       <Tooltip contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', background: 'var(--surface)', color: 'var(--text-primary)' }} />
-                      <Bar dataKey="value" fill="#6366f1" radius={[4, 4, 0, 0]}>
+                      <Bar dataKey="value" fill="var(--primary)" radius={[4, 4, 0, 0]}>
                         {joinYearData.map((entry, index) => (
                           <Cell key={`cell-${index}`} fill={YEAR_COLORS[index % YEAR_COLORS.length]} />
                         ))}
@@ -1073,7 +1073,7 @@ function AnalyticsDashboardInner() {
                   <XAxis dataKey="termName" tick={{ fontSize: 11, fontWeight: 700, fill: 'var(--text-muted)' }} tickFormatter={(v: string) => v.replace(' Term', '')} />
                   <YAxis tick={{ fontSize: 11, fill: 'var(--text-muted)' }} tickFormatter={(v: number) => `\u20B9${(v / 1000).toFixed(0)}k`} />
                   <Tooltip contentStyle={tooltipStyle} formatter={(value: number) => [`\u20B9${value.toLocaleString('en-IN')}`, 'Revenue']} />
-                  <Bar dataKey="revenue" fill="#6366f1" radius={[6, 6, 0, 0]} name="Revenue" />
+                  <Bar dataKey="revenue" fill="var(--primary)" radius={[6, 6, 0, 0]} name="Revenue" />
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -1170,7 +1170,7 @@ function AnalyticsDashboardInner() {
                   <XAxis type="number" tick={{ fontSize: 11, fill: 'var(--text-muted)' }} tickFormatter={(v: number) => `\u20B9${(v / 1000).toFixed(0)}k`} />
                   <YAxis dataKey="label" type="category" width={80} tick={{ fontSize: 11, fontWeight: 700, fill: 'var(--text-muted)' }} />
                   <Tooltip contentStyle={tooltipStyle} formatter={(value: number) => [`\u20B9${value.toLocaleString('en-IN')}`, 'Revenue']} />
-                  <Bar dataKey="revenue" fill="#6366f1" radius={[0, 6, 6, 0]} name="Revenue" />
+                  <Bar dataKey="revenue" fill="var(--primary)" radius={[0, 6, 6, 0]} name="Revenue" />
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -1285,7 +1285,7 @@ function AnalyticsDashboardInner() {
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '20px', marginBottom: '24px' }}>
               {/* App Feedback Stats Card */}
               <div style={{ background: 'var(--surface-2)', padding: '20px', borderRadius: '16px', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: '16px' }}>
-                <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: 'rgba(54, 54, 232, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#3636e8', fontSize: '12px', fontWeight: 800 }}>
+                <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: 'color-mix(in srgb, var(--primary) 10%, transparent)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--primary)', fontSize: '12px', fontWeight: 800 }}>
                   APP
                 </div>
                 <div>

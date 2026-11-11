@@ -213,7 +213,7 @@ export default function AppUpdater() {
           maxWidth: '430px',
           background: 'linear-gradient(135deg, rgba(30, 41, 59, 0.96) 0%, rgba(15, 23, 42, 0.98) 100%)',
           border: '1px solid rgba(255, 255, 255, 0.08)',
-          boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 40px rgba(54, 54, 232, 0.18)',
+          boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 40px color-mix(in srgb, var(--primary) 18%, transparent)',
           borderRadius: '24px',
           padding: '32px',
           color: '#ffffff',
@@ -231,11 +231,11 @@ export default function AppUpdater() {
             width: '76px',
             height: '76px',
             borderRadius: '22px',
-            background: 'linear-gradient(135deg, #4f46e5 0%, #3b82f6 100%)',
+            background: 'linear-gradient(135deg, var(--primary) 0%, #3b82f6 100%)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            boxShadow: '0 8px 24px rgba(79, 70, 229, 0.4), 0 0 30px rgba(59, 130, 246, 0.2)',
+            boxShadow: '0 8px 24px color-mix(in srgb, var(--primary) 40%, transparent), 0 0 30px rgba(59, 130, 246, 0.2)',
             marginBottom: '24px',
             position: 'relative',
           }}
@@ -345,10 +345,10 @@ export default function AppUpdater() {
                 style={{
                   width: `${downloadProgress}%`,
                   height: '100%',
-                  background: 'linear-gradient(to right, #4f46e5, #3b82f6)',
+                  background: 'linear-gradient(to right, var(--primary), #3b82f6)',
                   borderRadius: '999px',
                   transition: 'width 0.2s ease-out',
-                  boxShadow: '0 0 8px rgba(79, 70, 229, 0.5)',
+                  boxShadow: '0 0 8px color-mix(in srgb, var(--primary) 50%, transparent)',
                 }}
               />
             </div>
@@ -380,13 +380,13 @@ export default function AppUpdater() {
                 width: '100%',
                 padding: '14px',
                 borderRadius: '14px',
-                background: 'linear-gradient(135deg, #4f46e5 0%, #4338ca 100%)',
+                background: 'linear-gradient(135deg, var(--primary) 0%, #4338ca 100%)',
                 color: '#ffffff',
                 border: 'none',
                 fontWeight: '700',
                 fontSize: '15px',
                 cursor: 'pointer',
-                boxShadow: '0 4px 18px rgba(79, 70, 229, 0.35), 0 0 0 2px rgba(255, 255, 255, 0.05)',
+                boxShadow: '0 4px 18px color-mix(in srgb, var(--primary) 35%, transparent), 0 0 0 2px rgba(255, 255, 255, 0.05)',
                 transition: 'all 0.2s',
               }}
               className="update-action-btn"

@@ -1973,7 +1973,7 @@ export default function CommunityPage() {
                       fontWeight: 900,
                       fontFamily: 'inherit',
                       cursor: 'pointer',
-                      boxShadow: '0 8px 18px rgba(54, 54, 232, 0.24)',
+                      boxShadow: '0 8px 18px color-mix(in srgb, var(--primary) 24%, transparent)',
                     }}
                   >
                     Create Post
@@ -2540,7 +2540,7 @@ export default function CommunityPage() {
                   padding: '10px 14px', borderRadius: '18px', border: 'none',
                   cursor: 'pointer', textAlign: 'left', fontFamily: 'inherit',
                   transition: 'all 0.2s',
-                  background: selectedClass?.id === cls.id ? '#3636e8' : undefined,
+                  background: selectedClass?.id === cls.id ? 'var(--primary)' : undefined,
                   color: selectedClass?.id === cls.id ? '#fff' : 'var(--community-item-text)',
                   boxShadow: selectedClass?.id === cls.id
                     ? '5px 5px 12px rgba(54,54,232,0.35), -3px -3px 8px var(--community-item-shadow-light)'
@@ -2881,7 +2881,7 @@ export default function CommunityPage() {
                                       cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
                                       transition: 'background 0.15s',
                                     }}
-                                    onMouseEnter={e => (e.currentTarget.style.background = 'rgba(54,54,232,0.08)')}
+                                    onMouseEnter={e => (e.currentTarget.style.background = 'color-mix(in srgb, var(--primary) 8%, transparent)')}
                                     onMouseLeave={e => (e.currentTarget.style.background = 'none')}
                                   >
                                     {emoji}
@@ -4378,7 +4378,7 @@ export default function CommunityPage() {
                                     if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' })
                                   }}
                                   style={{
-                                    background: isMe ? 'rgba(0,0,0,0.06)' : 'rgba(54,54,232,0.04)',
+                                    background: isMe ? 'rgba(0,0,0,0.06)' : 'color-mix(in srgb, var(--primary) 4%, transparent)',
                                     padding: '8px 12px',
                                     borderRadius: '10px',
                                     borderLeft: `4px solid ${isAdmin ? 'var(--primary)' : 'var(--text-secondary)'}`,
@@ -4395,8 +4395,8 @@ export default function CommunityPage() {
                                     maxWidth: '100%',
                                     minWidth: 0,
                                   }}
-                                  onMouseEnter={e => e.currentTarget.style.background = isMe ? 'rgba(0,0,0,0.1)' : 'rgba(54,54,232,0.08)'}
-                                  onMouseLeave={e => e.currentTarget.style.background = isMe ? 'rgba(0,0,0,0.06)' : 'rgba(54,54,232,0.04)'}
+                                  onMouseEnter={e => e.currentTarget.style.background = isMe ? 'rgba(0,0,0,0.1)' : 'color-mix(in srgb, var(--primary) 8%, transparent)'}
+                                  onMouseLeave={e => e.currentTarget.style.background = isMe ? 'rgba(0,0,0,0.06)' : 'color-mix(in srgb, var(--primary) 4%, transparent)'}
                                 >
                                   {!isDirectMessageThread && (
                                     <div style={{ fontWeight: '800', color: isAdmin ? 'var(--primary)' : '#555', fontSize: '11px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
@@ -4440,8 +4440,8 @@ export default function CommunityPage() {
                                           Commented on <strong>{parsed.lectureTitle}</strong>:
                                         </div>
                                         <div style={{
-                                          background: 'rgba(54, 54, 232, 0.05)',
-                                          borderLeft: '3px solid #3636e8',
+                                          background: 'color-mix(in srgb, var(--primary) 5%, transparent)',
+                                          borderLeft: '3px solid var(--primary)',
                                           padding: '8px 12px',
                                           borderRadius: '6px',
                                           fontSize: '13px',
@@ -4465,22 +4465,22 @@ export default function CommunityPage() {
                                             marginTop: '2px',
                                             padding: '6px 12px',
                                             borderRadius: '6px',
-                                            background: 'linear-gradient(135deg, #3636e8, #6366f1)',
+                                            background: 'linear-gradient(135deg, var(--primary), var(--primary))',
                                             color: '#ffffff',
                                             border: 'none',
                                             fontSize: '11px',
                                             fontWeight: '700',
                                             cursor: 'pointer',
-                                            boxShadow: '0 3px 8px rgba(54,54,232,0.2)',
+                                            boxShadow: '0 3px 8px color-mix(in srgb, var(--primary) 20%, transparent)',
                                             transition: 'all 0.2s',
                                           }}
                                           onMouseEnter={(e) => {
                                             e.currentTarget.style.transform = 'translateY(-1px)'
-                                            e.currentTarget.style.boxShadow = '0 5px 12px rgba(54,54,232,0.3)'
+                                            e.currentTarget.style.boxShadow = '0 5px 12px color-mix(in srgb, var(--primary) 30%, transparent)'
                                           }}
                                           onMouseLeave={(e) => {
                                             e.currentTarget.style.transform = 'translateY(0)'
-                                            e.currentTarget.style.boxShadow = '0 3px 8px rgba(54,54,232,0.2)'
+                                            e.currentTarget.style.boxShadow = '0 3px 8px color-mix(in srgb, var(--primary) 20%, transparent)'
                                           }}
                                         >
                                           <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
@@ -4591,7 +4591,7 @@ export default function CommunityPage() {
                                   cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
                                   color: '#64748b', transition: 'background 0.16s ease, transform 0.16s ease',
                                 }}
-                                onMouseEnter={e => e.currentTarget.style.background = 'rgba(54,54,232,0.10)'}
+                                onMouseEnter={e => e.currentTarget.style.background = 'color-mix(in srgb, var(--primary) 10%, transparent)'}
                                 onMouseLeave={e => e.currentTarget.style.background = 'rgba(100,116,139,0.10)'}
                               >
                                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4Z"/></svg>
@@ -4613,7 +4613,7 @@ export default function CommunityPage() {
                                   cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
                                   color: 'var(--primary)', transition: 'background 0.16s ease, transform 0.16s ease',
                                 }}
-                                onMouseEnter={e => e.currentTarget.style.background = 'rgba(54,54,232,0.16)'}
+                                onMouseEnter={e => e.currentTarget.style.background = 'color-mix(in srgb, var(--primary) 16%, transparent)'}
                                 onMouseLeave={e => e.currentTarget.style.background = 'var(--primary-light)'}
                               >
                                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 17 4 12 9 7"/><path d="M20 18v-2a4 4 0 0 0-4-4H4"/></svg>
@@ -4643,7 +4643,7 @@ export default function CommunityPage() {
                 <div style={{ 
                   marginBottom: '8px', padding: '10px 14px', 
                   background: 'var(--primary-light)', borderRadius: '12px',
-                  borderLeft: '4px solid #3636e8',
+                  borderLeft: '4px solid var(--primary)',
                   display: 'flex', justifyContent: 'space-between', alignItems: 'center',
                   fontSize: '12px'
                 }}>
@@ -4752,12 +4752,12 @@ export default function CommunityPage() {
                         style={{
                           padding: '8px 18px',
                           borderRadius: '50px',
-                          background: 'linear-gradient(135deg, #6366f1, #4f46e5)',
+                          background: 'linear-gradient(135deg, var(--primary), var(--primary))',
                           color: '#ffffff',
                           fontWeight: '800',
                           fontSize: '12px',
                           border: 'none',
-                          boxShadow: '0 4px 10px rgba(99, 102, 241, 0.25)',
+                          boxShadow: '0 4px 10px color-mix(in srgb, var(--primary) 25%, transparent)',
                           cursor: 'pointer',
                           whiteSpace: 'nowrap',
                           flexShrink: 0,
@@ -4874,7 +4874,7 @@ export default function CommunityPage() {
                                 borderBottom: '1px solid rgba(0,0,0,0.02)',
                                 transition: 'background 0.2s',
                               }}
-                              onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(54,54,232,0.08)'}
+                              onMouseEnter={(e) => e.currentTarget.style.background = 'color-mix(in srgb, var(--primary) 8%, transparent)'}
                               onMouseLeave={(e) => e.currentTarget.style.background = 'none'}
                             >
                               <UserAvatar user={user} size={28} />
@@ -5001,7 +5001,7 @@ export default function CommunityPage() {
                                     cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
                                     transition: 'background 0.15s',
                                   }}
-                                  onMouseEnter={e => (e.currentTarget.style.background = 'rgba(54,54,232,0.08)')}
+                                  onMouseEnter={e => (e.currentTarget.style.background = 'color-mix(in srgb, var(--primary) 8%, transparent)')}
                                   onMouseLeave={e => (e.currentTarget.style.background = 'none')}
                                 >
                                   {emoji}
@@ -5179,7 +5179,7 @@ export default function CommunityPage() {
             alignItems: 'center', textAlign: 'center'
           }}>
             <div style={{
-              width: '56px', height: '56px', borderRadius: '50%', background: 'rgba(54,54,232,0.08)',
+              width: '56px', height: '56px', borderRadius: '50%', background: 'color-mix(in srgb, var(--primary) 8%, transparent)',
               display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--primary)',
               marginBottom: '4px'
             }}>
@@ -5315,7 +5315,7 @@ export default function CommunityPage() {
                 </div>
               </div>
 
-              <div style={{ background: 'rgba(54,54,232,0.06)', borderLeft: '3px solid var(--primary)', padding: '10px 14px', borderRadius: '6px', fontSize: '12px', color: 'var(--text-secondary)', marginTop: '6px' }}>
+              <div style={{ background: 'color-mix(in srgb, var(--primary) 6%, transparent)', borderLeft: '3px solid var(--primary)', padding: '10px 14px', borderRadius: '6px', fontSize: '12px', color: 'var(--text-secondary)', marginTop: '6px' }}>
                 <strong>Manager Override:</strong> Manager and Admin roles have completely unrestricted posting frequencies, unlimited file transmissions, and full message editing/deletion capabilities.
               </div>
             </div>
@@ -5382,7 +5382,7 @@ export default function CommunityPage() {
                           ) : (
                             <span style={{
                               fontSize: '10px',
-                              background: 'linear-gradient(135deg, #3636e8, #6366f1)',
+                              background: 'linear-gradient(135deg, var(--primary), var(--primary))',
                               color: '#fff',
                               padding: '1px 8px',
                               borderRadius: '50px',
@@ -5843,7 +5843,7 @@ export default function CommunityPage() {
                 size={56}
                 iconSize={26}
                 radius={18}
-                style={{ boxShadow: '0 8px 20px rgba(79, 70, 229, 0.18)' }}
+                style={{ boxShadow: '0 8px 20px color-mix(in srgb, var(--primary) 18%, transparent)' }}
               />
               <div style={{ minWidth: 0, flex: 1 }}>
                 <h4 style={{ margin: 0, fontSize: '18px', fontWeight: 900, color: 'var(--text-primary)' }}>{longPressedClass.name}</h4>
@@ -5967,7 +5967,7 @@ export default function CommunityPage() {
           }}>
             <div className="spinner" style={{
               width: '40px', height: '40px', border: '4px solid #f3f3f3',
-              borderTop: '4px solid #6366f1', borderRadius: '50%',
+              borderTop: '4px solid var(--primary)', borderRadius: '50%',
               margin: '0 auto 20px',
               animation: 'spin 1s linear infinite'
             }} />
@@ -6026,7 +6026,7 @@ export default function CommunityPage() {
                   top: '40px',
                   right: '50%',
                   transform: 'translateX(50%)',
-                  background: '#6366f1',
+                  background: 'var(--primary)',
                   color: 'white',
                   padding: '10px 16px',
                   borderRadius: '12px',
@@ -6049,7 +6049,7 @@ export default function CommunityPage() {
                   marginLeft: '-5px',
                   borderWidth: '5px',
                   borderStyle: 'solid',
-                  borderColor: 'transparent transparent #6366f1 transparent'
+                  borderColor: 'transparent transparent var(--primary) transparent'
                 }} />
               </div>
             </div>
@@ -6111,7 +6111,7 @@ export default function CommunityPage() {
               {offering.hasRecorded && (
                 <div style={{
                   padding: '16px', borderRadius: '20px',
-                  background: 'var(--surface-2, rgba(99, 102, 241, 0.02))',
+                  background: 'var(--surface-2, color-mix(in srgb, var(--primary) 2%, transparent))',
                   border: '1.5px solid var(--border)',
                   boxShadow: '0 4px 12px rgba(0,0,0,0.02)'
                 }}>
@@ -6152,10 +6152,10 @@ export default function CommunityPage() {
               {offering.hasLive && (
                 <div style={{
                   padding: '16px', borderRadius: '20px',
-                  background: 'var(--surface-2, rgba(99, 102, 241, 0.02))',
+                  background: 'var(--surface-2, color-mix(in srgb, var(--primary) 2%, transparent))',
                   border: '1.5px solid var(--accent)',
                   position: 'relative',
-                  boxShadow: '0 8px 24px rgba(99,102,241,0.08)'
+                  boxShadow: '0 8px 24px color-mix(in srgb, var(--primary) 8%, transparent)'
                 }}>
                   <div style={{
                     position: 'absolute', top: '12px', right: '16px',
@@ -6308,7 +6308,7 @@ export default function CommunityPage() {
                 width: '100%', padding: '16px', borderRadius: '18px', border: 'none',
                 background: 'linear-gradient(135deg, var(--accent) 0%, var(--primary) 100%)',
                 color: 'white', fontWeight: '700', fontSize: '15px', cursor: 'pointer',
-                boxShadow: '0 4px 12px rgba(99, 102, 241, 0.3)',
+                boxShadow: '0 4px 12px color-mix(in srgb, var(--primary) 30%, transparent)',
               }}
             >
               Got it, let&apos;s go! 🚀
@@ -6362,7 +6362,7 @@ export default function CommunityPage() {
                   <tr style={{ borderBottom: '1px solid #2d3748', background: '#171923' }}>
                     <th style={{ padding: '14px 16px', fontWeight: '700', color: '#a0aec0', width: '40%' }}>FEATURES</th>
                     <th style={{ padding: '14px 16px', fontWeight: '800', color: '#d69e2e', textAlign: 'center', width: '30%', background: 'rgba(214, 158, 46, 0.05)' }}>PLUS</th>
-                    <th style={{ padding: '14px 16px', fontWeight: '800', color: '#6366f1', textAlign: 'center', width: '30%', background: 'rgba(99, 102, 241, 0.05)' }}>PRO</th>
+                    <th style={{ padding: '14px 16px', fontWeight: '800', color: 'var(--primary)', textAlign: 'center', width: '30%', background: 'color-mix(in srgb, var(--primary) 5%, transparent)' }}>PRO</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -6386,7 +6386,7 @@ export default function CommunityPage() {
                       <td style={{
                         padding: '12px 16px', textAlign: 'center', fontWeight: '700',
                         color: row.pro.includes('✅') ? '#48bb78' : '#e53e3e',
-                        background: 'rgba(99, 102, 241, 0.02)'
+                        background: 'color-mix(in srgb, var(--primary) 2%, transparent)'
                       }}>
                         {row.pro}
                       </td>
@@ -6405,9 +6405,9 @@ export default function CommunityPage() {
                 }}
                 style={{
                   padding: '12px 32px', borderRadius: '50px', border: 'none',
-                  background: 'linear-gradient(135deg, #6366f1, #4f46e5)', color: '#ffffff',
+                  background: 'linear-gradient(135deg, var(--primary), var(--primary))', color: '#ffffff',
                   fontSize: '14px', fontWeight: '800', cursor: 'pointer',
-                  boxShadow: '0 4px 15px rgba(99, 102, 241, 0.3)', transition: 'all 0.2s'
+                  boxShadow: '0 4px 15px color-mix(in srgb, var(--primary) 30%, transparent)', transition: 'all 0.2s'
                 }}
                 onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-1px)'}
                 onMouseLeave={e => e.currentTarget.style.transform = 'translateY(0)'}

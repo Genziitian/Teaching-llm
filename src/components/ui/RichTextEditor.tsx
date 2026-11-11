@@ -174,7 +174,7 @@ export default function RichTextEditor({ value, onChange, placeholder = 'Write s
         [contenteditable] h2 { font-size: 1.5em; margin-bottom: 0.5em; font-weight: 700; }
         [contenteditable] ul, [contenteditable] ol { padding-left: 2em; margin-bottom: 1em; }
         [contenteditable] li { margin-bottom: 0.5em; }
-        [contenteditable] a { color: #3636e8; text-decoration: underline; }
+        [contenteditable] a { color: var(--primary); text-decoration: underline; }
       `}} />
     </div>
   )

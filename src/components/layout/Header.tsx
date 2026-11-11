@@ -5,39 +5,8 @@ import { useEffect, useState, useRef } from 'react'
 import { useUserData } from '@/components/UserDataProvider'
 import UserAvatar from '@/components/UserAvatar'
 import { usePushNotifications } from '@/hooks/usePushNotifications'
-import { clearSWRCache } from '@/lib/cache'
 import { useTheme } from '@/components/ThemeProvider'
 import { useLanguage } from '@/contexts/LanguageContext'
-
-function Toggle({ checked, onChange }: { checked: boolean; onChange: (v: boolean) => void }) {
-  return (
-    <div
-      onClick={(e) => {
-        e.stopPropagation()
-        onChange(!checked)
-      }}
-      style={{
-        width: '40px', height: '22px', borderRadius: '11px', flexShrink: 0,
-        background: checked ? 'var(--primary)' : 'var(--neu-dark)',
-        boxShadow: checked
-          ? 'inset 1px 1px 3px rgba(0,0,0,0.2)'
-          : 'inset 1px 1px 3px var(--neu-dark)',
-        position: 'relative', cursor: 'pointer',
-        transition: 'background 0.25s ease',
-      }}
-    >
-      <div style={{
-        position: 'absolute',
-        top: '3px',
-        left: checked ? '21px' : '3px',
-        width: '16px', height: '16px', borderRadius: '50%',
-        background: 'var(--surface)',
-        boxShadow: '1px 1px 3px rgba(0,0,0,0.2)',
-        transition: 'left 0.25s ease',
-      }} />
-    </div>
-  )
-}
 
 interface HeaderProps {
   userName: string
@@ -90,9 +59,58 @@ const PAGE_TITLES: Record<string, { title: string; subtitle: string }> = {
   '/my-transactions': { title: 'My Transaction History', subtitle: 'View all your course transactions and upgrades' },
 }
 
-const TYPE_COLORS: Record<string, string> = {
-  INFO: 'var(--info)', SUCCESS: 'var(--success)', WARNING: 'var(--warning)', ERROR: 'var(--danger)',
-  info: 'var(--info)', success: 'var(--success)', warning: 'var(--warning)', error: 'var(--danger)',
+
+type NotifCategory = 'all' | 'announcements' | 'live' | 'community' | 'support' | 'purchases'
+
+const NOTIF_TABS: { key: NotifCategory; label: string }[] = [
+  { key: 'all', label: 'All' },
+  { key: 'announcements', label: 'Announcements' },
+  { key: 'live', label: 'Live' },
+  { key: 'community', label: 'Community' },
+  { key: 'support', label: 'Support' },
+  { key: 'purchases', label: 'Purchases' },
+]
+
+// d = SVG path (24px grid), tone/tint = text + chip colour tokens
+const NOTIF_KIND: Record<Exclude<NotifCategory, 'all'> | 'other', { tag: string; d: string; cls: string }> = {
+  announcements: { tag: 'Announcement', d: 'M3 11l18-5v12L3 14v-3zM11.6 16.8a3 3 0 1 1-5.8-1.6', cls: 'amber' },
+  live: { tag: 'Live session', d: 'M23 7l-7 5 7 5V7zM3 5h11a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2z', cls: 'green' },
+  community: { tag: 'Community', d: 'M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M9 3a4 4 0 1 0 0 8a4 4 0 1 0 0-8M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75', cls: 'blue' },
+  support: { tag: 'Support', d: 'M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z', cls: 'purple' },
+  purchases: { tag: 'Purchase', d: 'M4 5h16a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2zM2 10h20', cls: 'neutral' },
+  other: { tag: 'Update', d: 'M12 2a10 10 0 1 0 0 20a10 10 0 1 0 0-20M12 16v-4M12 8h.01', cls: 'neutral' },
+}
+
+function categorize(n: { type: string; title: string; announcementId: string | null }): Exclude<NotifCategory, 'all'> | 'other' {
+  const type = (n.type || '').toLowerCase()
+  const title = (n.title || '').toLowerCase()
+  if (n.announcementId) return 'announcements'
+  if (type === 'community') return 'community'
+  if (title.includes('live') || title.includes('session') || title.includes('class')) return 'live'
+  if (title.includes('support') || title.includes('ticket') || title.includes('chat') || title.includes('agent')) return 'support'
+  if (title.includes('purchase') || title.includes('payment') || title.includes('order')) return 'purchases'
+  if (title.includes('announcement')) return 'announcements'
+  return 'other'
+}
+
+function relTime(iso: string): string {
+  const d = new Date(iso)
+  const diff = Date.now() - d.getTime()
+  const min = Math.floor(diff / 60000)
+  if (min < 1) return 'Just now'
+  if (min < 60) return `${min}m ago`
+  const hr = Math.floor(min / 60)
+  if (hr < 24 && d.toDateString() === new Date().toDateString()) return `${hr}h ago`
+  return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' }) + ', ' + d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })
+}
+
+function dayBucket(iso: string): string {
+  const d = new Date(iso)
+  const today = new Date()
+  const yest = new Date(); yest.setDate(today.getDate() - 1)
+  if (d.toDateString() === today.toDateString()) return 'Today'
+  if (d.toDateString() === yest.toDateString()) return 'Yesterday'
+  return 'Earlier'
 }
 
 export default function Header({ userName, userRole }: HeaderProps) {
@@ -103,11 +121,10 @@ export default function Header({ userName, userRole }: HeaderProps) {
   const tab = searchParams.get('tab')
   // const [notifications, setNotifications] = useState<Notification[]>([]) - Removed in favor of SWR
   const [showNotif, setShowNotif] = useState(false)
+  const [notifTab, setNotifTab] = useState<NotifCategory>('all')
   const [mounted, setMounted] = useState(false)
-  const [showUserMenu, setShowUserMenu] = useState(false)
   const [avatar, setAvatar] = useState<string | null>(null)
   const notifRef = useRef<HTMLDivElement>(null)
-  const userMenuRef = useRef<HTMLDivElement>(null)
 
   const themeCtx = useTheme()
   const fetcher = (url: string) => fetch(url).then(r => r.json())
@@ -210,13 +227,6 @@ export default function Header({ userName, userRole }: HeaderProps) {
 
   // const [notifications, setNotifications] = useState<Notification[]>([]) - Removed
 
-  const initials = currentUserName
-    .split(' ')
-    .map(n => n[0])
-    .join('')
-    .toUpperCase()
-    .slice(0, 2)
-
   // Initials and other logic
 
   // Load user profile
@@ -273,9 +283,6 @@ export default function Header({ userName, userRole }: HeaderProps) {
       if (notifRef.current && !notifRef.current.contains(e.target as Node)) {
         setShowNotif(false)
       }
-      if (userMenuRef.current && !userMenuRef.current.contains(e.target as Node)) {
-        setShowUserMenu(false)
-      }
     }
     document.addEventListener('mousedown', handler)
     return () => document.removeEventListener('mousedown', handler)
@@ -318,58 +325,66 @@ export default function Header({ userName, userRole }: HeaderProps) {
     }
   }
 
-  async function handleLogout() {
-    try {
-      const { Capacitor } = await import('@capacitor/core')
-      if (Capacitor.isNativePlatform()) {
-        const { SocialLogin } = await import('@capgo/capacitor-social-login')
-        await SocialLogin.logout({ provider: 'google' }).catch(() => {})
-        
-        const { CapacitorCookies } = await import('@capacitor/core')
-        await CapacitorCookies.clearCookies({ url: 'https://class.genziitian.in' }).catch(() => {})
-        await CapacitorCookies.clearCookies({ url: window.location.origin }).catch(() => {})
-      }
-    } catch (e) {
-      console.error('Error during native logout cleanup:', e)
-    }
-
-    clearSWRCache()
-    await fetch('/api/auth/logout', { method: 'POST' })
-    router.push('/login')
-    router.refresh()
-  }
-
-  const neuIconStyle = {
-    width: '40px', height: '40px', borderRadius: '50%',
-    background: 'var(--sidebar-bg)',
-    boxShadow: 'var(--shadow)',
-    display: 'flex', alignItems: 'center', justifyContent: 'center',
-    color: 'var(--text-secondary)', cursor: 'pointer',
-    transition: 'box-shadow 0.2s ease', border: 'none', flexShrink: 0,
-    outline: 'none',
-  } as React.CSSProperties
-
   const firstName = currentUserName.split(' ')[0]
   const isHomePage = pathname === '/dashboard'
 
+  const pushOn = isNativeApp ? nativeSubscribed : isSubscribed
+  const pushAvailable = isNativeApp || isSupported
+  const onPushChange = async (v: boolean) => {
+    if (isNativeApp) {
+      const { registerCapacitorPush, unregisterCapacitorPush } = await import('@/lib/capacitor-push')
+      if (v) {
+        const success = await registerCapacitorPush()
+        if (success) {
+          setNativeSubscribed(true)
+          localStorage.setItem('push_enabled', 'true')
+        } else {
+          alert('Could not enable push notifications. Please check your system notification settings.')
+        }
+      } else {
+        await unregisterCapacitorPush()
+        setNativeSubscribed(false)
+        localStorage.setItem('push_enabled', 'false')
+      }
+      return
+    }
+    if (v) {
+      if (typeof window !== 'undefined' && window.Notification?.permission === 'denied') {
+        window.dispatchEvent(new CustomEvent('show-push-blocked-modal'))
+        return
+      }
+      await subscribe()
+    } else {
+      await unsubscribe()
+    }
+  }
+
+  const decorated = notifications.map(n => {
+    const cat = categorize(n)
+    return { n, cat, kind: NOTIF_KIND[cat] }
+  })
+  const countFor = (key: NotifCategory) => key === 'all' ? decorated.length : decorated.filter(x => x.cat === key).length
+  const shown = decorated.filter(x => notifTab === 'all' || x.cat === notifTab)
+  const dayGroups = ['Today', 'Yesterday', 'Earlier']
+    .map(title => ({ title, items: shown.filter(x => dayBucket(x.n.createdAt) === title) }))
+    .filter(g => g.items.length > 0)
+
+  const cycleTheme = () => {
+    const { resolvedTheme, setTheme, lightHidden } = themeCtx
+    if (lightHidden) setTheme(resolvedTheme === 'dark' ? 'black' : 'dark')
+    else if (resolvedTheme === 'light') setTheme('dark')
+    else if (resolvedTheme === 'dark') setTheme('black')
+    else setTheme('light')
+  }
+  const themeTitle =
+    themeCtx.resolvedTheme === 'light' ? 'Switch to Dark Mode'
+    : themeCtx.resolvedTheme === 'dark' ? 'Switch to Black Mode'
+    : themeCtx.lightHidden ? 'Switch to Dark Mode' : 'Switch to Light Mode'
+
   return (
-    <header style={{
-      height: showGreetingHeadline ? '140px' : '96px', background: 'var(--bg)',
-      display: 'flex', justifyContent: 'center',
-      position: 'sticky', top: 0, zIndex: 50,
-      transition: 'height 0.3s ease',
-      padding: '0 24px',
-    }} className={`dashboard-header ${!isHomePage ? 'mobile-hide-header' : ''}`}>
-      <div style={{
-        width: '100%',
-        height: '100%',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        minWidth: 0,
-      }} className="header-inner-container">
-      <div style={{ display: 'flex', alignItems: 'center', gap: '16px', minWidth: 0, flex: 1 }} className="header-left-section">
-        {/* Hamburger Menu Toggle Button on Mobile (hidden — bottom nav handles navigation) */}
+    <header className={`dashboard-header ${!isHomePage ? 'mobile-hide-header' : ''}`}>
+      <div className="header-inner-container" style={{ width: '100%', display: 'flex', minWidth: 0 }}>
+        {/* Mobile: menu button (bottom nav handles most navigation) */}
         <button
           onClick={() => window.dispatchEvent(new CustomEvent('toggle-sidebar'))}
           className="sidebar-toggle-btn"
@@ -382,437 +397,160 @@ export default function Header({ userName, userRole }: HeaderProps) {
           </svg>
         </button>
 
-        {/* Mobile-only greeting block (profile avatar + welcome text) */}
+        {/* Mobile-only greeting (home) */}
         {isHomePage && (
           <a href="/profile" className="mobile-header-greeting" style={{ textDecoration: 'none', color: 'inherit', display: 'flex', alignItems: 'center', gap: '12px', minWidth: 0, flex: 1 }}>
-            <UserAvatar user={currentAvatarUser} size={44} style={{ border: '2px solid var(--neu-light)' }} />
+            <UserAvatar user={currentAvatarUser} size={44} />
             <div style={{ minWidth: 0, flex: 1, display: 'flex', flexDirection: 'column' }}>
-              <span style={{ fontSize: '15px', fontWeight: 900, color: 'var(--text-primary)', lineHeight: 1.1, fontFamily: "'Outfit', 'Nunito', sans-serif", letterSpacing: '-0.2px', display: 'flex', alignItems: 'baseline', gap: '5px', flexWrap: 'nowrap' }}>
-                {mounted ? getGreeting().heading : 'Welcome'},
-                <span style={{ fontSize: '17px', fontWeight: 700, color: 'var(--primary)', letterSpacing: '-0.3px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontFamily: "'Outfit', 'Nunito', sans-serif" }}>
-                  {firstName}
-                </span>
+              <span style={{ fontSize: '16px', fontWeight: 600, color: 'var(--gz-ink)', lineHeight: 1.2, letterSpacing: '-0.02em' }}>
+                {mounted ? getGreeting().heading : 'Welcome'}, {firstName}
               </span>
-              <span style={{ fontSize: '11.5px', fontWeight: 500, color: 'var(--text-secondary)', lineHeight: 1.3, marginTop: '3px', fontFamily: "'Outfit', 'Nunito', sans-serif" }}>
+              <span style={{ fontSize: '12px', color: 'var(--gz-ink-3)', lineHeight: 1.3, marginTop: '3px' }}>
                 {mounted ? getGreeting().subtext : 'Loading your dashboard...'}
               </span>
             </div>
           </a>
         )}
 
-        {/* Mobile-only title (shown on non-home pages) */}
+        {/* Mobile-only page title */}
         {!isHomePage && (
           <div className="mobile-header-back-title" style={{ display: 'flex', alignItems: 'center', gap: '14px', flex: 1, minWidth: 0 }}>
-            <span style={{ fontSize: '18px', fontWeight: '800', color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontFamily: "'Outfit', 'Nunito', sans-serif", letterSpacing: '-0.3px' }}>
+            <span style={{ fontSize: '18px', fontWeight: 600, letterSpacing: '-0.02em', color: 'var(--gz-ink)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
               {pageInfo.title}
             </span>
           </div>
         )}
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', alignItems: showGreetingHeadline ? 'flex-start' : 'center' }} className={`header-titles ${showGreetingHeadline ? 'header-titles-dashboard' : ''}`}>
-        {showGreetingHeadline ? (
-          <>
-            <h1 data-snow="text" style={{
-              fontSize: 'clamp(38px, 4vw, 48px)',
-              fontWeight: '900',
-              color: 'var(--text-primary)',
-              lineHeight: '1.1',
-              letterSpacing: '-1.0px',
-              fontFamily: "'Outfit', 'Nunito', sans-serif",
-              whiteSpace: 'nowrap',
-            }}>
-              {mounted ? getGreeting().heading : 'Welcome'},{' '}
-              <span style={{
-                fontSize: 'inherit',
-                fontWeight: '700',
-                color: 'var(--primary)',
-                letterSpacing: '-0.8px',
-                opacity: 0.9,
-                fontFamily: "'Outfit', 'Nunito', sans-serif"
-              }}>
-                {firstName}
-              </span>
-            </h1>
-            <p style={{
-              fontSize: '16.5px',
-              color: 'var(--text-secondary)',
-              marginTop: '6px',
-              fontWeight: '500',
-              letterSpacing: '0.01em',
-              maxWidth: '600px',
-              lineHeight: '1.5',
-              textAlign: 'left'
-            }}>
-              {mounted ? getGreeting().subtext : 'Loading your dashboard...'}
-            </p>
-          </>
-        ) : (
-          <>
-            <h1 style={{ fontSize: '28px', fontWeight: '800', color: 'var(--text-primary)', lineHeight: '1.2', letterSpacing: '-0.5px', textAlign: 'center' }}>
-              {pageInfo.title}
-            </h1>
-            {pageInfo.subtitle ? (
-              <p style={{ fontSize: '13.5px', color: 'var(--text-secondary)', marginTop: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', flexWrap: 'wrap', fontWeight: '500' }}>
-                {pageInfo.subtitle}
-                {matchedKey === '/courses/explore' && (
-                  <a 
-                    href="https://app.genziitian.in/courses" 
-                    target="_blank" 
-                    rel="noopener noreferrer" 
-                    style={{ 
-                      color: '#fff', 
-                      textDecoration: 'none', 
-                      backgroundColor: 'var(--accent)', 
-                      padding: '3px 10px', 
-                      borderRadius: '6px', 
-                      fontWeight: '600', 
-                      cursor: 'pointer', 
-                      display: 'inline-flex', 
-                      alignItems: 'center',
-                      transition: 'all 0.2s', 
-                      fontSize: '11px',
-                      boxShadow: '0 2px 4px rgba(99, 102, 241, 0.2)'
-                    }}
-                  >
-                    Visit Here
-                  </a>
-                )}
-              </p>
-            ) : null}
-          </>
-        )}
-      </div>
-    </div>
-
-      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-
-        {/* Download App Button — links to professional download page */}
-        <a
-          href="/download"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="download-btn"
-          title="Download Android APP"
-        >
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-            <polyline points="7 10 12 15 17 10" />
-            <line x1="12" y1="15" x2="12" y2="3" />
-          </svg>
-          <span className="download-btn-text">Download App</span>
-        </a>
-
-        {/* Appearance Toggle — Light / Dark / Black */}
-        <button
-          onClick={() => {
-            const { resolvedTheme, setTheme, lightHidden } = themeCtx
-            if (lightHidden) setTheme(resolvedTheme === 'dark' ? 'black' : 'dark')
-            else if (resolvedTheme === 'light') setTheme('dark')
-            else if (resolvedTheme === 'dark') setTheme('black')
-            else setTheme('light')
-          }}
-          title={
-            themeCtx.resolvedTheme === 'light'
-              ? 'Switch to Dark Mode'
-              : themeCtx.resolvedTheme === 'dark'
-              ? 'Switch to Black Mode'
-              : themeCtx.lightHidden
-              ? 'Switch to Dark Mode'
-              : 'Switch to Light Mode'
-          }
-          className="theme-toggle-btn"
-          style={{
-            width: '38px', height: '38px', borderRadius: '50%',
-            border: 'none', cursor: 'pointer',
-            background: 'var(--surface)',
-            boxShadow: 'var(--shadow)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            color: themeCtx.resolvedTheme === 'dark' ? '#f59e0b' : (themeCtx.resolvedTheme === 'black' ? '#ffffff' : 'var(--text-secondary)'),
-            transition: 'all 0.3s cubic-bezier(0.4,0,0.2,1)',
-            position: 'relative',
-            overflow: 'hidden',
-          }}
-          onMouseEnter={e => { e.currentTarget.style.boxShadow = 'var(--shadow-sm)'; e.currentTarget.style.transform = 'scale(1.08)'; }}
-          onMouseLeave={e => { e.currentTarget.style.boxShadow = 'var(--shadow)'; e.currentTarget.style.transform = 'scale(1)'; }}
-        >
-          {themeCtx.resolvedTheme === 'black' ? (
-            /* Contrast / Eclipse icon for Black mode */
-            <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" style={{ transition: 'transform 0.4s ease' }}>
-              <path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 18a8 8 0 0 1 0-16z"/>
-            </svg>
-          ) : themeCtx.resolvedTheme === 'dark' ? (
-            /* Sun icon */
-            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{ transition: 'transform 0.4s ease' }}>
-              <circle cx="12" cy="12" r="5"/>
-              <line x1="12" y1="1" x2="12" y2="3"/>
-              <line x1="12" y1="21" x2="12" y2="23"/>
-              <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
-              <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
-              <line x1="1" y1="12" x2="3" y2="12"/>
-              <line x1="21" y1="12" x2="23" y2="12"/>
-              <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
-              <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
-            </svg>
+        {/* Desktop / tablet title */}
+        <div className="gz-head__titles">
+          {showGreetingHeadline ? (
+            <>
+              <h1 data-snow="text">{mounted ? getGreeting().heading : 'Welcome'}, {firstName}</h1>
+              <p>{mounted ? getGreeting().subtext : 'Loading your dashboard...'}</p>
+            </>
           ) : (
-            /* Moon icon */
-            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{ transition: 'transform 0.4s ease' }}>
-              <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
-            </svg>
+            <>
+              <h1>{pageInfo.title}</h1>
+              {pageInfo.subtitle ? (
+                <p>
+                  {pageInfo.subtitle}
+                  {matchedKey === '/courses/explore' && (
+                    <a
+                      href="https://app.genziitian.in/courses"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="gz-btn"
+                      style={{ height: '24px', padding: '0 9px', fontSize: '11.5px', marginLeft: '8px', borderRadius: '7px' }}
+                    >
+                      Visit Here
+                    </a>
+                  )}
+                </p>
+              ) : null}
+            </>
           )}
-        </button>
+        </div>
 
-        {/* Notification bell */}
-        <div
-          ref={notifRef}
-          className="header-notif"
-          style={{ position: 'relative' }}
-        >
-          <button
-            style={{ ...neuIconStyle, position: 'relative' }}
-            onClick={() => setShowNotif(v => !v)}
-            onMouseEnter={e => (e.currentTarget.style.boxShadow = 'var(--shadow-sm)')}
-            onMouseLeave={e => (e.currentTarget.style.boxShadow = 'var(--shadow)')}
-            title="Notifications & Announcements"
-          >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
-              <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+        <div className="gz-head__actions">
+          <a href="/download" target="_blank" rel="noopener noreferrer" className="gz-ctl gz-ctl--text gz-download" title="Download Android app">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <rect x="6" y="2" width="12" height="20" rx="3" />
+              <path d="M12 7.5v6" />
+              <path d="m9.5 11.5 2.5 2.5 2.5-2.5" />
+              <path d="M10.5 18.5h3" />
             </svg>
-            {unreadCount > 0 && (
-              <span style={{
-                position: 'absolute', top: '6px', right: '6px',
-                minWidth: '16px', height: '16px', borderRadius: '50%',
-                background: 'var(--danger)', border: '2px solid var(--sidebar-bg)',
-                fontSize: '9px', fontWeight: '800', color: '#fff',
-                display: 'flex', alignItems: 'center', justifyContent: 'center', lineHeight: 1,
-              }}>
-                {unreadCount > 9 ? '9+' : unreadCount}
-              </span>
+            <span className="gz-ctl__label">Download App</span>
+          </a>
+
+          <button onClick={cycleTheme} title={themeTitle} aria-label={themeTitle} className="gz-ctl gz-ctl--icon theme-toggle-btn">
+            {themeCtx.resolvedTheme === 'black' ? (
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 18a8 8 0 0 1 0-16z" /></svg>
+            ) : themeCtx.resolvedTheme === 'dark' ? (
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="5" /><line x1="12" y1="1" x2="12" y2="3" /><line x1="12" y1="21" x2="12" y2="23" /><line x1="4.22" y1="4.22" x2="5.64" y2="5.64" /><line x1="18.36" y1="18.36" x2="19.78" y2="19.78" /><line x1="1" y1="12" x2="3" y2="12" /><line x1="21" y1="12" x2="23" y2="12" /><line x1="4.22" y1="19.78" x2="5.64" y2="18.36" /><line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
+              </svg>
+            ) : (
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" /></svg>
             )}
           </button>
 
-          {showNotif && (
-            <div
-              className="notification-dropdown"
-              style={{
-                position: 'absolute', right: 0, top: 'calc(100% + 10px)',
-                width: 'min(340px, calc(100vw - 24px))', borderRadius: '20px',
-                background: 'var(--sidebar-bg)', 
-                boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.08)',
-                border: '1px solid var(--border)',
-                zIndex: 200, overflow: 'hidden',
-              }}
+          <div ref={notifRef} className="header-notif" style={{ position: 'relative' }}>
+            <button
+              className={`gz-ctl gz-ctl--icon gz-bell ${showNotif ? 'gz-ctl--on' : ''}`}
+              onClick={() => setShowNotif(v => !v)}
+              title="Notifications & Announcements"
+              aria-label="Notifications"
+              aria-expanded={showNotif}
             >
-              <div style={{ padding: '14px 18px 10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1.5px solid var(--border)' }}>
-                <span style={{ fontWeight: '800', fontSize: '14px', color: 'var(--text-primary)' }}>
-                  Notifications {unreadCount > 0 && <span style={{ color: 'var(--primary)' }}>({unreadCount})</span>}
-                </span>
-                {unreadCount > 0 && (
-                  <button onClick={markAllRead} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '12px', color: 'var(--primary)', fontWeight: '700', fontFamily: 'inherit' }}>
-                    Mark all read
-                  </button>
-                )}
-              </div>
-              {(isNativeApp || isSupported) && (
-                <div style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  padding: '12px 18px',
-                  borderBottom: '1px solid var(--border)',
-                  background: 'rgba(54,54,232,0.02)',
-                }}>
-                  <div style={{ flex: 1, minWidth: 0, paddingRight: '8px' }}>
-                    <div style={{ fontSize: '13px', fontWeight: '700', color: 'var(--text-primary)' }}>Push notifications</div>
-                    <div style={{ fontSize: '11.5px', color: 'var(--text-muted)', marginTop: '2px' }}>
-                      Alerts even when the app is closed
-                    </div>
-                  </div>
-                  <div>
-                    {isNativeApp ? (
-                      <Toggle 
-                        checked={nativeSubscribed} 
-                        onChange={async (v) => {
-                          const { registerCapacitorPush, unregisterCapacitorPush } = await import('@/lib/capacitor-push')
-                          if (v) {
-                            const success = await registerCapacitorPush()
-                            if (success) {
-                              setNativeSubscribed(true)
-                              localStorage.setItem('push_enabled', 'true')
-                            } else {
-                              alert('Could not enable push notifications. Please check your system notification settings.')
-                            }
-                          } else {
-                            await unregisterCapacitorPush()
-                            setNativeSubscribed(false)
-                            localStorage.setItem('push_enabled', 'false')
-                          }
-                        }} 
-                      />
-                    ) : (
-                      <Toggle 
-                        checked={isSubscribed} 
-                        onChange={async (v) => {
-                          if (v) {
-                            if (typeof window !== 'undefined' && window.Notification?.permission === 'denied') {
-                              window.dispatchEvent(new CustomEvent('show-push-blocked-modal'))
-                              return
-                            }
-                            await subscribe()
-                          } else {
-                            await unsubscribe()
-                          }
-                        }} 
-                      />
-                    )}
-                  </div>
-                </div>
-              )}
-              <div style={{ maxHeight: '380px', overflowY: 'auto' }}>
-                {notifications.length === 0 ? (
-                  <div style={{ padding: '30px', textAlign: 'center', color: 'var(--text-muted)', fontSize: '13px' }}>
-                    No notifications yet
-                  </div>
-                ) : notifications.slice(0, 5).map(n => (
-                  <div
-                    key={n.id}
-                    onClick={() => markRead(n)}
-                    style={{
-                      padding: '12px 18px', cursor: 'pointer',
-                      borderBottom: '1px solid var(--border-light)',
-                      background: n.isRead ? 'transparent' : 'rgba(54,54,232,0.04)',
-                      transition: 'background 0.15s',
-                      display: 'flex', gap: '12px', alignItems: 'flex-start',
-                    }}
-                    onMouseEnter={e => (e.currentTarget.style.background = 'rgba(0,0,0,0.04)')}
-                    onMouseLeave={e => (e.currentTarget.style.background = n.isRead ? 'transparent' : 'rgba(54,54,232,0.04)')}
-                  >
-                    <div style={{
-                      width: '8px', height: '8px', borderRadius: '50%', marginTop: '5px', flexShrink: 0,
-                      background: n.isRead ? 'var(--text-muted)' : (TYPE_COLORS[n.type] || 'var(--info)'),
-                    }} />
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: '13px', fontWeight: n.isRead ? '500' : '700', color: 'var(--text-primary)', marginBottom: '2px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                        {n.title}
-                      </div>
-                      <div style={{ fontSize: '12px', color: 'var(--text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                        {(() => {
-                          const cleanText = stripFcmMeta(n.content)
-                          return cleanText.length > 60 ? cleanText.slice(0, 57) + '…' : cleanText
-                        })()}
-                      </div>
-                      <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '3px' }}>
-                        {new Date(n.createdAt).toLocaleDateString('en-GB', { month: '2-digit', day: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+                <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+              </svg>
+              {unreadCount > 0 && <span className="gz-bell__count">{unreadCount > 9 ? '9+' : unreadCount}</span>}
+            </button>
 
-        {/* User pill with dropdown */}
-        <div
-          ref={userMenuRef}
-          className="header-profile"
-          data-tour="web-header-user"
-          style={{ position: 'relative' }}
-        >
-          <div
-            style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '6px 16px 6px 6px', borderRadius: '50px', background: 'var(--sidebar-bg)', boxShadow: 'var(--shadow)', cursor: 'pointer', transition: 'box-shadow 0.2s ease', outline: 'none' }}
-            onClick={() => setShowUserMenu(v => !v)}
-            onMouseEnter={e => (e.currentTarget.style.boxShadow = 'var(--shadow-sm)')}
-            onMouseLeave={e => (e.currentTarget.style.boxShadow = 'var(--shadow)')}
-            title="My Account & Profile"
-          >
-            <UserAvatar user={currentAvatarUser} size={32} />
-            <div>
-              <div style={{ fontSize: '13px', fontWeight: '700', color: 'var(--text-primary)', lineHeight: '1.2' }}>{currentUserName}</div>
-              <div style={{ fontSize: '11px', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '3px' }}>
-                {currentUserRole.charAt(0) + currentUserRole.slice(1).toLowerCase()}
-                {currentUserRole !== 'STUDENT' && (
-                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#3636e8" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round">
-                    <polyline points="20 6 9 17 4 12"/>
-                  </svg>
-                )}
-              </div>
-            </div>
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#9999b0" strokeWidth="2" style={{ marginLeft: '4px' }}>
-              <polyline points="6 9 12 15 18 9"/>
-            </svg>
+            {showNotif && (
+              <>
+                <div className="gz-notif-scrim" onClick={() => setShowNotif(false)} />
+                <section className="gz-notif notification-dropdown" aria-label="Notifications">
+                  <div className="gz-notif__head">
+                    <h2>Notifications</h2>
+                    {unreadCount > 0 && <button className="gz-link-btn" onClick={markAllRead}>Mark all read</button>}
+                    <button className="gz-x" aria-label="Close" onClick={() => setShowNotif(false)}>
+                      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round"><line x1="6" y1="6" x2="18" y2="18" /><line x1="18" y1="6" x2="6" y2="18" /></svg>
+                    </button>
+                  </div>
+                  <div className="gz-seg" role="tablist">
+                    {NOTIF_TABS.map(t => (
+                      <button key={t.key} role="tab" aria-selected={notifTab === t.key} className={notifTab === t.key ? 'on' : ''} onClick={() => setNotifTab(t.key)}>
+                        {t.label}<i>{countFor(t.key)}</i>
+                      </button>
+                    ))}
+                  </div>
+                  <div className="gz-notif__list">
+                    {dayGroups.map(g => (
+                      <div key={g.title}>
+                        <div className="gz-notif__day">{g.title}</div>
+                        <div className="gz-notif__items">
+                          {g.items.map(({ n, kind }) => (
+                            <div key={n.id} className={`gz-n ${n.isRead ? '' : 'unread'}`} onClick={() => markRead(n)}>
+                              <span className={`gz-n__ico gz-tone--${kind.cls}`}>
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round"><path d={kind.d} /></svg>
+                              </span>
+                              <span className="gz-n__body">
+                                <span className="gz-n__row">
+                                  <span className="gz-n__title">{n.title}</span>
+                                  {!n.isRead && <span className="gz-n__dot" />}
+                                </span>
+                                <span className="gz-n__text">{stripFcmMeta(n.content)}</span>
+                                <span className="gz-n__meta">
+                                  <span>{relTime(n.createdAt)}</span>
+                                  <span className={`gz-tag gz-pill--${kind.cls}`}>{kind.tag}</span>
+                                </span>
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                    {dayGroups.length === 0 && <div className="gz-notif__empty">No notifications yet</div>}
+                  </div>
+                  {pushAvailable && (
+                    <div className="gz-notif__foot">
+                      <span style={{ flex: 1, minWidth: 0 }}>
+                        <b>Push notifications</b>
+                        <span>Alerts even when the app is closed</span>
+                      </span>
+                      <button role="switch" aria-checked={pushOn} aria-label="Push notifications" className={`gz-switch ${pushOn ? 'on' : ''}`} onClick={() => onPushChange(!pushOn)}>
+                        <i />
+                      </button>
+                    </div>
+                  )}
+                </section>
+              </>
+            )}
           </div>
-
-          {/* User dropdown menu */}
-          {showUserMenu && (
-            <div style={{
-              position: 'absolute', right: 0, top: 'calc(100% + 10px)',
-              width: '200px', borderRadius: '16px',
-              background: 'var(--sidebar-bg)', 
-              boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.08)',
-              border: '1px solid var(--border)',
-              zIndex: 200, overflow: 'hidden', padding: '6px',
-            }}>
-              <button
-                onClick={() => { setShowUserMenu(false); router.push('/profile') }}
-                style={{
-                  display: 'flex', alignItems: 'center', gap: '10px', width: '100%',
-                  padding: '10px 14px', borderRadius: '12px', border: 'none',
-                  background: 'transparent', cursor: 'pointer', fontSize: '13px',
-                  fontWeight: '500', color: 'var(--text-primary)', fontFamily: 'inherit',
-                  transition: 'background 0.15s',
-                }}
-                onMouseEnter={e => (e.currentTarget.style.background = 'var(--surface-hover)')}
-                onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
-              >
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ color: 'var(--text-secondary)' }}>
-                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-                  <circle cx="12" cy="7" r="4"/>
-                </svg>
-                My Profile
-              </button>
-              <button
-                onClick={() => { setShowUserMenu(false); router.push('/settings') }}
-                style={{
-                  display: 'flex', alignItems: 'center', gap: '10px', width: '100%',
-                  padding: '10px 14px', borderRadius: '12px', border: 'none',
-                  background: 'transparent', cursor: 'pointer', fontSize: '13px',
-                  fontWeight: '500', color: 'var(--text-primary)', fontFamily: 'inherit',
-                  transition: 'background 0.15s',
-                }}
-                onMouseEnter={e => (e.currentTarget.style.background = 'var(--surface-hover)')}
-                onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
-              >
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ color: 'var(--text-secondary)' }}>
-                  <circle cx="12" cy="12" r="3"/>
-                  <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
-                </svg>
-                Settings
-              </button>
-              <div style={{ height: '1px', background: 'var(--border)', margin: '4px 10px' }} />
-              <button
-                onClick={() => { setShowUserMenu(false); handleLogout() }}
-                style={{
-                  display: 'flex', alignItems: 'center', gap: '10px', width: '100%',
-                  padding: '10px 14px', borderRadius: '12px', border: 'none',
-                  background: 'transparent', cursor: 'pointer', fontSize: '13px',
-                  fontWeight: '500', color: 'var(--danger)', fontFamily: 'inherit',
-                  transition: 'background 0.15s',
-                }}
-                onMouseEnter={e => (e.currentTarget.style.background = 'rgba(239,68,68,0.06)')}
-                onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
-              >
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#ef4444" strokeWidth="2">
-                  <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
-                  <polyline points="16 17 21 12 16 7"/>
-                  <line x1="21" y1="12" x2="9" y2="12"/>
-                </svg>
-                Sign Out
-              </button>
-            </div>
-          )}
         </div>
-      </div>
       </div>
     </header>
   )

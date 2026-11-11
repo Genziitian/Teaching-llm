@@ -4,10 +4,13 @@ import Link from 'next/link'
 import { canSeeProtectionOnWeb } from '@/lib/exam-protection/access'
 import { usePathname, useRouter } from 'next/navigation'
 import { useEffect, useRef, useState } from 'react'
+import useSWR from 'swr'
+import { LOCKED_MENUS, DEFAULT_HIDDEN_MENUS } from '@/lib/menu-visibility-config'
 import { useUserData } from '@/components/UserDataProvider'
 import { useLocalCachedAsset } from '@/hooks/useLocalCachedAsset'
 import { clearSWRCache } from '@/lib/cache'
 import { QUIZ_LAB_URL, QUIZ_LAB_LOGO } from '@/components/home/QuizLabBanner'
+import UserAvatar from '@/components/UserAvatar'
 
 interface NavItem {
   href: string
@@ -287,6 +290,66 @@ const NAV_ITEMS: NavItem[] = [
     ),
   },
   {
+    href: '/manage/careers',
+    label: 'Careers',
+    roles: ['MANAGER'],
+    icon: (
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <rect x="2" y="7" width="20" height="14" rx="2"/>
+        <path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16"/>
+      </svg>
+    ),
+  },
+  {
+    href: '/manage/employees',
+    label: 'Employees',
+    roles: ['MANAGER'],
+    icon: (
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/>
+        <circle cx="9" cy="7" r="4"/>
+        <path d="M23 21v-2a4 4 0 00-3-3.87"/>
+        <path d="M16 3.13a4 4 0 010 7.75"/>
+      </svg>
+    ),
+  },
+  {
+    href: '/manage/one-on-one',
+    label: '1:1 Bookings',
+    roles: ['MANAGER'],
+    icon: (
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <rect x="3" y="4" width="18" height="18" rx="2"/>
+        <path d="M16 2v4M8 2v4M3 10h18"/>
+      </svg>
+    ),
+  },
+  {
+    href: '/manage/storefront',
+    label: 'Storefront Panel',
+    roles: ['MANAGER'],
+    icon: (
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M3 9l1-5h16l1 5"/>
+        <path d="M4 9v11h16V9"/>
+        <path d="M9 20v-6h6v6"/>
+      </svg>
+    ),
+  },
+  {
+    href: '/manage/storefront-tools',
+    label: 'Storefront Tools',
+    roles: ['MANAGER'],
+    icon: (
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <rect x="3" y="3" width="7" height="7"/>
+        <rect x="14" y="3" width="7" height="7"/>
+        <rect x="3" y="14" width="7" height="7"/>
+        <rect x="14" y="14" width="7" height="7"/>
+      </svg>
+    ),
+  },
+  {
     href: '/manage/mail-assigner',
     label: 'Mail Assigner',
     roles: ['MANAGER'],
@@ -294,6 +357,27 @@ const NAV_ITEMS: NavItem[] = [
       <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
         <polyline points="22,6 12,13 2,6"/>
+      </svg>
+    ),
+  },
+  {
+    href: '/manage/menus',
+    label: 'Menu Visibility',
+    roles: ['MANAGER'],
+    icon: (
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+      </svg>
+    ),
+  },
+  {
+    href: '/manage/genie',
+    label: 'Genie Map',
+    roles: ['MANAGER'],
+    icon: (
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <circle cx="5" cy="12" r="2.5"/><circle cx="19" cy="6" r="2.5"/><circle cx="19" cy="18" r="2.5"/>
+        <path d="M7.4 11l9.2-4M7.4 13l9.2 4"/>
       </svg>
     ),
   },
@@ -332,96 +416,101 @@ const NAV_ITEMS: NavItem[] = [
   },
 ]
 
+
+const NAV_GROUPS: { title: string; hrefs: string[] }[] = [
+  { title: 'Learn', hrefs: ['/dashboard', '/courses', '/live', '/calendar', '/free-resources', '/materials'] },
+  { title: 'Explore', hrefs: ['/courses/explore', QUIZ_LAB_URL, '/exam-protection'] },
+  { title: 'Connect', hrefs: ['/community', '/announcements', '/support', '/feedback'] },
+  { title: 'Manage', hrefs: ['/manage', '/manage/queries', '/manage/notifications', '/manage/updates', '/manage/prompts', '/manage/facts', '/manage/coupons', '/manage/mail-assigner', '/manage/menus', '/manage/genie', '/manage/careers', '/manage/employees', '/manage/one-on-one', '/manage/storefront', '/manage/storefront-tools'] },
+  { title: 'Admin', hrefs: ['/admin', '/transactions', '/activity-logs', '/data-analysis', '/google-sync'] },
+  { title: 'Company', hrefs: ['/company/about-us'] },
+]
+
 export default function Sidebar({ userRole, userName, userEmail }: SidebarProps) {
   const logoSrc = useLocalCachedAsset('/mobile-login-logo.png')
   const pathname = usePathname()
   const router = useRouter()
-  const navRef = useRef<HTMLDivElement>(null)
   const sidebarRef = useRef<HTMLElement>(null)
-  const [canScrollMore, setCanScrollMore] = useState(false)
   const [isOpen, setIsOpen] = useState(false)
   const [pendingHref, setPendingHref] = useState<string | null>(null)
-  const [isHovered, setIsHovered] = useState(false)
-  const [isManualExpanded, setIsManualExpanded] = useState(false)
-  const [isManualCollapsed, setIsManualCollapsed] = useState(false)
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false)
+  const [showUserMenu, setShowUserMenu] = useState(false)
+  const [isRail, setIsRail] = useState(false)
 
-  // Listen for custom toggle events from the mobile header
+  // Mobile drawer: toggled from the mobile header
   useEffect(() => {
     const handleToggle = () => setIsOpen(v => !v)
     const handleClose = () => setIsOpen(false)
-
     window.addEventListener('toggle-sidebar', handleToggle)
     window.addEventListener('close-sidebar', handleClose)
-
     return () => {
       window.removeEventListener('toggle-sidebar', handleToggle)
       window.removeEventListener('close-sidebar', handleClose)
     }
   }, [])
 
-  // Auto-close sidebar and clear pending tab on screen transition (navigation click)
+  // Close drawer / menu and clear the optimistic active item after navigation
   useEffect(() => {
     setIsOpen(false)
-    setIsManualExpanded(false)
-    setIsManualCollapsed(false)
+    setShowUserMenu(false)
     setPendingHref(null)
   }, [pathname])
 
-  // Handle click outside to collapse sidebar on tablets/mobile or desktop manual expand
+  // Click outside closes the user menu and the mobile drawer
   useEffect(() => {
-    const handleOutsideClick = (e: MouseEvent | TouchEvent) => {
-      // If the sidebar is expanded or open, and click target is not within the sidebar, collapse it!
-      if (
-        sidebarRef.current && 
-        !sidebarRef.current.contains(e.target as Node)
-      ) {
-        setIsManualExpanded(false)
+    const onDown = (e: MouseEvent | TouchEvent) => {
+      if (sidebarRef.current && !sidebarRef.current.contains(e.target as Node)) {
+        setShowUserMenu(false)
         setIsOpen(false)
       }
     }
-
-    document.addEventListener('mousedown', handleOutsideClick)
-    document.addEventListener('touchstart', handleOutsideClick)
+    document.addEventListener('mousedown', onDown)
+    document.addEventListener('touchstart', onDown)
     return () => {
-      document.removeEventListener('mousedown', handleOutsideClick)
-      document.removeEventListener('touchstart', handleOutsideClick)
+      document.removeEventListener('mousedown', onDown)
+      document.removeEventListener('touchstart', onDown)
     }
   }, [])
 
-  // Use shared UserDataProvider instead of duplicate SWR/SSE calls
+  // Tablet widths get an icon rail; desktop gets the full sidebar
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const mql = window.matchMedia('(min-width: 768px) and (max-width: 1099px)')
+    setIsRail(mql.matches)
+    const listener = (e: MediaQueryListEvent) => setIsRail(e.matches)
+    mql.addEventListener('change', listener)
+    return () => mql.removeEventListener('change', listener)
+  }, [])
+
   const { userData, unreadCounts: unread } = useUserData()
 
-  // Use SWR data if available, otherwise fall back to props
   const currentUserName = userData?.user?.name || userName
   const currentUserRole = userData?.user?.role || userRole
+  const currentUserEmail = userData?.user?.email || userEmail
+
+  // Menu items a manager has hidden. Managers still see them (marked "Hidden") so they can switch them back on.
+  const { data: menuData } = useSWR<{ hidden: string[] }>('/api/menu-visibility', (u: string) => fetch(u).then(r => (r.ok ? r.json() : { hidden: DEFAULT_HIDDEN_MENUS })), { revalidateOnFocus: false })
+  const hiddenMenus = (menuData?.hidden ?? DEFAULT_HIDDEN_MENUS).filter(h => !LOCKED_MENUS.includes(h))
+  const isManager = currentUserRole === 'MANAGER'
 
   const visibleItems = NAV_ITEMS.filter(
-    item => (!item.roles || item.roles.includes(currentUserRole)) && (!item.protectionPreview || canSeeProtectionOnWeb(currentUserRole, userData?.user?.email))
+    item => (!item.roles || item.roles.includes(currentUserRole)) && (!item.protectionPreview || canSeeProtectionOnWeb(currentUserRole, userData?.user?.email)) && (isManager || !hiddenMenus.includes(item.href))
   )
-
-  const initials = currentUserName
-    .split(' ')
-    .map(n => n[0])
-    .join('')
-    .toUpperCase()
-    .slice(0, 2)
 
   const roleLabel = currentUserRole.charAt(0) + currentUserRole.slice(1).toLowerCase()
 
-  // Scroll indicator
-  useEffect(() => {
-    const el = navRef.current
-    if (!el) return
-    const check = () => setCanScrollMore(el.scrollHeight > el.clientHeight + el.scrollTop + 4)
-    check()
-    el.addEventListener('scroll', check)
-    window.addEventListener('resize', check)
-    return () => {
-      el.removeEventListener('scroll', check)
-      window.removeEventListener('resize', check)
-    }
-  }, [visibleItems])
+  // Section the visible items; anything not listed lands in "More" so nothing disappears
+  const placed = new Set<NavItem>()
+  const groups = NAV_GROUPS.map(g => {
+    const items = g.hrefs
+      .map(h => visibleItems.find(i => i.href === h && !placed.has(i)))
+      .filter((i): i is NavItem => !!i)
+    items.forEach(i => placed.add(i))
+    return { title: g.title, items }
+  })
+  const leftovers = visibleItems.filter(i => !placed.has(i))
+  if (leftovers.length) groups.splice(groups.length - 1, 0, { title: 'More', items: leftovers })
+  const visibleGroups = groups.filter(g => g.items.length > 0)
 
   async function handleLogout() {
     setIsOpen(false)
@@ -430,7 +519,7 @@ export default function Sidebar({ userRole, userName, userEmail }: SidebarProps)
       if (Capacitor.isNativePlatform()) {
         const { SocialLogin } = await import('@capgo/capacitor-social-login')
         await SocialLogin.logout({ provider: 'google' }).catch(() => {})
-        
+
         const { CapacitorCookies } = await import('@capacitor/core')
         await CapacitorCookies.clearCookies({ url: 'https://class.genziitian.in' }).catch(() => {})
         await CapacitorCookies.clearCookies({ url: window.location.origin }).catch(() => {})
@@ -445,579 +534,132 @@ export default function Sidebar({ userRole, userName, userEmail }: SidebarProps)
     router.refresh()
   }
 
-  const [isTabletDevice, setIsTabletDevice] = useState(false)
-  useEffect(() => {
-    if (typeof window === 'undefined') return
-    const mql = window.matchMedia('(min-width: 768px) and (max-width: 1024px) and (orientation: portrait)')
-    setIsTabletDevice(mql.matches)
-    const listener = (e: MediaQueryListEvent) => setIsTabletDevice(e.matches)
-    mql.addEventListener('change', listener)
-    return () => mql.removeEventListener('change', listener)
-  }, [])
+  const effectivePath = pendingHref || pathname
+  const isItemActive = (item: NavItem) =>
+    effectivePath === item.href ||
+    (item.href !== '/dashboard' && item.href !== '/courses/explore' && effectivePath.startsWith(item.href) &&
+      (effectivePath[item.href.length] === '/' || effectivePath[item.href.length] === undefined) && !effectivePath.startsWith('/courses/explore') &&
+      !(item.href === '/free-resources' && effectivePath.startsWith('/free-resources/purchased')) &&
+      !(item.href === '/manage' && (effectivePath.startsWith('/manage/prompts') || effectivePath.startsWith('/manage/updates') || effectivePath.startsWith('/manage/coupons') || effectivePath.startsWith('/manage/notifications') || effectivePath.startsWith('/manage/contacts') || effectivePath.startsWith('/manage/mail-assigner') || effectivePath.startsWith('/manage/menus') || effectivePath.startsWith('/manage/genie') || effectivePath.startsWith('/manage/facts') || effectivePath.startsWith('/manage/careers') || effectivePath.startsWith('/manage/employees') || effectivePath.startsWith('/manage/one-on-one') || effectivePath.startsWith('/manage/storefront'))))
 
-  const isCurrentlyExpanded = (isHovered && !isTabletDevice && !isManualCollapsed) || isManualExpanded || isOpen
+  const tourIdFor = (href: string) =>
+    href === '/courses' ? 'sidebar-courses' :
+    href === '/free-resources' ? 'sidebar-academics' :
+    href === '/community' ? 'sidebar-community' :
+    href === '/support' ? 'sidebar-support' :
+    href === '/settings' ? 'sidebar-settings' : undefined
+
+  // Boolean "something new" flags from /api/unread
+  const hasNew = (href: string) =>
+    (href === '/community' && !!unread?.community) ||
+    (href === '/support' && !!unread?.support) ||
+    (href === '/announcements' && !!unread?.announcements)
+
+  const renderItem = (item: NavItem) => {
+    const active = !item.external && isItemActive(item)
+    const showLabel = !isRail || isOpen
+    const inner = (
+      <>
+        <span className="gz-nav__icon">{item.icon}</span>
+        {showLabel && <span className="gz-nav__label">{item.label}</span>}
+        {showLabel && item.external && <span className="gz-badge gz-badge--green">NEW</span>}
+        {showLabel && !item.external && hasNew(item.href) && <span className="gz-badge">New</span>}
+        {showLabel && isManager && hiddenMenus.includes(item.href) && <span className="gz-badge gz-badge--muted">Hidden</span>}
+      </>
+    )
+    if (item.external) {
+      return (
+        <a key={item.href} href={item.href} className="gz-nav" onClick={() => setIsOpen(false)} title={item.label}>
+          {inner}
+        </a>
+      )
+    }
+    return (
+      <Link
+        key={`${item.href}-${item.label}`}
+        href={item.href}
+        prefetch={true}
+        data-tour={tourIdFor(item.href)}
+        className={`gz-nav ${active ? 'active' : ''} ${item.desktopOnly ? 'desktop-only-nav-item' : ''}`}
+        onClick={() => { setPendingHref(item.href); setIsOpen(false) }}
+        title={item.label}
+      >
+        {inner}
+      </Link>
+    )
+  }
+
+  const showLabels = !isRail || isOpen
 
   return (
     <>
-      <div 
-        className={`sidebar-overlay ${isOpen ? 'active' : ''}`} 
-        onClick={() => setIsOpen(false)} 
-      />
-      {/* Desktop Permanent Corner-Fixed Logo */}
-      <div className={`sidebar-desktop-logo-fixed-container ${isTabletDevice ? 'is-tablet-device' : ''}`} style={{
-        position: 'fixed',
-        left: '12px',
-        top: isTabletDevice ? '12px' : '24px',
-        zIndex: 110,
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'flex-start',
-        gap: '4px',
-      }}>
-        <Link href="/dashboard" className="sidebar-logo-plate" style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          overflow: 'hidden',
-          width: isTabletDevice ? '110px' : '140px',
-          minHeight: isTabletDevice ? '52px' : '74px',
-          padding: isTabletDevice ? '6px 10px' : '10px 14px',
-          borderRadius: isTabletDevice ? '10px' : '14px',
-          background: 'linear-gradient(145deg, #f6f7fb, var(--border))',
-          boxShadow: 'none',
-          cursor: 'pointer',
-        }}>
-          <img
-            src={logoSrc}
-            alt="GenZ IITIAN Logo"
-            className="sidebar-logo-img"
-            style={{
-              width: '100%',
-              height: 'auto', 
-              maxHeight: isTabletDevice ? '36px' : '50px',
-              objectFit: 'contain',
-              display: 'block',
-            }} 
-          />
-        </Link>
-        {!isTabletDevice && currentUserRole && (
-          <div style={{
-            fontSize: '12px',
-            fontWeight: '700',
-            color: 'var(--text-secondary)',
-            letterSpacing: '0.06em',
-            paddingLeft: '12px',
-            textTransform: 'uppercase',
-            opacity: 0.8,
-            fontFamily: "'Outfit', 'Nunito', sans-serif",
-            marginBottom: '40px',
-          }}>
-            {currentUserRole} Portal
-          </div>
-        )}
-      </div>
-
-      <nav 
+      <div className={`gz-scrim ${isOpen ? 'active' : ''}`} onClick={() => setIsOpen(false)} />
+      <nav
         ref={sidebarRef}
-        className={`sidebar-nav ${isOpen ? 'sidebar-open' : ''} ${isCurrentlyExpanded ? 'desktop-expanded' : 'desktop-collapsed'} ${isTabletDevice ? 'is-tablet-device' : ''}`}
-        onMouseLeave={() => {
-          setIsHovered(false)
-          if (!isTabletDevice) {
-            setIsManualCollapsed(false)
-            setIsManualExpanded(false)
-          }
-        }}
-        style={{
-          width: isOpen ? '240px' : (isCurrentlyExpanded ? '240px' : '76px'),
-        }}
+        aria-label="Primary"
+        className={`gz-side ${isRail ? 'is-rail' : ''} ${isOpen ? 'is-open' : ''}`}
       >
-        {/* Navigation items rounded vertical container */}
-        <div
-          ref={navRef}
-          className="sidebar-vertical-container"
-          onMouseEnter={() => setIsHovered(true)}
-          style={{
-            display: 'flex',
-            flexDirection: 'column',
-            width: '100%',
-            overflow: 'hidden',
-          }}
-        >
-          {/* Scrollable list of items */}
-          <div
-            style={{
-              flex: 1,
-              display: 'flex',
-              flexDirection: 'column',
-              gap: isTabletDevice ? '1.8vh' : '8px',
-              overflowY: 'auto',
-              width: '100%',
-              paddingRight: '2px',
-            }}
-            className="sidebar-scrollable-content"
-          >
-            {visibleItems.map((item, idx) => {
-              const effectivePath = pendingHref || pathname
-              const isActive = effectivePath === item.href ||
-                (item.href !== '/dashboard' && item.href !== '/courses/explore' && effectivePath.startsWith(item.href) && 
-                 (effectivePath[item.href.length] === '/' || effectivePath[item.href.length] === undefined) && !effectivePath.startsWith('/courses/explore') &&
-                 !(item.href === '/free-resources' && effectivePath.startsWith('/free-resources/purchased')) &&
-                 !(item.href === '/manage' && (effectivePath.startsWith('/manage/prompts') || effectivePath.startsWith('/manage/updates') || effectivePath.startsWith('/manage/coupons') || effectivePath.startsWith('/manage/notifications') || effectivePath.startsWith('/manage/contacts') || effectivePath.startsWith('/manage/mail-assigner') || effectivePath.startsWith('/manage/facts'))))
+        <Link href="/dashboard" className="gz-side__logo" title="GenZ IITian">
+          <img src={logoSrc} alt="GenZ IITian" />
+        </Link>
 
-              const isStore = item.href === '/courses/explore'
-              const getLinkStyle = () => {
-                const minHeight = 'clamp(40px, 5.2vh, 48px)'
-                const padding = isCurrentlyExpanded ? '10px 16px' : '10px 0'
-                const borderRadius = isTabletDevice ? '10px' : '12px'
-                const fontSize = isTabletDevice ? '13px' : '14px'
-
-                if (isStore) {
-                  return {
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: isCurrentlyExpanded ? 'flex-start' : 'center',
-                    gap: isCurrentlyExpanded ? '12px' : '0px',
-                    padding,
-                    borderRadius,
-                    color: '#ffffff',
-                    background: 'linear-gradient(135deg, #4b5563, #1f2937)',
-                    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.2)',
-                    textDecoration: 'none',
-                    fontSize,
-                    fontWeight: '800',
-                    transition: 'all 0.2s ease',
-                    position: 'relative' as const,
-                    whiteSpace: 'nowrap' as const,
-                    overflow: 'hidden' as const,
-                    minHeight,
-                    height: 'auto',
-                    width: '100%',
-                  }
-                }
-                return {
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: isCurrentlyExpanded ? 'flex-start' : 'center',
-                  gap: isCurrentlyExpanded ? '12px' : '0px',
-                  padding,
-                  borderRadius,
-                  color: isActive ? 'var(--sidebar-active-text, #ffffff)' : 'var(--text-secondary)',
-                  background: isActive ? 'var(--sidebar-active, var(--primary))' : 'transparent',
-                  border: isActive ? '1px solid var(--sidebar-active-border, transparent)' : '1px solid transparent',
-                  boxShadow: 'none',
-                  textDecoration: 'none',
-                  fontSize,
-                  fontWeight: isActive ? '700' : '500',
-                  transition: 'all 0.2s ease',
-                  position: 'relative' as const,
-                  whiteSpace: 'nowrap' as const,
-                  minHeight,
-                  height: 'auto',
-                  width: '100%',
-                }
-              }
-
-              const tourId = item.href === '/courses' ? 'sidebar-courses' :
-                             item.href === '/free-resources' ? 'sidebar-academics' :
-                             item.href === '/community' ? 'sidebar-community' :
-                             item.href === '/support' ? 'sidebar-support' :
-                             item.href === '/settings' ? 'sidebar-settings' : undefined
-
-              if (item.external) {
-                return (
-                  <div key={item.href} style={{ width: '100%' }}>
-                    <style>{`
-                      .quiz-lab-link {
-                        background: linear-gradient(135deg, #0d5c33, #16a34a);
-                        border: 1px solid rgba(74, 222, 128, 0.45) !important;
-                        color: #ffffff !important;
-                        overflow: hidden;
-                        animation: quizLabGlow 2.8s ease-in-out infinite;
-                      }
-                      .quiz-lab-link:hover { transform: translateY(-1px); filter: brightness(1.08); }
-                      .quiz-lab-link::after {
-                        content: ''; position: absolute; top: 0; left: -60%; width: 40%; height: 100%; pointer-events: none;
-                        background: linear-gradient(100deg, transparent, rgba(255, 255, 255, 0.35), transparent);
-                        transform: skewX(-20deg); animation: quizLabShine 3.4s ease-in-out infinite;
-                      }
-                      .quiz-lab-logo {
-                        width: 24px; height: 24px; border-radius: 7px; display: block;
-                        box-shadow: 0 0 10px rgba(74, 222, 128, 0.65);
-                        animation: quizLabBob 2.8s ease-in-out infinite;
-                      }
-                      .quiz-lab-new {
-                        margin-left: auto; font-size: 9.5px; font-weight: 800; letter-spacing: 0.08em;
-                        padding: 2px 7px; border-radius: 999px; background: #dcfce7; color: #0d5c33;
-                        position: relative; z-index: 1;
-                      }
-                      @keyframes quizLabGlow {
-                        0%, 100% { box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2), 0 0 0 0 rgba(34, 197, 94, 0); }
-                        50% { box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2), 0 0 16px 2px rgba(34, 197, 94, 0.5); }
-                      }
-                      @keyframes quizLabShine { 0% { left: -60%; } 55%, 100% { left: 130%; } }
-                      @keyframes quizLabBob {
-                        0%, 100% { transform: translateY(0) rotate(0deg); }
-                        50% { transform: translateY(-2px) rotate(-5deg); }
-                      }
-                      @media (prefers-reduced-motion: reduce) {
-                        .quiz-lab-link, .quiz-lab-link::after, .quiz-lab-logo { animation: none !important; }
-                      }
-                    `}</style>
-                    <a
-                      href={item.href}
-                      className="sidebar-link-item quiz-lab-link"
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: isCurrentlyExpanded ? 'flex-start' : 'center',
-                        gap: isCurrentlyExpanded ? '12px' : '0px',
-                        padding: isCurrentlyExpanded ? '10px 16px' : '10px 0',
-                        borderRadius: isTabletDevice ? '10px' : '12px',
-                        textDecoration: 'none',
-                        fontSize: isTabletDevice ? '13px' : '14px',
-                        fontWeight: 800,
-                        transition: 'transform 0.2s ease, filter 0.2s ease',
-                        position: 'relative',
-                        whiteSpace: 'nowrap',
-                        minHeight: 'clamp(40px, 5.2vh, 48px)',
-                        width: '100%',
-                      }}
-                      onClick={() => setIsOpen(false)}
-                      title={!isCurrentlyExpanded ? item.label : undefined}
-                    >
-                      <span
-                        className="sidebar-link-icon"
-                        style={{ flexShrink: 0, display: 'flex', position: 'relative', zIndex: 1, justifyContent: 'center', alignItems: 'center', width: '24px' }}
-                      >
-                        {item.icon}
-                      </span>
-                      <span
-                        className="sidebar-link-label"
-                        style={{
-                          opacity: isCurrentlyExpanded ? 1 : 0,
-                          width: isCurrentlyExpanded ? 'auto' : 0,
-                          overflow: 'hidden',
-                          transition: 'opacity 0.2s ease, width 0.2s ease',
-                          zIndex: 1,
-                          position: 'relative',
-                          whiteSpace: 'nowrap',
-                          marginLeft: isCurrentlyExpanded ? '4px' : '0px',
-                        }}
-                      >
-                        {item.label}
-                      </span>
-                      {isCurrentlyExpanded && <span className="quiz-lab-new">NEW</span>}
-                    </a>
-                  </div>
-                )
-              }
-
-              return (
-                <div key={item.href} className={item.desktopOnly ? 'desktop-only-nav-item' : undefined} style={{ width: '100%' }}>
-                  <Link
-                    href={item.href}
-                    prefetch={true}
-                    data-tour={tourId}
-                    style={getLinkStyle()}
-                    className={`sidebar-link-item ${isActive ? 'active' : ''} ${isStore ? 'store-link' : ''}`}
-                    onClick={() => {
-                      setPendingHref(item.href)
-                      setIsOpen(false)
-                    }}
-                    title={!isCurrentlyExpanded ? item.label : undefined}
-                  >
-                    <span 
-                      className="sidebar-link-icon"
-                      style={{
-                        color: isStore ? '#ffffff' : (isActive ? 'var(--sidebar-active-text, #ffffff)' : 'var(--text-secondary)'),
-                        flexShrink: 0,
-                        display: 'flex',
-                        position: 'relative',
-                        zIndex: 1,
-                        justifyContent: 'center',
-                        alignItems: 'center',
-                        width: '24px',
-                      }}
-                    >
-                      {item.icon}
-                    </span>
-                    <span 
-                      className="sidebar-link-label"
-                      style={{
-                        opacity: isCurrentlyExpanded ? 1 : 0,
-                        width: isCurrentlyExpanded ? 'auto' : 0,
-                        overflow: 'hidden',
-                        transition: 'opacity 0.2s ease, width 0.2s ease',
-                        zIndex: 1,
-                        position: 'relative',
-                        whiteSpace: 'nowrap',
-                        marginLeft: isCurrentlyExpanded ? '4px' : '0px',
-                      }}
-                    >
-                      {item.label}
-                    </span>
-                  </Link>
-                </div>
-              )
-            })}
-          </div>
-
-        </div>
-
-        {/* Separate Sign Out / Expand Card */}
-        <div className="sidebar-logout-card" style={{
-          display: 'flex',
-          flexDirection: 'column',
-          gap: isTabletDevice ? '6px' : '8px',
-          marginTop: 'auto',
-        }}>
-          {isCurrentlyExpanded ? (
-            <>
-              {/* Sign Out Button (First) */}
-              <button
-                onClick={() => setShowLogoutConfirm(true)}
-                title="Sign Out"
-                className="sidebar-logout-btn"
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'flex-start',
-                  gap: '12px',
-                  padding: '10px 16px',
-                  borderRadius: isTabletDevice ? '10px' : '12px',
-                  color: 'var(--danger)',
-                  background: 'rgba(239, 68, 68, 0.08)',
-                  border: 'none',
-                  cursor: 'pointer',
-                  fontSize: isTabletDevice ? '13px' : '14.5px',
-                  fontWeight: '500',
-                  fontFamily: 'inherit',
-                  transition: 'all 0.2s ease',
-                  width: '100%',
-                  minHeight: 'clamp(40px, 5.2vh, 48px)',
-                  height: 'auto',
-                  flexShrink: 0,
-                }}
-              >
-                <span style={{ color: 'var(--danger)', flexShrink: 0, display: 'flex', width: '24px', justifyContent: 'center' }}>
-                  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
-                    <polyline points="16 17 21 12 16 7"/>
-                    <line x1="21" y1="12" x2="9" y2="12"/>
-                  </svg>
-                </span>
-                <span style={{
-                  opacity: 1,
-                  width: 'auto',
-                  overflow: 'hidden',
-                  transition: 'opacity 0.2s ease, width 0.2s ease',
-                  whiteSpace: 'nowrap',
-                  marginLeft: '4px',
-                }}>
-                  Sign Out
-                </span>
-              </button>
-
-              {/* Collapse Button (Second) */}
-              <button
-                onClick={() => {
-                  setIsManualCollapsed(true)
-                  setIsManualExpanded(false)
-                }}
-                title="Collapse Sidebar"
-                className="sidebar-collapse-btn"
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'flex-start',
-                  gap: '12px',
-                  padding: '10px 16px',
-                  borderRadius: isTabletDevice ? '10px' : '12px',
-                  color: 'var(--text-secondary)',
-                  background: 'rgba(255, 255, 255, 0.05)',
-                  border: 'none',
-                  cursor: 'pointer',
-                  fontSize: isTabletDevice ? '13px' : '14.5px',
-                  fontWeight: '500',
-                  fontFamily: 'inherit',
-                  transition: 'all 0.2s ease',
-                  width: '100%',
-                  minHeight: 'clamp(40px, 5.2vh, 48px)',
-                  height: 'auto',
-                  flexShrink: 0,
-                }}
-              >
-                <span style={{ color: 'var(--text-secondary)', flexShrink: 0, display: 'flex', width: '24px', justifyContent: 'center' }}>
-                  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                    <polyline points="11 17 6 12 11 7" />
-                    <polyline points="18 17 13 12 18 7" />
-                  </svg>
-                </span>
-                <span style={{
-                  opacity: 1,
-                  width: 'auto',
-                  overflow: 'hidden',
-                  transition: 'opacity 0.2s ease, width 0.2s ease',
-                  whiteSpace: 'nowrap',
-                  marginLeft: '4px',
-                }}>
-                  Collapse
-                </span>
-              </button>
-            </>
-          ) : (
-            /* Expand Button (when collapsed) */
-            <button
-              onClick={() => {
-                setIsManualExpanded(true)
-                setIsManualCollapsed(false)
-              }}
-              title="Expand Sidebar"
-              className="sidebar-expand-btn"
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '0px',
-                padding: '10px 0',
-                borderRadius: isTabletDevice ? '10px' : '12px',
-                color: 'var(--text-secondary)',
-                background: 'rgba(255, 255, 255, 0.05)',
-                border: 'none',
-                cursor: 'pointer',
-                transition: 'all 0.2s ease',
-                width: '100%',
-                minHeight: 'clamp(40px, 5.2vh, 48px)',
-                height: 'auto',
-                flexShrink: 0,
-              }}
-            >
-              <span style={{ flexShrink: 0, display: 'flex', width: '24px', justifyContent: 'center' }}>
-                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <polyline points="13 17 18 12 13 7" />
-                  <polyline points="6 17 11 12 6 7" />
-                </svg>
-              </span>
-            </button>
-          )}
-        </div>
-
-      </nav>
-
-      {/* Logout Confirmation Modal Overlay */}
-      {showLogoutConfirm && (
-        <div style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          width: '100vw',
-          height: '100vh',
-          backgroundColor: 'rgba(9, 9, 20, 0.7)',
-          backdropFilter: 'blur(8px)',
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          zIndex: 99999,
-        }}>
-          <div style={{
-            background: 'rgba(23, 23, 38, 0.95)',
-            border: '1px solid rgba(255, 255, 255, 0.08)',
-            borderRadius: '24px',
-            padding: '32px 28px',
-            width: '90%',
-            maxWidth: '400px',
-            boxShadow: '0 20px 50px rgba(0, 0, 0, 0.4)',
-            textAlign: 'center',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-          }}>
-            <div style={{
-              width: '56px',
-              height: '56px',
-              borderRadius: '50%',
-              background: 'rgba(239, 68, 68, 0.12)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              marginBottom: '20px',
-              color: 'var(--danger)',
-            }}>
-              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
-                <polyline points="16 17 21 12 16 7"/>
-                <line x1="21" y1="12" x2="9" y2="12"/>
-              </svg>
+        <div className="gz-side__scroll">
+          {visibleGroups.map(g => (
+            <div className="gz-side__group" key={g.title}>
+              {showLabels && <div className="gz-side__title">{g.title}</div>}
+              {g.items.map(renderItem)}
             </div>
-            
-            <h3 style={{
-              fontSize: '20px',
-              fontWeight: '750',
-              color: '#ffffff',
-              margin: '0 0 8px 0',
-              fontFamily: "'Outfit', 'Nunito', sans-serif",
-            }}>
-              Sign Out
-            </h3>
-            
-            <p style={{
-              fontSize: '14.5px',
-              color: '#cbd5e1',
-              margin: '0 0 24px 0',
-              lineHeight: '1.45',
-              fontWeight: '550',
-            }}>
-              Are you sure you want to sign out? Your current session will be ended.
-            </p>
-            
-            <div style={{
-              display: 'flex',
-              gap: '12px',
-              width: '100%',
-            }}>
-              <button
-                onClick={() => setShowLogoutConfirm(false)}
-                style={{
-                  flex: 1,
-                  padding: '11px 0',
-                  borderRadius: '12px',
-                  background: 'rgba(255, 255, 255, 0.06)',
-                  color: '#e2e8f0',
-                  border: 'none',
-                  cursor: 'pointer',
-                  fontWeight: '700',
-                  fontSize: '14px',
-                  fontFamily: 'inherit',
-                  transition: 'all 0.15s ease',
-                }}
-                onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)' }}
-                onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255, 255, 255, 0.06)' }}
-              >
-                Cancel
-              </button>
-              <button
-                onClick={() => {
-                  setShowLogoutConfirm(false)
-                  handleLogout()
-                }}
-                style={{
-                  flex: 1,
-                  padding: '11px 0',
-                  borderRadius: '12px',
-                  background: 'var(--danger)',
-                  color: '#fff',
-                  border: 'none',
-                  cursor: 'pointer',
-                  fontWeight: '700',
-                  fontSize: '14px',
-                  fontFamily: 'inherit',
-                  transition: 'all 0.15s ease',
-                }}
-                onMouseEnter={e => { e.currentTarget.style.filter = 'brightness(1.1)' }}
-                onMouseLeave={e => { e.currentTarget.style.filter = 'none' }}
-              >
+          ))}
+        </div>
+
+        <div className="gz-side__foot" data-tour="web-header-user">
+          {showUserMenu && (
+            <div className="gz-menu" role="menu">
+              <div className="gz-menu__who">
+                <b>{currentUserName}</b>
+                <span>{currentUserEmail}</span>
+              </div>
+              <Link href="/profile" className="gz-menu__item" role="menuitem" onClick={() => setShowUserMenu(false)}>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>
+                My Profile
+              </Link>
+              <Link href="/settings" className="gz-menu__item" role="menuitem" onClick={() => setShowUserMenu(false)}>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" /></svg>
+                Settings
+              </Link>
+              <div className="gz-menu__sep" />
+              <button className="gz-menu__item gz-menu__item--danger" role="menuitem" onClick={() => { setShowUserMenu(false); setShowLogoutConfirm(true) }}>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><polyline points="16 17 21 12 16 7" /><line x1="21" y1="12" x2="9" y2="12" /></svg>
                 Sign Out
               </button>
+            </div>
+          )}
+          <button className="gz-user" onClick={() => setShowUserMenu(v => !v)} aria-haspopup="menu" aria-expanded={showUserMenu} title="My Account & Profile">
+            <UserAvatar user={userData?.user ? userData.user : { name: currentUserName }} size={32} />
+            {showLabels && (
+              <>
+                <span className="gz-user__txt">
+                  <span className="gz-user__name">{currentUserName}</span>
+                  <span className="gz-user__role">{roleLabel}</span>
+                </span>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: 'var(--gz-ink-4)' }}><polyline points="7 15 12 20 17 15" /><polyline points="7 9 12 4 17 9" /></svg>
+              </>
+            )}
+          </button>
+        </div>
+      </nav>
+
+      {showLogoutConfirm && (
+        <div className="gz-modal-scrim" onClick={() => setShowLogoutConfirm(false)}>
+          <div className="gz-modal" role="dialog" aria-modal="true" aria-labelledby="gz-logout-title" onClick={e => e.stopPropagation()}>
+            <div className="gz-modal__icon">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><polyline points="16 17 21 12 16 7" /><line x1="21" y1="12" x2="9" y2="12" /></svg>
+            </div>
+            <h3 id="gz-logout-title">Sign out?</h3>
+            <p>Your current session will be ended.</p>
+            <div className="gz-modal__actions">
+              <button className="gz-btn gz-btn--ghost" onClick={() => setShowLogoutConfirm(false)}>Cancel</button>
+              <button className="gz-btn gz-btn--danger" onClick={() => { setShowLogoutConfirm(false); handleLogout() }}>Sign Out</button>
             </div>
           </div>
         </div>

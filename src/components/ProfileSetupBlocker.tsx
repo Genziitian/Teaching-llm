@@ -215,8 +215,8 @@ export default function ProfileSetupBlocker({ user }: { user: FullSession }) {
                 height: '84px',
                 borderRadius: '50%',
                 cursor: 'pointer',
-                boxShadow: '0 6px 18px rgba(99,102,241,0.2)',
-                border: '3px solid #6366f1',
+                boxShadow: '0 6px 18px color-mix(in srgb, var(--primary) 20%, transparent)',
+                border: '3px solid var(--primary)',
                 overflow: 'hidden',
                 background: '#eff0fe',
                 display: 'flex',
@@ -261,7 +261,7 @@ export default function ProfileSetupBlocker({ user }: { user: FullSession }) {
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    color: '#4f46e5',
+                    color: 'var(--primary)',
                     boxShadow: '0 2px 6px rgba(0,0,0,0.15)'
                   }}>
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
@@ -281,7 +281,7 @@ export default function ProfileSetupBlocker({ user }: { user: FullSession }) {
                 style={{
                   background: 'none',
                   border: 'none',
-                  color: '#4f46e5',
+                  color: 'var(--primary)',
                   fontSize: '12px',
                   fontWeight: 700,
                   cursor: 'pointer',
@@ -404,7 +404,7 @@ export default function ProfileSetupBlocker({ user }: { user: FullSession }) {
                     cursor: 'pointer',
                     fontSize: '14px',
                     fontWeight: 700,
-                    border: formData.gender === g ? '2px solid #6366f1' : '2px solid #e0e3ea',
+                    border: formData.gender === g ? '2px solid var(--primary)' : '2px solid #e0e3ea',
                     background: formData.gender === g ? '#eff0fe' : 'var(--surface)',
                     color: formData.gender === g ? 'var(--accent)' : 'var(--text-secondary)',
                     transition: 'all 0.2s'
@@ -426,7 +426,7 @@ export default function ProfileSetupBlocker({ user }: { user: FullSession }) {
               padding: '16px',
               fontSize: '16px',
               fontWeight: 800,
-              boxShadow: '0 8px 20px rgba(99,102,241,0.3)',
+              boxShadow: '0 8px 20px color-mix(in srgb, var(--primary) 30%, transparent)',
               display: 'flex',
               justifyContent: 'center',
               alignItems: 'center',
@@ -515,7 +515,7 @@ export default function ProfileSetupBlocker({ user }: { user: FullSession }) {
                 style={{
                   flex: 1, padding: '13px', borderRadius: '12px',
                   fontSize: '14px', fontWeight: 800,
-                  boxShadow: '0 6px 16px rgba(99,102,241,0.3)'
+                  boxShadow: '0 6px 16px color-mix(in srgb, var(--primary) 30%, transparent)'
                 }}
               >
                 Continue

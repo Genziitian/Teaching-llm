@@ -119,7 +119,7 @@ export default function OfflinePageNotice({
               fontWeight: 700,
               border: 'none',
               cursor: isChecking ? 'not-allowed' : 'pointer',
-              boxShadow: '0 4px 16px rgba(99, 102, 241, 0.35)',
+              boxShadow: '0 4px 16px color-mix(in srgb, var(--primary) 35%, transparent)',
               transition: 'all 0.2s ease',
             }}
           >
