@@ -220,8 +220,12 @@ export function activeBanner(today = seasonalToday()): FestivalBanner {
   return banner
 }
 
+/** Snow was removed from the site (Nov 2026). Flip to true to bring it back. */
+export const SNOW_ENABLED = false
+
 /** 0..1 snow amount for today (0 = no snow season). */
 export function snowAmount(today = seasonalToday()): number {
+  if (!SNOW_ENABLED) return 0
   if (process.env.NEXT_PUBLIC_SEASONAL_EFFECTS === 'off') return 0
   const forced = param('snow')
   if (forced === '0') return 0

@@ -4,6 +4,8 @@ import Link from 'next/link'
 import { canSeeProtectionOnWeb } from '@/lib/exam-protection/access'
 import { usePathname, useRouter } from 'next/navigation'
 import { useEffect, useRef, useState } from 'react'
+import useSWR from 'swr'
+import { LOCKED_MENUS, DEFAULT_HIDDEN_MENUS } from '@/lib/menu-visibility-config'
 import { useUserData } from '@/components/UserDataProvider'
 import { useLocalCachedAsset } from '@/hooks/useLocalCachedAsset'
 import { clearSWRCache } from '@/lib/cache'
@@ -288,6 +290,66 @@ const NAV_ITEMS: NavItem[] = [
     ),
   },
   {
+    href: '/manage/careers',
+    label: 'Careers',
+    roles: ['MANAGER'],
+    icon: (
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <rect x="2" y="7" width="20" height="14" rx="2"/>
+        <path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16"/>
+      </svg>
+    ),
+  },
+  {
+    href: '/manage/employees',
+    label: 'Employees',
+    roles: ['MANAGER'],
+    icon: (
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/>
+        <circle cx="9" cy="7" r="4"/>
+        <path d="M23 21v-2a4 4 0 00-3-3.87"/>
+        <path d="M16 3.13a4 4 0 010 7.75"/>
+      </svg>
+    ),
+  },
+  {
+    href: '/manage/one-on-one',
+    label: '1:1 Bookings',
+    roles: ['MANAGER'],
+    icon: (
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <rect x="3" y="4" width="18" height="18" rx="2"/>
+        <path d="M16 2v4M8 2v4M3 10h18"/>
+      </svg>
+    ),
+  },
+  {
+    href: '/manage/storefront',
+    label: 'Storefront Panel',
+    roles: ['MANAGER'],
+    icon: (
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M3 9l1-5h16l1 5"/>
+        <path d="M4 9v11h16V9"/>
+        <path d="M9 20v-6h6v6"/>
+      </svg>
+    ),
+  },
+  {
+    href: '/manage/storefront-tools',
+    label: 'Storefront Tools',
+    roles: ['MANAGER'],
+    icon: (
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <rect x="3" y="3" width="7" height="7"/>
+        <rect x="14" y="3" width="7" height="7"/>
+        <rect x="3" y="14" width="7" height="7"/>
+        <rect x="14" y="14" width="7" height="7"/>
+      </svg>
+    ),
+  },
+  {
     href: '/manage/mail-assigner',
     label: 'Mail Assigner',
     roles: ['MANAGER'],
@@ -295,6 +357,27 @@ const NAV_ITEMS: NavItem[] = [
       <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
         <polyline points="22,6 12,13 2,6"/>
+      </svg>
+    ),
+  },
+  {
+    href: '/manage/menus',
+    label: 'Menu Visibility',
+    roles: ['MANAGER'],
+    icon: (
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+      </svg>
+    ),
+  },
+  {
+    href: '/manage/genie',
+    label: 'Genie Map',
+    roles: ['MANAGER'],
+    icon: (
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <circle cx="5" cy="12" r="2.5"/><circle cx="19" cy="6" r="2.5"/><circle cx="19" cy="18" r="2.5"/>
+        <path d="M7.4 11l9.2-4M7.4 13l9.2 4"/>
       </svg>
     ),
   },
@@ -338,7 +421,7 @@ const NAV_GROUPS: { title: string; hrefs: string[] }[] = [
   { title: 'Learn', hrefs: ['/dashboard', '/courses', '/live', '/calendar', '/free-resources', '/materials'] },
   { title: 'Explore', hrefs: ['/courses/explore', QUIZ_LAB_URL, '/exam-protection'] },
   { title: 'Connect', hrefs: ['/community', '/announcements', '/support', '/feedback'] },
-  { title: 'Manage', hrefs: ['/manage', '/manage/queries', '/manage/notifications', '/manage/updates', '/manage/prompts', '/manage/facts', '/manage/coupons', '/manage/mail-assigner'] },
+  { title: 'Manage', hrefs: ['/manage', '/manage/queries', '/manage/notifications', '/manage/updates', '/manage/prompts', '/manage/facts', '/manage/coupons', '/manage/mail-assigner', '/manage/menus', '/manage/genie', '/manage/careers', '/manage/employees', '/manage/one-on-one', '/manage/storefront', '/manage/storefront-tools'] },
   { title: 'Admin', hrefs: ['/admin', '/transactions', '/activity-logs', '/data-analysis', '/google-sync'] },
   { title: 'Company', hrefs: ['/company/about-us'] },
 ]
@@ -405,8 +488,13 @@ export default function Sidebar({ userRole, userName, userEmail }: SidebarProps)
   const currentUserRole = userData?.user?.role || userRole
   const currentUserEmail = userData?.user?.email || userEmail
 
+  // Menu items a manager has hidden. Managers still see them (marked "Hidden") so they can switch them back on.
+  const { data: menuData } = useSWR<{ hidden: string[] }>('/api/menu-visibility', (u: string) => fetch(u).then(r => (r.ok ? r.json() : { hidden: DEFAULT_HIDDEN_MENUS })), { revalidateOnFocus: false })
+  const hiddenMenus = (menuData?.hidden ?? DEFAULT_HIDDEN_MENUS).filter(h => !LOCKED_MENUS.includes(h))
+  const isManager = currentUserRole === 'MANAGER'
+
   const visibleItems = NAV_ITEMS.filter(
-    item => (!item.roles || item.roles.includes(currentUserRole)) && (!item.protectionPreview || canSeeProtectionOnWeb(currentUserRole, userData?.user?.email))
+    item => (!item.roles || item.roles.includes(currentUserRole)) && (!item.protectionPreview || canSeeProtectionOnWeb(currentUserRole, userData?.user?.email)) && (isManager || !hiddenMenus.includes(item.href))
   )
 
   const roleLabel = currentUserRole.charAt(0) + currentUserRole.slice(1).toLowerCase()
@@ -452,7 +540,7 @@ export default function Sidebar({ userRole, userName, userEmail }: SidebarProps)
     (item.href !== '/dashboard' && item.href !== '/courses/explore' && effectivePath.startsWith(item.href) &&
       (effectivePath[item.href.length] === '/' || effectivePath[item.href.length] === undefined) && !effectivePath.startsWith('/courses/explore') &&
       !(item.href === '/free-resources' && effectivePath.startsWith('/free-resources/purchased')) &&
-      !(item.href === '/manage' && (effectivePath.startsWith('/manage/prompts') || effectivePath.startsWith('/manage/updates') || effectivePath.startsWith('/manage/coupons') || effectivePath.startsWith('/manage/notifications') || effectivePath.startsWith('/manage/contacts') || effectivePath.startsWith('/manage/mail-assigner') || effectivePath.startsWith('/manage/facts'))))
+      !(item.href === '/manage' && (effectivePath.startsWith('/manage/prompts') || effectivePath.startsWith('/manage/updates') || effectivePath.startsWith('/manage/coupons') || effectivePath.startsWith('/manage/notifications') || effectivePath.startsWith('/manage/contacts') || effectivePath.startsWith('/manage/mail-assigner') || effectivePath.startsWith('/manage/menus') || effectivePath.startsWith('/manage/genie') || effectivePath.startsWith('/manage/facts') || effectivePath.startsWith('/manage/careers') || effectivePath.startsWith('/manage/employees') || effectivePath.startsWith('/manage/one-on-one') || effectivePath.startsWith('/manage/storefront'))))
 
   const tourIdFor = (href: string) =>
     href === '/courses' ? 'sidebar-courses' :
@@ -476,6 +564,7 @@ export default function Sidebar({ userRole, userName, userEmail }: SidebarProps)
         {showLabel && <span className="gz-nav__label">{item.label}</span>}
         {showLabel && item.external && <span className="gz-badge gz-badge--green">NEW</span>}
         {showLabel && !item.external && hasNew(item.href) && <span className="gz-badge">New</span>}
+        {showLabel && isManager && hiddenMenus.includes(item.href) && <span className="gz-badge gz-badge--muted">Hidden</span>}
       </>
     )
     if (item.external) {

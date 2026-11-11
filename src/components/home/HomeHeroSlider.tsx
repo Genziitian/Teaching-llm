@@ -16,44 +16,16 @@ interface Props {
 export default function HomeHeroSlider({ slides, intervalMs = 4500 }: Props) {
   const [index, setIndex] = useState(0)
   const [paused, setPaused] = useState(false)
-  const [isApp, setIsApp] = useState(false)
   const touchStartX = useRef<number | null>(null)
   const touchDeltaX = useRef(0)
 
   useEffect(() => {
-    const checkIsApp = () => {
-      const isNative = typeof document !== 'undefined' && (
-        document.documentElement.classList.contains('is-native') ||
-        Boolean((window as any).Capacitor?.isNativePlatform?.() || (window as any).Capacitor?.isNative)
-      )
-
-      const isPWA = typeof window !== 'undefined' && (
-        window.matchMedia?.('(display-mode: standalone)').matches ||
-        (window.navigator as any)?.standalone === true ||
-        (typeof document !== 'undefined' && document.referrer?.includes('android-app://'))
-      )
-
-      return Boolean(isNative || isPWA)
-    }
-
-    setIsApp(checkIsApp())
-
-    if (typeof document !== 'undefined') {
-      const observer = new MutationObserver(() => {
-        if (checkIsApp()) setIsApp(true)
-      })
-      observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] })
-      return () => observer.disconnect()
-    }
-  }, [])
-
-  useEffect(() => {
-    if (!isApp || paused || slides.length <= 1) return
+    if (paused || slides.length <= 1) return
     const t = setInterval(() => setIndex(i => (i + 1) % slides.length), intervalMs)
     return () => clearInterval(t)
-  }, [isApp, paused, slides.length, intervalMs])
+  }, [paused, slides.length, intervalMs])
 
-  if (!isApp || slides.length === 0) return null
+  if (slides.length === 0) return null
 
   const go = (i: number) => setIndex((i + slides.length) % slides.length)
 

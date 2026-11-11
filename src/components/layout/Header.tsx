@@ -452,11 +452,12 @@ export default function Header({ userName, userRole }: HeaderProps) {
         </div>
 
         <div className="gz-head__actions">
-          <a href="/download" target="_blank" rel="noopener noreferrer" className="gz-ctl gz-ctl--text download-btn" title="Download Android APP">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-              <polyline points="7 10 12 15 17 10" />
-              <line x1="12" y1="15" x2="12" y2="3" />
+          <a href="/download" target="_blank" rel="noopener noreferrer" className="gz-ctl gz-ctl--text gz-download" title="Download Android app">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <rect x="6" y="2" width="12" height="20" rx="3" />
+              <path d="M12 7.5v6" />
+              <path d="m9.5 11.5 2.5 2.5 2.5-2.5" />
+              <path d="M10.5 18.5h3" />
             </svg>
             <span className="gz-ctl__label">Download App</span>
           </a>

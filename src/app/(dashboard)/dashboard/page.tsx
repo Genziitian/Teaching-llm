@@ -1209,16 +1209,13 @@ export default function DashboardPage() {
             </div>
           )}
 
-          <HomeHeroSlider slides={homeSlides} />
-          {/* ── Row 1: Active Now + Up Next (desktop only on mobile they're replaced by Featured Courses) ── */}
+          {isMobile && <HomeHeroSlider slides={homeSlides} />}
+          {/* ── Row 1: slider (left) + Active Now / Up Next (right). Phones show the slider above instead. ── */}
           {!isMobile && (
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: '1fr 1fr',
-            gap: '20px',
-            marginBottom: '20px',
-            alignItems: 'stretch',
-          }}>
+          <div className={`gz-live-grid ${homeSlides.length > 0 ? 'has-slider' : ''}`}>
+            {homeSlides.length > 0 && (
+              <div className="gz-hero-cell"><HomeHeroSlider slides={homeSlides} /></div>
+            )}
             {/* Active Now card */}
             <div className="card" style={{
               padding: '20px',
