@@ -132,6 +132,7 @@ import GoogleAnalytics from '@/components/GoogleAnalytics'
 import { LanguageProvider } from '@/contexts/LanguageContext'
 import SeasonalEffects from '@/components/seasonal/SeasonalEffects'
 import SiteDecor from '@/components/seasonal/SiteDecor'
+import ClassOnly from '@/components/ClassOnly'
 
 export default function RootLayout({
   children,
@@ -156,14 +157,14 @@ export default function RootLayout({
                 <MobileBlocker />
                 <CapacitorBridge />
                 <AppUpdater />
-                <SplashOverlay />
-                <CapacitorPlayStoreBanner />
-                <AndroidAppModal />
-                <PaymentResultHost />
-        <PaymentFeedbackPrompt />
+                <ClassOnly><SplashOverlay /></ClassOnly>
+                <ClassOnly><CapacitorPlayStoreBanner /></ClassOnly>
+                <ClassOnly><AndroidAppModal /></ClassOnly>
+                <ClassOnly><PaymentResultHost /></ClassOnly>
+        <ClassOnly><PaymentFeedbackPrompt /></ClassOnly>
                 <ServiceWorkerRegister />
-                <SiteDecor />
-                <SeasonalEffects />
+                <ClassOnly><SiteDecor /></ClassOnly>
+                <ClassOnly><SeasonalEffects /></ClassOnly>
                 <CsrfProvider>{children}</CsrfProvider>
               </LanguageProvider>
             </ThemeProvider>

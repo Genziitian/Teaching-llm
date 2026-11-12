@@ -86,3 +86,5 @@ _to_delete/
 
 storefront-panel/node_modules
 storefront-panel/dist
+
+.fuse_hidden*

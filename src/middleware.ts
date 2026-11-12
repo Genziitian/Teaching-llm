@@ -2,8 +2,16 @@ import { NextRequest, NextResponse } from 'next/server'
 import { jwtVerify } from 'jose'
 import { checkRateLimit, isMaintenanceModeActive } from '@/lib/ratelimit'
 import { canBypassMaintenance } from '@/lib/maintenance-access'
+import { isLandingPage } from '@/lib/landing-paths'
 
 const PUBLIC_PATHS = ['/login', '/terminated', '/api/maintenance-status', '/api/external-enroll', '/api/analytics/compute', '/api/app-version', '/download', '/error/']
+// Public storefront landing site paths live in '@/lib/landing-paths'
+// Landing APIs: each route checks the session itself
+const LANDING_API_PATHS = ['/api/site/']
+function isLandingPath(pathname: string): boolean {
+  if (LANDING_API_PATHS.some(p => pathname.startsWith(p))) return true
+  return isLandingPage(pathname)
+}
 const COOKIE_NAME = 'teaching_llm_token'
 const JWT_SECRET = process.env.JWT_SECRET?.trim() || ''
 
@@ -17,6 +25,7 @@ const CSRF_EXEMPT_PATHS = [
   '/api/sync-queue', // cron job — has its own auth via CRON_SECRET
   '/api/external-enroll', // external purchase system — has its own auth via EXTERNAL_ENROLL_SECRET
   '/api/analytics/compute', // analytics cron job — has its own auth via CRON_SECRET
+  '/api/site/verify-payment', // Razorpay callback — proven by payment signature
 ]
 
 /**
@@ -146,7 +155,7 @@ export async function middleware(request: NextRequest) {
   }
 
   // Allow public paths
-  if (PUBLIC_PATHS.some(p => pathname.startsWith(p))) {
+  if (PUBLIC_PATHS.some(p => pathname.startsWith(p)) || isLandingPath(pathname)) {
     return NextResponse.next()
   }
 
