@@ -1,0 +1,47 @@
+/* Native port of the storefront-panel booklet cover (.bk-* rules in storefront-panel/src/index.css). */
+.scene { position: relative; user-select: none; -webkit-user-select: none; cursor: pointer; outline: none; }
+.scene, .scene * { box-sizing: border-box; }
+.scene p, .scene h4, .scene ol, .scene li { margin: 0; padding: 0; }
+.scene ol { list-style: none; }
+.scene:focus-visible { outline: 2px solid var(--primary, #6366f1); outline-offset: 6px; border-radius: 18px; }
+.side { padding-left: 12px; }
+.top { padding-top: 12px; }
+
+.body {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 4 / 5;
+  perspective: 1400px;
+  transition: transform 450ms cubic-bezier(.2,.85,.25,1);
+}
+.scene:hover .body, .open .body { transform: translate(-3px, -4px) rotate(-1deg); }
+
+.cover {
+  transform-style: preserve-3d;
+  backface-visibility: hidden;
+  transition: transform 750ms cubic-bezier(.2,.85,.25,1), box-shadow 750ms ease;
+  will-change: transform;
+}
+.top .cover { transform-origin: 50% 0%; }
+.side .cover { transform-origin: 0% 50%; }
+.top.open .cover { transform: rotateX(72deg); }
+.side.open .cover { transform: rotateY(-74deg); }
+.peek.top .cover { animation: peekTop 1.6s cubic-bezier(.2,.85,.25,1) backwards; animation-delay: var(--bk-delay, 0ms); }
+.peek.side .cover { animation: peekSide 1.6s cubic-bezier(.2,.85,.25,1) backwards; animation-delay: var(--bk-delay, 0ms); }
+@keyframes peekTop { 0%, 100% { transform: rotateX(0); } 35% { transform: rotateX(28deg); } 60% { transform: rotateX(-3deg); } }
+@keyframes peekSide { 0%, 100% { transform: rotateY(0); } 35% { transform: rotateY(-30deg); } 60% { transform: rotateY(3deg); } }
+
+.sticker { transform: rotate(10deg); transition: transform 500ms cubic-bezier(.3,1.6,.5,1); }
+.scene:hover .sticker, .open .sticker { transform: rotate(-14deg) scale(1.08); }
+
+.line { opacity: 0; transform: translateY(6px); transition: opacity 300ms ease, transform 300ms ease; }
+.open .line { opacity: 1; transform: none; }
+
+.dots { background-image: radial-gradient(rgba(11,17,32,.16) 1.2px, transparent 1.3px); background-size: 14px 14px; }
+
+.truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+@media (prefers-reduced-motion: reduce) {
+  .cover, .body, .sticker, .line { transition: none; }
+  .peek .cover { animation: none !important; }
+}
