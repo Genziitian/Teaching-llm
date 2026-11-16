@@ -50,6 +50,7 @@ const PAGE_TITLES: Record<string, { title: string; subtitle: string }> = {
   '/settings':   { title: 'Settings',          subtitle: 'Manage passwords, appearance, and notifications' },
   '/chat-transcripts': { title: 'Chat Transcripts', subtitle: 'View community chat transcripts' },
   '/google-sync': { title: 'Google Sync', subtitle: '' },
+  '/jobs': { title: 'Jobs', subtitle: '' },
   '/activity-logs': { title: 'Activity Log',     subtitle: 'Monitor all platform activity and user actions' },
   '/data-analysis': { title: 'Data Analysis',      subtitle: 'Production-level insights and student behavior metrics' },
   '/feedback':   { title: 'Feedback',           subtitle: 'Average ratings and student reviews.' },
@@ -202,6 +203,15 @@ export default function Header({ userName, userRole }: HeaderProps) {
   const showGreetingHeadline = matchedKey ? greetingPages.has(matchedKey) : false
 
   const getGreeting = () => getGreetingLine(firstName)
+
+  // Manage sub-pages show just their own name (no "Manage Content" or subtitle); the /manage tabs name themselves.
+  const MANAGE_TITLES: Record<string, string> = {
+    queries: 'Queries', notifications: 'Notifications', coupons: 'Coupons', menus: 'Menu Visibility', genie: 'Genie Map',
+    careers: 'Careers', employees: 'Employees', 'one-on-one': '1:1 Bookings', 'mail-assigner': 'Mail Assigner',
+    'follow-ups': 'Follow-ups', referrals: 'Referrals', blogs: 'Blogs', faqs: 'FAQs', 'store-settings': 'Store settings',
+    boxes: 'Boxes', 'storefront-tools': 'Tools', storefront: 'Storefront', 'storefront-courses': 'Storefront Courses',
+  }
+  const manageTitle = pathname === '/manage' ? '' : (matchedKey && matchedKey !== '/manage' ? pageInfo.title : MANAGE_TITLES[pathname.replace(/^\/manage\//, '').split('/')[0]] || '')
 
   // const [notifications, setNotifications] = useState<Notification[]>([]) - Removed
 
@@ -407,7 +417,7 @@ export default function Header({ userName, userRole }: HeaderProps) {
 
         {/* Desktop / tablet title */}
         <div className="gz-head__titles">
-          {pathname.startsWith('/manage') ? null : showGreetingHeadline ? (
+          {pathname.startsWith('/manage') ? (manageTitle ? <h1>{manageTitle}</h1> : null) : showGreetingHeadline ? (
             <>
               <h1 data-snow="text">{mounted ? getGreeting().heading : `Welcome, ${firstName}`}</h1>
               <p>{mounted ? getGreeting().subtext : 'Loading your dashboard...'}</p>

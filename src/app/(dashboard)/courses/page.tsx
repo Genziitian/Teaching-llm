@@ -60,6 +60,9 @@ function TeacherIcon({ size = 24, color, background }: { size?: number; color: s
   )
 }
 
+/** "term 1" -> "Term 1". Only all-lowercase words are changed, so acronyms like "PRO" or "IITM" stay as typed. */
+const titleCase = (v: string) => v.replace(/\b[a-z][a-z]*\b/g, w => w[0].toUpperCase() + w.slice(1))
+
 export default function CoursesPage() {
   const router = useRouter()
   const { resolvedTheme } = useTheme()
@@ -561,12 +564,12 @@ export default function CoursesPage() {
 
               <div className="gz-cc__body">
                 <div className="gz-cc__name">
-                  {course.name}
+                  {titleCase(course.name)}
                   {course.isDemo && <span className="gz-cc__tag" style={{ marginLeft: 8, background: 'var(--gz-chip)', color: 'var(--gz-ink-2)' }}>DEMO</span>}
                 </div>
                 <div className="gz-cc__meta">
-                  {course.subject && <span className="gz-cc__tag" style={{ color: tint, background: `color-mix(in srgb, ${tint} 10%, transparent)` }}>{course.subject}</span>}
-                  {course.teacherName && <span className="gz-cc__who">{course.teacherName}</span>}
+                  {course.subject && <span className="gz-cc__tag" style={{ background: 'var(--gz-chip)', color: 'var(--gz-ink-2)' }}>{titleCase(course.subject)}</span>}
+                  {course.teacherName && <span className="gz-cc__who">{titleCase(course.teacherName)}</span>}
                 </div>
 
                 {hasUpgradePrice && (

@@ -236,6 +236,8 @@
   box-shadow: 0 0 0 1px var(--gz-line-2), 0 1px 2px rgba(0, 0, 0, 0.04);
 }
 .gz-nav__icon { flex-shrink: 0; display: flex; align-items: center; justify-content: center; width: 16px; }
+/* Light mode: subtle colour on each icon (dark and black themes keep the plain ink colour). */
+:root:not([data-theme="dark"]):not([data-theme="black"]) .gz-nav__icon[style*="--ico"] { color: var(--ico); }
 .gz-nav__icon img { width: 18px; height: 18px; border-radius: 5px; display: block; margin: 0 -1px; }
 .gz-nav__label { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
 .gz-badge {
@@ -303,10 +305,10 @@
 /* ── Header ────────────────────────────────────────────────────────────── */
 .gz-head__titles { flex: 1; min-width: 150px; }
 .gz-head__titles h1 {
-  margin: 0; font-size: 20px; font-weight: 600; letter-spacing: -0.02em; line-height: 1.2; color: var(--gz-ink);
+  margin: 0; font-size: clamp(26px, 1.1vw + 17px, 38px); font-weight: 600; letter-spacing: -0.02em; line-height: 1.2; color: var(--gz-ink);
   text-align: left; position: static; transform: none;
 }
-.gz-head__titles p { margin: 3px 0 0; color: var(--gz-ink-3); font-size: 14px; text-align: left; }
+.gz-head__titles p { margin: 4px 0 0; color: var(--gz-ink-3); font-size: clamp(15px, 0.3vw + 13px, 17px); text-align: left; }
 .gz-head__actions { display: flex; align-items: center; gap: 8px; position: relative; z-index: 33; }
 
 .gz-ctl {
@@ -686,10 +688,12 @@ body .gz-chead__bg { background: var(--gz-panel) !important; padding: 20px 22px 
 body .gz-chead__bg > div[style*="border-radius: 50%"] { display: none !important; }
 body .gz-chead__bg h1 { color: var(--gz-ink) !important; font-size: 24px !important; font-weight: 600 !important; letter-spacing: -0.02em; }
 body .gz-chead__bg p, body .gz-chead__bg a { color: var(--gz-ink-3, #6b6b68) !important; }
-body .gz-chead__bg span[style*="border-radius: 20px"]:not([style*="255, 165, 0"]) {
+body .gz-chead__bg span[style*="border-radius: 20px"]:not([style*="255, 165, 0"]),
+body .gz-chead__bg span[style*="border-radius: 14px"]:not([style*="255, 165, 0"]) {
   background: var(--gz-card) !important; color: var(--gz-ink-2, #55554f) !important;
   border: 1px solid var(--gz-line) !important; border-radius: 7px !important; font-weight: 500 !important;
 }
+body .gz-chead__bg span[style*="font-size: 12px"]:not([style*="border-radius"]) { color: var(--gz-ink-3, #6b6b68) !important; }
 body .gz-chead__bg button { background: var(--gz-ink) !important; color: var(--gz-panel) !important; border: 0 !important; border-radius: 9px !important; box-shadow: none !important; backdrop-filter: none !important; }
 body .gz-tab { font-size: 13.5px !important; font-weight: 500 !important; padding: 10px 0 !important; border-bottom-width: 2px !important; border-bottom-color: transparent !important; color: var(--gz-ink-3, #6b6b68) !important; }
 body .gz-tab[data-active="true"] { color: var(--gz-ink) !important; border-bottom-color: var(--gz-ink) !important; }

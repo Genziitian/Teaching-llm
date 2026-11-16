@@ -429,7 +429,7 @@ export default function Sidebar({ userRole, userName, userEmail }: SidebarProps)
     (item.href !== '/dashboard' && item.href !== '/courses/explore' && effectivePath.startsWith(item.href) &&
       (effectivePath[item.href.length] === '/' || effectivePath[item.href.length] === undefined) && !effectivePath.startsWith('/courses/explore') &&
       !(item.href === '/free-resources' && effectivePath.startsWith('/free-resources/purchased')) &&
-      !(item.href === '/manage' && (effectivePath.startsWith('/manage/prompts') || effectivePath.startsWith('/manage/updates') || effectivePath.startsWith('/manage/coupons') || effectivePath.startsWith('/manage/notifications') || effectivePath.startsWith('/manage/contacts') || effectivePath.startsWith('/manage/mail-assigner') || effectivePath.startsWith('/manage/menus') || effectivePath.startsWith('/manage/genie') || effectivePath.startsWith('/manage/facts') || effectivePath.startsWith('/manage/careers') || effectivePath.startsWith('/manage/employees') || effectivePath.startsWith('/manage/one-on-one') || effectivePath.startsWith('/manage/storefront') || effectivePath.startsWith('/manage/boxes') || effectivePath.startsWith('/manage/follow-ups') || effectivePath.startsWith('/manage/referrals') || effectivePath.startsWith('/manage/blogs') || effectivePath.startsWith('/manage/faqs') || effectivePath.startsWith('/manage/store-settings'))))
+      !(item.href === '/manage' && (effectivePath.startsWith('/manage/prompts') || effectivePath.startsWith('/manage/queries') || effectivePath.startsWith('/manage/updates') || effectivePath.startsWith('/manage/coupons') || effectivePath.startsWith('/manage/notifications') || effectivePath.startsWith('/manage/contacts') || effectivePath.startsWith('/manage/mail-assigner') || effectivePath.startsWith('/manage/menus') || effectivePath.startsWith('/manage/genie') || effectivePath.startsWith('/manage/facts') || effectivePath.startsWith('/manage/careers') || effectivePath.startsWith('/manage/employees') || effectivePath.startsWith('/manage/one-on-one') || effectivePath.startsWith('/manage/storefront') || effectivePath.startsWith('/manage/boxes') || effectivePath.startsWith('/manage/follow-ups') || effectivePath.startsWith('/manage/referrals') || effectivePath.startsWith('/manage/blogs') || effectivePath.startsWith('/manage/faqs') || effectivePath.startsWith('/manage/store-settings'))))
 
   const tourIdFor = (href: string) =>
     href === '/courses' ? 'sidebar-courses' :
@@ -444,12 +444,20 @@ export default function Sidebar({ userRole, userName, userEmail }: SidebarProps)
     (href === '/support' && !!unread?.support) ||
     (href === '/announcements' && !!unread?.announcements)
 
+  // Muted per-item icon colours (only used in light mode, see .gz-nav__icon in redesign.css).
+  const ICON_COLORS: Record<string, string> = {
+    '/dashboard': '#4f7cd6', '/courses': '#8061d0', '/live': '#d1576f', '/calendar': '#d9722e', '/free-resources': '#2a9d8f', '/materials': '#c4881c',
+    '/courses/explore': '#3d9a5f', '/jobs': '#5a67d8', '/community': '#2f93b5', '/announcements': '#c25a9b', '/support': '#4f7cd6', '/feedback': '#d9722e',
+    '/manage': '#8061d0', '/manage/queries': '#2a9d8f', '/manage/notifications': '#c4881c', '/manage/coupons': '#d1576f', '/manage/genie': '#5a67d8',
+    '/manage/employees': '#2f93b5', '/manage/one-on-one': '#3d9a5f', '/manage/storefront-tools': '#c25a9b',
+    '/admin': '#4f7cd6', '/transactions': '#3d9a5f', '/data-analysis': '#8061d0', '/company/about-us': '#2f93b5',
+  }
   const renderItem = (item: NavItem) => {
     const active = !item.external && isItemActive(item)
     const showLabel = !isRail || isOpen
     const inner = (
       <>
-        <span className="gz-nav__icon">{item.icon}</span>
+        <span className="gz-nav__icon" style={ICON_COLORS[item.href] ? ({ '--ico': ICON_COLORS[item.href] } as React.CSSProperties) : undefined}>{item.icon}</span>
         {showLabel && <span className="gz-nav__label">{item.label}</span>}
         {showLabel && item.external && <span className="gz-badge gz-badge--green">NEW</span>}
         {showLabel && !item.external && hasNew(item.href) && <span className="gz-badge">New</span>}

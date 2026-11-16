@@ -340,6 +340,7 @@ export default function SupportPage() {
   // FAQ
   const [faqs, setFaqs] = useState<Faq[]>([])
   const [expandedFaq, setExpandedFaq] = useState<string | null>(null)
+  const [showAllFaqs, setShowAllFaqs] = useState(false)
   const [showFaqForm, setShowFaqForm] = useState(false)
   const [editingFaq, setEditingFaq] = useState<Faq | null>(null)
   const [faqForm, setFaqForm] = useState({ question: '', answer: '' })
@@ -998,7 +999,7 @@ export default function SupportPage() {
                 <p style={{ fontSize: '13px', color: 'var(--text-muted)', textAlign: 'center', padding: '20px 0' }}>No FAQs yet.</p>
               ) : (
                 <div className="gz-sp-faqs">
-                  {faqs.map(f => (
+                  {(showAllFaqs ? faqs : faqs.slice(0, 3)).map(f => (
                     <div key={f.id} className={`gz-sp-faq ${expandedFaq === f.id ? 'is-open' : ''}`}>
                       <div 
                         onClick={() => setExpandedFaq(expandedFaq === f.id ? null : f.id)}
@@ -1029,6 +1030,15 @@ export default function SupportPage() {
                     </div>
                   ))}
                 </div>
+              )}
+              {faqs.length > 3 && (
+                <button
+                  type="button"
+                  onClick={() => setShowAllFaqs(v => !v)}
+                  style={{ display: 'block', margin: '12px auto 0', padding: '7px 18px', borderRadius: 999, border: '1px solid var(--border)', background: 'transparent', color: 'var(--text-secondary)', fontSize: 13, fontWeight: 600, cursor: 'pointer', boxShadow: 'none' }}
+                >
+                  {showAllFaqs ? 'Show less' : `Show more (${faqs.length - 3})`}
+                </button>
               )}
             </div>
           </div>

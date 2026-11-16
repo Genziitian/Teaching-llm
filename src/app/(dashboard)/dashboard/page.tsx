@@ -1145,7 +1145,8 @@ export default function DashboardPage() {
         </div>
       )}
 
-      {!isManager && (
+      {/* Home sections (slider, live, recent lecture, announcements, shortcuts) are shown to every role. */}
+      {(
         <>
           {deletionRequestData?.hasRequested && (
             <div

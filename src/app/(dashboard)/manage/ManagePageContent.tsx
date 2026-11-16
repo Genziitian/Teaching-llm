@@ -1870,7 +1870,8 @@ export function ManagePageInner({ forcedTab }: ManagePageInnerProps = {}) {
           Failed to load manage data. {loadError.message}
         </div>
       ) : null}
-      <div className="page-header">
+      {/* The notifications tab has no header buttons, so skip the empty row (it left a big gap). */}
+      <div className="page-header" style={tab === 'notifications' ? { display: 'none' } : undefined}>
         <div style={{ display: 'flex', gap: '8px' }}>
           {tab === 'events' && (
             <>
@@ -2065,8 +2066,8 @@ export function ManagePageInner({ forcedTab }: ManagePageInnerProps = {}) {
           <style dangerouslySetInnerHTML={{__html: `
             .nc-page{display:flex;flex-direction:column;gap:20px;width:100%}
             .nc-head{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap}
-            .nc-h2{margin:0;font-size:22px;font-weight:800;color:var(--text-primary);letter-spacing:-0.01em}
-            .nc-sub{margin:4px 0 0;font-size:14px;color:var(--text-muted)}
+            .nc-h2{margin:0;font-size:clamp(24px,1.4vw + 16px,38px);font-weight:800;color:var(--text-primary);letter-spacing:-0.01em}
+            .nc-sub{margin:6px 0 0;font-size:clamp(13px,0.4vw + 11px,16px);color:var(--text-muted)}
             .nc-stats{display:flex;gap:10px}
             .nc-stat{display:flex;flex-direction:column;align-items:flex-start;min-width:92px;padding:10px 16px;border-radius:14px;background:var(--surface);border:1px solid var(--border)}
             .nc-stat b{font-size:20px;font-weight:800;color:var(--text-primary);line-height:1.1}
