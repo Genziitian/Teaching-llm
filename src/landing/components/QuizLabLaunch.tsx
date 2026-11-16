@@ -247,12 +247,19 @@ function Corner({ hidden, boxRef }: { hidden: boolean; boxRef: React.RefObject<H
 /* ------------------------------------------------------------------ */
 export default function QuizLabLaunch() {
   const reduced = useMemo(() => prefersReduced(), []);
-  const [open, setOpen] = useState<boolean>(() => !readSeen());
+  // Render only after mount: the server has no localStorage/document, so rendering the portal during
+  // hydration would not match the server HTML (React error #418).
+  const [mounted, setMounted] = useState(false);
+  const [open, setOpen] = useState<boolean>(false);
   const cornerRef = useRef<HTMLDivElement | null>(null);
   const handleClose = useCallback(() => setOpen(false), []);
-  useEffect(() => { bindAudioUnlock(); }, []);
+  useEffect(() => {
+    setOpen(!readSeen());
+    setMounted(true);
+    bindAudioUnlock();
+  }, []);
 
-  if (typeof document === 'undefined') return null;
+  if (!mounted || typeof document === 'undefined') return null;
   return createPortal(
     <>
       <style>{CSS}</style>

@@ -7,6 +7,7 @@ import {
   BINDINGS, BOOKLET_LEVELS, COVERS, discountPercent, fetchBooklets, newBooklet, saveBooklets,
   type Booklet, type BookletAction, type BookletBinding, type BookletCover,
 } from './BookletsData'
+import BookletsPreview from './BookletsPreview'
 
 const row = { display: 'flex', gap: 8, flexWrap: 'wrap' as const, alignItems: 'center' }
 const muted = { fontSize: 12, color: 'var(--text-muted)' }
@@ -132,7 +133,8 @@ export default function BookletsManager() {
         </div>
 
         {selected ? (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 12, gridColumn: 'span 2', minWidth: 0 }}>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 16, alignItems: 'flex-start', gridColumn: 'span 2', minWidth: 0 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12, flex: '1 1 420px', minWidth: 0 }}>
             <div style={row}>
               <button className={`btn btn-sm ${selected.active ? 'btn-success' : 'btn-secondary'}`} onClick={() => edit({ active: !selected.active })}>
                 {selected.active ? <Eye size={14} /> : <EyeOff size={14} />} {selected.active ? 'Visible on site' : 'Hidden'}
@@ -250,6 +252,11 @@ export default function BookletsManager() {
                 </select>
               </Field>
             </Section>
+          </div>
+
+          <div style={{ flex: '0 1 320px', minWidth: 260, position: 'sticky', top: 24, alignSelf: 'flex-start' }}>
+            <BookletsPreview booklet={selected} />
+          </div>
           </div>
         ) : (
           <div className="card" style={{ padding: 40, textAlign: 'center', gridColumn: 'span 2', ...muted }}>Pick a booklet on the left, or add one.</div>

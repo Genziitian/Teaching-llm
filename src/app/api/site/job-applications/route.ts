@@ -1,11 +1,30 @@
 import { NextRequest } from 'next/server'
 import { isStorefrontConfigured, storefrontDb } from '@/lib/storefront/db'
 import { readBody, jsonRes } from '@/lib/site/http'
+import {
+  CAREERS_ROLES_KEY,
+  DEFAULT_CAREERS_ROLES,
+  parseCareersRoles,
+  type CareersRole,
+} from '@/components/storefront/native/CareersTypes'
 
 export const dynamic = 'force-dynamic'
 
 // Public POST (apply) part of the storefront api/job-applications.ts.
 // The manager-only GET/PUT/PATCH/DELETE operations stay with the storefront's manager tools (405 here).
+// Current open roles, read the same way as GET /api/site/careers-roles
+// (storefront settings, falling back to the built-in defaults).
+async function loadOpenRoles(supabase: ReturnType<typeof storefrontDb> | null): Promise<CareersRole[]> {
+  let roles = DEFAULT_CAREERS_ROLES;
+  if (supabase) {
+    try {
+      const { data } = await supabase.from('settings').select('value').eq('key', CAREERS_ROLES_KEY).maybeSingle();
+      if (data?.value) roles = parseCareersRoles(data.value);
+    } catch {}
+  }
+  return roles.filter((r) => r.open);
+}
+
 export async function POST(request: NextRequest) {
   const res = jsonRes();
   // Original fell back to the anon key when no service role was set; the class port always uses the service-role client.
@@ -81,9 +100,23 @@ export async function POST(request: NextRequest) {
         }
       }
 
+      const requestedRole = typeof role === 'string' ? role.trim() : '';
+      const requestedTitle = typeof role_title === 'string' ? role_title.trim() : '';
+      const resolvedRole = requestedRole || (requestedTitle.toLowerCase().includes('campus') ? 'campus-leader' : 'tutor');
+
+      // Only accept roles that are currently open at /manage/careers.
+      const openRoles = await loadOpenRoles(supabase);
+      const openRole = openRoles.find((r) => r.id === resolvedRole);
+      if (!openRole) {
+        return res.status(400).json({ error: 'This role is not open for applications right now.' });
+      }
+
+      const isBuiltInRole = resolvedRole === 'tutor' || resolvedRole === 'campus-leader';
+      const resolvedRoleTitle = isBuiltInRole
+        ? requestedTitle || (resolvedRole === 'campus-leader' ? 'Campus Leaders' : 'Subject Tutor (Faculty)')
+        : openRole.title;
+
       const appId = `app-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
-      const resolvedRole = role || (role_title?.toLowerCase().includes('campus') ? 'campus-leader' : 'tutor');
-      const resolvedRoleTitle = role_title || (resolvedRole === 'campus-leader' ? 'Campus Leaders' : 'Subject Tutor (Faculty)');
 
       const applicationRecord = {
         id: appId,
@@ -119,7 +152,7 @@ export async function POST(request: NextRequest) {
         inquiries: inquiries || null,
 
         metadata: {
-          ...metadata,
+          ...(metadata && typeof metadata === 'object' && !Array.isArray(metadata) ? metadata : {}),
           submitted_at: new Date().toISOString(),
           userAgent: request.headers.get('user-agent') || ''
         },
