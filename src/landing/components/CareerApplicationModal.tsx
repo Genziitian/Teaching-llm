@@ -32,6 +32,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '@/landing/context/AuthContext';
 import { supabase } from '@/landing/lib/supabase';
+import type { CareersRole } from '@/components/storefront/native/CareersTypes';
 
 /* =====================================================================
  * PRESENTATION LAYER (UI only — no form logic lives here)
@@ -85,6 +86,27 @@ const ROLE_META: Record<'tutor' | 'campus-leader', RoleMeta> = {
     ]
   }
 };
+
+// Roles added by managers at /manage/careers share one generic application form.
+const GENERIC_ACCENT = '#8b5cf6';
+const GENERIC_ACCENT_TEXT = '#a78bfa';
+
+function genericRoleMeta(info?: Pick<CareersRole, 'title' | 'summary' | 'tags' | 'comp'> | null): RoleMeta {
+  const title = info?.title?.trim() || 'Team Member';
+  const perks: RoleMeta['perks'] = [];
+  if (info?.comp?.trim()) perks.push({ icon: Wallet, title: info.comp.trim(), desc: 'Compensation for this role' });
+  perks.push({ icon: Briefcase, title: 'Real experience', desc: 'Work that adds weight to your CV' });
+  perks.push({ icon: Laptop, title: 'Fully remote', desc: 'Flexible hours around your studies' });
+  return {
+    badge: '',
+    title,
+    blurb: info?.summary?.trim() || `Join the GenZ IITian team as ${title}.`,
+    tags: info?.tags && info.tags.length > 0 ? info.tags : ['Part-time', 'Remote'],
+    accent: GENERIC_ACCENT,
+    accentText: GENERIC_ACCENT_TEXT,
+    perks
+  };
+}
 
 const formVariants: Variants = {
   hidden: { opacity: 0 },
@@ -225,7 +247,10 @@ function Choice({
 interface CareerApplicationModalProps {
   isOpen: boolean;
   onClose: () => void;
-  role: 'tutor' | 'campus-leader';
+  /** 'tutor' | 'campus-leader' use their dedicated forms; any other open role id uses the generic form. */
+  role: string;
+  /** Details of the role from /api/site/careers-roles (used by the generic form). */
+  roleInfo?: CareersRole | null;
 }
 
 const CONFETTI_COLORS = ['#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#0b1120'];
@@ -270,7 +295,7 @@ const COURSES_DATA = {
 const MEMBER_RANGES = ['1-10', '11-50', '51-100', '100-500', '500+', '1000+'];
 const STORAGE_KEY = 'gzi_applicant_personal_profile_v3';
 
-export default function CareerApplicationModal({ isOpen, onClose, role }: CareerApplicationModalProps) {
+export default function CareerApplicationModal({ isOpen, onClose, role, roleInfo }: CareerApplicationModalProps) {
   const { user, profile, openLoginModal } = useAuth();
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
@@ -307,6 +332,15 @@ export default function CareerApplicationModal({ isOpen, onClose, role }: Career
     isGroupOwner: 'Yes',
     groupLink: '',
     groupMembers: '100-500',
+    inquiries: ''
+  });
+
+  // Generic Form State (roles added at /manage/careers)
+  const [genericData, setGenericData] = useState({
+    name: '',
+    phone: '',
+    experienceAndWhy: '',
+    resumeLink: '',
     inquiries: ''
   });
 
@@ -354,16 +388,26 @@ export default function CareerApplicationModal({ isOpen, onClose, role }: Career
         groupMembers: '100-500',
         inquiries: ''
       }));
+
+      setGenericData({
+        name: saved.name || profile?.name || user.user_metadata?.full_name || '',
+        phone: saved.phone || profile?.phone || user.user_metadata?.phone || '',
+        experienceAndWhy: '',
+        resumeLink: '',
+        inquiries: ''
+      });
     } catch (e) {
       if (profile?.name || user.user_metadata?.full_name) {
         const defaultName = profile?.name || user.user_metadata?.full_name || '';
         setTutorData(prev => ({ ...prev, name: defaultName }));
         setLeaderData(prev => ({ ...prev, name: defaultName }));
+        setGenericData(prev => ({ ...prev, name: defaultName }));
       }
       if (profile?.phone || user.user_metadata?.phone) {
         const defaultPhone = profile?.phone || user.user_metadata?.phone || '';
         setTutorData(prev => ({ ...prev, phone: defaultPhone }));
         setLeaderData(prev => ({ ...prev, phone: defaultPhone }));
+        setGenericData(prev => ({ ...prev, phone: defaultPhone }));
       }
     }
   }, [isOpen, user, profile]);
@@ -418,6 +462,14 @@ export default function CareerApplicationModal({ isOpen, onClose, role }: Career
       }
       return next;
     });
+  };
+
+  const handleGenericChange = (name: keyof typeof genericData, value: string) => {
+    setGenericData(prev => ({ ...prev, [name]: value }));
+    // Only the personal fields are remembered on this device
+    if (name === 'name' || name === 'phone') {
+      savePersonalDraft({ [name]: value });
+    }
   };
 
   // Step 1 Validation
@@ -476,6 +528,7 @@ export default function CareerApplicationModal({ isOpen, onClose, role }: Career
     setErrorMessage('');
 
     const isTutor = role === 'tutor';
+    const isLeader = role === 'campus-leader';
 
     if (isTutor) {
       if (!tutorData.selectedCourses || tutorData.selectedCourses.length === 0) {
@@ -503,6 +556,34 @@ export default function CareerApplicationModal({ isOpen, onClose, role }: Career
         setSubmitting(false);
         return;
       }
+    } else if (!isLeader) {
+      const trimmedGenericName = genericData.name.trim();
+      if (!trimmedGenericName) {
+        setErrorMessage('Please enter your full name.');
+        setSubmitting(false);
+        return;
+      }
+      if (!/^[a-zA-Z\s.]+$/.test(trimmedGenericName)) {
+        setErrorMessage('Full name can only contain letters.');
+        setSubmitting(false);
+        return;
+      }
+      const cleanGenericPhone = genericData.phone.replace(/\D/g, '').slice(-10);
+      if (!/^[6-9]\d{9}$/.test(cleanGenericPhone)) {
+        setErrorMessage('Phone number must be a valid 10-digit number starting with 6-9.');
+        setSubmitting(false);
+        return;
+      }
+      if (!genericData.experienceAndWhy.trim()) {
+        setErrorMessage('Please describe your relevant experience and why you want this role.');
+        setSubmitting(false);
+        return;
+      }
+      if (!genericData.resumeLink.trim()) {
+        setErrorMessage('Please provide a link to your Resume / CV.');
+        setSubmitting(false);
+        return;
+      }
     } else {
       const trimmedLeaderName = leaderData.name.trim();
       if (!trimmedLeaderName || !/^[a-zA-Z\s.]+$/.test(trimmedLeaderName)) {
@@ -518,7 +599,8 @@ export default function CareerApplicationModal({ isOpen, onClose, role }: Career
       }
     }
 
-    const payload = isTutor
+    const genericTitle = genericRoleMeta(roleInfo).title;
+    const payload: Record<string, any> = isTutor
       ? {
           role: 'tutor',
           role_title: 'Subject Tutor (Faculty)',
@@ -560,6 +642,21 @@ export default function CareerApplicationModal({ isOpen, onClose, role }: Career
           level: 'Campus Leader',
           subject: `Campus Leader (${leaderData.groupMembers} members)`,
           metadata: { ...leaderData, auth_email: user?.email }
+        }
+      : {
+          role,
+          role_title: genericTitle,
+          full_name: genericData.name.trim(),
+          name: genericData.name.trim(),
+          email: (user?.email || '').trim().toLowerCase(),
+          phone: genericData.phone.trim(),
+          experience_and_why: genericData.experienceAndWhy.trim(),
+          resume_link: genericData.resumeLink.trim(),
+          resumeLink: genericData.resumeLink.trim(),
+          inquiries: genericData.inquiries.trim(),
+          level: genericTitle,
+          subject: genericTitle,
+          metadata: { ...genericData, role_title: genericTitle, auth_email: user?.email }
         };
 
     try {
@@ -576,6 +673,13 @@ export default function CareerApplicationModal({ isOpen, onClose, role }: Career
         } else {
           const errData = await res.json().catch(() => ({}));
           console.warn('[Careers] API error response:', errData);
+          // The server rejected the application (e.g. invalid details or the role has closed):
+          // show the reason instead of saving it through the fallbacks below.
+          if (res.status >= 400 && res.status < 500 && typeof errData?.error === 'string' && errData.error) {
+            setErrorMessage(errData.error);
+            setSubmitting(false);
+            return;
+          }
         }
       } catch (err) {
         console.warn('[Careers] API network error:', err);
@@ -622,7 +726,7 @@ export default function CareerApplicationModal({ isOpen, onClose, role }: Career
         }
       }
 
-      // 3. Google Apps Script Webhook trigger (syncs to Google Sheet for both roles)
+      // 3. Google Apps Script Webhook trigger (syncs to Google Sheet for every role)
       const GOOGLE_SCRIPT_URL = process.env.NEXT_PUBLIC_STOREFRONT_CAREERS_SCRIPT_URL;
       if (GOOGLE_SCRIPT_URL && GOOGLE_SCRIPT_URL !== 'YOUR_GOOGLE_SCRIPT_URL_HERE') {
         fetch(GOOGLE_SCRIPT_URL, {
@@ -681,7 +785,9 @@ export default function CareerApplicationModal({ isOpen, onClose, role }: Career
       : COURSES_DATA.diploma;
 
   const isTutor = role === 'tutor';
-  const meta = ROLE_META[role];
+  const isLeader = role === 'campus-leader';
+  const isGeneric = !isTutor && !isLeader;
+  const meta = isTutor ? ROLE_META.tutor : isLeader ? ROLE_META['campus-leader'] : genericRoleMeta(roleInfo);
   const allCourses = [...COURSES_DATA.foundation, ...COURSES_DATA.diploma];
   const shortName = (name: string) => allCourses.find(c => c.name === name)?.short || name;
 
@@ -709,17 +815,25 @@ export default function CareerApplicationModal({ isOpen, onClose, role }: Career
         },
         { label: 'We get in touch', desc: 'On WhatsApp & email', state: 'upcoming' }
       ]
-    : [
-        { label: 'Share your details', desc: 'About you & your community', state: 'current' },
-        { label: 'We review', desc: 'Our team checks your community', state: 'upcoming' },
-        { label: 'We get in touch', desc: 'On WhatsApp & email', state: 'upcoming' }
-      ];
+    : isLeader
+      ? [
+          { label: 'Share your details', desc: 'About you & your community', state: 'current' },
+          { label: 'We review', desc: 'Our team checks your community', state: 'upcoming' },
+          { label: 'We get in touch', desc: 'On WhatsApp & email', state: 'upcoming' }
+        ]
+      : [
+          { label: 'Share your details', desc: 'About you & your experience', state: 'current' },
+          { label: 'We review', desc: 'Our team reads your application', state: 'upcoming' },
+          { label: 'We get in touch', desc: 'On WhatsApp & email', state: 'upcoming' }
+        ];
 
   const heading = isTutor
     ? step === 1
       ? { title: 'Tell us about yourself', sub: '' }
       : { title: 'Your teaching setup', sub: 'Pick the courses you can teach and tell us a little about how you teach.' }
-    : { title: 'Tell us about your community', sub: 'A few details about you and the student group you run. Please answer as accurately as you can.' };
+    : isLeader
+      ? { title: 'Tell us about your community', sub: 'A few details about you and the student group you run. Please answer as accurately as you can.' }
+      : { title: 'Tell us about yourself', sub: `A few details about you and why you'd be a great ${meta.title}. Please answer as accurately as you can.` };
 
   const errorBanner = (
     <AnimatePresence initial={false}>
@@ -1705,6 +1819,134 @@ export default function CareerApplicationModal({ isOpen, onClose, role }: Career
                             value={leaderData.inquiries}
                             onChange={handleLeaderChange}
                             placeholder="Ask anything or tell us more about your community…"
+                            className={`${fieldBase} min-h-[130px] pl-12 pr-4 py-4 font-medium leading-relaxed resize-y peer`}
+                          />
+                          <MessageSquare className="w-5 h-5 text-slate-400 absolute left-4 top-[1.15rem] pointer-events-none transition-colors peer-focus:text-blue-600" />
+                        </div>
+                      </Field>
+                    </Section>
+
+                    <motion.div variants={itemVariants} className={actionBarCls}>
+                      {errorBanner}
+                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                        <p className="hidden sm:flex items-center gap-2 text-sm font-medium text-slate-500">
+                          <Mail className="w-4 h-4 shrink-0" />
+                          We reply on WhatsApp &amp; email.
+                        </p>
+                        <button type="submit" disabled={submitting} className={primaryBtnCls}>
+                          {submitting ? (
+                            <>
+                              <Loader2 className="w-5 h-5 animate-spin" />
+                              <span>Submitting application…</span>
+                            </>
+                          ) : (
+                            <>
+                              <span>Submit application</span>
+                              <ArrowRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
+                            </>
+                          )}
+                        </button>
+                      </div>
+                    </motion.div>
+                  </motion.form>
+                )}
+                {/* ========================================================= */}
+                {/* ROLE C: GENERIC APPLICATION (roles added by managers)      */}
+                {/* ========================================================= */}
+                {isGeneric && (
+                  <motion.form
+                    key={`generic-${role}`}
+                    onSubmit={handleSubmit}
+                    variants={formVariants}
+                    initial="hidden"
+                    animate="show"
+                    exit="exit"
+                    className="space-y-5 sm:space-y-6"
+                  >
+                    <Section index={1} title="Your details" subtitle="How we identify you and reach you.">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-x-5 gap-y-7">
+                        <Field label="Full name" htmlFor="generic-name" required>
+                          <div className="relative">
+                            <input
+                              id="generic-name"
+                              required
+                              type="text"
+                              autoComplete="name"
+                              value={genericData.name}
+                              onChange={e => handleGenericChange('name', e.target.value)}
+                              placeholder="e.g. Aryan Sharma"
+                              className={inputCls}
+                            />
+                            <User className={iconCls} />
+                          </div>
+                        </Field>
+
+                        <Field label="Phone / WhatsApp" htmlFor="generic-phone" required>
+                          <div className="relative">
+                            <input
+                              id="generic-phone"
+                              required
+                              type="tel"
+                              autoComplete="tel"
+                              value={genericData.phone}
+                              onChange={e => handleGenericChange('phone', e.target.value)}
+                              placeholder="+91 98765 43210"
+                              className={inputCls}
+                            />
+                            <Phone className={iconCls} />
+                          </div>
+                        </Field>
+
+                        <div className="md:col-span-2">{lockedEmail('generic-email')}</div>
+                      </div>
+                    </Section>
+
+                    <Section index={2} title="Your experience" subtitle={`Help us understand why you're a fit for ${meta.title}.`}>
+                      <Field
+                        label="Relevant experience & why this role"
+                        htmlFor="generic-experience"
+                        hint="Projects, past roles or skills that matter here, and what draws you to GenZ IITian."
+                        required
+                      >
+                        <div className="relative">
+                          <textarea
+                            id="generic-experience"
+                            required
+                            rows={5}
+                            value={genericData.experienceAndWhy}
+                            onChange={e => handleGenericChange('experienceAndWhy', e.target.value)}
+                            placeholder="Tell us about your experience and why you want this role…"
+                            className={`${fieldBase} min-h-[150px] pl-12 pr-4 py-4 font-medium leading-relaxed resize-y peer`}
+                          />
+                          <Briefcase className="w-5 h-5 text-slate-400 absolute left-4 top-[1.15rem] pointer-events-none transition-colors peer-focus:text-blue-600" />
+                        </div>
+                      </Field>
+
+                      <Field label="Resume / CV link" htmlFor="generic-resume" hint="Set sharing to “Anyone with the link can view”." required>
+                        <div className="relative">
+                          <input
+                            id="generic-resume"
+                            required
+                            type="url"
+                            value={genericData.resumeLink}
+                            onChange={e => handleGenericChange('resumeLink', e.target.value)}
+                            placeholder="https://drive.google.com/…"
+                            className={inputCls}
+                          />
+                          <LinkIcon className={iconCls} />
+                        </div>
+                      </Field>
+                    </Section>
+
+                    <Section index={3} title="Anything else?" subtitle="Questions for us, or anything you'd like to add.">
+                      <Field label="Questions / notes" htmlFor="generic-inquiries" optional>
+                        <div className="relative">
+                          <textarea
+                            id="generic-inquiries"
+                            rows={4}
+                            value={genericData.inquiries}
+                            onChange={e => handleGenericChange('inquiries', e.target.value)}
+                            placeholder="Ask anything or share links to your work…"
                             className={`${fieldBase} min-h-[130px] pl-12 pr-4 py-4 font-medium leading-relaxed resize-y peer`}
                           />
                           <MessageSquare className="w-5 h-5 text-slate-400 absolute left-4 top-[1.15rem] pointer-events-none transition-colors peer-focus:text-blue-600" />
