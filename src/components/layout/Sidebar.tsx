@@ -82,16 +82,6 @@ const NAV_ITEMS: NavItem[] = [
     ),
   },
   {
-    href: '/materials',
-    label: 'Study Materials',
-    roles: ['MANAGER'],
-    icon: (
-      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
-      </svg>
-    ),
-  },
-  {
     href: '/free-resources',
     label: 'Free Resources',
     icon: (
@@ -117,18 +107,6 @@ const NAV_ITEMS: NavItem[] = [
         <circle cx="9" cy="7" r="4"/>
         <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
         <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-      </svg>
-    ),
-  },
-  {
-    href: '/activity-logs',
-    label: 'Activity Log',
-    roles: ['MANAGER'],
-    icon: (
-      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/>
-        <rect x="8" y="2" width="8" height="4" rx="1" ry="1"/>
-        <path d="M9 14l2 2 4-4"/>
       </svg>
     ),
   },
@@ -236,39 +214,6 @@ const NAV_ITEMS: NavItem[] = [
     ),
   },
   {
-    href: '/manage/updates',
-    label: 'Updates',
-    roles: ['MANAGER'],
-    icon: (
-      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/>
-        <line x1="4" y1="22" x2="4" y2="15"/>
-      </svg>
-    ),
-  },
-  {
-    href: '/manage/prompts',
-    label: 'User Prompts',
-    roles: ['MANAGER'],
-    icon: (
-      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"></path>
-      </svg>
-    ),
-  },
-  {
-    href: '/manage/facts',
-    label: 'Loading Facts',
-    roles: ['MANAGER'],
-    icon: (
-      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <circle cx="12" cy="12" r="10"/>
-        <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
-        <line x1="12" y1="17" x2="12.01" y2="17"/>
-      </svg>
-    ),
-  },
-  {
     href: '/manage/coupons',
     label: 'Coupons',
     roles: ['MANAGER'],
@@ -277,17 +222,6 @@ const NAV_ITEMS: NavItem[] = [
         <path d="M20 12V8H6a2 2 0 01-2-2c0-1.1.9-2 2-2h12v4"/>
         <path d="M4 6v12c0 1.1.9 2 2 2h14v-4"/>
         <path d="M18 12a2 2 0 000 4h4v-4z"/>
-      </svg>
-    ),
-  },
-  {
-    href: '/manage/careers',
-    label: 'Careers',
-    roles: ['MANAGER'],
-    icon: (
-      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <rect x="2" y="7" width="20" height="14" rx="2"/>
-        <path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16"/>
       </svg>
     ),
   },
@@ -316,38 +250,13 @@ const NAV_ITEMS: NavItem[] = [
     ),
   },
   {
-    href: '/manage/storefront',
-    label: 'Storefront Panel',
+    href: '/manage/storefront-tools',
+    label: 'Tools',
     roles: ['MANAGER'],
     icon: (
       <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M3 9l1-5h16l1 5"/>
-        <path d="M4 9v11h16V9"/>
-        <path d="M9 20v-6h6v6"/>
-      </svg>
-    ),
-  },
-  {
-    href: '/manage/storefront-courses',
-    label: 'Storefront Courses',
-    roles: ['MANAGER'],
-    icon: (
-      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
-        <line x1="3" y1="6" x2="21" y2="6"/>
-        <path d="M16 10a4 4 0 0 1-8 0"/>
-      </svg>
-    ),
-  },
-  {
-    href: '/manage/boxes',
-    label: 'Boxes',
-    roles: ['MANAGER'],
-    icon: (
-      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
-        <polyline points="3.27 6.96 12 12.01 20.73 6.96"/>
-        <line x1="12" y1="22.08" x2="12" y2="12"/>
+        <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
+        <rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>
       </svg>
     ),
   },
@@ -358,40 +267,6 @@ const NAV_ITEMS: NavItem[] = [
       <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <rect x="2" y="7" width="20" height="14" rx="2" ry="2"/>
         <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
-      </svg>
-    ),
-  },
-  {
-    href: '/manage/storefront-tools',
-    label: 'Storefront Tools',
-    roles: ['MANAGER'],
-    icon: (
-      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <rect x="3" y="3" width="7" height="7"/>
-        <rect x="14" y="3" width="7" height="7"/>
-        <rect x="3" y="14" width="7" height="7"/>
-        <rect x="14" y="14" width="7" height="7"/>
-      </svg>
-    ),
-  },
-  {
-    href: '/manage/mail-assigner',
-    label: 'Mail Assigner',
-    roles: ['MANAGER'],
-    icon: (
-      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
-        <polyline points="22,6 12,13 2,6"/>
-      </svg>
-    ),
-  },
-  {
-    href: '/manage/menus',
-    label: 'Menu Visibility',
-    roles: ['MANAGER'],
-    icon: (
-      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
       </svg>
     ),
   },
@@ -420,17 +295,6 @@ const NAV_ITEMS: NavItem[] = [
     ),
   },
   {
-    href: '/google-sync',
-    label: 'Google Sync',
-    roles: ['MANAGER'],
-    icon: (
-      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <polyline points="23 4 23 10 17 10"/>
-        <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
-      </svg>
-    ),
-  },
-  {
     href: '/company/about-us',
     label: 'About Us',
     icon: (
@@ -443,11 +307,11 @@ const NAV_ITEMS: NavItem[] = [
 
 
 const NAV_GROUPS: { title: string; hrefs: string[] }[] = [
-  { title: 'Learn', hrefs: ['/dashboard', '/courses', '/live', '/calendar', '/free-resources', '/materials'] },
+  { title: 'Learn', hrefs: ['/dashboard', '/courses', '/live', '/calendar', '/free-resources'] },
   { title: 'Explore', hrefs: ['/courses/explore', QUIZ_LAB_URL, '/jobs'] },
   { title: 'Connect', hrefs: ['/community', '/announcements', '/support', '/feedback'] },
-  { title: 'Manage', hrefs: ['/manage', '/manage/queries', '/manage/notifications', '/manage/updates', '/manage/prompts', '/manage/facts', '/manage/coupons', '/manage/mail-assigner', '/manage/menus', '/manage/genie', '/manage/careers', '/manage/employees', '/manage/one-on-one', '/manage/storefront', '/manage/storefront-courses', '/manage/boxes', '/manage/storefront-tools'] },
-  { title: 'Admin', hrefs: ['/admin', '/transactions', '/activity-logs', '/data-analysis', '/google-sync'] },
+  { title: 'Manage', hrefs: ['/manage', '/manage/queries', '/manage/notifications', '/manage/coupons', '/manage/genie', '/manage/employees', '/manage/one-on-one', '/manage/storefront-tools'] },
+  { title: 'Admin', hrefs: ['/admin', '/transactions', '/data-analysis'] },
   { title: 'Company', hrefs: ['/company/about-us'] },
 ]
 
@@ -631,19 +495,15 @@ export default function Sidebar({ userRole, userName, userEmail }: SidebarProps)
         <div className="gz-side__scroll">
           {visibleGroups.map(g => (
             <div className="gz-side__group" key={g.title}>
-              {showLabels && <div className="gz-side__title">{g.title}</div>}
+              {showLabels && g.title !== 'Learn' && <div className="gz-side__title">{g.title}</div>}
               {g.items.map(renderItem)}
             </div>
           ))}
         </div>
 
         <div className="gz-side__foot" data-tour="web-header-user">
-          {showUserMenu && (
-            <div className="gz-menu" role="menu">
-              <div className="gz-menu__who">
-                <b>{currentUserName}</b>
-                <span>{currentUserEmail}</span>
-              </div>
+          {(
+            <div className={`gz-menu${showUserMenu ? ' is-open' : ''}`} role="menu" aria-hidden={!showUserMenu}>
               <a href="/" className="gz-menu__item" role="menuitem" onClick={() => setShowUserMenu(false)}>
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /><polyline points="9 22 9 12 15 12 15 22" /></svg>
                 Home

@@ -260,7 +260,7 @@ export default function LivePage() {
 
         <div className="live-row-card" style={{
           flex: 1, display: 'flex', alignItems: 'center', gap: '20px',
-          padding: '18px 24px', borderRadius: '22px', background: 'var(--surface-2)',
+          padding: '18px 24px', borderRadius: '14px', background: 'var(--surface-2)',
           boxShadow: rowShadow, opacity: isCompleted ? 0.65 : isCancelled ? 0.55 : 1,
           transition: 'all 0.2s ease',
         }}>
@@ -280,7 +280,7 @@ export default function LivePage() {
             <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '6px', minWidth: 0 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'nowrap', overflow: 'hidden' }}>
                 <span style={{
-                  fontSize: '15px', fontWeight: '800',
+                  fontSize: '15px', fontWeight: 600,
                   color: isCompleted || isCancelled ? 'var(--text-muted)' : 'var(--text-primary)',
                   overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: 0,
                   textDecoration: isCancelled ? 'line-through' : 'none',
@@ -292,7 +292,7 @@ export default function LivePage() {
                   <span style={{
                     display: 'inline-flex', alignItems: 'center', gap: '4px',
                     padding: '2px 10px', borderRadius: '50px',
-                    background: statusCfg.bg, fontSize: '10px', fontWeight: '700', letterSpacing: '0.04em',
+                    background: statusCfg.bg, fontSize: '10px', fontWeight: 600, letterSpacing: '0.04em',
                     color: statusCfg.color, flexShrink: 0,
                     ...(isLive ? { boxShadow: `0 0 8px ${statusCfg.color}33` } : {}),
                   }}>
@@ -345,7 +345,7 @@ export default function LivePage() {
               }}
               style={{
                 display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '10px 20px', borderRadius: '50px', flexShrink: 0,
-                background: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)', color: 'white', fontWeight: '800', fontSize: '13px', border: 'none', cursor: 'pointer',
+                background: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)', color: 'white', fontWeight: 600, fontSize: '13px', border: 'none', cursor: 'pointer',
                 boxShadow: '0 6px 14px rgba(220, 38, 38, 0.3)',
                 transition: 'all 0.2s',
               }}
@@ -367,7 +367,7 @@ export default function LivePage() {
               background: (isLive || isRescheduled) ? 'var(--success)' : 'var(--primary)', color: 'white', fontWeight: '600', fontSize: '14px', textDecoration: 'none',
               boxShadow: (isLive || isRescheduled)
                 ? '4px 4px 10px rgba(22,163,74,0.4), -2px -2px 6px var(--neu-glow)'
-                : '4px 4px 10px rgba(54,54,232,0.3), -2px -2px 6px var(--neu-glow)',
+                : '4px 4px 10px rgba(128, 128, 128,0.3), -2px -2px 6px var(--neu-glow)',
             }}>
               {isLive || isRescheduled ? 'Join Now' : 'Join'}
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
@@ -387,7 +387,7 @@ export default function LivePage() {
               }}
               style={{
                 display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '10px 20px', borderRadius: '50px', flexShrink: 0,
-                background: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)', color: 'white', fontWeight: '800', fontSize: '13px', border: 'none', cursor: 'pointer',
+                background: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)', color: 'white', fontWeight: 600, fontSize: '13px', border: 'none', cursor: 'pointer',
                 boxShadow: '0 6px 14px rgba(220, 38, 38, 0.3)',
                 transition: 'all 0.2s',
               }}
@@ -470,7 +470,7 @@ export default function LivePage() {
                 padding: '0 16px', height: '42px', borderRadius: '50px', border: 'none',
                 background: 'var(--surface-2)', boxShadow: '4px 4px 8px var(--neu-dark), -4px -4px 8px var(--neu-light)',
                 display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer',
-                color: 'var(--primary)', fontSize: '13px', fontWeight: '700',
+                color: 'var(--primary)', fontSize: '13px', fontWeight: 600,
               }}
             >
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
@@ -488,7 +488,7 @@ export default function LivePage() {
         {/* Category: Live */}
         {liveSessions.length > 0 && (
           <div>
-            <h2 style={{ fontSize: '16px', fontWeight: '800', color: 'var(--text-primary)', marginBottom: '16px', paddingLeft: '8px' }}>Live Sessions</h2>
+            <h2 style={{ fontSize: '16px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '16px', paddingLeft: '8px' }}>Live Sessions</h2>
             <div style={{ position: 'relative', paddingLeft: '48px' }}>
               <div style={{ position: 'absolute', left: '15px', top: '24px', bottom: '24px', width: '2px', background: 'var(--success)', borderRadius: '2px' }} />
               {liveSessions.map(session => renderSessionBlock(session, false))}
@@ -499,7 +499,7 @@ export default function LivePage() {
         {/* Category: Upcoming */}
         {upcomingSessions.length > 0 && (
           <div>
-            <h2 style={{ fontSize: '16px', fontWeight: '800', color: 'var(--text-primary)', marginBottom: '16px', paddingLeft: '8px' }}>Upcoming Sessions</h2>
+            <h2 style={{ fontSize: '16px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '16px', paddingLeft: '8px' }}>Upcoming Sessions</h2>
             <div style={{ position: 'relative', paddingLeft: '48px' }}>
               <div style={{ position: 'absolute', left: '15px', top: '24px', bottom: '24px', width: '2px', background: 'var(--neu-dark)', borderRadius: '2px' }} />
               {upcomingSessions.map(session => renderSessionBlock(session, session.id === nextUpcomingSessionId))}
@@ -510,7 +510,7 @@ export default function LivePage() {
         {/* Category: Recent */}
         {recentSessions.length > 0 && (
           <div>
-            <h2 style={{ fontSize: '16px', fontWeight: '800', color: 'var(--text-primary)', marginBottom: '16px', paddingLeft: '8px' }}>Recent Sessions</h2>
+            <h2 style={{ fontSize: '16px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '16px', paddingLeft: '8px' }}>Recent Sessions</h2>
             <div style={{ position: 'relative', paddingLeft: '48px' }}>
               <div style={{ position: 'absolute', left: '15px', top: '24px', bottom: '24px', width: '2px', background: 'var(--surface-2)', borderRadius: '2px' }} />
               {recentSessions.map(session => renderSessionBlock(session, false))}
@@ -544,7 +544,7 @@ export default function LivePage() {
         padding: '20px', overflow: 'auto'
       }} onClick={() => setShowPurchaseModal(false)}>
         <div style={{
-          background: 'var(--surface)', borderRadius: '32px', width: '100%', maxWidth: '480px',
+          background: 'var(--surface)', borderRadius: '14px', width: '100%', maxWidth: '480px',
           boxShadow: '0 0 100px var(--neu-glow), 0 25px 50px -12px rgba(0, 0, 0, 0.5)',
           padding: '30px',
           animation: 'modalSlideUp 0.3s ease-out',
@@ -559,7 +559,7 @@ export default function LivePage() {
 
           {/* Course Header Color Band */}
           <div style={{
-            background: `linear-gradient(135deg, ${offering.course?.color || '#6366f1'}, ${colorWithOpacity(offering.course?.color || '#6366f1', 'cc')})`,
+            background: `linear-gradient(135deg, ${offering.course?.color || 'var(--primary)'}, ${colorWithOpacity(offering.course?.color || 'var(--primary)', 'cc')})`,
             margin: '-30px -30px 24px -30px',
             padding: '40px 30px 30px 30px',
             borderTopLeftRadius: '32px',
@@ -577,7 +577,7 @@ export default function LivePage() {
             }}>
               <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20M4 19.5A2.5 2.5 0 0 0 6.5 22H20M4 19.5V5A2.5 2.5 0 0 1 6.5 2.5H20v20H6.5a2.5 2.5 0 0 1-2-2.5z"/></svg>
             </div>
-            <h2 style={{ fontSize: '24px', fontWeight: '900', color: '#fff', marginBottom: '4px', textShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
+            <h2 style={{ fontSize: '24px', fontWeight: 600, color: '#fff', marginBottom: '4px', textShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
               {offering.course?.name}
             </h2>
             <p style={{ fontSize: '13px', color: 'rgba(255, 255, 255, 0.7)', fontWeight: '600', marginBottom: '0' }}>
@@ -591,8 +591,8 @@ export default function LivePage() {
               style={{
                 display: 'inline-flex', alignItems: 'center', gap: '4px',
                 background: 'rgba(255,255,255,0.2)', border: '1px solid rgba(255,255,255,0.4)',
-                padding: '6px 14px', borderRadius: '20px', color: '#fff',
-                fontSize: '11px', fontWeight: '800', cursor: 'pointer',
+                padding: '6px 14px', borderRadius: '14px', color: '#fff',
+                fontSize: '11px', fontWeight: 600, cursor: 'pointer',
                 marginTop: '12px', transition: 'all 0.2s',
               }}
               onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.3)'}
@@ -606,18 +606,18 @@ export default function LivePage() {
             {/* Recorded Batch Option */}
             {offering.hasRecorded && (
               <div style={{
-                padding: '16px', borderRadius: '20px',
+                padding: '16px', borderRadius: '14px',
                 background: 'var(--surface-2, color-mix(in srgb, var(--primary) 2%, transparent))',
                 border: '1.5px solid var(--border)',
                 boxShadow: '0 4px 12px rgba(0,0,0,0.02)'
               }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
                   <div>
-                    <div style={{ fontSize: '11px', fontWeight: '800', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '4px' }}>
+                    <div style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '4px' }}>
                       📹 Recorded Batch - PLUS
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <span style={{ fontSize: '22px', fontWeight: '900', color: 'var(--text-primary)' }}>
+                      <span style={{ fontSize: '22px', fontWeight: 600, color: 'var(--text-primary)' }}>
                         ₹{Math.max(Number(offering.recordedDiscountPrice || 0), 1)}
                       </span>
                       {Number(offering.recordedOriginalPrice || 0) > Math.max(Number(offering.recordedDiscountPrice || 0), 1) && (
@@ -634,7 +634,7 @@ export default function LivePage() {
                   style={{
                     width: '100%', padding: '12px', borderRadius: '50px',
                     border: '2.5px solid var(--accent)', background: 'transparent',
-                    color: 'var(--accent)', fontSize: '14px', fontWeight: '800',
+                    color: 'var(--accent)', fontSize: '14px', fontWeight: 600,
                     cursor: purchasing ? 'not-allowed' : 'pointer',
                     transition: 'all 0.2s',
                   }}
@@ -647,7 +647,7 @@ export default function LivePage() {
             {/* Live Batch Option */}
             {offering.hasLive && (
               <div style={{
-                padding: '16px', borderRadius: '20px',
+                padding: '16px', borderRadius: '14px',
                 background: 'var(--surface-2, color-mix(in srgb, var(--primary) 2%, transparent))',
                 border: '1.5px solid var(--accent)',
                 position: 'relative',
@@ -655,19 +655,19 @@ export default function LivePage() {
               }}>
                 <div style={{
                   position: 'absolute', top: '12px', right: '16px',
-                  padding: '3px 10px', borderRadius: '20px',
+                  padding: '3px 10px', borderRadius: '14px',
                   background: 'var(--accent)', color: '#fff',
-                  fontSize: '9px', fontWeight: '900', letterSpacing: '0.08em',
+                  fontSize: '9px', fontWeight: 600, letterSpacing: '0.08em',
                 }}>
                   PRO
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
                   <div>
-                    <div style={{ fontSize: '11px', fontWeight: '800', color: 'var(--accent)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '4px' }}>
+                    <div style={{ fontSize: '11px', fontWeight: 600, color: 'var(--accent)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '4px' }}>
                       🔴 Live + Recorded Batch - PRO
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <span style={{ fontSize: '22px', fontWeight: '900', color: 'var(--text-primary)' }}>
+                      <span style={{ fontSize: '22px', fontWeight: 600, color: 'var(--text-primary)' }}>
                         ₹{Math.max(Number(offering.liveDiscountPrice || 0), 1)}
                       </span>
                       {Number(offering.liveOriginalPrice || 0) > Math.max(Number(offering.liveDiscountPrice || 0), 1) && (
@@ -684,7 +684,7 @@ export default function LivePage() {
                   style={{
                     width: '100%', padding: '12px', borderRadius: '50px',
                     border: 'none', background: 'var(--accent)',
-                    color: '#fff', fontSize: '14px', fontWeight: '800',
+                    color: '#fff', fontSize: '14px', fontWeight: 600,
                     cursor: purchasing ? 'not-allowed' : 'pointer',
                     transition: 'all 0.2s',
                   }}
@@ -717,7 +717,7 @@ export default function LivePage() {
                 border: 'none',
                 color: 'var(--accent)',
                 fontSize: '11.5px',
-                fontWeight: '800',
+                fontWeight: 600,
                 cursor: 'pointer',
                 textDecoration: 'underline',
                 padding: '4px 8px',
@@ -740,22 +740,22 @@ export default function LivePage() {
         padding: '20px'
       }} onClick={() => { setSuccessOrderId(null); window.location.reload() }}>
         <div style={{
-          background: 'var(--surface)', borderRadius: '32px', width: '100%', maxWidth: '440px',
+          background: 'var(--surface)', borderRadius: '14px', width: '100%', maxWidth: '440px',
           boxShadow: '0 0 100px var(--neu-glow), 0 25px 50px -12px rgba(0, 0, 0, 0.5)',
           padding: '40px', textAlign: 'center',
           animation: 'modalSlideUp 0.3s ease-out'
         }} onClick={e => e.stopPropagation()}>
           <div style={{ fontSize: '64px', marginBottom: '16px' }}>🎉</div>
-          <h2 style={{ fontSize: '22px', fontWeight: '800', color: 'var(--text-primary)', marginBottom: '8px' }}>Course Unlocked!</h2>
+          <h2 style={{ fontSize: '22px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '8px' }}>Course Unlocked!</h2>
           <p style={{ fontSize: '15px', color: 'var(--text-secondary)', lineHeight: '1.6', marginBottom: '24px' }}>
             Your payment was verified successfully. You now have full access to all lectures, class materials, and student benefits.
           </p>
           <button
             onClick={() => { setSuccessOrderId(null); window.location.reload() }}
             style={{
-              width: '100%', padding: '16px', borderRadius: '18px', border: 'none',
-              background: 'linear-gradient(135deg, var(--accent) 0%, var(--primary) 100%)',
-              color: 'white', fontWeight: '700', fontSize: '15px', cursor: 'pointer',
+              width: '100%', padding: '16px', borderRadius: '12px', border: 'none',
+              background: 'var(--primary)',
+              color: 'white', fontWeight: 600, fontSize: '15px', cursor: 'pointer',
               boxShadow: '0 4px 12px color-mix(in srgb, var(--primary) 30%, transparent)',
             }}
           >
@@ -777,7 +777,7 @@ export default function LivePage() {
         setShowPurchaseModal(true)
       }}>
         <div style={{
-          background: '#1e2230', borderRadius: '24px', width: '100%', maxWidth: '520px',
+          background: '#1e2230', borderRadius: '14px', width: '100%', maxWidth: '520px',
           boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
           padding: '30px',
           animation: 'modalSlideUp 0.3s ease-out',
@@ -796,22 +796,22 @@ export default function LivePage() {
             ✕
           </button>
 
-          <h2 style={{ fontSize: '22px', fontWeight: '800', marginBottom: '4px', color: '#ffffff' }}>Batch Comparison</h2>
+          <h2 style={{ fontSize: '22px', fontWeight: 600, marginBottom: '4px', color: '#ffffff' }}>Batch Comparison</h2>
           <p style={{ fontSize: '13px', color: '#a0aec0', marginBottom: '24px', fontWeight: '500' }}>
             Choose the experience that fits your learning style
           </p>
 
           {/* Comparison Table */}
           <div style={{
-            borderRadius: '16px', overflow: 'hidden', border: '1px solid #2d3748',
+            borderRadius: '12px', overflow: 'hidden', border: '1px solid #2d3748',
             background: '#1a1d28', marginBottom: '24px'
           }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '13px' }}>
               <thead>
                 <tr style={{ borderBottom: '1px solid #2d3748', background: '#171923' }}>
-                  <th style={{ padding: '14px 16px', fontWeight: '700', color: '#a0aec0', width: '40%' }}>FEATURES</th>
-                  <th style={{ padding: '14px 16px', fontWeight: '800', color: '#d69e2e', textAlign: 'center', width: '30%', background: 'rgba(214, 158, 46, 0.05)' }}>PLUS</th>
-                  <th style={{ padding: '14px 16px', fontWeight: '800', color: 'var(--primary)', textAlign: 'center', width: '30%', background: 'color-mix(in srgb, var(--primary) 5%, transparent)' }}>PRO</th>
+                  <th style={{ padding: '14px 16px', fontWeight: 600, color: '#a0aec0', width: '40%' }}>FEATURES</th>
+                  <th style={{ padding: '14px 16px', fontWeight: 600, color: '#d69e2e', textAlign: 'center', width: '30%', background: 'rgba(214, 158, 46, 0.05)' }}>PLUS</th>
+                  <th style={{ padding: '14px 16px', fontWeight: 600, color: 'var(--primary)', textAlign: 'center', width: '30%', background: 'color-mix(in srgb, var(--primary) 5%, transparent)' }}>PRO</th>
                 </tr>
               </thead>
               <tbody>
@@ -826,14 +826,14 @@ export default function LivePage() {
                   <tr key={row.name} style={{ borderBottom: index < 5 ? '1px solid #2d3748' : 'none' }}>
                     <td style={{ padding: '12px 16px', fontWeight: '600', color: '#e2e8f0' }}>{row.name}</td>
                     <td style={{
-                      padding: '12px 16px', textAlign: 'center', fontWeight: '700',
+                      padding: '12px 16px', textAlign: 'center', fontWeight: 600,
                       color: row.plus.includes('✅') ? '#48bb78' : '#e53e3e',
                       background: 'rgba(214, 158, 46, 0.02)'
                     }}>
                       {row.plus}
                     </td>
                     <td style={{
-                      padding: '12px 16px', textAlign: 'center', fontWeight: '700',
+                      padding: '12px 16px', textAlign: 'center', fontWeight: 600,
                       color: row.pro.includes('✅') ? '#48bb78' : '#e53e3e',
                       background: 'color-mix(in srgb, var(--primary) 2%, transparent)'
                     }}>
@@ -854,8 +854,8 @@ export default function LivePage() {
               }}
               style={{
                 padding: '12px 32px', borderRadius: '50px', border: 'none',
-                background: 'linear-gradient(135deg, var(--primary), var(--primary))', color: '#ffffff',
-                fontSize: '14px', fontWeight: '800', cursor: 'pointer',
+                background: 'var(--primary)', color: '#ffffff',
+                fontSize: '14px', fontWeight: 600, cursor: 'pointer',
                 boxShadow: '0 4px 15px color-mix(in srgb, var(--primary) 30%, transparent)', transition: 'all 0.2s'
               }}
               onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-1px)'}
@@ -875,7 +875,7 @@ export default function LivePage() {
         display: 'flex', alignItems: 'center', justifyContent: 'center'
       }}>
         <div style={{
-          background: 'var(--surface)', padding: '40px', borderRadius: '32px',
+          background: 'var(--surface)', padding: '40px', borderRadius: '14px',
           textAlign: 'center', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5)',
           width: '320px'
         }}>
@@ -885,7 +885,7 @@ export default function LivePage() {
             margin: '0 auto 20px',
             animation: 'spin 1s linear infinite'
           }} />
-          <h3 style={{ fontSize: '18px', fontWeight: '800', color: 'var(--text-primary)', marginBottom: '8px' }}>Processing...</h3>
+          <h3 style={{ fontSize: '18px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '8px' }}>Processing...</h3>
           <p style={{ fontSize: '14px', color: 'var(--text-secondary)', fontWeight: '500' }}>Please wait while we set up your course access.</p>
         </div>
       </div>

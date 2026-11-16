@@ -81,7 +81,7 @@ export default function RichTextEditor({ value, onChange, placeholder = 'Write s
   return (
     <div style={{
       border: '2px solid var(--border)',
-      borderRadius: '16px',
+      borderRadius: '12px',
       overflow: 'hidden',
       background: 'var(--surface)',
       display: 'flex',
@@ -123,10 +123,10 @@ export default function RichTextEditor({ value, onChange, placeholder = 'Write s
 
         <ToolbarButton title="Heading 1"
           onClick={() => format('formatBlock', 'H1')}
-          icon={<span style={{ fontWeight: 800, fontSize: '15px' }}>H1</span>} />
+          icon={<span style={{ fontWeight: 600, fontSize: '15px' }}>H1</span>} />
         <ToolbarButton title="Heading 2"
           onClick={() => format('formatBlock', 'H2')}
-          icon={<span style={{ fontWeight: 800, fontSize: '15px' }}>H2</span>} />
+          icon={<span style={{ fontWeight: 600, fontSize: '15px' }}>H2</span>} />
         
         <div style={{ width: '1px', height: '24px', background: 'var(--border)', margin: '0 4px' }} />
 

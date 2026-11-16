@@ -90,12 +90,12 @@ export default function UnpaidAttempts() {
               <div key={a.id} className="card" style={{ padding: 16, display: 'flex', flexDirection: 'column', gap: 10, borderLeft: `4px solid ${st.color}` }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10 }}>
                   <div style={{ minWidth: 0 }}>
-                    <div style={{ fontWeight: 700, fontSize: 15.5, wordBreak: 'break-word' }}>{a.itemName}</div>
+                    <div style={{ fontWeight: 600, fontSize: 15.5, wordBreak: 'break-word' }}>{a.itemName}</div>
                     <div style={{ fontSize: 12.5, color: 'var(--text-secondary)' }}>{a.kind} · {a.platform === 'APP' ? 'App' : 'Website'} · {a.gateway === 'PLAY' ? 'Google Play' : 'Razorpay'}</div>
                   </div>
                   <div style={{ textAlign: 'right', flex: 'none' }}>
-                    <div style={{ fontWeight: 800, fontSize: 16 }}>{a.amount != null ? `₹${Math.round(a.amount)}` : '—'}</div>
-                    <span style={{ fontSize: 11.5, fontWeight: 800, color: st.color, background: `color-mix(in srgb, ${st.color} 14%, transparent)`, padding: '3px 9px', borderRadius: 999 }}>{st.label}</span>
+                    <div style={{ fontWeight: 600, fontSize: 16 }}>{a.amount != null ? `₹${Math.round(a.amount)}` : '—'}</div>
+                    <span style={{ fontSize: 11.5, fontWeight: 600, color: st.color, background: `color-mix(in srgb, ${st.color} 14%, transparent)`, padding: '3px 9px', borderRadius: 999 }}>{st.label}</span>
                   </div>
                 </div>
                 {a.reason && <div style={{ fontSize: 13, padding: '8px 10px', borderRadius: 10, background: 'color-mix(in srgb, var(--text-muted) 10%, transparent)' }}>Reason: {a.reason}</div>}
@@ -108,7 +108,7 @@ export default function UnpaidAttempts() {
                 <div style={{ fontSize: 13, lineHeight: 1.5 }}>
                   <b>{a.user.name}</b><br />
                   <a href={`mailto:${a.user.email}`} style={{ color: 'var(--primary)' }}>{a.user.email}</a>
-                  {a.user.mobileNumber && <> · <a href={`tel:${a.user.mobileNumber}`} style={{ color: 'var(--primary)' }}>{a.user.mobileNumber}</a> · <a href={wa(a.user.mobileNumber)} target="_blank" rel="noopener noreferrer" style={{ color: '#25D366', fontWeight: 700 }}>WhatsApp</a></>}
+                  {a.user.mobileNumber && <> · <a href={`tel:${a.user.mobileNumber}`} style={{ color: 'var(--primary)' }}>{a.user.mobileNumber}</a> · <a href={wa(a.user.mobileNumber)} target="_blank" rel="noopener noreferrer" style={{ color: '#25D366', fontWeight: 600 }}>WhatsApp</a></>}
                 </div>
                 <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>
                   {new Date(a.createdAt).toLocaleString('en-IN', { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' })}

@@ -17,7 +17,7 @@ export default function ManageFaqsPage() {
   if (error || !data?.allowed) {
     return (
       <div style={{ maxWidth: 560, margin: '48px auto', padding: 24, textAlign: 'center' }}>
-        <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-primary)' }}>Course FAQs</h1>
+        <h1 style={{ fontSize: 22, fontWeight: 600, color: 'var(--text-primary)' }}>Course FAQs</h1>
         <p style={{ color: 'var(--text-muted)', fontSize: 14 }}>Manager access required.</p>
       </div>
     )
@@ -25,7 +25,7 @@ export default function ManageFaqsPage() {
   return (
     <>
       {data.open && data.role !== 'MANAGER' && (
-        <div style={{ maxWidth: 1180, margin: '0 auto 8px', padding: '8px 12px', borderRadius: 10, fontSize: 13, background: '#fef2f2', color: '#991b1b', border: '1px solid #fecaca' }}>
+        <div style={{ margin: '0 0 8px', padding: '8px 12px', borderRadius: 10, fontSize: 13, background: '#fef2f2', color: '#991b1b', border: '1px solid #fecaca' }}>
           Test mode: storefront tools are open to every signed-in user. Turn off STOREFRONT_PANEL_OPEN_TO_ALL before going live.
         </div>
       )}

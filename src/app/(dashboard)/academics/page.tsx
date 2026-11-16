@@ -20,7 +20,7 @@ const SECTIONS: Section[] = [
     href: '/calendar',
     title: 'Calendar',
     subtitle: 'Schedule, classes & deadlines',
-    gradient: 'linear-gradient(135deg, #4f46e5, #6366f1)',
+    gradient: 'var(--primary)',
     shadow: 'rgba(79, 70, 229, 0.25)',
     appGradient: 'linear-gradient(135deg, #b58bfd, #703bf7)',
     appShadow: 'rgba(112, 59, 247, 0.35)',
@@ -66,9 +66,9 @@ const SECTIONS: Section[] = [
     href: '/community',
     title: 'Community',
     subtitle: 'Chat with peers & instructors',
-    gradient: 'linear-gradient(135deg, #db2777, #9333ea)',
+    gradient: 'var(--primary)',
     shadow: 'rgba(219, 39, 119, 0.25)',
-    appGradient: 'linear-gradient(135deg, #f43f5e, #a855f7)',
+    appGradient: 'var(--primary)',
     appShadow: 'rgba(244, 63, 94, 0.35)',
     icon: (
       <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
@@ -234,7 +234,7 @@ export default function AcademicsPage() {
         }}>
           <h1 style={{ 
             fontSize: '32px', 
-            fontWeight: 800, 
+            fontWeight: 600, 
             color: 'var(--text-primary)', 
             margin: 0, 
             letterSpacing: '-0.03em'
@@ -281,7 +281,7 @@ export default function AcademicsPage() {
         marginBottom: '18px',
         padding: '4px 4px',
       }}>
-        <h1 style={{ fontSize: 'clamp(20px, 5.5vw, 26px)', fontWeight: 900, color: 'var(--text-primary)', margin: 0, letterSpacing: '-0.02em' }}>
+        <h1 style={{ fontSize: 'clamp(20px, 5.5vw, 26px)', fontWeight: 600, color: 'var(--text-primary)', margin: 0, letterSpacing: '-0.02em' }}>
           Academics
         </h1>
         <p style={{ fontSize: '13px', color: 'var(--text-muted)', fontWeight: 600, marginTop: '4px' }}>
@@ -297,7 +297,7 @@ export default function AcademicsPage() {
             style={{
               display: 'flex', alignItems: 'center', gap: '16px',
               padding: '18px 18px',
-              borderRadius: '22px',
+              borderRadius: '14px',
               background: 'var(--surface)',
               boxShadow: '6px 6px 16px var(--neu-dark), -6px -6px 14px var(--neu-light)',
               textDecoration: 'none', color: 'var(--text-primary)',
@@ -305,7 +305,7 @@ export default function AcademicsPage() {
             }}
           >
             <div style={{
-              width: '52px', height: '52px', borderRadius: '16px', flexShrink: 0,
+              width: '52px', height: '52px', borderRadius: '12px', flexShrink: 0,
               background: s.gradient, color: '#fff',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               boxShadow: `0 8px 18px ${s.shadow}`,
@@ -313,7 +313,7 @@ export default function AcademicsPage() {
               {s.icon}
             </div>
             <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontSize: '15.5px', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '3px' }}>
+              <div style={{ fontSize: '15.5px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '3px' }}>
                 {s.title}
               </div>
               <div style={{ fontSize: '12px', color: 'var(--text-muted)', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>

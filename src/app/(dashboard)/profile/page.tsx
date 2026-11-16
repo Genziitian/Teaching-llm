@@ -502,7 +502,7 @@ export default function ProfilePage() {
 
           {/* User info */}
           <div style={{ flex: 1, minWidth: '180px', width: isMobile ? '100%' : 'auto' }}>
-            <h2 style={{ fontSize: '22px', fontWeight: '700', color: 'var(--text-primary)', marginBottom: '4px' }}>{user.name}</h2>
+            <h2 style={{ fontSize: '22px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '4px' }}>{user.name}</h2>
             <p style={{ fontSize: '14px', color: 'var(--text-muted)', marginBottom: '6px' }}>{user.email}</p>
             <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap', justifyContent: isMobile ? 'center' : 'flex-start' }}>
               <span className="badge" style={{
@@ -527,7 +527,7 @@ export default function ProfilePage() {
 
           {/* ── Personal Information ── */}
           <div className="card" style={{ padding: isMobile ? '16px' : '28px', display: 'flex', flexDirection: 'column' }}>
-            <h3 style={{ fontSize: '15px', fontWeight: '700', color: 'var(--text-primary)', marginBottom: '18px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <h3 style={{ fontSize: '15px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '18px', display: 'flex', alignItems: 'center', gap: '10px' }}>
               <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" strokeWidth="2">
                 <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
                 <circle cx="12" cy="7" r="4"/>
@@ -577,7 +577,7 @@ export default function ProfilePage() {
                   {aboutMeWordCount} / {ABOUT_ME_MAX_WORDS} words
                 </div>
                 {isAboutMeOverLimit && (
-                  <div style={{ fontSize: '11px', color: 'var(--danger)', marginTop: '4px', fontWeight: 700 }}>
+                  <div style={{ fontSize: '11px', color: 'var(--danger)', marginTop: '4px', fontWeight: 600 }}>
                     Please shorten About Me before saving.
                   </div>
                 )}
@@ -658,7 +658,7 @@ export default function ProfilePage() {
                 />
               </div>
               {cgpaError && (
-                <div style={{ marginTop: '-8px', fontSize: '11.5px', color: 'var(--danger)', fontWeight: 700, textAlign: 'right' }}>
+                <div style={{ marginTop: '-8px', fontSize: '11.5px', color: 'var(--danger)', fontWeight: 600, textAlign: 'right' }}>
                   {cgpaError}
                 </div>
               )}
@@ -705,7 +705,7 @@ export default function ProfilePage() {
 
           {/* ── Account Details ── */}
           <div className="card" style={{ padding: isMobile ? '16px' : '28px', display: 'flex', flexDirection: 'column' }}>
-            <h3 style={{ fontSize: '15px', fontWeight: '700', color: 'var(--text-primary)', marginBottom: '18px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <h3 style={{ fontSize: '15px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '18px', display: 'flex', alignItems: 'center', gap: '10px' }}>
               <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" strokeWidth="2">
                 <circle cx="12" cy="12" r="10"/>
                 <line x1="12" y1="16" x2="12" y2="12"/>
@@ -779,7 +779,7 @@ export default function ProfilePage() {
 
         <div className="card" style={{ padding: isMobile ? '16px' : '24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
           <div>
-            <h3 style={{ fontSize: '15px', fontWeight: '800', color: 'var(--text-primary)', marginBottom: '4px' }}>Social Card</h3>
+            <h3 style={{ fontSize: '15px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '4px' }}>Social Card</h3>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(5, minmax(120px, 1fr))', gap: '10px' }}>
             {[
@@ -798,7 +798,7 @@ export default function ProfilePage() {
                 background: 'var(--surface-2)',
                 boxShadow: 'inset 3px 3px 6px var(--neu-dark), inset -3px -3px 6px var(--neu-light)',
                 fontSize: '12.5px',
-                fontWeight: 700,
+                fontWeight: 600,
                 color: 'var(--text-secondary)',
                 cursor: 'pointer',
               }}>
@@ -829,7 +829,7 @@ export default function ProfilePage() {
                 style={{ borderColor: instagramError ? 'var(--danger)' : undefined }}
               />
               {instagramError && (
-                <div style={{ fontSize: '11px', color: 'var(--danger)', marginTop: '4px', fontWeight: 700 }}>
+                <div style={{ fontSize: '11px', color: 'var(--danger)', marginTop: '4px', fontWeight: 600 }}>
                   {instagramError}
                 </div>
               )}
@@ -850,7 +850,7 @@ export default function ProfilePage() {
                 style={{ borderColor: linkedinError ? 'var(--danger)' : undefined }}
               />
               {linkedinError && (
-                <div style={{ fontSize: '11px', color: 'var(--danger)', marginTop: '4px', fontWeight: 700 }}>
+                <div style={{ fontSize: '11px', color: 'var(--danger)', marginTop: '4px', fontWeight: 600 }}>
                   {linkedinError}
                 </div>
               )}
@@ -898,7 +898,7 @@ export default function ProfilePage() {
           alignItems: 'center',
           gap: '10px',
           padding: isMobile ? '16px 12px' : '20px 24px',
-          borderRadius: '24px',
+          borderRadius: '14px',
           background: 'var(--surface-2)',
           backdropFilter: 'blur(16px)',
           WebkitBackdropFilter: 'blur(16px)',
@@ -949,7 +949,7 @@ export default function ProfilePage() {
         <div className="modal-overlay" style={{ zIndex: 9999 }}>
           <div className="modal" style={{ width: '95%', maxWidth: '500px', padding: 0, overflow: 'hidden' }}>
             <div className="modal-header" style={{ padding: '20px' }}>
-              <h3 style={{ fontSize: '18px', fontWeight: '700' }}>Adjust Profile Picture</h3>
+              <h3 style={{ fontSize: '18px', fontWeight: 600 }}>Adjust Profile Picture</h3>
               <button 
                 onClick={() => setImageSrc(null)}
                 style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-secondary)' }}
@@ -1038,7 +1038,7 @@ export default function ProfilePage() {
             style={{ width: '92%', maxWidth: '520px', padding: '18px', display: 'flex', flexDirection: 'column', gap: '14px' }}
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <h3 style={{ fontSize: '16px', fontWeight: 800, margin: 0 }}>Profile Picture</h3>
+              <h3 style={{ fontSize: '16px', fontWeight: 600, margin: 0 }}>Profile Picture</h3>
               <button onClick={() => setFullAvatarOpen(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', display: 'flex' }}>
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
@@ -1048,7 +1048,7 @@ export default function ProfilePage() {
             <img
               src={resolvedAvatar}
               alt={`${user.name} profile picture`}
-              style={{ width: '100%', maxHeight: '70vh', objectFit: 'contain', borderRadius: '18px', background: 'var(--surface-2)' }}
+              style={{ width: '100%', maxHeight: '70vh', objectFit: 'contain', borderRadius: '12px', background: 'var(--surface-2)' }}
             />
           </div>
         </div>

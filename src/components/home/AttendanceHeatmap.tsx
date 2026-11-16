@@ -13,7 +13,7 @@ import { useMemo } from 'react'
 
 const WEEKS = 30
 const MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
-const LEVELS = ['var(--gz-line)', 'var(--heat-1, #cdcdc8)', 'var(--heat-2, #9c9c97)', 'var(--heat-3, #5a5a55)', 'var(--gz-ink)']
+const LEVELS = ['var(--gz-line)', 'var(--heat-1, #9be9a8)', 'var(--heat-2, #40c463)', 'var(--heat-3, #30a14e)', 'var(--heat-4, #216e39)']
 
 const PLACEHOLDER_STATS = [
   { label: 'Attendance', value: '85%', unit: 'this term' },

@@ -17,7 +17,6 @@ import {
   StickyNote,
 } from 'lucide-react';
 import { useAuth } from '@/landing/context/AuthContext';
-import { supabase } from '@/landing/lib/supabase';
 
 /* ---------------------------------------------------------------------------
  * Applicant tracker.
@@ -128,12 +127,6 @@ const fmtDateTime = (iso?: string) =>
     ? new Date(iso).toLocaleString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', hour: 'numeric', minute: '2-digit' })
     : '—';
 
-async function authHeaders(): Promise<Record<string, string>> {
-  const { data } = await supabase.auth.getSession();
-  const token = data.session?.access_token;
-  return token ? { Authorization: `Bearer ${token}` } : {};
-}
-
 /* ───────────── Page ───────────── */
 
 export default function CareerTrack() {
@@ -146,7 +139,7 @@ export default function CareerTrack() {
     setLoading(true);
     setError('');
     try {
-      const res = await fetch('/api/site/job-applications/mine', { headers: await authHeaders() });
+      const res = await fetch('/api/site/job-applications/mine', { credentials: 'same-origin', cache: 'no-store' });
       const json = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(json.error || 'Could not load your applications.');
       setApps(json.applications || []);
@@ -496,7 +489,8 @@ function AddForm({ app, onAdded }: { app: TrackedApp; onAdded: (a: TrackedApp) =
     try {
       const res = await fetch('/api/site/job-applications/add-info', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', ...(await authHeaders()) },
+        credentials: 'same-origin',
+        headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
         body: JSON.stringify({ id: app.id, type, value: trimmed, label: type === 'link' ? label.trim() : undefined }),
       });
       const json = await res.json().catch(() => ({}));

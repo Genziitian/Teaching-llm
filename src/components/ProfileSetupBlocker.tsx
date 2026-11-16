@@ -164,11 +164,11 @@ export default function ProfileSetupBlocker({ user }: { user: FullSession }) {
         width: '100%',
         maxWidth: '540px',
         padding: '40px',
-        borderRadius: '24px',
+        borderRadius: '14px',
         boxShadow: '0 20px 40px rgba(0,0,0,0.08)'
       }}>
         <div style={{ textAlign: 'center', marginBottom: '30px' }}>
-          <h1 style={{ fontSize: '26px', fontWeight: 900, color: 'var(--text-primary)', marginBottom: '8px' }}>
+          <h1 style={{ fontSize: '26px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '8px' }}>
             Welcome back to GenZ IITian!
           </h1>
           <p style={{ fontSize: '14px', color: 'var(--text-secondary)', lineHeight: 1.6 }}>
@@ -251,7 +251,7 @@ export default function ProfileSetupBlocker({ user }: { user: FullSession }) {
                 transition: 'opacity 0.2s',
               }}>
                 {uploadingAvatar ? (
-                  <span style={{ color: '#fff', fontSize: '11px', fontWeight: 800 }}>...</span>
+                  <span style={{ color: '#fff', fontSize: '11px', fontWeight: 600 }}>...</span>
                 ) : (
                   <div style={{
                     background: 'rgba(255,255,255,0.92)',
@@ -283,7 +283,7 @@ export default function ProfileSetupBlocker({ user }: { user: FullSession }) {
                   border: 'none',
                   color: 'var(--primary)',
                   fontSize: '12px',
-                  fontWeight: 700,
+                  fontWeight: 600,
                   cursor: 'pointer',
                   padding: '2px 6px',
                 }}
@@ -319,7 +319,7 @@ export default function ProfileSetupBlocker({ user }: { user: FullSession }) {
           
           <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) minmax(0,1fr)', gap: '16px' }}>
             <div className="form-group" style={{ margin: 0 }}>
-              <label className="form-label" style={{ fontWeight: 700 }}>First Name</label>
+              <label className="form-label" style={{ fontWeight: 600 }}>First Name</label>
               <input
                 type="text"
                 name="firstName"
@@ -331,7 +331,7 @@ export default function ProfileSetupBlocker({ user }: { user: FullSession }) {
               />
             </div>
             <div className="form-group" style={{ margin: 0 }}>
-              <label className="form-label" style={{ fontWeight: 700 }}>Last Name</label>
+              <label className="form-label" style={{ fontWeight: 600 }}>Last Name</label>
               <input
                 type="text"
                 name="lastName"
@@ -346,7 +346,7 @@ export default function ProfileSetupBlocker({ user }: { user: FullSession }) {
 
           <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) minmax(0,1fr)', gap: '16px' }}>
              <div className="form-group" style={{ margin: 0 }}>
-              <label className="form-label" style={{ fontWeight: 700 }}>Mobile Number</label>
+              <label className="form-label" style={{ fontWeight: 600 }}>Mobile Number</label>
               <input
                 type="text"
                 name="mobileNumber"
@@ -359,7 +359,7 @@ export default function ProfileSetupBlocker({ user }: { user: FullSession }) {
               />
             </div>
             <div className="form-group" style={{ margin: 0 }}>
-              <label className="form-label" style={{ fontWeight: 700 }}>Age</label>
+              <label className="form-label" style={{ fontWeight: 600 }}>Age</label>
               <input
                 type="number"
                 name="age"
@@ -373,7 +373,7 @@ export default function ProfileSetupBlocker({ user }: { user: FullSession }) {
           </div>
 
           <div className="form-group" style={{ margin: 0 }}>
-            <label className="form-label" style={{ fontWeight: 700 }}>State / Territory</label>
+            <label className="form-label" style={{ fontWeight: 600 }}>State / Territory</label>
             <select
               name="state"
               className="form-input"
@@ -389,7 +389,7 @@ export default function ProfileSetupBlocker({ user }: { user: FullSession }) {
           </div>
 
           <div className="form-group" style={{ margin: 0 }}>
-            <label className="form-label" style={{ fontWeight: 700 }}>Gender</label>
+            <label className="form-label" style={{ fontWeight: 600 }}>Gender</label>
             <div style={{ display: 'flex', gap: '12px' }}>
               {['MALE', 'FEMALE', 'OTHER'].map(g => (
                 <div
@@ -403,7 +403,7 @@ export default function ProfileSetupBlocker({ user }: { user: FullSession }) {
                     textAlign: 'center',
                     cursor: 'pointer',
                     fontSize: '14px',
-                    fontWeight: 700,
+                    fontWeight: 600,
                     border: formData.gender === g ? '2px solid var(--primary)' : '2px solid #e0e3ea',
                     background: formData.gender === g ? '#eff0fe' : 'var(--surface)',
                     color: formData.gender === g ? 'var(--accent)' : 'var(--text-secondary)',
@@ -425,7 +425,7 @@ export default function ProfileSetupBlocker({ user }: { user: FullSession }) {
               width: '100%',
               padding: '16px',
               fontSize: '16px',
-              fontWeight: 800,
+              fontWeight: 600,
               boxShadow: '0 8px 20px color-mix(in srgb, var(--primary) 30%, transparent)',
               display: 'flex',
               justifyContent: 'center',
@@ -452,7 +452,7 @@ export default function ProfileSetupBlocker({ user }: { user: FullSession }) {
         }}>
           <div className="fade-in" style={{
             background: 'var(--surface)',
-            borderRadius: '20px',
+            borderRadius: '14px',
             padding: '36px 32px',
             maxWidth: '420px',
             width: '100%',
@@ -473,7 +473,7 @@ export default function ProfileSetupBlocker({ user }: { user: FullSession }) {
               </svg>
             </div>
 
-            <h2 style={{ fontSize: '20px', fontWeight: 900, color: 'var(--text-primary)', marginBottom: '12px' }}>
+            <h2 style={{ fontSize: '20px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '12px' }}>
               Please check all details carefully
             </h2>
             <p style={{ fontSize: '14px', color: 'var(--text-secondary)', lineHeight: 1.65, marginBottom: '28px' }}>
@@ -492,7 +492,7 @@ export default function ProfileSetupBlocker({ user }: { user: FullSession }) {
               ].map(({ label, value }) => (
                 <div key={label} style={{ display: 'flex', justifyContent: 'space-between', padding: '5px 0', borderBottom: '1px solid #eee', fontSize: '13.5px' }}>
                   <span style={{ color: 'var(--text-secondary)', fontWeight: 600 }}>{label}</span>
-                  <span style={{ color: 'var(--text-primary)', fontWeight: 700 }}>{value}</span>
+                  <span style={{ color: 'var(--text-primary)', fontWeight: 600 }}>{value}</span>
                 </div>
               ))}
             </div>
@@ -503,7 +503,7 @@ export default function ProfileSetupBlocker({ user }: { user: FullSession }) {
                 style={{
                   flex: 1, padding: '13px', borderRadius: '12px',
                   border: '2px solid #e0e3ea', background: 'var(--surface)',
-                  color: 'var(--text-secondary)', fontSize: '14px', fontWeight: 700,
+                  color: 'var(--text-secondary)', fontSize: '14px', fontWeight: 600,
                   cursor: 'pointer', fontFamily: 'inherit'
                 }}
               >
@@ -514,7 +514,7 @@ export default function ProfileSetupBlocker({ user }: { user: FullSession }) {
                 className="btn btn-primary"
                 style={{
                   flex: 1, padding: '13px', borderRadius: '12px',
-                  fontSize: '14px', fontWeight: 800,
+                  fontSize: '14px', fontWeight: 600,
                   boxShadow: '0 6px 16px color-mix(in srgb, var(--primary) 30%, transparent)'
                 }}
               >

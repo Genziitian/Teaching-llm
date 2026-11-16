@@ -62,7 +62,7 @@ function getRoleBadgeStyle(role: string): React.CSSProperties {
     padding: '2px 10px',
     borderRadius: '50px',
     fontSize: '11px',
-    fontWeight: '700',
+    fontWeight: 600,
     background: c.bg,
     color: c.color,
     letterSpacing: '0.3px',
@@ -232,15 +232,15 @@ export default function ActivityLogPage() {
 
         <div className="grid-3" style={{ marginBottom: '20px', gap: '16px' }}>
           <div className="card" style={{ padding: '16px', textAlign: 'center' }}>
-            <div style={{ fontSize: '24px', fontWeight: '800', color: 'var(--primary)' }}>{total.toLocaleString()}</div>
+            <div style={{ fontSize: '24px', fontWeight: 600, color: 'var(--primary)' }}>{total.toLocaleString()}</div>
             <div style={{ fontSize: '12px', color: 'var(--text-secondary)', fontWeight: '600', marginTop: '2px' }}>Total Logs</div>
           </div>
           <div className="card" style={{ padding: '16px', textAlign: 'center' }}>
-            <div style={{ fontSize: '24px', fontWeight: '800', color: 'var(--success)' }}>{todayCount.toLocaleString()}</div>
+            <div style={{ fontSize: '24px', fontWeight: 600, color: 'var(--success)' }}>{todayCount.toLocaleString()}</div>
             <div style={{ fontSize: '12px', color: 'var(--text-secondary)', fontWeight: '600', marginTop: '2px' }}>Today&apos;s Actions</div>
           </div>
           <div className="card" style={{ padding: '16px', textAlign: 'center' }}>
-            <div style={{ fontSize: '24px', fontWeight: '800', color: 'var(--accent)' }}>{page}/{totalPages || 1}</div>
+            <div style={{ fontSize: '24px', fontWeight: 600, color: 'var(--accent)' }}>{page}/{totalPages || 1}</div>
             <div style={{ fontSize: '12px', color: 'var(--text-secondary)', fontWeight: '600', marginTop: '2px' }}>Current Page</div>
           </div>
         </div>
@@ -251,7 +251,7 @@ export default function ActivityLogPage() {
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6b6b8a" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
             </svg>
-            <span style={{ fontSize: '13px', fontWeight: '700', color: 'var(--text-primary)' }}>Filters</span>
+            <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)' }}>Filters</span>
             {userIdFilter && (
               <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', background: 'var(--primary-light)', color: 'var(--primary)', padding: '2px 8px', borderRadius: '12px', fontSize: '11px', fontWeight: '600' }}>
                 Filtered by User ID
@@ -325,7 +325,7 @@ export default function ActivityLogPage() {
 
                 <div style={{ minWidth: '120px', flexShrink: 0 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                    <div onClick={() => setSelectedUserId(log.userId)} style={{ fontSize: '12px', fontWeight: '700', color: 'var(--text-primary)', cursor: 'pointer', textDecoration: 'underline' }}>
+                    <div onClick={() => setSelectedUserId(log.userId)} style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-primary)', cursor: 'pointer', textDecoration: 'underline' }}>
                       {log.userName}
                     </div>
                     <button onClick={() => setUserIdFilter(log.userId)} title="Filter logs for this user" style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-secondary)', padding: '0 4px', display: 'flex', alignItems: 'center' }}>

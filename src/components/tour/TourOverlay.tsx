@@ -219,7 +219,7 @@ export default function TourOverlay({
             height: `${targetRect.height}px`,
             borderRadius: '12px',
             border: '2px solid var(--primary, #4F46E5)',
-            boxShadow: '0 0 16px rgba(79, 70, 229, 0.5), inset 0 0 8px rgba(79, 70, 229, 0.25)',
+            boxShadow: '0 0 16px rgba(128, 128, 128, 0.5), inset 0 0 8px rgba(128, 128, 128, 0.25)',
             pointerEvents: 'none',
             transition: 'all 0.25s ease-out',
             animation: 'tourPulse 2s infinite ease-in-out',
@@ -238,7 +238,7 @@ export default function TourOverlay({
           maxWidth: '340px',
           background: 'var(--surface, #ffffff)',
           color: 'var(--text-primary, #1e293b)',
-          borderRadius: '18px',
+          borderRadius: '12px',
           padding: '20px',
           boxShadow: '0 20px 40px -10px rgba(0,0,0,0.35), 0 0 0 1px var(--border, rgba(226,232,240,0.8))',
           transition: 'all 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
@@ -247,15 +247,15 @@ export default function TourOverlay({
       >
         {/* Header with Title & Badge */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-          <div style={{ fontSize: '15px', fontWeight: 800, color: 'var(--text-primary, #0f172a)' }}>
+          <div style={{ fontSize: '15px', fontWeight: 600, color: 'var(--text-primary, #0f172a)' }}>
             {step.title}
           </div>
           <div
             style={{
               fontSize: '11px',
-              fontWeight: 700,
+              fontWeight: 600,
               padding: '3px 9px',
-              borderRadius: '20px',
+              borderRadius: '14px',
               background: 'var(--surface-2, #f1f5f9)',
               color: 'var(--primary, #4f46e5)',
             }}
@@ -323,10 +323,10 @@ export default function TourOverlay({
                 borderRadius: '10px',
                 padding: '7px 16px',
                 fontSize: '12.5px',
-                fontWeight: 700,
+                fontWeight: 600,
                 color: '#ffffff',
                 cursor: 'pointer',
-                boxShadow: '0 4px 12px rgba(79, 70, 229, 0.3)',
+                boxShadow: '0 4px 12px rgba(128, 128, 128, 0.3)',
               }}
             >
               {isLastStep ? 'Finish' : 'Next'}

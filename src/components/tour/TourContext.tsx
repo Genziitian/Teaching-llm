@@ -249,7 +249,7 @@ export function TourProvider({ children }: { children: ReactNode }) {
             style={{
               background: 'var(--surface, #ffffff)',
               color: 'var(--text-primary, #0f172a)',
-              borderRadius: '20px',
+              borderRadius: '14px',
               padding: '24px',
               maxWidth: '360px',
               width: '100%',
@@ -276,7 +276,7 @@ export function TourProvider({ children }: { children: ReactNode }) {
                 <line x1="12" y1="16" x2="12.01" y2="16" />
               </svg>
             </div>
-            <h3 style={{ fontSize: '17px', fontWeight: 800, marginBottom: '8px' }}>Skip App Tour?</h3>
+            <h3 style={{ fontSize: '17px', fontWeight: 600, marginBottom: '8px' }}>Skip App Tour?</h3>
             <p style={{ fontSize: '13px', color: 'var(--text-muted, #64748b)', marginBottom: '24px', lineHeight: '1.45' }}>
               You can replay the tour anytime from Settings / More.
             </p>
@@ -308,10 +308,10 @@ export function TourProvider({ children }: { children: ReactNode }) {
                   border: 'none',
                   background: 'var(--primary, #4f46e5)',
                   fontSize: '13px',
-                  fontWeight: 700,
+                  fontWeight: 600,
                   color: '#ffffff',
                   cursor: 'pointer',
-                  boxShadow: '0 4px 12px rgba(79, 70, 229, 0.3)',
+                  boxShadow: '0 4px 12px rgba(128, 128, 128, 0.3)',
                 }}
               >
                 Skip Tour

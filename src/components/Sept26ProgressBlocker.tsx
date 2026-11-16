@@ -218,7 +218,7 @@ export default function Sept26ProgressBlocker({ user }: { user: any }) {
           <div style={{
             position: 'absolute',
             inset: 0,
-            borderRadius: '24px',
+            borderRadius: '14px',
             background: 'rgba(255, 255, 255, 0.94)',
             backdropFilter: 'blur(6px)',
             WebkitBackdropFilter: 'blur(6px)',
@@ -241,7 +241,7 @@ export default function Sept26ProgressBlocker({ user }: { user: any }) {
             }} />
             <h3 style={{
               fontSize: '18px',
-              fontWeight: 800,
+              fontWeight: 600,
               color: '#0f172a',
               margin: '0 0 6px 0',
             }}>
@@ -287,7 +287,7 @@ export default function Sept26ProgressBlocker({ user }: { user: any }) {
             background: 'linear-gradient(135deg, #e0e7ff 0%, #ede9fe 100%)',
             color: 'var(--primary)',
             fontSize: '11.5px',
-            fontWeight: 800,
+            fontWeight: 600,
             letterSpacing: '0.04em',
             textTransform: 'uppercase',
             marginBottom: '8px',
@@ -298,7 +298,7 @@ export default function Sept26ProgressBlocker({ user }: { user: any }) {
 
           <h1 style={{
             fontSize: '21px',
-            fontWeight: 900,
+            fontWeight: 600,
             color: 'var(--text-primary, #0f172a)',
             margin: 0,
             letterSpacing: '-0.02em',
@@ -319,7 +319,7 @@ export default function Sept26ProgressBlocker({ user }: { user: any }) {
           border: '1px solid #e2e8f0',
         }}>
           <div style={{ flex: 1 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', fontWeight: 800, color: '#64748b', marginBottom: '5px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', fontWeight: 600, color: '#64748b', marginBottom: '5px' }}>
               <span>TERM REFRESH PROGRESS</span>
               <span style={{ color: progressPercent === 100 ? '#10b981' : 'var(--primary)' }}>{progressPercent}% Completed</span>
             </div>
@@ -327,7 +327,7 @@ export default function Sept26ProgressBlocker({ user }: { user: any }) {
               <div style={{
                 height: '100%',
                 width: `${progressPercent}%`,
-                background: progressPercent === 100 ? 'linear-gradient(90deg, #10b981, #059669)' : 'linear-gradient(90deg, var(--primary), #8b5cf6)',
+                background: progressPercent === 100 ? 'linear-gradient(90deg, #10b981, #059669)' : 'var(--primary)',
                 borderRadius: '4px',
                 transition: 'width 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
               }} />
@@ -381,7 +381,7 @@ export default function Sept26ProgressBlocker({ user }: { user: any }) {
             alignItems: 'center',
             gap: '14px',
             padding: '12px 16px',
-            borderRadius: '16px',
+            borderRadius: '12px',
             background: 'var(--surface-2, #f8fafc)',
             border: '1px solid #e2e8f0',
           }}>
@@ -418,7 +418,7 @@ export default function Sept26ProgressBlocker({ user }: { user: any }) {
                 <div style={{
                   position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.5)',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  color: '#fff', fontSize: '10px', fontWeight: 800,
+                  color: '#fff', fontSize: '10px', fontWeight: 600,
                 }}>
                   ...
                 </div>
@@ -427,10 +427,10 @@ export default function Sept26ProgressBlocker({ user }: { user: any }) {
 
             <div style={{ flex: 1 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <span style={{ fontSize: '13.5px', fontWeight: 800, color: 'var(--text-primary, #0f172a)' }}>
+                <span style={{ fontSize: '13.5px', fontWeight: 600, color: 'var(--text-primary, #0f172a)' }}>
                   Profile Photo
                 </span>
-                <span style={{ fontSize: '10.5px', fontWeight: 700, color: 'var(--primary)', background: '#eff0fe', padding: '1px 7px', borderRadius: '12px' }}>
+                <span style={{ fontSize: '10.5px', fontWeight: 600, color: 'var(--primary)', background: '#eff0fe', padding: '1px 7px', borderRadius: '12px' }}>
                   Optional
                 </span>
               </div>
@@ -446,7 +446,7 @@ export default function Sept26ProgressBlocker({ user }: { user: any }) {
                     padding: '4px 12px',
                     borderRadius: '8px',
                     fontSize: '11.5px',
-                    fontWeight: 700,
+                    fontWeight: 600,
                     background: 'var(--primary)',
                     color: '#ffffff',
                     border: 'none',
@@ -486,11 +486,11 @@ export default function Sept26ProgressBlocker({ user }: { user: any }) {
           {/* ── Field 1: Current IITM Level ── */}
           <div className="form-group" style={{ margin: 0 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-              <label style={{ fontWeight: 800, fontSize: '13.5px', color: 'var(--text-primary, #0f172a)' }}>
+              <label style={{ fontWeight: 600, fontSize: '13.5px', color: 'var(--text-primary, #0f172a)' }}>
                 1. Which IITM Level are You in Now?
               </label>
               {formData.iitmLevel && (
-                <span style={{ fontSize: '11px', fontWeight: 800, color: 'var(--primary)' }}>
+                <span style={{ fontSize: '11px', fontWeight: 600, color: 'var(--primary)' }}>
                   {formData.iitmLevel} ✓
                 </span>
               )}
@@ -511,7 +511,7 @@ export default function Sept26ProgressBlocker({ user }: { user: any }) {
                       background: isSelected ? '#eff0fe' : 'var(--surface, #ffffff)',
                       color: isSelected ? 'var(--primary)' : 'var(--text-secondary, #475569)',
                       fontSize: '12.5px',
-                      fontWeight: 700,
+                      fontWeight: 600,
                       cursor: 'pointer',
                       transition: 'all 0.15s ease',
                       outline: 'none',
@@ -530,11 +530,11 @@ export default function Sept26ProgressBlocker({ user }: { user: any }) {
           {/* ── Field 2: IITM Category ── */}
           <div className="form-group" style={{ margin: 0 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-              <label style={{ fontWeight: 800, fontSize: '13.5px', color: 'var(--text-primary, #0f172a)' }}>
+              <label style={{ fontWeight: 600, fontSize: '13.5px', color: 'var(--text-primary, #0f172a)' }}>
                 2. Are You Currently:
               </label>
               {formData.iitmUserType && (
-                <span style={{ fontSize: '11px', fontWeight: 800, color: 'var(--primary)' }}>
+                <span style={{ fontSize: '11px', fontWeight: 600, color: 'var(--primary)' }}>
                   Selected ✓
                 </span>
               )}
@@ -563,7 +563,7 @@ export default function Sept26ProgressBlocker({ user }: { user: any }) {
                       color: isSelected ? 'var(--primary)' : 'var(--text-secondary, #475569)',
                       fontSize: '11.5px',
                       lineHeight: 1.25,
-                      fontWeight: 700,
+                      fontWeight: 600,
                       cursor: 'pointer',
                       transition: 'all 0.15s ease',
                       outline: 'none',
@@ -586,15 +586,15 @@ export default function Sept26ProgressBlocker({ user }: { user: any }) {
           {/* ── Field 3: Mobile Number ── */}
           <div className="form-group" style={{ margin: 0 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-              <label style={{ fontWeight: 800, fontSize: '13.5px', color: 'var(--text-primary, #0f172a)' }}>
+              <label style={{ fontWeight: 600, fontSize: '13.5px', color: 'var(--text-primary, #0f172a)' }}>
                 3. Mobile Number (Update if Changed)
               </label>
               {isMobileValid ? (
-                <span style={{ fontSize: '11px', fontWeight: 800, color: '#10b981' }}>
+                <span style={{ fontSize: '11px', fontWeight: 600, color: '#10b981' }}>
                   Verified ✓
                 </span>
               ) : formData.mobileNumber.length > 0 ? (
-                <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--primary)' }}>
+                <span style={{ fontSize: '11px', fontWeight: 600, color: 'var(--primary)' }}>
                   {formData.mobileNumber.length}/10 digits
                 </span>
               ) : null}
@@ -607,7 +607,7 @@ export default function Sept26ProgressBlocker({ user }: { user: any }) {
                 top: '50%',
                 transform: 'translateY(-50%)',
                 fontSize: '14px',
-                fontWeight: 700,
+                fontWeight: 600,
                 color: '#64748b',
               }}>
                 +91
@@ -625,7 +625,7 @@ export default function Sept26ProgressBlocker({ user }: { user: any }) {
                   border: isMobileValid ? '2px solid #10b981' : '2px solid #e2e8f0',
                   background: 'var(--surface, #ffffff)',
                   fontSize: '14px',
-                  fontWeight: 700,
+                  fontWeight: 600,
                   outline: 'none',
                   color: 'var(--text-primary, #0f172a)',
                   transition: 'border 0.2s ease',
@@ -658,21 +658,21 @@ export default function Sept26ProgressBlocker({ user }: { user: any }) {
           <div style={{
             background: 'var(--surface-2, #f8fafc)',
             padding: '12px 14px',
-            borderRadius: '16px',
+            borderRadius: '12px',
             border: '1px solid #e2e8f0',
           }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '8px' }}>
-              <span style={{ fontSize: '13px', fontWeight: 800, color: 'var(--text-primary, #0f172a)' }}>
+              <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary, #0f172a)' }}>
                 4. Social Card Links (Optional)
               </span>
-              <span style={{ fontSize: '10.5px', fontWeight: 700, color: 'var(--primary)', background: '#eff0fe', padding: '1px 7px', borderRadius: '12px' }}>
+              <span style={{ fontSize: '10.5px', fontWeight: 600, color: 'var(--primary)', background: '#eff0fe', padding: '1px 7px', borderRadius: '12px' }}>
                 Optional
               </span>
             </div>
 
             <div className="social-grid">
               <div>
-                <label style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-secondary, #475569)', marginBottom: '4px', display: 'block' }}>
+                <label style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-secondary, #475569)', marginBottom: '4px', display: 'block' }}>
                   Instagram Profile Link
                 </label>
                 <input
@@ -694,7 +694,7 @@ export default function Sept26ProgressBlocker({ user }: { user: any }) {
               </div>
 
               <div>
-                <label style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-secondary, #475569)', marginBottom: '4px', display: 'block' }}>
+                <label style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-secondary, #475569)', marginBottom: '4px', display: 'block' }}>
                   LinkedIn Profile Link
                 </label>
                 <input
@@ -726,8 +726,8 @@ export default function Sept26ProgressBlocker({ user }: { user: any }) {
               padding: '13px',
               borderRadius: '14px',
               fontSize: '15px',
-              fontWeight: 800,
-              background: 'linear-gradient(135deg, var(--primary) 0%, var(--primary) 100%)',
+              fontWeight: 600,
+              background: 'var(--primary)',
               color: '#ffffff',
               border: 'none',
               cursor: loading ? 'not-allowed' : 'pointer',
@@ -767,7 +767,7 @@ export default function Sept26ProgressBlocker({ user }: { user: any }) {
         }}>
           <div style={{
             background: 'var(--surface, #ffffff)',
-            borderRadius: '24px',
+            borderRadius: '14px',
             padding: '26px 20px',
             maxWidth: '440px',
             width: '100%',
@@ -797,7 +797,7 @@ export default function Sept26ProgressBlocker({ user }: { user: any }) {
 
             <h2 style={{
               fontSize: '20px',
-              fontWeight: 900,
+              fontWeight: 600,
               color: 'var(--text-primary, #0f172a)',
               marginBottom: '10px',
               letterSpacing: '-0.02em',
@@ -817,12 +817,12 @@ export default function Sept26ProgressBlocker({ user }: { user: any }) {
 
             {/* Line 2: Distinct highlighted text and color on next line */}
             <div style={{
-              background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, color-mix(in srgb, var(--primary) 8%, transparent) 100%)',
+              background: 'var(--primary)',
               border: '1px solid rgba(16, 185, 129, 0.25)',
               borderRadius: '12px',
               padding: '10px 14px',
               color: '#059669',
-              fontWeight: 700,
+              fontWeight: 600,
               fontSize: '13px',
               marginBottom: '20px',
               letterSpacing: '0.01em',
@@ -838,8 +838,8 @@ export default function Sept26ProgressBlocker({ user }: { user: any }) {
                 padding: '13px',
                 borderRadius: '12px',
                 fontSize: '15px',
-                fontWeight: 800,
-                background: 'linear-gradient(135deg, var(--primary) 0%, var(--primary) 100%)',
+                fontWeight: 600,
+                background: 'var(--primary)',
                 color: '#ffffff',
                 border: 'none',
                 cursor: enteringDashboard ? 'not-allowed' : 'pointer',

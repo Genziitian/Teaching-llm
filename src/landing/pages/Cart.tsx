@@ -5,7 +5,6 @@ import { useCart } from '@/landing/context/CartContext';
 import { useAuth } from '@/landing/context/AuthContext';
 import { Trash2, ShoppingBag, ArrowRight, ShieldCheck, Loader2, X, Gift, Coins } from 'lucide-react';
 import { Link, useNavigate } from '@/landing/shims/router';
-import { supabase } from '@/landing/lib/supabase';
 import { apiService } from '@/landing/lib/api';
 import { getStoredReferralCode, clearReferralCookie, validateReferralCode, getReferralProfile } from '@/landing/lib/referral';
 
@@ -43,17 +42,9 @@ export default function Cart() {
 
     const checkRecentPayment = async () => {
       try {
-        const tenMinsAgo = new Date(Date.now() - 10 * 60 * 1000).toISOString();
-        const { data: recentOrders } = await supabase
-          .from('website_orders')
-          .select('*')
-          .eq('user_email', user.email)
-          .eq('status', 'PAID')
-          .gt('created_at', tenMinsAgo)
-          .order('created_at', { ascending: false })
-          .limit(1);
+        const recentOrder = await apiService.getRecentPaidOrder();
 
-        if (recentOrders && recentOrders.length > 0) {
+        if (recentOrder) {
           const courseTitle = cart.map(item => item.name).join(', ');
           clearCart();
           navigate("/payment-success", { state: { courseTitle } });
@@ -135,7 +126,7 @@ export default function Cart() {
         if (total < 200) {
           throw new Error('Cart total must be at least ₹200 to use a referral code.');
         }
-        if (result.referrerEmail?.toLowerCase() === user.email?.toLowerCase()) {
+        if (result.own) {
           throw new Error('You cannot use your own referral code.');
         }
 
@@ -208,7 +199,7 @@ export default function Cart() {
       if (!promptedName) return;
       finalName = promptedName;
       try {
-        await supabase.from('profiles').upsert({ id: user.id, email: user.email, name: finalName });
+        await apiService.saveProfile({ name: finalName });
       } catch (err) { console.warn('Profile update failed:', err); }
     }
 

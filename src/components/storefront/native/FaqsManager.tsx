@@ -92,7 +92,7 @@ export default function FaqsManager() {
       {loading ? (
         <div style={{ display: 'flex', justifyContent: 'center', padding: 48 }}><Loader2 className="animate-spin" size={24} /></div>
       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 12, maxWidth: 860 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           {loadError && (
             <div className="badge badge-danger" style={{ padding: '8px 12px', fontSize: 13, whiteSpace: 'normal' }}>
               Could not load the saved FAQs ({loadError}). Showing the defaults; saving will replace what is stored.

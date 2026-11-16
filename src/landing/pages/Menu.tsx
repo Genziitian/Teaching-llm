@@ -12,7 +12,6 @@ import {
 } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { useAuth } from '@/landing/context/AuthContext';
-import { supabase } from '@/landing/lib/supabase';
 
 type RowProps = {
   Icon: typeof Mail;
@@ -70,8 +69,9 @@ export default function Menu() {
       setIsEmployee(false);
       return;
     }
-    Promise.resolve(supabase.from('employees').select('employee_id').ilike('email', user.email).maybeSingle())
-      .then(({ data }) => { if (!cancelled) setIsEmployee(Boolean(data)); })
+    fetch('/api/site/employee/me?check=1', { cache: 'no-store' })
+      .then((res) => (res.ok ? res.json() : { isEmployee: false }))
+      .then((data) => { if (!cancelled) setIsEmployee(Boolean(data?.isEmployee)); })
       .catch(() => { if (!cancelled) setIsEmployee(false); });
     return () => { cancelled = true; };
   }, [user?.email]);

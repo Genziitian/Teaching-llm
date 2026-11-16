@@ -111,7 +111,7 @@ function ClassTransactionsPage({ sourceSwitch }: { sourceSwitch?: ReactNode } = 
     return (
       <span style={{
         background: c.bg, color: c.text, padding: '4px 12px',
-        borderRadius: '20px', fontSize: '11px', fontWeight: '700',
+        borderRadius: '14px', fontSize: '11px', fontWeight: 600,
         textTransform: 'uppercase', letterSpacing: '0.05em'
       }}>
         {status === 'SUCCESS' ? '✓ ' : ''}{status}
@@ -123,7 +123,7 @@ function ClassTransactionsPage({ sourceSwitch }: { sourceSwitch?: ReactNode } = 
     const isExt = Boolean(isExternal)
     if (source === 'GOOGLE_PLAY') {
       return (
-        <span style={{ background: 'rgba(59, 130, 246, 0.15)', color: '#60a5fa', border: '1px solid rgba(59, 130, 246, 0.35)', padding: '3px 10px', borderRadius: '14px', fontSize: '10.5px', fontWeight: '800', display: 'inline-flex', alignItems: 'center', gap: '4px', letterSpacing: '0.04em' }}>
+        <span style={{ background: 'rgba(59, 130, 246, 0.15)', color: '#60a5fa', border: '1px solid rgba(59, 130, 246, 0.35)', padding: '3px 10px', borderRadius: '14px', fontSize: '10.5px', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '4px', letterSpacing: '0.04em' }}>
           ▶ GOOGLE PLAY
         </span>
       )
@@ -131,12 +131,12 @@ function ClassTransactionsPage({ sourceSwitch }: { sourceSwitch?: ReactNode } = 
     return (
       <span style={{
         background: isExt ? 'color-mix(in srgb, var(--primary) 15%, transparent)' : 'rgba(16, 185, 129, 0.15)',
-        color: isExt ? '#818cf8' : '#34d399',
-        border: `1px solid ${isExt ? 'rgba(99, 102, 241, 0.35)' : 'rgba(16, 185, 129, 0.35)'}`,
+        color: isExt ? 'var(--primary)' : '#34d399',
+        border: `1px solid ${isExt ? 'rgba(128, 128, 128, 0.35)' : 'rgba(16, 185, 129, 0.35)'}`,
         padding: '3px 10px',
         borderRadius: '14px',
         fontSize: '10.5px',
-        fontWeight: '800',
+        fontWeight: 600,
         display: 'inline-flex',
         alignItems: 'center',
         gap: '4px',
@@ -151,7 +151,7 @@ function ClassTransactionsPage({ sourceSwitch }: { sourceSwitch?: ReactNode } = 
     <div style={{ display: 'flex', gap: 8, marginBottom: 20, flexWrap: 'wrap' }}>
       {([['paid', 'Transactions'], ['unpaid', 'Unpaid attempts']] as const).map(([k, label]) => (
         <button key={k} onClick={() => setView(k)} style={{
-          padding: '9px 18px', borderRadius: 999, border: '1px solid var(--border)', cursor: 'pointer', fontWeight: 700, fontSize: 13.5,
+          padding: '9px 18px', borderRadius: 999, border: '1px solid var(--border)', cursor: 'pointer', fontWeight: 600, fontSize: 13.5,
           background: view === k ? 'var(--primary)' : 'transparent', color: view === k ? '#fff' : 'var(--text-primary)',
         }}>{label}</button>
       ))}
@@ -161,7 +161,7 @@ function ClassTransactionsPage({ sourceSwitch }: { sourceSwitch?: ReactNode } = 
   if (view === 'unpaid') {
     return (
       <div className="page-container fade-in">
-        <h1 style={{ margin: '0 0 14px', fontSize: 24, fontWeight: 800, letterSpacing: '-0.02em' }}>Transactions</h1>
+        <h1 style={{ margin: '0 0 14px', fontSize: 24, fontWeight: 600, letterSpacing: '-0.02em' }}>Transactions</h1>
         {sourceSwitch && <div style={{ marginBottom: 14 }}>{sourceSwitch}</div>}
         {tabs}
         <UnpaidAttempts />
@@ -226,7 +226,7 @@ function ClassTransactionsPage({ sourceSwitch }: { sourceSwitch?: ReactNode } = 
             <polyline points="12 19 5 12 12 5"></polyline>
           </svg>
         </button>
-        <span style={{ fontSize: '20px', fontWeight: 800, color: 'var(--text-primary)', fontFamily: "'Outfit', 'Nunito', sans-serif", letterSpacing: '-0.3px' }}>
+        <span style={{ fontSize: '20px', fontWeight: 600, color: 'var(--text-primary)', fontFamily: "'Outfit', 'Nunito', sans-serif", letterSpacing: '-0.3px' }}>
           Transactions
         </span>
       </div>
@@ -238,16 +238,16 @@ function ClassTransactionsPage({ sourceSwitch }: { sourceSwitch?: ReactNode } = 
       {data?.summary && (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(200px, 100%), 1fr))', gap: '16px', marginBottom: '24px' }}>
           <div className="card" style={{ padding: '20px', textAlign: 'center' }}>
-            <div style={{ fontSize: '12px', color: 'var(--text-secondary)', fontWeight: '700', textTransform: 'uppercase', marginBottom: '8px' }}>Total Revenue</div>
-            <div style={{ fontSize: '28px', fontWeight: '900', color: 'var(--success)' }}>₹{data.summary.totalRevenue.toLocaleString('en-IN')}</div>
+            <div style={{ fontSize: '12px', color: 'var(--text-secondary)', fontWeight: 600, textTransform: 'uppercase', marginBottom: '8px' }}>Total Revenue</div>
+            <div style={{ fontSize: '28px', fontWeight: 600, color: 'var(--success)' }}>₹{data.summary.totalRevenue.toLocaleString('en-IN')}</div>
           </div>
           <div className="card" style={{ padding: '20px', textAlign: 'center' }}>
-            <div style={{ fontSize: '12px', color: 'var(--text-secondary)', fontWeight: '700', textTransform: 'uppercase', marginBottom: '8px' }}>Successful</div>
-            <div style={{ fontSize: '28px', fontWeight: '900', color: 'var(--accent)' }}>{data.summary.totalSuccessful}</div>
+            <div style={{ fontSize: '12px', color: 'var(--text-secondary)', fontWeight: 600, textTransform: 'uppercase', marginBottom: '8px' }}>Successful</div>
+            <div style={{ fontSize: '28px', fontWeight: 600, color: 'var(--accent)' }}>{data.summary.totalSuccessful}</div>
           </div>
           <div className="card" style={{ padding: '20px', textAlign: 'center' }}>
-            <div style={{ fontSize: '12px', color: 'var(--text-secondary)', fontWeight: '700', textTransform: 'uppercase', marginBottom: '8px' }}>Total Records</div>
-            <div style={{ fontSize: '28px', fontWeight: '900', color: 'var(--text-primary)' }}>{data.summary.totalRecords}</div>
+            <div style={{ fontSize: '12px', color: 'var(--text-secondary)', fontWeight: 600, textTransform: 'uppercase', marginBottom: '8px' }}>Total Records</div>
+            <div style={{ fontSize: '28px', fontWeight: 600, color: 'var(--text-primary)' }}>{data.summary.totalRecords}</div>
           </div>
         </div>
       )}
@@ -260,7 +260,7 @@ function ClassTransactionsPage({ sourceSwitch }: { sourceSwitch?: ReactNode } = 
               key={f.key}
               onClick={() => setFilter(f.key)}
               style={{
-                padding: '8px 18px', borderRadius: '20px', fontSize: '13px', fontWeight: '700',
+                padding: '8px 18px', borderRadius: '14px', fontSize: '13px', fontWeight: 600,
                 border: filter === f.key ? '2px solid var(--primary)' : '2px solid var(--border)',
                 background: filter === f.key ? 'var(--primary-light)' : 'white',
                 color: filter === f.key ? 'var(--accent)' : 'var(--text-secondary)',
@@ -314,13 +314,13 @@ function ClassTransactionsPage({ sourceSwitch }: { sourceSwitch?: ReactNode } = 
         marginBottom: '20px',
         padding: '12px 18px',
         background: 'var(--surface-2)',
-        borderRadius: '16px',
+        borderRadius: '12px',
         border: '1px solid var(--border)',
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
           {/* Term Selector */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span style={{ fontSize: '11px', fontWeight: 800, textTransform: 'uppercase', color: 'var(--text-muted)', letterSpacing: '0.05em' }}>
+            <span style={{ fontSize: '11px', fontWeight: 600, textTransform: 'uppercase', color: 'var(--text-muted)', letterSpacing: '0.05em' }}>
               Academic Term:
             </span>
             <select
@@ -349,7 +349,7 @@ function ClassTransactionsPage({ sourceSwitch }: { sourceSwitch?: ReactNode } = 
 
           {/* Exam Stage Selector */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span style={{ fontSize: '11px', fontWeight: 800, textTransform: 'uppercase', color: 'var(--text-muted)', letterSpacing: '0.05em' }}>
+            <span style={{ fontSize: '11px', fontWeight: 600, textTransform: 'uppercase', color: 'var(--text-muted)', letterSpacing: '0.05em' }}>
               Exam Stage:
             </span>
             <select
@@ -378,7 +378,7 @@ function ClassTransactionsPage({ sourceSwitch }: { sourceSwitch?: ReactNode } = 
 
         {(selectedTerm !== 'all' || selectedExam !== 'all') && (
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--accent)' }}>
+            <span style={{ fontSize: '11px', fontWeight: 600, color: 'var(--accent)' }}>
               Filtering revenue by selected term / exam
             </span>
             <button
@@ -391,7 +391,7 @@ function ClassTransactionsPage({ sourceSwitch }: { sourceSwitch?: ReactNode } = 
                 borderRadius: '8px',
                 color: '#ef4444',
                 fontSize: '11px',
-                fontWeight: 700,
+                fontWeight: 600,
                 cursor: 'pointer',
               }}
             >
@@ -430,26 +430,26 @@ function ClassTransactionsPage({ sourceSwitch }: { sourceSwitch?: ReactNode } = 
               <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
                 <thead>
                   <tr style={{ background: 'var(--surface)', borderBottom: '2px solid var(--border)' }}>
-                    <th style={{ padding: '14px 20px', fontSize: '12px', color: 'var(--text-secondary)', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Order ID</th>
-                    <th style={{ padding: '14px 20px', fontSize: '12px', color: 'var(--text-secondary)', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Source</th>
-                    <th style={{ padding: '14px 20px', fontSize: '12px', color: 'var(--text-secondary)', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Student</th>
-                    <th style={{ padding: '14px 20px', fontSize: '12px', color: 'var(--text-secondary)', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Course</th>
-                    <th style={{ padding: '14px 20px', fontSize: '12px', color: 'var(--text-secondary)', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Amount</th>
-                    <th style={{ padding: '14px 20px', fontSize: '12px', color: 'var(--text-secondary)', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Status</th>
-                    <th style={{ padding: '14px 20px', fontSize: '12px', color: 'var(--text-secondary)', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Date</th>
+                    <th style={{ padding: '14px 20px', fontSize: '12px', color: 'var(--text-secondary)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Order ID</th>
+                    <th style={{ padding: '14px 20px', fontSize: '12px', color: 'var(--text-secondary)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Source</th>
+                    <th style={{ padding: '14px 20px', fontSize: '12px', color: 'var(--text-secondary)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Student</th>
+                    <th style={{ padding: '14px 20px', fontSize: '12px', color: 'var(--text-secondary)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Course</th>
+                    <th style={{ padding: '14px 20px', fontSize: '12px', color: 'var(--text-secondary)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Amount</th>
+                    <th style={{ padding: '14px 20px', fontSize: '12px', color: 'var(--text-secondary)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Status</th>
+                    <th style={{ padding: '14px 20px', fontSize: '12px', color: 'var(--text-secondary)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Date</th>
                   </tr>
                 </thead>
                 <tbody>
                   {filteredTransactions.map((tx, i) => (
                     <tr key={tx.id} style={{ borderBottom: '1px solid var(--border)', background: i % 2 === 0 ? 'var(--surface)' : 'var(--surface-2)' }}>
-                      <td style={{ padding: '14px 20px', fontSize: '11px', fontWeight: '700', color: 'var(--accent)', fontFamily: 'monospace', wordBreak: 'break-all' }}>{tx.orderId}</td>
+                      <td style={{ padding: '14px 20px', fontSize: '11px', fontWeight: 600, color: 'var(--accent)', fontFamily: 'monospace', wordBreak: 'break-all' }}>{tx.orderId}</td>
                       <td style={{ padding: '14px 20px' }}>{sourceBadge(tx.isExternal, tx.source)}</td>
                       <td style={{ padding: '14px 20px' }}>
-                        <div style={{ fontSize: '13px', fontWeight: '700', color: 'var(--text-primary)' }}>{tx.user.name}</div>
+                        <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)' }}>{tx.user.name}</div>
                         <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>{tx.user.email}</div>
                       </td>
                       <td title={fullCourseList(tx)} style={{ padding: '14px 20px', fontSize: '13px', color: 'var(--text-secondary)', fontWeight: '600', minWidth: '360px', whiteSpace: 'normal', lineHeight: 1.45 }}>{formatCourseList(tx)}</td>
-                      <td style={{ padding: '14px 20px', fontSize: '14px', fontWeight: '800', color: 'var(--text-primary)' }}>₹{tx.amount.toLocaleString('en-IN')}</td>
+                      <td style={{ padding: '14px 20px', fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)' }}>₹{tx.amount.toLocaleString('en-IN')}</td>
                       <td style={{ padding: '14px 20px' }}>{statusBadge(tx.status)}</td>
                       <td style={{ padding: '14px 20px', fontSize: '12px', color: 'var(--text-secondary)' }}>
                         {new Date(tx.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
@@ -470,7 +470,7 @@ function ClassTransactionsPage({ sourceSwitch }: { sourceSwitch?: ReactNode } = 
             {filteredTransactions.map(tx => (
               <div key={tx.id} style={{
                 padding: '18px',
-                borderRadius: '20px',
+                borderRadius: '14px',
                 background: 'var(--surface)',
                 boxShadow: '0 8px 24px rgba(149, 157, 165, 0.1)',
                 display: 'flex',
@@ -483,21 +483,21 @@ function ClassTransactionsPage({ sourceSwitch }: { sourceSwitch?: ReactNode } = 
                     {statusBadge(tx.status)}
                     {sourceBadge(tx.isExternal, tx.source)}
                   </div>
-                  <div style={{ fontSize: '18px', fontWeight: '900', color: 'var(--text-primary)' }}>₹{tx.amount.toLocaleString('en-IN')}</div>
+                  <div style={{ fontSize: '18px', fontWeight: 600, color: 'var(--text-primary)' }}>₹{tx.amount.toLocaleString('en-IN')}</div>
                 </div>
 
                 <div>
-                  <div style={{ fontSize: '14.5px', fontWeight: '800', color: 'var(--text-primary)', marginBottom: '2px' }}>
+                  <div style={{ fontSize: '14.5px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '2px' }}>
                     {fullCourseList(tx) || 'Unknown'}
                   </div>
-                  <div style={{ fontSize: '10px', color: 'var(--accent)', fontWeight: '700', fontFamily: 'monospace', wordBreak: 'break-all' }}>
+                  <div style={{ fontSize: '10px', color: 'var(--accent)', fontWeight: 600, fontFamily: 'monospace', wordBreak: 'break-all' }}>
                     {tx.orderId}
                   </div>
                 </div>
 
                 <div style={{ borderTop: '1px solid rgba(0,0,0,0.06)', paddingTop: '10px' }}>
-                  <div style={{ fontSize: '10px', color: 'var(--text-muted)', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: '4px' }}>Student</div>
-                  <div style={{ fontSize: '13.5px', fontWeight: '800', color: 'var(--text-primary)' }}>{tx.user.name}</div>
+                  <div style={{ fontSize: '10px', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: '4px' }}>Student</div>
+                  <div style={{ fontSize: '13.5px', fontWeight: 600, color: 'var(--text-primary)' }}>{tx.user.name}</div>
                   <div style={{ fontSize: '11.5px', color: 'var(--text-secondary)', fontWeight: '500', marginTop: '1px' }}>{tx.user.email}</div>
                   {tx.user.mobileNumber && (
                     <div style={{ fontSize: '11.5px', color: 'var(--text-secondary)', fontWeight: '500', marginTop: '1px' }}>📞 {tx.user.mobileNumber}</div>
@@ -539,7 +539,7 @@ export default function TransactionsPage() {
 
   return (
     <div className="page-container fade-in">
-      <h1 style={{ margin: '0 0 14px', fontSize: 24, fontWeight: 800, letterSpacing: '-0.02em' }}>Transactions</h1>
+      <h1 style={{ margin: '0 0 14px', fontSize: 24, fontWeight: 600, letterSpacing: '-0.02em' }}>Transactions</h1>
       <div style={{ marginBottom: 20 }}>{sourceSwitch}</div>
       <PaymentsStorefrontPanel />
     </div>

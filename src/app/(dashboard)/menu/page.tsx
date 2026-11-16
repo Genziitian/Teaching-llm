@@ -34,7 +34,7 @@ function MenuRow({ item, onClick }: { item: MenuItem; onClick?: () => void }) {
       }}>
         {item.icon}
       </div>
-      <span style={{ flex: 1, fontSize: '14px', fontWeight: 700, color: 'var(--text-primary)' }}>
+      <span style={{ flex: 1, fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)' }}>
         {item.label}
       </span>
       {item.external ? (
@@ -48,7 +48,7 @@ function MenuRow({ item, onClick }: { item: MenuItem; onClick?: () => void }) {
   )
   const baseStyle: React.CSSProperties = {
     display: 'flex', alignItems: 'center', gap: '14px',
-    padding: '14px 16px', borderRadius: '18px',
+    padding: '14px 16px', borderRadius: '12px',
     background: 'var(--surface-2)',
     boxShadow: '4px 4px 10px var(--neu-dark), -4px -4px 10px var(--neu-light)',
     textDecoration: 'none', color: 'var(--text-primary)',
@@ -65,7 +65,7 @@ function MenuRow({ item, onClick }: { item: MenuItem; onClick?: () => void }) {
 function SectionHeader({ children }: { children: React.ReactNode }) {
   return (
     <div style={{
-      fontSize: '11px', fontWeight: 800, color: 'var(--text-muted)',
+      fontSize: '11px', fontWeight: 600, color: 'var(--text-muted)',
       letterSpacing: '0.08em', textTransform: 'uppercase',
       padding: '0 6px', margin: '14px 0 8px',
     }}>{children}</div>
@@ -337,15 +337,15 @@ https://class.genziitian.in/download`
       <Link href="/profile" style={{
         display: 'flex', alignItems: 'center', gap: '14px',
         padding: '18px 18px',
-        borderRadius: '24px',
-        background: 'linear-gradient(135deg, var(--primary), var(--primary))',
+        borderRadius: '14px',
+        background: 'var(--primary)',
         boxShadow: '6px 6px 16px color-mix(in srgb, var(--primary) 25%, transparent), -6px -6px 14px var(--neu-light)',
         textDecoration: 'none', color: '#fff',
         marginBottom: '6px',
       }}>
         <UserAvatar user={user} size={54} style={{ border: '2px solid rgba(255,255,255,0.3)' }} />
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontSize: '16px', fontWeight: 800, lineHeight: 1.2, marginBottom: '3px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          <div style={{ fontSize: '16px', fontWeight: 600, lineHeight: 1.2, marginBottom: '3px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
             {userName}
           </div>
           <div style={{ fontSize: '12px', opacity: 0.85, fontWeight: 600 }}>
@@ -386,24 +386,24 @@ https://class.genziitian.in/download`
         <>
           <SectionHeader>App Info</SectionHeader>
           <div style={{
-            padding: '18px 20px', borderRadius: '18px',
+            padding: '18px 20px', borderRadius: '12px',
             background: 'var(--surface-2)',
             boxShadow: '4px 4px 10px var(--neu-dark), -4px -4px 10px var(--neu-light)',
           }}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-secondary)' }}>App Version</span>
-                <span style={{ fontSize: '14px', fontWeight: 800, color: 'var(--text-primary)' }}>v{appInfo.version}</span>
+                <span style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)' }}>v{appInfo.version}</span>
               </div>
               <div style={{ height: '1px', background: 'rgba(0,0,0,0.06)' }} />
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-secondary)' }}>Build Number</span>
-                <span style={{ fontSize: '14px', fontWeight: 800, color: 'var(--text-primary)' }}>{appInfo.build}</span>
+                <span style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)' }}>{appInfo.build}</span>
               </div>
               <div style={{ height: '1px', background: 'rgba(0,0,0,0.06)' }} />
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-secondary)' }}>Platform</span>
-                <span style={{ fontSize: '14px', fontWeight: 800, color: 'var(--text-primary)', textTransform: 'capitalize' }}>{appInfo.platform}</span>
+                <span style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)', textTransform: 'capitalize' }}>{appInfo.platform}</span>
               </div>
               <div style={{ height: '1px', background: 'rgba(0,0,0,0.06)' }} />
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -418,7 +418,7 @@ https://class.genziitian.in/download`
       <SectionHeader>Session</SectionHeader>
       <button onClick={handleLogout} style={{
         display: 'flex', alignItems: 'center', gap: '14px',
-        padding: '14px 16px', borderRadius: '18px',
+        padding: '14px 16px', borderRadius: '12px',
         background: 'var(--surface-2)',
         boxShadow: '4px 4px 10px var(--neu-dark), -4px -4px 10px var(--neu-light)',
         border: 'none', width: '100%', cursor: 'pointer',
@@ -435,7 +435,7 @@ https://class.genziitian.in/download`
             <line x1="21" y1="12" x2="9" y2="12"/>
           </svg>
         </div>
-        <span style={{ flex: 1, fontSize: '14px', fontWeight: 700, textAlign: 'left' }}>Sign Out</span>
+        <span style={{ flex: 1, fontSize: '14px', fontWeight: 600, textAlign: 'left' }}>Sign Out</span>
       </button>
     </div>
   )

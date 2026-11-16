@@ -122,14 +122,14 @@ export default function LectureVideoPlayer({
         alignItems: 'center',
         padding: '0 4px'
       }}>
-        <span style={{ fontSize: '12px', fontWeight: '700', color: 'var(--text-secondary)' }}>
+        <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary)' }}>
           Source:
         </span>
         <div style={{
           display: 'inline-flex',
           background: 'var(--surface-2)',
           padding: '3px',
-          borderRadius: '20px',
+          borderRadius: '14px',
           boxShadow: 'inset 2px 2px 5px var(--neu-dark), inset -2px -2px 5px var(--neu-light)'
         }}>
           <button
@@ -138,9 +138,9 @@ export default function LectureVideoPlayer({
             style={{
               border: 'none',
               padding: '4px 14px',
-              borderRadius: '16px',
+              borderRadius: '12px',
               fontSize: '11px',
-              fontWeight: '800',
+              fontWeight: 600,
               cursor: 'pointer',
               background: activeSource === 'GOOGLE' ? 'var(--accent)' : 'transparent',
               color: activeSource === 'GOOGLE' ? '#fff' : 'var(--text-secondary)',
@@ -155,9 +155,9 @@ export default function LectureVideoPlayer({
             style={{
               border: 'none',
               padding: '4px 14px',
-              borderRadius: '16px',
+              borderRadius: '12px',
               fontSize: '11px',
-              fontWeight: '800',
+              fontWeight: 600,
               cursor: 'pointer',
               background: activeSource === 'YOUTUBE' ? 'var(--accent)' : 'transparent',
               color: activeSource === 'YOUTUBE' ? '#fff' : 'var(--text-secondary)',
@@ -211,7 +211,7 @@ export default function LectureVideoPlayer({
           }}>
             <AlertCircle size={28} color="#ef4444" />
           </div>
-          <span style={{ fontSize: '15px', fontWeight: '800', color: '#f87171', marginBottom: '8px' }}>
+          <span style={{ fontSize: '15px', fontWeight: 600, color: '#f87171', marginBottom: '8px' }}>
             Video not playing on mobile
           </span>
           <p style={{ fontSize: '13px', color: '#94a3b8', margin: 0, maxWidth: '280px', lineHeight: '1.4' }}>
@@ -294,7 +294,7 @@ export default function LectureVideoPlayer({
         color: 'var(--text-secondary)', textAlign: 'center', padding: '20px'
       }}>
         <Play size={48} style={{ marginBottom: '16px', opacity: 0.5 }} />
-        <h3 style={{ fontSize: '18px', fontWeight: '700', color: 'var(--text-muted)' }}>No video available</h3>
+        <h3 style={{ fontSize: '18px', fontWeight: 600, color: 'var(--text-muted)' }}>No video available</h3>
         <p style={{ fontSize: '14px' }}>This lecture doesn't have a video attached.</p>
       </div>
     )

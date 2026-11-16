@@ -72,11 +72,11 @@ function SectionHeader({ title, subtitle, enabled, onToggle }: { title: string; 
   return (
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
       <div>
-        <h2 style={{ fontSize: '15px', fontWeight: '700', color: 'var(--text-primary)', margin: 0 }}>{title}</h2>
+        <h2 style={{ fontSize: '15px', fontWeight: 600, color: 'var(--text-primary)', margin: 0 }}>{title}</h2>
         <p style={{ fontSize: '12px', color: 'var(--text-muted)', margin: '2px 0 0' }}>{subtitle}</p>
       </div>
       <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-        <span style={{ fontSize: '11px', fontWeight: '700', color: enabled ? 'var(--success)' : 'var(--text-muted)', textTransform: 'uppercase' }}>
+        <span style={{ fontSize: '11px', fontWeight: 600, color: enabled ? 'var(--success)' : 'var(--text-muted)', textTransform: 'uppercase' }}>
           {enabled ? 'System ON' : 'System OFF'}
         </span>
         <Toggle value={enabled} onChange={onToggle} />
@@ -318,8 +318,8 @@ export default function ManageUpdatesPage() {
       }}>
         {/* Badge */}
         <div style={{
-          padding: '4px 12px', borderRadius: '20px', fontSize: '10px',
-          fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.04em', flexShrink: 0,
+          padding: '4px 12px', borderRadius: '14px', fontSize: '10px',
+          fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em', flexShrink: 0,
           background: isWelcome ? 'var(--primary-light)' : 'var(--info-light)',
           color: isWelcome ? 'var(--accent)' : 'var(--info)',
         }}>
@@ -340,7 +340,7 @@ export default function ManageUpdatesPage() {
 
         {/* Toggle */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
-          <span style={{ fontSize: '10px', fontWeight: '700', color: u.isActive ? 'var(--success)' : 'var(--text-muted)', textTransform: 'uppercase' }}>
+          <span style={{ fontSize: '10px', fontWeight: 600, color: u.isActive ? 'var(--success)' : 'var(--text-muted)', textTransform: 'uppercase' }}>
             {u.isActive ? 'ON' : 'OFF'}
           </span>
           <Toggle value={u.isActive} onChange={() => toggleActive(u)} disabled={togglingId !== null} />
@@ -380,7 +380,7 @@ export default function ManageUpdatesPage() {
         ].map(s => (
           <div key={s.label} className="card" style={{ padding: '16px', textAlign: 'center' }}>
             <div style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.04em' }}>{s.label}</div>
-            <div style={{ fontSize: '24px', fontWeight: '800', color: s.color, marginTop: '4px' }}>{s.value}</div>
+            <div style={{ fontSize: '24px', fontWeight: 600, color: s.color, marginTop: '4px' }}>{s.value}</div>
           </div>
         ))}
       </div>
@@ -449,7 +449,7 @@ export default function ManageUpdatesPage() {
         <div className="modal-overlay" onClick={() => setShowModal(false)} style={{ zIndex: 100 }}>
           <div className="modal" onClick={e => e.stopPropagation()} style={{ maxWidth: '680px', maxHeight: '90vh', display: 'flex', flexDirection: 'column' }}>
             <div className="modal-header">
-              <h3 style={{ fontSize: '16px', fontWeight: '700' }}>
+              <h3 style={{ fontSize: '16px', fontWeight: 600 }}>
                 {editId ? 'Edit' : 'Create'} {editType === 'WELCOME' ? 'Welcome Message' : 'Custom Message'}
               </h3>
               <div style={{ display: 'flex', gap: '10px' }}>
@@ -467,8 +467,8 @@ export default function ManageUpdatesPage() {
             <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: '16px', overflowY: 'auto', flex: 1, padding: '24px' }}>
 
               {/* Type pill */}
-              <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '6px 14px', borderRadius: '20px', background: editType === 'WELCOME' ? 'var(--primary-light)' : 'var(--info-light)', alignSelf: 'flex-start' }}>
-                <span style={{ fontSize: '12px', fontWeight: '700', color: editType === 'WELCOME' ? 'var(--accent)' : 'var(--info)', textTransform: 'uppercase' }}>
+              <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '6px 14px', borderRadius: '14px', background: editType === 'WELCOME' ? 'var(--primary-light)' : 'var(--info-light)', alignSelf: 'flex-start' }}>
+                <span style={{ fontSize: '12px', fontWeight: 600, color: editType === 'WELCOME' ? 'var(--accent)' : 'var(--info)', textTransform: 'uppercase' }}>
                   {editType === 'WELCOME' ? '👋 Welcome Message — shown once per user lifetime' : '📢 Custom Message'}
                 </span>
               </div>
@@ -487,7 +487,7 @@ export default function ManageUpdatesPage() {
                   background: '#f1f3f9', borderRadius: '10px 10px 0 0', border: '1px solid #d0d2d9', borderBottom: 'none',
                 }}>
                   {[
-                    { cmd: 'bold', icon: 'B', style: { fontWeight: '800' } },
+                    { cmd: 'bold', icon: 'B', style: { fontWeight: 600 } },
                     { cmd: 'italic', icon: 'I', style: { fontStyle: 'italic' } },
                     { cmd: 'underline', icon: 'U', style: { textDecoration: 'underline' } },
                     { cmd: 'strikeThrough', icon: 'S', style: { textDecoration: 'line-through' } },
@@ -729,7 +729,7 @@ export default function ManageUpdatesPage() {
         <div className="modal-overlay" style={{ zIndex: 10000, backdropFilter: 'blur(8px)', background: 'rgba(15,23,42,0.6)' }} onClick={() => setShowPreview(false)}>
           <div
             style={{
-              maxWidth: '560px', width: '92%', borderRadius: '24px', overflow: 'hidden',
+              maxWidth: '560px', width: '92%', borderRadius: '14px', overflow: 'hidden',
               background: 'var(--surface)', boxShadow: '0 25px 50px rgba(0,0,0,0.25)',
               animation: 'bounceIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards',
               maxHeight: '85vh', display: 'flex', flexDirection: 'column',
@@ -738,7 +738,7 @@ export default function ManageUpdatesPage() {
           >
             <div style={{
               background: editType === 'WELCOME'
-                ? 'linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)'
+                ? 'var(--primary)'
                 : 'linear-gradient(135deg, #1e293b 0%, #334155 100%)',
               padding: '36px 28px 24px', textAlign: 'center', position: 'relative', flexShrink: 0,
             }}>
@@ -752,11 +752,11 @@ export default function ManageUpdatesPage() {
                   <span style={{ fontSize: '36px', lineHeight: '1' }}>👋</span>
                 </div>
               )}
-              <h2 style={{ fontSize: '22px', fontWeight: '800', color: '#fff', margin: 0, lineHeight: '1.2' }}>
+              <h2 style={{ fontSize: '22px', fontWeight: 600, color: '#fff', margin: 0, lineHeight: '1.2' }}>
                 {title || 'Message Title'}
               </h2>
               {animation !== 'NONE' && (
-                <div style={{ marginTop: '10px', fontSize: '11px', fontWeight: '700', color: 'rgba(255,255,255,0.8)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                <div style={{ marginTop: '10px', fontSize: '11px', fontWeight: 600, color: 'rgba(255,255,255,0.8)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                   ✨ {animation.replace('_', ' ')} Effect Active
                 </div>
               )}
@@ -770,11 +770,11 @@ export default function ManageUpdatesPage() {
             </div>
             <div style={{ padding: '20px 28px', textAlign: 'center', flexShrink: 0, borderTop: '1px solid var(--border)', background: 'var(--surface)', display: 'flex', gap: '12px', justifyContent: 'center' }}>
               {ctaText && ctaLink && (
-                <button style={{ background: 'var(--primary)', color: '#fff', border: 'none', padding: '14px 24px', borderRadius: '50px', fontSize: '15px', fontWeight: '700', cursor: 'pointer', flex: 1, maxWidth: '200px' }}>
+                <button style={{ background: 'var(--primary)', color: '#fff', border: 'none', padding: '14px 24px', borderRadius: '50px', fontSize: '15px', fontWeight: 600, cursor: 'pointer', flex: 1, maxWidth: '200px' }}>
                   {ctaText}
                 </button>
               )}
-              <button onClick={() => setShowPreview(false)} style={{ background: ctaText ? 'var(--surface)' : 'var(--text-primary)', color: ctaText ? 'var(--text-secondary)' : '#fff', border: 'none', padding: '14px 24px', borderRadius: '50px', fontSize: '15px', fontWeight: '700', cursor: 'pointer', flex: 1, maxWidth: '200px' }}>
+              <button onClick={() => setShowPreview(false)} style={{ background: ctaText ? 'var(--surface)' : 'var(--text-primary)', color: ctaText ? 'var(--text-secondary)' : '#fff', border: 'none', padding: '14px 24px', borderRadius: '50px', fontSize: '15px', fontWeight: 600, cursor: 'pointer', flex: 1, maxWidth: '200px' }}>
                 {editType === 'WELCOME' && !ctaText ? "Let's Get Started" : (ctaText ? 'Close' : 'Got It')}
               </button>
             </div>
@@ -794,7 +794,7 @@ export default function ManageUpdatesPage() {
         <div className="modal-overlay" style={{ zIndex: 10001, backdropFilter: 'blur(8px)', background: 'rgba(15,23,42,0.6)' }} onClick={() => setShowRecentModal(false)}>
           <div
             style={{
-              maxWidth: '560px', width: '92%', borderRadius: '24px', overflow: 'hidden',
+              maxWidth: '560px', width: '92%', borderRadius: '14px', overflow: 'hidden',
               background: 'var(--surface)', boxShadow: '0 25px 50px rgba(0,0,0,0.25)',
               maxHeight: '85vh', display: 'flex', flexDirection: 'column',
               animation: 'bounceIn 0.3s ease-out',
@@ -802,11 +802,11 @@ export default function ManageUpdatesPage() {
             onClick={e => e.stopPropagation()}
           >
             <div style={{
-              background: 'linear-gradient(135deg, var(--primary) 0%, #7c3aed 100%)',
+              background: 'var(--primary)',
               padding: '24px 28px', position: 'relative', flexShrink: 0,
               display: 'flex', justifyContent: 'space-between', alignItems: 'center'
             }}>
-              <h3 style={{ fontSize: '18px', fontWeight: '800', color: '#fff', margin: 0 }}>
+              <h3 style={{ fontSize: '18px', fontWeight: 600, color: '#fff', margin: 0 }}>
                 🕒 Choose from Recent Photos
               </h3>
               <button onClick={() => setShowRecentModal(false)} style={{ background: 'rgba(255,255,255,0.2)', border: 'none', color: '#fff', width: '32px', height: '32px', borderRadius: '50%', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -823,9 +823,9 @@ export default function ManageUpdatesPage() {
                   <span style={{ fontSize: '13px', color: 'var(--text-secondary)', fontWeight: '600' }}>Loading recent photos…</span>
                 </div>
               ) : recentPhotos.length === 0 ? (
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '220px', gap: '8px', border: '2px dashed #cbd5e1', borderRadius: '16px', padding: '20px' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '220px', gap: '8px', border: '2px dashed #cbd5e1', borderRadius: '12px', padding: '20px' }}>
                   <span style={{ fontSize: '32px' }}>📷</span>
-                  <span style={{ fontSize: '14px', color: 'var(--text-secondary)', fontWeight: '700' }}>No recently uploaded photos</span>
+                  <span style={{ fontSize: '14px', color: 'var(--text-secondary)', fontWeight: 600 }}>No recently uploaded photos</span>
                   <span style={{ fontSize: '11px', color: 'var(--text-muted)', textAlign: 'center' }}>Upload a new photo using the &quot;Choose Image&quot; button to get started.</span>
                 </div>
               ) : (
@@ -867,7 +867,7 @@ export default function ManageUpdatesPage() {
             </div>
 
             <div style={{ padding: '16px 24px', borderTop: '1px solid var(--border)', background: 'var(--surface)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0 }}>
-              <div style={{ fontSize: '13px', fontWeight: '700', color: 'var(--text-secondary)' }}>
+              <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-secondary)' }}>
                 Page {recentPhotosPage}
               </div>
               <div style={{ display: 'flex', gap: '8px' }}>

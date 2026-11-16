@@ -147,7 +147,7 @@ export default function StoreSettingsManager() {
       ) : loadError ? (
         <div className="badge badge-danger" style={{ padding: '8px 12px', fontSize: 13, whiteSpace: 'normal' }}>{loadError}</div>
       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 16, maxWidth: 860 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           <VideoSettingCard
             title="Homepage Video Modal"
             description="Configure the YouTube video popup shown to homepage visitors."

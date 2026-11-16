@@ -176,7 +176,7 @@ export default function AndroidAppModal() {
           maxWidth: '360px',
           background: 'linear-gradient(180deg, #181c28 0%, #0e111a 100%)',
           color: '#ffffff',
-          borderRadius: '24px',
+          borderRadius: '14px',
           border: '1px solid rgba(255, 255, 255, 0.12)',
           boxShadow: '0 25px 60px rgba(0, 0, 0, 0.65), 0 0 0 1px rgba(255, 255, 255, 0.05)',
           padding: '28px 20px 22px',
@@ -199,7 +199,7 @@ export default function AndroidAppModal() {
             border: '1px solid rgba(52, 211, 153, 0.35)',
             color: '#34d399',
             fontSize: '11px',
-            fontWeight: 800,
+            fontWeight: 600,
             letterSpacing: '0.06em',
             textTransform: 'uppercase',
             marginBottom: '16px',
@@ -225,7 +225,7 @@ export default function AndroidAppModal() {
           id="android-app-modal-title"
           style={{
             fontSize: '20px',
-            fontWeight: 800,
+            fontWeight: 600,
             lineHeight: 1.25,
             letterSpacing: '-0.3px',
             margin: '0 0 8px',
@@ -307,7 +307,7 @@ export default function AndroidAppModal() {
             backgroundColor: '#ffffff',
             color: '#111827',
             fontSize: '15px',
-            fontWeight: 700,
+            fontWeight: 600,
             textDecoration: 'none',
           }}
         >
@@ -332,7 +332,7 @@ export default function AndroidAppModal() {
             backgroundImage: 'linear-gradient(135deg, #01875f 0%, #006644 100%)',
             color: '#ffffff',
             fontSize: '15px',
-            fontWeight: 700,
+            fontWeight: 600,
             textDecoration: 'none',
             boxShadow: '0 6px 20px rgba(1, 135, 95, 0.4)',
             transition: 'all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1)',

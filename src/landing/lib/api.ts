@@ -50,6 +50,22 @@ export const apiService = {
     return readJsonResponse(res);
   },
 
+  // 3b. Most recent PAID order of the signed-in user from the last 10 minutes (mobile payment auto-recovery)
+  getRecentPaidOrder: async (): Promise<{ order_id: string | null, status: string, course_ids: string[], created_at: string } | null> => {
+    const res = await fetch('/api/site/me/recent-paid-order', { credentials: 'same-origin', cache: 'no-store' });
+    if (!res.ok) return null;
+    const data = await readJsonResponse(res);
+    return data?.order || null;
+  },
+
+  // 3c. Save the signed-in user's storefront profile (name / gender / phone); the server uses the session email
+  saveProfile: async (payload: { name?: string, gender?: string, phone?: string }): Promise<{ saved: boolean, reason?: string }> => {
+    const res = await postJson('/api/site/me/profile', payload);
+    const data = await readJsonResponse(res);
+    if (!res.ok) throw new Error(data.error || 'Could not save your profile.');
+    return data;
+  },
+
   // 4. Create Razorpay Order
   createOrder: async (payload: { amount: number, email: string, courseIds: string[], discountCode?: string, bundleId?: string, referralCode?: string, coinsToApply?: number, selectedClassType?: string, selectedPricingTierIndex?: number, selectedPricingTierName?: string, selectedPricingTierPrice?: number }) => {
     const res = await postJson('/api/site/create-order', payload);

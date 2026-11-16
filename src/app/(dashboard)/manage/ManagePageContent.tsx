@@ -991,7 +991,7 @@ export function ManagePageInner({ forcedTab }: ManagePageInnerProps = {}) {
                         {getCourseIconOption(f.courseIconType || f.icon).label}
                       </span>
                     </span>
-                    <span style={{ color: 'var(--primary)', fontSize: '13px', fontWeight: 700, flexShrink: 0 }}>Choose</span>
+                    <span style={{ color: 'var(--primary)', fontSize: '13px', fontWeight: 600, flexShrink: 0 }}>Choose</span>
                   </button>
                 </div>
               </div>
@@ -1005,7 +1005,7 @@ export function ManagePageInner({ forcedTab }: ManagePageInnerProps = {}) {
                     onChange={e => setFormData(p => ({ ...p, isFree: e.target.checked as any }))}
                   />
                   Free course
-                  {editId && <span style={{ fontSize: '11px', color: 'var(--accent)', fontWeight: 700, marginLeft: 'auto' }}>Fixed</span>}
+                  {editId && <span style={{ fontSize: '11px', color: 'var(--accent)', fontWeight: 600, marginLeft: 'auto' }}>Fixed</span>}
                 </label>
                 <label className="ce-check">
                   <input
@@ -1331,8 +1331,8 @@ export function ManagePageInner({ forcedTab }: ManagePageInnerProps = {}) {
                     <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: course.color, flexShrink: 0 }} />
                     <span style={{ fontSize: '13px' }}>{course.name}</span>
                     {course.subject && <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>({course.subject})</span>}
-                    {course.isExpired && <span style={{ fontSize: '11px', color: 'var(--warning)', fontWeight: '700' }}>Expired</span>}
-                    {course.isEffectivelyDisabled && !course.isExpired && <span style={{ fontSize: '11px', color: 'var(--danger)', fontWeight: '700' }}>Disabled</span>}
+                    {course.isExpired && <span style={{ fontSize: '11px', color: 'var(--warning)', fontWeight: 600 }}>Expired</span>}
+                    {course.isEffectivelyDisabled && !course.isExpired && <span style={{ fontSize: '11px', color: 'var(--danger)', fontWeight: 600 }}>Disabled</span>}
                   </label>
                 ))}
               </div>
@@ -1627,7 +1627,7 @@ export function ManagePageInner({ forcedTab }: ManagePageInnerProps = {}) {
             <div style={{ border: '1px solid var(--border)', borderRadius: '12px', padding: '16px', background: 'var(--primary-light)', marginBottom: '16px' }}>
               <label style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
                 <input type="checkbox" checked={!!f.hasRecorded} onChange={e => set('hasRecorded', e.target.checked)} />
-                <span style={{ fontSize: '14px', fontWeight: '700', color: 'var(--text-primary)' }}>📹 Recorded (Basic) Access</span>
+                <span style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)' }}>📹 Recorded (Basic) Access</span>
               </label>
               {f.hasRecorded && (
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
@@ -1639,7 +1639,7 @@ export function ManagePageInner({ forcedTab }: ManagePageInnerProps = {}) {
             <div style={{ border: '1px solid var(--border)', borderRadius: '12px', padding: '16px', background: 'var(--primary-light)', marginBottom: '16px' }}>
               <label style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
                 <input type="checkbox" checked={!!f.hasLive} onChange={e => set('hasLive', e.target.checked)} />
-                <span style={{ fontSize: '14px', fontWeight: '700', color: 'var(--text-primary)' }}>🔴 Live (Pro) Access</span>
+                <span style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)' }}>🔴 Live (Pro) Access</span>
               </label>
               {f.hasLive && (
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
@@ -1733,10 +1733,10 @@ export function ManagePageInner({ forcedTab }: ManagePageInnerProps = {}) {
             </div>
 
             {/* Simulated Smartphone Preview Block */}
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', background: 'var(--surface-2)', border: '1px solid var(--border)', borderRadius: '24px', padding: '16px', minWidth: '250px' }}>
-              <div style={{ fontSize: '10px', fontWeight: '800', color: '#909196', letterSpacing: '0.05em', textTransform: 'uppercase', marginBottom: '12px' }}>📱 Preview on Device</div>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', background: 'var(--surface-2)', border: '1px solid var(--border)', borderRadius: '14px', padding: '16px', minWidth: '250px' }}>
+              <div style={{ fontSize: '10px', fontWeight: 600, color: '#909196', letterSpacing: '0.05em', textTransform: 'uppercase', marginBottom: '12px' }}>📱 Preview on Device</div>
               <div style={{
-                width: '240px', height: '390px', background: '#09080c', border: '6px solid #202022', borderRadius: '32px', position: 'relative', overflow: 'hidden', display: 'flex', flexDirection: 'column', boxShadow: '0 12px 24px rgba(0,0,0,0.2)'
+                width: '240px', height: '390px', background: '#09080c', border: '6px solid #202022', borderRadius: '14px', position: 'relative', overflow: 'hidden', display: 'flex', flexDirection: 'column', boxShadow: '0 12px 24px rgba(0,0,0,0.2)'
               }}>
                 <div style={{ width: '80px', height: '12px', background: '#202022', borderRadius: '0 0 10px 10px', alignSelf: 'center', position: 'absolute', top: 0, zIndex: 10 }}></div>
                 <div style={{ flex: 1, padding: '12px', display: 'flex', flexDirection: 'column', background: 'linear-gradient(150deg, #1f1a3a 0%, #0d0b18 100%)', position: 'relative' }}>
@@ -1751,13 +1751,13 @@ export function ManagePageInner({ forcedTab }: ManagePageInnerProps = {}) {
                   }}>
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                        <div style={{ width: '14px', height: '14px', borderRadius: '3px', background: 'var(--primary)', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '7px', fontWeight: '900' }}>G</div>
-                        <span style={{ fontSize: '8px', fontWeight: '700', color: 'var(--text-primary)' }}>GENz IITian</span>
+                        <div style={{ width: '14px', height: '14px', borderRadius: '3px', background: 'var(--primary)', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '7px', fontWeight: 600 }}>G</div>
+                        <span style={{ fontSize: '8px', fontWeight: 600, color: 'var(--text-primary)' }}>GENz IITian</span>
                       </div>
                       <span style={{ fontSize: '8px', color: 'var(--text-muted)' }}>now</span>
                     </div>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '1px' }}>
-                      <div style={{ fontSize: '10px', fontWeight: '800', color: 'var(--text-primary)' }}>{f.title || 'Campaign Title'}</div>
+                      <div style={{ fontSize: '10px', fontWeight: 600, color: 'var(--text-primary)' }}>{f.title || 'Campaign Title'}</div>
                       <div style={{ fontSize: '8.5px', color: 'var(--text-secondary)', lineHeight: '1.2' }}>{f.body || 'This is how your rich body message will look on students\' screens. Keep it highly engaging!'}</div>
                     </div>
                     {f.imageUrl && (
@@ -1767,7 +1767,7 @@ export function ManagePageInner({ forcedTab }: ManagePageInnerProps = {}) {
                     )}
                     {f.ctaText && (
                       <div style={{
-                        width: '100%', padding: '5px', borderRadius: '6px', background: 'var(--surface)', border: '1px solid var(--border)', color: 'var(--primary)', fontSize: '8.5px', fontWeight: '700', textAlign: 'center', marginTop: '2px'
+                        width: '100%', padding: '5px', borderRadius: '6px', background: 'var(--surface)', border: '1px solid var(--border)', color: 'var(--primary)', fontSize: '8.5px', fontWeight: 600, textAlign: 'center', marginTop: '2px'
                       }}>{f.ctaText}</div>
                     )}
                   </div>
@@ -2085,10 +2085,10 @@ export function ManagePageInner({ forcedTab }: ManagePageInnerProps = {}) {
             .nc-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
             .nc-chips{display:flex;flex-wrap:wrap;gap:8px}
             .nc-chip{padding:8px 14px;border-radius:999px;border:1.5px solid var(--border);background:transparent;color:var(--text-secondary);font-size:13px;font-weight:600;cursor:pointer;transition:all .15s}
-            .nc-chip.on{background:var(--primary);border-color:var(--primary);color:#fff}
+            .nc-chip.on{background:var(--primary);border-color:var(--primary);color: var(--gz-ink-inv, #fff)}
             .nc-seg{display:flex;padding:4px;border-radius:12px;background:var(--surface-2);border:1px solid var(--border);gap:4px}
             .nc-seg button{flex:1;padding:9px 10px;border:none;border-radius:9px;background:transparent;color:var(--text-secondary);font-size:13px;font-weight:700;cursor:pointer;transition:all .15s;white-space:nowrap}
-            .nc-seg button.on{background:var(--primary);color:#fff}
+            .nc-seg button.on{background:var(--primary);color:var(--button-text, #000);box-shadow:none}
             .nc-btn{padding:10px 14px;border-radius:12px;border:1.5px solid var(--border);background:var(--surface);color:var(--text-primary);font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap}
             .nc-btn:disabled{opacity:.6;cursor:not-allowed}
             .nc-imgrow{display:flex;gap:8px;flex-wrap:wrap}
@@ -2096,7 +2096,7 @@ export function ManagePageInner({ forcedTab }: ManagePageInnerProps = {}) {
             .nc-thumb{display:flex;align-items:center;gap:12px}
             .nc-thumb-img{width:96px;height:54px;border-radius:10px;background-size:cover;background-position:center;border:1px solid var(--border);flex-shrink:0}
             .nc-hint{font-size:12px;color:var(--text-muted);margin:0}
-            .nc-send{width:100%;padding:14px 20px;border-radius:14px;border:none;background:var(--primary);color:#fff;font-size:15px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:opacity .15s}
+            .nc-send{width:100%;padding:14px 20px;border-radius:14px;border:none;background:var(--primary);color:var(--button-text, #000);box-shadow:none;font-size:15px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:opacity .15s}
             .nc-send:disabled{opacity:.45;cursor:not-allowed}
             .nc-why{font-size:12.5px;color:var(--text-muted);text-align:center;margin:8px 0 0}
             .nc-preview-title{display:flex;justify-content:space-between;align-items:center}
@@ -2106,12 +2106,12 @@ export function ManagePageInner({ forcedTab }: ManagePageInnerProps = {}) {
             .nc-clock{color:rgba(255,255,255,.9);font-size:40px;font-weight:300;letter-spacing:-.02em;line-height:1}
             .nc-push{width:100%;max-width:340px;background:rgba(255,255,255,.96);color:#111827;border-radius:18px;padding:12px 14px;display:flex;flex-direction:column;gap:6px;box-shadow:0 10px 25px rgba(0,0,0,.35)}
             .nc-push-top{display:flex;align-items:center;gap:8px;font-size:12px;color:#6b7280;font-weight:600}
-            .nc-push-logo{width:18px;height:18px;border-radius:5px;background:var(--primary);color:#fff;font-size:10px;font-weight:800;display:flex;align-items:center;justify-content:center}
+            .nc-push-logo{width:18px;height:18px;border-radius:5px;background:var(--primary);color: var(--gz-ink-inv, #fff);font-size:10px;font-weight:800;display:flex;align-items:center;justify-content:center}
             .nc-push-top .grow{flex:1;color:#374151}
             .nc-push-title{margin:0;font-size:14px;font-weight:800;color:#111827;line-height:1.3;word-break:break-word}
             .nc-push-body{margin:0;font-size:13px;color:#4b5563;line-height:1.4;word-break:break-word}
             .nc-push-img{width:100%;aspect-ratio:2/1;border-radius:10px;background-size:cover;background-position:center;margin-top:4px}
-            .nc-push-cta{align-self:flex-start;margin-top:4px;padding:6px 12px;border-radius:8px;background:#eef2ff;color:#4338ca;font-size:12px;font-weight:700}
+            .nc-push-cta{align-self:flex-start;margin-top:4px;padding:6px 12px;border-radius:8px;background:#eef2ff;color:var(--primary);font-size:12px;font-weight:700}
             .nc-ph{opacity:.45}
             .nc-log-head{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
             .nc-log-head h3{margin:0;font-size:15px;font-weight:800;color:var(--text-primary)}
@@ -2487,215 +2487,78 @@ export function ManagePageInner({ forcedTab }: ManagePageInnerProps = {}) {
         </div>
       ) : tab === 'queries' ? (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-          {/* Top Banner / Card */}
-          <div style={{
-            background: 'var(--surface)',
-            borderRadius: '24px',
-            padding: '24px',
-            border: '1px solid var(--border)',
-            boxShadow: '4px 4px 12px var(--neu-dark), -4px -4px 12px var(--neu-light)',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '18px',
-          }}>
-            <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: '14px' }}>
-              <div>
-                <h2 style={{ fontSize: '20px', fontWeight: 900, color: 'var(--text-primary)', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <span style={{
-                    width: '32px', height: '32px', borderRadius: '10px',
-                    background: 'var(--primary-light)', color: 'var(--accent)',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    fontSize: '16px'
-                  }}>
-                    💡
-                  </span>
-                  Platform Queries & System Knowledge Base
-                </h2>
-                <p style={{ fontSize: '13px', color: 'var(--text-secondary)', margin: '4px 0 0 0' }}>
-                  Internal single-source-of-truth for managers: course expiry behavior, app vs web functionality, batches, exams, and platform rules.
-                </p>
-              </div>
-
-              <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
-                <button
-                  onClick={async () => {
-                    const ok = await confirm({
-                      title: 'Reset to Master Queries?',
-                      message: 'This will restore all default platform queries and SOPs to the official master list.',
-                      confirmLabel: 'Reset Queries',
-                      tone: 'danger',
-                    })
-                    if (!ok) return
-                    await fetch('/api/manage/queries', {
-                      method: 'POST',
-                      headers: { 'Content-Type': 'application/json' },
-                      body: JSON.stringify({ action: 'RESET_DEFAULTS' }),
-                    })
-                    loadData()
-                  }}
-                  className="btn btn-secondary"
-                  style={{ borderRadius: '50px', fontSize: '12.5px', padding: '8px 16px', fontWeight: '700' }}
-                >
-                  🔄 Reset Defaults
-                </button>
-                <button
-                  onClick={openCreateQuery}
-                  className="btn btn-primary"
-                  style={{ borderRadius: '50px', fontSize: '12.5px', padding: '8px 18px', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '6px' }}
-                >
-                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                    <line x1="12" y1="5" x2="12" y2="19" />
-                    <line x1="5" y1="12" x2="19" y2="12" />
+          {/* Search + filters */}
+          {(() => {
+            const matchesFilters = (q: (typeof queries)[number]) => {
+              const s = querySearch.trim().toLowerCase()
+              return (
+                (!s || q.question.toLowerCase().includes(s) || q.answer.toLowerCase().includes(s) || q.category.toLowerCase().includes(s) || (q.appliesTo && q.appliesTo.toLowerCase().includes(s))) &&
+                (queryCategoryFilter === 'ALL' || q.category === queryCategoryFilter) &&
+                (queryPlatformFilter === 'ALL' || q.appliesTo === queryPlatformFilter)
+              )
+            }
+            const pill = (active: boolean): React.CSSProperties => ({
+              padding: '6px 14px',
+              borderRadius: '999px',
+              fontSize: '12px',
+              fontWeight: 600,
+              whiteSpace: 'nowrap',
+              cursor: 'pointer',
+              border: '1px solid var(--border)',
+              background: active ? 'var(--primary)' : 'transparent',
+              color: active ? 'var(--button-text, #000)' : 'var(--text-secondary)',
+              boxShadow: 'none',
+              transition: 'all 0.15s ease',
+            })
+            return (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', marginBottom: '16px' }}>
+                <div style={{ position: 'relative' }}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+                    style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }}>
+                    <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
                   </svg>
-                  Add Query
-                </button>
-              </div>
-            </div>
-
-            {/* Search Input Bar */}
-            <div style={{ position: 'relative', width: '100%' }}>
-              <svg
-                width="18"
-                height="18"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="var(--text-muted)"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }}
-              >
-                <circle cx="11" cy="11" r="8" />
-                <line x1="21" y1="21" x2="16.65" y2="16.65" />
-              </svg>
-              <input
-                type="text"
-                value={querySearch}
-                onChange={e => setQuerySearch(e.target.value)}
-                placeholder="Search queries by keyword, topic, expiry, app, web, exam, tokens..."
-                style={{
-                  width: '100%',
-                  padding: '12px 42px 12px 46px',
-                  borderRadius: '16px',
-                  background: 'var(--surface-2)',
-                  border: '1px solid var(--border)',
-                  color: 'var(--text-primary)',
-                  fontSize: '14px',
-                  fontWeight: '600',
-                  outline: 'none',
-                  boxShadow: 'inset 2px 2px 5px var(--neu-dark), inset -2px -2px 5px var(--neu-light)',
-                }}
-              />
-              {querySearch && (
-                <button
-                  onClick={() => setQuerySearch('')}
-                  style={{
-                    position: 'absolute', right: '14px', top: '50%', transform: 'translateY(-50%)',
-                    background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer',
-                    fontSize: '16px', fontWeight: 'bold', padding: '4px'
-                  }}
-                  title="Clear search"
-                >
-                  ✕
-                </button>
-              )}
-            </div>
-
-            {/* Platform Filter Pills & Stats */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
-              <div style={{ display: 'flex', gap: '6px', alignItems: 'center', flexWrap: 'wrap' }}>
-                <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-muted)', marginRight: '4px' }}>Platform:</span>
-                {[
-                  { id: 'ALL', label: 'All Platforms' },
-                  { id: 'BOTH', label: '📱+💻 Both (App & Web)' },
-                  { id: 'APP_ONLY', label: '📱 App Only' },
-                  { id: 'WEB_ONLY', label: '💻 Web Only' },
-                ].map(p => (
-                  <button
-                    key={p.id}
-                    onClick={() => setQueryPlatformFilter(p.id)}
+                  <input
+                    type="text"
+                    value={querySearch}
+                    onChange={e => setQuerySearch(e.target.value)}
+                    placeholder="Search queries"
                     style={{
-                      padding: '5px 12px',
-                      borderRadius: '20px',
-                      fontSize: '12px',
-                      fontWeight: '700',
-                      cursor: 'pointer',
-                      border: 'none',
-                      background: queryPlatformFilter === p.id ? 'var(--primary)' : 'var(--surface-2)',
-                      color: queryPlatformFilter === p.id ? '#ffffff' : 'var(--text-secondary)',
-                      boxShadow: queryPlatformFilter === p.id
-                        ? '0 2px 8px rgba(99, 102, 241, 0.3)'
-                        : '2px 2px 5px var(--neu-dark), -2px -2px 5px var(--neu-light)',
-                      transition: 'all 0.15s ease',
+                      width: '100%', padding: '12px 90px 12px 42px', borderRadius: '12px',
+                      background: 'var(--surface)', border: '1px solid var(--border)',
+                      color: 'var(--text-primary)', fontSize: '14px', outline: 'none',
                     }}
-                  >
-                    {p.label}
-                  </button>
-                ))}
-              </div>
+                  />
+                  <span style={{ position: 'absolute', right: '16px', top: '50%', transform: 'translateY(-50%)', fontSize: '12px', color: 'var(--text-muted)' }}>
+                    {queries.filter(matchesFilters).length} / {queries.length}
+                  </span>
+                </div>
 
-              <div style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-muted)' }}>
-                Showing {queries.filter(q => {
-                  const s = querySearch.trim().toLowerCase()
-                  const matchesSearch = !s || q.question.toLowerCase().includes(s) || q.answer.toLowerCase().includes(s) || q.category.toLowerCase().includes(s) || (q.appliesTo && q.appliesTo.toLowerCase().includes(s))
-                  const matchesCat = queryCategoryFilter === 'ALL' || q.category === queryCategoryFilter
-                  const matchesPlatform = queryPlatformFilter === 'ALL' || q.appliesTo === queryPlatformFilter
-                  return matchesSearch && matchesCat && matchesPlatform
-                }).length} of {queries.length} queries
-              </div>
-            </div>
+                <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                  {[
+                    { id: 'ALL', label: 'All' },
+                    { id: 'BOTH', label: 'App & Web' },
+                    { id: 'APP_ONLY', label: 'App' },
+                    { id: 'WEB_ONLY', label: 'Web' },
+                  ].map(p => (
+                    <button key={p.id} onClick={() => setQueryPlatformFilter(p.id)} style={pill(queryPlatformFilter === p.id)}>
+                      {p.label}
+                    </button>
+                  ))}
+                </div>
 
-            {/* Category Filter Pills */}
-            <div style={{ display: 'flex', gap: '6px', overflowX: 'auto', paddingBottom: '4px', scrollbarWidth: 'none' }}>
-              <button
-                onClick={() => setQueryCategoryFilter('ALL')}
-                style={{
-                  padding: '6px 14px',
-                  borderRadius: '12px',
-                  fontSize: '12px',
-                  fontWeight: '700',
-                  whiteSpace: 'nowrap',
-                  cursor: 'pointer',
-                  border: 'none',
-                  background: queryCategoryFilter === 'ALL' ? 'var(--accent)' : 'var(--surface-2)',
-                  color: queryCategoryFilter === 'ALL' ? '#ffffff' : 'var(--text-secondary)',
-                  boxShadow: queryCategoryFilter === 'ALL'
-                    ? '0 2px 8px rgba(99, 102, 241, 0.3)'
-                    : '2px 2px 4px var(--neu-dark), -2px -2px 4px var(--neu-light)',
-                  transition: 'all 0.15s ease',
-                }}
-              >
-                All Categories ({queries.length})
-              </button>
-              {QUERY_CATEGORIES.map(cat => {
-                const count = queries.filter(q => q.category === cat.id).length
-                const active = queryCategoryFilter === cat.id
-                return (
-                  <button
-                    key={cat.id}
-                    onClick={() => setQueryCategoryFilter(cat.id)}
-                    style={{
-                      padding: '6px 14px',
-                      borderRadius: '12px',
-                      fontSize: '12px',
-                      fontWeight: '700',
-                      whiteSpace: 'nowrap',
-                      cursor: 'pointer',
-                      border: 'none',
-                      background: active ? 'var(--accent)' : 'var(--surface-2)',
-                      color: active ? '#ffffff' : 'var(--text-secondary)',
-                      boxShadow: active
-                        ? '0 2px 8px rgba(99, 102, 241, 0.3)'
-                        : '2px 2px 4px var(--neu-dark), -2px -2px 4px var(--neu-light)',
-                      transition: 'all 0.15s ease',
-                    }}
-                  >
-                    {cat.label} ({count})
+                <div style={{ display: 'flex', gap: '6px', overflowX: 'auto', scrollbarWidth: 'none' }}>
+                  <button onClick={() => setQueryCategoryFilter('ALL')} style={pill(queryCategoryFilter === 'ALL')}>
+                    All topics
                   </button>
-                )
-              })}
-            </div>
-          </div>
+                  {QUERY_CATEGORIES.map(cat => (
+                    <button key={cat.id} onClick={() => setQueryCategoryFilter(cat.id)} style={pill(queryCategoryFilter === cat.id)}>
+                      {cat.label} ({queries.filter(q => q.category === cat.id).length})
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )
+          })()}
 
           {/* Queries List */}
           {loadingQueries ? (
@@ -2715,13 +2578,13 @@ export function ManagePageInner({ forcedTab }: ManagePageInnerProps = {}) {
               return (
                 <div style={{
                   background: 'var(--surface)',
-                  borderRadius: '24px',
+                  borderRadius: '14px',
                   padding: '50px 20px',
                   textAlign: 'center',
                   border: '1px solid var(--border)',
                 }}>
                   <div style={{ fontSize: '32px', marginBottom: '10px' }}>🔍</div>
-                  <h3 style={{ fontSize: '17px', fontWeight: 800, color: 'var(--text-primary)', margin: '0 0 6px 0' }}>
+                  <h3 style={{ fontSize: '17px', fontWeight: 600, color: 'var(--text-primary)', margin: '0 0 6px 0' }}>
                     No matching platform queries found
                   </h3>
                   <p style={{ fontSize: '13px', color: 'var(--text-muted)', margin: '0 0 18px 0' }}>
@@ -2754,7 +2617,7 @@ export function ManagePageInner({ forcedTab }: ManagePageInnerProps = {}) {
                       key={q.id}
                       style={{
                         background: 'var(--surface-2)',
-                        borderRadius: '18px',
+                        borderRadius: '12px',
                         border: '1px solid var(--border)',
                         boxShadow: '4px 4px 10px var(--neu-dark), -4px -4px 10px var(--neu-light)',
                         overflow: 'hidden',
@@ -2779,7 +2642,7 @@ export function ManagePageInner({ forcedTab }: ManagePageInnerProps = {}) {
                             width: '28px', height: '28px', borderRadius: '8px',
                             background: 'var(--surface)', color: 'var(--accent)',
                             display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            fontSize: '12px', fontWeight: '800', flexShrink: 0,
+                            fontSize: '12px', fontWeight: 600, flexShrink: 0,
                             boxShadow: '2px 2px 5px var(--neu-dark), -2px -2px 5px var(--neu-light)'
                           }}>
                             Q{index + 1}
@@ -2788,19 +2651,19 @@ export function ManagePageInner({ forcedTab }: ManagePageInnerProps = {}) {
                           <div style={{ flex: 1, minWidth: 0 }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', marginBottom: '6px' }}>
                               <span style={{
-                                fontSize: '11px', fontWeight: 800, padding: '2px 8px', borderRadius: '6px',
+                                fontSize: '11px', fontWeight: 600, padding: '2px 8px', borderRadius: '6px',
                                 background: 'var(--primary-light)', color: 'var(--accent)',
                               }}>
                                 {catLabel}
                               </span>
                               <span style={{
-                                fontSize: '11px', fontWeight: 800, padding: '2px 8px', borderRadius: '6px',
+                                fontSize: '11px', fontWeight: 600, padding: '2px 8px', borderRadius: '6px',
                                 background: platformBadge.bg, color: platformBadge.color, border: `1px solid ${platformBadge.border}`
                               }}>
                                 {platformBadge.label}
                               </span>
                             </div>
-                            <div style={{ fontSize: '15px', fontWeight: 700, color: 'var(--text-primary)', lineHeight: 1.4 }}>
+                            <div style={{ fontSize: '15px', fontWeight: 600, color: 'var(--text-primary)', lineHeight: 1.4 }}>
                               {q.question}
                             </div>
                           </div>
@@ -2815,7 +2678,7 @@ export function ManagePageInner({ forcedTab }: ManagePageInnerProps = {}) {
                             onClick={() => copyQueryAnswer(q.id, q.answer)}
                             className="btn btn-ghost btn-sm"
                             style={{
-                              padding: '6px 12px', borderRadius: '8px', fontSize: '11.5px', fontWeight: '700',
+                              padding: '6px 12px', borderRadius: '8px', fontSize: '11.5px', fontWeight: 600,
                               color: copiedQueryId === q.id ? 'var(--success)' : 'var(--text-secondary)',
                               background: copiedQueryId === q.id ? 'var(--success-light)' : 'var(--surface)',
                               border: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: '4px'
@@ -2918,7 +2781,7 @@ export function ManagePageInner({ forcedTab }: ManagePageInnerProps = {}) {
                 {tab === 'courses' && (
                   <div style={{
                     background: 'var(--primary)',
-                    borderRadius: '16px',
+                    borderRadius: '12px',
                     padding: '20px',
                     color: 'white',
                     display: 'flex',
@@ -2928,14 +2791,14 @@ export function ManagePageInner({ forcedTab }: ManagePageInnerProps = {}) {
                     boxShadow: '0 8px 16px color-mix(in srgb, var(--primary) 15%, transparent)'
                   }}>
                     <div>
-                      <div style={{ fontSize: '11px', fontWeight: '700', opacity: 0.8, textTransform: 'uppercase', letterSpacing: '0.05em' }}>System Mapping</div>
-                      <div style={{ fontSize: '18px', fontWeight: '800', marginTop: '4px' }}>LMS-COURSE-global</div>
+                      <div style={{ fontSize: '11px', fontWeight: 600, opacity: 0.8, textTransform: 'uppercase', letterSpacing: '0.05em' }}>System Mapping</div>
+                      <div style={{ fontSize: '18px', fontWeight: 600, marginTop: '4px' }}>LMS-COURSE-global</div>
                       <div style={{ fontSize: '12px', marginTop: '4px', opacity: 0.8 }}>Assign this ID to events for global visibility (all students).</div>
                     </div>
                     <button 
                       onClick={() => { navigator.clipboard.writeText('LMS-COURSE-global'); setCopiedId('global'); setTimeout(() => setCopiedId(null), 2000) }}
                       className="btn btn-sm"
-                      style={{ background: 'var(--surface)', color: 'var(--primary)', fontWeight: '800', border: 'none', borderRadius: '50px', padding: '8px 16px' }}
+                      style={{ background: 'var(--surface)', color: 'var(--primary)', fontWeight: 600, border: 'none', borderRadius: '50px', padding: '8px 16px' }}
                     >
                       {copiedId === 'global' ? 'Copied!' : 'Copy ID'}
                     </button>
@@ -2989,7 +2852,7 @@ export function ManagePageInner({ forcedTab }: ManagePageInnerProps = {}) {
                     background: 'var(--surface-2)',
                     boxShadow: '3px 3px 6px var(--neu-dark), -3px -3px 6px var(--neu-light)',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    color: 'var(--accent)', fontSize: '13px', fontWeight: '700',
+                    color: 'var(--accent)', fontSize: '13px', fontWeight: 600,
                   }}>
                     {iconLabel}
                   </div>
@@ -3000,7 +2863,7 @@ export function ManagePageInner({ forcedTab }: ManagePageInnerProps = {}) {
                       {item.name || item.title || item.question}
                     </div>
                     {tab === 'courses' && (
-                      <div style={{ fontSize: '9px', fontFamily: 'monospace', color: 'var(--accent)', marginTop: '0px', fontWeight: '700', opacity: 0.7 }}>
+                      <div style={{ fontSize: '9px', fontFamily: 'monospace', color: 'var(--accent)', marginTop: '0px', fontWeight: 600, opacity: 0.7 }}>
                         ID: {item.id}
                       </div>
                     )}
@@ -3014,34 +2877,34 @@ export function ManagePageInner({ forcedTab }: ManagePageInnerProps = {}) {
                     {tab === 'courses' && (
                       <>
                         <span style={{ fontSize: '11px', color: 'var(--text-muted)', marginRight: '4px' }}>{item._count?.lectures || 0}L</span>
-                        {item.isDemo && <span style={{ fontSize: '9px', padding: '1px 6px', borderRadius: '8px', background: 'var(--primary)', color: 'white', fontWeight: '900', letterSpacing: '0.02em', whiteSpace: 'nowrap' }}>DEMO</span>}
-                        {item.isFree && <span style={{ fontSize: '9px', padding: '1px 6px', borderRadius: '8px', background: 'var(--success)', color: 'white', fontWeight: '900', letterSpacing: '0.02em', whiteSpace: 'nowrap' }}>FREE</span>}
-                        {item.isExpired && <span style={{ fontSize: '9px', padding: '1px 6px', borderRadius: '8px', background: 'var(--warning-light)', color: 'var(--warning)', fontWeight: '900', letterSpacing: '0.02em', whiteSpace: 'nowrap' }}>EXP</span>}
-                        {item.isEffectivelyDisabled && <span style={{ fontSize: '9px', padding: '1px 6px', borderRadius: '8px', background: 'var(--danger-light)', color: 'var(--danger)', fontWeight: '900', letterSpacing: '0.02em', whiteSpace: 'nowrap' }}>DIS</span>}
+                        {item.isDemo && <span style={{ fontSize: '9px', padding: '1px 6px', borderRadius: '8px', background: 'var(--primary)', color: 'white', fontWeight: 600, letterSpacing: '0.02em', whiteSpace: 'nowrap' }}>DEMO</span>}
+                        {item.isFree && <span style={{ fontSize: '9px', padding: '1px 6px', borderRadius: '8px', background: 'var(--success)', color: 'white', fontWeight: 600, letterSpacing: '0.02em', whiteSpace: 'nowrap' }}>FREE</span>}
+                        {item.isExpired && <span style={{ fontSize: '9px', padding: '1px 6px', borderRadius: '8px', background: 'var(--warning-light)', color: 'var(--warning)', fontWeight: 600, letterSpacing: '0.02em', whiteSpace: 'nowrap' }}>EXP</span>}
+                        {item.isEffectivelyDisabled && <span style={{ fontSize: '9px', padding: '1px 6px', borderRadius: '8px', background: 'var(--danger-light)', color: 'var(--danger)', fontWeight: 600, letterSpacing: '0.02em', whiteSpace: 'nowrap' }}>DIS</span>}
                       </>
                     )}
                     {tab === 'offerings' && (
                       <div style={{ display: 'flex', gap: '6px' }}>
                         {item.hasRecorded && (
-                          <span style={{ fontSize: '9px', padding: '1px 6px', borderRadius: '8px', background: 'var(--primary-light)', color: 'var(--accent)', fontWeight: '900', letterSpacing: '0.02em', whiteSpace: 'nowrap' }}>
+                          <span style={{ fontSize: '9px', padding: '1px 6px', borderRadius: '8px', background: 'var(--primary-light)', color: 'var(--accent)', fontWeight: 600, letterSpacing: '0.02em', whiteSpace: 'nowrap' }}>
                             REC: ₹{item.recordedDiscountPrice}
                           </span>
                         )}
                         {item.hasLive && (
-                          <span style={{ fontSize: '9px', padding: '1px 6px', borderRadius: '8px', background: 'var(--primary-light)', color: 'var(--primary)', fontWeight: '900', letterSpacing: '0.02em', whiteSpace: 'nowrap' }}>
+                          <span style={{ fontSize: '9px', padding: '1px 6px', borderRadius: '8px', background: 'var(--primary-light)', color: 'var(--primary)', fontWeight: 600, letterSpacing: '0.02em', whiteSpace: 'nowrap' }}>
                             LIVE: ₹{item.liveDiscountPrice}
                           </span>
                         )}
                       </div>
                     )}
                     {tab === 'bundles' && (
-                      <span style={{ fontSize: '11px', padding: '2px 8px', borderRadius: '10px', background: 'var(--primary-light)', color: 'var(--accent)', fontWeight: '700' }}>
+                      <span style={{ fontSize: '11px', padding: '2px 8px', borderRadius: '10px', background: 'var(--primary-light)', color: 'var(--accent)', fontWeight: 600 }}>
                         {item._count?.courses || item.courses?.length || 0} courses
                       </span>
                     )}
                     {tab === 'events' && (
                       <>
-                        {item.isGlobal && <span style={{ fontSize: '10px', padding: '2px 8px', borderRadius: '10px', background: 'var(--primary)', color: 'white', fontWeight: '900', letterSpacing: '0.05em', marginRight: '6px' }}>GLOBAL</span>}
+                        {item.isGlobal && <span style={{ fontSize: '10px', padding: '2px 8px', borderRadius: '10px', background: 'var(--primary)', color: 'white', fontWeight: 600, letterSpacing: '0.05em', marginRight: '6px' }}>GLOBAL</span>}
                         <span className={`badge badge-${item.status === 'live' ? 'danger' : item.status === 'CANCELLED' ? 'warning' : item.status === 'RESCHEDULED' ? 'info' : 'success'}`}>
                           {item.status}
                         </span>
@@ -3066,7 +2929,7 @@ export function ManagePageInner({ forcedTab }: ManagePageInnerProps = {}) {
                       </span>
                     )}
                     {tab === 'faqs' && (
-                      <span style={{ fontSize: '11px', padding: '2px 8px', borderRadius: '10px', background: 'var(--primary-light)', color: 'var(--accent)', fontWeight: '700' }}>
+                      <span style={{ fontSize: '11px', padding: '2px 8px', borderRadius: '10px', background: 'var(--primary-light)', color: 'var(--accent)', fontWeight: 600 }}>
                         #{item.order ?? 0}
                       </span>
                     )}
@@ -3101,9 +2964,9 @@ export function ManagePageInner({ forcedTab }: ManagePageInnerProps = {}) {
                              border: '1px solid var(--danger-light)',
                              padding: '6px 12px',
                              fontSize: '11px',
-                             fontWeight: '700',
+                             fontWeight: 600,
                              cursor: 'pointer',
-                             borderRadius: '20px',
+                             borderRadius: '14px',
                              display: 'flex',
                              alignItems: 'center',
                              gap: '4px'
@@ -3208,7 +3071,7 @@ export function ManagePageInner({ forcedTab }: ManagePageInnerProps = {}) {
         <div className="modal-overlay" style={{ zIndex: 10001, backdropFilter: 'blur(8px)', background: 'rgba(15,23,42,0.6)' }} onClick={() => setShowRecentModal(false)}>
           <div
             style={{
-              maxWidth: '560px', width: '92%', borderRadius: '24px', overflow: 'hidden',
+              maxWidth: '560px', width: '92%', borderRadius: '14px', overflow: 'hidden',
               background: 'var(--surface)', boxShadow: '0 25px 50px rgba(0,0,0,0.25)',
               maxHeight: '85vh', display: 'flex', flexDirection: 'column',
               animation: 'bounceIn 0.3s ease-out',
@@ -3216,11 +3079,11 @@ export function ManagePageInner({ forcedTab }: ManagePageInnerProps = {}) {
             onClick={e => e.stopPropagation()}
           >
             <div style={{
-              background: 'linear-gradient(135deg, var(--primary) 0%, #7c3aed 100%)',
+              background: 'var(--primary)',
               padding: '24px 28px', position: 'relative', flexShrink: 0,
               display: 'flex', justifyContent: 'space-between', alignItems: 'center'
             }}>
-              <h3 style={{ fontSize: '18px', fontWeight: '800', color: '#fff', margin: 0 }}>
+              <h3 style={{ fontSize: '18px', fontWeight: 600, color: '#fff', margin: 0 }}>
                 Recent images
               </h3>
               <button onClick={() => setShowRecentModal(false)} style={{ background: 'rgba(255,255,255,0.2)', border: 'none', color: '#fff', width: '32px', height: '32px', borderRadius: '50%', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -3237,8 +3100,8 @@ export function ManagePageInner({ forcedTab }: ManagePageInnerProps = {}) {
                   <span style={{ fontSize: '13px', color: 'var(--text-secondary)', fontWeight: '600' }}>Loading recent photos…</span>
                 </div>
               ) : recentPhotos.length === 0 ? (
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '220px', gap: '8px', border: '2px dashed #cbd5e1', borderRadius: '16px', padding: '20px' }}>
-                  <span style={{ fontSize: '14px', color: 'var(--text-secondary)', fontWeight: '700' }}>No recently uploaded photos</span>
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '220px', gap: '8px', border: '2px dashed #cbd5e1', borderRadius: '12px', padding: '20px' }}>
+                  <span style={{ fontSize: '14px', color: 'var(--text-secondary)', fontWeight: 600 }}>No recently uploaded photos</span>
                   <span style={{ fontSize: '11px', color: 'var(--text-muted)', textAlign: 'center' }}>Upload a new photo to get started.</span>
                 </div>
               ) : (
@@ -3281,7 +3144,7 @@ export function ManagePageInner({ forcedTab }: ManagePageInnerProps = {}) {
             </div>
 
             <div style={{ padding: '16px 24px', borderTop: '1px solid var(--border)', background: 'var(--surface)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0 }}>
-              <div style={{ fontSize: '13px', fontWeight: '700', color: 'var(--text-secondary)' }}>
+              <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-secondary)' }}>
                 Page {recentPhotosPage}
               </div>
               <div style={{ display: 'flex', gap: '8px' }}>
@@ -3349,7 +3212,7 @@ export function ManagePageInner({ forcedTab }: ManagePageInnerProps = {}) {
               ...(tab === 'courses' ? {
                 maxWidth: 'min(1120px, calc(100vw - 48px))',
                 width: '96%',
-                borderRadius: '18px',
+                borderRadius: '12px',
                 maxHeight: '92vh',
               } : {}),
             }}
@@ -3407,11 +3270,11 @@ export function ManagePageInner({ forcedTab }: ManagePageInnerProps = {}) {
         <div className="modal-overlay" onClick={() => setQueryModalOpen(false)}>
           <div
             className="modal"
-            style={{ maxWidth: '640px', width: '92%', borderRadius: '24px' }}
+            style={{ maxWidth: '640px', width: '92%', borderRadius: '14px' }}
             onClick={e => e.stopPropagation()}
           >
             <div className="modal-header">
-              <h3 style={{ fontSize: '18px', fontWeight: 800, color: 'var(--text-primary)', margin: 0 }}>
+              <h3 style={{ fontSize: '18px', fontWeight: 600, color: 'var(--text-primary)', margin: 0 }}>
                 {editingQuery ? 'Edit Platform Query' : 'Add Platform Query'}
               </h3>
               <button
@@ -3501,7 +3364,7 @@ export function ManagePageInner({ forcedTab }: ManagePageInnerProps = {}) {
                 onClick={handleSaveQuery}
                 disabled={querySaving}
                 className="btn btn-primary"
-                style={{ borderRadius: '50px', padding: '10px 24px', fontWeight: '800' }}
+                style={{ borderRadius: '50px', padding: '10px 24px', fontWeight: 600 }}
               >
                 {querySaving ? 'Saving...' : editingQuery ? 'Update Query' : 'Create Query'}
               </button>
@@ -3552,7 +3415,7 @@ function CourseIconTypeModal({
       >
         <div className="modal-header">
           <div>
-            <h3 style={{ fontSize: '18px', fontWeight: 900, margin: 0, color: 'var(--text-primary)' }}>
+            <h3 style={{ fontSize: '18px', fontWeight: 600, margin: 0, color: 'var(--text-primary)' }}>
               Course Icon Type
             </h3>
             <p style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-muted)', margin: '3px 0 0' }}>
@@ -3593,7 +3456,7 @@ function CourseIconTypeModal({
                 onClick={() => onSelect(option.type)}
                 style={{
                   minHeight: '112px',
-                  borderRadius: '16px',
+                  borderRadius: '12px',
                   border: selected
                     ? '2px solid var(--course-icon-selected-border)'
                     : '1px solid color-mix(in srgb, var(--border) 82%, transparent)',
@@ -3613,7 +3476,7 @@ function CourseIconTypeModal({
                 }}
               >
                 <CourseIconBadge type={option.type} size={46} iconSize={23} radius={14} />
-                <span style={{ fontSize: '12px', fontWeight: 800, lineHeight: 1.25, textAlign: 'center' }}>
+                <span style={{ fontSize: '12px', fontWeight: 600, lineHeight: 1.25, textAlign: 'center' }}>
                   {option.label}
                 </span>
               </button>

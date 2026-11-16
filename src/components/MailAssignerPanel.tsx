@@ -354,7 +354,7 @@ export default function MailAssignerPageContent() {
     }
   }
 
-  const pill: CSSProperties = { padding: '7px 14px', borderRadius: 999, fontWeight: 700, fontSize: 13 }
+  const pill: CSSProperties = { padding: '7px 14px', borderRadius: 999, fontWeight: 600, fontSize: 13 }
 
   return (
     <div className="ma-wrap">
@@ -392,7 +392,7 @@ export default function MailAssignerPageContent() {
             style={{
               margin: '8px 0 4px',
               fontSize: 'clamp(22px, 5vw, 28px)',
-              fontWeight: 800,
+              fontWeight: 600,
               color: 'var(--text-primary)',
               letterSpacing: '-0.02em',
             }}
@@ -439,7 +439,7 @@ export default function MailAssignerPageContent() {
             <div style={{ fontSize: 13, color: 'var(--text-muted)', fontWeight: 600 }}>
               {waitingUsers === 0 ? 'Everyone is assigned' : 'Waiting for a group'}
             </div>
-            <div style={{ fontSize: 'clamp(28px, 8vw, 38px)', fontWeight: 800, color: 'var(--text-primary)', lineHeight: 1.1 }}>
+            <div style={{ fontSize: 'clamp(28px, 8vw, 38px)', fontWeight: 600, color: 'var(--text-primary)', lineHeight: 1.1 }}>
               {isLoading ? '…' : waitingUsers === 0 ? '✓' : waitingUsers.toLocaleString()}
               {waitingUsers > 0 && (
                 <span style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-muted)' }}> users</span>
@@ -454,7 +454,7 @@ export default function MailAssignerPageContent() {
             style={{
               padding: '13px 22px',
               borderRadius: 999,
-              fontWeight: 800,
+              fontWeight: 600,
               fontSize: 14,
               border: 'none',
               background: 'linear-gradient(135deg, #0EA5E9, #2563EB)',
@@ -509,10 +509,10 @@ export default function MailAssignerPageContent() {
           { label: 'Free slots', value: freeSlots.toLocaleString() },
         ].map(stat => (
           <div key={stat.label} className="card" style={{ padding: '12px 14px', borderRadius: 14 }}>
-            <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+            <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
               {stat.label}
             </div>
-            <div style={{ fontSize: 'clamp(17px, 4.5vw, 22px)', fontWeight: 800, color: 'var(--text-primary)', marginTop: 2 }}>
+            <div style={{ fontSize: 'clamp(17px, 4.5vw, 22px)', fontWeight: 600, color: 'var(--text-primary)', marginTop: 2 }}>
               {isLoading ? '…' : stat.value}
             </div>
           </div>
@@ -556,9 +556,9 @@ export default function MailAssignerPageContent() {
             >
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10 }}>
                 <div style={{ minWidth: 0 }}>
-                  <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-muted)' }}>Group {idx + 1}</div>
+                  <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)' }}>Group {idx + 1}</div>
                   <div
-                    style={{ fontSize: 13.5, fontWeight: 700, color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+                    style={{ fontSize: 13.5, fontWeight: 600, color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
                     title={email.groupEmail}
                   >
                     {email.groupEmail.split('@')[0]}
@@ -615,7 +615,7 @@ export default function MailAssignerPageContent() {
       </div>
 
       <details className="card" style={{ padding: '12px 16px', borderRadius: 16 }}>
-        <summary style={{ cursor: 'pointer', fontWeight: 700, fontSize: 13.5, color: 'var(--text-muted)' }}>
+        <summary style={{ cursor: 'pointer', fontWeight: 600, fontSize: 13.5, color: 'var(--text-muted)' }}>
           Advanced
         </summary>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 12 }}>
@@ -680,10 +680,10 @@ export default function MailAssignerPageContent() {
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'flex-start' }}>
               <div>
-                <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase' }}>
+                <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase' }}>
                   Live activity
                 </div>
-                <h2 style={{ margin: '4px 0 0', fontSize: 18, fontWeight: 800, color: 'var(--text-primary)' }}>
+                <h2 style={{ margin: '4px 0 0', fontSize: 18, fontWeight: 600, color: 'var(--text-primary)' }}>
                   {live.title}
                 </h2>
               </div>
@@ -695,7 +695,7 @@ export default function MailAssignerPageContent() {
                     background: 'transparent',
                     border: 'none',
                     color: 'var(--text-muted)',
-                    fontWeight: 800,
+                    fontWeight: 600,
                     cursor: 'pointer',
                     fontSize: 16,
                   }}
@@ -705,7 +705,7 @@ export default function MailAssignerPageContent() {
               )}
             </div>
 
-            <div style={{ fontSize: 13.5, fontWeight: 700, color: live.error ? '#EF4444' : '#7DD3FC' }}>
+            <div style={{ fontSize: 13.5, fontWeight: 600, color: live.error ? '#EF4444' : '#7DD3FC' }}>
               {live.phase}
             </div>
             <div style={{ fontSize: 13, color: 'var(--text-muted)' }}>{live.detail}</div>
@@ -774,7 +774,7 @@ export default function MailAssignerPageContent() {
                 type="button"
                 className="btn btn-primary"
                 onClick={() => setLive(null)}
-                style={{ padding: '10px 14px', borderRadius: 999, fontWeight: 700 }}
+                style={{ padding: '10px 14px', borderRadius: 999, fontWeight: 600 }}
               >
                 Close
               </button>

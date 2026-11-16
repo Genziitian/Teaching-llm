@@ -14,7 +14,6 @@ export const MENU_REGISTRY: MenuEntry[] = [
   { href: '/live', label: 'Live Sessions', group: 'Learn' },
   { href: '/calendar', label: 'Calendar', group: 'Learn' },
   { href: '/free-resources', label: 'Free Resources', group: 'Learn' },
-  { href: '/materials', label: 'Study Materials', group: 'Learn' },
   { href: '/courses/explore', label: 'Store', group: 'Explore' },
   { href: 'https://quiz.genziitian.in/', label: 'Quiz Lab', group: 'Explore' },
   { href: '/community', label: 'Community', group: 'Connect' },

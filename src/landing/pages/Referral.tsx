@@ -1,10 +1,12 @@
 'use client';
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '@/landing/context/AuthContext';
-import { supabase } from '@/landing/lib/supabase';
 import { Loader2, CheckCircle2, Gift, Coins, Copy, Share2, Trophy, Target, ChevronDown, HelpCircle, Lock, Check } from 'lucide-react';
 import { motion, AnimatePresence, useReducedMotion, animate } from 'motion/react';
-import { getReferralProfile, getReferralHistory, getMilestones, type ReferralProfile, type ReferralTransaction } from '@/landing/lib/referral';
+import { getMyReferralData, type ReferralProfile, type ReferralTransaction } from '@/landing/lib/referral';
+
+// Wallet refresh: poll while the tab is visible and refetch when the user comes back to it.
+const REFERRAL_POLL_MS = 60_000;
 
 const REFERRAL_FAQs = [
   {
@@ -82,50 +84,50 @@ export default function Referral() {
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(null);
 
   useEffect(() => {
-    if (user) {
-      fetchReferralData();
+    if (!user) return;
+    fetchReferralData();
 
-      // Real-time subscription: wallet updates live when someone uses your code
-      const channel = supabase
-        .channel('referral-profile-changes')
-        .on(
-          'postgres_changes',
-          {
-            event: 'UPDATE',
-            schema: 'public',
-            table: 'referral_profiles',
-            filter: `id=eq.${user.id}`,
-          },
-          (payload) => {
-            const updated = payload.new as ReferralProfile;
-            setReferralProfile(updated);
-          }
-        )
-        .subscribe();
+    // Light refresh instead of a realtime channel: keeps the wallet current when someone uses your code.
+    const refresh = () => {
+      if (document.visibilityState === 'visible') refreshReferralData();
+    };
+    const timer = window.setInterval(refresh, REFERRAL_POLL_MS);
+    window.addEventListener('focus', refresh);
+    document.addEventListener('visibilitychange', refresh);
+    return () => {
+      window.clearInterval(timer);
+      window.removeEventListener('focus', refresh);
+      document.removeEventListener('visibilitychange', refresh);
+    };
+  }, [user?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
-      return () => {
-        supabase.removeChannel(channel);
-      };
-    }
-  }, [user]);
+  const applyReferralData = (data: Awaited<ReturnType<typeof getMyReferralData>>) => {
+    if (!data) return;
+    setReferralProfile(data.profile);
+    setReferralHistory(data.history);
+    setMilestones(data.milestones);
+  };
 
   const fetchReferralData = async () => {
     if (!user) return;
     setReferralLoading(true);
     try {
-      const [refProfile, history, ms] = await Promise.all([
-        getReferralProfile(user.id, user.email || '', user.user_metadata?.full_name || ''),
-        getReferralHistory(user.email || ''),
-        getMilestones(),
-      ]);
-      setReferralProfile(refProfile);
-      setReferralHistory(history);
-      setMilestones(ms);
+      applyReferralData(await getMyReferralData({ fresh: true }));
     } catch (err) {
       console.error('Referral data error:', err);
     } finally {
       setReferralLoading(false);
     }
+  };
+
+  // Background refresh: no spinner, keeps what is shown if the request fails.
+  const lastRefreshAt = React.useRef(0);
+  const refreshReferralData = async () => {
+    if (Date.now() - lastRefreshAt.current < 5000) return;
+    lastRefreshAt.current = Date.now();
+    try {
+      applyReferralData(await getMyReferralData({ fresh: true }));
+    } catch {}
   };
 
   const copyCode = () => {

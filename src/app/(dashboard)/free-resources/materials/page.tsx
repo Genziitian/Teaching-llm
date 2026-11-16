@@ -369,7 +369,7 @@ export default function FreeMaterialsPage() {
           <div style={{ fontSize: '32px', marginBottom: '8px' }}>
             {CATEGORIES.find(c => c.value === category)?.icon}
           </div>
-          <div style={{ fontWeight: 700, color: 'var(--text-primary)', fontSize: '15px' }}>
+          <div style={{ fontWeight: 600, color: 'var(--text-primary)', fontSize: '15px' }}>
             No {CATEGORIES.find(c => c.value === category)?.label.toLowerCase()} yet
           </div>
           <div style={{ marginTop: '4px', fontSize: '12.5px' }}>
@@ -394,7 +394,7 @@ export default function FreeMaterialsPage() {
                 style={{
                   background: viewMode === 'GRID' ? 'var(--accent)' : 'transparent',
                   color: viewMode === 'GRID' ? '#ffffff' : 'var(--text-secondary)',
-                  border: 'none', borderRadius: '6px', padding: '6px 12px', fontSize: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', transition: 'all 0.15s ease', fontWeight: 700
+                  border: 'none', borderRadius: '6px', padding: '6px 12px', fontSize: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', transition: 'all 0.15s ease', fontWeight: 600
                 }}
               >
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -411,7 +411,7 @@ export default function FreeMaterialsPage() {
                 style={{
                   background: viewMode === 'LIST' ? 'var(--accent)' : 'transparent',
                   color: viewMode === 'LIST' ? '#ffffff' : 'var(--text-secondary)',
-                  border: 'none', borderRadius: '6px', padding: '6px 12px', fontSize: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', transition: 'all 0.15s ease', fontWeight: 700
+                  border: 'none', borderRadius: '6px', padding: '6px 12px', fontSize: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', transition: 'all 0.15s ease', fontWeight: 600
                 }}
               >
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -434,7 +434,7 @@ export default function FreeMaterialsPage() {
                   <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                     <span style={{ fontSize: '28px' }}>{getFileIcon(mat.fileType)}</span>
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: '15px', fontWeight: '700', color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      <div style={{ fontSize: '15px', fontWeight: 600, color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                         {mat.title}
                       </div>
                       {mat.description && (
@@ -557,7 +557,7 @@ export default function FreeMaterialsPage() {
                   <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flex: 1, minWidth: '280px' }}>
                     <span style={{ fontSize: '32px', flexShrink: 0 }}>{getFileIcon(mat.fileType)}</span>
                     <div style={{ minWidth: 0, flex: 1 }}>
-                      <div style={{ fontSize: '15px', fontWeight: '700', color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      <div style={{ fontSize: '15px', fontWeight: 600, color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                         {mat.title}
                       </div>
                       {mat.description && (
@@ -681,7 +681,7 @@ export default function FreeMaterialsPage() {
             style={{ width: '560px', maxWidth: '95vw', maxHeight: '90vh', overflowY: 'auto', padding: '28px' }}
             onClick={e => e.stopPropagation()}
           >
-            <h2 style={{ fontSize: '18px', fontWeight: '800', marginBottom: '20px', color: 'var(--text-primary)' }}>
+            <h2 style={{ fontSize: '18px', fontWeight: 600, marginBottom: '20px', color: 'var(--text-primary)' }}>
               {editId ? 'Edit Free Material' : 'Add Free Material'}
             </h2>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>

@@ -86,7 +86,7 @@ export default function CapacitorPlayStoreBanner() {
           position: 'relative',
           zIndex: 1,
           fontSize: 12,
-          fontWeight: 700,
+          fontWeight: 600,
           letterSpacing: '0.14em',
           textTransform: 'uppercase',
           color: '#01875f',
@@ -104,7 +104,7 @@ export default function CapacitorPlayStoreBanner() {
           maxWidth: 420,
           fontSize: 26,
           lineHeight: 1.25,
-          fontWeight: 800,
+          fontWeight: 600,
           textShadow: '0 0 16px #ffffff, 0 0 6px #ffffff',
         }}
       >
@@ -147,7 +147,7 @@ export default function CapacitorPlayStoreBanner() {
           background: '#111111',
           color: '#ffffff',
           fontSize: 16,
-          fontWeight: 700,
+          fontWeight: 600,
           cursor: 'pointer',
         }}
       >

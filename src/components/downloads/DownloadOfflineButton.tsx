@@ -191,7 +191,7 @@ export default function DownloadOfflineButton({
             border: '1px solid rgba(16, 185, 129, 0.3)',
             color: '#10b981',
             fontSize: compact ? '12px' : '13px',
-            fontWeight: 700,
+            fontWeight: 600,
             cursor: onOpenOffline ? 'pointer' : 'default',
             transition: 'all 0.2s ease',
           }}

@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { APPLICATION_STATUSES } from './CareersTypes'
 
 const ghost: React.CSSProperties = { padding: '6px 12px', borderRadius: 8, border: '1px solid var(--border, #d1d5db)', background: 'transparent', color: 'var(--text-secondary)', fontSize: 13, cursor: 'pointer' }
-const sel: React.CSSProperties = { padding: '6px 8px', borderRadius: 8, border: '1px solid var(--border, #d1d5db)', background: 'var(--bg-card, #fff)', color: 'var(--text-primary)', fontSize: 13 }
+const sel: React.CSSProperties = { padding: '6px 8px', borderRadius: 8, border: '1px solid var(--border, #d1d5db)', background: 'var(--surface)', color: 'var(--text-primary)', fontSize: 13 }
 
 type App = Record<string, any>
 
@@ -59,7 +59,7 @@ export default function CareersApplicationsAdmin() {
       {!loading && shown.length === 0 && <p style={{ color: 'var(--text-muted)' }}>No applications.</p>}
       <div style={{ display: 'grid', gap: 8 }}>
         {shown.map((a) => (
-          <div key={a.id} style={{ border: '1px solid var(--border, #e5e7eb)', borderRadius: 10, padding: 12, background: 'var(--bg-card, #fff)' }}>
+          <div key={a.id} style={{ border: '1px solid var(--border, #e5e7eb)', borderRadius: 10, padding: 12, background: 'var(--surface)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
               <div style={{ cursor: 'pointer' }} onClick={() => setOpen(open === a.id ? null : a.id)}>
                 <strong style={{ color: 'var(--text-primary)' }}>{a.full_name}</strong>

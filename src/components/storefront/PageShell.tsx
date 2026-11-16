@@ -19,20 +19,12 @@ export default function PageShell({
   actions?: ReactNode
   children: ReactNode
 }) {
+  // The dashboard header already names the page, so only the actions are shown here.
   return (
-    <div style={{ maxWidth: 1180, margin: '0 auto', padding: '8px 4px 48px' }}>
-      {backHref && (
-        <Link href={backHref} style={{ fontSize: 13, color: 'var(--text-muted)', textDecoration: 'none' }}>
-          ← {backLabel}
-        </Link>
+    <div style={{ width: '100%', padding: '8px 0 48px' }}>
+      {actions && (
+        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, margin: '0 0 16px', flexWrap: 'wrap' }}>{actions}</div>
       )}
-      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 16, margin: '8px 0 20px', flexWrap: 'wrap' }}>
-        <div>
-          <h1 style={{ fontSize: 24, fontWeight: 700, color: 'var(--text-primary)', margin: 0 }}>{title}</h1>
-          {description && <p style={{ fontSize: 14, color: 'var(--text-secondary)', margin: '4px 0 0' }}>{description}</p>}
-        </div>
-        {actions && <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>{actions}</div>}
-      </div>
       {children}
     </div>
   )

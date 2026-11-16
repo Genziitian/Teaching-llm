@@ -126,7 +126,7 @@ export default function LiveSessionsMobile({ sessions, onUpgradeClick, isManager
         <div style={{ flex: 1, minWidth: 0 }}>
           <h1 style={{
             fontSize: '22px',
-            fontWeight: 900,
+            fontWeight: 600,
             color: 'var(--text-primary)',
             margin: 0,
             lineHeight: 1.1,
@@ -177,7 +177,7 @@ export default function LiveSessionsMobile({ sessions, onUpgradeClick, isManager
             width: '40px', height: '40px', borderRadius: '50%',
             background: showSearch ? 'var(--primary)' : 'var(--surface)',
             boxShadow: showSearch
-              ? '0 6px 14px rgba(54,54,232,0.30)'
+              ? '0 6px 14px rgba(128, 128, 128,0.30)'
               : '0 8px 20px -6px rgba(15, 23, 42, 0.12), 0 2px 6px -2px rgba(15, 23, 42, 0.04)',
             border: showSearch ? 'none' : '1px solid rgba(15, 23, 42, 0.06)',
             cursor: 'pointer',
@@ -202,7 +202,7 @@ export default function LiveSessionsMobile({ sessions, onUpgradeClick, isManager
             style={{
               width: '100%',
               padding: '12px 18px',
-              borderRadius: '16px',
+              borderRadius: '12px',
               border: '1px solid rgba(15, 23, 42, 0.08)',
               fontSize: '14px',
               fontFamily: 'inherit',
@@ -256,11 +256,11 @@ export default function LiveSessionsMobile({ sessions, onUpgradeClick, isManager
         {hasAnySessions && !hasSearchResults && (
           <div style={{
             padding: '48px 24px', textAlign: 'center',
-            background: 'var(--surface)', borderRadius: '24px',
+            background: 'var(--surface)', borderRadius: '14px',
             border: '1px solid rgba(15, 23, 42, 0.05)',
             boxShadow: '0 10px 24px -14px rgba(15, 23, 42, 0.10)',
           }}>
-            <div style={{ fontSize: '14px', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '4px' }}>No matches found</div>
+            <div style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '4px' }}>No matches found</div>
             <div style={{ fontSize: '12px', color: 'var(--text-muted)', fontWeight: 600 }}>Try searching for another topic or course.</div>
           </div>
         )}
@@ -295,7 +295,7 @@ function LiveSessionCard({ session, onUpgradeClick }: { session: CourseEvent; on
   return (
     <div style={{
       background: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)',
-      borderRadius: '24px',
+      borderRadius: '14px',
       padding: '18px 18px 16px',
       color: '#ffffff',
       position: 'relative',
@@ -310,7 +310,7 @@ function LiveSessionCard({ session, onUpgradeClick }: { session: CourseEvent; on
             display: 'inline-flex', alignItems: 'center', gap: '6px',
             padding: '4px 10px', borderRadius: '50px',
             background: 'rgba(255,255,255,0.22)', backdropFilter: 'blur(8px)',
-            fontSize: '10.5px', fontWeight: 800, letterSpacing: '0.08em',
+            fontSize: '10.5px', fontWeight: 600, letterSpacing: '0.08em',
             border: '1px solid rgba(255,255,255,0.30)',
           }}>
             <span style={{
@@ -326,7 +326,7 @@ function LiveSessionCard({ session, onUpgradeClick }: { session: CourseEvent; on
         </div>
       </div>
 
-      <div style={{ fontSize: '18px', fontWeight: 900, lineHeight: 1.25, marginBottom: '12px', letterSpacing: '-0.01em', position: 'relative' }}>
+      <div style={{ fontSize: '18px', fontWeight: 600, lineHeight: 1.25, marginBottom: '12px', letterSpacing: '-0.01em', position: 'relative' }}>
         {session.title}
       </div>
 
@@ -343,7 +343,7 @@ function LiveSessionCard({ session, onUpgradeClick }: { session: CourseEvent; on
               display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
               padding: '13px 16px', borderRadius: '50px',
               background: 'var(--surface)', color: 'var(--danger)',
-              fontSize: '14px', fontWeight: 800, textDecoration: 'none',
+              fontSize: '14px', fontWeight: 600, textDecoration: 'none',
               boxShadow: '0 6px 14px rgba(0,0,0,0.10)',
             }}
           >
@@ -365,7 +365,7 @@ function LiveSessionCard({ session, onUpgradeClick }: { session: CourseEvent; on
               display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
               padding: '13px 16px', borderRadius: '50px',
               background: 'var(--surface)', color: 'var(--danger)',
-              fontSize: '14px', fontWeight: 800, border: 'none', cursor: 'pointer',
+              fontSize: '14px', fontWeight: 600, border: 'none', cursor: 'pointer',
               boxShadow: '0 6px 14px rgba(0,0,0,0.10)',
               transition: 'all 0.2s',
             }}
@@ -389,7 +389,7 @@ function LiveSessionCard({ session, onUpgradeClick }: { session: CourseEvent; on
             display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
             padding: '13px 16px', borderRadius: '50px',
             background: 'rgba(255,255,255,0.20)', color: '#ffffff',
-            fontSize: '13px', fontWeight: 700,
+            fontSize: '13px', fontWeight: 600,
             border: '1px solid rgba(255,255,255,0.30)',
           }}>
             Meet link coming soon
@@ -432,7 +432,7 @@ function UpcomingSessionRow({ session, slotIdx }: { session: CourseEvent; slotId
     <div style={{
       display: 'flex', alignItems: 'center', gap: '14px',
       padding: '14px 16px 14px 12px',
-      borderRadius: '20px',
+      borderRadius: '14px',
       background: 'var(--surface)',
       boxShadow: '0 10px 24px -14px rgba(15, 23, 42, 0.12), 0 2px 6px -2px rgba(15, 23, 42, 0.04)',
       border: '1px solid rgba(15, 23, 42, 0.05)',
@@ -446,16 +446,16 @@ function UpcomingSessionRow({ session, slotIdx }: { session: CourseEvent; slotId
         display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
         gap: '2px', flexShrink: 0,
       }}>
-        <div style={{ fontSize: '11px', fontWeight: 900, letterSpacing: '-0.02em' }}>{start}</div>
+        <div style={{ fontSize: '11px', fontWeight: 600, letterSpacing: '-0.02em' }}>{start}</div>
         {!isToday && (
-          <div style={{ fontSize: '8.5px', fontWeight: 800, letterSpacing: '0.04em', opacity: 0.85 }}>
+          <div style={{ fontSize: '8.5px', fontWeight: 600, letterSpacing: '0.04em', opacity: 0.85 }}>
             {new Date(session.startTime).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' }).toUpperCase()}
           </div>
         )}
       </div>
 
       <div style={{ flex: 1, minWidth: 0, paddingLeft: '2px' }}>
-        <div style={{ fontSize: '14px', fontWeight: 900, color: 'var(--text-primary)', lineHeight: 1.3, letterSpacing: '-0.01em' }}>
+        <div style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)', lineHeight: 1.3, letterSpacing: '-0.01em' }}>
           {session.title}
         </div>
         <div style={{ fontSize: '11.5px', color: 'var(--text-secondary)', fontWeight: 600, marginTop: '4px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
@@ -489,7 +489,7 @@ function RecordedSessionRow({ session }: { session: CourseEvent }) {
     <div style={{
       display: 'flex', alignItems: 'center', gap: '14px',
       padding: '14px 16px 14px 12px',
-      borderRadius: '20px',
+      borderRadius: '14px',
       background: 'var(--surface)',
       boxShadow: '0 10px 24px -14px rgba(15, 23, 42, 0.12), 0 2px 6px -2px rgba(15, 23, 42, 0.04)',
       border: '1px solid rgba(15, 23, 42, 0.05)',
@@ -508,7 +508,7 @@ function RecordedSessionRow({ session }: { session: CourseEvent }) {
         </svg>
       </div>
       <div style={{ flex: 1, minWidth: 0, paddingLeft: '2px' }}>
-        <div style={{ fontSize: '14px', fontWeight: 900, color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', letterSpacing: '-0.01em' }}>
+        <div style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', letterSpacing: '-0.01em' }}>
           {session.title}
         </div>
         <div style={{ fontSize: '11.5px', color: 'var(--text-secondary)', fontWeight: 600, marginTop: '4px' }}>
@@ -523,7 +523,7 @@ function RecordedSessionRow({ session }: { session: CourseEvent }) {
 function SectionHeader({ title, subtitle }: { title: string; subtitle?: string }) {
   return (
     <div style={{ marginBottom: '14px', padding: '0 4px' }}>
-      <div style={{ fontSize: '17px', fontWeight: 900, color: 'var(--text-primary)', letterSpacing: '-0.01em', lineHeight: 1.1 }}>
+      <div style={{ fontSize: '17px', fontWeight: 600, color: 'var(--text-primary)', letterSpacing: '-0.01em', lineHeight: 1.1 }}>
         {title}
       </div>
       {subtitle && (
@@ -539,13 +539,13 @@ function EmptyState({ icon, title, subtitle }: { icon: 'live' | 'upcoming' | 're
   return (
     <div style={{
       padding: '48px 24px', textAlign: 'center',
-      background: 'var(--surface)', borderRadius: '24px',
+      background: 'var(--surface)', borderRadius: '14px',
       border: '1px solid rgba(15, 23, 42, 0.05)',
       boxShadow: '0 10px 24px -14px rgba(15, 23, 42, 0.10)',
     }}>
       <div style={{
         width: '52px', height: '52px', margin: '0 auto 12px',
-        borderRadius: '16px',
+        borderRadius: '12px',
         background: icon === 'live' ? 'var(--danger-light)' : icon === 'upcoming' ? 'var(--primary-light)' : 'var(--primary-light)',
         color: icon === 'live' ? 'var(--danger)' : icon === 'upcoming' ? 'var(--accent)' : 'var(--primary-dark)',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -569,7 +569,7 @@ function EmptyState({ icon, title, subtitle }: { icon: 'live' | 'upcoming' | 're
           </svg>
         )}
       </div>
-      <div style={{ fontSize: '14px', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '4px' }}>{title}</div>
+      <div style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '4px' }}>{title}</div>
       <div style={{ fontSize: '12px', color: 'var(--text-muted)', fontWeight: 600 }}>{subtitle}</div>
     </div>
   )

@@ -78,7 +78,7 @@ export default function BlogsEditor({ initial, onClose, onSaved }: { initial: Bl
   const published = Boolean(Number(blog.published))
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 16, maxWidth: 860 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       {confirmDialog}
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>

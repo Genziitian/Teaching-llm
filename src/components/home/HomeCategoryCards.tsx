@@ -15,7 +15,7 @@ const CATEGORIES: Category[] = [
   {
     key: 'qualifier',
     label: 'Qualifier Course',
-    gradient: 'linear-gradient(135deg, #4f46e5, #6366f1)',
+    gradient: 'var(--primary)',
     shadow: 'rgba(79, 70, 229, 0.30)',
     icon: (
       <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
@@ -53,7 +53,7 @@ const CATEGORIES: Category[] = [
     key: 'notes',
     label: 'Notes & PYQs',
     href: '/free-resources',
-    gradient: 'linear-gradient(135deg, #db2777, #9333ea)',
+    gradient: 'var(--primary)',
     shadow: 'rgba(219, 39, 119, 0.30)',
     icon: (
       <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
@@ -70,7 +70,7 @@ export default function HomeCategoryCards() {
   return (
     <div style={{ marginBottom: '24px' }}>
       <div style={{ marginBottom: '14px', padding: '0 4px' }}>
-        <h3 style={{ fontSize: '18px', fontWeight: 900, color: 'var(--text-primary)', letterSpacing: '-0.02em', margin: 0 }}>
+        <h3 style={{ fontSize: '18px', fontWeight: 600, color: 'var(--text-primary)', letterSpacing: '-0.02em', margin: 0 }}>
           Categories
         </h3>
         <div style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-muted)', marginTop: '2px' }}>
@@ -105,7 +105,7 @@ export default function HomeCategoryCards() {
               {c.icon}
             </div>
             <div style={{
-              fontSize: '11px', fontWeight: 800, color: 'var(--text-primary)',
+              fontSize: '11px', fontWeight: 600, color: 'var(--text-primary)',
               textAlign: 'center', lineHeight: 1.2,
               padding: '0 2px',
             }}>

@@ -103,7 +103,7 @@ export default function MyCoursesMobile() {
       {/* Title row */}
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '12px', marginBottom: '16px', padding: '0 4px' }}>
         <div style={{ minWidth: 0 }}>
-          <h1 style={{ fontSize: '26px', fontWeight: 900, color: 'var(--text-primary)', letterSpacing: '-0.02em', margin: 0, lineHeight: 1.05 }}>
+          <h1 style={{ fontSize: '26px', fontWeight: 600, color: 'var(--text-primary)', letterSpacing: '-0.02em', margin: 0, lineHeight: 1.05 }}>
             My Courses
           </h1>
           <p style={{ fontSize: '12.5px', fontWeight: 600, color: 'var(--text-muted)', marginTop: '4px' }}>
@@ -157,7 +157,7 @@ export default function MyCoursesMobile() {
       {/* All courses */}
       <div>
         <div style={{ padding: '0 4px', marginBottom: '12px' }}>
-          <h2 style={{ fontSize: '16px', fontWeight: 900, color: 'var(--text-primary)', margin: 0, letterSpacing: '-0.01em' }}>
+          <h2 style={{ fontSize: '16px', fontWeight: 600, color: 'var(--text-primary)', margin: 0, letterSpacing: '-0.01em' }}>
             All courses
           </h2>
           <p style={{ fontSize: '11.5px', color: 'var(--text-muted)', fontWeight: 600, marginTop: '2px' }}>
@@ -238,7 +238,7 @@ function CourseCard({
       href={`/courses/${course.id}`}
       style={{
         display: 'block',
-        borderRadius: '22px',
+        borderRadius: '14px',
         background: 'var(--surface)',
         boxShadow: '0 14px 30px -12px rgba(15, 23, 42, 0.15), 0 4px 8px -2px rgba(15, 23, 42, 0.04)',
         border: '1px solid rgba(15, 23, 42, 0.05)',
@@ -273,7 +273,7 @@ function CourseCard({
             {enrollmentBadge && (
               <span style={{
                 display: 'inline-flex', alignItems: 'center',
-                fontSize: '10px', fontWeight: 800, letterSpacing: '0.10em', textTransform: 'uppercase',
+                fontSize: '10px', fontWeight: 600, letterSpacing: '0.10em', textTransform: 'uppercase',
                 padding: '4px 10px', borderRadius: '50px',
                 background: 'rgba(255,255,255,0.22)',
                 backdropFilter: 'blur(8px)', border: '1px solid rgba(255,255,255,0.30)',
@@ -284,13 +284,13 @@ function CourseCard({
             )}
           </div>
           {termLabel && (
-            <span style={{ fontSize: '11px', fontWeight: 800, color: 'rgba(255,255,255,0.92)', letterSpacing: '0.02em' }}>
+            <span style={{ fontSize: '11px', fontWeight: 600, color: 'rgba(255,255,255,0.92)', letterSpacing: '0.02em' }}>
               {termLabel}
             </span>
           )}
         </div>
 
-        <div style={{ fontSize: '20px', fontWeight: 900, lineHeight: 1.2, letterSpacing: '-0.01em', position: 'relative' }}>
+        <div style={{ fontSize: '20px', fontWeight: 600, lineHeight: 1.2, letterSpacing: '-0.01em', position: 'relative' }}>
           {course.name}
         </div>
         {course.description && (
@@ -309,12 +309,12 @@ function CourseCard({
       <div style={{ padding: '14px 18px 18px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '14px' }}>
           <TeacherIcon size={28} color={teacherAccent} />
-          <span style={{ fontSize: '12.5px', fontWeight: 700, color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          <span style={{ fontSize: '12.5px', fontWeight: 600, color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
             {course.teacherName || 'Mentor'}
           </span>
           <span style={{ width: '4px', height: '4px', borderRadius: '50%', background: 'var(--text-muted)', flexShrink: 0 }} />
           <span style={{
-            fontSize: '11px', fontWeight: 700,
+            fontSize: '11px', fontWeight: 600,
             color: expired ? 'var(--danger)' : accessDays !== null && accessDays <= 7 ? 'var(--warning)' : 'var(--text-muted)',
             overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
           }}>
@@ -340,7 +340,7 @@ function CourseCard({
               background: 'var(--surface)',
               color: 'var(--warning)',
               fontSize: '12.5px',
-              fontWeight: '800',
+              fontWeight: 600,
               cursor: 'pointer',
               marginBottom: '14px',
               boxShadow: '4px 4px 8px var(--neu-dark), -4px -4px 8px var(--neu-light)',
@@ -370,16 +370,16 @@ function CourseCard({
               key={s.label}
               style={{
                 padding: '12px 8px',
-                borderRadius: '16px',
+                borderRadius: '12px',
                 background: 'var(--surface-2)',
                 boxShadow: '5px 5px 12px var(--neu-dark), -5px -5px 12px var(--neu-light)',
                 textAlign: 'center',
               }}
             >
-              <div style={{ fontSize: '18px', fontWeight: 900, color: 'var(--text-primary)', letterSpacing: '-0.02em', lineHeight: 1 }}>
+              <div style={{ fontSize: '18px', fontWeight: 600, color: 'var(--text-primary)', letterSpacing: '-0.02em', lineHeight: 1 }}>
                 {s.value}
               </div>
-              <div style={{ fontSize: '10.5px', fontWeight: 700, color: 'var(--text-muted)', marginTop: '5px', letterSpacing: '0.04em' }}>
+              <div style={{ fontSize: '10.5px', fontWeight: 600, color: 'var(--text-muted)', marginTop: '5px', letterSpacing: '0.04em' }}>
                 {s.label}
               </div>
             </div>
@@ -394,14 +394,14 @@ function EmptyState({ search }: { search: string }) {
   return (
     <div style={{
       padding: '40px 20px', textAlign: 'center',
-      background: 'var(--surface)', borderRadius: '20px',
+      background: 'var(--surface)', borderRadius: '14px',
       border: '1px solid rgba(15, 23, 42, 0.05)',
     }}>
       <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#cbd5e1" strokeWidth="1.6" style={{ marginBottom: '10px' }}>
         <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
         <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
       </svg>
-      <div style={{ fontSize: '14px', fontWeight: 800, color: 'var(--text-secondary)', marginBottom: '4px' }}>
+      <div style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '4px' }}>
         {search ? `No courses matching "${search}"` : 'No courses enrolled yet'}
       </div>
       <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>

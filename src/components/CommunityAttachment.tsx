@@ -48,8 +48,8 @@ export default function CommunityAttachment({ url, native = false, onImageClick 
       }}
       aria-label={`Open ${attachment.name}`} aria-busy={opening}
       style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '14px', borderRadius: '12px', border: '1px solid var(--border)', background: 'var(--surface-2)', color: 'var(--text-primary)', textDecoration: 'none' }}>
-      <span aria-hidden="true" style={{ fontWeight: 800, fontSize: '11px', color: 'var(--primary)' }}>{attachment.extension.toUpperCase() || 'FILE'}</span>
-      <span style={{ flex: 1, minWidth: 0, overflowWrap: 'anywhere', fontWeight: 700, fontSize: '13px' }}>{attachment.name}</span>
+      <span aria-hidden="true" style={{ fontWeight: 600, fontSize: '11px', color: 'var(--primary)' }}>{attachment.extension.toUpperCase() || 'FILE'}</span>
+      <span style={{ flex: 1, minWidth: 0, overflowWrap: 'anywhere', fontWeight: 600, fontSize: '13px' }}>{attachment.name}</span>
       <span style={{ fontSize: '12px', whiteSpace: 'nowrap' }}>{opening ? 'Opening…' : 'Open ↗'}</span>
     </a>
     {error && <p role="alert" style={{ color: 'var(--danger)', fontSize: '12px' }}>{error}</p>}

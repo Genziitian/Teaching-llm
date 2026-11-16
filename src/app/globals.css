@@ -637,12 +637,12 @@ img {
 .btn-primary {
   background: var(--button-background, var(--primary));
   color: var(--button-text, white);
-  box-shadow: 4px 4px 8px rgba(54,54,232,0.3), -2px -2px 6px var(--neu-glow);
+  box-shadow: none;
 }
 @media (hover: hover) and (pointer: fine) {
 .btn-primary:hover {
   background: var(--button-hover-background, var(--primary-dark));
-  box-shadow: 4px 4px 12px rgba(54,54,232,0.4), -2px -2px 6px var(--neu-glow);
+  box-shadow: none;
 }
 }
 
@@ -660,11 +660,11 @@ img {
 
 /* Dark theme button shadows */
 :root[data-theme="dark"] .btn-primary {
-  box-shadow: 0 4px 14px rgba(109,109,255,0.35);
+  box-shadow: none;
 }
 @media (hover: hover) and (pointer: fine) {
 :root[data-theme="dark"] .btn-primary:hover {
-  box-shadow: 0 6px 18px rgba(109,109,255,0.45);
+  box-shadow: none;
 }
 }
 
@@ -672,14 +672,14 @@ img {
 :root[data-theme="black"] .btn-primary {
   background: #ffffff !important;
   color: #000000 !important;
-  box-shadow: 0 2px 8px rgba(255, 255, 255, 0.15) !important;
+  box-shadow: none !important;
   font-weight: 700;
 }
 @media (hover: hover) and (pointer: fine) {
 :root[data-theme="black"] .btn-primary:hover {
   background: #e4e4e7 !important;
   color: #000000 !important;
-  box-shadow: 0 4px 12px rgba(255, 255, 255, 0.25) !important;
+  box-shadow: none !important;
 }
 }
 /* Black theme: --primary / --accent are white, so anything filled with them

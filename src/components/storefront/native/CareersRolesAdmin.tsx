@@ -3,8 +3,8 @@
 import { useCallback, useEffect, useState } from 'react'
 import { CAREERS_ROLES_KEY, DEFAULT_CAREERS_ROLES, parseCareersRoles, type CareersRole } from './CareersTypes'
 
-const inp: React.CSSProperties = { width: '100%', padding: '8px 10px', borderRadius: 8, border: '1px solid var(--border, #d1d5db)', background: 'var(--bg-card, #fff)', color: 'var(--text-primary)', fontSize: 14 }
-const btn: React.CSSProperties = { padding: '7px 14px', borderRadius: 8, border: 'none', background: '#2563eb', color: '#fff', fontWeight: 600, fontSize: 13, cursor: 'pointer' }
+const inp: React.CSSProperties = { width: '100%', padding: '8px 10px', borderRadius: 8, border: '1px solid var(--border, #d1d5db)', background: 'var(--surface)', color: 'var(--text-primary)', fontSize: 14 }
+const btn: React.CSSProperties = { padding: '7px 14px', borderRadius: 8, border: 'none', background: 'var(--primary)', color: 'var(--button-text, #000)', fontWeight: 600, fontSize: 13, cursor: 'pointer' }
 const ghost: React.CSSProperties = { ...btn, background: 'transparent', color: 'var(--text-secondary)', border: '1px solid var(--border, #d1d5db)' }
 
 const blank = (): CareersRole => ({ id: '', title: '', summary: '', tags: [], comp: '', open: true })
@@ -60,10 +60,10 @@ export default function CareersRolesAdmin() {
       </div>
       <div style={{ display: 'grid', gap: 10 }}>
         {roles.map((r) => (
-          <div key={r.id} style={{ border: '1px solid var(--border, #e5e7eb)', borderRadius: 10, padding: 14, background: 'var(--bg-card, #fff)', display: 'flex', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
+          <div key={r.id} style={{ border: '1px solid var(--border, #e5e7eb)', borderRadius: 10, padding: 14, background: 'var(--surface)', display: 'flex', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
             <div>
               <strong style={{ color: 'var(--text-primary)' }}>{r.title}</strong>{' '}
-              <span style={{ fontSize: 11, padding: '2px 8px', borderRadius: 999, background: r.open ? '#dcfce7' : '#e5e7eb', color: r.open ? '#166534' : '#4b5563' }}>{r.open ? 'Open' : 'Closed'}</span>
+              <span style={{ fontSize: 11, padding: '2px 8px', borderRadius: 999, background: r.open ? 'var(--success-light)' : 'var(--surface-2)', color: r.open ? 'var(--success)' : 'var(--text-muted)' }}>{r.open ? 'Open' : 'Closed'}</span>
               <p style={{ margin: '4px 0 0', fontSize: 13, color: 'var(--text-secondary)' }}>{r.summary}</p>
               <p style={{ margin: '2px 0 0', fontSize: 12, color: 'var(--text-muted)' }}>{r.tags.join(' · ')} {r.comp && `· ${r.comp}`}</p>
             </div>
@@ -77,7 +77,7 @@ export default function CareersRolesAdmin() {
         {roles.length === 0 && <p style={{ color: 'var(--text-muted)' }}>No roles yet.</p>}
       </div>
       {edit && (
-        <form onSubmit={submit} style={{ marginTop: 16, display: 'grid', gap: 10, border: '1px solid var(--border, #e5e7eb)', borderRadius: 10, padding: 14, background: 'var(--bg-card, #fff)' }}>
+        <form onSubmit={submit} style={{ marginTop: 16, display: 'grid', gap: 10, border: '1px solid var(--border, #e5e7eb)', borderRadius: 10, padding: 14, background: 'var(--surface)' }}>
           <input style={inp} placeholder="Title" value={edit.title} onChange={(e) => setEdit({ ...edit, title: e.target.value })} />
           {edit.isNew && <input style={inp} placeholder="Id (optional, e.g. tutor)" value={edit.id} onChange={(e) => setEdit({ ...edit, id: slug(e.target.value) })} />}
           <textarea style={{ ...inp, minHeight: 70 }} placeholder="Summary" value={edit.summary} onChange={(e) => setEdit({ ...edit, summary: e.target.value })} />

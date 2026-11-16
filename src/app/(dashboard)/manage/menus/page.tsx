@@ -21,7 +21,7 @@ export default function MenuVisibilityPage() {
   if (authData?.user?.role !== 'MANAGER') {
     return (
       <div style={{ maxWidth: 560, margin: '48px auto', padding: 24, textAlign: 'center' }}>
-        <h1 style={{ fontSize: 22, fontWeight: 800 }}>Menu Visibility</h1>
+        <h1 style={{ fontSize: 22, fontWeight: 600 }}>Menu Visibility</h1>
         <p style={{ color: 'var(--text-muted)', fontSize: 14 }}>Manager access required.</p>
       </div>
     )
@@ -43,7 +43,7 @@ export default function MenuVisibilityPage() {
       if (!res.ok) throw new Error(j.error || 'Save failed')
       setHidden(j.hidden)
       mutate('/api/menu-visibility')
-      setMsg('Saved. The sidebar updates for everyone on their next load.')
+      setMsg('Saved')
     } catch (e: any) {
       setMsg(e.message || 'Save failed')
     } finally {
@@ -54,13 +54,7 @@ export default function MenuVisibilityPage() {
   const groups = Array.from(new Set(MENU_REGISTRY.map(m => m.group)))
 
   return (
-    <div style={{ maxWidth: 720, margin: '0 auto', padding: '8px 0 48px' }}>
-      <h1 style={{ fontSize: 22, fontWeight: 700, margin: 0 }}>Menu Visibility</h1>
-      <p style={{ color: 'var(--text-muted)', fontSize: 14, margin: '6px 0 20px' }}>
-        Turn a sidebar item off to hide it from students and staff. Managers always see every item, marked “Hidden”.
-        This only hides the link; the page itself is not blocked.
-      </p>
-
+    <div style={{ width: '100%', padding: '8px 0 48px' }}>
       {groups.map(g => (
         <section key={g} className="gz-panel" style={{ padding: 0, marginBottom: 14, overflow: 'hidden' }}>
           <div style={{ padding: '10px 16px', fontSize: 12, fontWeight: 600, letterSpacing: '.04em', textTransform: 'uppercase', color: 'var(--text-muted)', borderBottom: '1px solid var(--border)' }}>{g}</div>
@@ -69,14 +63,8 @@ export default function MenuVisibilityPage() {
             const locked = LOCKED_MENUS.includes(m.href)
             return (
               <label key={m.href} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, padding: '12px 16px', borderBottom: '1px solid var(--border)', cursor: locked ? 'not-allowed' : 'pointer' }}>
-                <span style={{ fontSize: 14, fontWeight: 500 }}>
-                  {m.label}
-                  <span style={{ marginLeft: 8, fontSize: 12, color: 'var(--text-muted)', fontWeight: 400 }}>{m.href.startsWith('http') ? 'external' : m.href}</span>
-                </span>
-                <span style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                  <span style={{ fontSize: 12, color: visible ? 'var(--text-muted)' : 'var(--text-primary)' }}>{visible ? 'Shown' : 'Hidden'}</span>
-                  <input type="checkbox" role="switch" checked={visible} disabled={locked} onChange={() => toggle(m.href)} style={{ width: 18, height: 18, accentColor: 'var(--primary)' }} />
-                </span>
+                <span style={{ fontSize: 14, fontWeight: 500 }}>{m.label}</span>
+                <input type="checkbox" role="switch" checked={visible} disabled={locked} onChange={() => toggle(m.href)} style={{ width: 18, height: 18, accentColor: 'var(--primary)' }} />
               </label>
             )
           })}

@@ -4,7 +4,6 @@ import { useEffect, useRef, useState } from 'react';
 import { Link } from '@/landing/shims/router';
 import { BadgeCheck, Building2, CalendarDays, FileText, IdCard, Loader2, Pencil, ShieldCheck, UserRound } from 'lucide-react';
 import { useAuth } from '@/landing/context/AuthContext';
-import { supabase } from '@/landing/lib/supabase';
 import PhotoCropDialog from '@/landing/components/employee/PhotoCropDialog';
 
 type Employee = {
@@ -47,33 +46,26 @@ export default function EmployeeId() {
     const load = async () => {
       setLoading(true);
       setError('');
-      const email = user.email!.trim().toLowerCase();
-      const { data: employeeData, error: employeeError } = await supabase
-        .from('employees')
-        .select('employee_id, full_name, email, department, role, tenure, status')
-        .ilike('email', email)
-        .maybeSingle();
-
-      if (employeeError) {
+      let data: any = null;
+      try {
+        const res = await fetch('/api/site/employee/me', { cache: 'no-store' });
+        data = await res.json().catch(() => null);
+        if (!res.ok) throw new Error(data?.error || 'load failed');
+      } catch {
         if (!cancelled) setError('Your employee record could not be loaded. Please try again later.');
         setLoading(false);
         return;
       }
-      if (!employeeData) {
+      if (!data?.employee) {
         if (!cancelled) setEmployee(null);
         setLoading(false);
         return;
       }
-
-      const [photoResult, birthResult] = await Promise.all([
-        supabase.from('employee_photos').select('photo_url').eq('employee_id', employeeData.employee_id).maybeSingle(),
-        supabase.from('employee_birth_dates').select('date_of_birth').eq('employee_id', employeeData.employee_id).maybeSingle(),
-      ]);
       if (!cancelled) {
-        setEmployee(employeeData as Employee);
-        setPhotoUrl(photoResult.data?.photo_url || '');
-        setDateOfBirth(birthResult.data?.date_of_birth || '');
-        if (photoResult.error || birthResult.error) setError('Your ID is ready, but some profile details are unavailable. Ask your manager to check the employee records setup.');
+        setEmployee(data.employee as Employee);
+        setPhotoUrl(data.photoUrl || '');
+        setDateOfBirth(data.dateOfBirth || '');
+        if (data.partial) setError('Your ID is ready, but some profile details are unavailable. Ask your manager to check the employee records setup.');
       }
       setLoading(false);
     };
@@ -100,16 +92,18 @@ export default function EmployeeId() {
     setSavingPhoto(true);
     setError('');
     try {
-      const { data: existingPhoto, error: lookupError } = await supabase.from('employee_photos')
-        .select('employee_id').eq('employee_id', employee.employee_id).maybeSingle();
-      if (lookupError) throw lookupError;
-      const saveResult = existingPhoto
-        ? await supabase.from('employee_photos').update({ photo_url: nextPhoto }).eq('employee_id', employee.employee_id)
-        : await supabase.from('employee_photos').insert({ employee_id: employee.employee_id, photo_url: nextPhoto });
-      if (saveResult.error) throw saveResult.error;
+      const res = await fetch('/api/site/employee/me/photo', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ photoUrl: nextPhoto }),
+      });
+      if (!res.ok) {
+        const body = await res.json().catch(() => null);
+        throw new Error([400, 413, 429].includes(res.status) && body?.error ? body.error : '');
+      }
       setPhotoUrl(nextPhoto);
-    } catch {
-      setError('Photo could not be saved. Ask your manager to apply the employee ID setup instructions.');
+    } catch (err) {
+      setError((err as Error)?.message || 'Photo could not be saved. Ask your manager to apply the employee ID setup instructions.');
     } finally {
       setSavingPhoto(false);
     }

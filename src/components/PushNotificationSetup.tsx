@@ -81,7 +81,7 @@ function RequestPermissionModal({
           width: '100%',
           maxWidth: '400px',
           background: 'var(--surface-2)',
-          borderRadius: '28px',
+          borderRadius: '14px',
           padding: '32px 28px 24px',
           boxShadow: '0 24px 48px rgba(15,23,42,0.18), 0 8px 16px rgba(15,23,42,0.08), inset 0 1px 0 var(--neu-glow)',
           border: '1px solid rgba(255,255,255,0.5)',
@@ -101,7 +101,7 @@ function RequestPermissionModal({
           }} />
           <div style={{
             width: '68px', height: '68px', borderRadius: '50%',
-            background: 'linear-gradient(135deg, var(--primary), var(--primary))',
+            background: 'var(--primary)',
             boxShadow: '0 8px 20px color-mix(in srgb, var(--primary) 28%, transparent)',
             display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative',
           }}>
@@ -112,7 +112,7 @@ function RequestPermissionModal({
           </div>
         </div>
 
-        <div style={{ fontSize: '20px', fontWeight: '800', color: 'var(--text-primary)', marginBottom: '10px', fontFamily: "'Outfit', sans-serif" }}>
+        <div style={{ fontSize: '20px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '10px', fontFamily: "'Outfit', sans-serif" }}>
           Enable Live Alerts
         </div>
         <p style={{ fontSize: '13.5px', lineHeight: '1.65', color: 'var(--text-secondary)', marginBottom: '26px', padding: '0 4px' }}>
@@ -125,9 +125,9 @@ function RequestPermissionModal({
             onClick={onEnable}
             style={{
               width: '100%', border: 'none', borderRadius: '50px',
-              padding: '14px 20px', fontFamily: 'inherit', fontSize: '14px', fontWeight: '700',
+              padding: '14px 20px', fontFamily: 'inherit', fontSize: '14px', fontWeight: 600,
               cursor: 'pointer', color: '#fff',
-              background: 'linear-gradient(135deg, var(--primary), var(--primary))',
+              background: 'var(--primary)',
               boxShadow: '4px 4px 10px color-mix(in srgb, var(--primary) 25%, transparent), inset 1px 1px 0 var(--neu-glow)',
               transition: 'all 0.2s ease',
             }}
@@ -201,7 +201,7 @@ function PermissionDeniedModal({ onDismiss }: { onDismiss: () => void }) {
           width: '100%',
           maxWidth: '400px',
           background: 'linear-gradient(160deg, #1a1a3a 0%, #12122a 100%)',
-          borderRadius: '28px',
+          borderRadius: '14px',
           padding: '30px 26px 24px',
           boxShadow: '0 32px 64px rgba(0,0,0,0.5), 0 8px 24px rgba(0,0,0,0.3), inset 0 1px 0 var(--neu-glow)',
           border: '1px solid rgba(255,255,255,0.08)',
@@ -231,7 +231,7 @@ function PermissionDeniedModal({ onDismiss }: { onDismiss: () => void }) {
 
         {/* Headline */}
         <div style={{
-          fontSize: '18px', fontWeight: '800', color: '#ffffff',
+          fontSize: '18px', fontWeight: 600, color: '#ffffff',
           marginBottom: '6px', fontFamily: "'Outfit', sans-serif", letterSpacing: '-0.3px',
         }}>
           Notifications are Blocked 🔕
@@ -248,7 +248,7 @@ function PermissionDeniedModal({ onDismiss }: { onDismiss: () => void }) {
           width: '100%',
           background: 'rgba(255,255,255,0.05)',
           border: '1px solid rgba(255,255,255,0.08)',
-          borderRadius: '16px',
+          borderRadius: '12px',
           padding: '14px 16px',
           marginBottom: '20px',
           display: 'flex',
@@ -256,7 +256,7 @@ function PermissionDeniedModal({ onDismiss }: { onDismiss: () => void }) {
           gap: '10px',
           textAlign: 'left',
         }}>
-          <div style={{ fontSize: '11px', fontWeight: '700', color: 'rgba(255,255,255,0.35)', letterSpacing: '0.8px', textTransform: 'uppercase', marginBottom: '2px' }}>
+          <div style={{ fontSize: '11px', fontWeight: 600, color: 'rgba(255,255,255,0.35)', letterSpacing: '0.8px', textTransform: 'uppercase', marginBottom: '2px' }}>
             How to enable
           </div>
           {steps.map((step, i) => (
@@ -280,9 +280,9 @@ function PermissionDeniedModal({ onDismiss }: { onDismiss: () => void }) {
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <span style={{
                   width: '18px', height: '18px', borderRadius: '50%', flexShrink: 0,
-                  background: 'linear-gradient(135deg, var(--primary), var(--primary))',
+                  background: 'var(--primary)',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontSize: '10px', fontWeight: '800', color: '#fff',
+                  fontSize: '10px', fontWeight: 600, color: '#fff',
                 }}>
                   {i + 1}
                 </span>
@@ -304,7 +304,7 @@ function PermissionDeniedModal({ onDismiss }: { onDismiss: () => void }) {
             }}
             style={{
               width: '100%', border: 'none', borderRadius: '50px',
-              padding: '14px 20px', fontFamily: 'inherit', fontSize: '14px', fontWeight: '700',
+              padding: '14px 20px', fontFamily: 'inherit', fontSize: '14px', fontWeight: 600,
               cursor: 'pointer', color: '#fff',
               background: 'linear-gradient(135deg, #f59e0b, #ef4444)',
               boxShadow: '0 6px 20px rgba(245,158,11,0.30), inset 1px 1px 0 var(--neu-glow)',
@@ -353,7 +353,7 @@ function WebBlockedModal({ onDismiss }: { onDismiss: () => void }) {
           zIndex: 99999,
           width: 'min(380px, calc(100vw - 48px))',
           background: '#ffffff',
-          borderRadius: '20px',
+          borderRadius: '14px',
           padding: '24px 24px 20px',
           boxShadow: '0 20px 48px rgba(15,23,42,0.14), 0 8px 16px rgba(15,23,42,0.06)',
           border: '1.5px solid rgba(15,23,42,0.06)',
@@ -375,14 +375,14 @@ function WebBlockedModal({ onDismiss }: { onDismiss: () => void }) {
           <line x1="94" y1="26" x2="118" y2="50" stroke="#fff" strokeWidth="3" strokeLinecap="round" />
         </svg>
 
-        <div style={{ fontSize: '13.5px', lineHeight: '1.65', color: '#1e293b', fontWeight: '700', marginBottom: '18px', fontFamily: "'Outfit', sans-serif" }}>
+        <div style={{ fontSize: '13.5px', lineHeight: '1.65', color: '#1e293b', fontWeight: 600, marginBottom: '18px', fontFamily: "'Outfit', sans-serif" }}>
           Oops! It seems like you have blocked desktop notifications from GENz IITIAN. Please allow notification permission for GENz IITIAN
         </div>
 
-        <div style={{ fontSize: '11px', fontWeight: '800', color: '#64748b', marginBottom: '6px', textTransform: 'uppercase', fontFamily: "'Outfit', sans-serif" }}>
+        <div style={{ fontSize: '11px', fontWeight: 600, color: '#64748b', marginBottom: '6px', textTransform: 'uppercase', fontFamily: "'Outfit', sans-serif" }}>
           How to Unblock
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', fontSize: '13.5px', fontWeight: '800', color: '#0f172a', fontFamily: "'Outfit', sans-serif", marginBottom: '20px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', fontSize: '13.5px', fontWeight: 600, color: '#0f172a', fontFamily: "'Outfit', sans-serif", marginBottom: '20px' }}>
           <span style={{ color: '#10b981', fontSize: '15px' }}>🎛️</span> &gt; Notifications &gt; Allow
         </div>
 

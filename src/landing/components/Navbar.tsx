@@ -4,7 +4,6 @@ import { useState, useRef, useEffect } from 'react';
 import { User as UserIcon, LogOut, LayoutDashboard, Gift, ChevronDown } from 'lucide-react';
 import { useAuth } from '@/landing/context/AuthContext';
 import { useCart } from '@/landing/context/CartContext';
-import { supabase } from '@/landing/lib/supabase';
 import QuizLabNavPill from '@/landing/components/QuizLabNavPill';
 
 const RESOURCE_LINKS = [
@@ -49,8 +48,9 @@ export default function Navbar() {
       setIsEmployee(false);
       return;
     }
-    Promise.resolve(supabase.from('employees').select('employee_id').ilike('email', user.email).maybeSingle())
-      .then(({ data }) => { if (!cancelled) setIsEmployee(Boolean(data)); })
+    fetch('/api/site/employee/me?check=1', { cache: 'no-store' })
+      .then((res) => (res.ok ? res.json() : { isEmployee: false }))
+      .then((data) => { if (!cancelled) setIsEmployee(Boolean(data?.isEmployee)); })
       .catch(() => { if (!cancelled) setIsEmployee(false); });
     return () => { cancelled = true; };
   }, [user?.email]);

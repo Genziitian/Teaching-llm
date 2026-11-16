@@ -110,7 +110,7 @@ export default function NotificationLogsPage() {
       {/* Header */}
       <div style={{ marginBottom: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '12px' }}>
         <div>
-          <h1 style={{ fontSize: '24px', fontWeight: '700', margin: 0, color: 'var(--text-primary, #111827)', display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <h1 style={{ fontSize: '24px', fontWeight: 600, margin: 0, color: 'var(--text-primary, #111827)', display: 'flex', alignItems: 'center', gap: '10px' }}>
             <span>🔔 Notification Delivery Logs</span>
             <span style={{ fontSize: '13px', fontWeight: '600', padding: '2px 10px', borderRadius: '12px', background: 'var(--primary-light, rgba(7F, 88, 246, 0.1))', color: 'var(--accent, var(--primary))' }}>
               {total} Total Sent

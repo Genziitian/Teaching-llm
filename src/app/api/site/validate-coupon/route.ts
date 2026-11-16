@@ -1,7 +1,7 @@
 import { NextRequest } from 'next/server'
 import { getSession } from '@/lib/auth'
 import { isStorefrontConfigured, storefrontDb } from '@/lib/storefront/db'
-import { readBody, jsonRes } from '@/lib/site/http'
+import { readBody, jsonRes, escapeLike } from '@/lib/site/http'
 
 export const dynamic = 'force-dynamic'
 
@@ -57,14 +57,14 @@ export async function POST(request: NextRequest) {
 
     if (coupon.single_use_per_user !== false) {
       const { data: usage } = await supabase
-        .from('coupon_uses').select('id').eq('code', coupon.code).eq('user_email', user.email).maybeSingle();
+        .from('coupon_uses').select('id').eq('code', coupon.code).ilike('user_email', escapeLike(user.email.trim())).limit(1).maybeSingle();
       if (usage) return fail('You have already used this discount code.');
     }
 
     if (coupon.first_purchase_only) {
       const { data: paidOrder } = await supabase
         .from('website_orders').select('order_id')
-        .eq('user_email', user.email).eq('status', 'PAID').gt('total_amount', 0).limit(1).maybeSingle();
+        .ilike('user_email', escapeLike(user.email.trim())).eq('status', 'PAID').gt('total_amount', 0).limit(1).maybeSingle();
       if (paidOrder) return fail('This discount code is only for first purchases.');
     }
 

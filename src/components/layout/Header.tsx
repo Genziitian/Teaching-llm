@@ -7,6 +7,7 @@ import UserAvatar from '@/components/UserAvatar'
 import { usePushNotifications } from '@/hooks/usePushNotifications'
 import { useTheme } from '@/components/ThemeProvider'
 import { useLanguage } from '@/contexts/LanguageContext'
+import { getGreeting as getGreetingLine } from '@/lib/greetings'
 
 interface HeaderProps {
   userName: string
@@ -48,6 +49,7 @@ const PAGE_TITLES: Record<string, { title: string; subtitle: string }> = {
   '/profile':    { title: 'My Profile',         subtitle: 'View and edit your personal information' },
   '/settings':   { title: 'Settings',          subtitle: 'Manage passwords, appearance, and notifications' },
   '/chat-transcripts': { title: 'Chat Transcripts', subtitle: 'View community chat transcripts' },
+  '/google-sync': { title: 'Google Sync', subtitle: '' },
   '/activity-logs': { title: 'Activity Log',     subtitle: 'Monitor all platform activity and user actions' },
   '/data-analysis': { title: 'Data Analysis',      subtitle: 'Production-level insights and student behavior metrics' },
   '/feedback':   { title: 'Feedback',           subtitle: 'Average ratings and student reviews.' },
@@ -199,31 +201,7 @@ export default function Header({ userName, userRole }: HeaderProps) {
   const greetingPages = new Set(['/dashboard'])
   const showGreetingHeadline = matchedKey ? greetingPages.has(matchedKey) : false
 
-  const getGreeting = () => {
-    const hour = new Date().getHours()
-    if (hour >= 5 && hour < 12) {
-      return {
-        heading: t('dashboard.greeting.morning'),
-        subtext: 'Hope you’re ready for a productive day ahead.'
-      }
-    }
-    if (hour >= 12 && hour < 17) {
-      return {
-        heading: t('dashboard.greeting.afternoon'),
-        subtext: 'Keep going strong, you’re making great progress.'
-      }
-    }
-    if (hour >= 17 && hour < 21) {
-      return {
-        heading: t('dashboard.greeting.evening'),
-        subtext: 'Take a moment to relax and review your day.'
-      }
-    }
-    return {
-      heading: t('dashboard.greeting.night'),
-      subtext: 'You’ve done well today. Get some good rest.'
-    }
-  }
+  const getGreeting = () => getGreetingLine(firstName)
 
   // const [notifications, setNotifications] = useState<Notification[]>([]) - Removed
 
@@ -409,7 +387,7 @@ export default function Header({ userName, userRole }: HeaderProps) {
             <UserAvatar user={currentAvatarUser} size={44} />
             <div style={{ minWidth: 0, flex: 1, display: 'flex', flexDirection: 'column' }}>
               <span style={{ fontSize: '16px', fontWeight: 600, color: 'var(--gz-ink)', lineHeight: 1.2, letterSpacing: '-0.02em' }}>
-                {mounted ? getGreeting().heading : 'Welcome'}, {firstName}
+                {mounted ? getGreeting().heading : `Welcome, ${firstName}`}
               </span>
               <span style={{ fontSize: '12px', color: 'var(--gz-ink-3)', lineHeight: 1.3, marginTop: '3px' }}>
                 {mounted ? getGreeting().subtext : 'Loading your dashboard...'}
@@ -429,9 +407,9 @@ export default function Header({ userName, userRole }: HeaderProps) {
 
         {/* Desktop / tablet title */}
         <div className="gz-head__titles">
-          {showGreetingHeadline ? (
+          {pathname.startsWith('/manage') ? null : showGreetingHeadline ? (
             <>
-              <h1 data-snow="text">{mounted ? getGreeting().heading : 'Welcome'}, {firstName}</h1>
+              <h1 data-snow="text">{mounted ? getGreeting().heading : `Welcome, ${firstName}`}</h1>
               <p>{mounted ? getGreeting().subtext : 'Loading your dashboard...'}</p>
             </>
           ) : (

@@ -174,7 +174,7 @@ export default function UpdateOverlay() {
     >
       <div
         style={{
-          maxWidth: '650px', width: '92%', borderRadius: '24px', overflow: 'hidden',
+          maxWidth: '650px', width: '92%', borderRadius: '14px', overflow: 'hidden',
           background: 'var(--surface)', boxShadow: '0 25px 50px rgba(0,0,0,0.25)',
           animation: 'bounceIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards',
           maxHeight: '90vh', minHeight: '460px', display: 'flex', flexDirection: 'column',
@@ -225,7 +225,7 @@ export default function UpdateOverlay() {
 
           {/* Title */}
           <h2 style={{
-            fontSize: '26px', fontWeight: '800', color: 'var(--text-primary)', margin: '0 0 16px 0',
+            fontSize: '26px', fontWeight: 600, color: 'var(--text-primary)', margin: '0 0 16px 0',
             lineHeight: '1.3',
           }}>
             {currentUpdate.title}
@@ -264,7 +264,7 @@ export default function UpdateOverlay() {
                 }
               }} style={{
                 background: 'var(--primary)', color: '#fff', border: 'none', padding: '14px',
-                borderRadius: '12px', fontSize: '15px', fontWeight: '700', cursor: 'pointer',
+                borderRadius: '12px', fontSize: '15px', fontWeight: 600, cursor: 'pointer',
                 boxShadow: '0 4px 14px color-mix(in srgb, var(--primary) 25%, transparent)', width: '100%', transition: 'transform 0.1s'
               }}>
                 {currentUpdate.ctaText}
@@ -273,7 +273,7 @@ export default function UpdateOverlay() {
             <button onClick={dismiss} style={{
               background: 'var(--surface)', color: 'var(--text-secondary)',
               border: 'none', padding: '14px',
-              borderRadius: '12px', fontSize: '15px', fontWeight: '700', cursor: 'pointer',
+              borderRadius: '12px', fontSize: '15px', fontWeight: 600, cursor: 'pointer',
               width: '100%', transition: 'background 0.2s'
             }}>
               Close

@@ -358,7 +358,7 @@ export default function CoursesPage() {
                 }} />
                 <div className="skeleton" style={{
                   position: 'absolute', top: '10px', left: '12px',
-                  height: '16px', width: '70px', borderRadius: '20px'
+                  height: '16px', width: '70px', borderRadius: '14px'
                 }} />
               </div>
 
@@ -622,7 +622,7 @@ export default function CoursesPage() {
           <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="1.5">
             <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
           </svg>
-          <p style={{ fontSize: '16px', fontWeight: '700', marginBottom: '4px' }}>No courses found</p>
+          <p style={{ fontSize: '16px', fontWeight: 600, marginBottom: '4px' }}>No courses found</p>
           <p style={{ fontSize: '13px' }}>Try a different search term</p>
         </div>
       )}
@@ -654,7 +654,7 @@ export default function CoursesPage() {
             }
           `}} />
           <div style={{
-            background: 'var(--surface)', borderRadius: '24px', width: '100%', maxWidth: '750px',
+            background: 'var(--surface)', borderRadius: '14px', width: '100%', maxWidth: '750px',
             boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)', overflow: 'hidden',
             animation: 'modalSlideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1)'
           }} onClick={e => e.stopPropagation()}>
@@ -663,13 +663,13 @@ export default function CoursesPage() {
               <button onClick={() => setInfoModalCourse(null)} style={{ position: 'absolute', top: '16px', right: '16px', background: 'var(--surface)', border: 'none', width: '32px', height: '32px', borderRadius: '10px', cursor: 'pointer', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
               </button>
-              <h2 className="batch-cmp-title" style={{ fontWeight: '800', color: 'var(--text-primary)', marginBottom: '6px', paddingRight: '40px' }}>Batch Comparison</h2>
+              <h2 className="batch-cmp-title" style={{ fontWeight: 600, color: 'var(--text-primary)', marginBottom: '6px', paddingRight: '40px' }}>Batch Comparison</h2>
               <p className="batch-cmp-sub" style={{ color: 'var(--text-secondary)', fontWeight: '500', margin: 0 }}>Choose the experience that fits your learning style</p>
             </div>
 
             {/* Comparison Table */}
             <div className="batch-cmp-table-wrap">
-              <div style={{ borderRadius: '16px', overflow: 'hidden', border: '1.5px solid var(--border)', background: 'var(--surface)' }}>
+              <div style={{ borderRadius: '12px', overflow: 'hidden', border: '1.5px solid var(--border)', background: 'var(--surface)' }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', tableLayout: 'fixed' }}>
                   <colgroup>
                     <col style={{ width: '38%' }} />
@@ -678,11 +678,11 @@ export default function CoursesPage() {
                   </colgroup>
                   <thead>
                     <tr style={{ background: 'var(--surface)' }}>
-                      <th className="batch-cmp-th" style={{ color: 'var(--text-secondary)', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Features</th>
-                      <th className="batch-cmp-th" style={{ color: 'var(--warning)', fontWeight: '800', background: 'var(--warning-light)', textAlign: 'center', wordBreak: 'break-word' }}>
+                      <th className="batch-cmp-th" style={{ color: 'var(--text-secondary)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Features</th>
+                      <th className="batch-cmp-th" style={{ color: 'var(--warning)', fontWeight: 600, background: 'var(--warning-light)', textAlign: 'center', wordBreak: 'break-word' }}>
                         {infoModalCourse?.enrollmentType === 'FREE' || infoModalCourse?.enrollmentType === 'DEMO' ? 'General' : 'PLUS'}
                       </th>
-                      <th className="batch-cmp-th" style={{ color: 'var(--primary-dark)', fontWeight: '800', background: 'var(--primary-light)', textAlign: 'center' }}>PRO</th>
+                      <th className="batch-cmp-th" style={{ color: 'var(--primary-dark)', fontWeight: 600, background: 'var(--primary-light)', textAlign: 'center' }}>PRO</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -697,7 +697,7 @@ export default function CoursesPage() {
                       <tr key={i} style={{ borderTop: '1px solid var(--border)' }}>
                         <td className="batch-cmp-td" style={{ color: 'var(--text-secondary)', fontWeight: '600' }}>{row.f}</td>
                         <td className="batch-cmp-td" style={{ color: 'var(--warning)', textAlign: 'center', background: 'var(--warning-light)' }}>{row.g}</td>
-                        <td className="batch-cmp-td" style={{ color: 'var(--primary-dark)', fontWeight: '700', textAlign: 'center', background: 'var(--surface)' }}>{row.p}</td>
+                        <td className="batch-cmp-td" style={{ color: 'var(--primary-dark)', fontWeight: 600, textAlign: 'center', background: 'var(--surface)' }}>{row.p}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -706,7 +706,7 @@ export default function CoursesPage() {
             </div>
 
             <div className="batch-cmp-footer" style={{ textAlign: 'center' }}>
-              <button onClick={() => setInfoModalCourse(null)} style={{ background: 'var(--primary)', color: 'white', padding: '12px 32px', borderRadius: '14px', fontSize: '14px', fontWeight: '700', border: 'none', cursor: 'pointer', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)' }}>
+              <button onClick={() => setInfoModalCourse(null)} style={{ background: 'var(--primary)', color: 'white', padding: '12px 32px', borderRadius: '14px', fontSize: '14px', fontWeight: 600, border: 'none', cursor: 'pointer', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)' }}>
                 Got it, thanks!
               </button>
             </div>
@@ -727,7 +727,7 @@ export default function CoursesPage() {
           <div
             onClick={e => e.stopPropagation()}
             style={{
-              background: 'var(--surface)', borderRadius: '32px', width: '100%', maxWidth: '440px',
+              background: 'var(--surface)', borderRadius: '14px', width: '100%', maxWidth: '440px',
               boxShadow: '0 0 100px var(--neu-glow), 0 25px 50px -12px rgba(0, 0, 0, 0.5)',
               padding: '40px', textAlign: 'center', position: 'relative',
               animation: 'modalSlideUp 0.3s ease-out'
@@ -738,7 +738,7 @@ export default function CoursesPage() {
                 <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" strokeWidth="2" style={{ animation: 'spin 1s linear infinite', marginBottom: '24px' }}>
                   <circle cx="12" cy="12" r="10" strokeOpacity="0.25"/><path d="M12 2a10 10 0 0 1 10 10" strokeOpacity="1"/>
                 </svg>
-                <h2 style={{ fontSize: '20px', fontWeight: '800', color: 'var(--text-primary)', marginBottom: '12px' }}>Processing Payment...</h2>
+                <h2 style={{ fontSize: '20px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '12px' }}>Processing Payment...</h2>
                 <p style={{ fontSize: '14px', color: 'var(--text-secondary)', lineHeight: '1.6' }}>
                   Please wait while we securely process your transaction.<br/>Do not close or refresh this page.
                 </p>
@@ -750,17 +750,17 @@ export default function CoursesPage() {
                   onClick={() => setUpgradeModalCourse(null)}
                   style={{ position: 'absolute', top: '24px', right: '24px', background: 'none', border: 'none', fontSize: '28px', color: 'var(--text-muted)', cursor: 'pointer', lineHeight: 1 }}
                 >&times;</button>
-                <div style={{ width: '80px', height: '80px', borderRadius: '24px', background: 'var(--surface)', color: '#fbbf24', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 24px' }}>
+                <div style={{ width: '80px', height: '80px', borderRadius: '14px', background: 'var(--surface)', color: '#fbbf24', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 24px' }}>
                   <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
                 </div>
-                <h2 style={{ fontSize: '22px', fontWeight: '800', color: 'var(--text-primary)', marginBottom: '8px' }}>Upgrade to PRO Batch</h2>
-                <div style={{ fontSize: '16px', fontWeight: '700', color: 'var(--text-primary)', marginBottom: '20px' }}>{upgradeModalCourse.name}</div>
+                <h2 style={{ fontSize: '22px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '8px' }}>Upgrade to PRO Batch</h2>
+                <div style={{ fontSize: '16px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '20px' }}>{upgradeModalCourse.name}</div>
                 <p style={{ fontSize: '15px', color: 'var(--text-secondary)', lineHeight: '1.6', marginBottom: '32px' }}>
                   You will get access to <strong>live classes, real-time mentorship,</strong> and everything as in your current plan.
                 </p>
 
-                <div style={{ background: 'var(--surface)', borderRadius: '20px', padding: '24px', marginBottom: '32px', border: '1.5px solid var(--border)' }}>
-                  <div style={{ fontSize: '36px', fontWeight: '900', color: 'var(--accent)', marginBottom: '8px' }}>₹{upgradeModalCourse.liveUpgradePrice}</div>
+                <div style={{ background: 'var(--surface)', borderRadius: '14px', padding: '24px', marginBottom: '32px', border: '1.5px solid var(--border)' }}>
+                  <div style={{ fontSize: '36px', fontWeight: 600, color: 'var(--accent)', marginBottom: '8px' }}>₹{upgradeModalCourse.liveUpgradePrice}</div>
                   <div style={{ fontSize: '14px', color: 'var(--text-muted)', fontWeight: '600' }}>One-time upgrade fee</div>
                 </div>
 
@@ -768,8 +768,8 @@ export default function CoursesPage() {
                   <button
                     onClick={() => setUpgradeModalCourse(null)}
                     style={{
-                      flex: 1, padding: '16px', borderRadius: '18px', border: '2px solid var(--border)', background: 'var(--surface)',
-                      color: 'var(--text-secondary)', fontWeight: '700', cursor: 'pointer'
+                      flex: 1, padding: '16px', borderRadius: '12px', border: '2px solid var(--border)', background: 'var(--surface)',
+                      color: 'var(--text-secondary)', fontWeight: 600, cursor: 'pointer'
                     }}
                   >
                     Cancel
@@ -777,9 +777,9 @@ export default function CoursesPage() {
                   <button
                     onClick={() => handleUpgrade(upgradeModalCourse.id)}
                     style={{
-                      flex: 1.5, padding: '16px', borderRadius: '18px', border: 'none',
-                      background: 'linear-gradient(135deg, var(--primary), var(--primary))',
-                      color: 'white', fontWeight: '700', cursor: 'pointer',
+                      flex: 1.5, padding: '16px', borderRadius: '12px', border: 'none',
+                      background: 'var(--primary)',
+                      color: 'white', fontWeight: 600, cursor: 'pointer',
                       boxShadow: '0 4px 12px color-mix(in srgb, var(--primary) 30%, transparent)',
                       display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px'
                     }}
@@ -804,7 +804,7 @@ export default function CoursesPage() {
           padding: '20px', overflow: 'auto'
         }} onClick={() => setShowPurchaseModal(false)}>
           <div style={{
-            background: 'var(--surface)', borderRadius: '32px', width: '100%', maxWidth: '480px',
+            background: 'var(--surface)', borderRadius: '14px', width: '100%', maxWidth: '480px',
             boxShadow: '0 0 100px var(--neu-glow), 0 25px 50px -12px rgba(0, 0, 0, 0.5)',
             padding: '30px',
             animation: 'modalSlideUp 0.3s ease-out',
@@ -819,7 +819,7 @@ export default function CoursesPage() {
 
             {/* Course Header Color Band */}
             <div style={{
-              background: `linear-gradient(135deg, ${offering.course?.color || '#6366f1'}, ${colorWithOpacity(offering.course?.color || '#6366f1', 'cc')})`,
+              background: `linear-gradient(135deg, ${offering.course?.color || 'var(--primary)'}, ${colorWithOpacity(offering.course?.color || 'var(--primary)', 'cc')})`,
               margin: '-30px -30px 24px -30px',
               padding: '40px 30px 30px 30px',
               borderTopLeftRadius: '32px',
@@ -837,7 +837,7 @@ export default function CoursesPage() {
               }}>
                 <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20M4 19.5A2.5 2.5 0 0 0 6.5 22H20M4 19.5V5A2.5 2.5 0 0 1 6.5 2.5H20v20H6.5a2.5 2.5 0 0 1-2-2.5z"/></svg>
               </div>
-              <h2 style={{ fontSize: '24px', fontWeight: '900', color: '#fff', marginBottom: '4px', textShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
+              <h2 style={{ fontSize: '24px', fontWeight: 600, color: '#fff', marginBottom: '4px', textShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
                 {offering.course?.name}
               </h2>
               <p style={{ fontSize: '13px', color: 'rgba(255, 255, 255, 0.7)', fontWeight: '600', marginBottom: '0' }}>
@@ -851,8 +851,8 @@ export default function CoursesPage() {
                 style={{
                   display: 'inline-flex', alignItems: 'center', gap: '4px',
                   background: 'rgba(255,255,255,0.2)', border: '1px solid rgba(255,255,255,0.4)',
-                  padding: '6px 14px', borderRadius: '20px', color: '#fff',
-                  fontSize: '11px', fontWeight: '800', cursor: 'pointer',
+                  padding: '6px 14px', borderRadius: '14px', color: '#fff',
+                  fontSize: '11px', fontWeight: 600, cursor: 'pointer',
                   marginTop: '12px', transition: 'all 0.2s',
                 }}
                 onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.3)'}
@@ -866,18 +866,18 @@ export default function CoursesPage() {
               {/* Recorded Batch Option */}
               {offering.hasRecorded && (
                 <div style={{
-                  padding: '16px', borderRadius: '20px',
+                  padding: '16px', borderRadius: '14px',
                   background: 'var(--surface-2, color-mix(in srgb, var(--primary) 2%, transparent))',
                   border: '1.5px solid var(--border)',
                   boxShadow: '0 4px 12px rgba(0,0,0,0.02)'
                 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
                     <div>
-                      <div style={{ fontSize: '11px', fontWeight: '800', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '4px' }}>
+                      <div style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '4px' }}>
                         📹 Recorded Batch - PLUS
                       </div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <span style={{ fontSize: '22px', fontWeight: '900', color: 'var(--text-primary)' }}>
+                        <span style={{ fontSize: '22px', fontWeight: 600, color: 'var(--text-primary)' }}>
                           ₹{Math.max(Number(offering.recordedDiscountPrice || 0), 1)}
                         </span>
                         {Number(offering.recordedOriginalPrice || 0) > Math.max(Number(offering.recordedDiscountPrice || 0), 1) && (
@@ -894,7 +894,7 @@ export default function CoursesPage() {
                     style={{
                       width: '100%', padding: '12px', borderRadius: '50px',
                       border: '2.5px solid var(--accent)', background: 'transparent',
-                      color: 'var(--accent)', fontSize: '14px', fontWeight: '800',
+                      color: 'var(--accent)', fontSize: '14px', fontWeight: 600,
                       cursor: purchasing ? 'not-allowed' : 'pointer',
                       transition: 'all 0.2s',
                     }}
@@ -907,7 +907,7 @@ export default function CoursesPage() {
               {/* Live Batch Option */}
               {offering.hasLive && (
                 <div style={{
-                  padding: '16px', borderRadius: '20px',
+                  padding: '16px', borderRadius: '14px',
                   background: 'var(--surface-2, color-mix(in srgb, var(--primary) 2%, transparent))',
                   border: '1.5px solid var(--accent)',
                   position: 'relative',
@@ -915,19 +915,19 @@ export default function CoursesPage() {
                 }}>
                   <div style={{
                     position: 'absolute', top: '12px', right: '16px',
-                    padding: '3px 10px', borderRadius: '20px',
+                    padding: '3px 10px', borderRadius: '14px',
                     background: 'var(--accent)', color: '#fff',
-                    fontSize: '9px', fontWeight: '900', letterSpacing: '0.08em',
+                    fontSize: '9px', fontWeight: 600, letterSpacing: '0.08em',
                   }}>
                     PRO
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
                     <div>
-                      <div style={{ fontSize: '11px', fontWeight: '800', color: 'var(--accent)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '4px' }}>
+                      <div style={{ fontSize: '11px', fontWeight: 600, color: 'var(--accent)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '4px' }}>
                         🔴 Live + Recorded Batch - PRO
                       </div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <span style={{ fontSize: '22px', fontWeight: '900', color: 'var(--text-primary)' }}>
+                        <span style={{ fontSize: '22px', fontWeight: 600, color: 'var(--text-primary)' }}>
                           ₹{Math.max(Number(offering.liveDiscountPrice || 0), 1)}
                         </span>
                         {Number(offering.liveOriginalPrice || 0) > Math.max(Number(offering.liveDiscountPrice || 0), 1) && (
@@ -944,7 +944,7 @@ export default function CoursesPage() {
                     style={{
                       width: '100%', padding: '12px', borderRadius: '50px',
                       border: 'none', background: 'var(--accent)',
-                      color: '#fff', fontSize: '14px', fontWeight: '800',
+                      color: '#fff', fontSize: '14px', fontWeight: 600,
                       cursor: purchasing ? 'not-allowed' : 'pointer',
                       transition: 'all 0.2s',
                     }}
@@ -977,7 +977,7 @@ export default function CoursesPage() {
                   border: 'none',
                   color: 'var(--accent)',
                   fontSize: '11.5px',
-                  fontWeight: '800',
+                  fontWeight: 600,
                   cursor: 'pointer',
                   textDecoration: 'underline',
                   padding: '4px 8px',
@@ -1000,22 +1000,22 @@ export default function CoursesPage() {
           padding: '20px'
         }} onClick={() => { setSuccessOrderId(null); window.location.reload() }}>
           <div style={{
-            background: 'var(--surface)', borderRadius: '32px', width: '100%', maxWidth: '440px',
+            background: 'var(--surface)', borderRadius: '14px', width: '100%', maxWidth: '440px',
             boxShadow: '0 0 100px var(--neu-glow), 0 25px 50px -12px rgba(0, 0, 0, 0.5)',
             padding: '40px', textAlign: 'center',
             animation: 'modalSlideUp 0.3s ease-out'
           }} onClick={e => e.stopPropagation()}>
             <div style={{ fontSize: '64px', marginBottom: '16px' }}>🎉</div>
-            <h2 style={{ fontSize: '22px', fontWeight: '800', color: 'var(--text-primary)', marginBottom: '8px' }}>Course Unlocked!</h2>
+            <h2 style={{ fontSize: '22px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '8px' }}>Course Unlocked!</h2>
             <p style={{ fontSize: '15px', color: 'var(--text-secondary)', lineHeight: '1.6', marginBottom: '24px' }}>
               Your payment was verified successfully. You now have full access to all lectures, class materials, and student benefits.
             </p>
             <button
               onClick={() => { setSuccessOrderId(null); window.location.reload() }}
               style={{
-                width: '100%', padding: '16px', borderRadius: '18px', border: 'none',
-                background: 'linear-gradient(135deg, var(--accent) 0%, var(--primary) 100%)',
-                color: 'white', fontWeight: '700', fontSize: '15px', cursor: 'pointer',
+                width: '100%', padding: '16px', borderRadius: '12px', border: 'none',
+                background: 'var(--primary)',
+                color: 'white', fontWeight: 600, fontSize: '15px', cursor: 'pointer',
                 boxShadow: '0 4px 12px color-mix(in srgb, var(--primary) 30%, transparent)',
               }}
             >
@@ -1037,7 +1037,7 @@ export default function CoursesPage() {
           setShowPurchaseModal(true)
         }}>
           <div style={{
-            background: '#1e2230', borderRadius: '24px', width: '100%', maxWidth: '520px',
+            background: '#1e2230', borderRadius: '14px', width: '100%', maxWidth: '520px',
             boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
             padding: '30px',
             animation: 'modalSlideUp 0.3s ease-out',
@@ -1056,22 +1056,22 @@ export default function CoursesPage() {
               ✕
             </button>
 
-            <h2 style={{ fontSize: '22px', fontWeight: '800', marginBottom: '4px', color: '#ffffff' }}>Batch Comparison</h2>
+            <h2 style={{ fontSize: '22px', fontWeight: 600, marginBottom: '4px', color: '#ffffff' }}>Batch Comparison</h2>
             <p style={{ fontSize: '13px', color: '#a0aec0', marginBottom: '24px', fontWeight: '500' }}>
               Choose the experience that fits your learning style
             </p>
 
             {/* Comparison Table */}
             <div style={{
-              borderRadius: '16px', overflow: 'hidden', border: '1px solid #2d3748',
+              borderRadius: '12px', overflow: 'hidden', border: '1px solid #2d3748',
               background: '#1a1d28', marginBottom: '24px'
             }}>
               <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '13px' }}>
                 <thead>
                   <tr style={{ borderBottom: '1px solid #2d3748', background: '#171923' }}>
-                    <th style={{ padding: '14px 16px', fontWeight: '700', color: '#a0aec0', width: '40%' }}>FEATURES</th>
-                    <th style={{ padding: '14px 16px', fontWeight: '800', color: '#d69e2e', textAlign: 'center', width: '30%', background: 'rgba(214, 158, 46, 0.05)' }}>PLUS</th>
-                    <th style={{ padding: '14px 16px', fontWeight: '800', color: 'var(--primary)', textAlign: 'center', width: '30%', background: 'color-mix(in srgb, var(--primary) 5%, transparent)' }}>PRO</th>
+                    <th style={{ padding: '14px 16px', fontWeight: 600, color: '#a0aec0', width: '40%' }}>FEATURES</th>
+                    <th style={{ padding: '14px 16px', fontWeight: 600, color: '#d69e2e', textAlign: 'center', width: '30%', background: 'rgba(214, 158, 46, 0.05)' }}>PLUS</th>
+                    <th style={{ padding: '14px 16px', fontWeight: 600, color: 'var(--primary)', textAlign: 'center', width: '30%', background: 'color-mix(in srgb, var(--primary) 5%, transparent)' }}>PRO</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -1086,14 +1086,14 @@ export default function CoursesPage() {
                     <tr key={row.name} style={{ borderBottom: index < 5 ? '1px solid #2d3748' : 'none' }}>
                       <td style={{ padding: '12px 16px', fontWeight: '600', color: '#e2e8f0' }}>{row.name}</td>
                       <td style={{
-                        padding: '12px 16px', textAlign: 'center', fontWeight: '700',
+                        padding: '12px 16px', textAlign: 'center', fontWeight: 600,
                         color: row.plus.includes('✅') ? '#48bb78' : '#e53e3e',
                         background: 'rgba(214, 158, 46, 0.02)'
                       }}>
                         {row.plus}
                       </td>
                       <td style={{
-                        padding: '12px 16px', textAlign: 'center', fontWeight: '700',
+                        padding: '12px 16px', textAlign: 'center', fontWeight: 600,
                         color: row.pro.includes('✅') ? '#48bb78' : '#e53e3e',
                         background: 'color-mix(in srgb, var(--primary) 2%, transparent)'
                       }}>
@@ -1114,8 +1114,8 @@ export default function CoursesPage() {
                 }}
                 style={{
                   padding: '12px 32px', borderRadius: '50px', border: 'none',
-                  background: 'linear-gradient(135deg, var(--primary), var(--primary))', color: '#ffffff',
-                  fontSize: '14px', fontWeight: '800', cursor: 'pointer',
+                  background: 'var(--primary)', color: '#ffffff',
+                  fontSize: '14px', fontWeight: 600, cursor: 'pointer',
                   boxShadow: '0 4px 15px color-mix(in srgb, var(--primary) 30%, transparent)', transition: 'all 0.2s'
                 }}
                 onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-1px)'}
@@ -1137,27 +1137,27 @@ export default function CoursesPage() {
           padding: '20px'
         }} onClick={() => setUpgradeSuccessOrderId(null)}>
           <div style={{
-            background: 'var(--surface)', borderRadius: '32px', width: '100%', maxWidth: '440px',
+            background: 'var(--surface)', borderRadius: '14px', width: '100%', maxWidth: '440px',
             boxShadow: '0 0 100px var(--neu-glow), 0 25px 50px -12px rgba(0, 0, 0, 0.5)',
             padding: '40px', textAlign: 'center',
             animation: 'modalSlideUp 0.3s ease-out'
           }} onClick={e => e.stopPropagation()}>
             <div style={{ fontSize: '64px', marginBottom: '16px' }}>🎉</div>
-            <h2 style={{ fontSize: '22px', fontWeight: '800', color: 'var(--text-primary)', marginBottom: '8px' }}>Welcome to PRO!</h2>
+            <h2 style={{ fontSize: '22px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '8px' }}>Welcome to PRO!</h2>
             <p style={{ fontSize: '15px', color: 'var(--text-secondary)', lineHeight: '1.6', marginBottom: '24px' }}>
               Your upgrade was successful. You now have full access to live classes, mentorship, and priority support.
             </p>
-            <div style={{ background: 'var(--success-light)', borderRadius: '16px', padding: '16px', marginBottom: '24px', border: '1.5px solid var(--border)' }}>
-              <div style={{ fontSize: '12px', color: 'var(--success)', fontWeight: '700', textTransform: 'uppercase', marginBottom: '4px' }}>Order ID</div>
-              <div style={{ fontSize: '18px', fontWeight: '800', color: 'var(--success)', fontFamily: 'monospace' }}>{upgradeSuccessOrderId}</div>
+            <div style={{ background: 'var(--success-light)', borderRadius: '12px', padding: '16px', marginBottom: '24px', border: '1.5px solid var(--border)' }}>
+              <div style={{ fontSize: '12px', color: 'var(--success)', fontWeight: 600, textTransform: 'uppercase', marginBottom: '4px' }}>Order ID</div>
+              <div style={{ fontSize: '18px', fontWeight: 600, color: 'var(--success)', fontFamily: 'monospace' }}>{upgradeSuccessOrderId}</div>
             </div>
             <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '20px' }}>A confirmation email has been sent to your registered email.</p>
             <button
               onClick={() => setUpgradeSuccessOrderId(null)}
               style={{
-                width: '100%', padding: '16px', borderRadius: '18px', border: 'none',
+                width: '100%', padding: '16px', borderRadius: '12px', border: 'none',
                 background: 'linear-gradient(135deg, #22c55e, #16a34a)',
-                color: 'white', fontWeight: '700', fontSize: '15px', cursor: 'pointer',
+                color: 'white', fontWeight: 600, fontSize: '15px', cursor: 'pointer',
                 boxShadow: '0 4px 12px rgba(22, 163, 74, 0.3)',
               }}
             >
@@ -1175,7 +1175,7 @@ export default function CoursesPage() {
           display: 'flex', alignItems: 'center', justifyContent: 'center'
         }}>
           <div style={{
-            background: 'var(--surface)', padding: '40px', borderRadius: '32px',
+            background: 'var(--surface)', padding: '40px', borderRadius: '14px',
             textAlign: 'center', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5)',
             width: '320px'
           }}>
@@ -1184,7 +1184,7 @@ export default function CoursesPage() {
               borderTop: '4px solid var(--primary)', borderRadius: '50%',
               margin: '0 auto 20px'
             }} />
-            <h3 style={{ fontSize: '18px', fontWeight: '800', color: 'var(--text-primary)', marginBottom: '8px' }}>Processing...</h3>
+            <h3 style={{ fontSize: '18px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '8px' }}>Processing...</h3>
             <p style={{ fontSize: '14px', color: 'var(--text-secondary)', fontWeight: '500' }}>Please wait while we set up your course access.</p>
           </div>
         </div>

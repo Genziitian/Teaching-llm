@@ -305,7 +305,7 @@ export default function AnnouncementsPage() {
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
           {[1, 2, 3].map(i => (
-            <div key={i} style={{ borderRadius: '24px', background: 'var(--surface-2)', border: '1px solid var(--border)', padding: '24px', display: 'flex', flexDirection: 'column', gap: '12px', boxShadow: 'var(--shadow)' }}>
+            <div key={i} style={{ borderRadius: '14px', background: 'var(--surface-2)', border: '1px solid var(--border)', padding: '24px', display: 'flex', flexDirection: 'column', gap: '12px', boxShadow: 'var(--shadow)' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <div className="skeleton" style={{ height: '20px', width: '40%', borderRadius: '4px' }} />
                 <div className="skeleton" style={{ height: '14px', width: '80px', borderRadius: '4px' }} />
@@ -393,7 +393,7 @@ export default function AnnouncementsPage() {
       {/* ── Create form ─────────────────────────────────────────────────── */}
       {canCreate && showForm && (
         <div style={{ ...neuCard, marginBottom: '28px' }}>
-          <h3 style={{ fontSize: '18px', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '20px' }}>
+          <h3 style={{ fontSize: '18px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '20px' }}>
             Create Announcement
           </h3>
           <form onSubmit={handleSubmit}>
@@ -401,7 +401,7 @@ export default function AnnouncementsPage() {
               
               {announcements.length > 0 && (
                 <div>
-                  <label style={{ display: 'block', fontSize: '13px', fontWeight: 700, color: 'var(--text-secondary)', marginBottom: '6px' }}>
+                  <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '6px' }}>
                     Reuse Previous Announcement (Template)
                   </label>
                   <select
@@ -420,19 +420,19 @@ export default function AnnouncementsPage() {
               )}
 
               <div>
-                <label style={{ display: 'block', fontSize: '13px', fontWeight: 700, color: 'var(--text-secondary)', marginBottom: '6px' }}>Title</label>
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '6px' }}>Title</label>
                 <input type="text" value={title} onChange={e => setTitle(e.target.value)}
                   placeholder="Announcement title..." style={neuInput} required />
               </div>
               <div>
-                <label style={{ display: 'block', fontSize: '13px', fontWeight: 700, color: 'var(--text-secondary)', marginBottom: '6px' }}>Content</label>
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '6px' }}>Content</label>
                 <textarea value={content} onChange={e => setContent(e.target.value)}
                   placeholder="Write your announcement details here..." rows={4}
                   style={{ ...neuInput, resize: 'vertical', minHeight: '100px' }} required />
               </div>
               <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
                 <div style={{ flex: 1, minWidth: '200px' }}>
-                  <label style={{ display: 'block', fontSize: '13px', fontWeight: 700, color: 'var(--text-secondary)', marginBottom: '6px' }}>Type</label>
+                  <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '6px' }}>Type</label>
                   <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                     {TYPE_OPTIONS.map(opt => (
                       <button key={opt.value} type="button" onClick={() => setType(opt.value)}
@@ -452,7 +452,7 @@ export default function AnnouncementsPage() {
                   </div>
                 </div>
                 <div style={{ flex: 1, minWidth: '200px' }}>
-                  <label style={{ display: 'block', fontSize: '13px', fontWeight: 700, color: 'var(--text-secondary)', marginBottom: '6px' }}>
+                  <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '6px' }}>
                     Target Class (optional)
                   </label>
                   <select value={classId} onChange={e => setClassId(e.target.value)}
@@ -467,14 +467,14 @@ export default function AnnouncementsPage() {
               <div style={{
                 marginTop: '8px',
                 padding: '20px',
-                borderRadius: '18px',
+                borderRadius: '12px',
                 background: 'var(--surface-2)',
                 boxShadow: 'inset 3px 3px 6px var(--neu-dark), inset -3px -3px 6px var(--neu-light)',
                 display: 'flex',
                 flexDirection: 'column',
                 gap: '16px',
               }}>
-                <div style={{ fontSize: '14px', fontWeight: 800, color: 'var(--primary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <div style={{ fontSize: '14px', fontWeight: 600, color: 'var(--primary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                     <rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect>
                     <line x1="12" y1="18" x2="12.01" y2="18"></line>
@@ -485,7 +485,7 @@ export default function AnnouncementsPage() {
                 {/* Delivery Mode & Sound Switchers */}
                 <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
                   <div style={{ flex: 1, minWidth: '240px' }}>
-                    <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary)', marginBottom: '6px' }}>
+                    <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '6px' }}>
                       Delivery Urgency Mode
                     </label>
                     <div style={{ display: 'flex', gap: '8px' }}>
@@ -494,11 +494,11 @@ export default function AnnouncementsPage() {
                         onClick={() => setImportance('high')}
                         style={{
                           flex: 1, padding: '10px 14px', borderRadius: '12px', border: 'none',
-                          fontSize: '12.5px', fontWeight: 700, cursor: 'pointer',
+                          fontSize: '12.5px', fontWeight: 600, cursor: 'pointer',
                           background: importance === 'high' ? 'var(--primary)' : 'var(--surface-2)',
                           color: importance === 'high' ? '#fff' : 'var(--text-secondary)',
                           boxShadow: importance === 'high'
-                            ? '3px 3px 8px rgba(54,54,232,0.3), -2px -2px 6px var(--neu-light)'
+                            ? '3px 3px 8px rgba(128, 128, 128,0.3), -2px -2px 6px var(--neu-light)'
                             : '2px 2px 5px var(--neu-dark), -2px -2px 5px var(--neu-light)',
                           transition: 'all 0.15s ease'
                         }}
@@ -510,7 +510,7 @@ export default function AnnouncementsPage() {
                         onClick={() => setImportance('default')}
                         style={{
                           flex: 1, padding: '10px 14px', borderRadius: '12px', border: 'none',
-                          fontSize: '12.5px', fontWeight: 700, cursor: 'pointer',
+                          fontSize: '12.5px', fontWeight: 600, cursor: 'pointer',
                           background: importance === 'default' ? 'var(--text-secondary)' : 'var(--surface-2)',
                           color: importance === 'default' ? '#fff' : 'var(--text-secondary)',
                           boxShadow: importance === 'default'
@@ -525,7 +525,7 @@ export default function AnnouncementsPage() {
                   </div>
 
                   <div style={{ flex: 1, minWidth: '200px' }}>
-                    <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary)', marginBottom: '6px' }}>
+                    <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '6px' }}>
                       Notification Sound
                     </label>
                     <div style={{ display: 'flex', gap: '8px' }}>
@@ -534,11 +534,11 @@ export default function AnnouncementsPage() {
                         onClick={() => setSound('default')}
                         style={{
                           flex: 1, padding: '10px 14px', borderRadius: '12px', border: 'none',
-                          fontSize: '12.5px', fontWeight: 700, cursor: 'pointer',
+                          fontSize: '12.5px', fontWeight: 600, cursor: 'pointer',
                           background: sound === 'default' ? 'var(--primary)' : 'var(--surface-2)',
                           color: sound === 'default' ? '#fff' : 'var(--text-secondary)',
                           boxShadow: sound === 'default'
-                            ? '3px 3px 8px rgba(54,54,232,0.3), -2px -2px 6px var(--neu-light)'
+                            ? '3px 3px 8px rgba(128, 128, 128,0.3), -2px -2px 6px var(--neu-light)'
                             : '2px 2px 5px var(--neu-dark), -2px -2px 5px var(--neu-light)',
                           transition: 'all 0.15s ease'
                         }}
@@ -550,7 +550,7 @@ export default function AnnouncementsPage() {
                         onClick={() => setSound('none')}
                         style={{
                           flex: 1, padding: '10px 14px', borderRadius: '12px', border: 'none',
-                          fontSize: '12.5px', fontWeight: 700, cursor: 'pointer',
+                          fontSize: '12.5px', fontWeight: 600, cursor: 'pointer',
                           background: sound === 'none' ? 'var(--danger)' : 'var(--surface-2)',
                           color: sound === 'none' ? '#fff' : 'var(--text-secondary)',
                           boxShadow: sound === 'none'
@@ -566,7 +566,7 @@ export default function AnnouncementsPage() {
                 </div>
 
                 <div>
-                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary)', marginBottom: '4px' }}>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '4px' }}>
                     Banner Image URL (Optional)
                   </label>
                   <input
@@ -587,7 +587,7 @@ export default function AnnouncementsPage() {
                   return (
                     <div style={{ marginTop: '4px' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px', flexWrap: 'wrap', gap: '6px' }}>
-                        <label style={{ display: 'block', fontSize: '11.5px', fontWeight: 800, color: 'var(--primary)', textTransform: 'uppercase', letterSpacing: '0.3px', margin: 0 }}>
+                        <label style={{ display: 'block', fontSize: '11.5px', fontWeight: 600, color: 'var(--primary)', textTransform: 'uppercase', letterSpacing: '0.3px', margin: 0 }}>
                           🖼️ Recent Media Bank ({imagePage * itemsPerPage + 1}–{Math.min((imagePage + 1) * itemsPerPage, recentImages.length)} of {recentImages.length})
                         </label>
                         
@@ -599,7 +599,7 @@ export default function AnnouncementsPage() {
                               onClick={() => setImagePage(p => Math.max(0, p - 1))}
                               style={{
                                 padding: '4px 10px', borderRadius: '8px', border: 'none',
-                                fontSize: '11px', fontWeight: 700, cursor: imagePage === 0 ? 'not-allowed' : 'pointer',
+                                fontSize: '11px', fontWeight: 600, cursor: imagePage === 0 ? 'not-allowed' : 'pointer',
                                 background: 'var(--surface-2)', color: imagePage === 0 ? 'var(--text-muted)' : 'var(--primary)',
                                 boxShadow: imagePage === 0 ? 'none' : '2px 2px 4px var(--neu-dark), -2px -2px 4px var(--neu-light)',
                                 transition: 'all 0.1s ease',
@@ -616,7 +616,7 @@ export default function AnnouncementsPage() {
                               onClick={() => setImagePage(p => Math.min(totalPages - 1, p + 1))}
                               style={{
                                 padding: '4px 10px', borderRadius: '8px', border: 'none',
-                                fontSize: '11px', fontWeight: 700, cursor: imagePage >= totalPages - 1 ? 'not-allowed' : 'pointer',
+                                fontSize: '11px', fontWeight: 600, cursor: imagePage >= totalPages - 1 ? 'not-allowed' : 'pointer',
                                 background: 'var(--surface-2)', color: imagePage >= totalPages - 1 ? 'var(--text-muted)' : 'var(--primary)',
                                 boxShadow: imagePage >= totalPages - 1 ? 'none' : '2px 2px 4px var(--neu-dark), -2px -2px 4px var(--neu-light)',
                                 transition: 'all 0.1s ease',
@@ -650,7 +650,7 @@ export default function AnnouncementsPage() {
                                 background: '#f2f3f7',
                                 border: isSelected ? '2px solid var(--primary)' : '1px solid rgba(0,0,0,0.1)',
                                 boxShadow: isSelected
-                                  ? '0 0 8px rgba(54,54,232,0.4)'
+                                  ? '0 0 8px rgba(128, 128, 128,0.4)'
                                   : '2px 2px 5px rgba(0,0,0,0.06)',
                                 transition: 'transform 0.15s ease, border-color 0.15s ease',
                               }}
@@ -684,7 +684,7 @@ export default function AnnouncementsPage() {
 
                 <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
                   <div style={{ flex: 1, minWidth: '180px' }}>
-                    <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary)', marginBottom: '4px' }}>
+                    <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '4px' }}>
                       CTA Button Text (Optional — e.g. "Join Class", "Start Quiz")
                     </label>
                     <input
@@ -696,7 +696,7 @@ export default function AnnouncementsPage() {
                     />
                   </div>
                   <div style={{ flex: 1, minWidth: '180px' }}>
-                    <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary)', marginBottom: '4px' }}>
+                    <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '4px' }}>
                       CTA Button Redirect Path (Optional — relative or full link)
                     </label>
                     <input
@@ -735,7 +735,7 @@ export default function AnnouncementsPage() {
           <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--neu-dark)" strokeWidth="1.5" strokeLinecap="round" style={{ margin: '0 auto 16px' }}>
             <path d="M22 17H2a3 3 0 0 0 3-3V9a7 7 0 0 1 14 0v5a3 3 0 0 0 3 3zm-8.27 4a2 2 0 0 1-3.46 0"/>
           </svg>
-          <div style={{ fontSize: '16px', fontWeight: 700, color: 'var(--text-secondary)', marginBottom: '4px' }}>
+          <div style={{ fontSize: '16px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '4px' }}>
             {activeTab === 'all' ? 'No announcements yet' : `No ${activeTab} announcements`}
           </div>
           <div style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
@@ -902,7 +902,7 @@ export default function AnnouncementsPage() {
                                 background: 'var(--surface-2)', border: 'none',
                                 color: 'var(--primary)', cursor: 'pointer', padding: '6px 12px',
                                 borderRadius: '30px', display: 'flex', alignItems: 'center', gap: '6px',
-                                fontSize: '11px', fontWeight: 800,
+                                fontSize: '11px', fontWeight: 600,
                                 boxShadow: '2px 2px 5px var(--neu-dark), -2px -2px 5px var(--neu-light)',
                                 transition: 'all 0.2s',
                               }}

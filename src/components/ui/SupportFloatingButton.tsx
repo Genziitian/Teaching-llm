@@ -130,7 +130,7 @@ export default function SupportFloatingButton() {
             border: '1px solid var(--border)',
             color: 'var(--text-primary)',
             fontSize: '13px',
-            fontWeight: '700',
+            fontWeight: 600,
             textDecoration: 'none',
             boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
             cursor: 'pointer',
@@ -160,7 +160,7 @@ export default function SupportFloatingButton() {
             border: '1px solid var(--border)',
             color: 'var(--text-primary)',
             fontSize: '13px',
-            fontWeight: '700',
+            fontWeight: 600,
             textDecoration: 'none',
             boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
             cursor: 'pointer',
@@ -188,7 +188,7 @@ export default function SupportFloatingButton() {
             border: '1px solid var(--border)',
             color: 'var(--text-primary)',
             fontSize: '13px',
-            fontWeight: '700',
+            fontWeight: 600,
             textDecoration: 'none',
             boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
             cursor: 'pointer',
@@ -213,9 +213,9 @@ export default function SupportFloatingButton() {
           gap: '8px',
           padding: '12px 20px',
           borderRadius: '50px',
-          background: 'linear-gradient(135deg, var(--primary) 0%, #5b5bf0 100%)',
+          background: 'var(--primary)',
           color: '#ffffff',
-          fontWeight: '700',
+          fontWeight: 600,
           fontSize: '14px',
           boxShadow: '0 8px 16px color-mix(in srgb, var(--primary) 30%, transparent)',
           transition: 'all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)',
@@ -254,13 +254,13 @@ export default function SupportFloatingButton() {
           transform: translateY(-2px);
           background: var(--surface) !important;
           border-color: var(--primary) !important;
-          box-shadow: 0 6px 16px rgba(54,54,232,0.15) !important;
+          box-shadow: 0 6px 16px rgba(128, 128, 128,0.15) !important;
         }
         .support-stack-item:active {
           transform: translateY(0);
         }
         .support-btn-float:hover {
-          box-shadow: 0 12px 24px rgba(54,54,232,0.4) !important;
+          box-shadow: 0 12px 24px rgba(128, 128, 128,0.4) !important;
         }
         .support-btn-float:active {
           transform: scale(0.97) !important;

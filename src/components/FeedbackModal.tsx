@@ -198,7 +198,7 @@ export default function FeedbackModal({ courseId, courseName, courseSubject, onC
           </button>
         )}
 
-        <h2 style={{ fontSize: 'clamp(20px, 5.4vw, 26px)', fontWeight: '800', color: 'var(--text-primary)', marginBottom: '6px', paddingRight: '48px', lineHeight: 1.2 }}>
+        <h2 style={{ fontSize: 'clamp(20px, 5.4vw, 26px)', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '6px', paddingRight: '48px', lineHeight: 1.2 }}>
           Feedback for {courseName}
         </h2>
         <p style={{ fontSize: 'clamp(13px, 3.4vw, 15px)', color: 'var(--text-secondary)', marginBottom: 'clamp(20px, 5vw, 32px)' }}>
@@ -214,7 +214,7 @@ export default function FeedbackModal({ courseId, courseName, courseSubject, onC
           }}>
             {CATEGORIES.map(cat => (
               <div key={cat.id}>
-                <p style={{ fontSize: 'clamp(13px, 3.6vw, 15px)', fontWeight: '700', color: 'var(--text-primary)', marginBottom: '10px' }}>{cat.label}</p>
+                <p style={{ fontSize: 'clamp(13px, 3.6vw, 15px)', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '10px' }}>{cat.label}</p>
                 <div className="feedback-stars" style={{ display: 'flex', gap: 'clamp(6px, 2vw, 10px)' }}>
                   {[1, 2, 3, 4, 5].map(star => (
                     <button
@@ -252,7 +252,7 @@ export default function FeedbackModal({ courseId, courseName, courseSubject, onC
           </div>
 
           <div>
-            <p style={{ fontSize: '15px', fontWeight: '700', color: 'var(--text-primary)', marginBottom: '12px' }}>Additional Comments</p>
+            <p style={{ fontSize: '15px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '12px' }}>Additional Comments</p>
             <textarea
               placeholder="Tell us more about your experience..."
               value={comment}
@@ -261,7 +261,7 @@ export default function FeedbackModal({ courseId, courseName, courseSubject, onC
                 width: '100%',
                 height: '120px',
                 padding: '20px',
-                borderRadius: '20px',
+                borderRadius: '14px',
                 border: '2px solid var(--border)',
                 fontSize: '15px',
                 fontFamily: 'inherit',
@@ -290,7 +290,7 @@ export default function FeedbackModal({ courseId, courseName, courseSubject, onC
           marginTop: '24px', 
           padding: '16px', 
           background: 'var(--surface)', 
-          borderRadius: '16px',
+          borderRadius: '12px',
           border: '1px solid var(--border)',
         }}>
           <p style={{ fontSize: '13px', color: 'var(--text-secondary)', margin: 0, lineHeight: '1.5' }}>
@@ -313,7 +313,7 @@ export default function FeedbackModal({ courseId, courseName, courseSubject, onC
               border: 'none',
               background: 'var(--surface)',
               color: 'var(--text-secondary)',
-              fontWeight: '700',
+              fontWeight: 600,
               fontSize: '13.5px',
               cursor: (isForced && helpClicked) ? 'default' : 'pointer',
               whiteSpace: 'nowrap',
@@ -334,7 +334,7 @@ export default function FeedbackModal({ courseId, courseName, courseSubject, onC
                 border: '1px solid var(--border)',
                 background: 'var(--surface)',
                 color: 'var(--text-secondary)',
-                fontWeight: '700',
+                fontWeight: 600,
                 fontSize: '13.5px',
                 cursor: (isForced && cancelClicked) ? 'default' : 'pointer',
                 opacity: (isForced && cancelClicked) ? 0.4 : 1,
@@ -353,7 +353,7 @@ export default function FeedbackModal({ courseId, courseName, courseSubject, onC
                 border: 'none',
                 background: '#0a0a0a',
                 color: 'white',
-                fontWeight: '700',
+                fontWeight: 600,
                 fontSize: '13.5px',
                 cursor: 'pointer',
                 opacity: isSubmitting ? 0.7 : 1,

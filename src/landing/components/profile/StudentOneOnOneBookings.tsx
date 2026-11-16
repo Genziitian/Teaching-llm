@@ -17,15 +17,7 @@ import {
   X,
   Sparkles
 } from 'lucide-react';
-import { supabase } from '@/landing/lib/supabase';
-
-const getAuthHeaders = async (): Promise<Record<string, string>> => {
-  const { data: { session } } = await supabase.auth.getSession();
-  if (session?.access_token) {
-    return { 'Authorization': `Bearer ${session.access_token}` };
-  }
-  return {};
-};
+// Auth is the class genz session cookie (sent automatically on same-origin requests).
 
 interface Booking {
   id: string;
@@ -79,9 +71,8 @@ export default function StudentOneOnOneBookings({ email }: StudentOneOnOneBookin
   const fetchBookings = async () => {
     if (!email) return;
     try {
-      const authHeaders = await getAuthHeaders();
       const res = await fetch(`/api/site/1on1-bookings?email=${encodeURIComponent(email)}`, {
-        headers: authHeaders
+        credentials: 'same-origin',
       });
       const data = await res.json();
       if (data.success && Array.isArray(data.bookings)) {
@@ -138,10 +129,10 @@ export default function StudentOneOnOneBookings({ email }: StudentOneOnOneBookin
     setStatusMessage(null);
 
     try {
-      const authHeaders = await getAuthHeaders();
       const res = await fetch('/api/site/1on1-bookings/reschedule', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', ...authHeaders },
+        credentials: 'same-origin',
+        headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
         body: JSON.stringify({
           id: rescheduleBooking.id,
           email: rescheduleBooking.email,
@@ -189,10 +180,10 @@ export default function StudentOneOnOneBookings({ email }: StudentOneOnOneBookin
     setStatusMessage(null);
 
     try {
-      const authHeaders = await getAuthHeaders();
       const res = await fetch('/api/site/1on1-bookings/cancel', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', ...authHeaders },
+        credentials: 'same-origin',
+        headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
         body: JSON.stringify({
           id: cancelBooking.id,
           email: cancelBooking.email,

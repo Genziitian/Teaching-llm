@@ -7,6 +7,7 @@ import useSWR, { mutate as globalMutate } from 'swr'
 import ChampionPolicy from '@/components/courses/ChampionPolicy'
 import StoreDetailScreen from '@/components/courses/StoreDetailScreen'
 import ShareLinkModal, { ShareIcon } from '@/components/ShareLinkModal'
+import StorefrontHub from '@/components/storefront/native/StorefrontHub'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { BookOpen, FileText, Users, ClipboardList, Trash2, Pencil, Sparkles, IndianRupee, Calendar, Plus, ExternalLink, HelpCircle, ChevronRight, X, Info, ArrowLeft, Upload, LockOpen, Receipt } from 'lucide-react'
 import { normalizeMeetLink } from '@/lib/meet-link'
@@ -54,7 +55,28 @@ const termArtFor = (name: string) => {
   return key ? TERM_ART[key] : null
 }
 
+/** Managers get a "Website listings" view here (price, term, boxes, bundles) instead of a separate sidebar page. */
 export default function ExploreCoursesPage() {
+  const router = useRouter()
+  const searchParams = useSearchParams()
+  const { data: me } = useSWR('/api/auth/me', fetcher, { revalidateOnFocus: false })
+  if (searchParams?.get('view') === 'listings' && me?.user?.role === 'MANAGER') {
+    return (
+      <div style={{ width: '100%' }}>
+        <button
+          onClick={() => router.push('/courses/explore')}
+          style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', fontSize: 13, padding: '4px 0' }}
+        >
+          <ArrowLeft size={14} /> Store
+        </button>
+        <StorefrontHub />
+      </div>
+    )
+  }
+  return <ExploreStore />
+}
+
+function ExploreStore() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const categoryParam = (searchParams?.get('category') || '').toLowerCase()
@@ -531,7 +553,7 @@ export default function ExploreCoursesPage() {
         )}
         <div className="grid-3">
           {[1, 2, 3].map(i => (
-            <div key={i} className="card skeleton" style={{ height: '360px', borderRadius: '28px' }} />
+            <div key={i} className="card skeleton" style={{ height: '360px', borderRadius: '14px' }} />
           ))}
         </div>
       </div>
@@ -752,7 +774,7 @@ export default function ExploreCoursesPage() {
               borderRadius: '12px',
               border: '1.5px solid var(--border)',
               fontSize: '13px',
-              fontWeight: '700',
+              fontWeight: 600,
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
@@ -792,7 +814,7 @@ export default function ExploreCoursesPage() {
               }}
               title="Show or hide the coupon box in the Google Play app"
               style={{
-                padding: '10px 16px', borderRadius: '12px', fontSize: '13px', fontWeight: 700, cursor: 'pointer',
+                padding: '10px 16px', borderRadius: '12px', fontSize: '13px', fontWeight: 600, cursor: 'pointer',
                 display: 'flex', alignItems: 'center', gap: '8px', whiteSpace: 'nowrap', flexShrink: 0,
                 border: '1px solid var(--border)', background: appCoupons ? 'var(--success-light, #dcfce7)' : 'var(--surface)',
                 color: appCoupons ? 'var(--success, #16a34a)' : 'var(--text-secondary)'
@@ -804,17 +826,30 @@ export default function ExploreCoursesPage() {
           )}
 
           {userData?.user?.role === 'MANAGER' && (
+            <button
+              onClick={() => router.push('/courses/explore?view=listings')}
+              style={{
+                padding: '10px 16px', borderRadius: '12px', fontSize: '13px', fontWeight: 600, cursor: 'pointer',
+                whiteSpace: 'nowrap', flexShrink: 0, border: '1px solid var(--border)',
+                background: 'var(--surface)', color: 'var(--text-secondary)'
+              }}
+            >
+              Website
+            </button>
+          )}
+
+          {userData?.user?.role === 'MANAGER' && (
             <div style={{ position: 'relative' }}>
               <button
                 onClick={() => setShowCreateDropdown(!showCreateDropdown)}
                 style={{
-                  background: 'linear-gradient(135deg, var(--primary), #8b5cf6)',
+                  background: 'var(--primary)',
                   color: 'white',
                   padding: '10px 18px',
                   borderRadius: '12px',
                   border: 'none',
                   fontSize: '13px',
-                  fontWeight: '700',
+                  fontWeight: 600,
                   cursor: 'pointer',
                   display: 'flex',
                   alignItems: 'center',
@@ -832,7 +867,7 @@ export default function ExploreCoursesPage() {
               {showCreateDropdown && (
                 <div style={{
                   position: 'absolute', top: 'calc(100% + 8px)', right: 0,
-                  background: 'var(--surface)', borderRadius: '16px', padding: '6px',
+                  background: 'var(--surface)', borderRadius: '12px', padding: '6px',
                   boxShadow: '0 0 0 0.5px var(--border), 0 12px 32px rgba(0,0,0,0.14)',
                   zIndex: 100, minWidth: '170px',
                   display: 'flex', flexDirection: 'column', gap: '4px'
@@ -899,7 +934,7 @@ export default function ExploreCoursesPage() {
             </svg>
           </button>
           <div>
-            <span style={{ display: 'block', fontSize: '22px', fontWeight: 800, color: 'var(--text-primary)', fontFamily: 'inherit', letterSpacing: '-0.03em', lineHeight: '1.15' }}>
+            <span style={{ display: 'block', fontSize: '22px', fontWeight: 600, color: 'var(--text-primary)', fontFamily: 'inherit', letterSpacing: '-0.03em', lineHeight: '1.15' }}>
               {mobileHeader.title}
             </span>
             <span style={{ display: 'block', fontSize: '13.5px', fontWeight: 500, color: 'var(--text-secondary)', marginTop: '3px', letterSpacing: '-0.01em' }}>
@@ -1005,7 +1040,7 @@ export default function ExploreCoursesPage() {
               <h4>Your purchases</h4>
               <div className="store-mine-grid">
                 <Link href="/free-resources/purchased" className="store-mine-card">
-                  <span className="ic" style={{ background: 'linear-gradient(135deg, var(--primary), #4338ca)' }}><LockOpen size={20} strokeWidth={2.2} /></span>
+                  <span className="ic" style={{ background: 'var(--primary)' }}><LockOpen size={20} strokeWidth={2.2} /></span>
                   <span><b>Purchased Materials</b><span className="sub">Notes and resources you have bought</span></span>
                   <ChevronRight className="chev" size={18} />
                 </Link>
@@ -1044,7 +1079,7 @@ export default function ExploreCoursesPage() {
               {showNotesInfo && (
                 <div
                   onClick={() => setShowNotesInfo(false)}
-                  style={{ position: 'absolute', top: '42px', right: 0, maxWidth: '280px', padding: '12px 14px', borderRadius: '16px', background: 'var(--surface)', boxShadow: '0 0 0 0.5px var(--border), 0 12px 32px rgba(0,0,0,0.16)', fontSize: '13.5px', lineHeight: 1.45, color: 'var(--text-primary)', zIndex: 50, cursor: 'pointer' }}
+                  style={{ position: 'absolute', top: '42px', right: 0, maxWidth: '280px', padding: '12px 14px', borderRadius: '12px', background: 'var(--surface)', boxShadow: '0 0 0 0.5px var(--border), 0 12px 32px rgba(0,0,0,0.16)', fontSize: '13.5px', lineHeight: 1.45, color: 'var(--text-primary)', zIndex: 50, cursor: 'pointer' }}
                 >
                   You can access your notes in <b>Free Resources &gt; Purchased Materials</b>.
                 </div>
@@ -1060,9 +1095,9 @@ export default function ExploreCoursesPage() {
           display: 'inline-flex', alignItems: 'center', gap: '10px',
           padding: '8px 14px 8px 16px',
           borderRadius: '50px',
-          background: 'linear-gradient(135deg, color-mix(in srgb, var(--primary) 10%, transparent), rgba(139,92,246,0.10))',
+          background: 'var(--primary)',
           border: '1px solid color-mix(in srgb, var(--primary) 20%, transparent)',
-          color: 'var(--primary)', fontSize: '12.5px', fontWeight: 800,
+          color: 'var(--primary)', fontSize: '12.5px', fontWeight: 600,
           marginBottom: '14px',
         }}>
           <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--accent)', boxShadow: '0 0 6px var(--primary)' }} />
@@ -1084,10 +1119,10 @@ export default function ExploreCoursesPage() {
       {storeView === 'courses' && !selectedStoreTab && visibleCategories.length > 0 && (
         <div style={{ padding: '20px 0' }}>
           <div style={{ margin: '0 0 22px', padding: '0 2px' }}>
-            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', fontSize: '12px', fontWeight: 800, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--accent)' }}>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', fontSize: '12px', fontWeight: 600, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--accent)' }}>
               <i style={{ width: 22, height: 2, borderRadius: 2, background: 'currentColor', display: 'inline-block' }} /> Courses
             </span>
-            <h2 style={{ fontSize: 'clamp(28px, 6vw, 40px)', fontWeight: 800, letterSpacing: '-0.035em', lineHeight: 1.05, margin: '8px 0 6px', color: 'var(--text-primary)' }}>Choose your term</h2>
+            <h2 style={{ fontSize: 'clamp(28px, 6vw, 40px)', fontWeight: 600, letterSpacing: '-0.035em', lineHeight: 1.05, margin: '8px 0 6px', color: 'var(--text-primary)' }}>Choose your term</h2>
           </div>
           <div className="level-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(440px, 100%), 1fr))', gap: '22px', margin: '0' }}>
             {visibleCategories.map(cat => {
@@ -1104,7 +1139,7 @@ export default function ExploreCoursesPage() {
                       position: 'relative', overflow: 'hidden', cursor: 'pointer',
                       minWidth: 0,
                       aspectRatio: '1200 / 640', minHeight: 'clamp(190px, 30vw, 230px)',
-                      borderRadius: '28px', border: '0.5px solid var(--border)',
+                      borderRadius: '14px', border: '0.5px solid var(--border)',
                       boxShadow: '0 1px 2px rgba(0,0,0,0.04), 0 8px 24px rgba(0,0,0,0.08)',
                       transition: 'transform 0.3s cubic-bezier(0.23,1,0.32,1)',
                     }}
@@ -1116,8 +1151,8 @@ export default function ExploreCoursesPage() {
                     <img src={art.src} alt="" loading="lazy" decoding="async" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'right center' }} />
                     <div style={{ position: 'relative', height: '100%', padding: 'clamp(20px, 3vw, 32px)', paddingBottom: 'clamp(34px, 6vw, 56px)', display: 'flex', flexDirection: 'column', alignItems: 'flex-start', justifyContent: 'flex-end' }}>
                       <div>
-                        <h3 style={{ fontSize: 'clamp(26px, 4.2vw, 46px)', fontWeight: 800, letterSpacing: '-1.5px', color: ink, margin: '0 0 14px', lineHeight: 1.03, whiteSpace: 'nowrap' }}>{cat}</h3>
-                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: 'clamp(14px, 1.6vw, 16px)', fontWeight: 700, padding: 'clamp(10px, 1.4vw, 13px) clamp(16px, 2vw, 22px)', borderRadius: '999px', background: art.dark ? art.accent : '#fff', color: art.dark ? '#fff' : art.accent }}>
+                        <h3 style={{ fontSize: 'clamp(26px, 4.2vw, 46px)', fontWeight: 600, letterSpacing: '-1.5px', color: ink, margin: '0 0 14px', lineHeight: 1.03, whiteSpace: 'nowrap' }}>{cat}</h3>
+                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: 'clamp(14px, 1.6vw, 16px)', fontWeight: 600, padding: 'clamp(10px, 1.4vw, 13px) clamp(16px, 2vw, 22px)', borderRadius: '999px', background: art.dark ? art.accent : '#fff', color: art.dark ? '#fff' : art.accent }}>
                           View courses <ChevronRight size={16} strokeWidth={2.6} />
                         </span>
                       </div>
@@ -1131,7 +1166,7 @@ export default function ExploreCoursesPage() {
                   onClick={() => setSelectedStoreTab(cat)}
                   style={{
                     background: 'var(--surface)',
-                    borderRadius: '28px',
+                    borderRadius: '14px',
                     padding: '28px 28px',
                     flex: '1 1 320px',
                     maxWidth: '440px',
@@ -1154,11 +1189,11 @@ export default function ExploreCoursesPage() {
                     e.currentTarget.style.boxShadow = '0 1px 2px rgba(0,0,0,0.04), 0 6px 18px rgba(0,0,0,0.04)';
                   }}
                 >
-                  <div style={{ width: '60px', height: '60px', borderRadius: '18px', background: 'var(--surface-hover)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, color: 'var(--text-secondary)' }}>
+                  <div style={{ width: '60px', height: '60px', borderRadius: '12px', background: 'var(--surface-hover)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, color: 'var(--text-secondary)' }}>
                     <BookOpen size={28} strokeWidth={2.1} />
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <h3 style={{ fontSize: '22px', fontWeight: 800, letterSpacing: '-0.4px', color: 'var(--text-primary)', margin: '0 0 4px' }}>{cat}</h3>
+                    <h3 style={{ fontSize: '22px', fontWeight: 600, letterSpacing: '-0.4px', color: 'var(--text-primary)', margin: '0 0 4px' }}>{cat}</h3>
                     <p style={{ fontSize: '15px', color: 'var(--text-secondary)', fontWeight: 500, margin: 0 }}>
                       {courseCount > 0 && `${courseCount} Course${courseCount > 1 ? 's' : ''}`}
                       {courseCount > 0 && bundleCount > 0 && ' · '}
@@ -1176,7 +1211,7 @@ export default function ExploreCoursesPage() {
       {/* Selected category header with Change Category button */}
       {storeView === 'courses' && selectedStoreTab && (
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px', flexWrap: 'wrap', gap: '12px' }}>
-          <h2 style={{ fontSize: '22px', fontWeight: '900', color: 'var(--text-primary)' }}>{selectedStoreTab} Level</h2>
+          <h2 style={{ fontSize: '22px', fontWeight: 600, color: 'var(--text-primary)' }}>{selectedStoreTab} Level</h2>
           <button
             onClick={() => setSelectedStoreTab('')}
             style={{
@@ -1186,7 +1221,7 @@ export default function ExploreCoursesPage() {
               background: 'var(--surface)',
               color: 'var(--text-secondary)',
               fontSize: '13.5px',
-              fontWeight: '700',
+              fontWeight: 600,
               cursor: 'pointer',
               display: 'inline-flex',
               alignItems: 'center',
@@ -1231,10 +1266,10 @@ export default function ExploreCoursesPage() {
                 >
                   <div style={{ flex: 1 }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '10px' }}>
-                      <div style={{ fontSize: '11px', fontWeight: 700, color: tone, textTransform: 'uppercase', letterSpacing: '0.06em', background: `color-mix(in srgb, ${tone} 16%, transparent)`, padding: '4px 10px', borderRadius: '20px' }}>Bundle</div>
+                      <div style={{ fontSize: '11px', fontWeight: 600, color: tone, textTransform: 'uppercase', letterSpacing: '0.06em', background: `color-mix(in srgb, ${tone} 16%, transparent)`, padding: '4px 10px', borderRadius: '14px' }}>Bundle</div>
                         <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-secondary)' }}>{b.courses.length} Courses</span>
                     </div>
-                    <div style={{ fontSize: '22px', fontWeight: 800, letterSpacing: '-0.4px', color: 'var(--text-primary)', marginBottom: '6px' }}>{b.name}</div>
+                    <div style={{ fontSize: '22px', fontWeight: 600, letterSpacing: '-0.4px', color: 'var(--text-primary)', marginBottom: '6px' }}>{b.name}</div>
                     {b.description && (
                       <div style={{ fontSize: '13px', color: 'var(--text-secondary)', fontWeight: '500', lineHeight: '1.5', overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
                         {b.description}
@@ -1246,7 +1281,7 @@ export default function ExploreCoursesPage() {
                         {b.courses.map((c: any) => (
                           <span key={c.course.id} style={{ 
                             fontSize: '11px', 
-                            fontWeight: '700', 
+                            fontWeight: 600, 
                             color: 'var(--text-primary)', 
                             background: `color-mix(in srgb, ${tone} 14%, transparent)`, 
                             padding: '4px 9px', 
@@ -1260,19 +1295,19 @@ export default function ExploreCoursesPage() {
                     )}
                   </div>
 
-                  <div style={{ background: `color-mix(in srgb, ${tone} 14%, var(--surface))`, borderRadius: '18px', padding: '14px 16px', border: 'none' }}>
+                  <div style={{ background: `color-mix(in srgb, ${tone} 14%, var(--surface))`, borderRadius: '12px', padding: '14px 16px', border: 'none' }}>
                     <div style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '5px' }}>
                       <Calendar size={13} /> {b.bannerText || 'Class starts from 1 June 2026'}
                     </div>
                     <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px' }}>
-                      <span style={{ fontSize: '14px', fontWeight: '800', color: 'var(--text-primary)' }}>₹</span>
+                      <span style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)' }}>₹</span>
                       <span style={{ fontSize: '28px', fontWeight: '950', color: tone, letterSpacing: '-0.02em' }}>{b.startingPrice || (bundlePriceLive || bundlePriceRecorded || 0)}</span>
                     </div>
                   </div>
 
                   <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-                    <button onClick={() => setDetailView({ kind: 'bundle', id: b.id })} style={{ padding: '13px 18px', borderRadius: '14px', background: `color-mix(in srgb, ${tone} 16%, transparent)`, color: tone, fontWeight: 700, fontSize: '15px', border: 'none', cursor: 'pointer', whiteSpace: 'nowrap' }}>View details</button>
-                    <button onClick={() => openBundleBuy(b)} style={{ flex: 1, padding: '13px', borderRadius: '14px', background: tone, color: '#fff', fontWeight: 700, fontSize: '15px', border: 'none', cursor: 'pointer', whiteSpace: 'nowrap' }}>Buy now</button>
+                    <button onClick={() => setDetailView({ kind: 'bundle', id: b.id })} style={{ padding: '13px 18px', borderRadius: '14px', background: `color-mix(in srgb, ${tone} 16%, transparent)`, color: tone, fontWeight: 600, fontSize: '15px', border: 'none', cursor: 'pointer', whiteSpace: 'nowrap' }}>View details</button>
+                    <button onClick={() => openBundleBuy(b)} style={{ flex: 1, padding: '13px', borderRadius: '14px', background: tone, color: '#fff', fontWeight: 600, fontSize: '15px', border: 'none', cursor: 'pointer', whiteSpace: 'nowrap' }}>Buy now</button>
                     
                     {(userData?.user?.role === 'MANAGER' || userData?.role === 'MANAGER') && (
                       <div style={{ display: 'flex', gap: '6px' }}>
@@ -1338,7 +1373,7 @@ export default function ExploreCoursesPage() {
                 onClick={() => { setSelectedNotesTab(cat); setSelectedNotesSubjectTab('') }}
                 style={{
                   display: 'flex', alignItems: 'center', gap: '8px', whiteSpace: 'nowrap', cursor: 'pointer',
-                  padding: '11px 18px', borderRadius: '999px', fontSize: '15px', fontWeight: 700,
+                  padding: '11px 18px', borderRadius: '999px', fontSize: '15px', fontWeight: 600,
                   border: on ? `1.5px solid ${tone}` : '1px solid var(--border)',
                   background: on ? tone : 'var(--surface)',
                   color: on ? '#fff' : 'var(--text-primary)',
@@ -1347,7 +1382,7 @@ export default function ExploreCoursesPage() {
               >
                 <FileText size={16} strokeWidth={2.2} />
                 {cat}
-                <span style={{ fontSize: '12px', fontWeight: 800, padding: '2px 8px', borderRadius: '999px', background: on ? 'rgba(255,255,255,0.25)' : `color-mix(in srgb, ${tone} 16%, transparent)`, color: on ? '#fff' : tone }}>{notesCount}</span>
+                <span style={{ fontSize: '12px', fontWeight: 600, padding: '2px 8px', borderRadius: '999px', background: on ? 'rgba(255,255,255,0.25)' : `color-mix(in srgb, ${tone} 16%, transparent)`, color: on ? '#fff' : tone }}>{notesCount}</span>
               </button>
             )
           })}
@@ -1376,7 +1411,7 @@ export default function ExploreCoursesPage() {
                   border: isActive ? '1.5px solid var(--success)' : '1.5px solid var(--border)',
                   background: isActive ? 'rgba(16, 185, 129, 0.08)' : 'transparent',
                   color: isActive ? 'var(--success)' : 'var(--text-secondary)',
-                  fontWeight: '700',
+                  fontWeight: 600,
                   fontSize: '13px',
                   cursor: 'pointer',
                   transition: 'all 0.2s ease',
@@ -1393,7 +1428,7 @@ export default function ExploreCoursesPage() {
       {/* Notes empty state */}
       {storeView === 'notes' && activeNotes.length === 0 && (
         <div className="empty-state" style={{ padding: '60px 20px' }}>
-          <p style={{ fontSize: '16px', fontWeight: '700', marginBottom: '4px' }}>No notes available yet</p>
+          <p style={{ fontSize: '16px', fontWeight: 600, marginBottom: '4px' }}>No notes available yet</p>
           <p style={{ fontSize: '13px' }}>Check back soon for new study notes!</p>
         </div>
       )}
@@ -1413,20 +1448,20 @@ export default function ExploreCoursesPage() {
               return (
                 <div key={n.id} style={{ position: 'relative', overflow: 'hidden', backgroundColor: 'var(--surface)', backgroundImage: `linear-gradient(145deg, ${c2}2e, ${c2}0d)`, borderRadius: '30px', padding: '26px', border: `1px solid ${c2}47`, boxShadow: '0 1px 2px rgba(0,0,0,0.05), 0 14px 36px rgba(0,0,0,0.12)', display: 'flex', flexDirection: 'column', minHeight: '300px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '14px', marginBottom: '18px' }}>
-                    <div style={{ width: '58px', height: '58px', borderRadius: '18px', background: `linear-gradient(135deg, ${c1}, ${c2})`, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: `0 8px 20px ${c2}38`, flexShrink: 0 }}>
+                    <div style={{ width: '58px', height: '58px', borderRadius: '12px', background: `linear-gradient(135deg, ${c1}, ${c2})`, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: `0 8px 20px ${c2}38`, flexShrink: 0 }}>
                       <FileText size={28} color="#fff" strokeWidth={2.2} />
                     </div>
                     <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
-                      <span style={{ fontSize: '12px', fontWeight: 700, padding: '5px 12px', borderRadius: '20px', background: `${c2}26`, color: c2 }}>{n.category || 'General'}</span>
-                      {n.subject && <span style={{ fontSize: '12px', fontWeight: 600, padding: '5px 12px', borderRadius: '20px', background: 'var(--surface-hover)', color: 'var(--text-secondary)' }}>{n.subject}</span>}
-                      {isExpired && <span style={{ fontSize: '12px', fontWeight: 700, padding: '5px 12px', borderRadius: '20px', background: 'var(--danger-light)', color: 'var(--danger)' }}>Expired</span>}
+                      <span style={{ fontSize: '12px', fontWeight: 600, padding: '5px 12px', borderRadius: '14px', background: `${c2}26`, color: c2 }}>{n.category || 'General'}</span>
+                      {n.subject && <span style={{ fontSize: '12px', fontWeight: 600, padding: '5px 12px', borderRadius: '14px', background: 'var(--surface-hover)', color: 'var(--text-secondary)' }}>{n.subject}</span>}
+                      {isExpired && <span style={{ fontSize: '12px', fontWeight: 600, padding: '5px 12px', borderRadius: '14px', background: 'var(--danger-light)', color: 'var(--danger)' }}>Expired</span>}
                     </div>
                   </div>
-                  <div style={{ fontSize: '24px', fontWeight: 800, letterSpacing: '-0.6px', lineHeight: 1.15, marginBottom: '8px' }}>{n.title}</div>
+                  <div style={{ fontSize: '24px', fontWeight: 600, letterSpacing: '-0.6px', lineHeight: 1.15, marginBottom: '8px' }}>{n.title}</div>
                   <div style={{ fontSize: '14.5px', color: 'var(--text-secondary)', marginBottom: '18px', minHeight: '44px', lineHeight: '22px', overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>{n.description || ''}</div>
                   <div style={{ display: 'flex', gap: '12px', marginBottom: '18px', alignItems: 'center' }}>
-                    <div style={{ fontSize: '34px', fontWeight: 800, letterSpacing: '-1px', color: n.price > 0 ? 'var(--text-primary)' : 'var(--success)' }}>{n.price > 0 ? `₹${n.price}` : 'Free'}</div>
-                    <div style={{ fontSize: '12.5px', fontWeight: 600, padding: '6px 12px', borderRadius: '20px', background: 'var(--surface-hover)', color: 'var(--text-secondary)' }}>{n.validityDays} days access</div>
+                    <div style={{ fontSize: '34px', fontWeight: 600, letterSpacing: '-1px', color: n.price > 0 ? 'var(--text-primary)' : 'var(--success)' }}>{n.price > 0 ? `₹${n.price}` : 'Free'}</div>
+                    <div style={{ fontSize: '12.5px', fontWeight: 600, padding: '6px 12px', borderRadius: '14px', background: 'var(--surface-hover)', color: 'var(--text-secondary)' }}>{n.validityDays} days access</div>
                   </div>
                   <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', marginTop: 'auto' }}>
                     <button
@@ -1448,7 +1483,7 @@ export default function ExploreCoursesPage() {
                         background: hasAccess ? 'linear-gradient(135deg,#3A9D6B,#237A52)' : isExpired ? 'linear-gradient(135deg,#FFB340,#FF9F0A)' : `linear-gradient(135deg, ${c1}, ${c2})`,
                         boxShadow: `0 8px 20px ${hasAccess ? '#237A5238' : isExpired ? '#FF9F0A38' : c2 + '38'}`,
                         color: '#fff',
-                        fontWeight: 700,
+                        fontWeight: 600,
                         border: 'none',
                         cursor: 'pointer'
                       }}
@@ -1457,7 +1492,7 @@ export default function ExploreCoursesPage() {
                     </button>
                     <button
                       onClick={() => setDetailNote(n)}
-                      style={{ flex: 1, height: '52px', padding: '0 14px', whiteSpace: 'nowrap', borderRadius: '26px', background: 'var(--surface-hover)', border: 'none', color: 'var(--text-primary)', fontWeight: 700, fontSize: '15.5px', cursor: 'pointer' }}
+                      style={{ flex: 1, height: '52px', padding: '0 14px', whiteSpace: 'nowrap', borderRadius: '26px', background: 'var(--surface-hover)', border: 'none', color: 'var(--text-primary)', fontWeight: 600, fontSize: '15.5px', cursor: 'pointer' }}
                     >
                       Details
                     </button>
@@ -1520,9 +1555,9 @@ export default function ExploreCoursesPage() {
         >
           <div
             onClick={e => e.stopPropagation()}
-            style={{ width: '100%', maxWidth: '420px', background: 'var(--surface)', borderRadius: '24px', padding: '24px', boxShadow: '0 24px 70px rgba(0,0,0,0.35)', display: 'flex', flexDirection: 'column', gap: '18px' }}
+            style={{ width: '100%', maxWidth: '420px', background: 'var(--surface)', borderRadius: '14px', padding: '24px', boxShadow: '0 24px 70px rgba(0,0,0,0.35)', display: 'flex', flexDirection: 'column', gap: '18px' }}
           >
-            <div style={{ fontSize: '20px', fontWeight: 800, letterSpacing: '-0.4px', color: 'var(--text-primary)' }}>Before you buy</div>
+            <div style={{ fontSize: '20px', fontWeight: 600, letterSpacing: '-0.4px', color: 'var(--text-primary)' }}>Before you buy</div>
             <label style={{ display: 'flex', gap: '12px', alignItems: 'flex-start', cursor: 'pointer' }}>
               <input
                 type="checkbox"
@@ -1532,22 +1567,22 @@ export default function ExploreCoursesPage() {
               />
               <span style={{ fontSize: '14.5px', lineHeight: 1.5, color: 'var(--text-secondary)' }}>
                 By continuing, you agree to our{' '}
-                <a href="/company/terms-and-conditions" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--accent)', fontWeight: 700 }}>Terms &amp; Conditions</a>
+                <a href="/company/terms-and-conditions" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--accent)', fontWeight: 600 }}>Terms &amp; Conditions</a>
                 {' '}and our{' '}
-                <a href="/company/refund-policy" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--accent)', fontWeight: 700 }}>Refund / Return Policy</a>.
+                <a href="/company/refund-policy" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--accent)', fontWeight: 600 }}>Refund / Return Policy</a>.
               </span>
             </label>
             <div style={{ display: 'flex', gap: '10px' }}>
               <button
                 onClick={() => setConsentNote(null)}
-                style={{ flex: 1, height: '50px', borderRadius: '25px', border: 'none', background: 'var(--surface-hover)', color: 'var(--text-primary)', fontWeight: 700, fontSize: '15px', cursor: 'pointer' }}
+                style={{ flex: 1, height: '50px', borderRadius: '25px', border: 'none', background: 'var(--surface-hover)', color: 'var(--text-primary)', fontWeight: 600, fontSize: '15px', cursor: 'pointer' }}
               >
                 Cancel
               </button>
               <button
                 disabled={!consentChecked}
                 onClick={() => { const n = consentNote; setConsentNote(null); startNotePurchase(n) }}
-                style={{ flex: 1.4, height: '50px', borderRadius: '25px', border: 'none', background: 'var(--accent)', color: 'var(--button-text, #fff)', fontWeight: 700, fontSize: '15px', cursor: consentChecked ? 'pointer' : 'not-allowed', opacity: consentChecked ? 1 : 0.4 }}
+                style={{ flex: 1.4, height: '50px', borderRadius: '25px', border: 'none', background: 'var(--accent)', color: 'var(--button-text, #fff)', fontWeight: 600, fontSize: '15px', cursor: consentChecked ? 'pointer' : 'not-allowed', opacity: consentChecked ? 1 : 0.4 }}
               >
                 Buy now
               </button>
@@ -1568,7 +1603,7 @@ export default function ExploreCoursesPage() {
       {storeView === 'mentorship' && mentorshipsData?.mentorships?.length > 0 && (
         <div style={{ marginBottom: '48px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-            <h2 style={{ fontSize: '22px', fontWeight: '900', color: 'var(--text-primary)', margin: 0 }}>1-on-1 Mentorship</h2>
+            <h2 style={{ fontSize: '22px', fontWeight: 600, color: 'var(--text-primary)', margin: 0 }}>1-on-1 Mentorship</h2>
               <div style={{ display: 'flex', gap: '10px' }}>
                 {(userData?.user?.role === 'MANAGER' || userData?.role === 'MANAGER') && (
                   <button 
@@ -1582,7 +1617,7 @@ export default function ExploreCoursesPage() {
                       } catch { alert('Failed to fetch students') }
                       finally { setLoadingAllStudents(false) }
                     }}
-                    style={{ padding: '8px 16px', borderRadius: '50px', background: 'var(--surface)', color: 'var(--text-secondary)', border: '1px solid var(--border)', fontWeight: '700', fontSize: '13px', cursor: 'pointer' }}
+                    style={{ padding: '8px 16px', borderRadius: '50px', background: 'var(--surface)', color: 'var(--text-secondary)', border: '1px solid var(--border)', fontWeight: 600, fontSize: '13px', cursor: 'pointer' }}
                   >
                     <Plus size={14} /> Manual Book
                   </button>
@@ -1598,7 +1633,7 @@ export default function ExploreCoursesPage() {
                   } catch { alert('Failed to fetch bookings') }
                   finally { setLoadingAllBookings(false) }
                 }}
-                style={{ padding: '8px 16px', borderRadius: '50px', background: 'var(--primary)', color: 'var(--button-text, #fff)', border: 'none', fontWeight: '700', fontSize: '13px', cursor: 'pointer', boxShadow: '0 4px 12px color-mix(in srgb, var(--primary) 20%, transparent)' }}
+                style={{ padding: '8px 16px', borderRadius: '50px', background: 'var(--primary)', color: 'var(--button-text, #fff)', border: 'none', fontWeight: 600, fontSize: '13px', cursor: 'pointer', boxShadow: '0 4px 12px color-mix(in srgb, var(--primary) 20%, transparent)' }}
               >
                 📋 View All Bookings
               </button>
@@ -1609,7 +1644,7 @@ export default function ExploreCoursesPage() {
               <div key={m.id} style={{ 
                 minWidth: '380px', 
                 background: 'var(--surface)', 
-                borderRadius: '24px', 
+                borderRadius: '14px', 
                 padding: '28px', 
                 boxShadow: '0 10px 40px rgba(15,23,42,0.06)',
                 border: '1px solid var(--border)',
@@ -1623,11 +1658,11 @@ export default function ExploreCoursesPage() {
                 onMouseLeave={e => e.currentTarget.style.transform = 'translateY(0)'}
               >
                 <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
-                  <div style={{ width: '64px', height: '64px', borderRadius: '20px', background: 'linear-gradient(135deg, #f59e0b, #d97706)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '24px', color: '#fff', fontWeight: '900', boxShadow: '0 8px 16px rgba(245,158,11,0.2)' }}>
+                  <div style={{ width: '64px', height: '64px', borderRadius: '14px', background: 'linear-gradient(135deg, #f59e0b, #d97706)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '24px', color: '#fff', fontWeight: 600, boxShadow: '0 8px 16px rgba(245,158,11,0.2)' }}>
                     {m.mentorName[0]}
                   </div>
                   <div>
-                    <div style={{ fontSize: '20px', fontWeight: '900', color: 'var(--text-primary)' }}>{m.mentorName}</div>
+                    <div style={{ fontSize: '20px', fontWeight: 600, color: 'var(--text-primary)' }}>{m.mentorName}</div>
                     <div style={{ fontSize: '14px', color: 'var(--text-secondary)', fontWeight: '600' }}>{m.mentorTitle || 'IIT Mentorship Specialist'}</div>
                   </div>
                 </div>
@@ -1636,20 +1671,20 @@ export default function ExploreCoursesPage() {
                   <p style={{ fontSize: '14px', color: 'var(--text-secondary)', lineHeight: '1.6', margin: 0 }}>{m.description || 'Experienced mentor ready to guide you through your JEE/NEET journey and beyond.'}</p>
                 </div>
 
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', background: 'var(--warning-light)', padding: '14px 20px', borderRadius: '16px', border: '1px solid var(--border)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', background: 'var(--warning-light)', padding: '14px 20px', borderRadius: '12px', border: '1px solid var(--border)' }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '32px', height: '32px', borderRadius: '8px', background: 'var(--warning-light)' }}>
                     <IndianRupee size={18} color="#92400e" />
                   </div>
                   <div>
-                    <div style={{ fontSize: '12px', color: 'var(--warning)', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Starting From</div>
-                    <div style={{ fontSize: '18px', fontWeight: '900', color: 'var(--warning)' }}>₹{m.pricePerSlot} <span style={{ fontSize: '13px', fontWeight: '600', opacity: 0.8 }}>/ {m.slotDurationMinutes} mins session</span></div>
+                    <div style={{ fontSize: '12px', color: 'var(--warning)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Starting From</div>
+                    <div style={{ fontSize: '18px', fontWeight: 600, color: 'var(--warning)' }}>₹{m.pricePerSlot} <span style={{ fontSize: '13px', fontWeight: '600', opacity: 0.8 }}>/ {m.slotDurationMinutes} mins session</span></div>
                   </div>
                 </div>
 
                 <div style={{ display: 'flex', gap: '10px', marginTop: 'auto' }}>
                   <button 
                     onClick={() => { setShowMentorshipBookingModal(m); setMentorshipBookingDate(''); setMentorshipBookingTimes([]) }} 
-                    style={{ flex: 1, padding: '14px', borderRadius: '16px', background: 'linear-gradient(135deg,#f59e0b,#d97706)', color: '#fff', fontWeight: '800', border: 'none', cursor: 'pointer', fontSize: '15px', boxShadow: '0 8px 20px rgba(217,119,6,0.2)' }}
+                    style={{ flex: 1, padding: '14px', borderRadius: '12px', background: 'linear-gradient(135deg,#f59e0b,#d97706)', color: '#fff', fontWeight: 600, border: 'none', cursor: 'pointer', fontSize: '15px', boxShadow: '0 8px 20px rgba(217,119,6,0.2)' }}
                   >
                     Book a Slot
                   </button>
@@ -1672,14 +1707,14 @@ export default function ExploreCoursesPage() {
                           if (priceEl) priceEl.value = m.pricePerSlot
                           if (durationEl) durationEl.value = m.slotDurationMinutes
                         }, 100)
-                      }} style={{ width: '42px', height: '42px', borderRadius: '12px', background: 'var(--surface)', border: '1px solid var(--border)', color: 'var(--text-secondary)', fontWeight: '800', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>⚙️</button>
+                      }} style={{ width: '42px', height: '42px', borderRadius: '12px', background: 'var(--surface)', border: '1px solid var(--border)', color: 'var(--text-secondary)', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>⚙️</button>
                       <button onClick={(e) => { 
                         e.stopPropagation(); 
                         setShowManageSlotsModal(m); 
                         setEditingSlots(JSON.parse(m.availableSlots || '[]'));
                         setManageSlotsDate('');
                         setManageSlotsTime('');
-                      }} style={{ width: '42px', height: '42px', borderRadius: '12px', background: 'var(--surface)', border: '1px solid var(--border)', color: 'var(--text-secondary)', fontWeight: '800', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>📅</button>
+                      }} style={{ width: '42px', height: '42px', borderRadius: '12px', background: 'var(--surface)', border: '1px solid var(--border)', color: 'var(--text-secondary)', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>📅</button>
                       <button onClick={async (e) => {
                         e.stopPropagation();
                         if (!confirm(`Delete mentorship "${m.mentorName}"?`)) return
@@ -1688,7 +1723,7 @@ export default function ExploreCoursesPage() {
                           if (res.ok) window.location.reload()
                           else alert('Failed to delete')
                         } catch { alert('Failed to delete') }
-                      }} style={{ width: '42px', height: '42px', borderRadius: '12px', background: 'var(--danger-light)', border: '1px solid var(--border)', color: 'var(--danger)', fontWeight: '800', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>🗑️</button>
+                      }} style={{ width: '42px', height: '42px', borderRadius: '12px', background: 'var(--danger-light)', border: '1px solid var(--border)', color: 'var(--danger)', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>🗑️</button>
                     </div>
                   )}
                 </div>
@@ -1701,7 +1736,7 @@ export default function ExploreCoursesPage() {
       {/* MY BOOKINGS SECTION */}
       {storeView === 'mentorship' && myMentorshipsData?.bookings?.length > 0 && (
         <div style={{ marginBottom: '48px' }}>
-          <h2 style={{ fontSize: '22px', fontWeight: '900', color: 'var(--text-primary)', marginBottom: '20px' }}>Your Booked Sessions</h2>
+          <h2 style={{ fontSize: '22px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '20px' }}>Your Booked Sessions</h2>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(320px, 100%), 1fr))', gap: '20px' }}>
             {myMentorshipsData.bookings.map((booking: any) => {
               const isPast = new Date(`${booking.slotDate}T${booking.slotTime}`) < new Date();
@@ -1710,7 +1745,7 @@ export default function ExploreCoursesPage() {
               return (
                 <div key={booking.id} style={{ 
                   background: isPast ? 'var(--surface)' : 'var(--surface-2)', 
-                  borderRadius: '20px', 
+                  borderRadius: '14px', 
                   padding: '20px', 
                   boxShadow: isPast ? 'none' : '0 10px 30px rgba(0,0,0,0.04)',
                   border: isPast ? '1px solid var(--border)' : '2px solid #f59e0b',
@@ -1722,32 +1757,32 @@ export default function ExploreCoursesPage() {
                 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                     <div>
-                      <div style={{ fontSize: '16px', fontWeight: '900', color: 'var(--text-primary)' }}>{booking.mentorship?.mentorName}</div>
+                      <div style={{ fontSize: '16px', fontWeight: 600, color: 'var(--text-primary)' }}>{booking.mentorship?.mentorName}</div>
                       <div style={{ fontSize: '13px', color: 'var(--text-secondary)', fontWeight: '600' }}>{booking.mentorship?.slotDuration} mins Session</div>
                     </div>
-                    {isToday && !isPast && <span style={{ padding: '4px 10px', borderRadius: '50px', background: 'var(--success)', color: '#fff', fontSize: '10px', fontWeight: '800' }}>TODAY</span>}
-                    {isPast && <span style={{ padding: '4px 10px', borderRadius: '50px', background: 'var(--text-muted)', color: '#fff', fontSize: '10px', fontWeight: '800' }}>COMPLETED</span>}
+                    {isToday && !isPast && <span style={{ padding: '4px 10px', borderRadius: '50px', background: 'var(--success)', color: '#fff', fontSize: '10px', fontWeight: 600 }}>TODAY</span>}
+                    {isPast && <span style={{ padding: '4px 10px', borderRadius: '50px', background: 'var(--text-muted)', color: '#fff', fontSize: '10px', fontWeight: 600 }}>COMPLETED</span>}
                   </div>
                   
                   <div style={{ display: 'flex', gap: '12px', background: isPast ? 'var(--surface)' : 'var(--warning-light)', padding: '12px', borderRadius: '12px' }}>
                     <div style={{ flex: 1 }}>
-                      <div style={{ fontSize: '10px', color: 'var(--text-secondary)', fontWeight: '700', textTransform: 'uppercase' }}>Date</div>
-                      <div style={{ fontSize: '14px', fontWeight: '800', color: 'var(--text-primary)' }}>{new Date(booking.slotDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}</div>
+                      <div style={{ fontSize: '10px', color: 'var(--text-secondary)', fontWeight: 600, textTransform: 'uppercase' }}>Date</div>
+                      <div style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)' }}>{new Date(booking.slotDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}</div>
                     </div>
                     <div style={{ flex: 1 }}>
-                      <div style={{ fontSize: '10px', color: 'var(--text-secondary)', fontWeight: '700', textTransform: 'uppercase' }}>Time</div>
-                      <div style={{ fontSize: '14px', fontWeight: '800', color: 'var(--text-primary)' }}>{booking.slotTime} IST</div>
+                      <div style={{ fontSize: '10px', color: 'var(--text-secondary)', fontWeight: 600, textTransform: 'uppercase' }}>Time</div>
+                      <div style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)' }}>{booking.slotTime} IST</div>
                     </div>
                   </div>
 
                   {!isPast && (
                     <div style={{ marginTop: '4px' }}>
                       {booking.meetLink ? (
-                        <a href={normalizeMeetLink(booking.meetLink) ?? '#'} target="_blank" rel="noopener noreferrer" style={{ display: 'block', textAlign: 'center', padding: '12px', borderRadius: '12px', background: 'var(--primary)', color: 'var(--button-text, #fff)', fontWeight: '800', textDecoration: 'none', fontSize: '14px' }}>
+                        <a href={normalizeMeetLink(booking.meetLink) ?? '#'} target="_blank" rel="noopener noreferrer" style={{ display: 'block', textAlign: 'center', padding: '12px', borderRadius: '12px', background: 'var(--primary)', color: 'var(--button-text, #fff)', fontWeight: 600, textDecoration: 'none', fontSize: '14px' }}>
                           Join Meeting →
                         </a>
                       ) : (
-                        <div style={{ textAlign: 'center', padding: '12px', borderRadius: '12px', background: 'var(--surface)', color: 'var(--text-secondary)', fontWeight: '700', fontSize: '13px', border: '1.5px dashed #cbd5e1' }}>
+                        <div style={{ textAlign: 'center', padding: '12px', borderRadius: '12px', background: 'var(--surface)', color: 'var(--text-secondary)', fontWeight: 600, fontSize: '13px', border: '1.5px dashed #cbd5e1' }}>
                           Link will be added soon
                         </div>
                       )}
@@ -1770,7 +1805,7 @@ export default function ExploreCoursesPage() {
           <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--neu-dark)" strokeWidth="1.5">
             <path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z" /><path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z" />
           </svg>
-          <p style={{ fontSize: '16px', fontWeight: '700', marginBottom: '4px' }}>No courses available yet</p>
+          <p style={{ fontSize: '16px', fontWeight: 600, marginBottom: '4px' }}>No courses available yet</p>
           <p style={{ fontSize: '13px' }}>Check back soon for new offerings!</p>
         </div>
       )}
@@ -1807,7 +1842,7 @@ export default function ExploreCoursesPage() {
               key={offering.id}
               style={{
                 background: isFullyPurchased ? 'var(--surface-hover)' : 'var(--surface-2)',
-                borderRadius: '28px',
+                borderRadius: '14px',
                 boxShadow: isFullyPurchased ? 'none' : '8px 8px 16px var(--neu-dark), -8px -8px 16px var(--neu-light)',
                 overflow: 'visible',
                 display: 'flex',
@@ -1866,7 +1901,7 @@ export default function ExploreCoursesPage() {
                         background: 'rgba(255,255,255,0.3)', backdropFilter: 'blur(8px)',
                         border: 'none', cursor: 'pointer',
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        color: '#fff', fontSize: '14px', fontWeight: '800',
+                        color: '#fff', fontSize: '14px', fontWeight: 600,
                       }}
                       title="Edit course offering"
                     >
@@ -1899,7 +1934,7 @@ export default function ExploreCoursesPage() {
                           background: 'rgba(255,255,255,0.3)', backdropFilter: 'blur(8px)',
                           border: 'none', cursor: 'pointer',
                           display: 'flex', alignItems: 'center', justifyContent: 'center',
-                          color: '#fff', fontSize: '14px', fontWeight: '800',
+                          color: '#fff', fontSize: '14px', fontWeight: 600,
                         }}
                         title="Compare access types"
                       >
@@ -1915,7 +1950,7 @@ export default function ExploreCoursesPage() {
                 {/* Course Name - Big and Prominent */}
                 {offering.course?.name && (
                   <h2 style={{
-                    fontSize: '22px', fontWeight: '900', color: 'var(--text-primary)',
+                    fontSize: '22px', fontWeight: 600, color: 'var(--text-primary)',
                     marginBottom: '4px', lineHeight: '1.2',
                   }}>
                     {offering.course.name}
@@ -1952,18 +1987,18 @@ export default function ExploreCoursesPage() {
                   {isLiveEnrolled && offering.hasRecorded && (
                     <>
                       <div style={{
-                        padding: '14px 16px', borderRadius: '18px',
+                        padding: '14px 16px', borderRadius: '12px',
                         background: 'var(--surface-2)',
                         boxShadow: 'inset 3px 3px 6px var(--neu-dark), inset -3px -3px 6px var(--neu-light)',
                         filter: 'grayscale(0.8)', opacity: 0.8,
                       }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
                           <div>
-                            <div style={{ fontSize: '10px', fontWeight: '800', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '4px' }}>
+                            <div style={{ fontSize: '10px', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '4px' }}>
                               📹 Recorded Batch - PLUS
                             </div>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                              <span style={{ fontSize: '20px', fontWeight: '900', color: 'var(--text-primary)' }}>₹{recPrice}</span>
+                              <span style={{ fontSize: '20px', fontWeight: 600, color: 'var(--text-primary)' }}>₹{recPrice}</span>
                               {recOriginal > recPrice && (
                                 <span style={{ fontSize: '13px', color: 'var(--text-muted)', textDecoration: 'line-through' }}>₹{recOriginal}</span>
                               )}
@@ -1975,7 +2010,7 @@ export default function ExploreCoursesPage() {
                           style={{
                             width: '100%', padding: '11px', borderRadius: '50px',
                             border: '2px solid var(--primary)', background: 'var(--surface-2)',
-                            color: 'var(--accent)', fontSize: '13px', fontWeight: '800',
+                            color: 'var(--accent)', fontSize: '13px', fontWeight: 600,
                             cursor: 'not-allowed',
                             opacity: 0.6,
                             boxShadow: '4px 4px 8px var(--neu-dark), -4px -4px 8px var(--neu-light)',
@@ -1986,7 +2021,7 @@ export default function ExploreCoursesPage() {
                         </button>
                       </div>
                       <div style={{
-                        padding: '14px 16px', borderRadius: '18px',
+                        padding: '14px 16px', borderRadius: '12px',
                         background: 'linear-gradient(135deg, var(--border), var(--border))',
                         border: '1.5px solid var(--border)',
                         position: 'relative', overflow: 'hidden',
@@ -1994,19 +2029,19 @@ export default function ExploreCoursesPage() {
                       }}>
                         <div style={{
                           position: 'absolute', top: '10px', right: '12px',
-                          padding: '3px 10px', borderRadius: '20px',
+                          padding: '3px 10px', borderRadius: '14px',
                           background: 'var(--accent)', color: 'var(--button-text, #fff)',
-                          fontSize: '9px', fontWeight: '900', letterSpacing: '0.08em',
+                          fontSize: '9px', fontWeight: 600, letterSpacing: '0.08em',
                         }}>
                           PRO
                         </div>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
                           <div>
-                            <div style={{ fontSize: '10px', fontWeight: '800', color: 'var(--accent)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '4px' }}>
+                            <div style={{ fontSize: '10px', fontWeight: 600, color: 'var(--accent)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '4px' }}>
                               🔴 Live + Recorded Batch - PRO
                             </div>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                              <span style={{ fontSize: '20px', fontWeight: '900', color: 'var(--text-primary)' }}>₹{livePrice}</span>
+                              <span style={{ fontSize: '20px', fontWeight: 600, color: 'var(--text-primary)' }}>₹{livePrice}</span>
                               {liveOriginal > livePrice && (
                                 <span style={{ fontSize: '13px', color: 'var(--text-muted)', textDecoration: 'line-through' }}>₹{liveOriginal}</span>
                               )}
@@ -2018,7 +2053,7 @@ export default function ExploreCoursesPage() {
                           style={{
                             width: '100%', padding: '11px', borderRadius: '50px',
                             border: 'none', background: 'var(--accent)',
-                            color: 'var(--button-text, #fff)', fontSize: '13px', fontWeight: '800',
+                            color: 'var(--button-text, #fff)', fontSize: '13px', fontWeight: 600,
                             cursor: 'not-allowed',
                             opacity: 0.6,
                             boxShadow: '0 8px 16px color-mix(in srgb, var(--primary) 35%, transparent)',
@@ -2034,7 +2069,7 @@ export default function ExploreCoursesPage() {
                   {/* Already Enrolled in LIVE but no recorded option */}
                   {isLiveEnrolled && !offering.hasRecorded && (
                     <div style={{
-                      padding: '14px 16px', borderRadius: '18px',
+                      padding: '14px 16px', borderRadius: '12px',
                       background: 'linear-gradient(135deg, var(--border), var(--border))',
                       border: '1.5px solid var(--border)',
                       position: 'relative', overflow: 'hidden',
@@ -2042,19 +2077,19 @@ export default function ExploreCoursesPage() {
                     }}>
                       <div style={{
                         position: 'absolute', top: '10px', right: '12px',
-                        padding: '3px 10px', borderRadius: '20px',
+                        padding: '3px 10px', borderRadius: '14px',
                         background: 'var(--accent)', color: 'var(--button-text, #fff)',
-                        fontSize: '9px', fontWeight: '900', letterSpacing: '0.08em',
+                        fontSize: '9px', fontWeight: 600, letterSpacing: '0.08em',
                       }}>
                         PRO
                       </div>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
                         <div>
-                          <div style={{ fontSize: '10px', fontWeight: '800', color: 'var(--accent)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '4px' }}>
+                          <div style={{ fontSize: '10px', fontWeight: 600, color: 'var(--accent)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '4px' }}>
                             🔴 Live + Recorded Batch - PRO
                           </div>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                            <span style={{ fontSize: '20px', fontWeight: '900', color: 'var(--text-primary)' }}>₹{livePrice}</span>
+                            <span style={{ fontSize: '20px', fontWeight: 600, color: 'var(--text-primary)' }}>₹{livePrice}</span>
                             {liveOriginal > livePrice && (
                               <span style={{ fontSize: '13px', color: 'var(--text-muted)', textDecoration: 'line-through' }}>₹{liveOriginal}</span>
                             )}
@@ -2066,7 +2101,7 @@ export default function ExploreCoursesPage() {
                         style={{
                           width: '100%', padding: '11px', borderRadius: '50px',
                           border: 'none', background: 'var(--accent)',
-                          color: 'var(--button-text, #fff)', fontSize: '13px', fontWeight: '800',
+                          color: 'var(--button-text, #fff)', fontSize: '13px', fontWeight: 600,
                           cursor: 'not-allowed',
                           opacity: 0.6,
                           boxShadow: '0 8px 16px color-mix(in srgb, var(--primary) 35%, transparent)',
@@ -2082,7 +2117,7 @@ export default function ExploreCoursesPage() {
                   {offering.hasRecorded && !isLiveEnrolled && !isRecordedEnrolled && (
                     <div 
                       style={{
-                        padding: '14px 16px', borderRadius: '18px',
+                        padding: '14px 16px', borderRadius: '12px',
                         background: 'var(--surface-2)',
                         boxShadow: 'inset 3px 3px 6px var(--neu-dark), inset -3px -3px 6px var(--neu-light)',
                         transition: 'all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1)',
@@ -2098,11 +2133,11 @@ export default function ExploreCoursesPage() {
                     >
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
                         <div>
-                          <div style={{ fontSize: '10px', fontWeight: '800', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '4px' }}>
+                          <div style={{ fontSize: '10px', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '4px' }}>
                             📹 Recorded Batch - PLUS
                           </div>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                            <span style={{ fontSize: '20px', fontWeight: '900', color: 'var(--text-primary)' }}>₹{recPrice}</span>
+                            <span style={{ fontSize: '20px', fontWeight: 600, color: 'var(--text-primary)' }}>₹{recPrice}</span>
                             {recOriginal > recPrice && (
                               <span style={{ fontSize: '13px', color: 'var(--text-muted)', textDecoration: 'line-through' }}>₹{recOriginal}</span>
                             )}
@@ -2115,7 +2150,7 @@ export default function ExploreCoursesPage() {
                         style={{
                           width: '100%', padding: '11px', borderRadius: '50px',
                           border: '2px solid var(--primary)', background: 'var(--surface-2)',
-                          color: 'var(--accent)', fontSize: '13px', fontWeight: '800',
+                          color: 'var(--accent)', fontSize: '13px', fontWeight: 600,
                           cursor: purchasing ? 'not-allowed' : 'pointer',
                           opacity: purchasing ? 0.5 : 1,
                           boxShadow: '4px 4px 8px var(--neu-dark), -4px -4px 8px var(--neu-light)',
@@ -2130,18 +2165,18 @@ export default function ExploreCoursesPage() {
                   {/* Recorded Option - Show "Already Enrolled" when user has PLUS but not PRO */}
                   {offering.hasRecorded && isRecordedEnrolled && !isLiveEnrolled && (
                     <div style={{
-                      padding: '14px 16px', borderRadius: '18px',
+                      padding: '14px 16px', borderRadius: '12px',
                       background: 'var(--surface-2)',
                       boxShadow: 'inset 3px 3px 6px var(--neu-dark), inset -3px -3px 6px var(--neu-light)',
                       filter: 'grayscale(0.8)', opacity: 0.8,
                     }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
                         <div>
-                          <div style={{ fontSize: '10px', fontWeight: '800', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '4px' }}>
+                          <div style={{ fontSize: '10px', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '4px' }}>
                             📹 Recorded Batch - PLUS
                           </div>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                            <span style={{ fontSize: '20px', fontWeight: '900', color: 'var(--text-primary)' }}>₹{recPrice}</span>
+                            <span style={{ fontSize: '20px', fontWeight: 600, color: 'var(--text-primary)' }}>₹{recPrice}</span>
                             {recOriginal > recPrice && (
                               <span style={{ fontSize: '13px', color: 'var(--text-muted)', textDecoration: 'line-through' }}>₹{recOriginal}</span>
                             )}
@@ -2153,7 +2188,7 @@ export default function ExploreCoursesPage() {
                         style={{
                           width: '100%', padding: '11px', borderRadius: '50px',
                           border: '2px solid var(--primary)', background: 'var(--surface-2)',
-                          color: 'var(--accent)', fontSize: '13px', fontWeight: '800',
+                          color: 'var(--accent)', fontSize: '13px', fontWeight: 600,
                           cursor: 'not-allowed',
                           opacity: 0.6,
                           boxShadow: '4px 4px 8px var(--neu-dark), -4px -4px 8px var(--neu-light)',
@@ -2169,7 +2204,7 @@ export default function ExploreCoursesPage() {
                   {isRecordedEnrolled && offering.hasLive && (
                     <div 
                       style={{
-                        padding: '14px 16px', borderRadius: '18px',
+                        padding: '14px 16px', borderRadius: '12px',
                         background: 'linear-gradient(135deg, var(--border), var(--border))',
                         border: '1.5px solid var(--border)',
                         position: 'relative', overflow: 'hidden',
@@ -2188,18 +2223,18 @@ export default function ExploreCoursesPage() {
                     >
                       <div style={{
                         position: 'absolute', top: '10px', right: '12px',
-                        padding: '3px 10px', borderRadius: '20px',
+                        padding: '3px 10px', borderRadius: '14px',
                         background: 'var(--accent)', color: 'var(--button-text, #fff)',
-                        fontSize: '9px', fontWeight: '900', letterSpacing: '0.08em',
+                        fontSize: '9px', fontWeight: 600, letterSpacing: '0.08em',
                       }}>
                         PRO
                       </div>
                       <div style={{ marginBottom: '10px' }}>
-                        <div style={{ fontSize: '10px', fontWeight: '800', color: 'var(--accent)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '4px' }}>
+                        <div style={{ fontSize: '10px', fontWeight: 600, color: 'var(--accent)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '4px' }}>
                           ⚡ Upgrade to PRO Batch
                         </div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                          <span style={{ fontSize: '20px', fontWeight: '900', color: 'var(--text-primary)' }}>₹{livePrice}</span>
+                          <span style={{ fontSize: '20px', fontWeight: 600, color: 'var(--text-primary)' }}>₹{livePrice}</span>
                           {liveOriginal > livePrice && (
                             <span style={{ fontSize: '13px', color: 'var(--text-muted)', textDecoration: 'line-through' }}>₹{liveOriginal}</span>
                           )}
@@ -2211,7 +2246,7 @@ export default function ExploreCoursesPage() {
                         style={{
                           width: '100%', padding: '11px', borderRadius: '50px',
                           border: 'none', background: 'var(--text-primary)',
-                          color: 'var(--button-text, #fff)', fontSize: '13px', fontWeight: '800',
+                          color: 'var(--button-text, #fff)', fontSize: '13px', fontWeight: 600,
                           cursor: upgrading ? 'not-allowed' : 'pointer',
                           opacity: upgrading ? 0.5 : 1,
                           boxShadow: '0 8px 16px rgba(30, 30, 58, 0.4)',
@@ -2227,7 +2262,7 @@ export default function ExploreCoursesPage() {
                   {offering.hasLive && !isRecordedEnrolled && !isLiveEnrolled && (
                     <div 
                       style={{
-                        padding: '14px 16px', borderRadius: '18px',
+                        padding: '14px 16px', borderRadius: '12px',
                         background: 'linear-gradient(135deg, var(--border), var(--border))',
                         border: '1.5px solid var(--border)',
                         position: 'relative', overflow: 'hidden',
@@ -2247,19 +2282,19 @@ export default function ExploreCoursesPage() {
                       {/* PRO Badge */}
                       <div style={{
                         position: 'absolute', top: '10px', right: '12px',
-                        padding: '3px 10px', borderRadius: '20px',
+                        padding: '3px 10px', borderRadius: '14px',
                         background: 'var(--accent)', color: 'var(--button-text, #fff)',
-                        fontSize: '9px', fontWeight: '900', letterSpacing: '0.08em',
+                        fontSize: '9px', fontWeight: 600, letterSpacing: '0.08em',
                       }}>
                         PRO
                       </div>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
                         <div>
-                          <div style={{ fontSize: '10px', fontWeight: '800', color: 'var(--accent)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '4px' }}>
+                          <div style={{ fontSize: '10px', fontWeight: 600, color: 'var(--accent)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '4px' }}>
                             🔴 Live + Recorded Batch - PRO
                           </div>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                            <span style={{ fontSize: '20px', fontWeight: '900', color: 'var(--text-primary)' }}>₹{livePrice}</span>
+                            <span style={{ fontSize: '20px', fontWeight: 600, color: 'var(--text-primary)' }}>₹{livePrice}</span>
                             {liveOriginal > livePrice && (
                               <span style={{ fontSize: '13px', color: 'var(--text-muted)', textDecoration: 'line-through' }}>₹{liveOriginal}</span>
                             )}
@@ -2272,7 +2307,7 @@ export default function ExploreCoursesPage() {
                         style={{
                           width: '100%', padding: '11px', borderRadius: '50px',
                           border: 'none', background: 'var(--accent)',
-                          color: 'var(--button-text, #fff)', fontSize: '13px', fontWeight: '800',
+                          color: 'var(--button-text, #fff)', fontSize: '13px', fontWeight: 600,
                           cursor: purchasing ? 'not-allowed' : 'pointer',
                           opacity: purchasing ? 0.5 : 1,
                           boxShadow: '0 8px 16px color-mix(in srgb, var(--primary) 35%, transparent)',
@@ -2288,7 +2323,7 @@ export default function ExploreCoursesPage() {
                   {offering.championDiscountPrice > 0 && !isLiveEnrolled && (
                     <div 
                       style={{
-                        padding: '14px 16px', borderRadius: '18px',
+                        padding: '14px 16px', borderRadius: '12px',
                         background: 'linear-gradient(135deg, #fef2f2, #fee2e2)',
                         border: '1.5px solid #fca5a5',
                         position: 'relative', overflow: 'hidden',
@@ -2309,19 +2344,19 @@ export default function ExploreCoursesPage() {
                       {/* CHAMPION Badge */}
                       <div style={{
                         position: 'absolute', top: '10px', right: '12px',
-                        padding: '3px 10px', borderRadius: '20px',
+                        padding: '3px 10px', borderRadius: '14px',
                         background: 'var(--danger)', color: '#fff',
-                        fontSize: '9px', fontWeight: '900', letterSpacing: '0.08em',
+                        fontSize: '9px', fontWeight: 600, letterSpacing: '0.08em',
                       }}>
                         CHAMPION
                       </div>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
                         <div>
-                          <div style={{ fontSize: '10px', fontWeight: '800', color: 'var(--danger)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '4px' }}>
+                          <div style={{ fontSize: '10px', fontWeight: 600, color: 'var(--danger)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '4px' }}>
                             🏆 Champion - {offering.championSubtitle || 'Premium Wrapper'}
                           </div>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                            <span style={{ fontSize: '20px', fontWeight: '900', color: 'var(--text-primary)' }}>₹{offering.championDiscountPrice}</span>
+                            <span style={{ fontSize: '20px', fontWeight: 600, color: 'var(--text-primary)' }}>₹{offering.championDiscountPrice}</span>
                             {offering.championOriginalPrice > offering.championDiscountPrice && (
                               <span style={{ fontSize: '13px', color: 'var(--text-muted)', textDecoration: 'line-through' }}>₹{offering.championOriginalPrice}</span>
                             )}
@@ -2334,7 +2369,7 @@ export default function ExploreCoursesPage() {
                         style={{
                           width: '100%', padding: '11px', borderRadius: '50px',
                           border: 'none', background: 'var(--danger)',
-                          color: '#fff', fontSize: '13px', fontWeight: '800',
+                          color: '#fff', fontSize: '13px', fontWeight: 600,
                           cursor: purchasing ? 'not-allowed' : 'pointer',
                           opacity: purchasing ? 0.5 : 1,
                           boxShadow: '0 8px 16px rgba(220,38,38,0.35)',
@@ -2358,7 +2393,7 @@ export default function ExploreCoursesPage() {
                 <span>⏳ Access Till End Term</span>
                 {offering.detailsLink && (
                   <a href={offering.detailsLink} target="_blank" rel="noopener noreferrer" style={{
-                    fontSize: '11px', fontWeight: '800', color: 'var(--accent)',
+                    fontSize: '11px', fontWeight: 600, color: 'var(--accent)',
                     textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '4px',
                   }}>
                     More Details →
@@ -2377,11 +2412,11 @@ export default function ExploreCoursesPage() {
           <div onClick={() => setShowChampionTerms(false)} style={{ position: 'fixed', inset: 0, zIndex: 1400, background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
             <div onClick={e => e.stopPropagation()} style={{ width: '100%', maxWidth: 620, maxHeight: '88dvh', overflowY: 'auto', background: 'var(--surface)', borderRadius: 26, padding: '24px 24px 20px', boxShadow: '0 24px 60px rgba(0,0,0,0.35)' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
-                <div style={{ fontSize: 20, fontWeight: 800, letterSpacing: '-0.4px', color: 'var(--text-primary)' }}>Champion Batch: Terms &amp; Conditions</div>
+                <div style={{ fontSize: 20, fontWeight: 600, letterSpacing: '-0.4px', color: 'var(--text-primary)' }}>Champion Batch: Terms &amp; Conditions</div>
                 <button onClick={() => setShowChampionTerms(false)} aria-label="Close" style={{ width: 34, height: 34, borderRadius: '50%', border: 'none', background: 'var(--surface-hover)', color: 'var(--text-secondary)', fontSize: 18, cursor: 'pointer' }}>&times;</button>
               </div>
               <ChampionPolicy championPrice={Number(activeBundle?.championDiscountPrice ?? activeBundle?.championOriginalPrice)} livePrice={Number(activeBundle?.liveDiscountPrice ?? activeBundle?.liveOriginalPrice)} />
-              <button onClick={() => setShowChampionTerms(false)} style={{ marginTop: 18, width: '100%', padding: '14px', borderRadius: 16, border: 'none', background: 'var(--accent)', color: 'var(--button-text, #fff)', fontWeight: 700, fontSize: 16, cursor: 'pointer' }}>Got it</button>
+              <button onClick={() => setShowChampionTerms(false)} style={{ marginTop: 18, width: '100%', padding: '14px', borderRadius: 16, border: 'none', background: 'var(--accent)', color: 'var(--button-text, #fff)', fontWeight: 600, fontSize: 16, cursor: 'pointer' }}>Got it</button>
             </div>
           </div>
         )}
@@ -2398,7 +2433,7 @@ export default function ExploreCoursesPage() {
                 </button>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '20px', gap: '12px', flexWrap: 'wrap' }}>
               <div style={{ flex: '1 1 200px', minWidth: 0 }}>
-                <h3 style={{ fontSize: 'clamp(18px, 5vw, 24px)', fontWeight: '900', color: 'var(--text-primary)', wordBreak: 'break-word' }}>{activeBundle.name}</h3>
+                <h3 style={{ fontSize: 'clamp(18px, 5vw, 24px)', fontWeight: 600, color: 'var(--text-primary)', wordBreak: 'break-word' }}>{activeBundle.name}</h3>
                 {activeBundle.description && (
                   <p style={{ fontSize: '14px', color: 'var(--text-secondary)', marginTop: '4px', fontWeight: '500' }}>{activeBundle.description}</p>
                 )}
@@ -2411,7 +2446,7 @@ export default function ExploreCoursesPage() {
                     background: 'color-mix(in srgb, var(--primary) 8%, transparent)',
                     border: '1.5px solid color-mix(in srgb, var(--primary) 20%, transparent)', cursor: 'pointer',
                     display: 'flex', alignItems: 'center', gap: '6px',
-                    color: 'var(--accent)', fontSize: '12px', fontWeight: '800',
+                    color: 'var(--accent)', fontSize: '12px', fontWeight: 600,
                     whiteSpace: 'nowrap'
                   }}
                 >
@@ -2423,9 +2458,9 @@ export default function ExploreCoursesPage() {
               <div style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
                 {activeBundle.allowIndividualPurchase !== false && (
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr auto auto', alignItems: 'center', gap: '16px', padding: '0 6px 10px 6px', marginBottom: '4px', borderBottom: '1.5px solid var(--border)' }}>
-                    <div style={{ fontSize: '11px', fontWeight: '800', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>{activeBundle.courseHeadline || 'Course'}</div>
-                    <div style={{ fontSize: '11px', fontWeight: '800', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', textAlign: 'center', minWidth: '160px' }}>Prices</div>
-                    <div style={{ fontSize: '11px', fontWeight: '800', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', textAlign: 'center', minWidth: '110px' }}>Class Type</div>
+                    <div style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>{activeBundle.courseHeadline || 'Course'}</div>
+                    <div style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', textAlign: 'center', minWidth: '160px' }}>Prices</div>
+                    <div style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', textAlign: 'center', minWidth: '110px' }}>Class Type</div>
                   </div>
                 )}
                 <div style={{ maxHeight: '420px', overflow: 'auto', paddingRight: '12px', marginBottom: '20px' }}>
@@ -2448,7 +2483,7 @@ export default function ExploreCoursesPage() {
                     return (
                       <div key={course.id} className="bundle-modal-item" style={{ 
                         padding: '16px', 
-                        borderRadius: '16px', 
+                        borderRadius: '12px', 
                         border: '1.5px solid var(--border)', 
                         marginBottom: '12px',
                         background: bundleSelectedCoursesToBuy.includes(course.id) ? 'var(--surface)' : 'var(--surface-2)',
@@ -2488,9 +2523,9 @@ export default function ExploreCoursesPage() {
                                     )}
                                   </div>
                                   <div>
-                                    <div style={{ fontSize: '15px', fontWeight: '800', color: 'var(--text-primary)' }}>
+                                    <div style={{ fontSize: '15px', fontWeight: 600, color: 'var(--text-primary)' }}>
                                       {course.name}
-                                      {isEnrolled && <span style={{ marginLeft: '8px', fontSize: '10px', background: 'var(--success-light)', color: 'var(--success)', padding: '2px 8px', borderRadius: '6px', textTransform: 'uppercase', fontWeight: '900' }}>Purchased</span>}
+                                      {isEnrolled && <span style={{ marginLeft: '8px', fontSize: '10px', background: 'var(--success-light)', color: 'var(--success)', padding: '2px 8px', borderRadius: '6px', textTransform: 'uppercase', fontWeight: 600 }}>Purchased</span>}
                                     </div>
                                     {course.description && <div style={{ fontSize: '11px', color: 'var(--text-secondary)', fontWeight: '600', marginTop: '2px', maxWidth: '400px' }}>{course.description}</div>}
                                   </div>
@@ -2501,7 +2536,7 @@ export default function ExploreCoursesPage() {
 
                           <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
                             {!activeBundle.allowIndividualPurchase ? (
-                              <div style={{ fontSize: '11px', fontWeight: '800', color: 'var(--accent)', background: 'color-mix(in srgb, var(--primary) 6%, transparent)', padding: '6px 12px', borderRadius: '8px', textTransform: 'uppercase' }}>
+                              <div style={{ fontSize: '11px', fontWeight: 600, color: 'var(--accent)', background: 'color-mix(in srgb, var(--primary) 6%, transparent)', padding: '6px 12px', borderRadius: '8px', textTransform: 'uppercase' }}>
                                 ✨ Part of Package
                               </div>
                             ) : (
@@ -2510,20 +2545,20 @@ export default function ExploreCoursesPage() {
                                 <div style={{ textAlign: 'right', display: 'flex', flexDirection: 'column', gap: '2px' }}>
                                   <div style={{ display: 'flex', gap: '10px', alignItems: 'center', justifyContent: 'flex-end' }}>
                                     <div style={{ textAlign: 'center' }}>
-                                      <div style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: '700', textTransform: 'uppercase' }}>Recorded</div>
-                                      <div style={{ fontSize: '14px', fontWeight: '900', color: selectedType === 'RECORDED' ? 'var(--text-primary)' : 'var(--text-muted)' }}>₹{recPrice}</div>
+                                      <div style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase' }}>Recorded</div>
+                                      <div style={{ fontSize: '14px', fontWeight: 600, color: selectedType === 'RECORDED' ? 'var(--text-primary)' : 'var(--text-muted)' }}>₹{recPrice}</div>
                                     </div>
                                     <div style={{ fontSize: '10px', color: 'var(--text-muted)' }}>|</div>
                                     <div style={{ textAlign: 'center' }}>
-                                      <div style={{ fontSize: '11px', color: 'var(--accent)', fontWeight: '700', textTransform: 'uppercase' }}>Live Pro</div>
-                                      <div style={{ fontSize: '14px', fontWeight: '900', color: selectedType === 'LIVE' ? 'var(--primary)' : 'var(--text-muted)' }}>₹{livePrice}</div>
+                                      <div style={{ fontSize: '11px', color: 'var(--accent)', fontWeight: 600, textTransform: 'uppercase' }}>Live Pro</div>
+                                      <div style={{ fontSize: '14px', fontWeight: 600, color: selectedType === 'LIVE' ? 'var(--primary)' : 'var(--text-muted)' }}>₹{livePrice}</div>
                                     </div>
                                     {offering?.championDiscountPrice > 0 && (
                                       <>
                                         <div style={{ fontSize: '10px', color: 'var(--text-muted)' }}>|</div>
                                         <div style={{ textAlign: 'center' }}>
-                                          <div style={{ fontSize: '11px', color: 'var(--danger)', fontWeight: '700', textTransform: 'uppercase' }}>Champ</div>
-                                          <div style={{ fontSize: '14px', fontWeight: '900', color: selectedType === 'CHAMPION' ? 'var(--danger)' : 'var(--text-muted)' }}>₹{offering.championDiscountPrice}</div>
+                                          <div style={{ fontSize: '11px', color: 'var(--danger)', fontWeight: 600, textTransform: 'uppercase' }}>Champ</div>
+                                          <div style={{ fontSize: '14px', fontWeight: 600, color: selectedType === 'CHAMPION' ? 'var(--danger)' : 'var(--text-muted)' }}>₹{offering.championDiscountPrice}</div>
                                         </div>
                                       </>
                                     )}
@@ -2541,7 +2576,7 @@ export default function ExploreCoursesPage() {
                                             setCouponError('Live-only coupon removed (requires all subjects to be Live).')
                                           }
                                         }}
-                                        style={{ padding: '6px 10px', borderRadius: '8px', border: selectedType === 'RECORDED' ? '1.5px solid #3b82f6' : '1px solid var(--border)', background: selectedType === 'RECORDED' ? 'var(--info-light)' : 'var(--surface-2)', color: selectedType === 'RECORDED' ? 'var(--info)' : 'var(--text-secondary)', fontSize: '11px', fontWeight: '700', cursor: 'pointer' }}
+                                        style={{ padding: '6px 10px', borderRadius: '8px', border: selectedType === 'RECORDED' ? '1.5px solid #3b82f6' : '1px solid var(--border)', background: selectedType === 'RECORDED' ? 'var(--info-light)' : 'var(--surface-2)', color: selectedType === 'RECORDED' ? 'var(--info)' : 'var(--text-secondary)', fontSize: '11px', fontWeight: 600, cursor: 'pointer' }}
                                       >
                                         Recorded
                                       </button>
@@ -2549,7 +2584,7 @@ export default function ExploreCoursesPage() {
                                         onClick={() => {
                                           setBundleSelectedForPurchase({ ...bundleSelectedForPurchase, [course.id]: 'LIVE' })
                                         }}
-                                        style={{ padding: '6px 10px', borderRadius: '8px', border: selectedType === 'LIVE' ? '1.5px solid #3b82f6' : '1px solid var(--border)', background: selectedType === 'LIVE' ? 'var(--info-light)' : 'var(--surface-2)', color: selectedType === 'LIVE' ? 'var(--info)' : 'var(--text-secondary)', fontSize: '11px', fontWeight: '700', cursor: 'pointer' }}
+                                        style={{ padding: '6px 10px', borderRadius: '8px', border: selectedType === 'LIVE' ? '1.5px solid #3b82f6' : '1px solid var(--border)', background: selectedType === 'LIVE' ? 'var(--info-light)' : 'var(--surface-2)', color: selectedType === 'LIVE' ? 'var(--info)' : 'var(--text-secondary)', fontSize: '11px', fontWeight: 600, cursor: 'pointer' }}
                                       >
                                         Live
                                       </button>
@@ -2558,14 +2593,14 @@ export default function ExploreCoursesPage() {
                                           onClick={() => {
                                             setBundleSelectedForPurchase({ ...bundleSelectedForPurchase, [course.id]: 'CHAMPION' })
                                           }}
-                                          style={{ padding: '6px 10px', borderRadius: '8px', border: selectedType === 'CHAMPION' ? '1.5px solid #ef4444' : '1px solid var(--border)', background: selectedType === 'CHAMPION' ? 'var(--danger-light)' : 'var(--surface-2)', color: selectedType === 'CHAMPION' ? 'var(--danger)' : 'var(--text-secondary)', fontSize: '11px', fontWeight: '700', cursor: 'pointer' }}
+                                          style={{ padding: '6px 10px', borderRadius: '8px', border: selectedType === 'CHAMPION' ? '1.5px solid #ef4444' : '1px solid var(--border)', background: selectedType === 'CHAMPION' ? 'var(--danger-light)' : 'var(--surface-2)', color: selectedType === 'CHAMPION' ? 'var(--danger)' : 'var(--text-secondary)', fontSize: '11px', fontWeight: 600, cursor: 'pointer' }}
                                         >
                                           Champion
                                         </button>
                                       )}
                                     </div>
                                     {selectedType === 'CHAMPION' && offering?.championSubtitle && (
-                                      <div style={{ padding: '4px 8px', background: 'var(--danger-light)', border: '1px solid var(--border)', borderRadius: '6px', color: 'var(--danger)', fontSize: '10px', fontWeight: '700', maxWidth: '140px', textAlign: 'right' }}>
+                                      <div style={{ padding: '4px 8px', background: 'var(--danger-light)', border: '1px solid var(--border)', borderRadius: '6px', color: 'var(--danger)', fontSize: '10px', fontWeight: 600, maxWidth: '140px', textAlign: 'right' }}>
                                         {offering.championSubtitle}
                                       </div>
                                     )}
@@ -2581,7 +2616,7 @@ export default function ExploreCoursesPage() {
                 </div>
 
                 {/* Left Bottom Info Area */}
-                <div style={{ background: 'var(--surface)', borderRadius: '20px', padding: '20px', border: '1.5px solid var(--border)' }}>
+                <div style={{ background: 'var(--surface)', borderRadius: '14px', padding: '20px', border: '1.5px solid var(--border)' }}>
                   {activeBundle.enableBundleDiscount && activeBundle.bundleDiscountValue && (() => {
                     // Read from coursePrices JSON first (that's where it's stored), fallback to direct field
                     let applicability = activeBundle.bundleDiscountApplicability || 'BOTH';
@@ -2605,9 +2640,9 @@ export default function ExploreCoursesPage() {
                     }
 
                     return (
-                      <div style={{ padding: '14px 18px', borderRadius: '16px', background: 'var(--surface-hover)', marginBottom: '16px', border: 'none' }}>
+                      <div style={{ padding: '14px 18px', borderRadius: '12px', background: 'var(--surface-hover)', marginBottom: '16px', border: 'none' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-                          <span style={{ fontSize: '15px', fontWeight: 700, color: 'var(--accent)' }}>
+                          <span style={{ fontSize: '15px', fontWeight: 600, color: 'var(--accent)' }}>
                             {activeBundle.bundleDiscountType === 'PERCENTAGE' ? `Bundle Offer: ${activeBundle.bundleDiscountValue}% OFF` : `Bundle Offer: ₹${activeBundle.bundleDiscountValue} OFF`}
                           </span>
                         </div>
@@ -2635,7 +2670,7 @@ export default function ExploreCoursesPage() {
                         <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: 'var(--text-secondary)', fontWeight: 600, marginBottom: 14 }}>
                           <span>🔒</span> Fixed bundle. All {activeBundle.courses.length} courses come together.
                         </div>
-                        <div style={{ fontSize: 22, fontWeight: 800, letterSpacing: '-0.5px', color: 'var(--text-primary)', marginBottom: 14 }}>Choose your plan</div>
+                        <div style={{ fontSize: 22, fontWeight: 600, letterSpacing: '-0.5px', color: 'var(--text-primary)', marginBottom: 14 }}>Choose your plan</div>
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))', gap: 12 }}>
                           {plans.map(pl => {
                             const on = eff === pl.key
@@ -2643,11 +2678,11 @@ export default function ExploreCoursesPage() {
                               <button key={pl.key} onClick={() => setBundleGlobalAccessType(pl.key as 'RECORDED' | 'LIVE' | 'CHAMPION')}
                                 style={{ textAlign: 'left', cursor: forced ? 'default' : 'pointer', padding: '18px 18px 16px', borderRadius: 20, border: on ? `2px solid ${pl.color}` : '1px solid var(--border)', background: on ? `color-mix(in srgb, ${pl.color} 10%, var(--surface))` : 'var(--surface)', color: 'var(--text-primary)', transition: 'transform .15s ease, border-color .15s ease, background .15s ease' }}>
                                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-                                  <span style={{ fontSize: 15, fontWeight: 700 }}>{pl.name}</span>
+                                  <span style={{ fontSize: 15, fontWeight: 600 }}>{pl.name}</span>
                                   <span style={{ width: 20, height: 20, borderRadius: '50%', border: on ? `6px solid ${pl.color}` : '2px solid var(--border)', boxSizing: 'border-box' }} />
                                 </div>
                                 <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
-                                  <span style={{ fontSize: 28, fontWeight: 800, letterSpacing: '-0.8px' }}>₹{pl.price}</span>
+                                  <span style={{ fontSize: 28, fontWeight: 600, letterSpacing: '-0.8px' }}>₹{pl.price}</span>
                                   {Number(pl.orig) > Number(pl.price) && <span style={{ fontSize: 13, color: 'var(--text-muted)', textDecoration: 'line-through' }}>₹{pl.orig}</span>}
                                 </div>
                                 {pl.note && <div style={{ fontSize: 12.5, color: 'var(--text-secondary)', marginTop: 6, fontWeight: 600 }}>{pl.note}</div>}
@@ -2657,9 +2692,9 @@ export default function ExploreCoursesPage() {
                         </div>
                         {eff === 'CHAMPION' && (
                           <button onClick={() => setShowChampionTerms(true)}
-                            style={{ marginTop: 14, width: '100%', textAlign: 'left', cursor: 'pointer', borderRadius: 18, border: '1px solid var(--border)', background: 'var(--surface)', padding: '16px 18px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', color: 'var(--text-primary)', fontSize: 15, fontWeight: 700 }}>
+                            style={{ marginTop: 14, width: '100%', textAlign: 'left', cursor: 'pointer', borderRadius: 18, border: '1px solid var(--border)', background: 'var(--surface)', padding: '16px 18px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', color: 'var(--text-primary)', fontSize: 15, fontWeight: 600 }}>
                             <span>Champion terms &amp; conditions</span>
-                            <span style={{ color: 'var(--accent)', fontSize: 13, fontWeight: 700 }}>Read all &rarr;</span>
+                            <span style={{ color: 'var(--accent)', fontSize: 13, fontWeight: 600 }}>Read all &rarr;</span>
                           </button>
                         )}
                       </div>
@@ -2787,12 +2822,12 @@ export default function ExploreCoursesPage() {
                   return (
                     <>
                       <div style={{ marginBottom: 'auto', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-                        <div style={{ fontSize: '18px', color: 'var(--text-primary)', fontWeight: '900', marginBottom: '12px', borderBottom: '2px solid var(--border)', paddingBottom: '12px' }}>Detailed Breakdown</div>
+                        <div style={{ fontSize: '18px', color: 'var(--text-primary)', fontWeight: 600, marginBottom: '12px', borderBottom: '2px solid var(--border)', paddingBottom: '12px' }}>Detailed Breakdown</div>
                         
                         {!isFixed && selectedList.length === 0 ? (
                           <div style={{ padding: '32px 0', textAlign: 'center', color: 'var(--text-muted)' }}>
                             <div style={{ fontSize: '24px', marginBottom: '8px' }}>👈</div>
-                            <div style={{ fontSize: '13px', fontWeight: '800' }}>Please select at least one course</div>
+                            <div style={{ fontSize: '13px', fontWeight: 600 }}>Please select at least one course</div>
                             <div style={{ fontSize: '11px', marginTop: '4px' }}>to see your price breakdown</div>
                           </div>
                         ) : (
@@ -2816,20 +2851,20 @@ export default function ExploreCoursesPage() {
                                 return (
                                   <div key={courseId} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
                                     <div style={{ flex: 1, paddingRight: '12px' }}>
-                                      <div style={{ fontSize: '13px', color: 'var(--text-primary)', fontWeight: '800' }}>{bc?.course.name}</div>
-                                      <div style={{ fontSize: '10px', color: 'var(--text-muted)', fontWeight: '700' }}>{selectedType === 'LIVE' ? 'LIVE PRO' : 'RECORDED PLUS'}</div>
+                                      <div style={{ fontSize: '13px', color: 'var(--text-primary)', fontWeight: 600 }}>{bc?.course.name}</div>
+                                      <div style={{ fontSize: '10px', color: 'var(--text-muted)', fontWeight: 600 }}>{selectedType === 'LIVE' ? 'LIVE PRO' : 'RECORDED PLUS'}</div>
                                     </div>
-                                    <span style={{ fontSize: '13px', fontWeight: '900', color: 'var(--text-primary)' }}>₹{price}</span>
+                                    <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)' }}>₹{price}</span>
                                   </div>
                                 )
                               })}
                               {isFixed && (
                                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
                                   <div style={{ flex: 1, paddingRight: '12px' }}>
-                                    <div style={{ fontSize: '13px', color: 'var(--text-primary)', fontWeight: '800' }}>{activeBundle.title}</div>
-                                    <div style={{ fontSize: '10px', color: 'var(--text-muted)', fontWeight: '700' }}>{effectiveGlobalType === 'LIVE' ? 'LIVE PRO' : 'RECORDED PLUS'}</div>
+                                    <div style={{ fontSize: '13px', color: 'var(--text-primary)', fontWeight: 600 }}>{activeBundle.title}</div>
+                                    <div style={{ fontSize: '10px', color: 'var(--text-muted)', fontWeight: 600 }}>{effectiveGlobalType === 'LIVE' ? 'LIVE PRO' : 'RECORDED PLUS'}</div>
                                   </div>
-                                  <span style={{ fontSize: '13px', fontWeight: '900', color: 'var(--text-primary)' }}>₹{totalPrice}</span>
+                                  <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)' }}>₹{totalPrice}</span>
                                 </div>
                               )}
                             </div>
@@ -2846,8 +2881,8 @@ export default function ExploreCoursesPage() {
                               return (
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', padding: '10px 14px', borderRadius: '12px', background: 'var(--success-light)', border: '1px solid #dcfce7' }}>
                                   <div>
-                                    <div style={{ fontSize: '13px', color: 'var(--success)', fontWeight: '900' }}>Bundle Discount</div>
-                                    <div style={{ fontSize: '10px', color: 'var(--success)', fontWeight: '700', marginTop: '2px' }}>Applies to: {applicabilityLabel}</div>
+                                    <div style={{ fontSize: '13px', color: 'var(--success)', fontWeight: 600 }}>Bundle Discount</div>
+                                    <div style={{ fontSize: '10px', color: 'var(--success)', fontWeight: 600, marginTop: '2px' }}>Applies to: {applicabilityLabel}</div>
                                   </div>
                                   <span style={{ fontSize: '13px', fontWeight: '950', color: 'var(--success)' }}>-₹{bundleDiscountAmt}</span>
                                 </div>
@@ -2856,7 +2891,7 @@ export default function ExploreCoursesPage() {
 
                             {couponApplied && couponDiscountAmt > 0 && (
                               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '14px', padding: '10px 14px', borderRadius: '12px', background: 'var(--info-light)', border: '1px solid #dbeafe' }}>
-                                <span style={{ fontSize: '13px', color: 'var(--info)', fontWeight: '900' }}>Coupon: {couponApplied.code}</span>
+                                <span style={{ fontSize: '13px', color: 'var(--info)', fontWeight: 600 }}>Coupon: {couponApplied.code}</span>
                                 <span style={{ fontSize: '13px', fontWeight: '950', color: 'var(--info)' }}>-₹{couponDiscountAmt}</span>
                               </div>
                             )}
@@ -2865,20 +2900,20 @@ export default function ExploreCoursesPage() {
 
                         {!isAllEnrolled && (
                           <div style={{ marginTop: '24px', marginBottom: '16px' }}>
-                            <div style={{ fontSize: '11px', fontWeight: '900', color: 'var(--text-muted)', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Apply Coupon</div>
+                            <div style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-muted)', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Apply Coupon</div>
                             <div style={{ display: 'flex', gap: '8px' }}>
                               <input 
                                 type="text" 
                                 value={couponCode} 
                                 onChange={e => { setCouponCode(e.target.value.toUpperCase()); setCouponError('') }} 
                                 placeholder="ENTER CODE" 
-                                style={{ flex: 1, padding: '12px 16px', borderRadius: '12px', border: '2.5px solid var(--border)', fontSize: '14px', fontWeight: '900', outline: 'none', transition: 'border-color 0.2s' }} 
+                                style={{ flex: 1, padding: '12px 16px', borderRadius: '12px', border: '2.5px solid var(--border)', fontSize: '14px', fontWeight: 600, outline: 'none', transition: 'border-color 0.2s' }} 
                                 onFocus={e => e.currentTarget.style.borderColor = 'var(--accent)'}
                                 onBlur={e => e.currentTarget.style.borderColor = 'var(--surface)'}
                                 disabled={!!couponApplied} 
                               />
                               {couponApplied ? (
-                                <button onClick={() => { setCouponApplied(null); setCouponCode(''); setCouponError('') }} style={{ padding: '12px 18px', borderRadius: '12px', background: 'var(--danger-light)', border: 'none', color: 'var(--danger)', fontWeight: '900', cursor: 'pointer' }}>✕</button>
+                                <button onClick={() => { setCouponApplied(null); setCouponCode(''); setCouponError('') }} style={{ padding: '12px 18px', borderRadius: '12px', background: 'var(--danger-light)', border: 'none', color: 'var(--danger)', fontWeight: 600, cursor: 'pointer' }}>✕</button>
                               ) : (
                                 <button 
                                   disabled={!couponCode || couponLoading} 
@@ -2901,11 +2936,11 @@ export default function ExploreCoursesPage() {
                                     } catch { setCouponError('Failed to validate') }
                                     finally { setCouponLoading(false) }
                                   }} 
-                                  style={{ padding: '12px 20px', borderRadius: '12px', background: couponCode ? 'var(--text-primary)' : 'var(--surface)', color: couponCode ? '#fff' : 'var(--text-muted)', fontWeight: '900', cursor: couponCode ? 'pointer' : 'not-allowed', border: 'none' }}
+                                  style={{ padding: '12px 20px', borderRadius: '12px', background: couponCode ? 'var(--text-primary)' : 'var(--surface)', color: couponCode ? '#fff' : 'var(--text-muted)', fontWeight: 600, cursor: couponCode ? 'pointer' : 'not-allowed', border: 'none' }}
                                 >{couponLoading ? '...' : 'APPLY'}</button>
                               )}
                             </div>
-                            {couponError && <div style={{ fontSize: '11px', color: 'var(--danger)', fontWeight: '800', marginTop: '8px', padding: '4px 8px', background: 'var(--danger-light)', borderRadius: '6px' }}>{couponError}</div>}
+                            {couponError && <div style={{ fontSize: '11px', color: 'var(--danger)', fontWeight: 600, marginTop: '8px', padding: '4px 8px', background: 'var(--danger-light)', borderRadius: '6px' }}>{couponError}</div>}
                           </div>
                         )}
                         
@@ -2913,7 +2948,7 @@ export default function ExploreCoursesPage() {
                           <span style={{ fontSize: '16px', color: 'var(--text-primary)', fontWeight: '950' }}>Total Payable</span>
                           <div style={{ textAlign: 'right' }}>
                             {(originalTotalPrice > finalTotal || bundleDiscountAmt > 0 || couponDiscountAmt > 0) && (
-                              <div style={{ fontSize: '13px', color: 'var(--text-muted)', textDecoration: 'line-through', marginBottom: '2px', fontWeight: '800' }}>₹{originalTotalPrice > totalPrice ? originalTotalPrice : totalPrice}</div>
+                              <div style={{ fontSize: '13px', color: 'var(--text-muted)', textDecoration: 'line-through', marginBottom: '2px', fontWeight: 600 }}>₹{originalTotalPrice > totalPrice ? originalTotalPrice : totalPrice}</div>
                             )}
                             <div style={{ fontSize: '32px', fontWeight: '1000', color: 'var(--accent)', lineHeight: '1', letterSpacing: '-1px' }}>₹{isAllEnrolled ? 0 : finalTotal}</div>
                           </div>
@@ -2976,8 +3011,8 @@ export default function ExploreCoursesPage() {
                           style={{ 
                             width: '100%', 
                             padding: '20px', 
-                            borderRadius: '18px', 
-                            background: (isAllEnrolled || selectedList.length === 0) ? 'var(--surface)' : 'linear-gradient(135deg, var(--primary), var(--primary))', 
+                            borderRadius: '12px', 
+                            background: (isAllEnrolled || selectedList.length === 0) ? 'var(--surface)' : 'var(--primary)', 
                             color: (isAllEnrolled || selectedList.length === 0) ? 'var(--text-muted)' : '#fff', 
                             fontWeight: '1000', 
                             fontSize: '17px', 
@@ -2994,7 +3029,7 @@ export default function ExploreCoursesPage() {
                           {isProcessing ? 'Processing Order...' : (isAllEnrolled ? 'ALREADY ENROLLED' : (selectedList.length === 0 ? 'SELECT SUBJECTS' : (finalTotal === 0 ? 'GET FOR FREE 🎉' : 'GET NOW')))}
                         </button>
                         {isAllEnrolled && (
-                          <div style={{ textAlign: 'center', fontSize: '11px', color: 'var(--text-muted)', fontWeight: '800', marginTop: '16px' }}>
+                          <div style={{ textAlign: 'center', fontSize: '11px', color: 'var(--text-muted)', fontWeight: 600, marginTop: '16px' }}>
                             All selected subjects are already in your account.
                           </div>
                         )}
@@ -3018,7 +3053,7 @@ export default function ExploreCoursesPage() {
           padding: '20px'
         }} onClick={() => setShowBatchComparisonModal(false)}>
           <div style={{
-            background: 'var(--surface)', borderRadius: '32px', width: '100%', maxWidth: '750px',
+            background: 'var(--surface)', borderRadius: '14px', width: '100%', maxWidth: '750px',
             boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)', overflow: 'hidden',
             animation: 'modalSlideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1)'
           }} onClick={e => e.stopPropagation()}>
@@ -3027,19 +3062,19 @@ export default function ExploreCoursesPage() {
               <button onClick={() => setShowBatchComparisonModal(false)} style={{ position: 'absolute', top: '25px', right: '30px', background: 'var(--surface)', border: 'none', width: '36px', height: '36px', borderRadius: '12px', cursor: 'pointer', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <X size={20} />
               </button>
-              <h2 style={{ fontSize: '24px', fontWeight: '800', color: 'var(--text-primary)', marginBottom: '8px' }}>Batch Comparison</h2>
+              <h2 style={{ fontSize: '24px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '8px' }}>Batch Comparison</h2>
               <p style={{ fontSize: '15px', color: 'var(--text-secondary)', fontWeight: '500' }}>Choose the experience that fits your learning style</p>
             </div>
 
             {/* Comparison Table */}
             <div style={{ padding: '30px 40px' }}>
-              <div style={{ borderRadius: '24px', overflow: 'hidden', border: '1.5px solid var(--border)', background: 'var(--surface)' }}>
+              <div style={{ borderRadius: '14px', overflow: 'hidden', border: '1.5px solid var(--border)', background: 'var(--surface)' }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
                   <thead>
                     <tr style={{ background: 'var(--surface)' }}>
-                      <th style={{ padding: '18px 24px', fontSize: '13px', color: 'var(--text-secondary)', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Features</th>
-                      <th style={{ padding: '18px 24px', fontSize: '13px', color: 'var(--warning)', fontWeight: '800', background: 'var(--warning-light)', textAlign: 'center' }}>PLUS ( Recorded )</th>
-                      <th style={{ padding: '18px 24px', fontSize: '13px', color: 'var(--primary-dark)', fontWeight: '800', background: 'var(--primary-light)', textAlign: 'center' }}>PRO ( Live )</th>
+                      <th style={{ padding: '18px 24px', fontSize: '13px', color: 'var(--text-secondary)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Features</th>
+                      <th style={{ padding: '18px 24px', fontSize: '13px', color: 'var(--warning)', fontWeight: 600, background: 'var(--warning-light)', textAlign: 'center' }}>PLUS ( Recorded )</th>
+                      <th style={{ padding: '18px 24px', fontSize: '13px', color: 'var(--primary-dark)', fontWeight: 600, background: 'var(--primary-light)', textAlign: 'center' }}>PRO ( Live )</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -3054,7 +3089,7 @@ export default function ExploreCoursesPage() {
                       <tr key={i} style={{ borderTop: '1px solid var(--border)' }}>
                         <td style={{ padding: '16px 24px', fontSize: '14px', color: 'var(--text-secondary)', fontWeight: '600' }}>{row.f}</td>
                         <td style={{ padding: '16px 24px', fontSize: '14px', color: 'var(--warning)', textAlign: 'center', background: 'var(--warning-light)' }}>{row.g}</td>
-                        <td style={{ padding: '16px 24px', fontSize: '14px', color: 'var(--primary-dark)', fontWeight: '700', textAlign: 'center', background: 'var(--surface)' }}>{row.p}</td>
+                        <td style={{ padding: '16px 24px', fontSize: '14px', color: 'var(--primary-dark)', fontWeight: 600, textAlign: 'center', background: 'var(--surface)' }}>{row.p}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -3063,7 +3098,7 @@ export default function ExploreCoursesPage() {
             </div>
 
             <div style={{ padding: '0 40px 40px', textAlign: 'center' }}>
-              <button onClick={() => setShowBatchComparisonModal(false)} style={{ background: 'var(--primary)', color: 'var(--button-text, #fff)', padding: '14px 40px', borderRadius: '16px', fontSize: '15px', fontWeight: '700', border: 'none', cursor: 'pointer', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)' }}>
+              <button onClick={() => setShowBatchComparisonModal(false)} style={{ background: 'var(--primary)', color: 'var(--button-text, #fff)', padding: '14px 40px', borderRadius: '12px', fontSize: '15px', fontWeight: 600, border: 'none', cursor: 'pointer', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)' }}>
                 Got it, thanks!
               </button>
             </div>
@@ -3080,7 +3115,7 @@ export default function ExploreCoursesPage() {
           padding: '20px', overflow: 'auto'
         }} onClick={() => setShowCreateModal(false)}>
           <div style={{
-            background: 'var(--surface)', borderRadius: '32px', width: '100%', maxWidth: '960px',
+            background: 'var(--surface)', borderRadius: '14px', width: '100%', maxWidth: '960px',
             boxShadow: '0 0 100px var(--neu-glow), 0 25px 50px -12px rgba(0, 0, 0, 0.5)',
             padding: '40px',
             animation: 'modalSlideUp 0.3s ease-out',
@@ -3092,14 +3127,14 @@ export default function ExploreCoursesPage() {
             >
               <X size={20} />
             </button>
-            <h2 style={{ fontSize: '24px', fontWeight: '900', color: 'var(--text-primary)', marginBottom: '24px' }}>
+            <h2 style={{ fontSize: '24px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '24px' }}>
               Add Course to Store
             </h2>
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '32px' }}>
               <div>
                 <div style={{ marginBottom: '24px' }}>
-                  <label style={{ display: 'block', fontSize: '14px', fontWeight: '700', color: 'var(--text-primary)', marginBottom: '8px' }}>
+                  <label style={{ display: 'block', fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '8px' }}>
                     Select Course *
                   </label>
                   <select
@@ -3124,7 +3159,7 @@ export default function ExploreCoursesPage() {
                 </div>
 
                 <div style={{ marginBottom: '24px' }}>
-                  <label style={{ display: 'block', fontSize: '14px', fontWeight: '700', color: 'var(--text-primary)', marginBottom: '8px' }}>
+                  <label style={{ display: 'block', fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '8px' }}>
                     Select Category *
                   </label>
                   <select
@@ -3154,11 +3189,11 @@ export default function ExploreCoursesPage() {
                         background: `linear-gradient(135deg, ${selected.color || 'var(--accent)'}15, ${selected.color || 'var(--accent)'}08)`,
                         border: `2px solid ${selected.color || 'var(--accent)'}40`,
                         padding: '20px',
-                        borderRadius: '16px',
+                        borderRadius: '12px',
                         marginBottom: '24px'
                       }}>
                         <h3 style={{
-                          fontSize: '28px', fontWeight: '900', color: 'var(--text-primary)', marginBottom: '4px',
+                          fontSize: '28px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '4px',
                           lineHeight: '1.2'
                         }}>
                           {selected.name}
@@ -3175,13 +3210,13 @@ export default function ExploreCoursesPage() {
                   })()
                 )}
 
-                <div style={{ background: 'var(--surface)', padding: '20px', borderRadius: '18px', marginBottom: '24px', border: '2px solid var(--border)' }}>
-                  <h4 style={{ fontSize: '14px', fontWeight: '800', color: 'var(--text-primary)', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <div style={{ background: 'var(--surface)', padding: '20px', borderRadius: '12px', marginBottom: '24px', border: '2px solid var(--border)' }}>
+                  <h4 style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
                     📹 Recording Batch - Plus
                   </h4>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                     <div>
-                      <label style={{ display: 'block', fontSize: '12px', fontWeight: '700', color: 'var(--text-secondary)', marginBottom: '6px' }}>
+                      <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '6px' }}>
                         Real Price (₹)
                       </label>
                       <input
@@ -3197,7 +3232,7 @@ export default function ExploreCoursesPage() {
                       />
                     </div>
                     <div>
-                      <label style={{ display: 'block', fontSize: '12px', fontWeight: '700', color: 'var(--text-secondary)', marginBottom: '6px' }}>
+                      <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '6px' }}>
                         Discount Price (₹)
                       </label>
                       <input
@@ -3215,13 +3250,13 @@ export default function ExploreCoursesPage() {
                   </div>
                 </div>
 
-                <div style={{ background: '#f0f3ff', padding: '20px', borderRadius: '18px', marginBottom: '24px', border: '2px solid var(--border)' }}>
-                  <h4 style={{ fontSize: '14px', fontWeight: '800', color: 'var(--primary)', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <div style={{ background: '#f0f3ff', padding: '20px', borderRadius: '12px', marginBottom: '24px', border: '2px solid var(--border)' }}>
+                  <h4 style={{ fontSize: '14px', fontWeight: 600, color: 'var(--primary)', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
                     🔴 Live Pro
                   </h4>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                     <div>
-                      <label style={{ display: 'block', fontSize: '12px', fontWeight: '700', color: 'var(--text-secondary)', marginBottom: '6px' }}>
+                      <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '6px' }}>
                         Real Price (₹)
                       </label>
                       <input
@@ -3237,7 +3272,7 @@ export default function ExploreCoursesPage() {
                       />
                     </div>
                     <div>
-                      <label style={{ display: 'block', fontSize: '12px', fontWeight: '700', color: 'var(--text-secondary)', marginBottom: '6px' }}>
+                      <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '6px' }}>
                         Discount Price (₹)
                       </label>
                       <input
@@ -3255,13 +3290,13 @@ export default function ExploreCoursesPage() {
                   </div>
                 </div>
 
-                <div style={{ background: 'var(--danger-light)', padding: '20px', borderRadius: '18px', marginBottom: '24px', border: '2px solid var(--border)' }}>
-                  <h4 style={{ fontSize: '14px', fontWeight: '800', color: 'var(--danger)', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <div style={{ background: 'var(--danger-light)', padding: '20px', borderRadius: '12px', marginBottom: '24px', border: '2px solid var(--border)' }}>
+                  <h4 style={{ fontSize: '14px', fontWeight: 600, color: 'var(--danger)', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
                     🏆 Champion Batch
                   </h4>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
                     <div>
-                      <label style={{ display: 'block', fontSize: '12px', fontWeight: '700', color: 'var(--text-secondary)', marginBottom: '6px' }}>
+                      <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '6px' }}>
                         Real Price (₹)
                       </label>
                       <input
@@ -3277,7 +3312,7 @@ export default function ExploreCoursesPage() {
                       />
                     </div>
                     <div>
-                      <label style={{ display: 'block', fontSize: '12px', fontWeight: '700', color: 'var(--text-secondary)', marginBottom: '6px' }}>
+                      <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '6px' }}>
                         Discount Price (₹)
                       </label>
                       <input
@@ -3294,7 +3329,7 @@ export default function ExploreCoursesPage() {
                     </div>
                   </div>
                   <div>
-                    <label style={{ display: 'block', fontSize: '12px', fontWeight: '700', color: 'var(--text-secondary)', marginBottom: '6px' }}>
+                    <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '6px' }}>
                       Champion Subtitle (e.g. Includes Unlimited Support)
                     </label>
                     <input
@@ -3314,7 +3349,7 @@ export default function ExploreCoursesPage() {
 
               <div>
                 <div style={{ marginBottom: '24px' }}>
-                  <label style={{ display: 'block', fontSize: '14px', fontWeight: '700', color: 'var(--text-primary)', marginBottom: '8px' }}>
+                  <label style={{ display: 'block', fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '8px' }}>
                     Tags / Badges
                   </label>
                   <div style={{ display: 'flex', gap: '8px', marginBottom: '12px', flexWrap: 'wrap' }}>
@@ -3322,8 +3357,8 @@ export default function ExploreCoursesPage() {
                       <div
                         key={idx}
                         style={{
-                          background: 'var(--accent)', color: 'var(--button-text, #fff)', padding: '6px 12px', borderRadius: '20px',
-                          fontSize: '12px', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '6px'
+                          background: 'var(--accent)', color: 'var(--button-text, #fff)', padding: '6px 12px', borderRadius: '14px',
+                          fontSize: '12px', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '6px'
                         }}
                       >
                         {tag}
@@ -3362,7 +3397,7 @@ export default function ExploreCoursesPage() {
                       }}
                       style={{
                         padding: '10px 16px', borderRadius: '10px', border: 'none',
-                        background: 'var(--accent)', color: 'var(--button-text, #fff)', fontWeight: '700',
+                        background: 'var(--accent)', color: 'var(--button-text, #fff)', fontWeight: 600,
                         cursor: 'pointer', fontSize: '12px'
                       }}
                     >
@@ -3378,7 +3413,7 @@ export default function ExploreCoursesPage() {
                 onClick={() => setShowCreateModal(false)}
                 style={{
                   flex: 1, padding: '14px', borderRadius: '12px', border: '2px solid var(--border)',
-                  background: 'var(--surface)', color: 'var(--text-primary)', fontWeight: '700', fontSize: '14px',
+                  background: 'var(--surface)', color: 'var(--text-primary)', fontWeight: 600, fontSize: '14px',
                   cursor: 'pointer'
                 }}
               >
@@ -3470,8 +3505,8 @@ export default function ExploreCoursesPage() {
                 disabled={!selectedCourse || creating}
                 style={{
                   flex: 1, padding: '14px', borderRadius: '12px', border: 'none',
-                  background: !selectedCourse || creating ? '#d0d5e0' : 'linear-gradient(135deg, var(--primary), #8b5cf6)',
-                  color: '#fff', fontWeight: '700', fontSize: '14px',
+                  background: !selectedCourse || creating ? '#d0d5e0' : 'var(--primary)',
+                  color: '#fff', fontWeight: 600, fontSize: '14px',
                   cursor: !selectedCourse || creating ? 'not-allowed' : 'pointer',
                   opacity: creating ? 0.8 : 1
                 }}
@@ -3492,7 +3527,7 @@ export default function ExploreCoursesPage() {
           padding: '20px'
         }}>
           <div style={{
-            background: 'var(--surface)', borderRadius: '32px', width: '100%', maxWidth: '440px',
+            background: 'var(--surface)', borderRadius: '14px', width: '100%', maxWidth: '440px',
             boxShadow: '0 0 100px var(--neu-glow), 0 25px 50px -12px rgba(0, 0, 0, 0.5)',
             padding: '40px', textAlign: 'center',
             position: 'relative'
@@ -3505,7 +3540,7 @@ export default function ExploreCoursesPage() {
             </button>
             <div style={{
               width: '64px', height: '64px', borderRadius: '50%',
-              background: 'linear-gradient(135deg, var(--primary), #8b5cf6)',
+              background: 'var(--primary)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               margin: '0 auto 24px',
               animation: 'spin 1s linear infinite'
@@ -3514,7 +3549,7 @@ export default function ExploreCoursesPage() {
                 <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
               </svg>
             </div>
-            <h2 style={{ fontSize: '22px', fontWeight: '800', color: 'var(--text-primary)', marginBottom: '8px' }}>
+            <h2 style={{ fontSize: '22px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '8px' }}>
               Verifying Payment...
             </h2>
             <p style={{ fontSize: '15px', color: 'var(--text-secondary)', lineHeight: '1.6', marginBottom: '0' }}>
@@ -3533,7 +3568,7 @@ export default function ExploreCoursesPage() {
           padding: '20px'
           }} onClick={() => { setSuccessOrderId(null); router.push('/courses') }}>
           <div style={{
-            background: 'var(--surface)', borderRadius: '32px', width: '100%', maxWidth: '480px',
+            background: 'var(--surface)', borderRadius: '14px', width: '100%', maxWidth: '480px',
             boxShadow: '0 0 100px var(--neu-glow), 0 25px 50px -12px rgba(0, 0, 0, 0.5)',
             padding: '40px', textAlign: 'center',
             animation: 'modalSlideUp 0.3s ease-out',
@@ -3546,7 +3581,7 @@ export default function ExploreCoursesPage() {
               <X size={20} />
             </button>
             <div style={{ fontSize: '64px', marginBottom: '24px' }}>🎉</div>
-            <h2 style={{ fontSize: '26px', fontWeight: '900', color: 'var(--text-primary)', marginBottom: '16px' }}>
+            <h2 style={{ fontSize: '26px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '16px' }}>
               Payment Successful!
             </h2>
             <p style={{ fontSize: '16px', color: 'var(--text-secondary)', lineHeight: '1.6', marginBottom: '24px' }}>
@@ -3555,8 +3590,8 @@ export default function ExploreCoursesPage() {
                 : "Your access has been activated! You can start learning immediately. A confirmation email has been sent to your inbox."}
             </p>
 
-            <div style={{ background: 'var(--surface)', borderRadius: '24px', padding: '24px', marginBottom: '32px', border: '1.5px solid var(--border)' }}>
-              <div style={{ fontSize: '12px', color: 'var(--accent)', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '8px' }}>Recommended Next Step</div>
+            <div style={{ background: 'var(--surface)', borderRadius: '14px', padding: '24px', marginBottom: '32px', border: '1.5px solid var(--border)' }}>
+              <div style={{ fontSize: '12px', color: 'var(--accent)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '8px' }}>Recommended Next Step</div>
               <p style={{ fontSize: '15px', color: 'var(--text-secondary)', fontWeight: '600', lineHeight: '1.5', margin: 0 }}>
                 While we prepare your content, explore our <strong>Free Resources</strong> section for extra study materials!
               </p>
@@ -3565,13 +3600,13 @@ export default function ExploreCoursesPage() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               <button 
                 onClick={() => { setSuccessOrderId(null); router.push(purchasedCourse?.type === 'mentorship' ? '/courses?view=mentorship' : '/courses') }}
-                style={{ width: '100%', padding: '16px', borderRadius: '16px', background: 'var(--text-primary)', color: 'var(--button-text, #fff)', fontWeight: '800', border: 'none', cursor: 'pointer', transition: 'all 0.2s', fontSize: '16px' }}
+                style={{ width: '100%', padding: '16px', borderRadius: '12px', background: 'var(--text-primary)', color: 'var(--button-text, #fff)', fontWeight: 600, border: 'none', cursor: 'pointer', transition: 'all 0.2s', fontSize: '16px' }}
               >
                 {purchasedCourse?.type === 'mentorship' ? 'View My Bookings' : 'Start Learning Now'}
               </button>
               <button 
                 onClick={() => { setSuccessOrderId(null); router.push('/dashboard?view=free') }}
-                style={{ width: '100%', padding: '16px', borderRadius: '16px', background: 'var(--surface)', color: 'var(--text-secondary)', fontWeight: '800', border: '2px solid var(--border)', cursor: 'pointer', transition: 'all 0.2s', fontSize: '16px' }}
+                style={{ width: '100%', padding: '16px', borderRadius: '12px', background: 'var(--surface)', color: 'var(--text-secondary)', fontWeight: 600, border: '2px solid var(--border)', cursor: 'pointer', transition: 'all 0.2s', fontSize: '16px' }}
               >
                 Visit Free Resources
               </button>
@@ -3589,7 +3624,7 @@ export default function ExploreCoursesPage() {
           padding: '20px'
         }} onClick={() => { setUpgradeSuccessOrderId(null); router.push('/courses') }}>
           <div style={{
-            background: 'var(--surface)', borderRadius: '32px', width: '100%', maxWidth: '480px',
+            background: 'var(--surface)', borderRadius: '14px', width: '100%', maxWidth: '480px',
             boxShadow: '0 0 100px var(--neu-glow), 0 25px 50px -12px rgba(0, 0, 0, 0.5)',
             padding: '40px', textAlign: 'center',
             animation: 'modalSlideUp 0.3s ease-out',
@@ -3602,33 +3637,33 @@ export default function ExploreCoursesPage() {
               <X size={20} />
             </button>
             <div style={{ fontSize: '64px', marginBottom: '24px' }}>⚡</div>
-            <h2 style={{ fontSize: '26px', fontWeight: '900', color: 'var(--text-primary)', marginBottom: '16px' }}>
+            <h2 style={{ fontSize: '26px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '16px' }}>
               Upgraded to PRO!
             </h2>
 
             <div style={{
               background: 'linear-gradient(135deg, var(--border), var(--border))',
-              borderRadius: '20px', padding: '20px', marginBottom: '24px',
+              borderRadius: '14px', padding: '20px', marginBottom: '24px',
               border: '2px solid var(--border)'
             }}>
-              <div style={{ fontSize: '12px', color: 'var(--accent)', fontWeight: '700', textTransform: 'uppercase', marginBottom: '8px' }}>
+              <div style={{ fontSize: '12px', color: 'var(--accent)', fontWeight: 600, textTransform: 'uppercase', marginBottom: '8px' }}>
                 Access Upgraded
               </div>
-              <h3 style={{ fontSize: '20px', fontWeight: '900', color: 'var(--primary)', marginBottom: '6px' }}>
+              <h3 style={{ fontSize: '20px', fontWeight: 600, color: 'var(--primary)', marginBottom: '6px' }}>
                 Live + Recorded (PRO)
               </h3>
-              <div style={{ fontSize: '13px', color: 'var(--accent)', fontWeight: '700', marginBottom: '0' }}>
+              <div style={{ fontSize: '13px', color: 'var(--accent)', fontWeight: 600, marginBottom: '0' }}>
                 You now have full access to live sessions!
               </div>
             </div>
 
             {/* Order ID */}
             {upgradeSuccessOrderId && upgradeSuccessOrderId !== 'SUCCESS' && (
-              <div style={{ background: 'var(--bg)', borderRadius: '16px', padding: '16px', marginBottom: '24px', border: '1.5px solid var(--border)' }}>
-                <div style={{ fontSize: '11px', color: 'var(--text-secondary)', fontWeight: '700', textTransform: 'uppercase', marginBottom: '6px' }}>
+              <div style={{ background: 'var(--bg)', borderRadius: '12px', padding: '16px', marginBottom: '24px', border: '1.5px solid var(--border)' }}>
+                <div style={{ fontSize: '11px', color: 'var(--text-secondary)', fontWeight: 600, textTransform: 'uppercase', marginBottom: '6px' }}>
                   Order ID
                 </div>
-                <div style={{ fontSize: '15px', fontWeight: '800', color: 'var(--text-secondary)', fontFamily: 'monospace', letterSpacing: '1px' }}>
+                <div style={{ fontSize: '15px', fontWeight: 600, color: 'var(--text-secondary)', fontFamily: 'monospace', letterSpacing: '1px' }}>
                   {upgradeSuccessOrderId}
                 </div>
               </div>
@@ -3641,9 +3676,9 @@ export default function ExploreCoursesPage() {
             <button
               onClick={() => { setUpgradeSuccessOrderId(null); router.push('/courses') }}
               style={{
-                width: '100%', padding: '16px', borderRadius: '18px', border: 'none',
-                background: 'linear-gradient(135deg, var(--primary), #8b5cf6)',
-                color: 'white', fontWeight: '700', fontSize: '15px', cursor: 'pointer',
+                width: '100%', padding: '16px', borderRadius: '12px', border: 'none',
+                background: 'var(--primary)',
+                color: 'white', fontWeight: 600, fontSize: '15px', cursor: 'pointer',
                 boxShadow: '0 4px 12px color-mix(in srgb, var(--primary) 30%, transparent)',
                 transition: 'all 0.2s'
               }}
@@ -3673,7 +3708,7 @@ export default function ExploreCoursesPage() {
           padding: '20px', overflow: 'auto'
         }} onClick={() => setEditingOffering(null)}>
           <div style={{
-            background: 'var(--surface)', borderRadius: '32px', width: '100%', maxWidth: '960px',
+            background: 'var(--surface)', borderRadius: '14px', width: '100%', maxWidth: '960px',
             boxShadow: '0 0 100px var(--neu-glow), 0 25px 50px -12px rgba(0, 0, 0, 0.5)',
             padding: '40px',
             animation: 'modalSlideUp 0.3s ease-out',
@@ -3685,19 +3720,19 @@ export default function ExploreCoursesPage() {
             >
               <X size={20} />
             </button>
-            <h2 style={{ fontSize: '24px', fontWeight: '900', color: 'var(--text-primary)', marginBottom: '24px' }}>
+            <h2 style={{ fontSize: '24px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '24px' }}>
               Edit Course Offering
             </h2>
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '32px', marginBottom: '24px' }}>
               <div>
                 <div style={{ marginBottom: '20px' }}>
-                  <label style={{ fontSize: '13px', fontWeight: '700', color: 'var(--text-muted)', textTransform: 'uppercase', display: 'block', marginBottom: '8px' }}>Course</label>
-                  <div style={{ fontSize: '16px', fontWeight: '800', color: 'var(--text-primary)' }}>{editingOffering.course?.name}</div>
+                  <label style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', display: 'block', marginBottom: '8px' }}>Course</label>
+                  <div style={{ fontSize: '16px', fontWeight: 600, color: 'var(--text-primary)' }}>{editingOffering.course?.name}</div>
                 </div>
 
                 <div style={{ marginBottom: '20px' }}>
-                  <label style={{ fontSize: '13px', fontWeight: '700', color: 'var(--text-muted)', textTransform: 'uppercase', display: 'block', marginBottom: '8px' }}>Category *</label>
+                  <label style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', display: 'block', marginBottom: '8px' }}>Category *</label>
                   <select
                     value={editFormData.category || 'General'}
                     onChange={(e) => setEditFormData({ ...editFormData, category: e.target.value })}
@@ -3713,17 +3748,17 @@ export default function ExploreCoursesPage() {
                 </div>
 
                 {editingOffering.hasRecorded && (
-                  <div style={{ background: 'var(--surface)', padding: '20px', borderRadius: '18px', marginBottom: '20px', border: '2px solid var(--border)' }}>
-                    <h4 style={{ fontSize: '14px', fontWeight: '800', color: 'var(--text-primary)', marginBottom: '16px' }}>
+                  <div style={{ background: 'var(--surface)', padding: '20px', borderRadius: '12px', marginBottom: '20px', border: '2px solid var(--border)' }}>
+                    <h4 style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '16px' }}>
                       Recorded Batch
                     </h4>
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                       <div>
-                        <label style={{ fontSize: '12px', fontWeight: '700', color: 'var(--text-secondary)', display: 'block', marginBottom: '6px' }}>Original Price (₹)</label>
+                        <label style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary)', display: 'block', marginBottom: '6px' }}>Original Price (₹)</label>
                         <input type="number" min={1} value={editFormData.recordedOriginalPrice ?? ''} onChange={e => setEditFormData({...editFormData, recordedOriginalPrice: e.target.value})} style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1.5px solid var(--border)', fontSize: '14px', boxSizing: 'border-box' }} />
                       </div>
                       <div>
-                        <label style={{ fontSize: '12px', fontWeight: '700', color: 'var(--text-secondary)', display: 'block', marginBottom: '6px' }}>Discount Price (₹)</label>
+                        <label style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary)', display: 'block', marginBottom: '6px' }}>Discount Price (₹)</label>
                         <input type="number" min={1} value={editFormData.recordedDiscountPrice ?? ''} onChange={e => setEditFormData({...editFormData, recordedDiscountPrice: e.target.value})} style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1.5px solid var(--border)', fontSize: '14px', boxSizing: 'border-box' }} />
                       </div>
                     </div>
@@ -3731,17 +3766,17 @@ export default function ExploreCoursesPage() {
                 )}
 
                 {editingOffering.hasLive && (
-                  <div style={{ background: 'var(--surface)', padding: '20px', borderRadius: '18px', border: '2px solid var(--border)' }}>
-                    <h4 style={{ fontSize: '14px', fontWeight: '800', color: 'var(--text-primary)', marginBottom: '16px' }}>
+                  <div style={{ background: 'var(--surface)', padding: '20px', borderRadius: '12px', border: '2px solid var(--border)' }}>
+                    <h4 style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '16px' }}>
                       Live Pro
                     </h4>
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                       <div>
-                        <label style={{ fontSize: '12px', fontWeight: '700', color: 'var(--text-secondary)', display: 'block', marginBottom: '6px' }}>Original Price (₹)</label>
+                        <label style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary)', display: 'block', marginBottom: '6px' }}>Original Price (₹)</label>
                         <input type="number" min={1} value={editFormData.liveOriginalPrice ?? ''} onChange={e => setEditFormData({...editFormData, liveOriginalPrice: e.target.value})} style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1.5px solid var(--border)', fontSize: '14px', boxSizing: 'border-box' }} />
                       </div>
                       <div>
-                        <label style={{ fontSize: '12px', fontWeight: '700', color: 'var(--text-secondary)', display: 'block', marginBottom: '6px' }}>Discount Price (₹)</label>
+                        <label style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary)', display: 'block', marginBottom: '6px' }}>Discount Price (₹)</label>
                         <input type="number" min={1} value={editFormData.liveDiscountPrice ?? ''} onChange={e => setEditFormData({...editFormData, liveDiscountPrice: e.target.value})} style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1.5px solid var(--border)', fontSize: '14px', boxSizing: 'border-box' }} />
                       </div>
                     </div>
@@ -3751,27 +3786,27 @@ export default function ExploreCoursesPage() {
 
               <div>
                 {editingOffering.hasLive && (
-                  <div style={{ marginBottom: '20px', padding: '20px', borderRadius: '18px', background: 'var(--danger-light)', border: '2px solid var(--border)' }}>
-                    <div style={{ fontSize: '14px', fontWeight: '800', color: 'var(--danger)', marginBottom: '16px' }}>Champion Batch</div>
+                  <div style={{ marginBottom: '20px', padding: '20px', borderRadius: '12px', background: 'var(--danger-light)', border: '2px solid var(--border)' }}>
+                    <div style={{ fontSize: '14px', fontWeight: 600, color: 'var(--danger)', marginBottom: '16px' }}>Champion Batch</div>
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '12px' }}>
                       <div>
-                        <label style={{ display: 'block', fontSize: '12px', fontWeight: '700', color: 'var(--text-secondary)', marginBottom: '6px' }}>Real Price (₹)</label>
+                        <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '6px' }}>Real Price (₹)</label>
                         <input type="number" min={1} value={editFormData.championOriginalPrice ?? ''} onChange={e => setEditFormData({...editFormData, championOriginalPrice: e.target.value})} style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1.5px solid var(--border)', fontSize: '14px', boxSizing: 'border-box' }} />
                       </div>
                       <div>
-                        <label style={{ display: 'block', fontSize: '12px', fontWeight: '700', color: 'var(--text-secondary)', marginBottom: '6px' }}>Discount Price (₹)</label>
+                        <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '6px' }}>Discount Price (₹)</label>
                         <input type="number" min={1} value={editFormData.championDiscountPrice ?? ''} onChange={e => setEditFormData({...editFormData, championDiscountPrice: e.target.value})} style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1.5px solid var(--border)', fontSize: '14px', boxSizing: 'border-box' }} />
                       </div>
                     </div>
                     <div>
-                      <label style={{ display: 'block', fontSize: '12px', fontWeight: '700', color: 'var(--text-secondary)', marginBottom: '6px' }}>Champion Subtitle</label>
+                      <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '6px' }}>Champion Subtitle</label>
                       <input type="text" value={editFormData.championSubtitle ?? ''} onChange={e => setEditFormData({...editFormData, championSubtitle: e.target.value})} style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1.5px solid var(--border)', fontSize: '14px', boxSizing: 'border-box' }} placeholder="e.g. Includes Unlimited Support..." />
                     </div>
                   </div>
                 )}
 
                 <div style={{ marginBottom: '20px' }}>
-                  <label style={{ fontSize: '13px', fontWeight: '700', color: 'var(--text-muted)', textTransform: 'uppercase', display: 'block', marginBottom: '8px' }}>Details Link (optional)</label>
+                  <label style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', display: 'block', marginBottom: '8px' }}>Details Link (optional)</label>
                   <input type="url" value={editFormData.detailsLink ?? ''} onChange={e => setEditFormData({...editFormData, detailsLink: e.target.value})} placeholder="https://example.com/course-details" style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1.5px solid var(--border)', fontSize: '14px', boxSizing: 'border-box' }} />
                   <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '4px' }}>If set, a "More Details" button will appear on the course card for students.</div>
                 </div>
@@ -3796,7 +3831,7 @@ export default function ExploreCoursesPage() {
                 }}
                 style={{
                   padding: '14px 18px', borderRadius: '12px', border: '2px solid var(--border)',
-                  background: 'var(--danger-light)', color: 'var(--danger)', fontWeight: '700', fontSize: '14px',
+                  background: 'var(--danger-light)', color: 'var(--danger)', fontWeight: 600, fontSize: '14px',
                   cursor: 'pointer'
                 }}
               >
@@ -3806,7 +3841,7 @@ export default function ExploreCoursesPage() {
                 onClick={() => setEditingOffering(null)}
                 style={{
                   flex: 1, padding: '14px', borderRadius: '12px', border: '2px solid var(--border)',
-                  background: 'var(--surface)', color: 'var(--text-primary)', fontWeight: '700', fontSize: '14px',
+                  background: 'var(--surface)', color: 'var(--text-primary)', fontWeight: 600, fontSize: '14px',
                   cursor: 'pointer'
                 }}
               >
@@ -3849,8 +3884,8 @@ export default function ExploreCoursesPage() {
                 }}
                 style={{
                   flex: 1, padding: '14px', borderRadius: '12px', border: 'none',
-                  background: editSaving ? 'var(--text-muted)' : 'linear-gradient(135deg, var(--primary), #8b5cf6)',
-                  color: '#fff', fontWeight: '700', fontSize: '14px',
+                  background: editSaving ? 'var(--text-muted)' : 'var(--primary)',
+                  color: '#fff', fontWeight: 600, fontSize: '14px',
                   cursor: editSaving ? 'not-allowed' : 'pointer',
                 }}
               >
@@ -3870,7 +3905,7 @@ export default function ExploreCoursesPage() {
           padding: '20px'
         }} onClick={() => setEditingBundle(null)}>
           <div className="apple-modal" style={{
-            background: 'var(--surface)', borderRadius: '32px', width: '100%', maxWidth: '600px',
+            background: 'var(--surface)', borderRadius: '14px', width: '100%', maxWidth: '600px',
             boxShadow: '0 0 100px var(--neu-glow), 0 25px 50px -12px rgba(0, 0, 0, 0.5)',
             padding: '40px',
             animation: 'modalSlideUp 0.3s ease-out',
@@ -3883,16 +3918,16 @@ export default function ExploreCoursesPage() {
             >
               <X size={20} />
             </button>
-            <h2 style={{ fontSize: '24px', fontWeight: '900', color: 'var(--text-primary)', marginBottom: '8px' }}>Edit Bundle</h2>
+            <h2 style={{ fontSize: '24px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '8px' }}>Edit Bundle</h2>
             <p style={{ fontSize: '14px', color: 'var(--text-secondary)', marginBottom: '24px' }}>Update pricing, name, and selected courses for this bundle.</p>
 
             <div style={{ marginBottom: '16px' }}>
-              <label style={{ fontSize: '13px', fontWeight: '700', color: 'var(--text-muted)', textTransform: 'uppercase', display: 'block', marginBottom: '8px' }}>Bundle Name</label>
+              <label style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', display: 'block', marginBottom: '8px' }}>Bundle Name</label>
               <input type="text" value={editBundleData.name ?? ''} onChange={e => setEditBundleData({...editBundleData, name: e.target.value})} style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1.5px solid var(--border)', fontSize: '14px', boxSizing: 'border-box' }} />
             </div>
 
             <div style={{ marginBottom: '24px' }}>
-              <label style={{ fontSize: '13px', fontWeight: '700', color: 'var(--text-muted)', textTransform: 'uppercase', display: 'block', marginBottom: '8px' }}>Category *</label>
+              <label style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', display: 'block', marginBottom: '8px' }}>Category *</label>
               <select
                 value={editBundleData.category || 'General'}
                 onChange={e => setEditBundleData({...editBundleData, category: e.target.value})}
@@ -3908,32 +3943,32 @@ export default function ExploreCoursesPage() {
             </div>
 
             <div style={{ marginBottom: '24px' }}>
-              <label style={{ fontSize: '13px', fontWeight: '700', color: 'var(--text-muted)', textTransform: 'uppercase', display: 'block', marginBottom: '8px' }}>Description</label>
+              <label style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', display: 'block', marginBottom: '8px' }}>Description</label>
               <input type="text" value={editBundleData.description ?? ''} onChange={e => setEditBundleData({...editBundleData, description: e.target.value})} style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1.5px solid var(--border)', fontSize: '14px', boxSizing: 'border-box' }} />
             </div>
 
             <div style={{ marginBottom: '24px' }}>
-              <label style={{ fontSize: '13px', fontWeight: '700', color: 'var(--text-muted)', textTransform: 'uppercase', display: 'block', marginBottom: '8px' }}>What you get</label>
+              <label style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', display: 'block', marginBottom: '8px' }}>What you get</label>
               <textarea value={editBundleData.highlights ?? ''} onChange={e => setEditBundleData({...editBundleData, highlights: e.target.value})} rows={5} placeholder={'One point per line, for example:\nLive doubt sessions every week\nPrevious year question practice'} style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1.5px solid var(--border)', fontSize: '14px', boxSizing: 'border-box', resize: 'vertical', fontFamily: 'inherit' }} />
               <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '6px' }}>Shown to students on the web and in the app, one tick per line.</div>
             </div>
 
             <div style={{ marginBottom: '24px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
               <div>
-                <label style={{ fontSize: '13px', fontWeight: '700', color: 'var(--text-muted)', display: 'block', marginBottom: '8px' }}>Banner Text</label>
+                <label style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: '8px' }}>Banner Text</label>
                 <input type="text" value={editBundleData.bannerText ?? ''} onChange={e => setEditBundleData({...editBundleData, bannerText: e.target.value})} style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1.5px solid var(--border)', fontSize: '14px', boxSizing: 'border-box' }} />
               </div>
               <div>
-                <label style={{ fontSize: '13px', fontWeight: '700', color: 'var(--text-muted)', display: 'block', marginBottom: '8px' }}>Starting Price (₹)</label>
+                <label style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: '8px' }}>Starting Price (₹)</label>
                 <input type="number" value={editBundleData.startingPrice ?? ''} onChange={e => setEditBundleData({...editBundleData, startingPrice: e.target.value})} style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1.5px solid var(--border)', fontSize: '14px', boxSizing: 'border-box' }} />
               </div>
             </div>
 
             {/* 1. Fixed Bundle Toggle - NOW AT TOP */}
-            <div style={{ marginBottom: '24px', padding: '16px', borderRadius: '16px', background: 'var(--primary-light)', border: '1.5px solid #dbeafe' }}>
+            <div style={{ marginBottom: '24px', padding: '16px', borderRadius: '12px', background: 'var(--primary-light)', border: '1.5px solid #dbeafe' }}>
               <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer' }}>
                 <div>
-                  <div style={{ fontSize: '15px', fontWeight: '900', color: 'var(--text-primary)' }}>Fixed Bundle</div>
+                  <div style={{ fontSize: '15px', fontWeight: 600, color: 'var(--text-primary)' }}>Fixed Bundle</div>
                   <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '2px' }}>Users must buy all courses together (No individual selection)</div>
                 </div>
                 <input 
@@ -3946,7 +3981,7 @@ export default function ExploreCoursesPage() {
             </div>
 
             <div style={{ marginBottom: '24px' }}>
-              <label style={{ fontSize: '13px', fontWeight: '700', color: 'var(--text-muted)', textTransform: 'uppercase', display: 'block', marginBottom: '8px' }}>Select Courses</label>
+              <label style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', display: 'block', marginBottom: '8px' }}>Select Courses</label>
               <div style={{ maxHeight: '160px', overflow: 'auto', padding: '10px', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--surface)' }}>
                 {(courses || []).map((c: any) => (
                   <label key={c.id} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '6px 0', cursor: 'pointer' }}>
@@ -3969,45 +4004,45 @@ export default function ExploreCoursesPage() {
             {/* 2. Bundle Pricing Section */}
             {editBundleData.allowIndividualPurchase === false ? (
               // FIXED BUNDLE PRICING - SHOW ONLY GLOBAL PRICES
-              <div style={{ marginBottom: '24px', padding: '20px', borderRadius: '20px', background: 'var(--success-light)', border: '1.5px solid var(--border)' }}>
+              <div style={{ marginBottom: '24px', padding: '20px', borderRadius: '14px', background: 'var(--success-light)', border: '1.5px solid var(--border)' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
                   
-                  <label style={{ fontSize: '14px', fontWeight: '900', color: 'var(--success)', textTransform: 'uppercase' }}>Bundle Prices (Fixed Package)</label>
+                  <label style={{ fontSize: '14px', fontWeight: 600, color: 'var(--success)', textTransform: 'uppercase' }}>Bundle Prices (Fixed Package)</label>
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                   <div>
-                    <div style={{ fontSize: '11px', fontWeight: '700', color: 'var(--success)', marginBottom: '4px' }}>Bundle Recorded Price (₹)</div>
+                    <div style={{ fontSize: '11px', fontWeight: 600, color: 'var(--success)', marginBottom: '4px' }}>Bundle Recorded Price (₹)</div>
                     <input 
                       type="number" 
                       value={editBundleData.recordedDiscountPrice ?? ''} 
                       onChange={e => setEditBundleData({ ...editBundleData, recordedDiscountPrice: e.target.value, recordedOriginalPrice: e.target.value })} 
-                      style={{ width: '100%', padding: '12px', borderRadius: '10px', border: '1px solid #86efac', fontSize: '14px', fontWeight: '700' }} 
+                      style={{ width: '100%', padding: '12px', borderRadius: '10px', border: '1px solid #86efac', fontSize: '14px', fontWeight: 600 }} 
                       placeholder="e.g. 4000"
                     />
                   </div>
                   <div>
-                    <div style={{ fontSize: '11px', fontWeight: '700', color: 'var(--success)', marginBottom: '4px' }}>Bundle Live Price (₹)</div>
+                    <div style={{ fontSize: '11px', fontWeight: 600, color: 'var(--success)', marginBottom: '4px' }}>Bundle Live Price (₹)</div>
                     <input 
                       type="number" 
                       value={editBundleData.liveDiscountPrice ?? ''} 
                       onChange={e => setEditBundleData({ ...editBundleData, liveDiscountPrice: e.target.value, liveOriginalPrice: e.target.value })} 
-                      style={{ width: '100%', padding: '12px', borderRadius: '10px', border: '1px solid #86efac', fontSize: '14px', fontWeight: '700' }} 
+                      style={{ width: '100%', padding: '12px', borderRadius: '10px', border: '1px solid #86efac', fontSize: '14px', fontWeight: 600 }} 
                       placeholder="e.g. 5500"
                     />
                   </div>
                   <div>
-                    <div style={{ fontSize: '11px', fontWeight: '700', color: 'var(--danger)', marginBottom: '4px' }}>Bundle Champion Price (₹)</div>
+                    <div style={{ fontSize: '11px', fontWeight: 600, color: 'var(--danger)', marginBottom: '4px' }}>Bundle Champion Price (₹)</div>
                     <input 
                       type="number" 
                       value={editBundleData.championDiscountPrice ?? ''} 
                       onChange={e => setEditBundleData({ ...editBundleData, championDiscountPrice: e.target.value, championOriginalPrice: e.target.value })} 
-                      style={{ width: '100%', padding: '12px', borderRadius: '10px', border: '1px solid #fca5a5', fontSize: '14px', fontWeight: '700' }} 
+                      style={{ width: '100%', padding: '12px', borderRadius: '10px', border: '1px solid #fca5a5', fontSize: '14px', fontWeight: 600 }} 
                       placeholder="e.g. 7500"
                     />
                   </div>
                 </div>
                 <div style={{ marginTop: '12px' }}>
-                    <div style={{ fontSize: '11px', fontWeight: '700', color: 'var(--success)', marginBottom: '4px' }}>Champion Subtitle</div>
+                    <div style={{ fontSize: '11px', fontWeight: 600, color: 'var(--success)', marginBottom: '4px' }}>Champion Subtitle</div>
                     <input 
                       type="text" 
                       value={editBundleData.championSubtitle ?? ''} 
@@ -4020,10 +4055,10 @@ export default function ExploreCoursesPage() {
               </div>
             ) : (
               // NON-FIXED PRICING - SHOW INDIVIDUAL SUBJECT PRICES
-              <div style={{ marginBottom: '24px', padding: '20px', borderRadius: '20px', background: 'var(--info-light)', border: '1.5px solid #bae6fd' }}>
+              <div style={{ marginBottom: '24px', padding: '20px', borderRadius: '14px', background: 'var(--info-light)', border: '1.5px solid #bae6fd' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
                   <span style={{ fontSize: '20px' }}>💰</span>
-                  <label style={{ fontSize: '14px', fontWeight: '900', color: '#0369a1', textTransform: 'uppercase' }}>Subject Specific Pricing</label>
+                  <label style={{ fontSize: '14px', fontWeight: 600, color: '#0369a1', textTransform: 'uppercase' }}>Subject Specific Pricing</label>
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                   {(() => {
@@ -4038,10 +4073,10 @@ export default function ExploreCoursesPage() {
                       
                       return (
                         <div key={id} style={{ background: 'var(--surface)', padding: '14px', borderRadius: '12px', border: '1px solid #e0f2fe' }}>
-                          <div style={{ fontSize: '13px', fontWeight: '800', color: 'var(--text-primary)', marginBottom: '10px' }}>{course.name}</div>
+                          <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '10px' }}>{course.name}</div>
                           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                             <div>
-                              <div style={{ fontSize: '10px', fontWeight: '700', color: 'var(--text-secondary)', marginBottom: '4px' }}>Recorded Price (₹)</div>
+                              <div style={{ fontSize: '10px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '4px' }}>Recorded Price (₹)</div>
                               <input 
                                 type="number" 
                                 value={mapping.recorded || ''} 
@@ -4055,7 +4090,7 @@ export default function ExploreCoursesPage() {
                               />
                             </div>
                             <div>
-                              <div style={{ fontSize: '10px', fontWeight: '700', color: 'var(--text-secondary)', marginBottom: '4px' }}>Live Price (₹)</div>
+                              <div style={{ fontSize: '10px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '4px' }}>Live Price (₹)</div>
                               <input 
                                 type="number" 
                                 value={mapping.live || ''} 
@@ -4069,7 +4104,7 @@ export default function ExploreCoursesPage() {
                               />
                             </div>
                             <div>
-                              <div style={{ fontSize: '10px', fontWeight: '700', color: 'var(--text-secondary)', marginBottom: '4px' }}>Champ Price (₹)</div>
+                              <div style={{ fontSize: '10px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '4px' }}>Champ Price (₹)</div>
                               <input 
                                 type="number" 
                                 value={mapping.champion || ''} 
@@ -4096,7 +4131,7 @@ export default function ExploreCoursesPage() {
               <div style={{ marginBottom: '16px', padding: '14px', borderRadius: '12px', background: 'var(--surface)', border: '1px solid var(--border)' }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
                   <div>
-                    <div style={{ fontSize: '14px', fontWeight: '700', color: 'var(--text-primary)' }}>🎯 Force Class Type</div>
+                    <div style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)' }}>🎯 Force Class Type</div>
                     <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '2px' }}>Force users to buy a specific class type (Live or Recorded)</div>
                   </div>
                 </div>
@@ -4111,7 +4146,7 @@ export default function ExploreCoursesPage() {
                   <option value="CHAMPION">Force Champion Batch</option>
                 </select>
                 {editBundleData.forceClassType && (
-                  <div style={{ marginTop: 8, fontSize: 12, fontWeight: 700, color: "#a16207" }}>Students can only buy the {editBundleData.forceClassType === "LIVE" ? "Live" : editBundleData.forceClassType === "RECORDED" ? "Recorded" : "Champion"} price. Choose "Let user choose" so they can pick Recorded, Live or Champion.</div>
+                  <div style={{ marginTop: 8, fontSize: 12, fontWeight: 600, color: "#a16207" }}>Students can only buy the {editBundleData.forceClassType === "LIVE" ? "Live" : editBundleData.forceClassType === "RECORDED" ? "Recorded" : "Champion"} price. Choose "Let user choose" so they can pick Recorded, Live or Champion.</div>
                 )}
               </div>
             )}
@@ -4120,7 +4155,7 @@ export default function ExploreCoursesPage() {
             <div style={{ marginBottom: '24px', padding: '16px', borderRadius: '12px', background: 'var(--warning-light)', border: '1px solid var(--border)' }}>
               <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer', marginBottom: editBundleData.enableBundleDiscount ? '14px' : 0 }}>
                 <div>
-                  <div style={{ fontSize: '14px', fontWeight: '700', color: 'var(--text-primary)' }}>Bundle Discount</div>
+                  <div style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)' }}>Bundle Discount</div>
                   <div style={{ fontSize: '12px', color: '#a16207', marginTop: '2px' }}>Apply a discount when users buy from this bundle</div>
                 </div>
                 <input type="checkbox" checked={!!editBundleData.enableBundleDiscount} onChange={e => setEditBundleData({ ...editBundleData, enableBundleDiscount: e.target.checked })} style={{ width: '18px', height: '18px', accentColor: 'var(--warning)' }} />
@@ -4129,20 +4164,20 @@ export default function ExploreCoursesPage() {
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                     <div>
-                      <label style={{ fontSize: '12px', fontWeight: '700', color: 'var(--warning)', display: 'block', marginBottom: '4px' }}>Discount Type</label>
+                      <label style={{ fontSize: '12px', fontWeight: 600, color: 'var(--warning)', display: 'block', marginBottom: '4px' }}>Discount Type</label>
                       <select value={editBundleData.bundleDiscountType || 'PERCENTAGE'} onChange={e => setEditBundleData({ ...editBundleData, bundleDiscountType: e.target.value })} style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid var(--border)', fontSize: '13px' }}>
                         <option value="PERCENTAGE">Percentage (%)</option>
                         <option value="FIXED">Fixed Amount (₹)</option>
                       </select>
                     </div>
                     <div>
-                      <label style={{ fontSize: '12px', fontWeight: '700', color: 'var(--warning)', display: 'block', marginBottom: '4px' }}>Discount Value</label>
+                      <label style={{ fontSize: '12px', fontWeight: 600, color: 'var(--warning)', display: 'block', marginBottom: '4px' }}>Discount Value</label>
                       <input type="number" min={0} value={editBundleData.bundleDiscountValue ?? ''} onChange={e => setEditBundleData({ ...editBundleData, bundleDiscountValue: e.target.value })} placeholder={editBundleData.bundleDiscountType === 'FIXED' ? '₹ Amount' : '% Off'} style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid var(--border)', fontSize: '13px', boxSizing: 'border-box' }} />
                     </div>
                   </div>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                     <div>
-                      <label style={{ fontSize: '12px', fontWeight: '700', color: 'var(--warning)', display: 'block', marginBottom: '4px' }}>Applies To</label>
+                      <label style={{ fontSize: '12px', fontWeight: 600, color: 'var(--warning)', display: 'block', marginBottom: '4px' }}>Applies To</label>
                       <select value={editBundleData.bundleDiscountApplicability || 'BOTH'} onChange={e => setEditBundleData({ ...editBundleData, bundleDiscountApplicability: e.target.value })} style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid var(--border)', fontSize: '13px' }}>
                         <option value="BOTH">Both (Recorded + Live)</option>
                         <option value="RECORDED">Recorded Only</option>
@@ -4165,7 +4200,7 @@ export default function ExploreCoursesPage() {
                 onClick={() => setEditingBundle(null)}
                 style={{
                   flex: 1, padding: '14px', borderRadius: '12px', border: '2px solid var(--border)',
-                  background: 'var(--surface)', color: 'var(--text-primary)', fontWeight: '700', fontSize: '14px',
+                  background: 'var(--surface)', color: 'var(--text-primary)', fontWeight: 600, fontSize: '14px',
                   cursor: 'pointer'
                 }}
               >
@@ -4193,8 +4228,8 @@ export default function ExploreCoursesPage() {
                 }}
                 style={{
                   flex: 1, padding: '14px', borderRadius: '12px', border: 'none',
-                  background: editBundleSaving ? 'var(--text-muted)' : 'linear-gradient(135deg, var(--primary), #8b5cf6)',
-                  color: '#fff', fontWeight: '700', fontSize: '14px',
+                  background: editBundleSaving ? 'var(--text-muted)' : 'var(--primary)',
+                  color: '#fff', fontWeight: 600, fontSize: '14px',
                   cursor: editBundleSaving ? 'not-allowed' : 'pointer',
                 }}
               >
@@ -4224,22 +4259,22 @@ export default function ExploreCoursesPage() {
               <button onClick={() => setInfoModalOffering(null)} style={{ position: 'absolute', top: '18px', right: '18px', background: 'var(--surface)', border: 'none', width: '36px', height: '36px', borderRadius: '12px', cursor: 'pointer', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <X size={20} />
               </button>
-              <h2 style={{ fontSize: 'clamp(18px, 5vw, 24px)', fontWeight: '800', color: 'var(--text-primary)', marginBottom: '8px', paddingRight: '40px' }}>Access Comparison</h2>
+              <h2 style={{ fontSize: 'clamp(18px, 5vw, 24px)', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '8px', paddingRight: '40px' }}>Access Comparison</h2>
               <p style={{ fontSize: '15px', color: 'var(--text-secondary)', fontWeight: '500' }}>Choose the access type that suits your learning needs</p>
             </div>
 
             {/* Comparison Table */}
             <div style={{ padding: '30px 40px' }}>
-              <div style={{ borderRadius: '24px', overflow: 'hidden', border: '1.5px solid var(--border)', background: 'var(--surface)' }}>
+              <div style={{ borderRadius: '14px', overflow: 'hidden', border: '1.5px solid var(--border)', background: 'var(--surface)' }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
                   <thead>
                     <tr style={{ background: 'var(--surface)' }}>
-                      <th style={{ padding: '18px 24px', fontSize: '13px', color: 'var(--text-secondary)', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Features</th>
+                      <th style={{ padding: '18px 24px', fontSize: '13px', color: 'var(--text-secondary)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Features</th>
                       {infoModalOffering.hasRecorded && (
-                        <th style={{ padding: '18px 24px', fontSize: '13px', color: 'var(--warning)', fontWeight: '800', background: 'var(--warning-light)', textAlign: 'center' }}>Recorded ( PLUS )</th>
+                        <th style={{ padding: '18px 24px', fontSize: '13px', color: 'var(--warning)', fontWeight: 600, background: 'var(--warning-light)', textAlign: 'center' }}>Recorded ( PLUS )</th>
                       )}
                       {infoModalOffering.hasLive && (
-                        <th style={{ padding: '18px 24px', fontSize: '13px', color: 'var(--primary-dark)', fontWeight: '800', background: 'var(--primary-light)', textAlign: 'center' }}>Live + Recorded (PRO)</th>
+                        <th style={{ padding: '18px 24px', fontSize: '13px', color: 'var(--primary-dark)', fontWeight: 600, background: 'var(--primary-light)', textAlign: 'center' }}>Live + Recorded (PRO)</th>
                       )}
                     </tr>
                   </thead>
@@ -4259,7 +4294,7 @@ export default function ExploreCoursesPage() {
                           <td style={{ padding: '16px 24px', fontSize: '14px', color: 'var(--warning)', textAlign: 'center', background: 'var(--warning-light)' }}>{row.recorded}</td>
                         )}
                         {infoModalOffering.hasLive && (
-                          <td style={{ padding: '16px 24px', fontSize: '14px', color: 'var(--primary-dark)', fontWeight: '700', textAlign: 'center', background: 'var(--surface)' }}>{row.live}</td>
+                          <td style={{ padding: '16px 24px', fontSize: '14px', color: 'var(--primary-dark)', fontWeight: 600, textAlign: 'center', background: 'var(--surface)' }}>{row.live}</td>
                         )}
                       </tr>
                     ))}
@@ -4269,7 +4304,7 @@ export default function ExploreCoursesPage() {
             </div>
 
             <div style={{ padding: '0 40px 40px', textAlign: 'center' }}>
-              <button onClick={() => setInfoModalOffering(null)} style={{ background: 'var(--primary)', color: 'var(--button-text, #fff)', padding: '14px 40px', borderRadius: '16px', fontSize: '15px', fontWeight: '700', border: 'none', cursor: 'pointer', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)' }}>
+              <button onClick={() => setInfoModalOffering(null)} style={{ background: 'var(--primary)', color: 'var(--button-text, #fff)', padding: '14px 40px', borderRadius: '12px', fontSize: '15px', fontWeight: 600, border: 'none', cursor: 'pointer', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)' }}>
                 Got it, thanks!
               </button>
             </div>
@@ -4285,7 +4320,7 @@ export default function ExploreCoursesPage() {
           display: 'flex', alignItems: 'center', justifyContent: 'center'
         }}>
           <div style={{
-            background: 'var(--surface)', padding: '40px', borderRadius: '32px',
+            background: 'var(--surface)', padding: '40px', borderRadius: '14px',
             textAlign: 'center', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5)',
             width: '320px', position: 'relative'
           }}>
@@ -4300,7 +4335,7 @@ export default function ExploreCoursesPage() {
               borderTop: '4px solid var(--primary)', borderRadius: '50%',
               margin: '0 auto 20px'
             }} />
-            <h3 style={{ fontSize: '18px', fontWeight: '800', color: 'var(--text-primary)', marginBottom: '8px' }}>Processing...</h3>
+            <h3 style={{ fontSize: '18px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '8px' }}>Processing...</h3>
             <p style={{ fontSize: '14px', color: 'var(--text-secondary)', fontWeight: '500' }}>Please wait while we set up your course access.</p>
           </div>
         </div>
@@ -4315,32 +4350,32 @@ export default function ExploreCoursesPage() {
           padding: '20px'
         }} onClick={() => setShowCreateBundleModal(false)}>
           <div className="apple-modal" style={{
-            background: 'var(--surface)', borderRadius: '32px', width: '100%', maxWidth: '600px',
+            background: 'var(--surface)', borderRadius: '14px', width: '100%', maxWidth: '600px',
             boxShadow: '0 0 100px var(--neu-glow), 0 25px 50px -12px rgba(0, 0, 0, 0.5)',
             padding: '40px', maxHeight: '90vh', overflowY: 'auto',
             animation: 'modalSlideUp 0.3s ease-out'
           }} onClick={e => e.stopPropagation()}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '24px' }}>
               <div>
-                <h2 style={{ fontSize: '28px', fontWeight: '900', color: 'var(--text-primary)', marginBottom: '8px', letterSpacing: '-0.02em' }}>
+                <h2 style={{ fontSize: '28px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '8px', letterSpacing: '-0.02em' }}>
                   Create Bundle
                 </h2>
                 <p style={{ fontSize: '15px', color: 'var(--text-secondary)', fontWeight: '500', lineHeight: '1.5' }}>
                   Group multiple courses into a single package.
                 </p>
               </div>
-              <button onClick={() => setShowCreateBundleModal(false)} style={{ background: 'var(--surface)', border: 'none', width: '36px', height: '36px', borderRadius: '18px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'var(--text-secondary)' }}>
+              <button onClick={() => setShowCreateBundleModal(false)} style={{ background: 'var(--surface)', border: 'none', width: '36px', height: '36px', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'var(--text-secondary)' }}>
                 <X size={20} />
               </button>
             </div>
 
             <div style={{ marginBottom: '24px' }}>
-              <label style={{ display: 'block', fontSize: '13px', fontWeight: '700', color: 'var(--text-secondary)', marginBottom: '6px' }}>Bundle Name</label>
+              <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '6px' }}>Bundle Name</label>
               <input value={bundleName} onChange={e => setBundleName(e.target.value)} placeholder="E.g., Complete Developer Bootcamp" style={{ width: '100%', padding: '12px', borderRadius: '10px', border: '1.5px solid #dbeafe', fontSize: '14px' }} />
             </div>
 
             <div style={{ marginBottom: '24px' }}>
-              <label style={{ display: 'block', fontSize: '13px', fontWeight: '700', color: 'var(--text-secondary)', marginBottom: '6px' }}>Category *</label>
+              <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '6px' }}>Category *</label>
               <select
                 value={bundleCategory}
                 onChange={e => setBundleCategory(e.target.value)}
@@ -4357,30 +4392,30 @@ export default function ExploreCoursesPage() {
             </div>
 
             <div style={{ marginBottom: '24px' }}>
-              <label style={{ display: 'block', fontSize: '13px', fontWeight: '700', color: 'var(--text-secondary)', marginBottom: '6px' }}>Bundle Description</label>
+              <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '6px' }}>Bundle Description</label>
               <textarea value={bundleDescription} onChange={e => setBundleDescription(e.target.value)} placeholder="Tell students what's included in this bundle..." rows={3} style={{ width: '100%', padding: '12px', borderRadius: '10px', border: '1.5px solid #dbeafe', fontSize: '14px', resize: 'vertical' }} />
             </div>
 
             <div style={{ marginBottom: '24px' }}>
-              <label style={{ display: 'block', fontSize: '13px', fontWeight: '700', color: 'var(--text-secondary)', marginBottom: '6px' }}>What you get (one point per line)</label>
+              <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '6px' }}>What you get (one point per line)</label>
               <textarea value={bundleHighlights} onChange={e => setBundleHighlights(e.target.value)} placeholder={'Live doubt sessions every week\nPrevious year question practice'} rows={4} style={{ width: '100%', padding: '12px', borderRadius: '10px', border: '1.5px solid #dbeafe', fontSize: '14px', resize: 'vertical', boxSizing: 'border-box', fontFamily: 'inherit' }} />
             </div>
 
             <div style={{ marginBottom: '24px' }}>
-              <label style={{ display: 'block', fontSize: '13px', fontWeight: '700', color: 'var(--text-secondary)', marginBottom: '6px' }}>Courses Start From (₹)</label>
+              <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '6px' }}>Courses Start From (₹)</label>
               <input type="number" value={bundleStartingPrice} onChange={e => setBundleStartingPrice(e.target.value)} placeholder="E.g., 499" style={{ width: '100%', padding: '12px', borderRadius: '10px', border: '1.5 solid #dbeafe', fontSize: '14px' }} />
             </div>
 
             <div style={{ marginBottom: '24px' }}>
-              <label style={{ display: 'block', fontSize: '13px', fontWeight: '700', color: 'var(--text-secondary)', marginBottom: '6px' }}>Banner Text</label>
+              <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '6px' }}>Banner Text</label>
               <input value={bundleBannerText} onChange={e => setBundleBannerText(e.target.value)} placeholder="Class starts from..." style={{ width: '100%', padding: '12px', borderRadius: '10px', border: '1.5px solid #dbeafe', fontSize: '14px' }} />
             </div>
 
             {/* Fixed Bundle Toggle - AT TOP */}
-            <div style={{ marginBottom: '24px', padding: '16px', borderRadius: '16px', background: 'var(--primary-light)', border: '1.5px solid #dbeafe' }}>
+            <div style={{ marginBottom: '24px', padding: '16px', borderRadius: '12px', background: 'var(--primary-light)', border: '1.5px solid #dbeafe' }}>
               <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer' }}>
                 <div>
-                  <div style={{ fontSize: '15px', fontWeight: '900', color: 'var(--text-primary)' }}>Fixed Bundle</div>
+                  <div style={{ fontSize: '15px', fontWeight: 600, color: 'var(--text-primary)' }}>Fixed Bundle</div>
                   <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '2px' }}>Users must buy all courses together (No individual selection)</div>
                 </div>
                 <input 
@@ -4393,7 +4428,7 @@ export default function ExploreCoursesPage() {
             </div>
 
             <div style={{ marginBottom: '24px' }}>
-              <label style={{ display: 'block', fontSize: '13px', fontWeight: '700', color: 'var(--text-secondary)', marginBottom: '6px' }}>Select Courses</label>
+              <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '6px' }}>Select Courses</label>
               <div style={{ maxHeight: '160px', overflow: 'auto', padding: '12px', borderRadius: '10px', border: '1.5px solid var(--border)', background: 'var(--surface)' }}>
                 {(courses || []).map((c: any) => (
                   <label key={c.id} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '6px 0', cursor: 'pointer' }}>
@@ -4406,7 +4441,7 @@ export default function ExploreCoursesPage() {
                       }}
                       style={{ width: '16px', height: '16px', accentColor: 'var(--accent)' }}
                     />
-                    <div style={{ fontSize: '14px', fontWeight: '700', color: 'var(--text-primary)' }}>{c.name}</div>
+                    <div style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)' }}>{c.name}</div>
                   </label>
                 ))}
               </div>
@@ -4416,45 +4451,45 @@ export default function ExploreCoursesPage() {
             {bundleSelectedCourses.length > 0 && (
               !bundleAllowIndividualPurchase ? (
                 // FIXED BUNDLE — just two price inputs
-                <div style={{ marginBottom: '24px', padding: '20px', borderRadius: '20px', background: 'var(--success-light)', border: '1.5px solid var(--border)' }}>
+                <div style={{ marginBottom: '24px', padding: '20px', borderRadius: '14px', background: 'var(--success-light)', border: '1.5px solid var(--border)' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
                     
-                    <label style={{ fontSize: '14px', fontWeight: '900', color: 'var(--success)', textTransform: 'uppercase' }}>Bundle Prices (Fixed Package)</label>
+                    <label style={{ fontSize: '14px', fontWeight: 600, color: 'var(--success)', textTransform: 'uppercase' }}>Bundle Prices (Fixed Package)</label>
                   </div>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                     <div>
-                      <div style={{ fontSize: '11px', fontWeight: '700', color: 'var(--success)', marginBottom: '4px' }}>Bundle Recorded Price (₹)</div>
+                      <div style={{ fontSize: '11px', fontWeight: 600, color: 'var(--success)', marginBottom: '4px' }}>Bundle Recorded Price (₹)</div>
                       <input 
                         type="number" 
                         value={bundleRecordedDiscountPrice} 
                         onChange={e => { setBundleRecordedDiscountPrice(e.target.value); setBundleRecordedOriginalPrice(e.target.value); }} 
-                        style={{ width: '100%', padding: '12px', borderRadius: '10px', border: '1px solid #86efac', fontSize: '14px', fontWeight: '700' }} 
+                        style={{ width: '100%', padding: '12px', borderRadius: '10px', border: '1px solid #86efac', fontSize: '14px', fontWeight: 600 }} 
                         placeholder="e.g. 4000"
                       />
                     </div>
                     <div>
-                      <div style={{ fontSize: '11px', fontWeight: '700', color: 'var(--success)', marginBottom: '4px' }}>Bundle Live Price (₹)</div>
+                      <div style={{ fontSize: '11px', fontWeight: 600, color: 'var(--success)', marginBottom: '4px' }}>Bundle Live Price (₹)</div>
                       <input 
                         type="number" 
                         value={bundleLiveDiscountPrice} 
                         onChange={e => { setBundleLiveDiscountPrice(e.target.value); setBundleLiveOriginalPrice(e.target.value); }} 
-                        style={{ width: '100%', padding: '12px', borderRadius: '10px', border: '1px solid #86efac', fontSize: '14px', fontWeight: '700' }} 
+                        style={{ width: '100%', padding: '12px', borderRadius: '10px', border: '1px solid #86efac', fontSize: '14px', fontWeight: 600 }} 
                         placeholder="e.g. 5500"
                       />
                     </div>
                     <div>
-                      <div style={{ fontSize: '11px', fontWeight: '700', color: 'var(--danger)', marginBottom: '4px' }}>Bundle Champion Price (₹)</div>
+                      <div style={{ fontSize: '11px', fontWeight: 600, color: 'var(--danger)', marginBottom: '4px' }}>Bundle Champion Price (₹)</div>
                       <input 
                         type="number" 
                         value={bundleChampionDiscountPrice} 
                         onChange={e => { setBundleChampionDiscountPrice(e.target.value); setBundleChampionOriginalPrice(e.target.value); }} 
-                        style={{ width: '100%', padding: '12px', borderRadius: '10px', border: '1px solid #fca5a5', fontSize: '14px', fontWeight: '700' }} 
+                        style={{ width: '100%', padding: '12px', borderRadius: '10px', border: '1px solid #fca5a5', fontSize: '14px', fontWeight: 600 }} 
                         placeholder="e.g. 7500"
                       />
                     </div>
                   </div>
                   <div style={{ marginTop: '12px' }}>
-                    <div style={{ fontSize: '11px', fontWeight: '700', color: 'var(--success)', marginBottom: '4px' }}>Champion Subtitle</div>
+                    <div style={{ fontSize: '11px', fontWeight: 600, color: 'var(--success)', marginBottom: '4px' }}>Champion Subtitle</div>
                     <input 
                       type="text" 
                       value={bundleChampionSubtitle} 
@@ -4467,10 +4502,10 @@ export default function ExploreCoursesPage() {
                 </div>
               ) : (
                 // NON-FIXED — subject specific pricing per course
-                <div style={{ marginBottom: '24px', padding: '20px', borderRadius: '20px', background: 'var(--info-light)', border: '1.5px solid #bae6fd' }}>
+                <div style={{ marginBottom: '24px', padding: '20px', borderRadius: '14px', background: 'var(--info-light)', border: '1.5px solid #bae6fd' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
                     <span style={{ fontSize: '20px' }}>💰</span>
-                    <label style={{ fontSize: '14px', fontWeight: '900', color: '#0369a1', textTransform: 'uppercase' }}>Subject Specific Pricing</label>
+                    <label style={{ fontSize: '14px', fontWeight: 600, color: '#0369a1', textTransform: 'uppercase' }}>Subject Specific Pricing</label>
                   </div>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                     {bundleSelectedCourses.map((id: string) => {
@@ -4479,18 +4514,18 @@ export default function ExploreCoursesPage() {
                       const mapping = bundleIndividualMapping[id] || {};
                       return (
                         <div key={id} style={{ background: 'var(--surface)', padding: '14px', borderRadius: '12px', border: '1px solid #e0f2fe' }}>
-                          <div style={{ fontSize: '13px', fontWeight: '800', color: 'var(--text-primary)', marginBottom: '10px' }}>{course.name}</div>
+                          <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '10px' }}>{course.name}</div>
                           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                             <div>
-                              <div style={{ fontSize: '10px', fontWeight: '700', color: 'var(--text-secondary)', marginBottom: '4px' }}>Recorded Price (₹)</div>
+                              <div style={{ fontSize: '10px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '4px' }}>Recorded Price (₹)</div>
                               <input type="number" value={mapping.recorded || ''} onChange={e => setBundleIndividualMapping({ ...bundleIndividualMapping, [id]: { ...mapping, recorded: e.target.value } })} style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid var(--border)', fontSize: '13px' }} placeholder="e.g. 1000" />
                             </div>
                             <div>
-                              <div style={{ fontSize: '10px', fontWeight: '700', color: 'var(--text-secondary)', marginBottom: '4px' }}>Live Price (₹)</div>
+                              <div style={{ fontSize: '10px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '4px' }}>Live Price (₹)</div>
                               <input type="number" value={mapping.live || ''} onChange={e => setBundleIndividualMapping({ ...bundleIndividualMapping, [id]: { ...mapping, live: e.target.value } })} style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid var(--border)', fontSize: '13px' }} placeholder="e.g. 2000" />
                             </div>
                             <div>
-                              <div style={{ fontSize: '10px', fontWeight: '700', color: 'var(--text-secondary)', marginBottom: '4px' }}>Champ Price (₹)</div>
+                              <div style={{ fontSize: '10px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '4px' }}>Champ Price (₹)</div>
                               <input type="number" value={mapping.champion || ''} onChange={e => setBundleIndividualMapping({ ...bundleIndividualMapping, [id]: { ...mapping, champion: e.target.value } })} style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid var(--border)', fontSize: '13px' }} placeholder="e.g. 3000" />
                             </div>
                           </div>
@@ -4503,11 +4538,11 @@ export default function ExploreCoursesPage() {
             )}
 
             {/* Bundle Discount Configuration */}
-            <div style={{ marginBottom: '24px', padding: '16px', borderRadius: '16px', background: 'var(--warning-light)', border: '1.5px solid var(--border)' }}>
+            <div style={{ marginBottom: '24px', padding: '16px', borderRadius: '12px', background: 'var(--warning-light)', border: '1.5px solid var(--border)' }}>
               <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', marginBottom: bundleEnableBundleDiscount ? '16px' : '0' }}>
                 <input type="checkbox" checked={bundleEnableBundleDiscount} onChange={e => setBundleEnableBundleDiscount(e.target.checked)} style={{ width: '18px', height: '18px', accentColor: 'var(--warning)' }} />
                 <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: '14px', fontWeight: '700', color: 'var(--text-primary)' }}>Enable Bundle Discount</div>
+                  <div style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)' }}>Enable Bundle Discount</div>
                   <div style={{ fontSize: '12px', color: 'var(--warning)' }}>Extra discount applied on top of course prices</div>
                 </div>
               </label>
@@ -4515,20 +4550,20 @@ export default function ExploreCoursesPage() {
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                     <div>
-                      <label style={{ fontSize: '12px', fontWeight: '700', color: 'var(--warning)', display: 'block', marginBottom: '4px' }}>Discount Type</label>
+                      <label style={{ fontSize: '12px', fontWeight: 600, color: 'var(--warning)', display: 'block', marginBottom: '4px' }}>Discount Type</label>
                       <select value={bundleDiscountType} onChange={e => setBundleDiscountType(e.target.value)} style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid var(--border)', fontSize: '13px' }}>
                         <option value="PERCENTAGE">Percentage (%)</option>
                         <option value="FIXED">Fixed Amount (₹)</option>
                       </select>
                     </div>
                     <div>
-                      <label style={{ fontSize: '12px', fontWeight: '700', color: 'var(--warning)', display: 'block', marginBottom: '4px' }}>Discount Value</label>
+                      <label style={{ fontSize: '12px', fontWeight: 600, color: 'var(--warning)', display: 'block', marginBottom: '4px' }}>Discount Value</label>
                       <input type="number" min={0} value={bundleDiscountValue} onChange={e => setBundleDiscountValue(e.target.value)} placeholder={bundleDiscountType === 'FIXED' ? '₹ Amount' : '% Off'} style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid var(--border)', fontSize: '13px', boxSizing: 'border-box' }} />
                     </div>
                   </div>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                     <div>
-                      <label style={{ fontSize: '12px', fontWeight: '700', color: 'var(--warning)', display: 'block', marginBottom: '4px' }}>Applies To</label>
+                      <label style={{ fontSize: '12px', fontWeight: 600, color: 'var(--warning)', display: 'block', marginBottom: '4px' }}>Applies To</label>
                       <select value={bundleDiscountApplicability} onChange={e => setBundleDiscountApplicability(e.target.value)} style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid var(--border)', fontSize: '13px' }}>
                         <option value="BOTH">Both (Recorded + Live)</option>
                         <option value="RECORDED">Recorded Only</option>
@@ -4549,7 +4584,7 @@ export default function ExploreCoursesPage() {
             <div style={{ marginBottom: '24px', padding: '14px', borderRadius: '12px', background: 'var(--surface)', border: '1px solid var(--border)' }}>
               <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer', marginBottom: '16px' }}>
                 <div>
-                  <div style={{ fontSize: '14px', fontWeight: '700', color: 'var(--text-primary)' }}>Fixed Bundle</div>
+                  <div style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)' }}>Fixed Bundle</div>
                   <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '2px' }}>Users must buy all courses together</div>
                 </div>
                 <input type="checkbox" checked={!bundleAllowIndividualPurchase} onChange={e => setBundleAllowIndividualPurchase(!e.target.checked)} style={{ width: '18px', height: '18px', accentColor: 'var(--accent)' }} />
@@ -4559,7 +4594,7 @@ export default function ExploreCoursesPage() {
                 <div style={{ marginTop: '16px', paddingTop: '16px', borderTop: '1px solid var(--border)' }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
                     <div>
-                      <div style={{ fontSize: '14px', fontWeight: '700', color: 'var(--text-primary)' }}>🎯 Force Class Type</div>
+                      <div style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)' }}>🎯 Force Class Type</div>
                       <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '2px' }}>Force users to buy a specific class type (Live or Recorded)</div>
                     </div>
                   </div>
@@ -4574,14 +4609,14 @@ export default function ExploreCoursesPage() {
                     <option value="CHAMPION">Force Champion Batch</option>
                   </select>
                   {bundleForceClassType && (
-                    <div style={{ marginTop: 8, fontSize: 12, fontWeight: 700, color: "#a16207" }}>Students can only buy the {bundleForceClassType === "LIVE" ? "Live" : bundleForceClassType === "RECORDED" ? "Recorded" : "Champion"} price. Choose "Let user choose" so they can pick Recorded, Live or Champion.</div>
+                    <div style={{ marginTop: 8, fontSize: 12, fontWeight: 600, color: "#a16207" }}>Students can only buy the {bundleForceClassType === "LIVE" ? "Live" : bundleForceClassType === "RECORDED" ? "Recorded" : "Champion"} price. Choose "Let user choose" so they can pick Recorded, Live or Champion.</div>
                   )}
                 </div>
               )}
             </div>
 
             <div style={{ display: 'flex', gap: '12px' }}>
-              <button onClick={() => setShowCreateBundleModal(false)} style={{ flex: 1, padding: '14px', borderRadius: '12px', border: '2px solid var(--border)', background: 'var(--surface)', color: 'var(--text-primary)', fontWeight: '700', fontSize: '14px', cursor: 'pointer' }}>Cancel</button>
+              <button onClick={() => setShowCreateBundleModal(false)} style={{ flex: 1, padding: '14px', borderRadius: '12px', border: '2px solid var(--border)', background: 'var(--surface)', color: 'var(--text-primary)', fontWeight: 600, fontSize: '14px', cursor: 'pointer' }}>Cancel</button>
               <button
                 disabled={creating}
                 onClick={async () => {
@@ -4627,7 +4662,7 @@ export default function ExploreCoursesPage() {
                   } catch { alert('Error creating bundle') }
                   finally { setCreating(false) }
                 }}
-                style={{ flex: 1, padding: '14px', borderRadius: '12px', border: 'none', background: creating ? 'var(--text-muted)' : 'linear-gradient(135deg, var(--primary), #8b5cf6)', color: '#fff', fontWeight: '700', fontSize: '14px', cursor: creating ? 'not-allowed' : 'pointer' }}
+                style={{ flex: 1, padding: '14px', borderRadius: '12px', border: 'none', background: creating ? 'var(--text-muted)' : 'var(--primary)', color: '#fff', fontWeight: 600, fontSize: '14px', cursor: creating ? 'not-allowed' : 'pointer' }}
               >
                 {creating ? 'Creating...' : 'Create Bundle'}
               </button>
@@ -4672,7 +4707,7 @@ export default function ExploreCoursesPage() {
             price={(
               <div>
                 <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, flexWrap: 'wrap' }}>
-                  <span style={{ fontSize: 36, fontWeight: 800, letterSpacing: '-1px', color: n.price > 0 ? 'var(--text-primary)' : 'var(--success)' }}>{n.price > 0 ? `₹${n.price}` : 'Free'}</span>
+                  <span style={{ fontSize: 36, fontWeight: 600, letterSpacing: '-1px', color: n.price > 0 ? 'var(--text-primary)' : 'var(--success)' }}>{n.price > 0 ? `₹${n.price}` : 'Free'}</span>
                   {n.originalPrice > n.price && <span style={{ textDecoration: 'line-through', color: 'var(--text-secondary)' }}>₹{n.originalPrice}</span>}
                 </div>
                 <div style={{ fontSize: 14, color: 'var(--text-secondary)', marginTop: 4 }}>{n.validityDays} days access</div>
@@ -4693,7 +4728,7 @@ export default function ExploreCoursesPage() {
           >
             {multi && (
               <section style={{ background: 'var(--surface)', border: '0.5px solid var(--border)', borderRadius: 22, padding: 22 }}>
-                <h3 style={{ fontSize: 18, fontWeight: 800, margin: '0 0 12px' }}>Files</h3>
+                <h3 style={{ fontSize: 18, fontWeight: 600, margin: '0 0 12px' }}>Files</h3>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                   {n.files.map((f: any) => (
                     <a key={f.id} href={`/api/store/notes/${n.id}/download?fileId=${f.id}`} target="_blank" rel="noopener noreferrer"
@@ -4722,9 +4757,9 @@ export default function ExploreCoursesPage() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             {rows.map((r, i) => (
               <div key={i}>
-                <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--text-secondary)' }}>{r.label}</div>
+                <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--text-secondary)' }}>{r.label}</div>
                 <div style={{ display: 'flex', alignItems: 'baseline', gap: 10 }}>
-                  <span style={{ fontSize: 32, fontWeight: 800, letterSpacing: '-1px', color: 'var(--text-primary)' }}>₹{r.price}</span>
+                  <span style={{ fontSize: 32, fontWeight: 600, letterSpacing: '-1px', color: 'var(--text-primary)' }}>₹{r.price}</span>
                   {r.original && r.original > r.price ? <span style={{ textDecoration: 'line-through', color: 'var(--text-secondary)' }}>₹{r.original}</span> : null}
                 </div>
               </div>
@@ -4796,32 +4831,32 @@ export default function ExploreCoursesPage() {
           padding: '20px'
         }} onClick={() => setShowCreateNoteModal(false)}>
           <div className="apple-modal" style={{
-            background: 'var(--surface)', borderRadius: '32px', width: '100%', maxWidth: '500px',
+            background: 'var(--surface)', borderRadius: '14px', width: '100%', maxWidth: '500px',
             boxShadow: '0 0 100px var(--neu-glow), 0 25px 50px -12px rgba(0, 0, 0, 0.5)',
             padding: '40px', maxHeight: '90vh', overflowY: 'auto',
             animation: 'modalSlideUp 0.3s ease-out'
           }} onClick={e => e.stopPropagation()}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '24px' }}>
               <div>
-                <h2 style={{ fontSize: '28px', fontWeight: '900', color: 'var(--text-primary)', marginBottom: '8px', letterSpacing: '-0.02em' }}>
+                <h2 style={{ fontSize: '28px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '8px', letterSpacing: '-0.02em' }}>
                   {editingNote ? 'Edit Notes' : 'Add Notes'}
                 </h2>
                 <p style={{ fontSize: '15px', color: 'var(--text-secondary)', fontWeight: '500', lineHeight: '1.5' }}>
                   Upload the notes file for students to access.
                 </p>
               </div>
-              <button onClick={() => { setShowCreateNoteModal(false); setEditingNote(null) }} style={{ background: 'var(--surface)', border: 'none', width: '36px', height: '36px', borderRadius: '18px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'var(--text-secondary)' }}>
+              <button onClick={() => { setShowCreateNoteModal(false); setEditingNote(null) }} style={{ background: 'var(--surface)', border: 'none', width: '36px', height: '36px', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'var(--text-secondary)' }}>
                 <X size={20} />
               </button>
             </div>
 
             <div style={{ marginBottom: '20px' }}>
-              <label style={{ display: 'block', fontSize: '13px', fontWeight: '700', color: 'var(--text-secondary)', marginBottom: '6px' }}>Note Title</label>
+              <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '6px' }}>Note Title</label>
               <input id="noteTitleInput" placeholder="E.g., Physics Chapter 1 Notes" style={{ width: '100%', padding: '12px', borderRadius: '10px', border: '1.5px solid #dbeafe', fontSize: '14px' }} />
             </div>
 
             <div style={{ marginBottom: '20px' }}>
-              <label style={{ display: 'block', fontSize: '13px', fontWeight: '700', color: 'var(--text-secondary)', marginBottom: '6px' }}>Level *</label>
+              <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '6px' }}>Level *</label>
               <select
                 id="noteCategoryInput"
                 value={noteCategory}
@@ -4842,7 +4877,7 @@ export default function ExploreCoursesPage() {
 
             {(noteCategory === 'Foundation' || noteCategory === 'Re-attempt') && (
               <div style={{ marginBottom: '20px' }}>
-                <label style={{ display: 'block', fontSize: '13px', fontWeight: '700', color: 'var(--text-secondary)', marginBottom: '6px' }}>Subject *</label>
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '6px' }}>Subject *</label>
                 <select
                   id="noteSubjectInput"
                   value={noteSubject}
@@ -4861,12 +4896,12 @@ export default function ExploreCoursesPage() {
             )}
 
             <div style={{ marginBottom: '20px' }}>
-              <label style={{ display: 'block', fontSize: '13px', fontWeight: '700', color: 'var(--text-secondary)', marginBottom: '6px' }}>Description (Optional)</label>
+              <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '6px' }}>Description (Optional)</label>
               <textarea id="noteDescInput" rows={2} placeholder="Brief description of these notes..." style={{ width: '100%', padding: '12px', borderRadius: '10px', border: '1.5px solid #dbeafe', fontSize: '14px', resize: 'vertical' }} />
             </div>
 
             <div style={{ marginBottom: '20px' }}>
-              <label style={{ display: 'block', fontSize: '13px', fontWeight: '700', color: 'var(--text-secondary)', marginBottom: '6px' }}>Notes files * (you can add more than one)</label>
+              <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '6px' }}>Notes files * (you can add more than one)</label>
               {noteFiles.length > 0 && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginBottom: '8px' }}>
                   {noteFiles.map((f, i) => (
@@ -4897,22 +4932,22 @@ export default function ExploreCoursesPage() {
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '28px' }}>
               <div>
-                <label style={{ display: 'block', fontSize: '13px', fontWeight: '700', color: 'var(--text-secondary)', marginBottom: '6px' }}>Price (₹)</label>
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '6px' }}>Price (₹)</label>
                 <input id="notePriceInput" type="number" min={0} placeholder="0 for Free" style={{ width: '100%', padding: '12px', borderRadius: '10px', border: '1.5px solid #dbeafe', fontSize: '14px' }} />
               </div>
               <div>
-                <label style={{ display: 'block', fontSize: '13px', fontWeight: '700', color: 'var(--text-secondary)', marginBottom: '6px' }}>Validity (days)</label>
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '6px' }}>Validity (days)</label>
                 <input id="noteValidityInput" type="number" min={1} defaultValue={90} placeholder="90" style={{ width: '100%', padding: '12px', borderRadius: '10px', border: '1.5px solid #dbeafe', fontSize: '14px' }} />
               </div>
             </div>
 
             <div style={{ marginBottom: '20px' }}>
-              <label style={{ display: 'block', fontSize: '13px', fontWeight: '700', color: 'var(--text-secondary)', marginBottom: '6px' }}>What&apos;s inside — your points (one per line)</label>
+              <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '6px' }}>What&apos;s inside — your points (one per line)</label>
               <textarea id="noteHighlightsInput" rows={3} placeholder={'Chapter-wise solved PYQs\nShort tricks for numericals'} style={{ width: '100%', padding: '12px', borderRadius: '10px', border: '1.5px solid #dbeafe', fontSize: '14px', resize: 'vertical' }} />
             </div>
 
             <div style={{ marginBottom: '28px' }}>
-              <label style={{ display: 'block', fontSize: '13px', fontWeight: '700', color: 'var(--text-secondary)', marginBottom: '6px' }}>Extra rules for this note (one per line)</label>
+              <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '6px' }}>Extra rules for this note (one per line)</label>
               <textarea id="noteRulesInput" rows={2} placeholder="Shown after the standard rules (validity, web + app access, expiry). Optional." style={{ width: '100%', padding: '12px', borderRadius: '10px', border: '1.5px solid #dbeafe', fontSize: '14px', resize: 'vertical' }} />
               <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '6px' }}>The standard rules are added automatically and shown identically on the website and in the app.</div>
             </div>
@@ -4977,28 +5012,28 @@ export default function ExploreCoursesPage() {
           padding: '20px'
         }} onClick={() => setShowCreateMentorshipModal(false)}>
           <div style={{
-            background: 'var(--surface)', borderRadius: '32px', width: '100%', maxWidth: '500px',
+            background: 'var(--surface)', borderRadius: '14px', width: '100%', maxWidth: '500px',
             boxShadow: '0 0 100px var(--neu-glow), 0 25px 50px -12px rgba(0, 0, 0, 0.5)',
             padding: '40px', maxHeight: '90vh', overflowY: 'auto',
             animation: 'modalSlideUp 0.3s ease-out'
           }} onClick={e => e.stopPropagation()}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '24px' }}>
               <div>
-                <h2 style={{ fontSize: '28px', fontWeight: '900', color: 'var(--text-primary)', marginBottom: '8px', letterSpacing: '-0.02em' }}>
+                <h2 style={{ fontSize: '28px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '8px', letterSpacing: '-0.02em' }}>
                   {editingMentorship ? 'Edit Mentorship' : 'Create Mentorship'}
                 </h2>
                 <p style={{ fontSize: '15px', color: 'var(--text-secondary)', fontWeight: '500', lineHeight: '1.5' }}>
                   Set up 1-on-1 mentorship slots for students to book.
                 </p>
               </div>
-              <button onClick={() => { setShowCreateMentorshipModal(false); setEditingMentorship(null) }} style={{ background: 'var(--surface)', border: 'none', width: '36px', height: '36px', borderRadius: '18px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'var(--text-secondary)' }}>
+              <button onClick={() => { setShowCreateMentorshipModal(false); setEditingMentorship(null) }} style={{ background: 'var(--surface)', border: 'none', width: '36px', height: '36px', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'var(--text-secondary)' }}>
                 <X size={20} />
               </button>
             </div>
 
             {/* MENTOR SELECTION */}
             <div style={{ marginBottom: '20px' }}>
-              <label style={{ display: 'block', fontSize: '13px', fontWeight: '700', color: 'var(--text-secondary)', marginBottom: '6px' }}>Assign Mentor (Staff)</label>
+              <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '6px' }}>Assign Mentor (Staff)</label>
               <select id="mentorIdInput" defaultValue={editingMentorship?.mentorId || ''} style={{ width: '100%', padding: '12px', borderRadius: '10px', border: '1.5px solid #dbeafe', fontSize: '14px', background: 'var(--surface)' }}>
                 <option value="">Select a Mentor...</option>
                 {staffData?.staff?.filter((s: any) => (s.role === 'ADMIN' || s.role === 'MODERATOR') || s.role === 'MANAGER').map((s: any) => (
@@ -5008,27 +5043,27 @@ export default function ExploreCoursesPage() {
             </div>
 
             <div style={{ marginBottom: '20px' }}>
-              <label style={{ display: 'block', fontSize: '13px', fontWeight: '700', color: 'var(--text-secondary)', marginBottom: '6px' }}>Mentor Display Name</label>
+              <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '6px' }}>Mentor Display Name</label>
               <input id="mentorNameInput" defaultValue={editingMentorship?.mentorName || ''} placeholder="E.g., John Doe" style={{ width: '100%', padding: '12px', borderRadius: '10px', border: '1.5px solid #dbeafe', fontSize: '14px' }} />
             </div>
 
             <div style={{ marginBottom: '20px' }}>
-              <label style={{ display: 'block', fontSize: '13px', fontWeight: '700', color: 'var(--text-secondary)', marginBottom: '6px' }}>Mentor Title / Tagline</label>
+              <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '6px' }}>Mentor Title / Tagline</label>
               <input id="mentorTitleInput" defaultValue={editingMentorship?.mentorTitle || 'IIT Mentorship Specialist'} placeholder="E.g., IIT Mentorship Specialist" style={{ width: '100%', padding: '12px', borderRadius: '10px', border: '1.5px solid #dbeafe', fontSize: '14px' }} />
             </div>
 
             <div style={{ marginBottom: '20px' }}>
-              <label style={{ display: 'block', fontSize: '13px', fontWeight: '700', color: 'var(--text-secondary)', marginBottom: '6px' }}>Description</label>
+              <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '6px' }}>Description</label>
               <textarea id="mentorDescInput" defaultValue={editingMentorship?.description || ''} rows={3} placeholder="What will this mentorship cover?" style={{ width: '100%', padding: '12px', borderRadius: '10px', border: '1.5px solid #dbeafe', fontSize: '14px', resize: 'vertical' }} />
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '28px' }}>
               <div>
-                <label style={{ display: 'block', fontSize: '13px', fontWeight: '700', color: 'var(--text-secondary)', marginBottom: '6px' }}>Price Per Slot (₹)</label>
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '6px' }}>Price Per Slot (₹)</label>
                 <input id="mentorPriceInput" defaultValue={editingMentorship?.pricePerSlot || ''} type="number" min={1} placeholder="E.g., 500" style={{ width: '100%', padding: '12px', borderRadius: '10px', border: '1.5px solid #dbeafe', fontSize: '14px' }} />
               </div>
               <div>
-                <label style={{ display: 'block', fontSize: '13px', fontWeight: '700', color: 'var(--text-secondary)', marginBottom: '6px' }}>Slot Duration (min)</label>
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '6px' }}>Slot Duration (min)</label>
                 <select id="mentorDurationInput" defaultValue={editingMentorship?.slotDuration || '30'} style={{ width: '100%', padding: '12px', borderRadius: '10px', border: '1.5px solid #dbeafe', fontSize: '14px', backgroundColor: 'var(--surface)' }}>
                   <option value="15">15 Minutes</option>
                   <option value="30">30 Minutes</option>
@@ -5039,7 +5074,7 @@ export default function ExploreCoursesPage() {
             </div>
 
             <div style={{ display: 'flex', gap: '12px' }}>
-              <button onClick={() => { setShowCreateMentorshipModal(false); setEditingMentorship(null) }} style={{ flex: 1, padding: '14px', borderRadius: '12px', border: '2px solid var(--border)', background: 'var(--surface)', color: 'var(--text-primary)', fontWeight: '700', fontSize: '14px', cursor: 'pointer' }}>Cancel</button>
+              <button onClick={() => { setShowCreateMentorshipModal(false); setEditingMentorship(null) }} style={{ flex: 1, padding: '14px', borderRadius: '12px', border: '2px solid var(--border)', background: 'var(--surface)', color: 'var(--text-primary)', fontWeight: 600, fontSize: '14px', cursor: 'pointer' }}>Cancel</button>
               <button
                 onClick={async () => {
                   const mentorId = (document.getElementById('mentorIdInput') as HTMLSelectElement).value
@@ -5063,7 +5098,7 @@ export default function ExploreCoursesPage() {
                   } catch { alert('Error saving mentorship') }
                   finally { setCreating(false) }
                 }}
-                style={{ flex: 1, padding: '14px', borderRadius: '12px', border: 'none', background: 'linear-gradient(135deg, #f59e0b, #d97706)', color: '#fff', fontWeight: '700', fontSize: '14px', cursor: 'pointer' }}
+                style={{ flex: 1, padding: '14px', borderRadius: '12px', border: 'none', background: 'linear-gradient(135deg, #f59e0b, #d97706)', color: '#fff', fontWeight: 600, fontSize: '14px', cursor: 'pointer' }}
               >
                 {editingMentorship ? 'Save Changes' : 'Create Mentorship'}
               </button>
@@ -5075,21 +5110,21 @@ export default function ExploreCoursesPage() {
       {/* MENTORSHIP BOOKING MODAL */}
       {showMentorshipBookingModal && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }} onClick={() => setShowMentorshipBookingModal(null)}>
-          <div style={{ background: 'var(--surface)', borderRadius: '32px', padding: '24px', width: '95%', maxWidth: '480px', animation: 'modalSlideUp 0.3s ease-out', position: 'relative', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)' }} onClick={e => e.stopPropagation()}>
+          <div style={{ background: 'var(--surface)', borderRadius: '14px', padding: '24px', width: '95%', maxWidth: '480px', animation: 'modalSlideUp 0.3s ease-out', position: 'relative', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)' }} onClick={e => e.stopPropagation()}>
             <button onClick={() => setShowMentorshipBookingModal(null)} style={{ position: 'absolute', top: '24px', right: '24px', background: 'var(--surface)', border: 'none', width: '32px', height: '32px', borderRadius: '10px', cursor: 'pointer', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <X size={18} />
             </button>
             
             <div style={{ marginBottom: '24px' }}>
-              <h3 style={{ fontSize: '20px', fontWeight: '900', color: 'var(--text-primary)', marginBottom: '8px' }}>Book Session with {showMentorshipBookingModal.mentorName}</h3>
+              <h3 style={{ fontSize: '20px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '8px' }}>Book Session with {showMentorshipBookingModal.mentorName}</h3>
               <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-                <span style={{ fontSize: '12px', color: 'var(--text-secondary)', background: 'var(--surface)', padding: '5px 10px', borderRadius: '8px', fontWeight: '700' }}>⏱️ {showMentorshipBookingModal.slotDuration} mins / slot</span>
-                <span style={{ fontSize: '12px', color: 'var(--warning)', background: 'var(--warning-light)', padding: '5px 10px', borderRadius: '8px', fontWeight: '700' }}>💰 ₹{showMentorshipBookingModal.pricePerSlot} / slot</span>
+                <span style={{ fontSize: '12px', color: 'var(--text-secondary)', background: 'var(--surface)', padding: '5px 10px', borderRadius: '8px', fontWeight: 600 }}>⏱️ {showMentorshipBookingModal.slotDuration} mins / slot</span>
+                <span style={{ fontSize: '12px', color: 'var(--warning)', background: 'var(--warning-light)', padding: '5px 10px', borderRadius: '8px', fontWeight: 600 }}>💰 ₹{showMentorshipBookingModal.pricePerSlot} / slot</span>
               </div>
             </div>
 
             <div style={{ marginBottom: '20px' }}>
-              <label style={{ display: 'block', fontSize: '13px', fontWeight: '800', marginBottom: '10px', color: 'var(--text-primary)' }}>1. Select Date</label>
+              <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, marginBottom: '10px', color: 'var(--text-primary)' }}>1. Select Date</label>
               <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '8px' }}>
                 {Array.from(new Set(JSON.parse(showMentorshipBookingModal.availableSlots || '[]').map((s: any) => s.date))).sort().map((d: any) => {
                   const isSelected = mentorshipBookingDate === d;
@@ -5100,7 +5135,7 @@ export default function ExploreCoursesPage() {
                       style={{
                         padding: '10px 16px', borderRadius: '12px', border: isSelected ? '2px solid #f59e0b' : '2px solid var(--border)',
                         background: isSelected ? 'var(--warning-light)' : 'var(--surface-2)', color: isSelected ? 'var(--warning)' : 'var(--text-secondary)',
-                        fontWeight: '800', fontSize: '13px', cursor: 'pointer', whiteSpace: 'nowrap', transition: 'all 0.2s'
+                        fontWeight: 600, fontSize: '13px', cursor: 'pointer', whiteSpace: 'nowrap', transition: 'all 0.2s'
                       }}
                     >
                       {new Date(d).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
@@ -5111,11 +5146,11 @@ export default function ExploreCoursesPage() {
             </div>
 
             <div style={{ marginBottom: '24px' }}>
-              <label style={{ display: 'block', fontSize: '13px', fontWeight: '800', marginBottom: '10px', color: 'var(--text-primary)' }}>
+              <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, marginBottom: '10px', color: 'var(--text-primary)' }}>
                 2. Choose Time Slots <span style={{ fontWeight: '500', color: 'var(--text-secondary)', fontSize: '11px' }}>(Multi-select)</span>
               </label>
               {!mentorshipBookingDate ? (
-                <div style={{ padding: '24px', background: 'var(--surface)', borderRadius: '16px', textAlign: 'center', color: 'var(--text-muted)', fontSize: '13px', fontWeight: '600', border: '2px dashed var(--border)' }}>
+                <div style={{ padding: '24px', background: 'var(--surface)', borderRadius: '12px', textAlign: 'center', color: 'var(--text-muted)', fontSize: '13px', fontWeight: '600', border: '2px dashed var(--border)' }}>
                   Please select a date first
                 </div>
               ) : (
@@ -5155,7 +5190,7 @@ export default function ExploreCoursesPage() {
                             padding: '10px', borderRadius: '14px', border: isSelected ? '2px solid #f59e0b' : '2px solid var(--border)',
                             background: isSelected ? 'var(--warning-light)' : (disabled ? 'var(--surface)' : 'var(--surface-2)'),
                             color: isSelected ? 'var(--warning)' : (disabled ? 'var(--text-muted)' : 'var(--text-secondary)'),
-                            fontWeight: '800', fontSize: '12.5px', cursor: disabled ? 'not-allowed' : 'pointer',
+                            fontWeight: 600, fontSize: '12.5px', cursor: disabled ? 'not-allowed' : 'pointer',
                             transition: 'all 0.2s', position: 'relative'
                           }}
                         >
@@ -5170,7 +5205,7 @@ export default function ExploreCoursesPage() {
               )}
             </div>
 
-            <div style={{ background: 'var(--surface)', padding: '20px', borderRadius: '24px', border: '1.5px solid var(--border)' }}>
+            <div style={{ background: 'var(--surface)', padding: '20px', borderRadius: '14px', border: '1.5px solid var(--border)' }}>
               {/* Mentorship Note */}
               <div style={{ marginBottom: '12px', padding: '10px 14px', background: 'color-mix(in srgb, var(--primary) 5%, transparent)', borderRadius: '14px', border: '1px solid color-mix(in srgb, var(--primary) 10%, transparent)', display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
                 <span style={{ fontSize: '16px' }}>📧</span>
@@ -5181,7 +5216,7 @@ export default function ExploreCoursesPage() {
 
               {/* STUDENT QUESTION FIELD */}
               <div style={{ marginBottom: '16px' }}>
-                <label style={{ display: 'block', fontSize: '12px', fontWeight: '800', color: 'var(--text-secondary)', marginBottom: '6px', textTransform: 'uppercase' }}>Questions for Mentor (Optional)</label>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '6px', textTransform: 'uppercase' }}>Questions for Mentor (Optional)</label>
                 <textarea 
                   id="userQuestionInput"
                   placeholder="e.g. JEE Main Strategy, specific doubts, etc."
@@ -5191,12 +5226,12 @@ export default function ExploreCoursesPage() {
 
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
                 <div>
-                  <div style={{ fontSize: '13px', fontWeight: '800', color: 'var(--text-primary)' }}>Total Selected</div>
+                  <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)' }}>Total Selected</div>
                   <div style={{ fontSize: '11px', color: 'var(--text-secondary)', fontWeight: '600' }}>{mentorshipBookingTimes.length} slots for {mentorshipBookingDate ? new Date(mentorshipBookingDate).toLocaleDateString() : '...'}</div>
                 </div>
                 <div style={{ textAlign: 'right' }}>
-                  <div style={{ fontSize: '11px', fontWeight: '700', color: 'var(--text-secondary)', textTransform: 'uppercase' }}>Total Amount</div>
-                  <div style={{ fontSize: '24px', fontWeight: '900', color: 'var(--warning)' }}>₹{mentorshipBookingTimes.length * showMentorshipBookingModal.pricePerSlot}</div>
+                  <div style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-secondary)', textTransform: 'uppercase' }}>Total Amount</div>
+                  <div style={{ fontSize: '24px', fontWeight: 600, color: 'var(--warning)' }}>₹{mentorshipBookingTimes.length * showMentorshipBookingModal.pricePerSlot}</div>
                 </div>
               </div>
 
@@ -5270,7 +5305,7 @@ export default function ExploreCoursesPage() {
                   width: '100%', padding: '18px', 
                   background: (isProcessing || mentorshipBookingTimes.length === 0) ? 'var(--surface-2)' : 'linear-gradient(135deg, #f59e0b, #d97706)', 
                   color: (isProcessing || mentorshipBookingTimes.length === 0) ? 'var(--text-muted)' : 'white', 
-                  fontWeight: '900', fontSize: '16px', borderRadius: '16px', border: 'none', 
+                  fontWeight: 600, fontSize: '16px', borderRadius: '12px', border: 'none', 
                   cursor: (isProcessing || mentorshipBookingTimes.length === 0) ? 'not-allowed' : 'pointer',
                   boxShadow: (isProcessing || mentorshipBookingTimes.length === 0) ? 'none' : '0 10px 20px rgba(245, 158, 11, 0.3)',
                   textTransform: 'uppercase', letterSpacing: '0.05em'
@@ -5286,9 +5321,9 @@ export default function ExploreCoursesPage() {
       {/* MANAGE SLOTS MODAL */}
       {showManageSlotsModal && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }} onClick={() => setShowManageSlotsModal(null)}>
-          <div style={{ background: 'var(--surface)', borderRadius: '24px', padding: '32px', width: '100%', maxWidth: '480px', animation: 'modalSlideUp 0.3s ease-out', maxHeight: '90vh', overflowY: 'auto' }} onClick={e => e.stopPropagation()}>
+          <div style={{ background: 'var(--surface)', borderRadius: '14px', padding: '32px', width: '100%', maxWidth: '480px', animation: 'modalSlideUp 0.3s ease-out', maxHeight: '90vh', overflowY: 'auto' }} onClick={e => e.stopPropagation()}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-              <h3 style={{ fontSize: '20px', fontWeight: '800', color: 'var(--text-primary)' }}>Manage Time Slots</h3>
+              <h3 style={{ fontSize: '20px', fontWeight: 600, color: 'var(--text-primary)' }}>Manage Time Slots</h3>
               <button onClick={() => setShowManageSlotsModal(null)} style={{ background: 'transparent', border: 'none', cursor: 'pointer', fontSize: '18px', color: 'var(--text-secondary)' }}>
                 <X size={20} />
               </button>
@@ -5296,7 +5331,7 @@ export default function ExploreCoursesPage() {
             <p style={{ fontSize: '14px', color: 'var(--text-secondary)', marginBottom: '24px' }}>Mentorship with {showManageSlotsModal.mentorName} ({showManageSlotsModal.slotDuration} mins)</p>
 
             <div style={{ background: 'var(--surface)', padding: '16px', borderRadius: '12px', marginBottom: '24px' }}>
-              <h4 style={{ fontSize: '14px', fontWeight: '700', marginBottom: '12px' }}>Add New Slot</h4>
+              <h4 style={{ fontSize: '14px', fontWeight: 600, marginBottom: '12px' }}>Add New Slot</h4>
               <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-end' }}>
                 <div style={{ flex: 1 }}>
                   <label style={{ display: 'block', fontSize: '12px', fontWeight: '600', marginBottom: '4px' }}>Date</label>
@@ -5311,12 +5346,12 @@ export default function ExploreCoursesPage() {
                   if (editingSlots.some(s => s.date === manageSlotsDate && s.time === manageSlotsTime)) return;
                   setEditingSlots([...editingSlots, { date: manageSlotsDate, time: manageSlotsTime }]);
                   setManageSlotsTime('');
-                }} style={{ padding: '10px 16px', background: 'var(--info)', color: '#fff', borderRadius: '8px', fontWeight: '700', border: 'none' }}>Add</button>
+                }} style={{ padding: '10px 16px', background: 'var(--info)', color: '#fff', borderRadius: '8px', fontWeight: 600, border: 'none' }}>Add</button>
               </div>
             </div>
 
             <div style={{ marginBottom: '24px' }}>
-              <h4 style={{ fontSize: '14px', fontWeight: '700', marginBottom: '12px' }}>Available Slots</h4>
+              <h4 style={{ fontSize: '14px', fontWeight: 600, marginBottom: '12px' }}>Available Slots</h4>
               {editingSlots.length === 0 ? <p style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>No slots added yet.</p> : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                   {editingSlots.sort((a, b) => a.date.localeCompare(b.date) || a.time.localeCompare(b.time)).map((slot, idx) => (
@@ -5351,7 +5386,7 @@ export default function ExploreCoursesPage() {
                   setIsProcessing(false)
                 }
               }} 
-              style={{ width: '100%', padding: '14px', background: 'var(--primary)', color: 'var(--button-text, #fff)', fontWeight: '700', borderRadius: '12px', border: 'none', cursor: isProcessing ? 'not-allowed' : 'pointer' }}>
+              style={{ width: '100%', padding: '14px', background: 'var(--primary)', color: 'var(--button-text, #fff)', fontWeight: 600, borderRadius: '12px', border: 'none', cursor: isProcessing ? 'not-allowed' : 'pointer' }}>
               {isProcessing ? 'Saving...' : 'Save Slots'}
             </button>
           </div>
@@ -5361,12 +5396,12 @@ export default function ExploreCoursesPage() {
       {/* MANAGE ALL BOOKINGS MODAL (Manager Only) */}
       {showManageBookingsModal && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1100 }} onClick={() => setShowManageBookingsModal(null)}>
-          <div style={{ background: 'var(--surface)', borderRadius: '32px', padding: '40px', width: '100%', maxWidth: '900px', maxHeight: '85vh', overflow: 'auto', animation: 'modalSlideUp 0.3s ease-out', position: 'relative' }} onClick={e => e.stopPropagation()}>
+          <div style={{ background: 'var(--surface)', borderRadius: '14px', padding: '40px', width: '100%', maxWidth: '900px', maxHeight: '85vh', overflow: 'auto', animation: 'modalSlideUp 0.3s ease-out', position: 'relative' }} onClick={e => e.stopPropagation()}>
             <button onClick={() => setShowManageBookingsModal(null)} style={{ position: 'absolute', top: '30px', right: '30px', background: 'var(--surface)', border: 'none', width: '36px', height: '36px', borderRadius: '12px', cursor: 'pointer', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <X size={20} />
             </button>
             
-            <h3 style={{ fontSize: '24px', fontWeight: '900', color: 'var(--text-primary)', marginBottom: '16px' }}>All Mentorship Bookings</h3>
+            <h3 style={{ fontSize: '24px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '16px' }}>All Mentorship Bookings</h3>
             
             <div style={{ marginBottom: '24px' }}>
               <input 
@@ -5374,17 +5409,17 @@ export default function ExploreCoursesPage() {
                 placeholder="Filter by student, mentor, or date (YYYY-MM-DD)..." 
                 value={bookingSearchQuery}
                 onChange={(e) => setBookingSearchQuery(e.target.value)}
-                style={{ width: '100%', padding: '14px 20px', borderRadius: '18px', border: '1.5px solid var(--border)', fontSize: '14px', outline: 'none', background: '#fcfcfd' }}
+                style={{ width: '100%', padding: '14px 20px', borderRadius: '12px', border: '1.5px solid var(--border)', fontSize: '14px', outline: 'none', background: '#fcfcfd' }}
               />
             </div>
 
             {loadingAllBookings ? (
               <div style={{ padding: '40px', textAlign: 'center', color: 'var(--text-secondary)' }}>Loading bookings...</div>
             ) : allBookingsData.length === 0 ? (
-              <div style={{ padding: '40px', textAlign: 'center', color: 'var(--text-secondary)', background: 'var(--surface)', borderRadius: '20px' }}>No bookings found.</div>
+              <div style={{ padding: '40px', textAlign: 'center', color: 'var(--text-secondary)', background: 'var(--surface)', borderRadius: '14px' }}>No bookings found.</div>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr 1fr 1fr 2fr', gap: '12px', padding: '0 16px', fontSize: '12px', fontWeight: '800', color: 'var(--text-muted)', textTransform: 'uppercase' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr 1fr 1fr 2fr', gap: '12px', padding: '0 16px', fontSize: '12px', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase' }}>
                   <span>Student / Mentor</span>
                   <span>Date</span>
                   <span>Time</span>
@@ -5398,16 +5433,16 @@ export default function ExploreCoursesPage() {
                     b.slotDate?.includes(bookingSearchQuery)
                   )
                   .map((b: any) => (
-                    <div key={b.id} style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr 1fr 1fr 2fr', gap: '12px', padding: '16px', background: 'var(--surface)', borderRadius: '20px', alignItems: 'center', border: '1px solid var(--border)' }}>
+                    <div key={b.id} style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr 1fr 1fr 2fr', gap: '12px', padding: '16px', background: 'var(--surface)', borderRadius: '14px', alignItems: 'center', border: '1px solid var(--border)' }}>
                       <div>
-                        <div style={{ fontWeight: '800', fontSize: '14px', color: 'var(--text-primary)' }}>{b.user?.name || 'Unknown'}</div>
+                        <div style={{ fontWeight: 600, fontSize: '14px', color: 'var(--text-primary)' }}>{b.user?.name || 'Unknown'}</div>
                         <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>Mentor: {b.mentorship?.mentorName}</div>
                         {b.userQuestion && <div style={{ fontSize: '11px', color: 'var(--primary)', fontWeight: '600', marginTop: '4px' }}>Q: {b.userQuestion}</div>}
                       </div>
-                      <div style={{ fontSize: '13px', fontWeight: '700' }}>{b.slotDate}</div>
-                      <div style={{ fontSize: '13px', fontWeight: '700' }}>{b.slotTime}</div>
+                      <div style={{ fontSize: '13px', fontWeight: 600 }}>{b.slotDate}</div>
+                      <div style={{ fontSize: '13px', fontWeight: 600 }}>{b.slotTime}</div>
                       <div>
-                        <span style={{ padding: '4px 10px', borderRadius: '50px', background: b.status === 'PAID' ? 'var(--success-light)' : 'var(--danger-light)', color: b.status === 'PAID' ? 'var(--success)' : 'var(--danger)', fontSize: '11px', fontWeight: '800' }}>{b.status}</span>
+                        <span style={{ padding: '4px 10px', borderRadius: '50px', background: b.status === 'PAID' ? 'var(--success-light)' : 'var(--danger-light)', color: b.status === 'PAID' ? 'var(--success)' : 'var(--danger)', fontSize: '11px', fontWeight: 600 }}>{b.status}</span>
                       </div>
                       <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
                         {editingBookingLink === b.id ? (
@@ -5425,12 +5460,12 @@ export default function ExploreCoursesPage() {
                                   setEditingBookingLink(null)
                                 } else alert('Failed to update')
                               } catch { alert('Error updating') }
-                            }} style={{ padding: '8px 12px', borderRadius: '10px', background: 'var(--primary)', color: 'var(--button-text, #fff)', border: 'none', fontWeight: '700', fontSize: '12px' }}>Save</button>
+                            }} style={{ padding: '8px 12px', borderRadius: '10px', background: 'var(--primary)', color: 'var(--button-text, #fff)', border: 'none', fontWeight: 600, fontSize: '12px' }}>Save</button>
                           </div>
                         ) : (
                           <>
                             <div style={{ flex: 1, fontSize: '12px', color: b.meetLink ? 'var(--primary)' : 'var(--text-muted)', fontWeight: '600', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{b.meetLink || 'No link'}</div>
-                            <button onClick={() => setEditingBookingLink(b.id)} style={{ padding: '6px 12px', borderRadius: '8px', background: 'var(--surface)', border: '1px solid var(--border)', color: 'var(--text-secondary)', fontWeight: '700', fontSize: '11px' }}>Edit</button>
+                            <button onClick={() => setEditingBookingLink(b.id)} style={{ padding: '6px 12px', borderRadius: '8px', background: 'var(--surface)', border: '1px solid var(--border)', color: 'var(--text-secondary)', fontWeight: 600, fontSize: '11px' }}>Edit</button>
                             {(userData?.user?.role === 'MANAGER' || userData?.role === 'MANAGER') && (
                               <button onClick={async () => {
                                 if (!confirm('Cancel this booking?')) return
@@ -5439,7 +5474,7 @@ export default function ExploreCoursesPage() {
                                   if (res.ok) setAllBookingsData(allBookingsData.filter(item => item.id !== b.id))
                                   else alert('Failed')
                                 } catch { alert('Error') }
-                              }} style={{ padding: '6px 12px', borderRadius: '8px', background: 'var(--danger-light)', border: '1px solid var(--border)', color: 'var(--danger)', fontWeight: '700', fontSize: '11px' }}>Cancel</button>
+                              }} style={{ padding: '6px 12px', borderRadius: '8px', background: 'var(--danger-light)', border: '1px solid var(--border)', color: 'var(--danger)', fontWeight: 600, fontSize: '11px' }}>Cancel</button>
                             )}
                           </>
                         )}
@@ -5455,13 +5490,13 @@ export default function ExploreCoursesPage() {
       {/* MANUAL BOOKING MODAL (Manager Only) */}
       {showManualBookingModal && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1100 }} onClick={() => { setShowManualBookingModal(false); setStudentSearchQuery(''); }}>
-          <div style={{ background: 'var(--surface)', borderRadius: '32px', padding: '40px', width: '100%', maxWidth: '500px', animation: 'modalSlideUp 0.3s ease-out', position: 'relative' }} onClick={e => e.stopPropagation()}>
+          <div style={{ background: 'var(--surface)', borderRadius: '14px', padding: '40px', width: '100%', maxWidth: '500px', animation: 'modalSlideUp 0.3s ease-out', position: 'relative' }} onClick={e => e.stopPropagation()}>
             <button onClick={() => { setShowManualBookingModal(false); setStudentSearchQuery(''); }} style={{ position: 'absolute', top: '30px', right: '30px', background: 'var(--surface)', border: 'none', width: '36px', height: '36px', borderRadius: '12px', cursor: 'pointer', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <X size={20} />
             </button>
-            <h3 style={{ fontSize: '24px', fontWeight: '900', color: 'var(--text-primary)', marginBottom: '24px' }}>Manual Booking</h3>
+            <h3 style={{ fontSize: '24px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '24px' }}>Manual Booking</h3>
             <div style={{ marginBottom: '20px' }}>
-              <label style={{ display: 'block', fontSize: '13px', fontWeight: '800', color: 'var(--text-secondary)', marginBottom: '8px', textTransform: 'uppercase' }}>Select Student</label>
+              <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '8px', textTransform: 'uppercase' }}>Select Student</label>
               <input 
                 type="text" 
                 placeholder="Search by name or email..." 
@@ -5483,7 +5518,7 @@ export default function ExploreCoursesPage() {
               )}
             </div>
             <div style={{ marginBottom: '20px' }}>
-              <label style={{ display: 'block', fontSize: '13px', fontWeight: '800', color: 'var(--text-secondary)', marginBottom: '8px', textTransform: 'uppercase' }}>Select Mentorship Offering</label>
+              <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '8px', textTransform: 'uppercase' }}>Select Mentorship Offering</label>
               <select id="manualMentorshipInput" onChange={async (e) => {
                 const mid = e.target.value;
                 if (!mid) { setManualAvailableSlots([]); return; }
@@ -5502,13 +5537,13 @@ export default function ExploreCoursesPage() {
 
             {manualAvailableSlots.length > 0 && (
               <div style={{ marginBottom: '20px' }}>
-                <label style={{ display: 'block', fontSize: '12px', fontWeight: '800', color: 'var(--primary)', marginBottom: '8px', textTransform: 'uppercase' }}>Pick an Existing Slot</label>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: 'var(--primary)', marginBottom: '8px', textTransform: 'uppercase' }}>Pick an Existing Slot</label>
                 <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '8px' }}>
                   {manualAvailableSlots.map((s, idx) => (
                     <button key={idx} onClick={() => {
                       (document.getElementById('manualDateInput') as HTMLInputElement).value = s.date;
                       (document.getElementById('manualTimeInput') as HTMLInputElement).value = s.time;
-                    }} style={{ padding: '8px 12px', borderRadius: '10px', background: 'var(--primary-light)', border: '1.5px solid #dbeafe', fontSize: '12px', fontWeight: '700', color: 'var(--primary)', whiteSpace: 'nowrap', cursor: 'pointer' }}>
+                    }} style={{ padding: '8px 12px', borderRadius: '10px', background: 'var(--primary-light)', border: '1.5px solid #dbeafe', fontSize: '12px', fontWeight: 600, color: 'var(--primary)', whiteSpace: 'nowrap', cursor: 'pointer' }}>
                       {s.date} {s.time}
                     </button>
                   ))}
@@ -5517,11 +5552,11 @@ export default function ExploreCoursesPage() {
             )}
             <div style={{ display: 'flex', gap: '12px', marginBottom: '24px' }}>
               <div style={{ flex: 1 }}>
-                <label style={{ display: 'block', fontSize: '13px', fontWeight: '800', color: 'var(--text-secondary)', marginBottom: '8px', textTransform: 'uppercase' }}>Date</label>
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '8px', textTransform: 'uppercase' }}>Date</label>
                 <input id="manualDateInput" type="date" style={{ width: '100%', padding: '14px', borderRadius: '14px', border: '2px solid var(--border)' }} />
               </div>
               <div style={{ flex: 1 }}>
-                <label style={{ display: 'block', fontSize: '13px', fontWeight: '800', color: 'var(--text-secondary)', marginBottom: '8px', textTransform: 'uppercase' }}>Time (HH:MM)</label>
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '8px', textTransform: 'uppercase' }}>Time (HH:MM)</label>
                 <input id="manualTimeInput" type="time" style={{ width: '100%', padding: '14px', borderRadius: '14px', border: '2px solid var(--border)' }} />
               </div>
             </div>
@@ -5539,7 +5574,7 @@ export default function ExploreCoursesPage() {
                 if (res.ok) { alert('Success!'); setShowManualBookingModal(false); window.location.reload() }
                 else alert('Failed')
               } catch { alert('Error') }
-            }} style={{ width: '100%', padding: '16px', borderRadius: '16px', background: 'var(--text-primary)', color: 'var(--button-text, #fff)', fontWeight: '800', border: 'none', cursor: 'pointer' }}>Create Booking</button>
+            }} style={{ width: '100%', padding: '16px', borderRadius: '12px', background: 'var(--text-primary)', color: 'var(--button-text, #fff)', fontWeight: 600, border: 'none', cursor: 'pointer' }}>Create Booking</button>
           </div>
         </div>
       )}

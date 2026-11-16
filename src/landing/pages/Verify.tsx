@@ -1,6 +1,5 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { supabase } from '@/landing/lib/supabase';
 import { useAuth } from '@/landing/context/AuthContext';
 import { Link } from '@/landing/shims/router';
 import { motion, AnimatePresence, useReducedMotion } from 'motion/react';
@@ -115,18 +114,17 @@ export default function Verify() {
   }, []);
 
   // Insert audit log
-  const insertAuditLog = async (action: string, empId: string, empName: string, details: string) => {
-    const actorEmail = user?.email || 'unknown';
+  const insertAuditLog = async (action: string, empId: string, empName: string, details: string, found: boolean, status?: string) => {
+    const actorEmail = user?.email || 'anonymous';
     try {
-      await supabase.from('employee_logs').insert([{
-        action_type: action,
-        actor_email: actorEmail,
-        employee_id: empId,
-        employee_name: empName,
-        details
-      }]);
+      // The server records the actor from the session and derives the outcome from the registry.
+      await fetch('/api/site/employee/verify/log', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ employeeId: empId, fullName: empName, found, status }),
+      });
     } catch (err) {
-      console.warn('Audit log insert failed (table may not exist):', err);
+      console.warn('Audit log insert failed:', err);
     }
     // Also save to local storage for demo/fallback
     try {
@@ -161,18 +159,16 @@ export default function Verify() {
 
     try {
       // 1. Try to search from Supabase database
-      const { data, error } = await supabase
-        .from('employees')
-        .select('*')
-        .eq('employee_id', employeeId.trim());
+      const params = new URLSearchParams({ id: employeeId.trim(), name: fullName.trim() });
+      const res = await fetch(`/api/site/employee/verify?${params.toString()}`, { cache: 'no-store' });
+      const data = await res.json().catch(() => null);
+      if (res.status === 429) throw new Error(data?.error || 'Too many verification attempts. Please wait a minute and try again.');
 
       let found: Employee | undefined = undefined;
 
-      if (data && data.length > 0) {
-        // Find matching name case-insensitively
-        found = data.find(
-          (emp) => emp.full_name.trim().toLowerCase() === fullName.trim().toLowerCase()
-        );
+      if (res.ok && data?.employee) {
+        // Server returns the record only when the ID and name both match
+        found = data.employee as Employee;
       }
 
       // 2. If not found in DB, check mock local storage records
@@ -208,15 +204,16 @@ export default function Verify() {
           now.toLocaleDateString('en-GB') + ', ' + now.toLocaleTimeString('en-US', { hour12: false })
         );
         // Log successful verification
-        await insertAuditLog('VERIFY', found.employee_id, found.full_name, `Verified record — Status: ${found.status}`);
+        await insertAuditLog('VERIFY', found.employee_id, found.full_name, `Verified record — Status: ${found.status}`, true, found.status);
       } else {
         setErrorMsg('No official record found matching the details provided. Please check the ID and Name.');
         // Log failed verification attempt
-        await insertAuditLog('VERIFY', employeeId.trim(), fullName.trim(), 'Verification failed — No matching record found');
+        await insertAuditLog('VERIFY', employeeId.trim(), fullName.trim(), 'Verification failed — No matching record found', false);
       }
     } catch (err) {
       console.error('Search error:', err);
-      setErrorMsg('An error occurred while querying the registry. Please try again.');
+      const msg = (err as Error)?.message || '';
+      setErrorMsg(msg.startsWith('Too many') ? msg : 'An error occurred while querying the registry. Please try again.');
     } finally {
       setSearching(false);
       setSearched(true);

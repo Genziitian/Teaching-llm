@@ -116,18 +116,9 @@ export default function CourseSelection() {
 
     const checkRecentPayment = async () => {
       try {
-        const tenMinsAgo = new Date(Date.now() - 10 * 60 * 1000).toISOString();
-        const { data: recentOrders } = await supabase
-          .from('website_orders')
-          .select('*')
-          .eq('user_email', user.email)
-          .eq('status', 'PAID')
-          .gt('created_at', tenMinsAgo)
-          .order('created_at', { ascending: false })
-          .limit(1);
+        const order = await apiService.getRecentPaidOrder();
 
-        if (recentOrders && recentOrders.length > 0) {
-          const order = recentOrders[0];
+        if (order) {
           const recentCourseIds = Array.isArray(order.course_ids) ? order.course_ids : [];
           
           // Calculate the course IDs currently being checked out
@@ -258,14 +249,11 @@ export default function CourseSelection() {
     setIsProcessing(true);
     setLoadingMessage("Saving Profile...");
     try {
-      const { error } = await supabase.from('profiles').upsert({
-        id: user?.id,
-        email: user?.email,
+      await apiService.saveProfile({
         name: profileData.name,
         gender: profileData.gender,
         phone: profileData.phone
       });
-      if (error) throw error;
       setStep('selection');
       setShowProfilePrompt(false);
     } catch (err: any) {
@@ -535,7 +523,7 @@ export default function CourseSelection() {
       // Try as Referral Code
       const result = await validateReferralCode(codeToApply);
       if (result.valid) {
-          if (result.referrerEmail?.toLowerCase() === user.email?.toLowerCase()) {
+          if (result.own) {
               throw new Error('You cannot use your own referral code.');
           }
 

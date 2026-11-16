@@ -133,7 +133,7 @@ export default function UserAvatar({
         background: 'var(--surface-2, #e2e8f0)',
         color: 'var(--text-primary, #1e293b)',
         fontSize: `${fontSize}px`,
-        fontWeight: '700',
+        fontWeight: 600,
         border: '1px solid var(--border, rgba(0,0,0,0.1))',
       }}
       onClick={onClick}

@@ -59,6 +59,7 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 
 export default function CoursesStorefrontManager() {
   const [courses, setCourses] = useState<any[]>([])
+  const [dashCourses, setDashCourses] = useState<{ id: string; name: string }[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [boxConfig, setBoxConfig] = useState(DEFAULT_BOX_CONFIG)
@@ -96,6 +97,9 @@ export default function CoursesStorefrontManager() {
     setLoading(false)
   }, [])
 
+  useEffect(() => {
+    fetch('/api/courses').then(r => r.json()).then(d => { if (Array.isArray(d)) setDashCourses(d.map((c: any) => ({ id: c.id, name: c.name }))) }).catch(() => {})
+  }, [])
   useEffect(() => { load(); loadBoxConfig().then(r => setBoxConfig(r.config)) }, [load])
 
   const open = (c: any | null) => { setEditing(c); setCreating(!c); setForm(formFrom(c)); setFormError(''); void loadContent(c?.id ?? null) }
@@ -242,6 +246,14 @@ export default function CoursesStorefrontManager() {
   }
 
   const boxes = form.term === 'NONE' ? [] : boxConfig[form.term] || []
+  // Pick a dashboard course instead of typing its ID; an ID already saved but not in the list stays selectable.
+  const courseSelect = (value: string, onPick: (id: string, name: string) => void) => (
+    <select style={inputStyle} value={value} onChange={e => onPick(e.target.value, dashCourses.find(c => c.id === e.target.value)?.name || '')}>
+      <option value="">Select course</option>
+      {value && !dashCourses.some(c => c.id === value) && <option value={value}>{value}</option>}
+      {dashCourses.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+    </select>
+  )
   const updBundle = (i: number, patch: Partial<BundleCourse>) => set('bundleCourses', form.bundleCourses.map((b, j) => (j === i ? { ...b, ...patch } : b)))
   const updTier = (i: number, patch: Partial<PricingOption>) => set('pricing_options', form.pricing_options.map((t, j) => (j === i ? { ...t, ...patch } : t)))
   const check = (label: string, v: boolean, on: (b: boolean) => void) => (
@@ -423,14 +435,14 @@ export default function CoursesStorefrontManager() {
             {form.bundleCourses.map((bc, i) => (
               <div key={i} className="card" style={{ padding: 12, display: 'grid', gap: 10 }}>
                 <div style={grid}>
-                  <Field label="Course ID"><input style={inputStyle} value={bc.courseId} onChange={e => updBundle(i, { courseId: e.target.value })} /></Field>
-                  {bc.courseId2 !== undefined && <Field label="Extra ID 2"><input style={inputStyle} value={bc.courseId2} onChange={e => updBundle(i, { courseId2: e.target.value })} /></Field>}
-                  {bc.courseId3 !== undefined && <Field label="Extra ID 3"><input style={inputStyle} value={bc.courseId3} onChange={e => updBundle(i, { courseId3: e.target.value })} /></Field>}
+                  <Field label="Course">{courseSelect(bc.courseId, (id, name) => updBundle(i, { courseId: id, courseName: bc.courseName || name }))}</Field>
+                  {bc.courseId2 !== undefined && <Field label="Extra course 2">{courseSelect(bc.courseId2, id => updBundle(i, { courseId2: id }))}</Field>}
+                  {bc.courseId3 !== undefined && <Field label="Extra course 3">{courseSelect(bc.courseId3, id => updBundle(i, { courseId3: id }))}</Field>}
                   <Field label="Course title"><input style={inputStyle} value={bc.courseName} onChange={e => updBundle(i, { courseName: e.target.value })} /></Field>
                   <Field label="Price (₹)"><input style={inputStyle} inputMode="numeric" value={bc.price} onChange={e => updBundle(i, { price: parseInt(e.target.value) || 0 })} /></Field>
                 </div>
                 <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                  {bc.courseId3 === undefined && <button type="button" className="btn btn-ghost" onClick={() => updBundle(i, bc.courseId2 === undefined ? { courseId2: '' } : { courseId3: '' })}>+ Add extra ID</button>}
+                  {bc.courseId3 === undefined && <button type="button" className="btn btn-ghost" onClick={() => updBundle(i, bc.courseId2 === undefined ? { courseId2: '' } : { courseId3: '' })}>+ Add extra course</button>}
                   {form.isBundle && <button type="button" className="btn btn-danger" onClick={() => set('bundleCourses', form.bundleCourses.filter((_, j) => j !== i))}>Remove course</button>}
                 </div>
               </div>

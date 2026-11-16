@@ -55,7 +55,7 @@ export default function CompanyPage() {
   }
 
   const neuCard: React.CSSProperties = {
-    borderRadius: '20px', background: 'var(--surface-2)',
+    borderRadius: '14px', background: 'var(--surface-2)',
     boxShadow: '6px 6px 14px var(--neu-dark), -6px -6px 14px var(--neu-light)',
     padding: 'clamp(20px, 5vw, 40px)',
     minHeight: '300px'
@@ -63,7 +63,7 @@ export default function CompanyPage() {
   
   const neuButton: React.CSSProperties = {
     padding: '10px 24px', borderRadius: '50px', border: 'none',
-    background: 'var(--primary)', color: '#fff', fontSize: '14px', fontWeight: 700,
+    background: 'var(--primary)', color: '#fff', fontSize: '14px', fontWeight: 600,
     fontFamily: 'inherit', cursor: 'pointer',
     boxShadow: '4px 4px 10px color-mix(in srgb, var(--primary) 35%, transparent), -2px -2px 6px var(--neu-glow)',
     transition: 'all 0.2s ease',
@@ -71,7 +71,7 @@ export default function CompanyPage() {
 
   const neuButtonSecondary: React.CSSProperties = {
     padding: '10px 24px', borderRadius: '50px', border: 'none',
-    background: 'var(--surface-2)', color: 'var(--text-secondary)', fontSize: '14px', fontWeight: 700,
+    background: 'var(--surface-2)', color: 'var(--text-secondary)', fontSize: '14px', fontWeight: 600,
     fontFamily: 'inherit', cursor: 'pointer',
     boxShadow: '4px 4px 8px var(--neu-dark), -4px -4px 8px var(--neu-light)',
     transition: 'all 0.2s ease',
@@ -121,7 +121,7 @@ export default function CompanyPage() {
               <line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/>
             </svg>
           </button>
-          <h1 style={{ fontSize: 'clamp(20px, 5.5vw, 32px)', fontWeight: 800, color: 'var(--text-primary)', margin: 0, letterSpacing: '-0.5px', wordBreak: 'normal', overflowWrap: 'break-word' }}>
+          <h1 style={{ fontSize: 'clamp(20px, 5.5vw, 32px)', fontWeight: 600, color: 'var(--text-primary)', margin: 0, letterSpacing: '-0.5px', wordBreak: 'normal', overflowWrap: 'break-word' }}>
             {titleText}
           </h1>
         </div>
@@ -182,7 +182,7 @@ export default function CompanyPage() {
           flexDirection: 'column',
           gap: '16px',
         }}>
-          <h3 style={{ fontSize: '18px', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '8px' }}>Manage Policies</h3>
+          <h3 style={{ fontSize: '18px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '8px' }}>Manage Policies</h3>
           <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
             {[
               { href: '/company/privacy-policy', label: 'Privacy Policy' },
@@ -195,10 +195,10 @@ export default function CompanyPage() {
                 style={{ 
                   padding: '16px 24px', 
                   background: 'var(--surface-2)', 
-                  borderRadius: '16px',
+                  borderRadius: '12px',
                   color: 'var(--primary)',
                   textDecoration: 'none',
-                  fontWeight: 700,
+                  fontWeight: 600,
                   fontSize: '14px',
                   boxShadow: '4px 4px 8px var(--neu-dark), -4px -4px 8px var(--neu-light)',
                   display: 'flex',

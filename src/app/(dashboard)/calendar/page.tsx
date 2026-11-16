@@ -578,7 +578,7 @@ function CalendarPageContent() {
           <div style={{ flex: 1, minWidth: 0 }}>
             <h1 style={{
               fontSize: '22px',
-              fontWeight: 900,
+              fontWeight: 600,
               color: 'var(--text-primary)',
               margin: 0,
               lineHeight: 1.1,
@@ -615,7 +615,7 @@ function CalendarPageContent() {
           </button>
           <button onClick={goToday} style={{
             background: 'transparent', border: 'none', cursor: 'pointer',
-            fontFamily: 'inherit', fontSize: '15px', fontWeight: 800, color: 'var(--text-primary)',
+            fontFamily: 'inherit', fontSize: '15px', fontWeight: 600, color: 'var(--text-primary)',
           }}>{monthName}</button>
           <button onClick={nextMonth} aria-label="Next month" style={{
             width: '36px', height: '36px', borderRadius: '50%', border: 'none', cursor: 'pointer',
@@ -651,18 +651,18 @@ function CalendarPageContent() {
                   width: '54px', minHeight: '70px',
                   border: 'none', cursor: 'pointer', fontFamily: 'inherit',
                   display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-                  gap: '4px', padding: '8px 6px', borderRadius: '20px',
+                  gap: '4px', padding: '8px 6px', borderRadius: '14px',
                   background: isSelected ? 'var(--primary)' : 'var(--surface-2)',
                   color: isSelected ? '#ffffff' : (today ? 'var(--primary)' : 'var(--text-secondary)'),
                   boxShadow: isSelected
-                    ? '5px 5px 12px rgba(54,54,232,0.35), -3px -3px 8px var(--neu-glow)'
+                    ? '5px 5px 12px rgba(128, 128, 128,0.35), -3px -3px 8px var(--neu-glow)'
                     : '4px 4px 8px var(--neu-dark), -4px -4px 8px var(--neu-light)',
                   transition: 'all 0.2s ease',
                   position: 'relative',
                 }}
               >
-                <span style={{ fontSize: '10px', fontWeight: 700, opacity: isSelected ? 0.85 : 1 }}>{wkLabel}</span>
-                <span style={{ fontSize: '17px', fontWeight: 800 }}>{day}</span>
+                <span style={{ fontSize: '10px', fontWeight: 600, opacity: isSelected ? 0.85 : 1 }}>{wkLabel}</span>
+                <span style={{ fontSize: '17px', fontWeight: 600 }}>{day}</span>
                 {eventCount > 0 && (
                   <span style={{
                     position: 'absolute', bottom: '6px',
@@ -678,8 +678,8 @@ function CalendarPageContent() {
         {/* Selected day header */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', padding: '0 4px' }}>
           <div>
-            <div style={{ fontSize: '11px', fontWeight: 800, color: 'var(--text-muted)', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '2px' }}>Schedule</div>
-            <div style={{ fontSize: '15px', fontWeight: 800, color: 'var(--text-primary)' }}>{mobileSelectedDateLabel}</div>
+            <div style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-muted)', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '2px' }}>Schedule</div>
+            <div style={{ fontSize: '15px', fontWeight: 600, color: 'var(--text-primary)' }}>{mobileSelectedDateLabel}</div>
           </div>
           {isManager && (
             <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
@@ -734,14 +734,14 @@ function CalendarPageContent() {
         {/* Agenda list for selected day */}
         {mobileDayEvents.length === 0 ? (
           <div style={{
-            padding: '40px 20px', textAlign: 'center', borderRadius: '24px',
+            padding: '40px 20px', textAlign: 'center', borderRadius: '14px',
             background: 'var(--surface-2)', boxShadow: 'inset 4px 4px 8px var(--neu-dark), inset -4px -4px 8px var(--neu-light)',
             color: 'var(--text-muted)',
           }}>
             <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="var(--neu-dark)" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" style={{ marginBottom: '10px' }}>
               <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
             </svg>
-            <div style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-secondary)' }}>Nothing scheduled</div>
+            <div style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-secondary)' }}>Nothing scheduled</div>
             <div style={{ fontSize: '12px', marginTop: '4px' }}>Enjoy your free time</div>
           </div>
         ) : (
@@ -756,24 +756,24 @@ function CalendarPageContent() {
                   }}
                   style={{
                     display: 'flex', alignItems: 'stretch', gap: '14px',
-                    padding: '14px 16px', borderRadius: '20px',
+                    padding: '14px 16px', borderRadius: '14px',
                     background: 'var(--surface)', cursor: isManager ? 'pointer' : 'default',
                     boxShadow: '6px 6px 14px var(--neu-dark), -6px -6px 14px var(--neu-light)',
                     borderLeft: `5px solid ${tc.bg}`,
                   }}
                 >
                   <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', minWidth: '76px' }}>
-                    <span style={{ fontSize: '13px', fontWeight: 800, color: 'var(--text-primary)' }}>{ev.time ? formatTimeString12Hour(ev.time) : '—'}</span>
+                    <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)' }}>{ev.time ? formatTimeString12Hour(ev.time) : '—'}</span>
                     {ev.endTime && (
                       <span style={{ fontSize: '10px', color: 'var(--text-muted)', fontWeight: 600 }}>to {formatTimeString12Hour(ev.endTime)}</span>
                     )}
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: '14.5px', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '3px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    <div style={{ fontSize: '14.5px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '3px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                       {ev.title}
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
-                      <span style={{ fontSize: '10px', fontWeight: 700, padding: '2px 8px', borderRadius: '50px', background: tc.bg + '22', color: tc.bg === '#FFC107' ? '#b48a04' : tc.bg }}>
+                      <span style={{ fontSize: '10px', fontWeight: 600, padding: '2px 8px', borderRadius: '50px', background: tc.bg + '22', color: tc.bg === '#FFC107' ? '#b48a04' : tc.bg }}>
                         {tc.label}
                       </span>
                       <span style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
@@ -983,7 +983,7 @@ function CalendarPageContent() {
                     alignItems: 'center',
                     padding: '16px 24px',
                     gap: '16px',
-                    borderRadius: '24px',
+                    borderRadius: '14px',
                     background: isEventToday 
                       ? 'linear-gradient(135deg, var(--surface) 0%, rgba(59, 130, 246, 0.07) 100%)' 
                       : 'var(--surface)',
@@ -1018,22 +1018,22 @@ function CalendarPageContent() {
                       flexShrink: 0,
                       boxShadow: '0 4px 12px rgba(0,0,0,0.08)'
                     }}>
-                      <span style={{ fontSize: '15px', fontWeight: '800', color: tc.color, lineHeight: 1 }}>
+                      <span style={{ fontSize: '15px', fontWeight: 600, color: tc.color, lineHeight: 1 }}>
                         {new Date(ev.date + 'T00:00:00').getDate()}
                       </span>
-                      <span style={{ fontSize: '9px', color: tc.color, fontWeight: '700', textTransform: 'uppercase', opacity: 0.9 }}>
+                      <span style={{ fontSize: '9px', color: tc.color, fontWeight: 600, textTransform: 'uppercase', opacity: 0.9 }}>
                         {new Date(ev.date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short' })}
                       </span>
                     </div>
                     <div style={{ flex: 1 }}>
-                      <div style={{ fontSize: '14px', fontWeight: '700', color: 'var(--text-primary)', marginBottom: '2px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <div style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '2px', display: 'flex', alignItems: 'center', gap: '8px' }}>
                         {ev.title}
                         {isEventToday && (
                           <span style={{
                             fontSize: '9px',
                             padding: '2px 8px',
                             borderRadius: '50px',
-                            fontWeight: '800',
+                            fontWeight: 600,
                             background: 'var(--info)',
                             color: '#ffffff',
                             textTransform: 'uppercase',
@@ -1089,7 +1089,7 @@ function CalendarPageContent() {
       {/* Event Detail Popover */}
       {selectedEvent && (
         <div className="modal-overlay" onClick={() => setSelectedEvent(null)}>
-          <div className="modal" onClick={e => e.stopPropagation()} style={{ maxWidth: 'min(440px, calc(100vw - 32px))', borderRadius: '18px' }}>
+          <div className="modal" onClick={e => e.stopPropagation()} style={{ maxWidth: 'min(440px, calc(100vw - 32px))', borderRadius: '12px' }}>
             <div className="modal-header" style={{ border: 'none', padding: '24px 24px 0' }}>
               <h3 style={{ fontSize: '17px', fontWeight: '600', color: 'var(--text-primary)' }}>Event Details</h3>
               <button onClick={() => setSelectedEvent(null)} style={{ color: 'var(--text-muted)', transition: 'all 0.2s' }} className="hover:rotate-90">
@@ -1224,7 +1224,7 @@ function CalendarPageContent() {
                       <button
                         type="button"
                         onClick={() => setSelectedCourseIds(classes.map(c => c.id))}
-                        style={{ fontSize: '11px', color: 'var(--primary)', background: 'none', border: 'none', cursor: 'pointer', fontWeight: '700' }}
+                        style={{ fontSize: '11px', color: 'var(--primary)', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600 }}
                       >
                         Select All
                       </button>
@@ -1266,7 +1266,7 @@ function CalendarPageContent() {
                     style={{ width: '16px', height: '16px', cursor: 'pointer', accentColor: 'var(--info)' }}
                   />
                   <div>
-                    <div style={{ fontSize: '13px', fontWeight: '700', color: isGlobalCourse ? 'var(--info)' : 'var(--text-primary)' }}>
+                    <div style={{ fontSize: '13px', fontWeight: 600, color: isGlobalCourse ? 'var(--info)' : 'var(--text-primary)' }}>
                       Global (visible to all users across the platform)
                     </div>
                     <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
@@ -1279,7 +1279,7 @@ function CalendarPageContent() {
                 {/* Course List with Multi-Select Checkboxes */}
                 {!isGlobalCourse && (
                   <div style={{
-                    borderRadius: '16px',
+                    borderRadius: '12px',
                     border: '1px solid var(--border)',
                     background: 'var(--surface-2)',
                     padding: '10px 12px',
@@ -1334,7 +1334,7 @@ function CalendarPageContent() {
                         })}
                     </div>
                     <div style={{ marginTop: '8px', paddingTop: '6px', borderTop: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <span style={{ fontSize: '11px', fontWeight: '700', color: 'var(--primary)' }}>
+                      <span style={{ fontSize: '11px', fontWeight: 600, color: 'var(--primary)' }}>
                         {selectedCourseIds.length} course{selectedCourseIds.length !== 1 ? 's' : ''} selected
                       </span>
                     </div>
@@ -1385,7 +1385,7 @@ function CalendarPageContent() {
                 <div style={{
                   background: 'rgba(217, 119, 6, 0.08)',
                   border: '1.5px solid var(--warning, #f59e0b)',
-                  borderRadius: '16px',
+                  borderRadius: '12px',
                   padding: '14px 16px',
                   display: 'flex',
                   flexDirection: 'column',
@@ -1400,7 +1400,7 @@ function CalendarPageContent() {
                   </p>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px', marginTop: '4px' }}>
                     <div>
-                      <label style={{ fontSize: '11px', fontWeight: '700', color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>New Date *</label>
+                      <label style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>New Date *</label>
                       <input
                         type="date"
                         className="form-input"
@@ -1410,7 +1410,7 @@ function CalendarPageContent() {
                       />
                     </div>
                     <div>
-                      <label style={{ fontSize: '11px', fontWeight: '700', color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>New Start Time *</label>
+                      <label style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>New Start Time *</label>
                       <input
                         type="time"
                         className="form-input"
@@ -1420,7 +1420,7 @@ function CalendarPageContent() {
                       />
                     </div>
                     <div>
-                      <label style={{ fontSize: '11px', fontWeight: '700', color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>New End Time *</label>
+                      <label style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>New End Time *</label>
                       <input
                         type="time"
                         className="form-input"
@@ -1536,7 +1536,7 @@ function CalendarPageContent() {
 
               {/* Custom Specific Dates Picker */}
               {formData.recurrence === 'CUSTOM_DATES' && (
-                <div style={{ background: 'var(--surface-2)', padding: '14px', borderRadius: '16px', border: '1px solid var(--border)' }}>
+                <div style={{ background: 'var(--surface-2)', padding: '14px', borderRadius: '12px', border: '1px solid var(--border)' }}>
                   <label className="form-label" style={{ marginBottom: '6px' }}>Choose Specific Additional Dates</label>
                   <div style={{ display: 'flex', gap: '8px', marginBottom: '10px' }}>
                     <input
@@ -1648,7 +1648,7 @@ function CalendarPageContent() {
           <div className="modal" onClick={e => e.stopPropagation()} style={{ maxWidth: 'min(620px, calc(100vw - 32px))', maxHeight: '90vh', display: 'flex', flexDirection: 'column' }}>
             <div className="modal-header">
               <div>
-                <h3 style={{ fontSize: '18px', fontWeight: '800' }}>Schedule for the Day</h3>
+                <h3 style={{ fontSize: '18px', fontWeight: 600 }}>Schedule for the Day</h3>
                 <p style={{ fontSize: '13px', color: 'var(--text-secondary)', marginTop: '2px' }}>
                   {new Date(year, month, selectedDailyDay).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
                 </p>
@@ -1667,7 +1667,7 @@ function CalendarPageContent() {
                       alignItems: 'center',
                       gap: '6px',
                       fontSize: '12px',
-                      fontWeight: '700',
+                      fontWeight: 600,
                       padding: '5px 12px',
                       borderRadius: '50px',
                       border: '1px solid var(--border)',
@@ -1714,7 +1714,7 @@ function CalendarPageContent() {
                       return (
                         <div key={ev.id} style={{ 
                           border: `1px solid ${tc.bg}`, 
-                          borderRadius: '16px', 
+                          borderRadius: '12px', 
                           padding: '16px 20px',
                           background: 'var(--surface)',
                           boxShadow: '0 4px 12px rgba(0,0,0,0.02)',
@@ -1733,7 +1733,7 @@ function CalendarPageContent() {
                                   {ev.time ? `${formatTimeString12Hour(ev.time)}${ev.endTime ? ` - ${formatTimeString12Hour(ev.endTime)}` : ''}` : 'Time TBD'}
                                 </span>
                               </div>
-                              <h4 style={{ fontSize: '16px', fontWeight: '700', color: 'var(--text-primary)', margin: 0 }}>
+                              <h4 style={{ fontSize: '16px', fontWeight: 600, color: 'var(--text-primary)', margin: 0 }}>
                                 {ev.title}
                               </h4>
                             </div>
@@ -1743,7 +1743,7 @@ function CalendarPageContent() {
                                 <button
                                   onClick={() => { setSelectedDailyDay(null); openEdit(ev, true); }}
                                   className="btn btn-sm"
-                                  style={{ padding: '4px 8px', fontSize: '11px', color: '#d97706', background: 'rgba(245, 158, 11, 0.1)', border: '1px solid #fde68a', fontWeight: '700' }}
+                                  style={{ padding: '4px 8px', fontSize: '11px', color: '#d97706', background: 'rgba(245, 158, 11, 0.1)', border: '1px solid #fde68a', fontWeight: 600 }}
                                   title="Reschedule event"
                                 >
                                   Reschedule
@@ -1778,12 +1778,12 @@ function CalendarPageContent() {
                           
                           <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', gap: '12px', marginTop: '12px', paddingTop: '12px', borderTop: '1px solid #f0f1f5' }}>
                             <div>
-                              <div style={{ fontSize: '10px', fontWeight: '700', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Subject</div>
+                              <div style={{ fontSize: '10px', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Subject</div>
                               <div style={{ fontSize: '13px', color: 'var(--text-primary)', fontWeight: '600' }}>{ev.course?.name || 'Global'}</div>
                             </div>
                             {ev.instructor && (
                               <div>
-                                <div style={{ fontSize: '10px', fontWeight: '700', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Instructor</div>
+                                <div style={{ fontSize: '10px', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Instructor</div>
                                 <div style={{ fontSize: '13px', color: 'var(--text-primary)', fontWeight: '600' }}>{ev.instructor.name}</div>
                               </div>
                             )}
@@ -1797,7 +1797,7 @@ function CalendarPageContent() {
 
                           {isManager && ev.meetLink && (
                             <div style={{ marginTop: '16px', padding: '12px', background: 'var(--surface)', borderRadius: '8px', border: '1px solid var(--border)' }}>
-                              <div style={{ fontSize: '10px', fontWeight: '700', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '4px' }}>Meeting Link (Manager Only)</div>
+                              <div style={{ fontSize: '10px', fontWeight: 600, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '4px' }}>Meeting Link (Manager Only)</div>
                               <a href={normalizeMeetLink(ev.meetLink) ?? '#'} target="_blank" rel="noreferrer" style={{ fontSize: '13px', color: 'var(--info)', fontWeight: '600', wordBreak: 'break-all', display: 'flex', alignItems: 'center', gap: '4px' }}>
                                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>
                                 {ev.meetLink}
@@ -1832,7 +1832,7 @@ function CalendarPageContent() {
           <div className="modal" onClick={e => e.stopPropagation()} style={{ maxWidth: 'min(780px, calc(100vw - 32px))', maxHeight: '90vh', display: 'flex', flexDirection: 'column' }}>
             <div className="modal-header" style={{ borderBottom: '1px solid var(--border)', padding: '20px 24px' }}>
               <div>
-                <h3 style={{ fontSize: '18px', fontWeight: '800', margin: 0 }}>Manage &amp; Clean Up Events</h3>
+                <h3 style={{ fontSize: '18px', fontWeight: 600, margin: 0 }}>Manage &amp; Clean Up Events</h3>
                 <p style={{ fontSize: '12px', color: 'var(--text-secondary)', margin: '3px 0 0' }}>
                   Filter events by date range, review matching events, uncheck any you want to keep, and delete unwanted events in bulk.
                 </p>
@@ -1847,7 +1847,7 @@ function CalendarPageContent() {
             <div className="modal-body" style={{ flex: 1, overflowY: 'auto', padding: '20px 24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
               {/* Quick Date Presets */}
               <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '8px' }}>
-                <span style={{ fontSize: '11px', fontWeight: '700', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                <span style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                   Quick Range:
                 </span>
                 <button
@@ -1909,12 +1909,12 @@ function CalendarPageContent() {
                 gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))',
                 gap: '10px',
                 padding: '12px',
-                borderRadius: '16px',
+                borderRadius: '12px',
                 background: 'var(--surface-2)',
                 border: '1px solid var(--border)'
               }}>
                 <div>
-                  <label style={{ fontSize: '11px', fontWeight: '700', color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>From Date</label>
+                  <label style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>From Date</label>
                   <input
                     type="date"
                     className="form-input"
@@ -1924,7 +1924,7 @@ function CalendarPageContent() {
                   />
                 </div>
                 <div>
-                  <label style={{ fontSize: '11px', fontWeight: '700', color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>To Date</label>
+                  <label style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>To Date</label>
                   <input
                     type="date"
                     className="form-input"
@@ -1934,7 +1934,7 @@ function CalendarPageContent() {
                   />
                 </div>
                 <div>
-                  <label style={{ fontSize: '11px', fontWeight: '700', color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>Course</label>
+                  <label style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>Course</label>
                   <select
                     className="form-input"
                     value={bulkCourseFilter}
@@ -1949,7 +1949,7 @@ function CalendarPageContent() {
                   </select>
                 </div>
                 <div>
-                  <label style={{ fontSize: '11px', fontWeight: '700', color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>Type</label>
+                  <label style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>Type</label>
                   <select
                     className="form-input"
                     value={bulkTypeFilter}
@@ -1963,7 +1963,7 @@ function CalendarPageContent() {
                   </select>
                 </div>
                 <div>
-                  <label style={{ fontSize: '11px', fontWeight: '700', color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>Search Title</label>
+                  <label style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>Search Title</label>
                   <input
                     type="text"
                     className="form-input"
@@ -1986,7 +1986,7 @@ function CalendarPageContent() {
                 border: `1px solid ${selectedBulkEventIds.size > 0 ? 'rgba(239, 68, 68, 0.3)' : 'var(--border)'}`,
               }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '13px', fontWeight: '700' }}>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '13px', fontWeight: 600 }}>
                     <input
                       type="checkbox"
                       checked={bulkFilteredEvents.length > 0 && selectedBulkEventIds.size === bulkFilteredEvents.length}
@@ -2011,7 +2011,7 @@ function CalendarPageContent() {
                     </button>
                   )}
                 </div>
-                <div style={{ fontSize: '13px', fontWeight: '800', color: selectedBulkEventIds.size > 0 ? 'var(--danger)' : 'var(--text-secondary)' }}>
+                <div style={{ fontSize: '13px', fontWeight: 600, color: selectedBulkEventIds.size > 0 ? 'var(--danger)' : 'var(--text-secondary)' }}>
                   {selectedBulkEventIds.size} of {bulkFilteredEvents.length} selected for deletion
                 </div>
               </div>
@@ -2040,7 +2040,7 @@ function CalendarPageContent() {
                       <div
                         key={dateStr}
                         style={{
-                          borderRadius: '16px',
+                          borderRadius: '12px',
                           border: '1px solid var(--border)',
                           background: 'var(--surface)',
                           overflow: 'hidden',
@@ -2056,7 +2056,7 @@ function CalendarPageContent() {
                           background: 'var(--surface-2)',
                           borderBottom: '1px solid var(--border)',
                         }}>
-                          <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '12px', fontWeight: '800', color: 'var(--text-primary)' }}>
+                          <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '12px', fontWeight: 600, color: 'var(--text-primary)' }}>
                             <input
                               type="checkbox"
                               checked={allDateSelected}
@@ -2110,7 +2110,7 @@ function CalendarPageContent() {
                                 />
                                 <span style={{
                                   fontSize: '11px',
-                                  fontWeight: '700',
+                                  fontWeight: 600,
                                   padding: '2px 6px',
                                   borderRadius: '6px',
                                   background: 'var(--surface-2)',
@@ -2121,7 +2121,7 @@ function CalendarPageContent() {
                                   {ev.time ? formatTimeString12Hour(ev.time) : '—'}
                                 </span>
                                 <div style={{ flex: 1, minWidth: 0 }}>
-                                  <div style={{ fontSize: '13px', fontWeight: '700', color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                  <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                                     {ev.title}
                                   </div>
                                 </div>
@@ -2129,7 +2129,7 @@ function CalendarPageContent() {
                                   fontSize: '10px',
                                   padding: '2px 8px',
                                   borderRadius: '50px',
-                                  fontWeight: '700',
+                                  fontWeight: 600,
                                   background: tc.bg + '20',
                                   color: tc.bg === '#FFC107' ? '#b48a04' : tc.bg,
                                   flexShrink: 0
@@ -2209,7 +2209,7 @@ function CalendarPageContent() {
                 style={{
                   background: 'var(--danger)',
                   color: '#ffffff',
-                  fontWeight: '700',
+                  fontWeight: 600,
                   padding: '10px 24px',
                   borderRadius: '50px',
                   opacity: (bulkDeleting || selectedBulkEventIds.size === 0) ? 0.5 : 1,

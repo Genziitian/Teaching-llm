@@ -356,7 +356,7 @@ export default function SettingsPage() {
             </svg>
           </button>
           <div>
-            <span style={{ display: 'block', fontSize: '20px', fontWeight: 800, color: 'var(--text-primary)', fontFamily: "'Outfit', 'Nunito', sans-serif", letterSpacing: '-0.3px', lineHeight: '1.2' }}>
+            <span style={{ display: 'block', fontSize: '20px', fontWeight: 600, color: 'var(--text-primary)', fontFamily: "'Outfit', 'Nunito', sans-serif", letterSpacing: '-0.3px', lineHeight: '1.2' }}>
               Settings
             </span>
             <span style={{ display: 'block', fontSize: '12px', color: 'var(--text-muted)', marginTop: '2px' }}>
@@ -393,7 +393,7 @@ export default function SettingsPage() {
 
           {/* ── Notifications ── */}
           <div className="card" style={{ padding: isMobile ? '16px' : '28px', display: 'flex', flexDirection: 'column' }}>
-            <h3 style={{ fontSize: '15px', fontWeight: '700', color: 'var(--text-primary)', marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <h3 style={{ fontSize: '15px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '10px' }}>
               <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" strokeWidth="2">
                 <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
                 <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
@@ -468,7 +468,7 @@ export default function SettingsPage() {
 
           {/* ── Preferences ── */}
           <div className="card" style={{ padding: isMobile ? '16px' : '28px', display: 'flex', flexDirection: 'column' }}>
-            <h3 style={{ fontSize: '15px', fontWeight: '700', color: 'var(--text-primary)', marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <h3 style={{ fontSize: '15px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '10px' }}>
               <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" strokeWidth="2">
                 <circle cx="12" cy="12" r="3"/>
                 <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
@@ -540,7 +540,7 @@ export default function SettingsPage() {
                   onClick={() => startManualTour()}
                   style={{
                     padding: '7px 14px', borderRadius: '50px', border: 'none',
-                    fontSize: '12px', fontWeight: '700', cursor: 'pointer',
+                    fontSize: '12px', fontWeight: 600, cursor: 'pointer',
                     background: 'var(--primary)', color: '#ffffff',
                     boxShadow: '3px 3px 7px color-mix(in srgb, var(--primary) 35%, transparent)',
                     transition: 'all 0.2s ease', flexShrink: 0,
@@ -560,7 +560,7 @@ export default function SettingsPage() {
                     border: maintenanceMode ? '1px solid #fda4af' : '1px solid transparent'
                   }}>
                     <div style={{ flex: 1 }}>
-                      <div style={{ fontSize: '13.5px', fontWeight: '700', color: maintenanceMode ? '#be123c' : 'var(--text-primary)' }}>
+                      <div style={{ fontSize: '13.5px', fontWeight: 600, color: maintenanceMode ? '#be123c' : 'var(--text-primary)' }}>
                         Maintenance Mode
                       </div>
                       <div style={{ fontSize: '12px', color: maintenanceMode ? 'var(--danger)' : 'var(--text-muted)', marginTop: '2px' }}>
@@ -638,7 +638,7 @@ export default function SettingsPage() {
         {/* ── Help Card Settings (Manager only) ── */}
         {isManagerUser && (
           <div className="card" style={{ padding: isMobile ? '16px' : '28px' }}>
-            <h3 style={{ fontSize: '15px', fontWeight: '700', color: 'var(--text-primary)', marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <h3 style={{ fontSize: '15px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '10px' }}>
               <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" strokeWidth="2">
                 <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
                 <path d="M12 8v8"/><path d="M8 12h8"/>
@@ -706,7 +706,7 @@ export default function SettingsPage() {
 
         {/* ── Danger Zone: Account Deletion ── */}
         <div className="card" style={{ padding: isMobile ? '16px' : '28px', border: '1px solid rgba(239, 68, 68, 0.25)' }}>
-          <h3 style={{ fontSize: '15px', fontWeight: '700', color: 'var(--danger, #ef4444)', marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <h3 style={{ fontSize: '15px', fontWeight: 600, color: 'var(--danger, #ef4444)', marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '10px' }}>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
               <line x1="12" y1="9" x2="12" y2="13"/>
@@ -743,7 +743,7 @@ export default function SettingsPage() {
             <div style={{
               background: 'rgba(239, 68, 68, 0.05)',
               border: '1.5px solid rgba(239, 68, 68, 0.3)',
-              borderRadius: '16px',
+              borderRadius: '12px',
               padding: '20px',
               display: 'flex',
               flexDirection: 'column',
@@ -759,7 +759,7 @@ export default function SettingsPage() {
                       borderRadius: '50%',
                       background: deletionData.request.status === 'APPROVED' ? '#3b82f6' : '#ef4444',
                     }} />
-                    <span style={{ fontSize: '13.5px', fontWeight: '700', color: 'var(--text-primary)' }}>
+                    <span style={{ fontSize: '13.5px', fontWeight: 600, color: 'var(--text-primary)' }}>
                       {deletionData.request.status === 'APPROVED'
                         ? 'Manager Accepted Deletion Request'
                         : 'Account Deletion Request Active'}
@@ -783,7 +783,7 @@ export default function SettingsPage() {
                       background: 'var(--surface)',
                       color: '#ef4444',
                       fontSize: '13px',
-                      fontWeight: '700',
+                      fontWeight: 600,
                       cursor: cancellingDeletion ? 'not-allowed' : 'pointer',
                       whiteSpace: 'nowrap',
                     }}
@@ -805,7 +805,7 @@ export default function SettingsPage() {
                   gap: '10px'
                 }}>
                   <span style={{ fontSize: '16px' }}>⏳</span>
-                  <div style={{ fontSize: '13px', fontWeight: '700', color: '#d97706' }}>
+                  <div style={{ fontSize: '13px', fontWeight: 600, color: '#d97706' }}>
                     {timeRemainingStr || 'Calculating remaining time...'}
                   </div>
                 </div>
@@ -828,7 +828,7 @@ export default function SettingsPage() {
                 borderRadius: '12px',
                 fontSize: '13px'
               }}>
-                <div style={{ fontWeight: '700', color: 'var(--text-primary)' }}>
+                <div style={{ fontWeight: 600, color: 'var(--text-primary)' }}>
                   Reason: <span style={{ fontWeight: '500', color: 'var(--text-secondary)' }}>{deletionData.request.reasonLabel}</span>
                 </div>
                 {deletionData.request.userComment && (
@@ -841,7 +841,7 @@ export default function SettingsPage() {
               {/* Timeline */}
               {deletionData.request.events && deletionData.request.events.length > 0 && (
                 <div>
-                  <div style={{ fontSize: '12px', fontWeight: '800', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: '10px' }}>
+                  <div style={{ fontSize: '12px', fontWeight: 600, textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: '10px' }}>
                     Timeline
                   </div>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
@@ -925,7 +925,7 @@ export default function SettingsPage() {
           }}>
             <div style={{
               background: 'var(--surface)',
-              borderRadius: '20px',
+              borderRadius: '14px',
               border: '1px solid var(--border)',
               boxShadow: '0 20px 40px rgba(0,0,0,0.3)',
               maxWidth: '540px',
@@ -963,7 +963,7 @@ export default function SettingsPage() {
                     </svg>
                   </div>
                   <div>
-                    <h2 style={{ fontSize: '17px', fontWeight: '800', color: 'var(--text-primary)', margin: 0 }}>
+                    <h2 style={{ fontSize: '17px', fontWeight: 600, color: 'var(--text-primary)', margin: 0 }}>
                       Delete Your Account
                     </h2>
                     <p style={{ fontSize: '12px', color: 'var(--text-muted)', margin: '2px 0 0' }}>
@@ -1002,7 +1002,7 @@ export default function SettingsPage() {
                       padding: '16px',
                       border: '1px solid var(--border-light, var(--border))',
                     }}>
-                      <div style={{ fontSize: '13px', fontWeight: '700', color: 'var(--text-primary)', marginBottom: '10px' }}>
+                      <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '10px' }}>
                         Please note:
                       </div>
                       <ul style={{
@@ -1030,7 +1030,7 @@ export default function SettingsPage() {
                 {deleteModalStep === 2 && (
                   <>
                     <div>
-                      <p style={{ fontSize: '15px', fontWeight: '700', color: 'var(--text-primary)', margin: '0 0 4px' }}>
+                      <p style={{ fontSize: '15px', fontWeight: 600, color: 'var(--text-primary)', margin: '0 0 4px' }}>
                         Why are you leaving GenZ IITIAN? <span style={{ color: '#ef4444' }}>*</span>
                       </p>
                       <p style={{ fontSize: '12.5px', color: 'var(--text-muted)', margin: 0 }}>
@@ -1077,7 +1077,7 @@ export default function SettingsPage() {
                 {deleteModalStep === 3 && (
                   <>
                     <div>
-                      <p style={{ fontSize: '15px', fontWeight: '700', color: 'var(--text-primary)', margin: '0 0 4px' }}>
+                      <p style={{ fontSize: '15px', fontWeight: 600, color: 'var(--text-primary)', margin: '0 0 4px' }}>
                         Anything you'd like to tell us? <span style={{ fontSize: '12px', fontWeight: '500', color: 'var(--text-muted)' }}>(Optional)</span>
                       </p>
                       <p style={{ fontSize: '12.5px', color: 'var(--text-muted)', margin: 0 }}>
@@ -1114,7 +1114,7 @@ export default function SettingsPage() {
                       border: '1px solid var(--border)',
                       fontSize: '13px'
                     }}>
-                      <div style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: '700', textTransform: 'uppercase' }}>Selected Reasons ({selectedReasonCodes.length})</div>
+                      <div style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase' }}>Selected Reasons ({selectedReasonCodes.length})</div>
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginTop: '6px' }}>
                         {selectedReasonCodes.map((code) => {
                           const label = DELETION_REASONS.find(r => r.code === code)?.label || code
@@ -1183,7 +1183,7 @@ export default function SettingsPage() {
                         background: '#ef4444',
                         color: '#fff',
                         fontSize: '13px',
-                        fontWeight: '700',
+                        fontWeight: 600,
                         cursor: 'pointer',
                       }}
                     >
@@ -1211,7 +1211,7 @@ export default function SettingsPage() {
                         background: selectedReasonCodes.length > 0 ? '#ef4444' : 'var(--border)',
                         color: selectedReasonCodes.length > 0 ? '#fff' : 'var(--text-muted)',
                         fontSize: '13px',
-                        fontWeight: '700',
+                        fontWeight: 600,
                         cursor: selectedReasonCodes.length > 0 ? 'pointer' : 'not-allowed',
                       }}
                     >
@@ -1239,7 +1239,7 @@ export default function SettingsPage() {
                         background: agreeDeleteTerms ? '#ef4444' : 'var(--border)',
                         color: agreeDeleteTerms ? '#fff' : 'var(--text-muted)',
                         fontSize: '13px',
-                        fontWeight: '700',
+                        fontWeight: 600,
                         cursor: !agreeDeleteTerms || isDeletingAccount ? 'not-allowed' : 'pointer',
                         display: 'flex',
                         alignItems: 'center',
@@ -1270,13 +1270,13 @@ export default function SettingsPage() {
           }}>
             <div style={{
               background: 'var(--surface)',
-              borderRadius: '20px',
+              borderRadius: '14px',
               border: '1px solid var(--border)',
               padding: '24px',
               maxWidth: '460px',
               width: '100%',
             }}>
-              <h3 style={{ fontSize: '17px', fontWeight: '800', color: 'var(--text-primary)', margin: '0 0 8px' }}>
+              <h3 style={{ fontSize: '17px', fontWeight: 600, color: 'var(--text-primary)', margin: '0 0 8px' }}>
                 Keep your account?
               </h3>
               <p style={{ fontSize: '13.5px', color: 'var(--text-secondary)', lineHeight: '1.5', margin: '0 0 20px' }}>

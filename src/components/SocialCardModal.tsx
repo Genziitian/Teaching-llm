@@ -947,10 +947,10 @@ export default function SocialCardModal({ userId, onClose, onChatStarted, previe
             {/* Card Identity Header */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', paddingBottom: '6px', borderBottom: '1px solid var(--border-light)' }}>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '1px' }}>
-                <span style={{ fontSize: '13px', fontWeight: 900, color: 'var(--primary)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+                <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--primary)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
                   GenZ IITian
                 </span>
-                <span style={{ fontSize: '9px', fontWeight: 800, color: 'var(--text-muted)', letterSpacing: '0.12em', textTransform: 'uppercase' }}>
+                <span style={{ fontSize: '9px', fontWeight: 600, color: 'var(--text-muted)', letterSpacing: '0.12em', textTransform: 'uppercase' }}>
                   Social Card
                 </span>
               </div>
@@ -959,7 +959,7 @@ export default function SocialCardModal({ userId, onClose, onChatStarted, previe
 
             <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'minmax(160px, 0.8fr) minmax(0, 1.2fr)', gap: isMobile ? '14px' : '20px', alignItems: 'start', minWidth: 0, padding: isMobile ? '4px 40px 2px 0' : '0 44px 0 0' }}>
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: isMobile ? 'center' : 'flex-start', gap: '10px', minWidth: 0 }}>
-                <div style={{ padding: '5px', borderRadius: '50%', border: '1px solid rgba(99,102,241,0.24)', background: 'linear-gradient(135deg, rgba(99,102,241,0.12), rgba(16,185,129,0.08))', boxShadow: '0 14px 32px rgba(15,23,42,0.10)' }}>
+                <div style={{ padding: '5px', borderRadius: '50%', border: '1px solid rgba(128, 128, 128,0.24)', background: 'linear-gradient(135deg, rgba(128, 128, 128,0.12), rgba(16,185,129,0.08))', boxShadow: '0 14px 32px rgba(15,23,42,0.10)' }}>
                   <UserAvatar
                     user={cardData.user}
                     size={isMobile ? 98 : 104}
@@ -969,8 +969,8 @@ export default function SocialCardModal({ userId, onClose, onChatStarted, previe
                   />
                 </div>
                 <div style={{ textAlign: isMobile ? 'center' : 'left', minWidth: 0, maxWidth: '100%' }}>
-                  <h2 style={{ fontSize: '22px', fontWeight: 900, color: 'var(--text-primary)', margin: 0, lineHeight: 1.15, overflowWrap: 'break-word' }}>{cardData.user.name}</h2>
-                  <span style={{ marginTop: '7px', display: 'inline-flex', alignItems: 'center', gap: '5px', padding: '4px 9px', borderRadius: '999px', background: 'var(--surface-2)', border: '1px solid var(--border)', color: 'var(--text-secondary)', fontSize: '11px', fontWeight: 800 }}>
+                  <h2 style={{ fontSize: '22px', fontWeight: 600, color: 'var(--text-primary)', margin: 0, lineHeight: 1.15, overflowWrap: 'break-word' }}>{cardData.user.name}</h2>
+                  <span style={{ marginTop: '7px', display: 'inline-flex', alignItems: 'center', gap: '5px', padding: '4px 9px', borderRadius: '999px', background: 'var(--surface-2)', border: '1px solid var(--border)', color: 'var(--text-secondary)', fontSize: '11px', fontWeight: 600 }}>
                     {cardData.user.role === 'STUDENT' ? <GraduationCap size={12} /> : <ShieldCheck size={12} />}
                     {formatRole(cardData.user.role)}
                   </span>
@@ -981,18 +981,18 @@ export default function SocialCardModal({ userId, onClose, onChatStarted, previe
                 {(cardData.user.badges.length > 0 || canManageMedals) && (
                   <section style={{ display: 'flex', flexDirection: 'column', gap: '9px', minWidth: 0, alignSelf: 'stretch' }}>
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px' }}>
-                      <h3 style={{ margin: 0, fontSize: '12px', fontWeight: 900, color: 'var(--text-secondary)', letterSpacing: '0.04em', textTransform: 'uppercase', display: 'inline-flex', alignItems: 'center', gap: '7px' }}>
+                      <h3 style={{ margin: 0, fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary)', letterSpacing: '0.04em', textTransform: 'uppercase', display: 'inline-flex', alignItems: 'center', gap: '7px' }}>
                         <Medal size={15} color="var(--primary)" />
                         Medals
                       </h3>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                         {cardData.user.badges.length > 2 && (
-                          <button onClick={() => setShowAllBadges(v => !v)} style={{ border: 'none', background: 'transparent', color: 'var(--primary)', fontSize: '11px', fontWeight: 800, cursor: 'pointer', padding: '2px 0' }}>
+                          <button onClick={() => setShowAllBadges(v => !v)} style={{ border: 'none', background: 'transparent', color: 'var(--primary)', fontSize: '11px', fontWeight: 600, cursor: 'pointer', padding: '2px 0' }}>
                             {showAllBadges ? 'Show less' : 'View all'}
                           </button>
                         )}
                         {canManageMedals && (
-                          <button onClick={openMedalManager} style={{ border: 'none', background: 'transparent', color: 'var(--primary)', fontSize: '11px', fontWeight: 900, cursor: 'pointer', padding: '2px 0' }}>
+                          <button onClick={openMedalManager} style={{ border: 'none', background: 'transparent', color: 'var(--primary)', fontSize: '11px', fontWeight: 600, cursor: 'pointer', padding: '2px 0' }}>
                             Manage Medals
                           </button>
                         )}
@@ -1013,12 +1013,12 @@ export default function SocialCardModal({ userId, onClose, onChatStarted, previe
                           return (
                             <div key={badge.id} style={{ display: 'inline-flex', alignItems: 'center', gap: '7px', maxWidth: '100%', padding: '7px 10px', borderRadius: '12px', background, border: `1px solid ${accent}33`, color: 'var(--text-primary)' }}>
                               <Icon size={14} color={accent} strokeWidth={2.4} />
-                              <span style={{ fontSize: '12px', fontWeight: 800, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{badge.label}</span>
+                              <span style={{ fontSize: '12px', fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{badge.label}</span>
                             </div>
                           )
                         })}
                         {hiddenBadgeCount > 0 && (
-                          <button onClick={() => setShowAllBadges(true)} style={{ border: '1px solid var(--border)', borderRadius: '12px', background: 'var(--surface-2)', color: 'var(--text-secondary)', padding: '7px 10px', fontSize: '12px', fontWeight: 900, cursor: 'pointer' }}>
+                          <button onClick={() => setShowAllBadges(true)} style={{ border: '1px solid var(--border)', borderRadius: '12px', background: 'var(--surface-2)', color: 'var(--text-secondary)', padding: '7px 10px', fontSize: '12px', fontWeight: 600, cursor: 'pointer' }}>
                             +{hiddenBadgeCount}
                           </button>
                         )}
@@ -1029,7 +1029,7 @@ export default function SocialCardModal({ userId, onClose, onChatStarted, previe
 
                 {(cardData.user.instagramUrl || cardData.user.linkedinUrl) && (
                   <section style={{ display: 'flex', flexDirection: 'column', gap: '9px', minWidth: 0, alignSelf: 'stretch' }}>
-                    <h3 style={{ margin: 0, fontSize: '12px', fontWeight: 900, color: 'var(--text-secondary)', letterSpacing: '0.04em', textTransform: 'uppercase' }}>
+                    <h3 style={{ margin: 0, fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary)', letterSpacing: '0.04em', textTransform: 'uppercase' }}>
                       Social Links
                     </h3>
                     <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
@@ -1112,7 +1112,7 @@ export default function SocialCardModal({ userId, onClose, onChatStarted, previe
             <div style={{ height: '1px', background: 'var(--border)', width: '100%' }} />
 
             <section style={{ display: 'flex', flexDirection: 'column', gap: '7px', minWidth: 0 }}>
-              <h3 style={{ margin: 0, fontSize: '12px', fontWeight: 900, color: 'var(--text-secondary)', letterSpacing: '0.04em', textTransform: 'uppercase' }}>About</h3>
+              <h3 style={{ margin: 0, fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary)', letterSpacing: '0.04em', textTransform: 'uppercase' }}>About</h3>
               <div style={{
                 fontSize: '14px',
                 color: cardData.user.aboutMe ? 'var(--text-primary)' : 'var(--text-muted)',
@@ -1132,15 +1132,15 @@ export default function SocialCardModal({ userId, onClose, onChatStarted, previe
 
             {cardData.user.publicFields.length > 0 && (
               <section style={{ display: 'flex', flexDirection: 'column', gap: '9px', minWidth: 0 }}>
-                <h3 style={{ margin: 0, fontSize: '12px', fontWeight: 900, color: 'var(--text-secondary)', letterSpacing: '0.04em', textTransform: 'uppercase' }}>Public Info</h3>
+                <h3 style={{ margin: 0, fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary)', letterSpacing: '0.04em', textTransform: 'uppercase' }}>Public Info</h3>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
                   {cardData.user.publicFields.map(field => {
                     const Icon = getPublicInfoIcon(field.key)
                     return (
                       <div key={field.key} style={{ display: 'inline-flex', alignItems: 'center', gap: '7px', padding: '8px 10px', borderRadius: '12px', background: 'var(--surface-2)', border: '1px solid var(--border)', maxWidth: '100%', minWidth: 0 }}>
                         <Icon size={14} color="var(--primary)" strokeWidth={2.3} />
-                        <span style={{ fontSize: '12px', color: 'var(--text-muted)', fontWeight: 800 }}>{field.label === 'CGPA' ? 'CGPA' : field.label}</span>
-                        <span style={{ fontSize: '12.5px', color: 'var(--text-primary)', fontWeight: 900, overflow: 'hidden', textOverflow: 'ellipsis', minWidth: 0 }}>{field.value}</span>
+                        <span style={{ fontSize: '12px', color: 'var(--text-muted)', fontWeight: 600 }}>{field.label === 'CGPA' ? 'CGPA' : field.label}</span>
+                        <span style={{ fontSize: '12.5px', color: 'var(--text-primary)', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', minWidth: 0 }}>{field.value}</span>
                       </div>
                     )
                   })}
@@ -1156,7 +1156,7 @@ export default function SocialCardModal({ userId, onClose, onChatStarted, previe
                 textAlign: 'center',
                 color: 'var(--text-muted)',
                 fontSize: '11.5px',
-                fontWeight: 800,
+                fontWeight: 600,
                 letterSpacing: '0.02em',
               }}>
                 Visit <span style={{ color: 'var(--primary)' }}>class.genziitian.in</span> to create yours
@@ -1185,7 +1185,7 @@ export default function SocialCardModal({ userId, onClose, onChatStarted, previe
                           justifyContent: 'center',
                           gap: '8px',
                           alignItems: 'center',
-                          boxShadow: '0 12px 26px rgba(99,102,241,0.22)',
+                          boxShadow: '0 12px 26px rgba(128, 128, 128,0.22)',
                         }}
                       >
                         <UserRound size={15} />
@@ -1197,7 +1197,7 @@ export default function SocialCardModal({ userId, onClose, onChatStarted, previe
                         onClick={switchBackToViewedCard}
                         disabled={switchingCard}
                         className="btn btn-ghost"
-                        style={{ borderRadius: '12px', minHeight: '40px', padding: '9px 14px', flex: isMobile ? '1 1 160px' : '0 1 180px', display: 'inline-flex', justifyContent: 'center', gap: '7px', alignItems: 'center', fontSize: '12px', fontWeight: 900 }}
+                        style={{ borderRadius: '12px', minHeight: '40px', padding: '9px 14px', flex: isMobile ? '1 1 160px' : '0 1 180px', display: 'inline-flex', justifyContent: 'center', gap: '7px', alignItems: 'center', fontSize: '12px', fontWeight: 600 }}
                       >
                         <UserRound size={14} />
                         {switchingCard ? 'Switching...' : `Back to ${getFirstName(returnCardTarget.name)}`}
@@ -1268,7 +1268,7 @@ export default function SocialCardModal({ userId, onClose, onChatStarted, previe
                           backgroundColor: '#25D366',
                           borderColor: '#25D366',
                           color: '#ffffff',
-                          fontWeight: 700,
+                          fontWeight: 600,
                           cursor: 'pointer',
                         }}
                       >
@@ -1295,7 +1295,7 @@ export default function SocialCardModal({ userId, onClose, onChatStarted, previe
                           backgroundColor: 'var(--surface-3)',
                           borderColor: 'var(--border)',
                           color: 'var(--text-muted)',
-                          fontWeight: 700,
+                          fontWeight: 600,
                         }}
                       >
                         <WhatsAppIcon size={16} />
@@ -1308,7 +1308,7 @@ export default function SocialCardModal({ userId, onClose, onChatStarted, previe
                           setReportMessage('')
                           setShowReport(true)
                         }}
-                        style={{ border: '1px solid rgba(239,68,68,0.24)', borderRadius: '12px', minHeight: '42px', padding: '10px 15px', flex: isMobile ? '1 1 140px' : '0 1 auto', cursor: 'pointer', color: 'var(--danger)', background: 'linear-gradient(135deg, rgba(239,68,68,0.08), rgba(239,68,68,0.03))', fontSize: '12px', fontWeight: 900, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '7px', boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.45)' }}
+                        style={{ border: '1px solid rgba(239,68,68,0.24)', borderRadius: '12px', minHeight: '42px', padding: '10px 15px', flex: isMobile ? '1 1 140px' : '0 1 auto', cursor: 'pointer', color: 'var(--danger)', background: 'linear-gradient(135deg, rgba(239,68,68,0.08), rgba(239,68,68,0.03))', fontSize: '12px', fontWeight: 600, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '7px', boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.45)' }}
                       >
                         <Flag size={14} />
                         Report User
@@ -1338,11 +1338,11 @@ export default function SocialCardModal({ userId, onClose, onChatStarted, previe
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '14px', marginBottom: '18px' }}>
               <div>
-                <h3 style={{ fontSize: '20px', fontWeight: 900, margin: 0, color: 'var(--text-primary)' }}>
+                <h3 style={{ fontSize: '20px', fontWeight: 600, margin: 0, color: 'var(--text-primary)' }}>
                   {reportStep === 1 ? 'Report User' : `Report ${selectedReportReason?.label || 'User'}`}
                 </h3>
                 {reportStep === 2 && selectedReportReason && (
-                  <div style={{ marginTop: '8px', display: 'inline-flex', alignItems: 'center', padding: '5px 9px', borderRadius: '999px', background: 'var(--surface-2)', border: '1px solid var(--border)', color: 'var(--text-secondary)', fontSize: '12px', fontWeight: 800 }}>
+                  <div style={{ marginTop: '8px', display: 'inline-flex', alignItems: 'center', padding: '5px 9px', borderRadius: '999px', background: 'var(--surface-2)', border: '1px solid var(--border)', color: 'var(--text-secondary)', fontSize: '12px', fontWeight: 600 }}>
                     {selectedReportReason.label}
                   </div>
                 )}
@@ -1362,7 +1362,7 @@ export default function SocialCardModal({ userId, onClose, onChatStarted, previe
                       width: '100%',
                       minHeight: '76px',
                       border: '1px solid var(--border)',
-                      borderRadius: '16px',
+                      borderRadius: '12px',
                       background: 'var(--surface-2)',
                       color: 'var(--text-primary)',
                       padding: '13px 14px',
@@ -1384,7 +1384,7 @@ export default function SocialCardModal({ userId, onClose, onChatStarted, previe
                       e.currentTarget.style.background = 'var(--surface-2)'
                     }}
                   >
-                    <span style={{ fontSize: '14px', fontWeight: 900 }}>{reason.label}</span>
+                    <span style={{ fontSize: '14px', fontWeight: 600 }}>{reason.label}</span>
                     <span style={{ fontSize: '12px', lineHeight: 1.35, color: 'var(--text-muted)', fontWeight: 600 }}>{reason.description}</span>
                   </button>
                 ))}
@@ -1402,7 +1402,7 @@ export default function SocialCardModal({ userId, onClose, onChatStarted, previe
                           style={{
                             border: selected ? '1.5px solid var(--primary)' : '1px solid var(--border)',
                             borderRadius: '14px',
-                            background: selected ? 'rgba(99, 102, 241, 0.10)' : 'var(--surface-2)',
+                            background: selected ? 'rgba(128, 128, 128, 0.10)' : 'var(--surface-2)',
                             color: selected ? 'var(--primary)' : 'var(--text-primary)',
                             padding: '11px 12px',
                             cursor: 'pointer',
@@ -1422,7 +1422,7 @@ export default function SocialCardModal({ userId, onClose, onChatStarted, previe
                 )}
 
                 <label style={{ display: 'flex', flexDirection: 'column', gap: '7px' }}>
-                  <span style={{ fontSize: '12px', fontWeight: 900, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                  <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
                     Additional details{reportNeedsDetails ? ' required' : ''}
                   </span>
                   <textarea
@@ -1437,7 +1437,7 @@ export default function SocialCardModal({ userId, onClose, onChatStarted, previe
                 </label>
 
                 {reportMessage && reportMessage !== 'Report submitted' && (
-                  <div style={{ color: 'var(--danger)', fontSize: '12px', fontWeight: 700 }}>{reportMessage}</div>
+                  <div style={{ color: 'var(--danger)', fontSize: '12px', fontWeight: 600 }}>{reportMessage}</div>
                 )}
 
                 <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px', flexDirection: isMobile ? 'column-reverse' : 'row' }}>
@@ -1483,7 +1483,7 @@ export default function SocialCardModal({ userId, onClose, onChatStarted, previe
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', alignItems: 'center', marginBottom: '16px' }}>
               <div>
-                <h3 style={{ fontSize: '16px', fontWeight: 900, margin: 0, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '7px' }}>
+                <h3 style={{ fontSize: '16px', fontWeight: 600, margin: 0, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '7px' }}>
                   <Medal size={17} color="var(--primary)" />
                   Manage Medals
                 </h3>
@@ -1495,10 +1495,10 @@ export default function SocialCardModal({ userId, onClose, onChatStarted, previe
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-              <div style={{ padding: '14px', borderRadius: '16px', background: 'var(--surface-2)', border: '1px solid var(--border)' }}>
+              <div style={{ padding: '14px', borderRadius: '12px', background: 'var(--surface-2)', border: '1px solid var(--border)' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-                  <span style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Currently assigned</span>
-                  <span style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: 800 }}>{managedBadges.length}</span>
+                  <span style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Currently assigned</span>
+                  <span style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: 600 }}>{managedBadges.length}</span>
                 </div>
                 {managedBadges.length === 0 ? (
                   <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>No medals assigned yet.</div>
@@ -1511,12 +1511,12 @@ export default function SocialCardModal({ userId, onClose, onChatStarted, previe
                         <div key={badge.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px', padding: '8px 10px', borderRadius: '12px', background: 'var(--surface)', border: '1px solid var(--border)' }}>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0 }}>
                             <Icon size={15} color={accent} strokeWidth={2.4} />
-                            <span style={{ fontSize: '13px', fontWeight: 800, color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{badge.label}</span>
+                            <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{badge.label}</span>
                           </div>
                           <button
                             onClick={() => removeBadge(badge.badgeId)}
                             disabled={savingBadge}
-                            style={{ border: 'none', background: 'transparent', color: 'var(--danger)', fontSize: '11px', fontWeight: 900, cursor: savingBadge ? 'not-allowed' : 'pointer', padding: '4px' }}
+                            style={{ border: 'none', background: 'transparent', color: 'var(--danger)', fontSize: '11px', fontWeight: 600, cursor: savingBadge ? 'not-allowed' : 'pointer', padding: '4px' }}
                           >
                             Remove
                           </button>
@@ -1559,7 +1559,7 @@ export default function SocialCardModal({ userId, onClose, onChatStarted, previe
       {fullAvatarOpen && cardData?.viewer.canViewFullAvatar && cardData.user.avatar && (
         <div className="modal-overlay" onClick={() => setFullAvatarOpen(false)} style={{ zIndex: 1300 }}>
           <div className="modal" onClick={e => e.stopPropagation()} style={{ width: '92%', maxWidth: '520px', padding: '18px' }}>
-            <img src={cardData.user.avatar} alt={`${cardData.user.name} profile picture`} style={{ width: '100%', maxHeight: '76vh', objectFit: 'contain', borderRadius: '18px' }} />
+            <img src={cardData.user.avatar} alt={`${cardData.user.name} profile picture`} style={{ width: '100%', maxHeight: '76vh', objectFit: 'contain', borderRadius: '12px' }} />
           </div>
         </div>
       )}
@@ -1584,7 +1584,7 @@ export default function SocialCardModal({ userId, onClose, onChatStarted, previe
               width: '90%', 
               maxWidth: '440px', 
               padding: '24px', 
-              borderRadius: '24px', 
+              borderRadius: '14px', 
               background: 'var(--surface)', 
               border: '1px solid var(--border)',
               boxShadow: 'var(--shadow-lg)',
@@ -1595,7 +1595,7 @@ export default function SocialCardModal({ userId, onClose, onChatStarted, previe
             }}
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 900, color: 'var(--text-primary)' }}>Share Social Card</h3>
+              <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 600, color: 'var(--text-primary)' }}>Share Social Card</h3>
               <button 
                 onClick={() => setShowShareModal(false)} 
                 style={{ background: 'var(--surface-2)', border: '1px solid var(--border)', borderRadius: '50%', width: '28px', height: '28px', cursor: 'pointer', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
@@ -1615,7 +1615,7 @@ export default function SocialCardModal({ userId, onClose, onChatStarted, previe
                 alt="Social Card Preview" 
                 style={{ width: '100%', height: 'auto', display: 'block', borderRadius: '10px' }} 
               />
-              <div style={{ position: 'absolute', bottom: '12px', left: '50%', transform: 'translateX(-50%)', background: 'rgba(15,23,42,0.75)', color: '#fff', padding: '4px 10px', borderRadius: '50px', fontSize: '10px', fontWeight: '800', backdropFilter: 'blur(4px)' }}>
+              <div style={{ position: 'absolute', bottom: '12px', left: '50%', transform: 'translateX(-50%)', background: 'rgba(15,23,42,0.75)', color: '#fff', padding: '4px 10px', borderRadius: '50px', fontSize: '10px', fontWeight: 600, backdropFilter: 'blur(4px)' }}>
                 Long press image to save
               </div>
             </div>
