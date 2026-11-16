@@ -51,8 +51,15 @@ export function parseCourseFaqs(raw: unknown): CourseFaq[] | null {
 }
 
 /** Returns the manager-edited FAQs, or the defaults if none were saved yet. */
-export async function fetchCourseFaqs(): Promise<CourseFaq[]> {
+export async function fetchCourseFaqs(courseId?: string): Promise<CourseFaq[]> {
   try {
+    // A course can have its own FAQs (settings key `course_faqs:<courseId>`, set in class genz
+    // Storefront Courses); otherwise the shared list is used.
+    if (courseId) {
+      const { data: own } = await supabase.from('settings').select('value').eq('key', `${COURSE_FAQS_KEY}:${courseId}`).maybeSingle();
+      const ownFaqs = parseCourseFaqs(own?.value);
+      if (ownFaqs) return ownFaqs;
+    }
     const { data } = await supabase.from('settings').select('value').eq('key', COURSE_FAQS_KEY).maybeSingle();
     return parseCourseFaqs(data?.value) ?? DEFAULT_COURSE_FAQS;
   } catch {

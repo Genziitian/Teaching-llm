@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
+import CourseBannerEditor from '@/components/courses/CourseBannerEditor'
 import { useConfirmDialog } from '@/hooks/useConfirmDialog'
 import { useLoadingFact } from '@/hooks/useLoadingFact'
 import LoadingFactCard from '@/components/ui/LoadingFactCard'
@@ -439,308 +440,179 @@ export default function CourseEditPage() {
   }
 
   return (
-    <div className="page-container fade-in">
+    <div className="page-container gz-page gz-ed fade-in">
       {confirmDialog}
       {/* Content Form Modal */}
       {contentModal && (
-        <div style={{
-          position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000,
-          display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px',
-        }}
-        onClick={() => setContentModal(null)}
-        >
-          <div style={{
-            background: 'var(--surface-2)', borderRadius: '16px', width: '100%', maxWidth: '540px',
-            boxShadow: '0 24px 48px rgba(0,0,0,0.3)',
-          }}
-          onClick={e => e.stopPropagation()}
-          >
-            <div style={{
-              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-              padding: '18px 20px', borderBottom: '1px solid #d0d2d9',
-            }}>
-              <span style={{ fontWeight: '700', color: 'var(--text-primary)', fontSize: '16px' }}>
-                {contentModal.mode === 'add' ? 'Add Lecture' : 'Edit Lecture'}
-              </span>
-              <button onClick={() => setContentModal(null)} style={{
-                width: '32px', height: '32px', borderRadius: '50%', background: 'var(--surface-2)',
-                border: 'none', cursor: 'pointer', fontSize: '18px', color: 'var(--text-secondary)',
-                boxShadow: '3px 3px 6px var(--neu-dark), -3px -3px 6px var(--neu-light)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-              }}>×</button>
+        <div className="gz-modal-scrim gz-ed-scrim" onClick={() => setContentModal(null)}>
+          <div className="gz-modal gz-ed-modal" onClick={e => e.stopPropagation()} role="dialog" aria-modal="true">
+            <div className="gz-ed-modal__head">
+              <div>
+                <h3>{contentModal.mode === 'add' ? 'Add Lecture' : 'Edit Lecture'}</h3>
+                <p>{contentModal.mode === 'add' ? 'Link a recording and optional material.' : 'Update links, material and description.'}</p>
+              </div>
+              <button onClick={() => setContentModal(null)} className="gz-ed-x" aria-label="Close">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+              </button>
             </div>
 
-            <div style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
-              <div>
-                <label style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text-secondary)', display: 'block', marginBottom: '6px' }}>
-                  Lecture Title *
-                </label>
+            <div className="gz-ed-modal__body">
+              <div className="gz-ed-field">
+                <label>Lecture title <em>*</em></label>
                 <input
                   value={contentForm.title}
                   onChange={e => setContentForm(f => ({ ...f, title: e.target.value }))}
                   placeholder="e.g. Introduction to Variables"
-                  className="form-input"
-                  style={{ width: '100%' }}
+                  className="gz-ed-input"
                 />
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
-                <div>
-                  <label style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text-secondary)', display: 'block', marginBottom: '6px' }}>
-                    🎬 Google Drive URL
-                  </label>
+              <div className="gz-ed-two">
+                <div className="gz-ed-field">
+                  <label>Google Drive URL</label>
                   <input
                     value={contentForm.videoUrl}
                     onChange={e => setContentForm(f => ({ ...f, videoUrl: e.target.value }))}
                     placeholder="Google Drive video link"
-                    className="form-input"
-                    style={{ width: '100%' }}
+                    className="gz-ed-input"
                   />
                 </div>
-                <div>
-                  <label style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text-secondary)', display: 'block', marginBottom: '6px' }}>
-                    ▶️ YouTube URL
-                  </label>
+                <div className="gz-ed-field">
+                  <label>YouTube URL</label>
                   <input
                     value={contentForm.youtubeUrl}
                     onChange={e => setContentForm(f => ({ ...f, youtubeUrl: e.target.value }))}
                     placeholder="YouTube video link"
-                    className="form-input"
-                    style={{ width: '100%' }}
+                    className="gz-ed-input"
                   />
                 </div>
               </div>
 
-              <div className="form-group">
-                <label style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text-secondary)', display: 'block', marginBottom: '6px' }}>
-                  Material Source Type
-                </label>
-                <div style={{ display: 'flex', gap: '12px', marginTop: '8px' }}>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', flex: 1, padding: '12px', borderRadius: '8px', border: `2px solid ${materialSourceType === 'FILE' ? 'var(--accent)' : 'var(--surface-2)'}`, background: materialSourceType === 'FILE' ? 'var(--primary-light)' : 'transparent' }}>
-                    <input
-                      type="radio"
-                      name="lectureMaterialSource"
-                      checked={materialSourceType === 'FILE'}
-                      onChange={() => {
-                        setMaterialSourceType('FILE')
-                        setMaterialLink('')
-                      }}
-                      style={{ cursor: 'pointer' }}
-                    />
-                    <span style={{ fontSize: '14px', fontWeight: materialSourceType === 'FILE' ? '600' : '500', color: 'var(--text-primary)' }}>📄 Upload File</span>
-                  </label>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', flex: 1, padding: '12px', borderRadius: '8px', border: `2px solid ${materialSourceType === 'LINK' ? 'var(--accent)' : 'var(--surface-2)'}`, background: materialSourceType === 'LINK' ? 'var(--primary-light)' : 'transparent' }}>
-                    <input
-                      type="radio"
-                      name="lectureMaterialSource"
-                      checked={materialSourceType === 'LINK'}
-                      onChange={() => {
-                        setMaterialSourceType('LINK')
-                        setSelectedMaterial(null)
-                      }}
-                      style={{ cursor: 'pointer' }}
-                    />
-                    <span style={{ fontSize: '14px', fontWeight: materialSourceType === 'LINK' ? '600' : '500', color: 'var(--text-primary)' }}>🔗 External Link</span>
-                  </label>
+              <div className="gz-ed-field">
+                <label>Material source</label>
+                <div className="gz-ed-seg" role="radiogroup">
+                  <button
+                    type="button" role="radio" aria-checked={materialSourceType === 'FILE'}
+                    className={`gz-ed-seg__btn ${materialSourceType === 'FILE' ? 'is-on' : ''}`}
+                    onClick={() => { setMaterialSourceType('FILE'); setMaterialLink('') }}
+                  >
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                    Upload file
+                  </button>
+                  <button
+                    type="button" role="radio" aria-checked={materialSourceType === 'LINK'}
+                    className={`gz-ed-seg__btn ${materialSourceType === 'LINK' ? 'is-on' : ''}`}
+                    onClick={() => { setMaterialSourceType('LINK'); setSelectedMaterial(null) }}
+                  >
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M10 13a5 5 0 007.07 0l3-3a5 5 0 00-7.07-7.07l-1.5 1.5"/><path d="M14 11a5 5 0 00-7.07 0l-3 3a5 5 0 007.07 7.07l1.5-1.5"/></svg>
+                    External link
+                  </button>
                 </div>
               </div>
 
               {materialSourceType === 'FILE' ? (
-                <div className="form-group">
-                  <label style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text-secondary)', display: 'block', marginBottom: '6px' }}>
-                    Uploaded Material
-                  </label>
-                  <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-                    <div style={{ flex: 1, position: 'relative' }}>
-                      <input
-                        type="file"
-                        onChange={e => void handleMaterialFileChange(e.target.files?.[0] ?? null)}
-                        style={{ display: 'none' }}
-                        id="lecture-material-upload"
-                      />
-                      <label
-                        htmlFor="lecture-material-upload"
-                        style={{
-                          display: 'flex', alignItems: 'center', gap: '10px',
-                          padding: '12px 20px', borderRadius: '14px',
-                          background: 'var(--surface-2)', boxShadow: 'inset 3px 3px 6px var(--neu-dark), inset -3px -3px 6px var(--neu-light)',
-                          cursor: 'pointer', fontSize: '13px', fontWeight: '600', color: 'var(--text-secondary)'
-                        }}
-                      >
-                        {uploadingMaterial ? 'Uploading...' : selectedMaterial ? selectedMaterial.title : 'Choose file...'}
-                      </label>
-                    </div>
-                    {selectedMaterial && (
-                      <div style={{
-                        padding: '12px 16px', borderRadius: '14px',
-                        background: 'var(--primary-light)', color: 'var(--accent)',
-                        fontSize: '11px', fontWeight: '800'
-                      }}>
-                        {selectedMaterial.fileType}
-                      </div>
-                    )}
+                <div className="gz-ed-field">
+                  <label>Uploaded material</label>
+                  <div className="gz-ed-file">
+                    <input
+                      type="file"
+                      onChange={e => void handleMaterialFileChange(e.target.files?.[0] ?? null)}
+                      style={{ display: 'none' }}
+                      id="lecture-material-upload"
+                    />
+                    <label htmlFor="lecture-material-upload" className="gz-ed-file__pick">
+                      {uploadingMaterial ? 'Uploading...' : selectedMaterial ? selectedMaterial.title : 'Choose file...'}
+                    </label>
+                    {selectedMaterial && <span className="gz-ed-tag">{selectedMaterial.fileType}</span>}
                   </div>
-                  <span style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '8px', display: 'block' }}>
-                    Optional. Upload a file if this lecture should include downloadable material.
-                  </span>
+                  <span className="gz-ed-hint">Optional. Upload a file if this lecture should include downloadable material.</span>
                 </div>
               ) : (
-                <div>
-                  <label style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text-secondary)', display: 'block', marginBottom: '6px' }}>
-                    Material Link
-                  </label>
+                <div className="gz-ed-field">
+                  <label>Material link</label>
                   <input
                     value={materialLink}
                     onChange={e => setMaterialLink(e.target.value)}
                     placeholder="https://... (external material link)"
-                    className="form-input"
-                    style={{ width: '100%' }}
+                    className="gz-ed-input"
                   />
                 </div>
               )}
 
-              <div>
-                <label style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text-secondary)', display: 'block', marginBottom: '6px' }}>
-                  Description
-                </label>
+              <div className="gz-ed-field">
+                <label>Description</label>
                 <textarea
                   value={contentForm.description}
                   onChange={e => setContentForm(f => ({ ...f, description: e.target.value }))}
                   placeholder="Brief description of what this lecture covers..."
                   rows={3}
-                  className="form-input"
-                  style={{ width: '100%', resize: 'vertical' }}
+                  className="gz-ed-input gz-ed-textarea"
                 />
               </div>
+            </div>
 
-              <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end', marginTop: '4px' }}>
-                <button onClick={() => setContentModal(null)} className="btn btn-ghost">Cancel</button>
-                <button
-                  onClick={saveContent}
-                  disabled={saving || !contentForm.title.trim()}
-                  className="btn btn-primary"
-                >
-                  {saving ? 'Saving...' : contentModal.mode === 'add' ? 'Add Lecture' : 'Save Changes'}
-                </button>
-              </div>
+            <div className="gz-ed-modal__foot">
+              <button onClick={() => setContentModal(null)} className="gz-btn gz-btn--ghost">Cancel</button>
+              <button
+                onClick={saveContent}
+                disabled={saving || !contentForm.title.trim()}
+                className="gz-btn"
+              >
+                {saving ? 'Saving...' : contentModal.mode === 'add' ? 'Add Lecture' : 'Save Changes'}
+              </button>
             </div>
           </div>
         </div>
       )}
 
       {/* Header */}
-      <div className="card" style={{ overflow: 'hidden', marginBottom: '20px' }}>
-        <div style={{
-          background: getCourseBackground(course.color),
-          padding: '24px', position: 'relative', overflow: 'hidden',
-        }}>
-          <div style={{ position: 'absolute', width: '160px', height: '160px', borderRadius: '50%', background: getCourseDecorativeColor(course.color), top: '-50px', right: '30px' }} />
-
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'relative' }}>
-            <div>
-              <Link href={`/courses/${params.id}`} style={{
-                display: 'inline-flex', alignItems: 'center', gap: '6px',
-                color: getCourseSecondaryTextColor(course.color), fontSize: '13px', marginBottom: '10px', textDecoration: 'none',
-              }}>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="15 18 9 12 15 6"/></svg>
-                Back to Course
-              </Link>
-              <h1 style={{ fontSize: '22px', fontWeight: '700', color: getCourseTextColor(course.color), marginBottom: '4px' }}>
-                {course.name} — Manage Content
-              </h1>
-              <p style={{ color: getCourseSecondaryTextColor(course.color), fontSize: '13px' }}>
-                {topics.length} topic{topics.length !== 1 ? 's' : ''} &middot; {topics.reduce((a, t) => a + t.content.length, 0)} lectures
-              </p>
-            </div>
-            <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-              {orderDirty && (
-                <button
-                  onClick={saveOrder}
-                  disabled={savingOrder}
-                  style={{
-                    background: 'var(--success)',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '20px',
-                    padding: '10px 20px',
-                    fontSize: '13px',
-                    fontWeight: '700',
-                    cursor: savingOrder ? 'not-allowed' : 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '6px',
-                    boxShadow: '0 4px 14px rgba(34,197,94,0.4)',
-                    animation: 'pulse 2s infinite',
-                    opacity: savingOrder ? 0.7 : 1,
-                    transition: 'all 0.2s',
-                  }}
-                >
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
-                  {savingOrder ? 'Saving...' : 'Save'}
-                </button>
-              )}
-              <div style={{
-                background: getCourseBadgeBg(course.color), borderRadius: '12px', padding: '10px 16px',
-                border: `1px solid ${getCourseBadgeBg(course.color)}`, color: getCourseBadgeText(course.color), fontSize: '12px',
-                display: 'flex', alignItems: 'center', gap: '6px',
-              }}>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-                </svg>
-                Admin / Manager View
-              </div>
-            </div>
-          </div>
+      <div className="gz-ed-head">
+        <div className="gz-ed-head__main">
+          <Link href={`/courses/${params.id}`} className="gz-ed-back">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="15 18 9 12 15 6"/></svg>
+            Back to Course
+          </Link>
+          <h1>{course.name} <span>— Manage Content</span></h1>
+          <p className="gz-ed-meta">
+            {topics.length} topic{topics.length !== 1 ? 's' : ''} &middot; {topics.reduce((a, t) => a + t.content.length, 0)} lectures
+          </p>
+        </div>
+        <div className="gz-ed-head__actions">
+          {orderDirty && (
+            <button onClick={saveOrder} disabled={savingOrder} className="gz-btn gz-ed-save">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+              {savingOrder ? 'Saving...' : 'Save order'}
+            </button>
+          )}
+          <CourseBannerEditor
+            courseId={String(params.id)}
+            currentUrl={(course as any).bannerUrl}
+            fallbackUrl="/store-art/store-course.webp"
+            onChange={(url) => setCourse(c => (c ? ({ ...c, bannerUrl: url } as any) : c))}
+          />
+          <span className="gz-ed-chip">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            Admin / Manager view
+          </span>
         </div>
       </div>
 
-
       {/* Topics */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+      <div className="gz-ed-list">
         {topics.map((topic, topicIdx) => (
-          <div key={topic.id} className="card" style={{ overflow: 'hidden' }}>
+          <div key={topic.id} className="gz-ed-topic">
             {/* Topic Header */}
-            <div style={{
-              display: 'flex', alignItems: 'center', gap: '12px',
-              padding: '14px 20px', borderBottom: expanded.has(topic.id) ? '1px solid var(--border)' : 'none',
-              background: 'var(--surface-2)',
-            }}>
-              {/* Order controls */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', flexShrink: 0 }}>
-                <button
-                  onClick={() => moveTopic(topic.id, 'up')}
-                  disabled={topicIdx === 0 || saving}
-                  style={{
-                    width: '20px', height: '20px', borderRadius: '4px', background: 'var(--surface-2)',
-                    border: 'none', cursor: topicIdx === 0 ? 'not-allowed' : 'pointer',
-                    opacity: topicIdx === 0 ? 0.3 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    boxShadow: '2px 2px 4px var(--neu-dark), -2px -2px 4px var(--neu-light)',
-                  }}
-                >
-                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#6b6b8a" strokeWidth="2"><polyline points="18 15 12 9 6 15"/></svg>
+            <div className={`gz-ed-topic__head ${expanded.has(topic.id) ? 'is-open' : ''}`}>
+              <div className="gz-ed-mvs">
+                <button onClick={() => moveTopic(topic.id, 'up')} disabled={topicIdx === 0 || saving} className="gz-ed-mv" aria-label="Move up">
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="18 15 12 9 6 15"/></svg>
                 </button>
-                <button
-                  onClick={() => moveTopic(topic.id, 'down')}
-                  disabled={topicIdx === topics.length - 1 || saving}
-                  style={{
-                    width: '20px', height: '20px', borderRadius: '4px', background: 'var(--surface-2)',
-                    border: 'none', cursor: topicIdx === topics.length - 1 ? 'not-allowed' : 'pointer',
-                    opacity: topicIdx === topics.length - 1 ? 0.3 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    boxShadow: '2px 2px 4px var(--neu-dark), -2px -2px 4px var(--neu-light)',
-                  }}
-                >
-                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#6b6b8a" strokeWidth="2"><polyline points="6 9 12 15 18 9"/></svg>
+                <button onClick={() => moveTopic(topic.id, 'down')} disabled={topicIdx === topics.length - 1 || saving} className="gz-ed-mv" aria-label="Move down">
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="6 9 12 15 18 9"/></svg>
                 </button>
               </div>
 
-              <div style={{
-                width: '32px', height: '32px', borderRadius: '8px',
-                background: colorWithOpacity(course.color, '18'), color: extractHex(course.color),
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: '12px', fontWeight: '700', flexShrink: 0,
-              }}>
-                {String(topicIdx + 1).padStart(2, '0')}
-              </div>
+              <div className="gz-ed-no">{String(topicIdx + 1).padStart(2, '0')}</div>
 
               {editingTopicId === topic.id ? (
                 <input
@@ -748,48 +620,39 @@ export default function CourseEditPage() {
                   onChange={e => setEditingTopicTitle(e.target.value)}
                   onKeyDown={e => { if (e.key === 'Enter') updateTopic(topic.id); if (e.key === 'Escape') setEditingTopicId(null) }}
                   autoFocus
-                  className="form-input"
-                  style={{ flex: 1, padding: '6px 10px', fontSize: '14px' }}
+                  className="gz-ed-input gz-ed-input--sm"
                 />
               ) : (
-                <div style={{ flex: 1 }}>
-                  <span style={{ fontSize: '14px', fontWeight: '600', color: 'var(--text-primary)' }}>{topic.title}</span>
-                  <span style={{ fontSize: '12px', color: 'var(--text-muted)', marginLeft: '8px' }}>
-                    {topic.content.length} lecture{topic.content.length !== 1 ? 's' : ''}
-                  </span>
+                <div className="gz-ed-topic__title">
+                  <b>{topic.title}</b>
+                  <span>{topic.content.length} lecture{topic.content.length !== 1 ? 's' : ''}</span>
                 </div>
               )}
 
-              <div style={{ display: 'flex', gap: '6px', flexShrink: 0 }}>
+              <div className="gz-ed-acts">
                 {editingTopicId === topic.id ? (
                   <>
-                    <button onClick={() => updateTopic(topic.id)} disabled={saving} className="btn btn-primary btn-sm">Save</button>
-                    <button onClick={() => setEditingTopicId(null)} className="btn btn-ghost btn-sm">Cancel</button>
+                    <button onClick={() => updateTopic(topic.id)} disabled={saving} className="gz-btn gz-ed-sm">Save</button>
+                    <button onClick={() => setEditingTopicId(null)} className="gz-btn gz-btn--ghost gz-ed-sm">Cancel</button>
                   </>
                 ) : (
                   <>
-                    <button
-                      onClick={() => { setEditingTopicId(topic.id); setEditingTopicTitle(topic.title) }}
-                      className="btn btn-ghost btn-sm"
-                    >
-                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-                      Rename
+                    <button onClick={() => { setEditingTopicId(topic.id); setEditingTopicTitle(topic.title) }} className="gz-btn gz-btn--ghost gz-ed-sm">
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                      <span className="gz-ed-lbl">Rename</span>
                     </button>
-                    <button onClick={() => openAddContent(topic.id)} className="btn btn-primary btn-sm">
+                    <button onClick={() => openAddContent(topic.id)} className="gz-btn gz-ed-sm">
                       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-                      Add Lecture
+                      <span className="gz-ed-lbl">Add lecture</span>
                     </button>
                     <button
                       onClick={() => setExpanded(prev => { const n = new Set(prev); n.has(topic.id) ? n.delete(topic.id) : n.add(topic.id); return n })}
-                      className="btn btn-ghost btn-sm"
+                      className="gz-btn gz-btn--ghost gz-ed-sm"
                     >
                       {expanded.has(topic.id) ? 'Collapse' : 'Expand'}
                     </button>
-                    <button onClick={() => deleteTopic(topic.id)} disabled={saving} style={{
-                      background: 'none', border: 'none', cursor: 'pointer', padding: '4px 6px',
-                      color: 'var(--danger)', borderRadius: '6px', display: 'flex', alignItems: 'center',
-                    }}>
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>
+                    <button onClick={() => deleteTopic(topic.id)} disabled={saving} className="gz-ed-del" aria-label="Delete topic">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>
                     </button>
                   </>
                 )}
@@ -798,104 +661,54 @@ export default function CourseEditPage() {
 
             {/* Content list */}
             {expanded.has(topic.id) && (
-              <div>
+              <div className="gz-ed-rows">
                 {topic.content.length === 0 ? (
-                  <div style={{ padding: '16px 20px', color: 'var(--text-muted)', fontSize: '13px', textAlign: 'center' }}>
+                  <div className="gz-ed-empty">
                     No lectures yet.{' '}
-                    <button onClick={() => openAddContent(topic.id)} style={{ color: 'var(--primary)', background: 'none', border: 'none', cursor: 'pointer', fontSize: '13px', fontWeight: '500' }}>
-                      Add the first one →
-                    </button>
+                    <button onClick={() => openAddContent(topic.id)}>Add the first one →</button>
                   </div>
                 ) : (
                   topic.content.map((item, itemIdx) => (
-                    <div key={item.id} style={{
-                      display: 'flex', alignItems: 'center', gap: '14px',
-                      padding: '12px 20px',
-                      borderBottom: itemIdx < topic.content.length - 1 ? '1px solid #ebebf0' : 'none',
-                    }}>
-                      {/* Lecture move buttons */}
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', flexShrink: 0 }}>
-                        <button
-                          onClick={() => moveLecture(topic.id, item.id, 'up')}
-                          disabled={itemIdx === 0}
-                          style={{
-                            width: '20px', height: '20px', borderRadius: '4px', background: 'var(--surface-2)',
-                            border: 'none', cursor: itemIdx === 0 ? 'not-allowed' : 'pointer',
-                            opacity: itemIdx === 0 ? 0.3 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            boxShadow: '2px 2px 4px var(--neu-dark), -2px -2px 4px var(--neu-light)',
-                          }}
-                        >
-                          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#6b6b8a" strokeWidth="2"><polyline points="18 15 12 9 6 15"/></svg>
-                        </button>
-                        <button
-                          onClick={() => moveLecture(topic.id, item.id, 'down')}
-                          disabled={itemIdx === topic.content.length - 1}
-                          style={{
-                            width: '20px', height: '20px', borderRadius: '4px', background: 'var(--surface-2)',
-                            border: 'none', cursor: itemIdx === topic.content.length - 1 ? 'not-allowed' : 'pointer',
-                            opacity: itemIdx === topic.content.length - 1 ? 0.3 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            boxShadow: '2px 2px 4px var(--neu-dark), -2px -2px 4px var(--neu-light)',
-                          }}
-                        >
-                          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#6b6b8a" strokeWidth="2"><polyline points="6 9 12 15 18 9"/></svg>
-                        </button>
+                    <div key={item.id} className="gz-ed-row">
+                      <div className="gz-ed-mvs">
+                        <button onClick={() => moveLecture(topic.id, item.id, 'up')} disabled={itemIdx === 0} className="gz-ed-mv" aria-label="Move up">
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="18 15 12 9 6 15"/></svg>
+                </button>
+                        <button onClick={() => moveLecture(topic.id, item.id, 'down')} disabled={itemIdx === topic.content.length - 1} className="gz-ed-mv" aria-label="Move down">
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="6 9 12 15 18 9"/></svg>
+                </button>
                       </div>
 
-                      <div style={{
-                        width: '30px', height: '30px', borderRadius: '8px',
-                        background: (item.videoUrl || item.youtubeUrl) ? 'var(--primary-light)' : 'var(--surface-2)',
-                        color: (item.videoUrl || item.youtubeUrl) ? 'var(--primary)' : 'var(--text-muted)',
-                        display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
-                      }}>
+                      <div className={`gz-ed-ico ${(item.videoUrl || item.youtubeUrl) ? 'is-video' : ''}`}>
                         {(item.videoUrl || item.youtubeUrl)
                           ? <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-                          : <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                          : <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
                         }
                       </div>
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ fontSize: '13.5px', fontWeight: '600', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+
+                      <div className="gz-ed-row__main">
+                        <div className="gz-ed-row__title">
                           <span>{item.title}</span>
-                          {(item as any).isDemo && (
-                            <span style={{
-                              background: 'linear-gradient(135deg, var(--primary), var(--primary))',
-                              color: '#fff', padding: '2px 8px', borderRadius: '12px',
-                              fontSize: '10px', fontWeight: '800', letterSpacing: '0.04em'
-                            }}>
-                              DEMO
-                            </span>
-                          )}
+                          {(item as any).isDemo && <span className="gz-ed-tag gz-ed-tag--demo">Demo</span>}
                         </div>
-                        {item.description && (
-                          <p style={{ fontSize: '12px', color: 'var(--text-secondary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginTop: '2px' }}>
-                            {item.description}
-                          </p>
-                        )}
-                        <div style={{ display: 'flex', gap: '10px', marginTop: '3px' }}>
-                          {(item.videoUrl || item.youtubeUrl) && <span style={{ fontSize: '11px', color: 'var(--primary)' }}>📹 Video linked</span>}
-                          {item.pptUrl && <span style={{ fontSize: '11px', color: 'var(--success)' }}>📄 PPT linked</span>}
+                        {item.description && <p className="gz-ed-row__desc">{item.description}</p>}
+                        <div className="gz-ed-links">
+                          {(item.videoUrl || item.youtubeUrl) && <span className="gz-ed-link gz-ed-link--video">Video linked</span>}
+                          {item.pptUrl && <span className="gz-ed-link gz-ed-link--file">PPT linked</span>}
                         </div>
                       </div>
-                      <div style={{ display: 'flex', gap: '6px', flexShrink: 0, alignItems: 'center' }}>
-                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '4px', marginRight: '8px' }}>
-                          <div style={{ fontSize: '10px', color: 'var(--text-muted)', background: 'var(--surface-2)', padding: '2px 6px', borderRadius: '4px', fontStyle: 'italic' }}>
-                            ID: {item.id}
-                          </div>
-                          {item.createdAt && (
-                            <div style={{ fontSize: '10px', color: 'var(--text-muted)' }}>
-                              Added: {new Date(item.createdAt).toLocaleDateString('en-GB')}
-                            </div>
-                          )}
+
+                      <div className="gz-ed-row__side">
+                        <div className="gz-ed-id">
+                          <span>ID: {item.id}</span>
+                          {item.createdAt && <span>Added: {new Date(item.createdAt).toLocaleDateString('en-GB')}</span>}
                         </div>
-                        <button onClick={() => openEditContent(topic.id, item)} className="btn btn-ghost btn-sm">
-                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-                          Edit
+                        <button onClick={() => openEditContent(topic.id, item)} className="gz-btn gz-btn--ghost gz-ed-sm">
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                          <span className="gz-ed-lbl">Edit</span>
                         </button>
-                        <button onClick={() => deleteContent(item.id, topic.id)} disabled={saving} style={{
-                          background: 'none', border: 'none', cursor: 'pointer', padding: '4px 6px',
-                          color: 'var(--danger)', borderRadius: '6px', display: 'flex', alignItems: 'center',
-                        }}>
-                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/>
-                          </svg>
+                        <button onClick={() => deleteContent(item.id, topic.id)} disabled={saving} className="gz-ed-del" aria-label="Remove lecture">
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>
                         </button>
                       </div>
                     </div>
@@ -908,34 +721,22 @@ export default function CourseEditPage() {
 
         {/* Add New Topic */}
         {addingTopic ? (
-          <div className="card" style={{ padding: '16px 20px', display: 'flex', gap: '10px', alignItems: 'center' }}>
+          <div className="gz-ed-topic gz-ed-newtopic">
             <input
               value={newTopicTitle}
               onChange={e => setNewTopicTitle(e.target.value)}
               onKeyDown={e => { if (e.key === 'Enter') createTopic(); if (e.key === 'Escape') { setAddingTopic(false); setNewTopicTitle('') } }}
               placeholder="Topic title (e.g. Chapter 1: Introduction)"
               autoFocus
-              className="form-input"
-              style={{ flex: 1 }}
+              className="gz-ed-input"
             />
-            <button onClick={createTopic} disabled={saving || !newTopicTitle.trim()} className="btn btn-primary">
+            <button onClick={createTopic} disabled={saving || !newTopicTitle.trim()} className="gz-btn">
               {saving ? 'Adding...' : 'Add Topic'}
             </button>
-            <button onClick={() => { setAddingTopic(false); setNewTopicTitle('') }} className="btn btn-ghost">Cancel</button>
+            <button onClick={() => { setAddingTopic(false); setNewTopicTitle('') }} className="gz-btn gz-btn--ghost">Cancel</button>
           </div>
         ) : (
-          <button
-            onClick={() => setAddingTopic(true)}
-            style={{
-              padding: '14px 20px', borderRadius: '12px',
-              border: '2px dashed var(--neu-dark)', background: 'transparent',
-              cursor: 'pointer', color: 'var(--text-secondary)', fontSize: '13.5px', fontWeight: '500',
-              display: 'flex', alignItems: 'center', gap: '8px', width: '100%',
-              transition: 'all 0.15s',
-            }}
-            onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--primary)'; e.currentTarget.style.color = 'var(--primary)' }}
-            onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--neu-dark)'; e.currentTarget.style.color = 'var(--text-secondary)' }}
-          >
+          <button onClick={() => setAddingTopic(true)} className="gz-ed-addtopic">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
             Add New Topic
           </button>

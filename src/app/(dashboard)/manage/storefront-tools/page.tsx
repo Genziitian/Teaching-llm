@@ -4,12 +4,12 @@ import Link from 'next/link'
 import PageShell from '@/components/storefront/PageShell'
 
 const TOOLS: { href: string; title: string; text: string; soon?: boolean }[] = [
-  { href: '/manage/storefront/followups', title: 'Follow-ups', text: 'Call back people who abandoned checkout.' },
-  { href: '/manage/storefront/referrals', title: 'Referrals', text: 'Referral purchases and rewards.' },
-  { href: '/manage/storefront/blogs', title: 'Blogs', text: 'Write and publish website blogs.' },
-  { href: '/manage/storefront/faqs', title: 'FAQs', text: 'Course questions and answers.' },
-  { href: '/manage/storefront/reviews', title: 'Reviews', text: 'Choose which feedback shows on the website.' },
-  { href: '/manage/storefront/settings', title: 'Store settings', text: 'Homepage and course intro videos.' },
+  { href: '/manage/follow-ups', title: 'Follow-ups', text: 'Call back people who abandoned checkout.' },
+  { href: '/manage/referrals', title: 'Referrals', text: 'Referral purchases and rewards.' },
+  { href: '/manage/blogs', title: 'Blogs', text: 'Write and publish website blogs.' },
+  { href: '/manage/faqs', title: 'FAQs', text: 'Course questions and answers.' },
+  { href: '/feedback', title: 'Reviews', text: 'Choose which feedback shows on the website.' },
+  { href: '/manage/store-settings', title: 'Store settings', text: 'Homepage and course intro videos.' },
 ]
 
 export default function StorefrontToolsPage() {

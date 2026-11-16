@@ -5,7 +5,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../features/academics/academics_page.dart';
-import '../../features/exam_protection/exam_protection_page.dart';
 import '../../features/academics/calendar_page.dart';
 import '../../features/academics/free_courses_page.dart';
 import '../../features/academics/free_materials_browse_page.dart';
@@ -234,9 +233,6 @@ final routerProvider = Provider<GoRouter>((ref) {
           return '/dashboard';
         }
         if (loc.startsWith('/support') && !canAccessSupport(user.role)) {
-          return '/dashboard';
-        }
-        if (loc.startsWith('/exam-protection') && user.role != 'STUDENT') {
           return '/dashboard';
         }
         pendingLocation = null;
@@ -538,14 +534,6 @@ final routerProvider = Provider<GoRouter>((ref) {
             ],
           ),
         ],
-      ),
-      GoRoute(
-        caseSensitive: false,
-        path: '/exam-protection',
-        pageBuilder: (context, state) => _buildSmoothPage(
-          key: state.pageKey,
-          child: const ExamProtectionPage(),
-        ),
       ),
       GoRoute(
         caseSensitive: false,

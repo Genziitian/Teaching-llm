@@ -9,17 +9,17 @@ import { getYouTubeId } from '@/landing/utils/youtube';
  * Common FAQs shown at the bottom of every course page, with a "how to use" video beside them.
  * FAQs: manager panel > FAQs tab. Video link: manager panel > Settings.
  */
-export default function CourseFaqSection() {
+export default function CourseFaqSection({ courseId }: { courseId?: string } = {}) {
   const [faqs, setFaqs] = useState<CourseFaq[]>(DEFAULT_COURSE_FAQS);
   const [videoUrl, setVideoUrl] = useState('');
   const [open, setOpen] = useState<number | null>(0);
 
   useEffect(() => {
     let alive = true;
-    fetchCourseFaqs().then((f) => { if (alive) setFaqs(f); });
+    fetchCourseFaqs(courseId).then((f) => { if (alive) setFaqs(f); });
     fetchHowToVideoUrl().then((u) => { if (alive) setVideoUrl(u); });
     return () => { alive = false; };
-  }, []);
+  }, [courseId]);
 
   const videoId = getYouTubeId(videoUrl);
 

@@ -97,7 +97,12 @@ function validate(body: unknown): { table: string; calls: Call[] } | { error: st
 }
 
 async function run(v: { table: string; calls: Call[] }): Promise<NextResponse> {
-    if (SUPER_MANAGER_TABLES.has(v.table)) {
+    // Protected tables can also be reached through embedded selects (e.g. employees?select=*,employee_birth_dates(*))
+    // or embedding hints; any mention of them, or any embed on employees, needs a super-manager.
+    const argText = JSON.stringify(v.calls)
+    const mentionsProtected = Array.from(SUPER_MANAGER_TABLES).some((t) => argText.includes(t))
+    const embedsOnEmployees = v.table === 'employees' && v.calls.some((c) => c.m === 'select' && c.a.some((x) => typeof x === 'string' && x.includes('(')))
+    if (SUPER_MANAGER_TABLES.has(v.table) || mentionsProtected || embedsOnEmployees) {
       const sg = await requireSuperManager()
       if ('response' in sg) return sg.response
     }

@@ -53,13 +53,6 @@ class AcademicsPage extends ConsumerWidget {
         icon: Symbols.storefront_rounded,
         route: '/store',
       ),
-      if (ref.watch(authStateProvider).value?.role == 'STUDENT')
-      (
-        title: 'Exam Protection',
-        gradient: const [Color(0xFF30B350), Color(0xFF168E83)],
-        icon: Symbols.shield_rounded,
-        route: '/exam-protection',
-      ),
       (
         title: 'Purchase History',
         gradient: const [Color(0xFF7D7AFF), Color(0xFF5E5CE6)],

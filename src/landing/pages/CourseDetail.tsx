@@ -100,7 +100,7 @@ export default function CourseDetail() {
         />
       )}
       <CourseReviewsSection />
-      <CourseFaqSection />
+      <CourseFaqSection courseId={course?.id ?? id} />
     </>
   );
 }

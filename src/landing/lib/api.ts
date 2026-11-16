@@ -77,9 +77,18 @@ export const apiService = {
     return readJsonResponse(res);
   },
 
-  // 6. Log Payment Failure (the storefront endpoint never existed in api/, so this stayed a silent no-op there; kept as a no-op)
-  logPaymentFailure: async (_payload: { email: string, order_id: string, failure_source: string, courseIds: string[] }) => {
-    return;
+  // 6. Log Payment Failure (best effort: never throws, the checkout UI must not depend on it).
+  // The server logs the row under the session email; the email field is kept for call-site compatibility.
+  logPaymentFailure: async (payload: { email: string, order_id: string, failure_source: string, courseIds: string[] }) => {
+    try {
+      await postJson('/api/site/log-payment-failure', {
+        order_id: payload.order_id,
+        failure_source: payload.failure_source,
+        courseIds: payload.courseIds,
+      });
+    } catch (err) {
+      console.error('Failed to log payment failure:', err);
+    }
   },
 
   // 7. Public forms (used by the lead magnet, 1:1 booking and careers forms)

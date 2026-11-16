@@ -1,3 +1,3 @@
 'use client'
-import StorefrontPanelFrame from '@/components/storefront/StorefrontPanelFrame'
-export default function EmployeesManagePage() { return <StorefrontPanelFrame tab="employees" embed /> }
+import EmployeesManager from '@/components/storefront/native/EmployeesManager'
+export default function EmployeesManagePage() { return <EmployeesManager /> }

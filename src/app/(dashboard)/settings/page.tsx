@@ -488,7 +488,7 @@ export default function SettingsPage() {
                   {(['light', 'dark', 'black', 'system'] as const).filter(t => !(lightHidden && t === 'light')).map(t => (
                     <button
                       key={t}
-                      onClick={() => setTheme(t)}
+                      onClick={(e) => { const r = e.currentTarget.getBoundingClientRect(); setTheme(t, { x: r.left + r.width / 2, y: r.top + r.height / 2 }) }}
                       style={{
                         padding: '7px 14px', borderRadius: '50px', border: 'none',
                         fontSize: '12px', fontWeight: '600', cursor: 'pointer',

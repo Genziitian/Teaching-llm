@@ -19,8 +19,8 @@ import {
 } from '@/lib/iitm-taxonomy'
 import { type PlatformQuery, QUERY_CATEGORIES } from '@/lib/queries-master'
 import ClearCourseEnrollmentsModal from '@/components/ClearCourseEnrollmentsModal'
-import CourseProtectionField from '@/components/exam-protection/CourseProtectionField'
 import AcademicTermsModal from '@/components/manage/AcademicTermsModal'
+import { CourseBannerField } from '@/components/courses/CourseBannerEditor'
 
 const NOTIF_TEMPLATES = [
   { key: 'OFFER', label: 'Offer', title: 'Limited time offer on courses', body: 'Get a special discount on selected courses. The offer ends soon, tap to see details.', ctaText: 'View offer', ctaLink: '/courses/explore', category: 'PROMOTIONAL' },
@@ -1142,7 +1142,10 @@ export function ManagePageInner({ forcedTab }: ManagePageInnerProps = {}) {
                 </div>
               </div>
 
-              {userRole === 'MANAGER' && <CourseProtectionField courseId={editId} />}
+
+              {editId && (
+                <CourseBannerField courseId={editId} initialUrl={(f as any).bannerUrl} fallbackUrl="/store-art/store-course.webp" />
+              )}
 
               <div className="ce-row">
                 <div className="ce-field">

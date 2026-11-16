@@ -76,7 +76,6 @@ export function activeDecor(today = seasonalToday()): { theme: DecorTheme; level
 
 /** Pages where nothing festive appears (exams, live classes, video/material viewers, sign-in). */
 const BLOCKED_PREFIXES = [
-  '/exam-protection',
   '/live/',
   '/material/',
   '/homework/material-viewer',

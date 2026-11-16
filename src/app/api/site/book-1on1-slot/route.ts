@@ -1,4 +1,5 @@
 import { NextRequest } from 'next/server'
+import { getSession } from '@/lib/auth'
 import { isStorefrontConfigured, storefrontDb } from '@/lib/storefront/db'
 import { readBody, jsonRes } from '@/lib/site/http'
 
@@ -7,9 +8,14 @@ export const dynamic = 'force-dynamic'
 export async function POST(request: NextRequest) {
   const res = jsonRes();
 
+  // Bookings (and their confirmation emails) are only for the signed-in student's own email.
+  const session = await getSession();
+  if (!session?.email) {
+    return res.status(401).json({ error: 'Please log in to book a 1:1 slot.' });
+  }
+
   const {
     name,
-    email,
     phone,
     level,
     subjects,
@@ -20,11 +26,12 @@ export async function POST(request: NextRequest) {
     bcc = 'genziitian@gmail.com'
   } = await readBody(request);
 
-  if (!email || !name) {
+  if (!name) {
     return res.status(400).json({ error: 'Name and email are required' });
   }
 
-  const normalizedEmail = String(email).trim().toLowerCase();
+  // Body email is ignored: always the session email.
+  const normalizedEmail = String(session.email).trim().toLowerCase();
 
   // 1. Supabase logging (if configured)
   const storefrontConfigured = isStorefrontConfigured();

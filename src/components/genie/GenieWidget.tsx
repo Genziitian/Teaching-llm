@@ -49,7 +49,6 @@ const fill = (l: L, vars: Record<string, string | number>): L => {
 
 function isHidden(pathname: string): boolean {
   if (pathname === '/community' || pathname.startsWith('/community/')) return true
-  if (pathname.startsWith('/exam-protection')) return true
   if (pathname.startsWith('/materials/recordings')) return true
   if (/^\/courses\/[^/]+\/lectures\/[^/]+/.test(pathname)) return true
   return false

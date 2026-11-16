@@ -1,3 +1,3 @@
 'use client'
-import StorefrontPanelFrame from '@/components/storefront/StorefrontPanelFrame'
-export default function OneOnOneManagePage() { return <StorefrontPanelFrame tab="1on1" embed /> }
+import OneOnOneManager from '@/components/storefront/native/OneOnOneManager'
+export default function OneOnOneManagePage() { return <OneOnOneManager /> }

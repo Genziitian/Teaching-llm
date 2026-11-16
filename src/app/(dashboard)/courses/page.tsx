@@ -110,13 +110,20 @@ export default function CoursesPage() {
     if (c.enrollmentType === 'RECORDED') return 'plus'
     return 'pro'
   }
+  // Tab bucket comes from the course's access type: Live (+recorded) -> PRO, Recorded/free/demo -> General.
+  // 1:1 batches are still found by name (no dedicated field exists).
+  const tabKind = (c: CourseItem): 'pro' | 'one' | 'general' => {
+    if (isOneOnOne(c)) return 'one'
+    return c.enrollmentType === 'LIVE' ? 'pro' : 'general'
+  }
   const filtered = courses.filter((c: CourseItem) =>
     (c.name.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
       c.subject?.toLowerCase().includes(debouncedSearch.toLowerCase())) &&
-    (batchTab === 'all' || batchKind(c) === batchTab || (batchTab === 'pro' && batchKind(c) === 'plus'))
+    (batchTab === 'all' || tabKind(c) === batchTab)
   )
   // Banner art: the same illustrations the Store uses, picked from the course's term / name
   const courseArt = (c: CourseItem & { academicTerm?: string | null }) => {
+    if ((c as any).bannerUrl) return (c as any).bannerUrl as string
     const t = `${(c as any).academicTerm || ''} ${c.subject || ''} ${c.name || ''}`.toLowerCase()
     if (/crash/.test(t)) return '/store-art/store-course.webp'
     if (/re-?attempt/.test(t)) return '/store-art/term-reattempt.webp'

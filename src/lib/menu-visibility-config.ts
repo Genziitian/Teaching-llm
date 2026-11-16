@@ -17,7 +17,6 @@ export const MENU_REGISTRY: MenuEntry[] = [
   { href: '/materials', label: 'Study Materials', group: 'Learn' },
   { href: '/courses/explore', label: 'Store', group: 'Explore' },
   { href: 'https://quiz.genziitian.in/', label: 'Quiz Lab', group: 'Explore' },
-  { href: '/exam-protection', label: 'Exam Protection', group: 'Explore' },
   { href: '/community', label: 'Community', group: 'Connect' },
   { href: '/announcements', label: 'Announcements', group: 'Connect' },
   { href: '/support', label: 'Support', group: 'Connect' },
@@ -41,7 +40,7 @@ export const MENU_REGISTRY: MenuEntry[] = [
 export const LOCKED_MENUS = ['/dashboard', '/manage', '/manage/menus']
 
 /** Hidden until a manager saves a list for the first time. */
-export const DEFAULT_HIDDEN_MENUS = ['/exam-protection']
+export const DEFAULT_HIDDEN_MENUS: string[] = []
 
 export function sanitizeHidden(list: unknown): string[] {
   if (!Array.isArray(list)) return DEFAULT_HIDDEN_MENUS

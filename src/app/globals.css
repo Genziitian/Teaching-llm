@@ -3614,3 +3614,11 @@ html.snow-dusting * {
 @media (prefers-reduced-motion:reduce){
   .lg-h1,.lg-deckwrap,.lg-chips,.lg-deck,.lg-h1 em,.lg-sheet::before{animation:none}
 }
+
+
+/* Theme switch: water-ripple reveal (driven from ThemeProvider via View Transitions; web only).
+   The browser's default cross-fade is disabled so the new theme only appears inside the expanding circle. */
+::view-transition-old(root),
+::view-transition-new(root) { animation: none; mix-blend-mode: normal; }
+::view-transition-old(root) { z-index: 1; }
+::view-transition-new(root) { z-index: 2; }

@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { X, Calendar, Clock, CheckCircle2, ArrowRight, ArrowLeft, Sparkles, MessageCircle, CalendarPlus, User, Mail, Phone, BookOpen, AlertCircle, Loader2 } from 'lucide-react';
 import { useAuth } from '@/landing/context/AuthContext';
+import { apiService } from '@/landing/lib/api';
 
 interface BookingModalProps {
   isOpen: boolean;
@@ -57,7 +58,7 @@ const CONFETTI_PARTICLES = Array.from({ length: 28 }, (_, i) => ({
 }));
 
 export default function BookingModal1on1({ isOpen, onClose, defaultPlan, defaultSubject }: BookingModalProps) {
-  const { user, profile } = useAuth();
+  const { user, profile, openLoginModal } = useAuth();
   const [step, setStep] = useState<'details' | 'slot' | 'loading' | 'success' | 'limit'>('details');
   const [submitting, setSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
@@ -115,6 +116,12 @@ export default function BookingModal1on1({ isOpen, onClose, defaultPlan, default
 
   const handleNextToSlot = (e: React.FormEvent) => {
     e.preventDefault();
+    // Booking requires a signed-in account (the server books for the session email only).
+    if (!user) {
+      setErrorMessage('Please log in to book your free 1:1 slot.');
+      openLoginModal();
+      return;
+    }
     const trimmedName = name.trim();
     if (!trimmedName) {
       setErrorMessage('Please enter your full name.');
@@ -167,11 +174,7 @@ export default function BookingModal1on1({ isOpen, onClose, defaultPlan, default
     };
 
     try {
-      const res = await fetch('/api/site/book-1on1-slot', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(bookingPayload)
-      });
+      const res = await apiService.book1on1Slot(bookingPayload);
 
       let data: any = null;
       try {
@@ -186,6 +189,14 @@ export default function BookingModal1on1({ isOpen, onClose, defaultPlan, default
         return;
       }
 
+      if (res.status === 401) {
+        setSubmitting(false);
+        setStep('details');
+        setErrorMessage('Please log in to book your free 1:1 slot.');
+        openLoginModal();
+        return;
+      }
+
       if (!res.ok) {
         setSubmitting(false);
         setStep('slot');
@@ -193,11 +204,15 @@ export default function BookingModal1on1({ isOpen, onClose, defaultPlan, default
         return;
       }
 
+      // The server books for the signed-in account's email; show/log that one.
+      const confirmedEmail = typeof data?.details?.email === 'string' && data.details.email ? data.details.email : bookingPayload.email;
+      if (confirmedEmail !== email) setEmail(confirmedEmail);
+
       // Backup Google Apps Script webhook (non-blocking)
       const gParams = new URLSearchParams();
       gParams.append('form_type', '1:1 Personalised Teaching Slot');
       gParams.append('name', bookingPayload.name);
-      gParams.append('email', bookingPayload.email);
+      gParams.append('email', confirmedEmail);
       gParams.append('phone', bookingPayload.phone);
       gParams.append('level', bookingPayload.level);
       gParams.append('subjects', bookingPayload.subjects);

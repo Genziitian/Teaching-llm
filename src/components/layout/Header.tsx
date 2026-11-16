@@ -369,12 +369,18 @@ export default function Header({ userName, userRole }: HeaderProps) {
     .map(title => ({ title, items: shown.filter(x => dayBucket(x.n.createdAt) === title) }))
     .filter(g => g.items.length > 0)
 
-  const cycleTheme = () => {
+  const cycleTheme = (e?: React.MouseEvent<HTMLElement>) => {
     const { resolvedTheme, setTheme, lightHidden } = themeCtx
-    if (lightHidden) setTheme(resolvedTheme === 'dark' ? 'black' : 'dark')
-    else if (resolvedTheme === 'light') setTheme('dark')
-    else if (resolvedTheme === 'dark') setTheme('black')
-    else setTheme('light')
+    // Ripple flows out from the toggle button (web only; the provider skips it in the app shell).
+    let origin: { x: number; y: number } | undefined
+    if (e) {
+      const r = e.currentTarget.getBoundingClientRect()
+      origin = { x: r.left + r.width / 2, y: r.top + r.height / 2 }
+    }
+    if (lightHidden) setTheme(resolvedTheme === 'dark' ? 'black' : 'dark', origin)
+    else if (resolvedTheme === 'light') setTheme('dark', origin)
+    else if (resolvedTheme === 'dark') setTheme('black', origin)
+    else setTheme('light', origin)
   }
   const themeTitle =
     themeCtx.resolvedTheme === 'light' ? 'Switch to Dark Mode'
@@ -462,7 +468,7 @@ export default function Header({ userName, userRole }: HeaderProps) {
             <span className="gz-ctl__label">Download App</span>
           </a>
 
-          <button onClick={cycleTheme} title={themeTitle} aria-label={themeTitle} className="gz-ctl gz-ctl--icon theme-toggle-btn">
+          <button onClick={(e) => cycleTheme(e)} title={themeTitle} aria-label={themeTitle} className="gz-ctl gz-ctl--icon theme-toggle-btn">
             {themeCtx.resolvedTheme === 'black' ? (
               <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 18a8 8 0 0 1 0-16z" /></svg>
             ) : themeCtx.resolvedTheme === 'dark' ? (

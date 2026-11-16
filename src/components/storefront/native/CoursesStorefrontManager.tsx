@@ -1,9 +1,14 @@
 'use client'
 
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import PageShell, { LoadNotice } from '@/components/storefront/PageShell'
 import { useConfirmDialog } from '@/hooks/useConfirmDialog'
 import { DEFAULT_BOX_CONFIG, TERM_OPTIONS, loadBoxConfig, sanitizeCourseId, sfDb, type CourseTerm } from './CoursesDb'
+import {
+  EMPTY_FAQ_DRAFT, EMPTY_PAGE_DRAFT, cleanFaqs, getYouTubeId, loadCourseFaqDraft, loadCoursePageDraft,
+  removeCoursePageContent, saveCourseFaqsFor, saveCoursePageDraft, type CourseFaqDraft, type CoursePageDraft,
+} from './CoursesPageContent'
+import { CoursesFaqEditor, CoursesReviewVideoEditor } from './CoursesPageContentEditor'
 
 type BundleCourse = { courseId: string; courseId2?: string; courseId3?: string; courseName: string; price: number; [k: string]: any }
 type PricingOption = { name: string; price: number; type: 'live' | 'recorded'; tag?: string; description?: string; banner_text?: string }
@@ -17,6 +22,7 @@ type Form = {
   isBundle: boolean; isFixedBundle: boolean; bundleCourses: BundleCourse[]
   bundleDiscountPrice: string; bundleDiscountCode: string; bundleDiscountMode: 'all' | 'any'; bundleDiscountMinCourses: number
   pricing_options: PricingOption[]
+  who: string
 }
 
 const TERM_TAGS = ['Term 1', 'Term 2', 'TERM 1', 'TERM 2', 'Both Terms', 'BOTH']
@@ -40,6 +46,7 @@ function formFrom(c: any | null): Form {
     bundleDiscountMode: (c?.bundleDiscountMode || first._bundleDiscountMode) === 'any' ? 'any' : 'all',
     bundleDiscountMinCourses: Number(c?.bundleDiscountMinCourses || first._bundleDiscountMinCourses) || 3,
     pricing_options: c?.pricing_options || [],
+    who: typeof c?.who === 'string' ? c.who : '',
   }
 }
 
@@ -61,6 +68,26 @@ export default function CoursesStorefrontManager() {
   const [saving, setSaving] = useState(false)
   const [formError, setFormError] = useState('')
   const { confirm, confirmDialog } = useConfirmDialog()
+  const [faqDraft, setFaqDraft] = useState<CourseFaqDraft>(EMPTY_FAQ_DRAFT)
+  const [pageDraft, setPageDraft] = useState<CoursePageDraft>(EMPTY_PAGE_DRAFT)
+  const [contentLoading, setContentLoading] = useState(false)
+  const [contentError, setContentError] = useState('')
+  const contentToken = useRef(0)
+
+  const loadContent = useCallback(async (courseId: string | null) => {
+    const token = ++contentToken.current
+    setContentLoading(true)
+    setContentError('')
+    setFaqDraft(EMPTY_FAQ_DRAFT)
+    setPageDraft(EMPTY_PAGE_DRAFT)
+    const [faqs, page] = await Promise.all([loadCourseFaqDraft(courseId), loadCoursePageDraft(courseId)])
+    if (token !== contentToken.current) return
+    setFaqDraft(faqs.draft)
+    setPageDraft(page.draft)
+    const err = faqs.error || page.error
+    setContentError(err ? `Could not load FAQs / page settings: ${err}` : '')
+    setContentLoading(false)
+  }, [])
 
   const load = useCallback(async () => {
     const { data, error: err } = await sfDb('courses', [{ m: 'select', a: ['*'] }, { m: 'order', a: ['name'] }])
@@ -71,14 +98,18 @@ export default function CoursesStorefrontManager() {
 
   useEffect(() => { load(); loadBoxConfig().then(r => setBoxConfig(r.config)) }, [load])
 
-  const open = (c: any | null) => { setEditing(c); setCreating(!c); setForm(formFrom(c)); setFormError('') }
-  const close = () => { setEditing(null); setCreating(false) }
+  const open = (c: any | null) => { setEditing(c); setCreating(!c); setForm(formFrom(c)); setFormError(''); void loadContent(c?.id ?? null) }
+  const close = () => { contentToken.current++; setEditing(null); setCreating(false) }
   const set = <K extends keyof Form>(k: K, v: Form[K]) => setForm(f => ({ ...f, [k]: v }))
 
   const remove = async (c: any) => {
     if (!(await confirm({ title: 'Delete this course?', message: `"${c.name}" will be permanently deleted from the storefront. This can't be undone.`, confirmLabel: 'Delete course', tone: 'danger' }))) return
     const { error: err } = await sfDb('courses', [{ m: 'delete', a: [] }, { m: 'eq', a: ['id', c.id] }])
     if (err) alert(err.message)
+    else {
+      const cleanupErr = await removeCoursePageContent(c.id)
+      if (cleanupErr) console.error('Failed to remove course FAQs / page settings:', cleanupErr)
+    }
     load()
   }
 
@@ -100,8 +131,12 @@ export default function CoursesStorefrontManager() {
       : f.isBundle && f.isFixedBundle && f.pricing_options.length === 1 ? 'Multi-pricing requires at least 2 tiers.'
       : f.isBundle && f.bundleDiscountMode === 'any' && f.bundleDiscountMinCourses > f.bundleCourses.length ? `This bundle has only ${f.bundleCourses.length} course rows. Choose a smaller Any count.`
       : f.term !== 'NONE' && (boxConfig[f.term] || []).length > 0 && f.exam_stages.length === 0 ? 'Please choose at least one box for this course.'
+      : contentLoading ? 'FAQs and page settings are still loading. Try again in a moment.'
+      : !contentError && pageDraft.videoUrl.trim() && !getYouTubeId(pageDraft.videoUrl) ? 'The course page video must be a valid YouTube link (or empty).'
       : ''
     if (err) { setFormError(err); return }
+    const cleanedFaqs = faqDraft.useCustom ? cleanFaqs(faqDraft.custom) : { faqs: [], error: null }
+    if (!contentError && cleanedFaqs.error) { setFormError(cleanedFaqs.error); return }
 
     const bundleDiscount = f.isBundle && f.bundleDiscountPrice ? Number(f.bundleDiscountPrice) : null
     const bundleCourses = f.bundleCourses.map((bc, idx) => {
@@ -120,7 +155,10 @@ export default function CoursesStorefrontManager() {
     const row: any = {
       id, name: f.name, description: f.description, price: parseInt(price),
       isPinned: f.isPinned, active: f.active, class_type: f.class_type || 'recorded',
-      learn: [], who: '', outcomes: '', cohortContent: f.cohortContent || null,
+      learn: Array.isArray(editing?.learn) ? editing.learn : [],
+      who: f.who.trim(),
+      outcomes: typeof editing?.outcomes === 'string' ? editing.outcomes : '',
+      cohortContent: f.cohortContent || null,
       discountPrice: discountPrice ? parseInt(discountPrice) : null,
       isBundle: f.isBundle, bundleCourses,
       bundleDiscountPrice: bundleDiscount, bundleDiscountAmount: bundleDiscount,
@@ -181,6 +219,21 @@ export default function CoursesStorefrontManager() {
       })
       const cat = await sfDb('course_catalog', [{ m: 'upsert', a: [catalog, { onConflict: 'id' }] }])
       if (cat.error) console.error('Failed to sync course catalog:', cat.error.message)
+
+      // FAQs and course page settings are keyed by course ID, so they are written after the course row.
+      if (!contentError) {
+        const faqErr = await saveCourseFaqsFor(id, faqDraft.useCustom ? cleanedFaqs.faqs : null, prev)
+        const pageErr = await saveCoursePageDraft(id, pageDraft, prev)
+        if (faqErr || pageErr) {
+          // The course row is saved under `id` now: a retry must update it, not rename again.
+          setEditing({ ...(editing || {}), ...row })
+          setCreating(false)
+          setFormError(`Course saved, but ${faqErr ? `FAQs (${faqErr})` : ''}${faqErr && pageErr ? ' and ' : ''}${pageErr ? `page settings (${pageErr})` : ''} could not be saved. Press Save again to retry.`)
+          load()
+          return
+        }
+        if (faqDraft.useCustom) setFaqDraft(d => ({ ...d, custom: cleanedFaqs.faqs }))
+      }
       close()
       load()
     } finally {
@@ -384,8 +437,26 @@ export default function CoursesStorefrontManager() {
             ))}
           </div>
 
+          {contentError && (
+            <div style={{ display: 'grid', gap: 8 }}>
+              <LoadNotice error={`${contentError}. Saving now updates the course only; FAQs and page settings are left unchanged.`} />
+              <div><button type="button" className="btn btn-secondary" onClick={() => loadContent(editing?.id ?? null)}>Retry loading</button></div>
+            </div>
+          )}
+          {!contentError && (
+            <>
+              <CoursesFaqEditor draft={faqDraft} onChange={setFaqDraft} who={form.who} onWhoChange={v => set('who', v)} loading={contentLoading} />
+              <CoursesReviewVideoEditor
+                draft={pageDraft}
+                onChange={setPageDraft}
+                loading={contentLoading}
+                themeLockedTo={editing?.design_theme === 'new' || editing?.theme === 'new' ? 'new' : editing?.design_theme === 'old' || editing?.theme === 'old' ? 'old' : null}
+              />
+            </>
+          )}
+
           <div style={{ display: 'flex', gap: 8 }}>
-            <button className="btn btn-primary" disabled={saving} onClick={save}>{saving ? 'Saving…' : 'Save changes'}</button>
+            <button className="btn btn-primary" disabled={saving || contentLoading} onClick={save}>{saving ? 'Saving…' : 'Save changes'}</button>
             <button className="btn btn-secondary" disabled={saving} onClick={close}>Cancel</button>
           </div>
         </div>

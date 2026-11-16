@@ -66,6 +66,18 @@ const resolveSelectedPricingTier = ({
   return null;
 };
 
+const normalizeClassType = (value: unknown) => (
+  typeof value === 'string' ? value.trim().toLowerCase() : ''
+);
+
+// The class type used for enrollment is always derived server-side (pricing tier / course row).
+// A client-supplied type is only cross-checked: if it disagrees with the server value the order is rejected.
+const classTypeMismatch = (clientType: unknown, serverType: unknown) => {
+  const client = normalizeClassType(clientType);
+  const server = normalizeClassType(serverType);
+  return Boolean(client && server && client !== server);
+};
+
 const insertWebsiteOrder = async (supabase: any, orderPayload: Record<string, any>) => {
   const { error } = await supabase.from('website_orders').insert(orderPayload);
   if (!error) return null;
@@ -200,7 +212,8 @@ export async function POST(request: NextRequest) {
     let discountApplied = false;
     let referrerEmail: string | null = null;
     let referralDiscount = 0;
-    let orderClassType: string | null = selectedClassType || null;
+    // Never taken from the client: set below from the pricing tier / course data.
+    let orderClassType: string | null = null;
 
     if (bundleId) {
       const { data: bundle, error: bundleError } = await supabase
@@ -252,15 +265,21 @@ export async function POST(request: NextRequest) {
           if (!Number.isFinite(totalOriginalPrice) || totalOriginalPrice <= 0) {
             return res.status(400).json({ error: 'Invalid pricing tier price' });
           }
-          orderClassType = selectedTier.type || selectedClassType || null;
+          orderClassType = selectedTier.type || bundle.class_type || null;
         } else {
           return res.status(400).json({ error: 'Invalid pricing tier selected' });
         }
       } else {
-        // Fallback: sum individual course prices (for non-fixed bundles)
+        // Fallback: sum individual course prices (for non-fixed bundles).
+        // A row is priced when ANY of its course IDs is selected (courseId2/courseId3 are valid selections too).
         totalOriginalPrice = bundleSubCourses
-          .filter((bc: any) => courseIds.includes(bc.courseId))
+          .filter((bc: any) => [bc.courseId, bc.courseId2, bc.courseId3].filter(Boolean).some((cid: string) => courseIds.includes(cid)))
           .reduce((sum: number, bc: any) => sum + Number(bc.price || 0), 0);
+        orderClassType = bundle.class_type || null;
+      }
+
+      if (classTypeMismatch(selectedClassType, orderClassType)) {
+        return res.status(400).json({ error: 'Selected class type does not match the selected plan.' });
       }
 
       totalAmount = totalOriginalPrice;
@@ -347,15 +366,47 @@ export async function POST(request: NextRequest) {
       // Logic for single course purchases remains mostly same
       const { data: courses, error: coursesError } = await supabase
         .from('courses')
-        .select('id, price, discountPrice, term, exam_stages, tags')
+        .select('id, price, discountPrice, term, exam_stages, tags, class_type')
         .in('id', courseIds);
 
-      if (coursesError || !courses || courses.length === 0) {
+      // An empty result is allowed here: a cart holding only a bundle sends just its child IDs,
+      // which are matched to the bundle below (unmatched IDs are still rejected).
+      if (coursesError || !courses) {
         return res.status(400).json({ error: 'Invalid course IDs' });
       }
 
-      totalOriginalPrice = courses.reduce((sum: number, course: any) => sum + Number(course.price || 0), 0);
-      totalAmount = courses.reduce((sum: number, course: any) => {
+      // Single-course checkout: the class type is the course's own. Multi-course carts store none and
+      // verify-payment falls back to each course's class_type.
+      orderClassType = courses.length === 1 ? (courses[0].class_type || null) : null;
+      if (classTypeMismatch(selectedClassType, orderClassType)) {
+        return res.status(400).json({ error: 'Selected class type does not match this course.' });
+      }
+
+      // Every selected ID must be priced: either a storefront course, or a child of a bundle (the cart
+      // sends a bundle as its child course IDs). Children are priced once per bundle at the bundle's
+      // price; any other ID is rejected so it cannot be enrolled for free.
+      const knownIds = new Set(courses.map((c: any) => String(c.id)))
+      const unknownIds = courseIds.filter((cid: string) => !knownIds.has(String(cid)))
+      const pricedRows: any[] = [...courses]
+      if (unknownIds.length > 0) {
+        const { data: bundles } = await supabase.from('courses').select('*').eq('isBundle', true)
+        const remaining = new Set(unknownIds.map(String))
+        for (const b of bundles || []) {
+          const childIds: string[] = (Array.isArray(b.bundleCourses) ? b.bundleCourses : [])
+            .flatMap((bc: any) => [bc.courseId, bc.courseId2, bc.courseId3].filter(Boolean).map(String))
+          if (childIds.length > 0 && childIds.some((cid) => remaining.has(cid))) {
+            pricedRows.push(b)
+            childIds.forEach((cid) => remaining.delete(cid))
+          }
+          if (remaining.size === 0) break
+        }
+        if (remaining.size > 0) {
+          return res.status(400).json({ error: 'Invalid course IDs' });
+        }
+      }
+
+      totalOriginalPrice = pricedRows.reduce((sum: number, course: any) => sum + Number(course.price || 0), 0);
+      totalAmount = pricedRows.reduce((sum: number, course: any) => {
         const effectivePrice = course.discountPrice && Number(course.discountPrice) > 0 ? Number(course.discountPrice) : Number(course.price || 0);
         return sum + effectivePrice;
       }, 0);

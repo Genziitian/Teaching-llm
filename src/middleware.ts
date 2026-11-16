@@ -26,6 +26,8 @@ const CSRF_EXEMPT_PATHS = [
   '/api/external-enroll', // external purchase system — has its own auth via EXTERNAL_ENROLL_SECRET
   '/api/analytics/compute', // analytics cron job — has its own auth via CRON_SECRET
   '/api/site/verify-payment', // Razorpay callback — proven by payment signature
+  '/api/site/razorpay-webhook', // Razorpay server webhook — verified by X-Razorpay-Signature
+  '/api/site/partner-coupons', // partner servers — verified by x-api-key
 ]
 
 /**

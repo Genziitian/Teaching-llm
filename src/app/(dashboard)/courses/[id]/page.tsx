@@ -8,6 +8,7 @@ import MobileCourseDetail from '@/components/courses/MobileCourseDetail'
 import FeedbackModal from '@/components/FeedbackModal'
 import { X } from 'lucide-react'
 import { colorWithOpacity, getCourseDisplayPalette } from '@/lib/color-utils'
+import CourseBannerEditor from '@/components/courses/CourseBannerEditor'
 import { useTheme } from '@/components/ThemeProvider'
 import { useLoadingFact } from '@/hooks/useLoadingFact'
 import LoadingFactCard from '@/components/ui/LoadingFactCard'
@@ -42,6 +43,7 @@ interface CourseDetail {
   expiresAt?: string
   teacherName: string
   aboutUs?: string | null
+  bannerUrl?: string | null
   startDate?: string | null
   endDate?: string | null
   isCommunityActive?: boolean
@@ -76,6 +78,7 @@ function isCardActionElement(target: EventTarget | null) {
 }
 
 function courseArtFor(c: any): string {
+  if (c?.bannerUrl) return c.bannerUrl
   const t = `${c?.academicTerm || ''} ${c?.subject || ''} ${c?.name || ''}`.toLowerCase()
   if (/crash/.test(t)) return '/store-art/store-course.webp'
   if (/re-?attempt/.test(t)) return '/store-art/term-reattempt.webp'
@@ -791,7 +794,17 @@ export default function CourseDetailPage() {
               )}
           </div>
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img className="gz-chead__art" src={courseArtFor(course)} alt="" />
+          <div className="gz-chead__artwrap">
+            <img className="gz-chead__art" src={courseArtFor(course)} alt="" />
+            {role === 'MANAGER' && (
+              <CourseBannerEditor
+                courseId={String(params.id)}
+                currentUrl={course.bannerUrl}
+                fallbackUrl={courseArtFor({ ...course, bannerUrl: null })}
+                onChange={(url) => setCourse(c => (c ? { ...c, bannerUrl: url } : c))}
+              />
+            )}
+          </div>
         </div>
       </div>
 

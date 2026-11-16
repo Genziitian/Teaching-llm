@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useConfirmDialog } from '@/hooks/useConfirmDialog'
 import { sfManagerFetch, sfWrite } from './DiscountsStorefrontApi'
+import PaymentsUserDetailsModal, { type PaymentsBuyer } from './PaymentsUserDetailsModal'
 
 const FILTERS = [
   { id: 'all', label: 'All Time' },
@@ -37,6 +38,8 @@ export default function PaymentsStorefrontPanel() {
   const [from, setFrom] = useState('')
   const [to, setTo] = useState('')
   const [showAmounts, setShowAmounts] = useState(true)
+  const [buyer, setBuyer] = useState<PaymentsBuyer | null>(null)
+  const closeBuyer = useCallback(() => setBuyer(null), [])
   const seq = useRef(0)
 
   useEffect(() => {
@@ -133,9 +136,18 @@ export default function PaymentsStorefrontPanel() {
   const td: React.CSSProperties = { padding: '14px 16px', fontSize: 13, color: 'var(--text-primary)', verticalAlign: 'top' }
   const btn: React.CSSProperties = { ...inputStyle, cursor: 'pointer', fontSize: 13 }
 
+  // Same as the original Payments tab: clicking an order opens the buyer's user details.
+  const openBuyer = (o: any) => setBuyer({
+    email: String(o?.user_email || ''),
+    name: o?.user_name || o?.user_email || null,
+    phone: o?.user_phone || null,
+    created_at: o?.user_joined_at || null,
+  })
+
   return (
     <div>
       {confirmDialog}
+      <PaymentsUserDetailsModal buyer={buyer} courseName={courseName} onClose={closeBuyer} />
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(200px, 100%), 1fr))', gap: 16, marginBottom: 20 }}>
         {cards.map(([label, value, hint, color]) => (
           <div key={label} className="card" style={{ padding: 20, textAlign: 'center' }}>
@@ -184,9 +196,18 @@ export default function PaymentsStorefrontPanel() {
                 ) : orders.map((o, i) => {
                   const [bg, fg] = statusColors[o?.status] || ['var(--warning-light)', 'var(--warning)']
                   return (
-                    <tr key={o?.order_id || o?.id || i} style={{ borderBottom: '1px solid var(--border)' }}>
+                    <tr
+                      key={o?.order_id || o?.id || i}
+                      onClick={() => openBuyer(o)}
+                      onKeyDown={e => { if (e.target === e.currentTarget && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); openBuyer(o) } }}
+                      tabIndex={0}
+                      title="View user details"
+                      style={{ borderBottom: '1px solid var(--border)', cursor: 'pointer' }}
+                      onMouseEnter={e => { e.currentTarget.style.background = 'var(--surface-hover, var(--surface))' }}
+                      onMouseLeave={e => { e.currentTarget.style.background = '' }}
+                    >
                       <td style={td}>
-                        <div style={{ fontWeight: 700, wordBreak: 'break-all' }}>{o?.user_name || o?.user_email || 'Unknown User'}</div>
+                        <div style={{ fontWeight: 700, wordBreak: 'break-all', color: 'var(--primary)' }}>{o?.user_name || o?.user_email || 'Unknown User'}</div>
                         <div style={{ fontSize: 11, color: 'var(--text-muted)', wordBreak: 'break-all' }}>{o?.user_email || 'No email'}</div>
                         <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>{o?.user_phone || 'No phone'}</div>
                         <div style={{ fontSize: 11, color: 'var(--text-muted)', fontFamily: 'monospace' }}>{o?.order_id || ''}</div>
@@ -209,7 +230,7 @@ export default function PaymentsStorefrontPanel() {
                       </td>
                       <td style={{ ...td, textAlign: 'right' }}>
                         {o?.order_id && !String(o.order_id).startsWith('LEAD_') && (
-                          <button onClick={() => remove(o)} title="Delete payment record" aria-label="Delete payment record" style={{ padding: '6px 10px', borderRadius: 8, background: 'var(--danger-light)', border: '1px solid var(--border)', color: 'var(--danger)', cursor: 'pointer' }}>🗑️</button>
+                          <button onClick={e => { e.stopPropagation(); remove(o) }} onKeyDown={e => e.stopPropagation()} title="Delete payment record" aria-label="Delete payment record" style={{ padding: '6px 10px', borderRadius: 8, background: 'var(--danger-light)', border: '1px solid var(--border)', color: 'var(--danger)', cursor: 'pointer' }}>🗑️</button>
                         )}
                       </td>
                     </tr>

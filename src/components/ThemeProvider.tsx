@@ -17,6 +17,7 @@
  */
 
 import { createContext, useCallback, useContext, useEffect, useState } from 'react'
+import { flushSync } from 'react-dom'
 
 type ThemeChoice = 'light' | 'dark' | 'black' | 'system'
 type ResolvedTheme = 'light' | 'dark' | 'black'
@@ -24,7 +25,8 @@ type ResolvedTheme = 'light' | 'dark' | 'black'
 interface ThemeContextValue {
   theme: ThemeChoice
   resolvedTheme: ResolvedTheme
-  setTheme: (t: ThemeChoice) => void
+  /** `origin` (viewport px) makes the change flow out from that point like a water ripple (web only). */
+  setTheme: (t: ThemeChoice, origin?: { x: number; y: number }) => void
   /** true while the light theme is switched off (winter season); pickers hide "Light" */
   lightHidden: boolean
 }
@@ -85,6 +87,51 @@ function applyResolved(resolved: ResolvedTheme) {
   window.dispatchEvent(new CustomEvent('themechange', { detail: resolved }))
 }
 
+
+/** Water-ripple reveal: the new theme flows out from `origin` instead of flipping at once.
+ *  Web only — skipped in the native app shell, with reduced motion, or without View Transitions. */
+function rippleSupported(): boolean {
+  if (typeof document === 'undefined' || typeof window === 'undefined') return false
+  if ((window as any).Capacitor?.isNativePlatform?.()) return false
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return false
+  return typeof (document as any).startViewTransition === 'function'
+}
+
+function runRipple(origin: { x: number; y: number }, update: () => void) {
+  const { x, y } = origin
+  const radius = Math.hypot(Math.max(x, window.innerWidth - x), Math.max(y, window.innerHeight - y))
+  const DURATION = 1100
+  const EASE = 'cubic-bezier(0.22, 0.61, 0.36, 1)'
+
+  // Soft concentric rings that travel with the wavefront (the "water" part).
+  ;[0, 140].forEach((delay, i) => {
+    const ring = document.createElement('div')
+    ring.setAttribute('aria-hidden', 'true')
+    ring.style.cssText =
+      `position:fixed;left:${x}px;top:${y}px;width:${radius * 2}px;height:${radius * 2}px;margin:${-radius}px 0 0 ${-radius}px;` +
+      `border-radius:50%;pointer-events:none;z-index:2147483646;border:${i ? 1 : 2}px solid currentColor;` +
+      `color:rgba(128,128,128,${i ? 0.25 : 0.4});opacity:0;transform:scale(0);`
+    document.body.appendChild(ring)
+    const a = ring.animate(
+      [
+        { transform: 'scale(0)', opacity: 0.9 },
+        { opacity: 0.5, offset: 0.6 },
+        { transform: 'scale(1)', opacity: 0 },
+      ],
+      { duration: DURATION, delay, easing: EASE, fill: 'forwards' },
+    )
+    a.onfinish = () => ring.remove()
+  })
+
+  const vt = (document as any).startViewTransition(() => { flushSync(update) })
+  vt.ready.then(() => {
+    document.documentElement.animate(
+      { clipPath: [`circle(0px at ${x}px ${y}px)`, `circle(${radius}px at ${x}px ${y}px)`] },
+      { duration: DURATION, easing: EASE, pseudoElement: '::view-transition-new(root)' },
+    )
+  }).catch(() => {})
+}
+
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   // Defaults match SSR; the real values are read from storage on mount below.
   const [theme, setThemeState] = useState<ThemeChoice>('system')
@@ -101,12 +148,16 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     applyResolved(r)
   }, [])
 
-  const setTheme = useCallback((next: ThemeChoice) => {
+  const setTheme = useCallback((next: ThemeChoice, origin?: { x: number; y: number }) => {
     try { localStorage.setItem(STORAGE_KEY, next) } catch {}
     const r = resolve(next)
-    setThemeState(next)
-    setResolvedTheme(r)
-    applyResolved(r)
+    const apply = () => {
+      setThemeState(next)
+      setResolvedTheme(r)
+      applyResolved(r)
+    }
+    if (origin && rippleSupported()) runRipple(origin, apply)
+    else apply()
   }, [])
 
   // When on "system", follow live OS appearance changes.

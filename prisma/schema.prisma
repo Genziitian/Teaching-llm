@@ -169,6 +169,7 @@ model Course {
   academicTerm          String?
   academicYear          Int?
   examCycle             String?
+  bannerUrl             String?
   announcements         Announcement[]
   bundleOfferingCourses BundleOfferingCourse[]
   createdBy             User                   @relation("CourseCreator", fields: [createdById], references: [id])

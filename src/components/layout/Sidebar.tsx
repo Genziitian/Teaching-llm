@@ -1,7 +1,6 @@
 'use client'
 
 import Link from 'next/link'
-import { canSeeProtectionOnWeb } from '@/lib/exam-protection/access'
 import { usePathname, useRouter } from 'next/navigation'
 import { useEffect, useRef, useState } from 'react'
 import useSWR from 'swr'
@@ -17,7 +16,6 @@ interface NavItem {
   label: string
   icon: React.ReactNode
   roles?: string[]
-  protectionPreview?: boolean
   desktopOnly?: boolean
   /** Link to another site: rendered as a plain <a>, highlighted. */
   external?: boolean
@@ -60,13 +58,6 @@ const NAV_ITEMS: NavItem[] = [
         <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/>
       </svg>
     ),
-  },
-  {
-    href: '/exam-protection',
-    label: 'Exam Protection',
-    icon: <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3 4 6v6c0 5 8 9 8 9s8-4 8-9V6Z"/><path d="m8 12 3 3 5-6"/></svg>,
-    roles: ['STUDENT', 'MANAGER'],
-    protectionPreview: true,
   },
   {
     href: '/live',
@@ -453,7 +444,7 @@ const NAV_ITEMS: NavItem[] = [
 
 const NAV_GROUPS: { title: string; hrefs: string[] }[] = [
   { title: 'Learn', hrefs: ['/dashboard', '/courses', '/live', '/calendar', '/free-resources', '/materials'] },
-  { title: 'Explore', hrefs: ['/courses/explore', QUIZ_LAB_URL, '/exam-protection', '/jobs'] },
+  { title: 'Explore', hrefs: ['/courses/explore', QUIZ_LAB_URL, '/jobs'] },
   { title: 'Connect', hrefs: ['/community', '/announcements', '/support', '/feedback'] },
   { title: 'Manage', hrefs: ['/manage', '/manage/queries', '/manage/notifications', '/manage/updates', '/manage/prompts', '/manage/facts', '/manage/coupons', '/manage/mail-assigner', '/manage/menus', '/manage/genie', '/manage/careers', '/manage/employees', '/manage/one-on-one', '/manage/storefront', '/manage/storefront-courses', '/manage/boxes', '/manage/storefront-tools'] },
   { title: 'Admin', hrefs: ['/admin', '/transactions', '/activity-logs', '/data-analysis', '/google-sync'] },
@@ -528,7 +519,7 @@ export default function Sidebar({ userRole, userName, userEmail }: SidebarProps)
   const isManager = currentUserRole === 'MANAGER'
 
   const visibleItems = NAV_ITEMS.filter(
-    item => (!item.roles || item.roles.includes(currentUserRole)) && (!item.protectionPreview || canSeeProtectionOnWeb(currentUserRole, userData?.user?.email)) && (isManager || !hiddenMenus.includes(item.href))
+    item => (!item.roles || item.roles.includes(currentUserRole)) && (isManager || !hiddenMenus.includes(item.href))
   )
 
   const roleLabel = currentUserRole.charAt(0) + currentUserRole.slice(1).toLowerCase()
@@ -574,7 +565,7 @@ export default function Sidebar({ userRole, userName, userEmail }: SidebarProps)
     (item.href !== '/dashboard' && item.href !== '/courses/explore' && effectivePath.startsWith(item.href) &&
       (effectivePath[item.href.length] === '/' || effectivePath[item.href.length] === undefined) && !effectivePath.startsWith('/courses/explore') &&
       !(item.href === '/free-resources' && effectivePath.startsWith('/free-resources/purchased')) &&
-      !(item.href === '/manage' && (effectivePath.startsWith('/manage/prompts') || effectivePath.startsWith('/manage/updates') || effectivePath.startsWith('/manage/coupons') || effectivePath.startsWith('/manage/notifications') || effectivePath.startsWith('/manage/contacts') || effectivePath.startsWith('/manage/mail-assigner') || effectivePath.startsWith('/manage/menus') || effectivePath.startsWith('/manage/genie') || effectivePath.startsWith('/manage/facts') || effectivePath.startsWith('/manage/careers') || effectivePath.startsWith('/manage/employees') || effectivePath.startsWith('/manage/one-on-one') || effectivePath.startsWith('/manage/storefront') || effectivePath.startsWith('/manage/boxes'))))
+      !(item.href === '/manage' && (effectivePath.startsWith('/manage/prompts') || effectivePath.startsWith('/manage/updates') || effectivePath.startsWith('/manage/coupons') || effectivePath.startsWith('/manage/notifications') || effectivePath.startsWith('/manage/contacts') || effectivePath.startsWith('/manage/mail-assigner') || effectivePath.startsWith('/manage/menus') || effectivePath.startsWith('/manage/genie') || effectivePath.startsWith('/manage/facts') || effectivePath.startsWith('/manage/careers') || effectivePath.startsWith('/manage/employees') || effectivePath.startsWith('/manage/one-on-one') || effectivePath.startsWith('/manage/storefront') || effectivePath.startsWith('/manage/boxes') || effectivePath.startsWith('/manage/follow-ups') || effectivePath.startsWith('/manage/referrals') || effectivePath.startsWith('/manage/blogs') || effectivePath.startsWith('/manage/faqs') || effectivePath.startsWith('/manage/store-settings'))))
 
   const tourIdFor = (href: string) =>
     href === '/courses' ? 'sidebar-courses' :
