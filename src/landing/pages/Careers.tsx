@@ -20,12 +20,11 @@ import type { CareersRole } from '@/components/storefront/native/CareersTypes';
  * Careers — editorial / professional layout.
  * Uses the site font and colours: light
  * background, hairline rules, serif display type, one restrained accent.
- * Apply flow (login gate, pending-role resume, /careers/apply/:role) unchanged.
+ * Apply flow: login gate, pending-role resume, then /careers/apply/:role for every open role.
  * ------------------------------------------------------------------------- */
 
-// Built-in roles have a dedicated brief + apply flow (/careers/apply/:role).
-// Roles added by managers at /manage/careers use any string id.
-type BuiltInRoleId = 'tutor' | 'campus-leader';
+// Built-in roles have a dedicated brief + application form; roles added by managers at
+// /manage/careers use any string id and the generic application form (/careers/apply/:role).
 type RoleId = string;
 
 type LandingRole = {
@@ -35,8 +34,6 @@ type LandingRole = {
   tags: string[];
   comp: string;
 };
-
-const isBuiltInRole = (id: string): id is BuiltInRoleId => id === 'tutor' || id === 'campus-leader';
 
 // Fallback while the managed roles load, or if the request fails.
 const FALLBACK_ROLES: LandingRole[] = [
@@ -211,9 +208,10 @@ export default function Careers() {
     if (!user) return;
     try {
       const pending = localStorage.getItem('gzi_pending_apply_role');
-      if (pending === 'tutor' || pending === 'campus-leader') {
+      if (pending && pending.trim()) {
         localStorage.removeItem('gzi_pending_apply_role');
-        navigate(`/careers/apply/${pending}`);
+        // The apply page checks the role is still open.
+        navigate(`/careers/apply/${encodeURIComponent(pending.trim())}`);
       }
     } catch {
       /* storage unavailable */
@@ -221,11 +219,6 @@ export default function Careers() {
   }, [user, navigate]);
 
   const handleApply = (role: RoleId) => {
-    // Manager-added roles use the generic application form on the jobs board.
-    if (!isBuiltInRole(role)) {
-      navigate('/jobs');
-      return;
-    }
     if (!user) {
       try {
         localStorage.setItem('gzi_pending_apply_role', role);
@@ -235,7 +228,7 @@ export default function Careers() {
       openLoginModal();
       return;
     }
-    navigate(`/careers/apply/${role}`);
+    navigate(`/careers/apply/${encodeURIComponent(role)}`);
   };
 
   const focusRole = (role: RoleId) => {

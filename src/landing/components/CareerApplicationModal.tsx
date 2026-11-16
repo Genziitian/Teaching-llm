@@ -625,7 +625,8 @@ export default function CareerApplicationModal({ isOpen, onClose, role, roleInfo
           level: tutorData.degreeLevel,
           metadata: { ...tutorData, auth_email: user?.email }
         }
-      : {
+      : isLeader
+      ? {
           role: 'campus-leader',
           role_title: 'Campus Leaders',
           full_name: leaderData.name.trim(),
