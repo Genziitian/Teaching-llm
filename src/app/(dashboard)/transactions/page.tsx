@@ -1,10 +1,13 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, type ReactNode } from 'react'
+import useSWR from 'swr'
 import { useRouter } from 'next/navigation'
 import { useLoadingFact } from '@/hooks/useLoadingFact'
 import LoadingFactCard from '@/components/ui/LoadingFactCard'
 import UnpaidAttempts from '@/components/payments/UnpaidAttempts'
+import PaymentsStorefrontPanel from '@/components/storefront/native/PaymentsStorefrontPanel'
+import DiscountsSourceSwitch from '@/components/storefront/native/DiscountsSourceSwitch'
 
 interface Transaction {
   id: string
@@ -36,7 +39,7 @@ const FILTERS = [
   { key: 'last3months', label: 'Last 3 Months' },
 ]
 
-export default function TransactionsPage() {
+function ClassTransactionsPage({ sourceSwitch }: { sourceSwitch?: ReactNode } = {}) {
   const router = useRouter()
   const [data, setData] = useState<TransactionData | null>(null)
   const [loading, setLoading] = useState(true)
@@ -159,6 +162,7 @@ export default function TransactionsPage() {
     return (
       <div className="page-container fade-in">
         <h1 style={{ margin: '0 0 14px', fontSize: 24, fontWeight: 800, letterSpacing: '-0.02em' }}>Transactions</h1>
+        {sourceSwitch && <div style={{ marginBottom: 14 }}>{sourceSwitch}</div>}
         {tabs}
         <UnpaidAttempts />
       </div>
@@ -227,6 +231,7 @@ export default function TransactionsPage() {
         </span>
       </div>
 
+      {sourceSwitch && <div style={{ marginBottom: 14 }}>{sourceSwitch}</div>}
       {tabs}
 
       {/* Summary Cards */}
@@ -508,6 +513,35 @@ export default function TransactionsPage() {
           </div>
         </>
       )}
+    </div>
+  )
+}
+
+const authFetcher = (url: string) => fetch(url).then(r => r.json())
+
+/** Managers get a 'Class | Storefront payments' switch; everyone else sees class transactions as before. */
+export default function TransactionsPage() {
+  const { data: authData } = useSWR('/api/auth/me', authFetcher, { revalidateOnFocus: false })
+  const [source, setSource] = useState<'class' | 'storefront'>('class')
+  const isManager = authData?.user?.role === 'MANAGER'
+
+  if (!isManager) return <ClassTransactionsPage />
+
+  const sourceSwitch = (
+    <DiscountsSourceSwitch<'class' | 'storefront'>
+      value={source}
+      onChange={setSource}
+      options={[['class', 'Class'], ['storefront', 'Storefront payments']]}
+    />
+  )
+
+  if (source === 'class') return <ClassTransactionsPage sourceSwitch={sourceSwitch} />
+
+  return (
+    <div className="page-container fade-in">
+      <h1 style={{ margin: '0 0 14px', fontSize: 24, fontWeight: 800, letterSpacing: '-0.02em' }}>Transactions</h1>
+      <div style={{ marginBottom: 20 }}>{sourceSwitch}</div>
+      <PaymentsStorefrontPanel />
     </div>
   )
 }

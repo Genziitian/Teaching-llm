@@ -1,11 +1,28 @@
 'use client'
 
 import Link from 'next/link'
+import { useState } from 'react'
 import useSWR from 'swr'
+import BookletsManager from '@/components/storefront/native/BookletsManager'
 
 const fetcher = (url: string) => fetch(url).then(r => r.json())
 
 export default function FreeResourcesPage() {
+  const { data: userData } = useSWR('/api/auth/me', fetcher)
+  const [tab, setTab] = useState<'resources' | 'booklets'>('resources')
+  if (userData?.user?.role !== 'MANAGER') return <FreeResourcesCards />
+  return (
+    <div className="gz-page fade-in">
+      <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
+        <button className={`btn btn-sm ${tab === 'resources' ? 'btn-primary' : 'btn-secondary'}`} onClick={() => setTab('resources')}>Free Resources</button>
+        <button className={`btn btn-sm ${tab === 'booklets' ? 'btn-primary' : 'btn-secondary'}`} onClick={() => setTab('booklets')}>Booklets</button>
+      </div>
+      {tab === 'booklets' ? <BookletsManager /> : <FreeResourcesCards />}
+    </div>
+  )
+}
+
+function FreeResourcesCards() {
   const { data: courses } = useSWR<any[]>('/api/free-resources/courses', fetcher)
   const { data: materials } = useSWR<any[]>('/api/free-resources/materials', fetcher)
 

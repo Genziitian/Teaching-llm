@@ -14,6 +14,7 @@ import {
   Wallet,
 } from 'lucide-react';
 import { useAuth } from '@/landing/context/AuthContext';
+import type { CareersRole } from '@/components/storefront/native/CareersTypes';
 
 /* ---------------------------------------------------------------------------
  * Careers — editorial / professional layout.
@@ -22,7 +23,51 @@ import { useAuth } from '@/landing/context/AuthContext';
  * Apply flow (login gate, pending-role resume, /careers/apply/:role) unchanged.
  * ------------------------------------------------------------------------- */
 
-type RoleId = 'tutor' | 'campus-leader';
+// Built-in roles have a dedicated brief + apply flow (/careers/apply/:role).
+// Roles added by managers at /manage/careers use any string id.
+type BuiltInRoleId = 'tutor' | 'campus-leader';
+type RoleId = string;
+
+type LandingRole = {
+  id: RoleId;
+  title: string;
+  summary: string;
+  tags: string[];
+  comp: string;
+};
+
+const isBuiltInRole = (id: string): id is BuiltInRoleId => id === 'tutor' || id === 'campus-leader';
+
+// Fallback while the managed roles load, or if the request fails.
+const FALLBACK_ROLES: LandingRole[] = [
+  {
+    id: 'tutor',
+    title: 'Subject Tutor (Faculty)',
+    summary: 'Teach foundation and diploma-level subjects to fellow students in Hindi, English or both.',
+    tags: ['Part-time', 'Paid', 'Remote'],
+    comp: '₹5,000 – ₹10,000 / month',
+  },
+  {
+    id: 'campus-leader',
+    title: 'Campus Leader',
+    summary: 'Partner with us as the owner of an IIT Madras BS student community and grow it with real support.',
+    tags: ['Part-time', 'Performance-based', 'Remote'],
+    comp: 'Up to ₹5,000 / month',
+  },
+];
+
+function toLandingRoles(value: unknown): LandingRole[] | null {
+  if (!Array.isArray(value)) return null;
+  return (value as Partial<CareersRole>[])
+    .filter(r => r && typeof r === 'object' && r.id && r.title && r.open !== false)
+    .map(r => ({
+      id: String(r.id),
+      title: String(r.title),
+      summary: String(r.summary || ''),
+      tags: Array.isArray(r.tags) ? r.tags.map(String) : [],
+      comp: String(r.comp || ''),
+    }));
+}
 
 const C = {
   paper: '#fbfbfd',
@@ -142,6 +187,24 @@ export default function Careers() {
   const { user, openLoginModal } = useAuth();
   const navigate = useNavigate();
   const [open, setOpen] = useState<RoleId | null>(null);
+  const [roles, setRoles] = useState<LandingRole[]>(FALLBACK_ROLES);
+
+  // Load the open roles managed at /manage/careers; keep the fallback on error.
+  useEffect(() => {
+    let cancelled = false;
+    fetch('/api/site/careers-roles', { cache: 'no-store' })
+      .then(res => (res.ok ? res.json() : Promise.reject(new Error(`HTTP ${res.status}`))))
+      .then(data => {
+        const next = toLandingRoles(data?.roles);
+        if (!cancelled && next) setRoles(next);
+      })
+      .catch(() => {
+        /* keep fallback roles */
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   // Resume an apply intent that started before sign-in
   useEffect(() => {
@@ -158,6 +221,11 @@ export default function Careers() {
   }, [user, navigate]);
 
   const handleApply = (role: RoleId) => {
+    // Manager-added roles use the generic application form on the jobs board.
+    if (!isBuiltInRole(role)) {
+      navigate('/jobs');
+      return;
+    }
     if (!user) {
       try {
         localStorage.setItem('gzi_pending_apply_role', role);
@@ -177,28 +245,6 @@ export default function Careers() {
     });
   };
 
-  const roles: {
-    id: RoleId;
-    title: string;
-    summary: string;
-    tags: string[];
-    comp: string;
-  }[] = [
-    {
-      id: 'tutor',
-      title: 'Subject Tutor (Faculty)',
-      summary: 'Teach foundation and diploma-level subjects to fellow students in Hindi, English or both.',
-      tags: ['Part-time', 'Paid', 'Remote'],
-      comp: '₹5,000 – ₹10,000 / month',
-    },
-    {
-      id: 'campus-leader',
-      title: 'Campus Leader',
-      summary: 'Partner with us as the owner of an IIT Madras BS student community and grow it with real support.',
-      tags: ['Part-time', 'Performance-based', 'Remote'],
-      comp: 'Up to ₹5,000 / month',
-    },
-  ];
 
   return (
     <div className="careers-ui" style={{ background: C.paper, color: C.ink }}>
@@ -244,7 +290,7 @@ export default function Careers() {
                 Now hiring
               </span>
               <span className="flex items-center gap-1.5 text-xs font-medium" style={{ color: C.good }}>
-                <span className="h-1.5 w-1.5 rounded-full" style={{ background: '#22c55e' }} /> {roles.length} open roles
+                <span className="h-1.5 w-1.5 rounded-full" style={{ background: '#22c55e' }} /> {roles.length} open {roles.length === 1 ? 'role' : 'roles'}
               </span>
             </div>
             {roles.map((r, i) => (
@@ -259,7 +305,7 @@ export default function Careers() {
                     {r.title}
                   </div>
                   <div className="mt-1 text-[13px]" style={{ color: C.muted }}>
-                    {r.comp} · Remote
+                    {r.comp ? `${r.comp} · Remote` : 'Remote'}
                   </div>
                 </div>
                 <ArrowUpRight
@@ -278,10 +324,15 @@ export default function Careers() {
           <SectionTitle
             eyebrow="Open roles"
             title="Find where you fit"
-            lead="Both roles are remote and flexible. Open a role to read the full brief before you apply."
+            lead={`${roles.length === 2 ? 'Both roles are' : roles.length === 1 ? 'This role is' : 'All roles are'} remote and flexible. Open a role to read the full brief before you apply.`}
           />
 
           <div className="mt-10 overflow-hidden rounded-lg bg-white" style={{ border: `1px solid ${C.rule}` }}>
+            {roles.length === 0 && (
+              <p className="px-5 py-6 text-[15px] leading-relaxed sm:px-8 sm:py-7" style={{ color: C.muted }}>
+                There are no open roles right now. Please check back soon.
+              </p>
+            )}
             {roles.map((r, i) => {
               const isOpen = open === r.id;
               return (
@@ -322,7 +373,13 @@ export default function Careers() {
                     <div style={{ borderTop: `1px solid ${C.rule}`, background: '#f5f8ff' }}>
                       <div className="grid gap-10 px-5 py-8 sm:px-8 sm:py-10 lg:grid-cols-[1fr_300px]">
                         <div className="max-w-2xl">
-                          {r.id === 'tutor' ? <TutorBrief /> : <LeaderBrief />}
+                          {r.id === 'tutor' ? (
+                            <TutorBrief />
+                          ) : r.id === 'campus-leader' ? (
+                            <LeaderBrief />
+                          ) : (
+                            <GenericBrief summary={r.summary} />
+                          )}
                         </div>
 
                         <div className="lg:sticky lg:top-24 lg:self-start">
@@ -332,7 +389,7 @@ export default function Careers() {
                             </div>
                             <Fact icon={Clock} label="Commitment" value="Part-time, flexible hours" />
                             <Fact icon={MapPin} label="Location" value="Remote" />
-                            <Fact icon={Wallet} label="Compensation" value={r.comp} />
+                            {r.comp && <Fact icon={Wallet} label="Compensation" value={r.comp} />}
                             {r.id === 'tutor' && <Fact icon={Laptop} label="Setup" value="Laptop, pen tablet, mic, stable internet" />}
                             <button
                               onClick={() => handleApply(r.id)}
@@ -498,6 +555,16 @@ export default function Careers() {
 }
 
 /* ───────────── Role briefs ───────────── */
+
+function GenericBrief({ summary }: { summary: string }) {
+  return (
+    <div>
+      <p className="text-base leading-relaxed" style={{ color: C.ink }}>
+        {summary || 'Open the application to share your details and experience for this role.'}
+      </p>
+    </div>
+  );
+}
 
 function TutorBrief() {
   return (

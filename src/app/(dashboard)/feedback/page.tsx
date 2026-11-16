@@ -7,6 +7,7 @@ import FeedbackModal from '@/components/FeedbackModal'
 import ManagerUserModal from '@/components/ManagerUserModal'
 import { useLoadingFact } from '@/hooks/useLoadingFact'
 import LoadingFactCard from '@/components/ui/LoadingFactCard'
+import ReviewsManager from '@/components/storefront/native/ReviewsManager'
 
 const fetcher = (url: string) => fetch(url).then(r => r.json())
 
@@ -51,7 +52,7 @@ export default function FeedbackPage() {
   }
 
   if (user.role === 'MANAGER') {
-    return <ManagerFeedbackView />
+    return <ManagerFeedbackSwitch />
   }
 
   if ((user.role === 'ADMIN' || user.role === 'MODERATOR') || user.role === 'INSTRUCTOR') {
@@ -415,6 +416,19 @@ function StudentFeedbackView({ userId }: { userId: string }) {
         />
       )}
     </div>
+  )
+}
+
+function ManagerFeedbackSwitch() {
+  const [mode, setMode] = useState<'feedback' | 'reviews'>('feedback')
+  return (
+    <>
+      <div style={{ display: 'flex', gap: 8, padding: '12px 16px 0' }}>
+        <button className={`btn btn-sm ${mode === 'feedback' ? 'btn-primary' : 'btn-secondary'}`} onClick={() => setMode('feedback')}>Class feedback</button>
+        <button className={`btn btn-sm ${mode === 'reviews' ? 'btn-primary' : 'btn-secondary'}`} onClick={() => setMode('reviews')}>Course reviews</button>
+      </div>
+      {mode === 'reviews' ? <div className="gz-page fade-in"><ReviewsManager /></div> : <ManagerFeedbackView />}
+    </>
   )
 }
 

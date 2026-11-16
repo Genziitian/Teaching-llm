@@ -104,7 +104,7 @@ export default function Resources() {
     ) as PYQResource[];
 
     setPyqLoading(true);
-    fetch(`/api/resources?level=${encodeURIComponent(pyqLevel)}&subject=${encodeURIComponent(pyqSubject)}&type=pyq`)
+    fetch(`/api/site/resources?level=${encodeURIComponent(pyqLevel)}&subject=${encodeURIComponent(pyqSubject)}&type=pyq`)
       .then(r => r.json())
       .then(data => {
         const apiData: PYQResource[] = Array.isArray(data) ? data : [];

@@ -566,7 +566,7 @@ export default function CareerApplicationModal({ isOpen, onClose, role }: Career
       // 1. Submit to platform API
       let apiSaved = false;
       try {
-        const res = await fetch('/api/job-applications', {
+        const res = await fetch('/api/site/job-applications', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload)

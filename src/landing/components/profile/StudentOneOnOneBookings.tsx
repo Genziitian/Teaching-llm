@@ -80,7 +80,7 @@ export default function StudentOneOnOneBookings({ email }: StudentOneOnOneBookin
     if (!email) return;
     try {
       const authHeaders = await getAuthHeaders();
-      const res = await fetch(`/api/1on1-bookings?email=${encodeURIComponent(email)}`, {
+      const res = await fetch(`/api/site/1on1-bookings?email=${encodeURIComponent(email)}`, {
         headers: authHeaders
       });
       const data = await res.json();
@@ -139,7 +139,7 @@ export default function StudentOneOnOneBookings({ email }: StudentOneOnOneBookin
 
     try {
       const authHeaders = await getAuthHeaders();
-      const res = await fetch('/api/1on1-bookings/reschedule', {
+      const res = await fetch('/api/site/1on1-bookings/reschedule', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', ...authHeaders },
         body: JSON.stringify({
@@ -190,7 +190,7 @@ export default function StudentOneOnOneBookings({ email }: StudentOneOnOneBookin
 
     try {
       const authHeaders = await getAuthHeaders();
-      const res = await fetch('/api/1on1-bookings/cancel', {
+      const res = await fetch('/api/site/1on1-bookings/cancel', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', ...authHeaders },
         body: JSON.stringify({

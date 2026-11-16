@@ -167,7 +167,7 @@ export default function BookingModal1on1({ isOpen, onClose, defaultPlan, default
     };
 
     try {
-      const res = await fetch('/api/book-1on1-slot', {
+      const res = await fetch('/api/site/book-1on1-slot', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(bookingPayload)

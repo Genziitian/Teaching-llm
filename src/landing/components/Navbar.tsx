@@ -190,16 +190,16 @@ export default function Navbar() {
                 </button>
                 {userMenuOpen && (
                   <div className="absolute top-full right-0 mt-3 w-56 animate-[fadeSlide_0.18s_ease-out] bg-white border-[3px] border-[#0b1120] rounded-xl shadow-[6px_6px_0px_#0b1120] py-2 z-50">
-                    <Link to="/explore/profile" onClick={() => setUserMenuOpen(false)} className="flex items-center gap-3 px-4 py-2.5 text-sm font-bold text-gray-700 hover:bg-gray-50 transition-colors">
+                    <a href="https://class.genziitian.in/profile" onClick={() => setUserMenuOpen(false)} className="flex items-center gap-3 px-4 py-2.5 text-sm font-bold text-gray-700 hover:bg-gray-50 transition-colors">
                       <UserIcon className="w-4 h-4" /> My Profile
-                    </Link>
+                    </a>
                     {isEmployee && <Link to="/employee/id" onClick={() => setUserMenuOpen(false)} className="flex items-center gap-3 px-4 py-2.5 text-sm font-bold text-blue-600 hover:bg-blue-50 transition-colors">
                       <UserIcon className="w-4 h-4" /> Your ID
                     </Link>}
                     {isManager && (
-                      <Link to="/manager" onClick={() => setUserMenuOpen(false)} className="flex items-center gap-3 px-4 py-2.5 text-sm font-bold text-red-500 hover:bg-red-50 transition-colors">
+                      <a href="https://class.genziitian.in/manage" onClick={() => setUserMenuOpen(false)} className="flex items-center gap-3 px-4 py-2.5 text-sm font-bold text-red-500 hover:bg-red-50 transition-colors">
                         <LayoutDashboard className="w-4 h-4" /> Manager Panel
-                      </Link>
+                      </a>
                     )}
                     <div className="h-0.5 bg-gray-100 my-2 mx-4" />
                     <button onClick={signOut} className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-bold text-gray-500 hover:bg-gray-50 transition-colors">

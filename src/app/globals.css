@@ -3480,13 +3480,14 @@ tr:hover td {
    - tap fires immediately (no double-tap-zoom wait)
    - inputs >= 16px on touch so iOS Safari does not zoom the page on focus
    - controls (not content) are not selectable on long-press
-   - root does not rubber-band / pull-to-refresh; inner scrollers contain overscroll */
+   - inner scrollers contain overscroll */
 html {
   -webkit-tap-highlight-color: transparent;
   -webkit-text-size-adjust: 100%;
-  overscroll-behavior: none;
 }
-body { overscroll-behavior: none; }
+/* NOTE: no overscroll-behavior on html/body. With html{height:100%} + overflow-x:hidden
+   it stopped the landing page (document scroll) from scrolling with mouse/trackpad.
+   The dashboard keeps its own contained scroll region below. */
 .dashboard-scroll-region { overscroll-behavior-y: contain; }
 
 button, a, [role="button"], summary, label[for], select {

@@ -146,7 +146,7 @@ export default function CareerTrack() {
     setLoading(true);
     setError('');
     try {
-      const res = await fetch('/api/job-applications/mine', { headers: await authHeaders() });
+      const res = await fetch('/api/site/job-applications/mine', { headers: await authHeaders() });
       const json = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(json.error || 'Could not load your applications.');
       setApps(json.applications || []);
@@ -494,7 +494,7 @@ function AddForm({ app, onAdded }: { app: TrackedApp; onAdded: (a: TrackedApp) =
     setSaving(true);
     setError('');
     try {
-      const res = await fetch('/api/job-applications/add-info', {
+      const res = await fetch('/api/site/job-applications/add-info', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', ...(await authHeaders()) },
         body: JSON.stringify({ id: app.id, type, value: trimmed, label: type === 'link' ? label.trim() : undefined }),

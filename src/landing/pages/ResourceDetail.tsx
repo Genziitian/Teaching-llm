@@ -38,7 +38,7 @@ export default function ResourceDetail() {
             n => n.level === decodedLevel && n.subject === decodedSubject
         );
 
-        fetch(`/api/resources?level=${encodeURIComponent(decodedLevel)}&subject=${encodeURIComponent(decodedSubject)}`)
+        fetch(`/api/site/resources?level=${encodeURIComponent(decodedLevel)}&subject=${encodeURIComponent(decodedSubject)}`)
             .then(res => res.json())
             .then(data => {
                 const apiData: Resource[] = Array.isArray(data) ? data : [];

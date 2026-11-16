@@ -15,6 +15,7 @@ interface MenuItem {
   iconBg: string
   iconColor: string
   external?: boolean
+  hardNav?: boolean // full page load (leaves the class app, e.g. to the storefront home)
 }
 
 const ChevronRight = () => (
@@ -57,6 +58,7 @@ function MenuRow({ item, onClick }: { item: MenuItem; onClick?: () => void }) {
   }
   if (onClick) return <button onClick={onClick} style={baseStyle}>{content}</button>
   if (item.external) return <a href={item.href} target="_blank" rel="noopener noreferrer" style={baseStyle}>{content}</a>
+  if (item.hardNav) return <a href={item.href} style={baseStyle}>{content}</a>
   return <Link href={item.href} style={baseStyle}>{content}</Link>
 }
 
@@ -249,6 +251,13 @@ https://class.genziitian.in/download`
       iconBg: 'rgba(16, 185, 129, 0.10)', iconColor: 'var(--success)',
       icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>,
     }]),
+    {
+      href: '/',
+      label: 'Home',
+      hardNav: true,
+      iconBg: 'rgba(54, 54, 232, 0.10)', iconColor: 'var(--primary)',
+      icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>,
+    },
     {
       href: '/settings',
       label: 'Settings',
