@@ -13,6 +13,7 @@ import {
   ExternalLink,
   Clock
 } from 'lucide-react';
+import { CLASS_URL, CLASS_HOST } from '@/landing/lib/links';
 
 export default function PrivacyPolicy() {
   useEffect(() => {
@@ -67,8 +68,8 @@ export default function PrivacyPolicy() {
           <ul className="list-disc pl-6 space-y-2 text-sm sm:text-base text-gray-600">
             <li>
               Visit our website at{' '}
-              <a href="https://class.genziitian.in/" target="_blank" rel="noopener noreferrer" className="text-emerald-600 font-semibold underline hover:text-emerald-700">
-                https://class.genziitian.in/
+              <a href={`${CLASS_URL}/`} target="_blank" rel="noopener noreferrer" className="text-emerald-600 font-semibold underline hover:text-emerald-700">
+                {CLASS_URL}/
               </a>{' '}
               or any website of ours that links to this Privacy Notice
             </li>

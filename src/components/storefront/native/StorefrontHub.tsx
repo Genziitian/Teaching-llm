@@ -7,7 +7,6 @@ const load = (fn: () => Promise<any>) => dynamic(fn, { ssr: false })
 
 const SECTIONS = [
   { id: 'users', label: 'Users', C: load(() => import('./UsersManager')) },
-  { id: 'courses', label: 'Courses', C: load(() => import('./CoursesStorefrontManager')) },
   { id: 'boxes', label: 'Boxes', C: load(() => import('./BoxesManager')) },
   { id: 'booklets', label: 'Booklets', C: load(() => import('./BookletsManager')) },
   { id: 'payments', label: 'Payments', C: load(() => import('./PaymentsStorefrontPanel')) },

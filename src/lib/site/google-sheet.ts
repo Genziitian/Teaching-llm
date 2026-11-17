@@ -1,4 +1,5 @@
 import { storefrontDb } from '@/lib/storefront/db'
+import { siteDb } from '@/lib/site/store-courses'
 
 /**
  * Append a purchase / failure row to the storefront's Google Sheet (Apps Script webhook at
@@ -44,7 +45,7 @@ export async function getCourseSummary(courseIds: unknown): Promise<{ courseName
   const ids = Array.isArray(courseIds) ? courseIds.filter((id): id is string => typeof id === 'string' && id.length > 0) : []
   if (ids.length === 0) return { courseNames, classTypes }
 
-  const supabase = storefrontDb()
+  const supabase = siteDb()
   const [{ data: catalog }, { data: fullCourses }] = await Promise.all([
     supabase.from('course_catalog').select('name').in('id', ids),
     supabase.from('courses').select('id, name, class_type').in('id', ids),

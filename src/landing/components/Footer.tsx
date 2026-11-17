@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import { Link } from '@/landing/shims/router';
 import { GraduationCap, Youtube, MessageCircle, Instagram, Linkedin, LayoutDashboard, BookOpenCheck, Mail } from 'lucide-react';
+import { CLASS_URL, CLASS_HOST } from '@/landing/lib/links';
 
 export default function Footer() {
   const [isNewsletterPopupOpen, setIsNewsletterPopupOpen] = useState(false);
@@ -87,7 +88,7 @@ export default function Footer() {
               <h4 className="text-xl font-black text-white mt-10 mb-6">Our Platforms</h4>
               <ul className="space-y-4">
                 <li>
-                  <a href="https://class.genziitian.in/dashboard" target="_blank" rel="noopener noreferrer" className="flex items-start gap-3 text-gray-400 font-bold hover:text-[#10b981] transition-colors">
+                  <a href={`${CLASS_URL}/dashboard`} target="_blank" rel="noopener noreferrer" className="flex items-start gap-3 text-gray-400 font-bold hover:text-[#10b981] transition-colors">
                     <LayoutDashboard className="w-5 h-5 text-[#10b981] shrink-0 mt-0.5" />
                     <span>Student Dashboard<span className="block text-xs font-medium text-gray-500">All your courses in one place</span></span>
                   </a>

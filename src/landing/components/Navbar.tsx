@@ -5,6 +5,7 @@ import { User as UserIcon, LogOut, LayoutDashboard, Gift, ChevronDown } from 'lu
 import { useAuth } from '@/landing/context/AuthContext';
 import { useCart } from '@/landing/context/CartContext';
 import QuizLabNavPill from '@/landing/components/QuizLabNavPill';
+import { CLASS_URL } from '@/landing/lib/links';
 
 const RESOURCE_LINKS = [
   { to: '/resources', label: 'PYQs & Notes' },
@@ -171,7 +172,7 @@ export default function Navbar() {
                 <Gift className="w-5 h-5" />
               </Link>
               <button 
-                onClick={() => window.open('https://class.genziitian.in', '_blank', 'noopener,noreferrer')}
+                onClick={() => window.open(CLASS_URL, '_blank', 'noopener,noreferrer')}
                 title="Dashboard" className="hidden sm:flex items-center gap-2 px-3 xl:px-4 py-2 whitespace-nowrap shrink-0 bg-white text-blue-600 border-2 border-[#0b1120] rounded-xl font-bold hover:bg-blue-50 transition-colors shadow-[4px_4px_0px_#0b1120]"
               >
                 <LayoutDashboard className="w-4 h-4" />
@@ -190,14 +191,14 @@ export default function Navbar() {
                 </button>
                 {userMenuOpen && (
                   <div className="absolute top-full right-0 mt-3 w-56 animate-[fadeSlide_0.18s_ease-out] bg-white border-[3px] border-[#0b1120] rounded-xl shadow-[6px_6px_0px_#0b1120] py-2 z-50">
-                    <a href="https://class.genziitian.in/profile" onClick={() => setUserMenuOpen(false)} className="flex items-center gap-3 px-4 py-2.5 text-sm font-bold text-gray-700 hover:bg-gray-50 transition-colors">
+                    <a href={`${CLASS_URL}/profile`} onClick={() => setUserMenuOpen(false)} className="flex items-center gap-3 px-4 py-2.5 text-sm font-bold text-gray-700 hover:bg-gray-50 transition-colors">
                       <UserIcon className="w-4 h-4" /> My Profile
                     </a>
                     {isEmployee && <Link to="/employee/id" onClick={() => setUserMenuOpen(false)} className="flex items-center gap-3 px-4 py-2.5 text-sm font-bold text-blue-600 hover:bg-blue-50 transition-colors">
                       <UserIcon className="w-4 h-4" /> Your ID
                     </Link>}
                     {isManager && (
-                      <a href="https://class.genziitian.in/manage" onClick={() => setUserMenuOpen(false)} className="flex items-center gap-3 px-4 py-2.5 text-sm font-bold text-red-500 hover:bg-red-50 transition-colors">
+                      <a href={`${CLASS_URL}/manage`} onClick={() => setUserMenuOpen(false)} className="flex items-center gap-3 px-4 py-2.5 text-sm font-bold text-red-500 hover:bg-red-50 transition-colors">
                         <LayoutDashboard className="w-4 h-4" /> Manager Panel
                       </a>
                     )}

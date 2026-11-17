@@ -1,0 +1,1 @@
+ALTER TABLE "CourseOffering" ADD COLUMN IF NOT EXISTS "website" JSONB;

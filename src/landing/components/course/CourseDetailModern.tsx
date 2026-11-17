@@ -28,6 +28,7 @@ import {
   includedPointsFor,
   type FeedbackNote,
 } from '@/landing/data/coursePage';
+import { CLASS_URL, CLASS_HOST } from '@/landing/lib/links';
 
 function formatCourseDate(date: string) {
   return new Date(date).toLocaleDateString('en-GB', {
@@ -486,7 +487,7 @@ export default function CourseDetailModern({
 
           <section id="desk" className="scroll-mt-36 bg-white border border-slate-200 rounded-2xl p-5 sm:p-6">
             <h2 className="text-base font-semibold text-slate-950">On your dashboard</h2>
-            <p className="mt-1 text-sm text-slate-500">class.genziitian.in, after this batch is on your account.</p>
+            <p className="mt-1 text-sm text-slate-500">{CLASS_HOST}, after this batch is on your account.</p>
             <div className="mt-4 grid sm:grid-cols-2 gap-3">
               {PORTAL.map((item) => (
                 <div key={item.title} className="rounded-xl border border-slate-200 p-3.5">
@@ -517,7 +518,7 @@ export default function CourseDetailModern({
               <div className="mt-4 rounded-xl border border-dashed border-slate-200 bg-slate-50 px-4 py-8 text-center">
                 <p className="text-sm text-slate-600">The walkthrough plays here once a YouTube link is added for this course.</p>
                 <a
-                  href="https://class.genziitian.in"
+                  href={CLASS_URL}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-block mt-3 text-sm text-slate-900 underline underline-offset-4"

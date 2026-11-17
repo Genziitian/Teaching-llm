@@ -1216,6 +1216,8 @@ model CourseOffering {
   championSubtitle      String?
   detailsLink           String?
   highlights            String?
+  /// Website listing extras: { subtitle, tags (max 2), marketingTag, isPinned, boxes }
+  website               Json?
   category              String      @default("General")
   createdAt             DateTime    @default(now())
   updatedAt             DateTime    @updatedAt

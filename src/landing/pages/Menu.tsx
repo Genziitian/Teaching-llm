@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { useAuth } from '@/landing/context/AuthContext';
+import { CLASS_URL } from '@/landing/lib/links';
 
 type RowProps = {
   Icon: typeof Mail;
@@ -83,7 +84,7 @@ export default function Menu() {
       <div className="max-w-md mx-auto px-4 pt-5 pb-4">
         {/* Profile header */}
         <button
-          onClick={() => (user ? window.location.assign('https://class.genziitian.in/profile') : openLoginModal())}
+          onClick={() => (user ? window.location.assign(`${CLASS_URL}/profile`) : openLoginModal())}
           className="w-full flex items-center gap-3.5 rounded-[18px] border-[2.5px] border-[#0b1120] shadow-[4px_4px_0px_#0b1120] px-4 py-4 text-left"
           style={{ background: 'linear-gradient(105deg, #2563EB, #1D4ED8)' }}
         >
@@ -112,11 +113,11 @@ export default function Menu() {
         </Group>
 
         <Group label="ACCOUNT">
-          {user && <MenuRow Icon={UserIcon} tint="#E7EEFF" glyph="#2563EB" label="My Profile" href="https://class.genziitian.in/profile" />}
+          {user && <MenuRow Icon={UserIcon} tint="#E7EEFF" glyph="#2563EB" label="My Profile" href={`${CLASS_URL}/profile`} />}
           {user && isEmployee && <MenuRow Icon={UserCheck} tint="#D1FAE5" glyph="#059669" label="Your ID" to="/employee/id" />}
           <MenuRow Icon={Gift} tint="#FEF1DF" glyph="#FF7A00" label="Refer & Earn" to="/refer" />
-          {user && <MenuRow Icon={LayoutDashboard} tint="#E4F7EE" glyph="#0E9E6A" label="Class Dashboard" href="https://class.genziitian.in" external />}
-          {isManager && <MenuRow Icon={ShieldCheck} tint="#FCE4E4" glyph="#FF2424" label="Manager Panel" href="https://class.genziitian.in/manage" />}
+          {user && <MenuRow Icon={LayoutDashboard} tint="#E4F7EE" glyph="#0E9E6A" label="Class Dashboard" href={CLASS_URL} external />}
+          {isManager && <MenuRow Icon={ShieldCheck} tint="#FCE4E4" glyph="#FF2424" label="Manager Panel" href={`${CLASS_URL}/manage`} />}
         </Group>
 
         <Group label="SOCIAL">

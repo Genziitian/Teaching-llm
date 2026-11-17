@@ -8,6 +8,7 @@ import ChampionPolicy from '@/components/courses/ChampionPolicy'
 import StoreDetailScreen from '@/components/courses/StoreDetailScreen'
 import ShareLinkModal, { ShareIcon } from '@/components/ShareLinkModal'
 import StorefrontHub from '@/components/storefront/native/StorefrontHub'
+import OfferingExtraFields, { EMPTY_EXTRA, extraFromOffering, extraToBody, type OfferingExtra } from '@/components/store/OfferingExtraFields'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { BookOpen, FileText, Users, ClipboardList, Trash2, Pencil, Sparkles, IndianRupee, Calendar, Plus, ExternalLink, HelpCircle, ChevronRight, X, Info, ArrowLeft, Upload, LockOpen, Receipt } from 'lucide-react'
 import { normalizeMeetLink } from '@/lib/meet-link'
@@ -121,6 +122,8 @@ function ExploreStore() {
   const [championSubtitle, setChampionSubtitle] = useState('')
   const [tags, setTags] = useState<string[]>([])
   const [tagInput, setTagInput] = useState('')
+  const [extra, setExtra] = useState<OfferingExtra>(EMPTY_EXTRA)
+  const [editExtra, setEditExtra] = useState<OfferingExtra>(EMPTY_EXTRA)
   const [creating, setCreating] = useState(false)
   // Bundle creation (recommended bundle) states
   const [createBundle, setCreateBundle] = useState(false)
@@ -1895,7 +1898,7 @@ function ExploreStore() {
                   {/* Edit button for managers */}
                   {(userData?.user?.role === 'MANAGER' || userData?.role === 'MANAGER') && (
                     <button
-                      onClick={(e) => { e.preventDefault(); e.stopPropagation(); setEditingOffering(offering); setEditFormData({ recordedOriginalPrice: offering.recordedOriginalPrice ?? '', recordedDiscountPrice: offering.recordedDiscountPrice ?? '', liveOriginalPrice: offering.liveOriginalPrice ?? '', liveDiscountPrice: offering.liveDiscountPrice ?? '', championOriginalPrice: offering.championOriginalPrice ?? '', championDiscountPrice: offering.championDiscountPrice ?? '', championSubtitle: offering.championSubtitle ?? '', detailsLink: offering.detailsLink ?? '', category: offering.category || 'General' }) }}
+                      onClick={(e) => { e.preventDefault(); e.stopPropagation(); setEditingOffering(offering); setEditExtra(extraFromOffering(offering)); setEditFormData({ recordedOriginalPrice: offering.recordedOriginalPrice ?? '', recordedDiscountPrice: offering.recordedDiscountPrice ?? '', liveOriginalPrice: offering.liveOriginalPrice ?? '', liveDiscountPrice: offering.liveDiscountPrice ?? '', championOriginalPrice: offering.championOriginalPrice ?? '', championDiscountPrice: offering.championDiscountPrice ?? '', championSubtitle: offering.championSubtitle ?? '', detailsLink: offering.detailsLink ?? '', category: offering.category || 'General' }) }}
                       style={{
                         width: '28px', height: '28px', borderRadius: '50%',
                         background: 'rgba(255,255,255,0.3)', backdropFilter: 'blur(8px)',
@@ -3181,6 +3184,8 @@ function ExploreStore() {
                   </select>
                 </div>
 
+                <OfferingExtraFields value={extra} onChange={(p) => setExtra((e) => ({ ...e, ...p }))} category={offeringCategory} />
+
                 {selectedCourse && courses && (
                   (() => {
                     const selected = courses.find((c: any) => c.id === selectedCourse)
@@ -3467,6 +3472,7 @@ function ExploreStore() {
                         hasLive: liveOriginal > 0 || liveDiscount > 0,
                         hasChampion: championOriginal > 0 || championDiscount > 0,
                         category: offeringCategory,
+                        ...extraToBody(extra, tags),
                       }),
                     })
                     if (res.ok) {
@@ -3482,6 +3488,7 @@ function ExploreStore() {
                       setChampionDiscountPrice('')
                       setChampionSubtitle('')
                       setTags([])
+                      setExtra(EMPTY_EXTRA)
                       // reset bundle form
                       setCreateBundle(false)
                       setBundleName('')
@@ -3747,6 +3754,8 @@ function ExploreStore() {
                   </select>
                 </div>
 
+                <OfferingExtraFields value={editExtra} onChange={(p) => setEditExtra((e) => ({ ...e, ...p }))} category={editFormData.category || 'General'} />
+
                 {editingOffering.hasRecorded && (
                   <div style={{ background: 'var(--surface)', padding: '20px', borderRadius: '12px', marginBottom: '20px', border: '2px solid var(--border)' }}>
                     <h4 style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '16px' }}>
@@ -3870,6 +3879,7 @@ function ExploreStore() {
                         hasRecorded: (editFormData.recordedOriginalPrice > 0 || editFormData.recordedDiscountPrice > 0),
                         hasLive: (editFormData.liveOriginalPrice > 0 || editFormData.liveDiscountPrice > 0),
                         category: editFormData.category || 'General',
+                        ...extraToBody(editExtra, (editingOffering.website?.tags as string[]) || []),
                       })
                     })
                     if (res.ok) {

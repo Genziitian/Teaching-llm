@@ -1,4 +1,5 @@
 import { storefrontDb } from '@/lib/storefront/db'
+import { siteDb } from '@/lib/site/store-courses'
 import { escapeLike } from '@/lib/site/http'
 
 export type AutomatedEmailType = 'abandoned' | 'nudge' | 'missyou'
@@ -94,7 +95,7 @@ async function sendAndRecord(
  * Each type is sent at most once per email (ledger: activity_logs EMAIL_SENT).
  */
 export async function processAutomatedEmails(webhookUrl: string): Promise<AutomatedEmailReport> {
-  const supabase = storefrontDb()
+  const supabase = siteDb()
   const report: AutomatedEmailReport = { abandonedSent: [], nudgeSent: [], missyouSent: [] }
 
   const now = Date.now()

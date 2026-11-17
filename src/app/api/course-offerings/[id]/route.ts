@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { getSession } from '@/lib/auth'
+import { applyCourseExtras, cleanWebsite } from '@/lib/site/offering-extra'
 
 export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
   try {
@@ -35,8 +36,11 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
         championSubtitle: championSubtitle || null,
         detailsLink: detailsLink || null,
         category: category || undefined,
+        highlights: typeof data.highlights === 'string' ? data.highlights.split('\n').map((x: string) => x.trim()).filter(Boolean).slice(0, 30).join('\n') || null : undefined,
+        website: data.website ? cleanWebsite(data.website) : undefined,
       }
     })
+    if (offering.courseId) await applyCourseExtras(offering.courseId, data)
 
     return NextResponse.json(offering)
   } catch (error) {

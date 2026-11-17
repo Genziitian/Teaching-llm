@@ -1,6 +1,7 @@
 import { NextRequest } from 'next/server'
 import { getSession } from '@/lib/auth'
 import { storefrontDb } from '@/lib/storefront/db'
+import { siteDb } from '@/lib/site/store-courses'
 import { getStorefrontRazorpay } from '@/lib/site/razorpay'
 import { readBody, jsonRes } from '@/lib/site/http'
 
@@ -174,7 +175,7 @@ export async function POST(request: NextRequest) {
   const res = jsonRes();
 
   try {
-    const supabase = storefrontDb();
+    const supabase = siteDb();
     const razorpay = getStorefrontRazorpay();
     const {
       amount,

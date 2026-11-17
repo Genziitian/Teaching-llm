@@ -1,5 +1,6 @@
 import type { NextRequest } from 'next/server'
 import { storefrontDb } from '@/lib/storefront/db'
+import { siteDb } from '@/lib/site/store-courses'
 import { findProfileByEmail } from '@/lib/site/profile'
 import { getEnrollUrl } from '@/lib/site/enroll-url'
 import { escapeLike } from '@/lib/site/http'
@@ -40,7 +41,7 @@ function parseBundleCourses(raw: unknown): any[] {
  * buyer's coins. Each step after the PAID claim is isolated so one failure never blocks the rest.
  */
 export async function enrollPaidStorefrontOrder(request: NextRequest, input: EnrollOrderInput): Promise<EnrollOrderResult> {
-  const supabase = storefrontDb()
+  const supabase = siteDb()
   const orderId = input.razorpayOrderId
   const paymentId = input.razorpayPaymentId
 
