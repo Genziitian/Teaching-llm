@@ -100,7 +100,7 @@ function StudentFeedbackView({ userId }: { userId: string }) {
   if (isLoading) return <div className="page-container animate-pulse" />
 
   return (
-    <div className="gz-page fade-in" style={{ maxWidth: 900 }}>
+    <div className="gz-page fade-in">
       <style>{`
         .mobile-back-header {
           display: none !important;
@@ -1382,7 +1382,7 @@ function AdminFeedbackView({ user }: { user: any }) {
   }
 
   return (
-    <div className="gz-page fade-in" style={{ maxWidth: 900 }}>
+    <div className="gz-page fade-in">
       {/* Mobile back header */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '28px' }}>
         <button

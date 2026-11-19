@@ -9,6 +9,7 @@ import '../../shared/widgets/shimmer_loading.dart';
 import '../../shared/widgets/sub_page_header.dart';
 import '../../theme/app_theme_tokens.dart';
 import 'new_ticket_sheet.dart';
+import 'support_call.dart' show isSupportOpen, showScheduleCallSheet, startSupportCall;
 
 const _whatsapp = 'https://wa.me/917254926179';
 
@@ -209,6 +210,12 @@ class _GeniePageState extends ConsumerState<GeniePage> {
               chip(_ui('No, I still need help', 'Nahi, abhi bhi help chahiye'), () => _answer(false), icon: Icons.help_outline),
             ],
             if (_stage == _Stage.needHuman) ...[
+              // Live call only in support hours (it rings managers' phones); otherwise a call back or a ticket.
+              if (isSupportOpen())
+                chip(_ui('Call support now (voice or video)', 'Abhi support ko call karo'), () => startSupportCall(context), icon: Icons.call),
+              chip(_ui('Request a call back', 'Call back request karo'),
+                  () => showScheduleCallSheet(context, ref, reason0: _log.where((m) => !m.bot).map((m) => m.text).join(' → ')),
+                  icon: Icons.schedule),
               chip(_ui('Raise a support ticket', 'Support ticket banao'), _raiseTicket, icon: Icons.confirmation_number_outlined),
               chip(_ui('Chat with an agent on WhatsApp', 'WhatsApp par agent se chat karo'), () => _open(_whatsapp), icon: Icons.chat_outlined),
             ],

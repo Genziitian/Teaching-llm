@@ -2315,67 +2315,6 @@ export default function CommunityPage() {
                 General Discussion
               </button>
 
-              <button
-                className={`community-sidebar-tab ${(sidebarTab === 'announcements' && !selectedClass) ? 'active' : ''}`}
-                onClick={() => {
-                  setSidebarTab('announcements')
-                  setSelectedClass(null)
-                }}
-                style={{
-                  display: 'flex', alignItems: 'center', gap: '12px',
-                  padding: '10px 14px', borderRadius: '14px', border: 'none',
-                  cursor: 'pointer', textAlign: 'left', fontFamily: 'inherit',
-                  background: (sidebarTab === 'announcements' && !selectedClass) ? 'var(--primary-light)' : 'transparent',
-                  color: (sidebarTab === 'announcements' && !selectedClass) ? 'var(--primary)' : 'var(--text-primary)',
-                  fontWeight: 600, fontSize: '13px', transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
-                }}
-                onMouseEnter={e => {
-                  e.currentTarget.style.transform = 'translateY(-1px)'
-                  if (sidebarTab !== 'announcements' || selectedClass) {
-                    e.currentTarget.style.background = 'var(--surface-3)'
-                  }
-                }}
-                onMouseLeave={e => {
-                  e.currentTarget.style.transform = 'translateY(0)'
-                  if (sidebarTab !== 'announcements' || selectedClass) {
-                    e.currentTarget.style.background = 'transparent'
-                  }
-                }}
-              >
-                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
-                  <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
-                  <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
-                </svg>
-                Announcements
-              </button>
-
-              <button
-                className="community-sidebar-tab"
-                onClick={() => setGuidelinesOpen(true)}
-                style={{
-                  display: 'flex', alignItems: 'center', gap: '12px',
-                  padding: '10px 14px', borderRadius: '14px', border: 'none',
-                  cursor: 'pointer', textAlign: 'left', fontFamily: 'inherit',
-                  background: 'transparent',
-                  color: 'var(--text-primary)',
-                  fontWeight: 600, fontSize: '13px', transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
-                }}
-                onMouseEnter={e => {
-                  e.currentTarget.style.transform = 'translateY(-1px)'
-                  e.currentTarget.style.background = 'var(--surface-3)'
-                }}
-                onMouseLeave={e => {
-                  e.currentTarget.style.transform = 'translateY(0)'
-                  e.currentTarget.style.background = 'transparent'
-                }}
-              >
-                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
-                  <circle cx="12" cy="12" r="10" />
-                  <line x1="12" y1="16" x2="12" y2="12" />
-                  <line x1="12" y1="8" x2="12.01" y2="8" />
-                </svg>
-	                Community Guidelines
-	              </button>
 	              <div
 	                aria-hidden="true"
 	                className="community-sidebar-divider"
@@ -2390,7 +2329,7 @@ export default function CommunityPage() {
 
             <div className="community-courses-panel">
               <div style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-muted)', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '8px', padding: '0 6px' }}>
-                Communities
+                Your course chats
               </div>
               {shouldShowCourseSkeletons ? (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
@@ -4344,20 +4283,17 @@ export default function CommunityPage() {
                           >
                             <div className="chat-msg-bubble" style={{
                               padding: msg.imageUrl ? '5px' : '7px 12px 6px 12px',
-                              borderRadius: isMe ? '16px 16px 4px 16px' : '16px 16px 16px 4px',
-                              background: selectedMessage?.id === msg.id
-                                ? '#d0e1fd'
-                                : isMe ? '#dcf8c6' : isBot ? '#fff7e6' : isAdmin ? '#e0e7ff' : '#ffffff',
-                              color: '#1e1e3a',
+                              borderRadius: isMe ? '14px 14px 4px 14px' : '14px 14px 14px 4px',
+                              // Theme tokens: own = ink, others = panel; staff / GenZie get a faint tint.
+                              background: isMe ? 'var(--gz-ink)'
+                                : isBot ? 'color-mix(in srgb, #f59e0b 9%, var(--gz-panel))'
+                                : isAdmin ? 'color-mix(in srgb, var(--gz-ink) 5%, var(--gz-panel))' : 'var(--gz-panel)',
+                              color: isMe ? 'var(--gz-panel)' : 'var(--gz-ink)',
                               fontSize: '14px', lineHeight: '1.5',
-                              boxShadow: selectedMessage?.id === msg.id
-                                ? '0 0 0 2.5px #3636e8, 0 4px 12px rgba(128, 128, 128,0.2)'
-                                : '0 2px 4px rgba(0,0,0,0.05)',
+                              boxShadow: selectedMessage?.id === msg.id ? '0 0 0 2px var(--gz-ink-3)' : 'none',
                               minWidth: '80px',
                               maxWidth: '100%',
-                              border: selectedMessage?.id === msg.id
-                                ? 'none'
-                                : isMe ? 'none' : isBot ? '1px solid #fcd8a6' : '1px solid #e8eaf0',
+                              border: isMe ? '1px solid transparent' : isBot ? '1px solid color-mix(in srgb, #f59e0b 30%, var(--gz-line))' : '1px solid var(--gz-line)',
                               position: 'relative',
                               transition: 'all 0.2s',
                             }}>
@@ -4379,7 +4315,7 @@ export default function CommunityPage() {
                                     if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' })
                                   }}
                                   style={{
-                                    background: isMe ? 'rgba(0,0,0,0.06)' : 'color-mix(in srgb, var(--primary) 4%, transparent)',
+                                    background: 'color-mix(in srgb, currentColor 10%, transparent)', // works on ink and panel bubbles
                                     padding: '8px 12px',
                                     borderRadius: '10px',
                                     borderLeft: `4px solid ${isAdmin ? 'var(--primary)' : 'var(--text-secondary)'}`,
@@ -4400,12 +4336,12 @@ export default function CommunityPage() {
                                   onMouseLeave={e => e.currentTarget.style.background = isMe ? 'rgba(0,0,0,0.06)' : 'color-mix(in srgb, var(--primary) 4%, transparent)'}
                                 >
                                   {!isDirectMessageThread && (
-                                    <div style={{ fontWeight: 600, color: isAdmin ? 'var(--primary)' : '#555', fontSize: '11px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                                    <div style={{ fontWeight: 600, color: 'inherit', opacity: 0.85, fontSize: '11px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
                                       <span style={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis' }}>{msg.replyTo.sender.name}</span>
                                       <StaffRoleBadge role={msg.replyTo.sender.role} />
                                     </div>
                                   )}
-                                  <div style={{ color: '#666', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '100%', fontSize: '11.5px', lineHeight: '1.4' }}>
+                                  <div style={{ color: 'inherit', opacity: 0.7, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '100%', fontSize: '11.5px', lineHeight: '1.4' }}>
                                     {hasLectureLink(msg.replyTo.content) ? `💬 Comment: ${cleanContent(msg.replyTo.content)}` : msg.replyTo.content || (msg.replyTo.imageUrl ? (describeCommunityAttachment(msg.replyTo.imageUrl)?.isImage ? '📷 Image' : '📎 Document') : 'Message')}
                                   </div>
                                 </div>
@@ -4417,7 +4353,7 @@ export default function CommunityPage() {
                                     onClick={() => openUserIdentity(msg.sender)}
                                     style={{ 
                                       fontSize: '11px', fontWeight: 600, 
-                                      color: isAdmin ? 'var(--primary)' : '#888',
+                                      color: 'inherit', opacity: 0.75,
                                       cursor: 'pointer',
                                       textTransform: 'uppercase',
                                     }}
@@ -4437,7 +4373,7 @@ export default function CommunityPage() {
                                     const cleanedText = cleanContent(msg.content)
                                     return (
                                       <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', paddingBottom: '8px' }}>
-                                        <div style={{ fontSize: '12px', color: 'rgba(30, 30, 58, 0.7)', fontWeight: '600' }}>
+                                        <div style={{ fontSize: '12px', color: 'inherit', opacity: 0.7, fontWeight: '600' }}>
                                           Commented on <strong>{parsed.lectureTitle}</strong>:
                                         </div>
                                         <div style={{
@@ -4447,7 +4383,7 @@ export default function CommunityPage() {
                                           borderRadius: '6px',
                                           fontSize: '13px',
                                           lineHeight: '1.4',
-                                          color: '#1e1e3a',
+                                          color: 'inherit',
                                           fontStyle: 'italic',
                                           wordBreak: 'break-word',
                                           whiteSpace: 'pre-wrap',
@@ -4514,7 +4450,7 @@ export default function CommunityPage() {
                                 marginTop: msg.content || msg.imageUrl ? '4px' : 0,
                                 paddingLeft: '18px',
                                 fontSize: '10px',
-                                color: isMe ? '#4a7c44' : 'var(--text-muted)',
+                                color: 'inherit', opacity: 0.6,
                                 fontWeight: '600',
                                 lineHeight: 1,
                                 whiteSpace: 'nowrap',
@@ -4776,7 +4712,7 @@ export default function CommunityPage() {
                   );
                 }
                 return (
-                   <div style={{ display: 'flex', gap: '10px', alignItems: 'center', width: '100%' }}>
+                   <div className="cm-composer" style={{ display: 'flex', gap: '2px', alignItems: 'flex-end', width: '100%', padding: '5px', borderRadius: '14px', border: '1px solid var(--gz-line)', background: 'var(--gz-panel)' }}>
                     <input
                       type="file"
                       accept="image/jpeg,image/png,image/webp"
@@ -4796,12 +4732,12 @@ export default function CommunityPage() {
                       disabled={uploadingImage || !!editingMessage}
                       title="Attach image"
                       style={{
-                        width: '40px', height: '40px', borderRadius: '50%', border: 'none',
+                        width: '36px', height: '36px', borderRadius: '10px', border: 'none',
                         cursor: editingMessage ? 'default' : 'pointer', flexShrink: 0,
-                        background: (pendingImage && !editingMessage && pendingImagePreview?.startsWith('blob:')) ? 'var(--primary-light)' : 'var(--surface-2)',
-                        boxShadow: '4px 4px 8px var(--neu-dark), -4px -4px 8px var(--neu-light)',
+                        background: (pendingImage && !editingMessage && pendingImagePreview?.startsWith('blob:')) ? 'color-mix(in srgb, var(--gz-ink) 8%, transparent)' : 'transparent',
+                        boxShadow: 'none',
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        color: (pendingImage && !editingMessage && pendingImagePreview?.startsWith('blob:')) ? 'var(--primary)' : 'var(--text-muted)',
+                        color: (pendingImage && !editingMessage && pendingImagePreview?.startsWith('blob:')) ? 'var(--gz-ink)' : 'var(--gz-ink-3)',
                         transition: 'all 0.2s',
                         opacity: editingMessage ? 0.5 : 1,
                       }}
@@ -4828,12 +4764,12 @@ export default function CommunityPage() {
                       disabled={uploadingImage || !!editingMessage}
                       title="Attach document"
                       style={{
-                        width: '40px', height: '40px', borderRadius: '50%', border: 'none',
+                        width: '36px', height: '36px', borderRadius: '10px', border: 'none',
                         cursor: editingMessage ? 'default' : 'pointer', flexShrink: 0,
-                        background: (pendingImage && !editingMessage && !pendingImagePreview?.startsWith('blob:')) ? 'var(--primary-light)' : 'var(--surface-2)',
-                        boxShadow: '4px 4px 8px var(--neu-dark), -4px -4px 8px var(--neu-light)',
+                        background: (pendingImage && !editingMessage && !pendingImagePreview?.startsWith('blob:')) ? 'color-mix(in srgb, var(--gz-ink) 8%, transparent)' : 'transparent',
+                        boxShadow: 'none',
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        color: (pendingImage && !editingMessage && !pendingImagePreview?.startsWith('blob:')) ? 'var(--primary)' : 'var(--text-muted)',
+                        color: (pendingImage && !editingMessage && !pendingImagePreview?.startsWith('blob:')) ? 'var(--gz-ink)' : 'var(--gz-ink-3)',
                         transition: 'all 0.2s',
                         opacity: editingMessage ? 0.5 : 1,
                       }}
@@ -4932,14 +4868,14 @@ export default function CommunityPage() {
                             }
                           }
                         }}
-                        placeholder="Write Here....."
+                        placeholder="Write a message…"
                         disabled={(!editingMessage && !isDM(selectedClass) && selectedClass.isCommunityActive === false && userRole !== 'MANAGER') || uploadingImage}
                         rows={1}
                         style={{
-                          width: '100%', padding: '11px 16px', borderRadius: '14px',
+                          width: '100%', padding: '8px 8px', borderRadius: '8px',
                           border: 'none', outline: 'none', resize: 'none',
                           fontFamily: 'inherit', fontSize: '14px',
-                          ...neuInset, color: 'var(--text-primary)',
+                          background: 'transparent', color: 'var(--gz-ink)',
                           opacity: (!editingMessage && !isDM(selectedClass) && selectedClass.isCommunityActive === false && userRole !== 'MANAGER') ? 0.6 : 1,
                           lineHeight: '1.4',
                           maxHeight: '120px',
@@ -4953,16 +4889,17 @@ export default function CommunityPage() {
                         onClick={() => setShowEmojiPicker(v => !v)}
                         title="Emoji"
                         style={{
-                          width: '40px', height: '40px', borderRadius: '50%', border: 'none',
+                          width: '36px', height: '36px', borderRadius: '10px', border: 'none',
                           cursor: 'pointer', flexShrink: 0,
-                          background: showEmojiPicker ? 'var(--primary-light)' : 'var(--surface-2)',
-                          boxShadow: '4px 4px 8px var(--neu-dark), -4px -4px 8px var(--neu-light)',
+                          background: showEmojiPicker ? 'color-mix(in srgb, var(--gz-ink) 8%, transparent)' : 'transparent',
+                          boxShadow: 'none',
                           display: 'flex', alignItems: 'center', justifyContent: 'center',
                           fontSize: '18px',
                           transition: 'all 0.2s',
                         }}
+                        aria-label="Emoji"
                       >
-                        😊
+                        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10" /><path d="M8 14s1.5 2 4 2 4-2 4-2" /><line x1="9" y1="9" x2="9.01" y2="9" /><line x1="15" y1="9" x2="15.01" y2="9" /></svg>
                       </button>
                       {showEmojiPicker && (
                         <>
@@ -5027,14 +4964,14 @@ export default function CommunityPage() {
                           : ((!input.trim() && !pendingImage) || uploadingImage || (!isDM(selectedClass) && selectedClass.isCommunityActive === false && userRole !== 'MANAGER'))
                       }
                       style={{
-                        height: '44px', borderRadius: (pendingImage && !editingMessage) ? '50px' : '50%', border: 'none',
-                        width: (pendingImage && !editingMessage) ? 'auto' : '44px',
-                        padding: (pendingImage && !editingMessage) ? '0 20px' : '0',
+                        height: '36px', borderRadius: '10px', border: 'none',
+                        width: (pendingImage && !editingMessage) ? 'auto' : '36px',
+                        padding: (pendingImage && !editingMessage) ? '0 14px' : '0',
                         cursor: (editingMessage ? editContent.trim() : (input.trim() || pendingImage)) ? 'pointer' : 'default',
-                        background: (editingMessage ? editContent.trim() : (input.trim() || pendingImage)) ? selectedClass.color : 'var(--surface-2)',
-                        color: (editingMessage ? editContent.trim() : (input.trim() || pendingImage)) ? '#fff' : 'var(--text-muted)',
+                        background: (editingMessage ? editContent.trim() : (input.trim() || pendingImage)) ? 'var(--gz-ink)' : 'transparent',
+                        color: (editingMessage ? editContent.trim() : (input.trim() || pendingImage)) ? 'var(--gz-panel)' : 'var(--gz-ink-4)',
                         display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, gap: '6px',
-                        boxShadow: (editingMessage ? editContent.trim() : (input.trim() || pendingImage)) ? `4px 4px 10px ${selectedClass.color}55` : '4px 4px 8px var(--neu-dark), -4px -4px 8px var(--neu-light)',
+                        boxShadow: 'none',
                         transition: 'all 0.2s', fontWeight: 600, fontSize: '13px', fontFamily: 'inherit',
                       }}
                       title={editingMessage ? 'Save changes' : 'Send message'}

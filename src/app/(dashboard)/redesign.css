@@ -1149,3 +1149,7 @@ body .dashboard-layout [style*="backdrop-filter: blur"]:not(.gz-modal-scrim):not
 .gz-quick__item small { display: block; font-size: 11.5px; color: var(--gz-ink-3); margin-top: 2px; }
 .gz-quick__ico { flex-shrink: 0; width: 36px; height: 36px; border-radius: 10px; display: grid; place-items: center; background: var(--gz-panel); border: 1px solid var(--gz-line); color: var(--gz-ink-2); }
 @media (max-width: 1399px) { .gz-quick__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
+/* Community composer: one bar; the border darkens while typing */
+.cm-composer:focus-within { border-color: var(--gz-ink-3) !important; }
+.cm-composer button:not(:disabled):not([title='Send message']):not([title='Save changes']):hover { background: color-mix(in srgb, var(--gz-ink) 7%, transparent) !important; }

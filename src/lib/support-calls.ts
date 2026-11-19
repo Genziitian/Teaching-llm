@@ -1,9 +1,10 @@
 import { prisma } from '@/lib/db'
+import { RING_SECONDS } from '@/lib/support-limits'
 
 // type CALL = student → support (rings every manager); CALL_OUT = manager → one student;
 // SCHEDULED = student asks for a call later. callerId is always the student.
 // Media is a mesh: every participant connects to every other one; SDP goes through SupportCallSignal.
-export const RING_TIMEOUT_MS = 60_000
+export const RING_TIMEOUT_MS = RING_SECONDS * 1000
 export const callInclude = {
   caller: { select: { id: true, name: true, avatar: true } },
   manager: { select: { id: true, name: true } },

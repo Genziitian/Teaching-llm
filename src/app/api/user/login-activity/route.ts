@@ -42,7 +42,7 @@ export async function GET(request: NextRequest) {
         ...(staff ? { ip: l.ip } : {}),
       })
     }
-    return NextResponse.json({ devices: [...devices.values()] })
+    return NextResponse.json({ devices: Array.from(devices.values()) })
   } catch (error) {
     console.error('login-activity error:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })

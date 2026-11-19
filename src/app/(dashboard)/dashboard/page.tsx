@@ -1,5 +1,6 @@
 'use client'
 
+import SupportUpdates from '@/components/support/SupportUpdates'
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
@@ -1206,11 +1207,13 @@ export default function DashboardPage() {
             </div>
           )}
 
+          {isMobile && role === 'STUDENT' && <SupportUpdates />}
           {isMobile && <HomeHeroSlider slides={homeSlides} />}
           {/* ── Row 1: slider (left) + Active Now / Up Next (right). Phones show the slider above instead. ── */}
           {!isMobile && (
           <div className="gz-live-grid has-slider">
-            <div className="gz-hero-cell">
+            <div className="gz-hero-cell" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              {role === 'STUDENT' && <SupportUpdates />}
               <HomeHeroSlider
                 slides={homeSlides}
                 fallback={

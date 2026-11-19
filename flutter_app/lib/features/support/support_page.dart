@@ -106,7 +106,8 @@ class _SupportPageState extends ConsumerState<SupportPage> with WidgetsBindingOb
           color: const Color(0xFF007AFF),
           label: 'Call support',
           isLast: true,
-          onTap: () => showCallSupportSheet(context, ref),
+          // GenZie answers first, then offers a call, a call back or a ticket.
+          onTap: () => context.push('/support/genie'),
         ),
       if (manager)
         _NavRow(

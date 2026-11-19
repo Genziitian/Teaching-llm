@@ -9,6 +9,7 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:material_ui/material_ui.dart';
+import 'package:video_player/video_player.dart';
 
 import '../../core/api/api_client.dart';
 import '../../core/auth/auth_providers.dart';
@@ -61,41 +62,17 @@ Future<void> _patchCall(WidgetRef ref, String id, String action) async {
   ref.invalidate(supportCallsProvider);
 }
 
-/// Student: "Call support" row → call now or schedule a call.
-Future<void> showCallSupportSheet(BuildContext context, WidgetRef ref) {
-  return showModalBottomSheet(
-    context: context,
-    showDragHandle: true,
-    builder: (sheetContext) {
-      final tokens = sheetContext.tokens;
-      Widget option(IconData icon, String title, String sub, VoidCallback onTap) =>
-          ListTile(
-            leading: Icon(icon, fill: 1, color: tokens.primaryAccent),
-            title: Text(title,
-                style: TextStyle(
-                    fontWeight: FontWeight.w600, color: tokens.textPrimary)),
-            subtitle: Text(sub, style: TextStyle(color: tokens.textMuted)),
-            onTap: () {
-              Navigator.of(sheetContext).pop();
-              onTap();
-            },
-          );
-      return SafeArea(
-        child: Column(mainAxisSize: MainAxisSize.min, children: [
-          option(Symbols.call_rounded, 'Call now',
-              'Voice call the support team in the app',
-              () => startSupportCall(context)),
-          option(Symbols.event_rounded, 'Schedule a call',
-              'Pick a time and tell us why', () => _showScheduleSheet(context, ref)),
-          const SizedBox(height: 8),
-        ]),
-      );
-    },
-  );
+/// Support team hours in IST (same as SUPPORT_OPEN_HOUR / SUPPORT_CLOSE_HOUR on the web).
+/// Live calls only ring inside them; outside, GenZie offers a call back or a ticket.
+bool isSupportOpen([DateTime? now]) {
+  final ist = (now ?? DateTime.now()).toUtc().add(const Duration(minutes: 330));
+  final h = ist.hour + ist.minute / 60;
+  return h >= 10 && h < 22;
 }
 
-Future<void> _showScheduleSheet(BuildContext context, WidgetRef ref) {
-  final reason = TextEditingController();
+/// Student books a call back (GenZie hand-off). [reason] pre-fills what they walked through.
+Future<void> showScheduleCallSheet(BuildContext context, WidgetRef ref, {String? reason0}) {
+  final reason = TextEditingController(text: reason0 ?? '');
   DateTime? when;
   String? error;
   bool saving = false;
@@ -125,6 +102,11 @@ Future<void> _showScheduleSheet(BuildContext context, WidgetRef ref) {
         }
 
         Future<void> submit() async {
+          final h = when!.hour + when!.minute / 60;
+          if (h < 10 || h >= 22) {
+            setSheet(() => error = 'Please pick a time between 10 AM and 10 PM.');
+            return;
+          }
           setSheet(() {
             saving = true;
             error = null;
@@ -139,7 +121,7 @@ Future<void> _showScheduleSheet(BuildContext context, WidgetRef ref) {
             if (sheetContext.mounted) Navigator.of(sheetContext).pop();
             if (context.mounted) {
               ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                  content: Text('Call requested. We will confirm the time soon.')));
+                  content: Text('Call back requested. Once the team confirms, we will call you in the app.')));
             }
           } catch (e) {
             setSheet(() {
@@ -156,7 +138,7 @@ Future<void> _showScheduleSheet(BuildContext context, WidgetRef ref) {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Text('Schedule a call',
+              Text('Request a call back',
                   style: TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.w700,
@@ -278,6 +260,13 @@ class SupportCallsSection extends ConsumerWidget {
             OutlinedButton(
                 onPressed: () => _patchCall(ref, '${c['id']}', 'end'),
                 child: const Text('Decline')),
+            if (manager)
+              TextButton.icon(
+                onPressed: () => context.push(
+                    '/support/call-center/${Uri.encodeComponent('${(c['caller'] as Map?)?['id']}')}'),
+                icon: const Icon(Symbols.person_rounded),
+                label: const Text('Student info'),
+              ),
           ]),
         for (final c in live)
           row(
@@ -409,6 +398,10 @@ class _SupportCallPageState extends ConsumerState<SupportCallPage> {
   Timer? _poll;
   Timer? _clock;
   bool _ticking = false;
+  DateTime? _ringingSince;
+  String? _studentId; // callerId is always the student; managers can open their profile mid-call
+  // Ringback while waiting (generated 400+450 Hz tone; video_player plays audio assets too).
+  VideoPlayerController? _ringback;
   DateTime? _startedAt;
   String _status = 'Connecting…';
   bool _ended = false;
@@ -448,6 +441,10 @@ class _SupportCallPageState extends ConsumerState<SupportCallPage> {
         final res = await _api.post<Map<String, dynamic>>('/api/support/calls',
             body: {if (widget.userId != null) 'userId': widget.userId});
         _id = '${res.data!['id']}';
+        _ringingSince = DateTime.now();
+        _startRingback();
+        _clock ??= Timer.periodic(const Duration(seconds: 1),
+            (_) => mounted ? setState(() {}) : null);
         if (mounted) setState(() => _status = 'Ringing…');
       } else {
         await _api.patch<dynamic>('/api/support/calls/${widget.callId}',
@@ -466,6 +463,22 @@ class _SupportCallPageState extends ConsumerState<SupportCallPage> {
           ? 'Microphone permission is needed for calls.'
           : 'Could not connect the call');
     }
+  }
+
+  Future<void> _startRingback() async {
+    try {
+      final c = VideoPlayerController.asset('assets/sounds/ringback.wav');
+      _ringback = c;
+      await c.initialize();
+      await c.setLooping(true);
+      if (_ringback == c) await c.play();
+    } catch (_) {/* sound is a nicety */}
+  }
+
+  void _stopRingback() {
+    _ringingSince = null;
+    _ringback?.dispose();
+    _ringback = null;
   }
 
   Future<_Peer> _newPeer(String id, String name) async {
@@ -487,8 +500,10 @@ class _SupportCallPageState extends ConsumerState<SupportCallPage> {
     pc.onConnectionState = (s) {
       if (!mounted) return;
       if (s == RTCPeerConnectionState.RTCPeerConnectionStateConnected) {
+        _stopRingback();
         if (_startedAt == null) {
           _startedAt = DateTime.now();
+          _clock?.cancel();
           _clock = Timer.periodic(const Duration(seconds: 1),
               (_) => mounted ? setState(() {}) : null);
           if (_answering) FlutterCallkitIncoming.setCallConnected(widget.callId!);
@@ -565,10 +580,13 @@ class _SupportCallPageState extends ConsumerState<SupportCallPage> {
           (await _api.get<Map<String, dynamic>>('/api/support/calls/$_id')).data!;
       if (call['status'] == 'MISSED') {
         return _finish(widget.callId == null
-            ? 'No answer. Please try again in a bit.'
+            ? (widget.userId != null
+                ? 'No answer. The student can call back, or try again later.'
+                : 'No one could pick up right now. Ask GenZie to book a call back and we will call you.')
             : 'Call ended');
       }
       if (call['status'] == 'ENDED') return _finish('Call ended');
+      _studentId = (call['caller'] as Map?)?['id']?.toString();
       final parts = (call['participants'] as List).cast<Map<String, dynamic>>();
       final names = {
         for (final p in parts) '${p['userId']}': '${(p['user'] as Map)['name']}'
@@ -578,7 +596,10 @@ class _SupportCallPageState extends ConsumerState<SupportCallPage> {
         ..addAll({for (final p in parts) '${p['userId']}': '${p['video'] ?? 'off'}'});
       final others = [for (final e in names.entries) if (e.key != _me) e.value];
       if (others.isNotEmpty) _title = others.join(', ');
-      if (call['status'] == 'ACTIVE' && _status == 'Ringing…') _status = 'Connecting…';
+      if (call['status'] == 'ACTIVE' && _status == 'Ringing…') {
+        _stopRingback();
+        _status = 'Connecting…';
+      }
 
       for (final s in (call['signals'] as List).cast<Map<String, dynamic>>()) {
         final from = '${s['fromId']}';
@@ -687,6 +708,7 @@ class _SupportCallPageState extends ConsumerState<SupportCallPage> {
   }
 
   void _hangUp({required bool notify}) {
+    _stopRingback();
     if (_answering) FlutterCallkitIncoming.endCall(widget.callId!);
     _poll?.cancel();
     _clock?.cancel();
@@ -732,6 +754,11 @@ class _SupportCallPageState extends ConsumerState<SupportCallPage> {
 
   String get _label {
     final s = _startedAt;
+    final r = _ringingSince;
+    if (!_ended && s == null && r != null && _status == 'Ringing…') {
+      final left = 60 - DateTime.now().difference(r).inSeconds; // RING_SECONDS on the server
+      return 'Ringing… ${left.clamp(0, 60)}s';
+    }
     if (_ended || s == null) return _status;
     final secs = DateTime.now().difference(s).inSeconds;
     return '${(secs ~/ 60).toString().padLeft(2, '0')}:${(secs % 60).toString().padLeft(2, '0')}';
@@ -866,6 +893,9 @@ class _SupportCallPageState extends ConsumerState<SupportCallPage> {
                   spacing: 14,
                   runSpacing: 12,
                   children: [
+                    if (ref.read(supportSessionProvider).role == 'MANAGER' && _studentId != null)
+                      control(Symbols.person_rounded, 'Student info',
+                          () => context.push('/support/call-center/${Uri.encodeComponent(_studentId!)}')),
                     control(_muted ? Symbols.mic_off_rounded : Symbols.mic_rounded,
                         _muted ? 'Unmute' : 'Mute', () {
                       setState(() => _muted = !_muted);

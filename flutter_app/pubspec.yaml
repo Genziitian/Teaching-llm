@@ -106,6 +106,7 @@ flutter:
     - assets/onboarding/
     - assets/store/
     - assets/icons/
+    - assets/sounds/
     - assets/onboarding-story/
     - assets/avatars/
   # Outfit fonts are optional brand polish; drop the .ttf files into

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { requireSupportSession } from '@/lib/support-ticket-access'
 import { callListSelect, expireRingingCalls, joinCall } from '@/lib/support-calls'
+import { isSupportOpen } from '@/lib/support-limits'
 import { getManagerIds, sendSupportCallNotice, sendSupportCallNotificationToManagers, sendSupportCallNotificationToStudent } from '@/lib/system-notifications'
 
 export const dynamic = 'force-dynamic'
@@ -51,6 +52,7 @@ export async function POST(request: NextRequest) {
       if (isNaN(when.getTime()) || when.getTime() < Date.now() - 60_000 || when.getTime() > Date.now() + 30 * 86400000) {
         return NextResponse.json({ error: 'Pick a time within the next 30 days' }, { status: 400 })
       }
+      if (!isSupportOpen(when)) return NextResponse.json({ error: 'Please pick a time between 10 AM and 10 PM.' }, { status: 400 })
       if (reason.length < 3 || reason.length > 500) return NextResponse.json({ error: 'Tell us briefly why you need the call' }, { status: 400 })
       const open = await prisma.supportCall.count({ where: { callerId: session.userId, type: 'SCHEDULED', status: { in: ['REQUESTED', 'ACCEPTED'] } } })
       if (open) return NextResponse.json({ error: 'You already have a scheduled call. Cancel it to pick a new time.' }, { status: 400 })
@@ -81,6 +83,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(call, { status: 201 })
     }
 
+    if (!isSupportOpen()) {
+      return NextResponse.json({ error: 'Support calls are open 10 AM – 10 PM. Ask GenZie to book a call back instead.' }, { status: 400 })
+    }
     // One live call per student: anything older from them is abandoned.
     await prisma.supportCall.updateMany({
       where: { callerId: session.userId, status: { in: ['RINGING', 'ACTIVE'] } },
