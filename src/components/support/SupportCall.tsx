@@ -415,7 +415,7 @@ export function SupportCallBox() {
       {scheduled && (
         <div className="gz-sp-sec" style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
           <div style={{ flex: 1, minWidth: 0, fontSize: 13 }}>
-            <strong>{scheduled.status === 'ACCEPTED' ? 'Call confirmed' : 'Call back requested, waiting for confirmation'}</strong> · {new Date(scheduled.scheduledFor!).toLocaleString()}
+            <strong>{scheduled.status === 'ACCEPTED' ? 'Call booked' : 'Call back requested, waiting for confirmation'}</strong> · {new Date(scheduled.scheduledFor!).toLocaleString()}
             <div style={{ color: 'var(--text-muted)', fontSize: 12, overflowWrap: 'anywhere' }}>{scheduled.note}</div>
           </div>
           <button className="gz-btn gz-btn--ghost gz-ed-sm" onClick={() => cancel(scheduled.id)}>Cancel</button>
@@ -479,7 +479,7 @@ export function LiveCallRow({ row: r }: { row: CallRow }) {
 export function CallActionRow({ row: r, onChange }: { row: CallRow; onChange: () => void }) {
   const act = async (action: string) => { await api(`/api/support/calls/${r.id}`, { method: 'PATCH', body: JSON.stringify({ action }) }).catch(() => {}); onChange() }
   const label = r.type === 'SCHEDULED'
-    ? `${r.status === 'REQUESTED' ? 'Wants a call' : 'Confirmed call'} · ${new Date(r.scheduledFor!).toLocaleString()}`
+    ? `${r.status === 'REQUESTED' ? 'Wants a call' : 'Booked call'} · ${new Date(r.scheduledFor!).toLocaleString()}`
     : `Missed call · ${new Date(r.createdAt).toLocaleString()}`
   return (
     <div className="gz-sp-row" style={{ cursor: 'default', flexWrap: 'wrap' }}>
@@ -506,7 +506,7 @@ export function CallActionRow({ row: r, onChange }: { row: CallRow; onChange: ()
 }
 
 /** Call log rows: direction, outcome, who picked up, duration. */
-export function CallHistoryList({ rows }: { rows: CallRow[] }) {
+export function CallHistoryList({ rows, onOpen }: { rows: CallRow[]; onOpen?: (r: CallRow) => void }) {
   if (rows.length === 0) return <div className="gz-sp-sub">No calls yet.</div>
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -519,7 +519,8 @@ export function CallHistoryList({ rows }: { rows: CallRow[] }) {
           : r.answeredAt ? `picked up by ${pickedUp || 'unknown'}${secs != null ? ` · ${Math.floor(secs / 60)}m ${secs % 60}s` : ''}${joined.length > 2 ? ` · in call: ${joined.join(', ')}` : ''}`
           : r.status === 'MISSED' ? 'missed' : r.status === 'RINGING' ? 'ringing' : r.status === 'ACTIVE' ? 'in progress' : 'not answered'
         return (
-          <div key={r.id} className="gz-sp-row" style={{ cursor: 'default' }}>
+          <div key={r.id} className="gz-sp-row" style={{ cursor: onOpen ? 'pointer' : 'default' }}
+            {...(onOpen ? { role: 'button', tabIndex: 0, title: `Open ${r.caller.name}`, onClick: () => onOpen(r), onKeyDown: (e: React.KeyboardEvent) => { if (e.key === 'Enter') onOpen(r) } } : {})}>
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ fontSize: 13.5, fontWeight: 600 }}>{r.caller.name}</div>
               <div style={{ fontSize: 11.5, color: 'var(--text-muted)' }}>{dir} · {new Date(r.createdAt).toLocaleString()}</div>

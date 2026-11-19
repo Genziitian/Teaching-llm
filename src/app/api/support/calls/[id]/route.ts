@@ -91,6 +91,10 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
       })
       if (res.count === 0) return NextResponse.json({ error: 'Call is no longer ringing' }, { status: 409 })
       await joinCall(call.id, session.userId)
+      // Support and this student are now talking: their missed calls and booked call-backs are handled.
+      const managerId = call.type === 'CALL' ? session.userId : call.managerId
+      await prisma.supportCall.updateMany({ where: { callerId: call.callerId, id: { not: call.id }, type: 'CALL', status: 'MISSED' }, data: { status: 'ENDED' } })
+      await prisma.supportCall.updateMany({ where: { callerId: call.callerId, type: 'SCHEDULED', status: { in: ['REQUESTED', 'ACCEPTED'] } }, data: { status: 'DONE', managerId } })
       // Other managers' phones stop ringing once someone picks up.
       if (call.type === 'CALL') cancelSupportCallRing(call.id, call.type, call.callerId, session.userId).catch(console.error)
     } else if (body.action === 'join') {

@@ -57,10 +57,11 @@ export async function POST(request: NextRequest) {
       const open = await prisma.supportCall.count({ where: { callerId: session.userId, type: 'SCHEDULED', status: { in: ['REQUESTED', 'ACCEPTED'] } } })
       if (open) return NextResponse.json({ error: 'You already have a scheduled call. Cancel it to pick a new time.' }, { status: 400 })
       const call = await prisma.supportCall.create({
-        data: { type: 'SCHEDULED', status: 'REQUESTED', callerId: session.userId, scheduledFor: when, note: reason },
+        // Booked straight away: managers just call at that time (old REQUESTED rows can still be approved).
+        data: { type: 'SCHEDULED', status: 'ACCEPTED', callerId: session.userId, scheduledFor: when, note: reason },
         select: callListSelect,
       })
-      getManagerIds().then(ids => sendSupportCallNotice(ids, 'Call scheduled 📅', `${session.name} asked for a call: "${reason.slice(0, 60)}"`)).catch(console.error)
+      getManagerIds().then(ids => sendSupportCallNotice(ids, 'Call booked 📅', `${session.name} booked a call for ${when.toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', dateStyle: 'medium', timeStyle: 'short' })}: "${reason.slice(0, 60)}"`)).catch(console.error)
       return NextResponse.json(call, { status: 201 })
     }
 
@@ -71,9 +72,6 @@ export async function POST(request: NextRequest) {
       if (!student) return NextResponse.json({ error: 'Student not found' }, { status: 404 })
       const busy = await prisma.supportCall.count({ where: { callerId: student.id, status: { in: ['RINGING', 'ACTIVE'] } } })
       if (busy) return NextResponse.json({ error: 'This student is already on a call' }, { status: 409 })
-      // Calling a student back clears their missed calls and approved scheduled call from the queue.
-      await prisma.supportCall.updateMany({ where: { callerId: student.id, type: 'CALL', status: 'MISSED' }, data: { status: 'ENDED' } })
-      await prisma.supportCall.updateMany({ where: { callerId: student.id, type: 'SCHEDULED', status: 'ACCEPTED' }, data: { status: 'DONE', managerId: session.userId } })
       const call = await prisma.supportCall.create({
         data: { type: 'CALL_OUT', status: 'RINGING', callerId: student.id, managerId: session.userId },
         select: { id: true, status: true },

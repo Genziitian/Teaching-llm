@@ -1,18 +1,20 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
 import type { CareersRole } from './CareersTypes'
+import JobApplicationForm from './JobApplicationForm'
 
 const btn: React.CSSProperties = { padding: '8px 16px', borderRadius: 8, border: 'none', background: 'var(--primary)', color: 'var(--button-text, #000)', fontWeight: 600, fontSize: 14, cursor: 'pointer', boxShadow: 'none' }
 
 export default function CareersJobsBoard() {
   const [roles, setRoles] = useState<CareersRole[] | null>(null)
-  const router = useRouter()
+  const [active, setActive] = useState<CareersRole | null>(null)
 
   useEffect(() => {
     fetch('/api/site/careers-roles').then((r) => r.json()).then((d) => setRoles(d.roles || [])).catch(() => setRoles([]))
   }, [])
+
+  if (active) return <JobApplicationForm key={active.id} role={active} onBack={() => setActive(null)} />
 
   return (
     <div style={{ width: '100%', padding: '8px 0 48px' }}>
@@ -35,7 +37,7 @@ export default function CareersJobsBoard() {
                   </p>
                 )}
               </div>
-              <button style={{ ...btn, alignSelf: 'flex-start' }} onClick={() => router.push(`/careers/apply/${encodeURIComponent(r.id)}?from=jobs`)}>Apply</button>
+              <button style={{ ...btn, alignSelf: 'flex-start' }} onClick={() => setActive(r)}>Apply</button>
             </div>
           </div>
         ))}

@@ -130,6 +130,7 @@ export default function GenieWidget({ userRole, userName }: { userRole: string; 
   const en = (l: L) => l.en // buttons and labels (close, send, start over, footer…) stay English
   const firstName = (userName || '').trim().split(/\s+/)[0] || 'there'
   const langChosen = useRef(false)
+  const [ticketMode, setTicketMode] = useState(false)
   const [callDay, setCallDay] = useState<0 | 1>(0)
   const [callAt, setCallAt] = useState('') // ISO time picked in the call-back list
   // The question/answer tree: built-in first, then the live one from the database (editable by managers)
@@ -142,6 +143,7 @@ export default function GenieWidget({ userRole, userName }: { userRole: string; 
 
   // Every new chat starts by asking the language; the last choice only sets the default UI text.
   const resetChat = useCallback(() => {
+    setTicketMode(false)
     setMsgs([{ from: 'bot', text: UI.pickLang }])
     setStage('lang')
     setStack([{ id: 'root', msgLen: 1 }])
@@ -343,7 +345,15 @@ export default function GenieWidget({ userRole, userName }: { userRole: string; 
   }
 
   function startAgent() {
+    setTicketMode(false)
     setMsgs(m => [...m, { from: 'me', text: UI.agentHere }, { from: 'bot', text: UI.describe }])
+    setStage('describe')
+  }
+
+  /** Outside team hours (or for proof-type problems): the description is saved straight as a ticket. */
+  function startMessage() {
+    setTicketMode(true)
+    setMsgs(m => [...m, { from: 'me', text: UI.leaveMsg }, { from: 'bot', text: UI.describeTicket }])
     setStage('describe')
   }
 
@@ -435,7 +445,7 @@ export default function GenieWidget({ userRole, userName }: { userRole: string; 
         const context = (tried ? `Path: ${tried}\n` : '') + (said ? `Genie told the student: ${said}\n` : '') + 'Student asked for an agent.'
         res = await fetch('/api/genie/request', {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ message: text, imageUrl: pendingImg, context }),
+          body: JSON.stringify({ message: text, imageUrl: pendingImg, context, ticketNow: ticketMode }),
         })
       }
       const d = await res.json().catch(() => ({}))
@@ -559,30 +569,48 @@ export default function GenieWidget({ userRole, userName }: { userRole: string; 
               </div>
             )}
 
-            {stage === 'handoff' && !agentActive && !agentEnded && (
-              <div className="genie-cards">
-                {isSupportOpen() && (
+            {stage === 'handoff' && !agentActive && !agentEnded && (() => {
+              // Who gets what: problems that need screenshots / payment proof go to chat or a ticket;
+              // everything else can be sorted on a call. Live options only during team hours (10 AM – 10 PM IST).
+              const open = isSupportOpen()
+              const proof = !!leafId && (leafId.startsWith('pay.') || leafId === 'course.not-visible')
+              return (
+                <div className="genie-cards">
+                  {open && !proof && (
                   <button type="button" className="genie-card" onClick={callNow}>
                     <span className="genie-card-ico" aria-hidden="true">
                       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M15.05 5A5 5 0 0 1 19 8.95M15.05 1A9 9 0 0 1 23 8.94" /><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2z" /></svg>
                     </span>
                     <span><b>{t(UI.callNow)}</b><small>{t(UI.callNowSub)}</small></span>
                   </button>
-                )}
-                <button type="button" className="genie-card" onClick={startAgent}>
-                  <span className="genie-card-ico" aria-hidden="true">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" /></svg>
-                  </span>
-                  <span><b>{t(UI.agentHere)}</b><small>{t(UI.agentHereSub)}</small></span>
-                </button>
-                <button type="button" className="genie-card" onClick={startCallBack}>
-                  <span className="genie-card-ico" aria-hidden="true">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2z" /></svg>
-                  </span>
-                  <span><b>{t(UI.callBack)}</b><small>{t(UI.callBackSub)}</small></span>
-                </button>
-              </div>
-            )}
+                  )}
+                  {open && (
+                  <button type="button" className="genie-card" onClick={startAgent}>
+                    <span className="genie-card-ico" aria-hidden="true">
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" /></svg>
+                    </span>
+                    <span><b>{t(UI.agentHere)}</b><small>{t(UI.agentHereSub)}</small></span>
+                  </button>
+                  )}
+                  {!proof && (
+                  <button type="button" className="genie-card" onClick={startCallBack}>
+                    <span className="genie-card-ico" aria-hidden="true">
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2z" /></svg>
+                    </span>
+                    <span><b>{t(UI.callBack)}</b><small>{t(UI.callBackSub)}</small></span>
+                  </button>
+                  )}
+                  {(!open || proof) && (
+                  <button type="button" className="genie-card" onClick={startMessage}>
+                    <span className="genie-card-ico" aria-hidden="true">
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 4h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z" /><polyline points="22,6 12,13 2,6" /></svg>
+                    </span>
+                    <span><b>{t(UI.leaveMsg)}</b><small>{t(UI.leaveMsgSub)}</small></span>
+                  </button>
+                  )}
+                </div>
+              )
+            })()}
 
             {stage === 'callback' && !agentActive && !agentEnded && (() => {
               const today = callTimes(0)

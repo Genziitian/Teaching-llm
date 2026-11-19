@@ -27,6 +27,7 @@ export default function CallCenter() {
   const [history, setHistory] = useState<CallRow[]>([])
   const [page, setPage] = useState(0)
   const [open, setOpen] = useState<CallRow[]>([])
+  const [editUserId, setEditUserId] = useState<string | null>(null)
 
   // Search name / email / mobile / security number / serial (same search as Manage → Users).
   useEffect(() => {
@@ -167,7 +168,7 @@ export default function CallCenter() {
 
       {tab === 'history' && (
         <div className="gz-sp-box">
-          <CallHistoryList rows={history} />
+          <CallHistoryList rows={history} onOpen={r => setEditUserId(r.caller.id)} />
           {history.length === (page + 1) * 50 && (
             <button className="gz-btn gz-btn--ghost" style={{ marginTop: 12 }} onClick={() => { setPage(page + 1); loadHistory(page + 1) }}>Load more</button>
           )}
@@ -181,6 +182,7 @@ export default function CallCenter() {
             : open.map(r => <CallActionRow key={r.id} row={r} onChange={loadOpen} />)}
         </div>
       )}
+      {editUserId && <ManagerUserModal userId={editUserId} onClose={() => setEditUserId(null)} />}
     </div>
   )
 }

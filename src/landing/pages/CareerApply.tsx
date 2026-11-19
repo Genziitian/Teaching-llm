@@ -77,8 +77,7 @@ export default function CareerApply() {
       isOpen
       role={role}
       roleInfo={roleInfo}
-      // Opened from the dashboard Jobs page (?from=jobs) → go back there, not to the public careers page.
-      onClose={() => navigate(typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('from') === 'jobs' ? '/jobs' : '/careers')}
+      onClose={() => navigate('/careers')}
     />
   );
 }

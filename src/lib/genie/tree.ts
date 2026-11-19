@@ -58,7 +58,16 @@ export const UI: Record<string, L> = {
   agentHereSub: { en: 'Usually joins within a few minutes', hi: 'Usually kuch minute mein join karte hain' },
   callNow: { en: 'Call support now', hi: 'Abhi support ko call karo' },
   callNowSub: { en: 'Voice or video, right here in the app', hi: 'Voice ya video, yahin app mein' },
-  calling: { en: 'Calling the support team…', hi: 'Support team ko call kar rahe hain…' },
+  calling: {
+    en: "Calling the support team… If nobody picks up within a minute, we'll see your missed call and call you back.",
+    hi: 'Support team ko call kar rahe hain… Agar 1 minute mein koi nahi utha, to hum missed call dekhkar aapko call back karenge.',
+  },
+  leaveMsg: { en: 'Leave a message', hi: 'Message chhod do' },
+  leaveMsgSub: { en: 'Saved as a ticket, we reply by email & here', hi: 'Ticket ban jayega, hum yahin aur email par reply karenge' },
+  describeTicket: {
+    en: 'Describe your problem in a few lines (add a screenshot if you have one). It goes straight to our team as a ticket.',
+    hi: 'Apni problem thode words mein batao (screenshot ho to lagao). Ye seedha ticket ban kar team ke paas jayega.',
+  },
   callBack: { en: 'Request a call back', hi: 'Call back request karo' },
   callBackSub: { en: "Pick a time, we'll call you", hi: 'Time chuno, hum call karenge' },
   callAsk: {
@@ -67,8 +76,8 @@ export const UI: Record<string, L> = {
   },
   callConfirm: { en: 'Schedule call', hi: 'Call schedule karo' },
   callDone: {
-    en: "Done! You asked for a call at {t}. Once the team confirms, we'll call you right here in the app. You can see it on the Support page.",
-    hi: 'Ho gaya! Aapne {t} par call maangi hai. Team confirm karegi, phir hum yahin app mein call karenge. Support page par dekh sakte ho.',
+    en: "Booked! We'll call you at {t}, right here in the app. Keep the app open or notifications on. You can see or cancel it on the Support page.",
+    hi: 'Book ho gayi! Hum {t} par yahin app mein call karenge. App khula rakho ya notifications on rakho. Support page par dekh ya cancel kar sakte ho.',
   },
   callFail: { en: "Couldn't book the call: {e}", hi: 'Call book nahi ho payi: {e}' },
   callHours: { en: 'Please pick a time between 10 AM and 10 PM.', hi: 'Please 10 AM se 10 PM ke beech ka time chuno.' },
