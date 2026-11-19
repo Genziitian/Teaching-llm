@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import { GENIE_MAX_MESSAGE, GENIE_NAME, GENIE_TREE, UI, WHATSAPP_URL } from '@/lib/genie/tree'
+import { GENIE_MAX_MESSAGE, GENIE_NAME, GENIE_TREE, UI } from '@/lib/genie/tree'
 import type { GenieLang, GenieNode, L } from '@/lib/genie/tree'
 import { MAX_IMAGE_BYTES, POLL_MS, SEND_GAP_MS } from '@/lib/genie/limits'
 
@@ -15,8 +15,8 @@ import { MAX_IMAGE_BYTES, POLL_MS, SEND_GAP_MS } from '@/lib/genie/limits'
  * (waiting → live → moved to ticket / ended). The agent's name is never shown.
  */
 
-type Stage = 'lang' | 'browse' | 'solved' | 'handoff' | 'describe' | 'wacheck'
-interface Msg { from: 'bot' | 'me'; text: L; link?: { label: L; href: string }; kind?: 'langAsk' }
+type Stage = 'lang' | 'browse' | 'solved' | 'handoff' | 'describe' | 'callback' | 'closed'
+interface Msg { from: 'bot' | 'me'; text: L; link?: { label: L; href: string } }
 interface StackItem { id: string; msgLen: number; chosen?: L }
 interface AgentSession {
   id: string
@@ -104,7 +104,6 @@ export default function GenieWidget({ userRole, userName }: { userRole: string; 
   const [lang, setLang] = useState<GenieLang>('en')
   const [msgs, setMsgs] = useState<Msg[]>([])
   const [stage, setStage] = useState<Stage>('browse')
-  const [langAsked, setLangAsked] = useState(false)
   const [stack, setStack] = useState<StackItem[]>([{ id: 'root', msgLen: 1 }])
   const [leafId, setLeafId] = useState<string | null>(null)
   const [draft, setDraft] = useState('')
@@ -128,6 +127,7 @@ export default function GenieWidget({ userRole, userName }: { userRole: string; 
   const t = useCallback((l: L) => l[lang], [lang])
   const firstName = (userName || '').trim().split(/\s+/)[0] || 'there'
   const langChosen = useRef(false)
+  const [customTime, setCustomTime] = useState('')
   // The question/answer tree: built-in first, then the live one from the database (editable by managers)
   const [tree, setTree] = useState<GenieNode>(GENIE_TREE)
   const NODES = useMemo(() => indexTree(tree), [tree])
@@ -136,16 +136,11 @@ export default function GenieWidget({ userRole, userName }: { userRole: string; 
 
   const greet = useCallback(() => fill(UI.greeting, { name: firstName }), [firstName])
 
+  // Every new chat starts by asking the language; the last choice only sets the default UI text.
   const resetChat = useCallback(() => {
-    if (langChosen.current) {
-      setMsgs([{ from: 'bot', text: greet() }])
-      setStage('browse')
-    } else {
-      setMsgs([{ from: 'bot', text: UI.pickLang }])
-      setStage('lang')
-    }
+    setMsgs([{ from: 'bot', text: UI.pickLang }])
+    setStage('lang')
     setStack([{ id: 'root', msgLen: 1 }])
-    setLangAsked(false)
     setLeafId(null); setDraft(''); setPendingImg(null); setNotice(null)
   }, [greet])
 
@@ -163,11 +158,10 @@ export default function GenieWidget({ userRole, userName }: { userRole: string; 
       const raw = sessionStorage.getItem(STORE_KEY)
       if (raw) {
         const s = JSON.parse(raw)
-        if (Array.isArray(s.msgs) && s.msgs.length && Array.isArray(s.stack) && s.stack.every((x: StackItem) => NODES[x.id])) {
+        if (Array.isArray(s.msgs) && s.msgs.length && !s.msgs.some((m: any) => m.kind === 'langAsk') && Array.isArray(s.stack) && s.stack.every((x: StackItem) => NODES[x.id])) {
           setMsgs(s.msgs); setStack(s.stack)
-          setStage(s.stage === 'lang' || s.stage === 'solved' || s.stage === 'handoff' || s.stage === 'describe' || s.stage === 'wacheck' ? s.stage : 'browse')
+          setStage(s.stage === 'lang' || s.stage === 'solved' || s.stage === 'handoff' || s.stage === 'describe' || s.stage === 'callback' || s.stage === 'closed' ? s.stage : 'browse')
           setLeafId(s.leafId && NODES[s.leafId] ? s.leafId : null)
-          setLangAsked(!!s.langAsked)
           setOpen(!!s.open)
           restored = true
         }
@@ -178,8 +172,8 @@ export default function GenieWidget({ userRole, userName }: { userRole: string; 
 
   useEffect(() => {
     if (!mounted) return
-    try { sessionStorage.setItem(STORE_KEY, JSON.stringify({ open, msgs, stack, stage, leafId, langAsked })) } catch {}
-  }, [mounted, open, msgs, stack, stage, leafId, langAsked])
+    try { sessionStorage.setItem(STORE_KEY, JSON.stringify({ open, msgs, stack, stage, leafId })) } catch {}
+  }, [mounted, open, msgs, stack, stage, leafId])
 
 
   function setReq(id: string | null) {
@@ -233,10 +227,12 @@ export default function GenieWidget({ userRole, userName }: { userRole: string; 
     if (agent && (st === 'WAITING' || st === 'LIVE') && reqId.current !== agent.id) setReq(agent.id)
     if (st === 'LIVE' && prev === 'WAITING' && !open) { softBeep(); setOpen(true) }
     if (reqId.current && (!agent || (agent.id === reqId.current && st === 'TICKET'))) {
-      const no = agent?.ticket?.no
+      const tk = agent?.ticket
       setReq(null)
-      resetChat()
-      if (no) setMsgs(m => [...m, { from: 'bot', text: fill(UI.movedTicket, { n: no }) }])
+      if (tk?.no) {
+        setMsgs(m => [...m, { from: 'bot', text: fill(UI.movedTicket, { n: tk.no }), link: { label: UI.viewTicket, href: `/support?ticket=${tk.id}` } }])
+        setStage('closed')
+      } else resetChat()
     }
   }, [agent, loaded]) // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -307,7 +303,6 @@ export default function GenieWidget({ userRole, userName }: { userRole: string; 
       return
     }
     add.push({ from: 'bot', text: next.answer || UI.glad, link: next.link })
-    if (!langAsked) { add.push({ from: 'bot', text: UI.langAsk, kind: 'langAsk' }); setLangAsked(true) }
     setStack(s => [...s, { id: next.id, msgLen: msgs.length, chosen: opt.label }])
     setLeafId(next.id)
     if (next.needsAgent) {
@@ -318,14 +313,6 @@ export default function GenieWidget({ userRole, userName }: { userRole: string; 
       setStage('solved')
     }
     setMsgs(m => [...m, ...add])
-  }
-
-  /** Asked once, after the first answer: switch language for the rest of the chat. */
-  function switchLang(l: GenieLang) {
-    setLang(l)
-    langChosen.current = true
-    try { localStorage.setItem(LANG_KEY, l) } catch {}
-    setMsgs(m => m.map(x => (x.kind === 'langAsk' ? { ...x, kind: undefined } : x)))
   }
 
   function goBack() {
@@ -348,32 +335,58 @@ export default function GenieWidget({ userRole, userName }: { userRole: string; 
     }
   }
 
-  function answerWhatsapp(ok: boolean) {
-    if (ok) {
-      const next: Msg[] = [...msgs, { from: 'me', text: UI.yes }, { from: 'bot', text: UI.glad }, { from: 'bot', text: greet() }]
-      setMsgs(next)
-      setStack([{ id: 'root', msgLen: next.length }])
-      setStage('browse'); setLeafId(null)
-    } else {
-      setMsgs(m => [...m, { from: 'me', text: UI.no }, { from: 'bot', text: UI.improving }])
-      setStage('handoff')
-    }
-  }
-
-  /** Hand-off: open the Support page's ticket form, pre-filled with the topic the student walked through. */
-  function raiseTicket() {
-    const topic = stack.map(x => x.chosen && t(x.chosen)).filter(Boolean).join(' → ')
-    setMsgs(m => [...m, { from: 'me', text: UI.raiseTicket }, { from: 'bot', text: UI.ticketOpening }])
-    try { sessionStorage.setItem('genie-ticket-draft', topic) } catch {}
-    setOpen(false)
-    if (pathname === '/support') window.dispatchEvent(new CustomEvent('genie:raise-ticket'))
-    else router.push('/support')
-  }
-
   function startAgent() {
     setMsgs(m => [...m, { from: 'me', text: UI.agentHere }, { from: 'bot', text: UI.describe }])
     setStage('describe')
   }
+
+  function startCallBack() {
+    setMsgs(m => [...m, { from: 'me', text: UI.callBack }, { from: 'bot', text: UI.callAsk }])
+    setNotice(null); setCustomTime('')
+    setStage('callback')
+  }
+
+  const whenLabel = (d: Date) => {
+    const day = new Date(); day.setHours(0, 0, 0, 0)
+    const diff = Math.round((new Date(d).setHours(0, 0, 0, 0) - day.getTime()) / 86400000)
+    const time = d.toLocaleTimeString('en-IN', { hour: 'numeric', minute: '2-digit' })
+    const dayName = diff === 0 ? (lang === 'hi' ? 'Aaj' : 'Today') : diff === 1 ? (lang === 'hi' ? 'Kal' : 'Tomorrow') : d.toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short' })
+    return `${dayName}, ${time}`
+  }
+
+  async function bookCall(when: Date) {
+    if (busy) return
+    const h = when.getHours() + when.getMinutes() / 60
+    if (h < 10 || h > 22) { setNotice(UI.callHours); return }
+    setBusy(true); setNotice(null)
+    try {
+      const topic = stack.slice(1).map(x => x.chosen?.en).filter(Boolean).join(' › ')
+      const res = await fetch('/api/support/calls', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type: 'SCHEDULED', scheduledFor: when.toISOString(), reason: `Call back requested from GenZie${topic ? `: ${topic}` : ''}`.slice(0, 500) }),
+      })
+      const d = await res.json().catch(() => ({}))
+      if (!res.ok) throw new Error(d?.error || `Error ${res.status}`)
+      const label = whenLabel(when)
+      setMsgs(m => [...m, { from: 'me', text: { en: label, hi: label } }, { from: 'bot', text: fill(UI.callDone, { t: label }), link: { label: UI.goSupport, href: '/support' } }])
+      setStage('closed')
+    } catch (e) {
+      setNotice(fill(UI.callFail, { e: e instanceof Error ? e.message : 'error' }))
+    } finally { setBusy(false) }
+  }
+
+  // Next 4 whole-hour slots inside 10 AM – 10 PM, starting at least an hour from now.
+  const callSlots = useMemo(() => {
+    if (stage !== 'callback') return [] as Date[]
+    const out: Date[] = []
+    const d = new Date(); d.setMinutes(0, 0, 0); d.setHours(d.getHours() + 2)
+    while (out.length < 4) {
+      if (d.getHours() < 10) d.setHours(10)
+      else if (d.getHours() > 21) { d.setDate(d.getDate() + 1); d.setHours(10) }
+      out.push(new Date(d)); d.setHours(d.getHours() + 1)
+    }
+    return out
+  }, [stage])
 
   async function pickPhoto(file: File | undefined) {
     if (!file) return
@@ -526,13 +539,6 @@ export default function GenieWidget({ userRole, userName }: { userRole: string; 
               </div>
             )}
 
-            {(stage === 'solved' || stage === 'handoff') && !agentActive && !agentEnded && msgs.some(m => m.kind === 'langAsk') && (
-              <div className="genie-opts row">
-                <button type="button" className="genie-opt" onClick={() => switchLang('en')}>English</button>
-                <button type="button" className="genie-opt" onClick={() => switchLang('hi')}>Hinglish</button>
-              </div>
-            )}
-
             {stage === 'solved' && !agentActive && !agentEnded && (
               <div className="genie-opts row">
                 <button type="button" className="genie-opt ok" onClick={() => answerSolved(true)}>{t(UI.yes)}</button>
@@ -540,21 +546,40 @@ export default function GenieWidget({ userRole, userName }: { userRole: string; 
               </div>
             )}
 
-            {stage === 'wacheck' && !agentActive && !agentEnded && (
-              <div className="genie-opts row">
-                <button type="button" className="genie-opt ok" onClick={() => answerWhatsapp(true)}>{t(UI.yes)}</button>
-                <button type="button" className="genie-opt" onClick={() => answerWhatsapp(false)}>{t(UI.no)}</button>
+            {stage === 'handoff' && !agentActive && !agentEnded && (
+              <div className="genie-cards">
+                <button type="button" className="genie-card" onClick={startAgent}>
+                  <span className="genie-card-ico" aria-hidden="true">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" /></svg>
+                  </span>
+                  <span><b>{t(UI.agentHere)}</b><small>{t(UI.agentHereSub)}</small></span>
+                </button>
+                <button type="button" className="genie-card" onClick={startCallBack}>
+                  <span className="genie-card-ico" aria-hidden="true">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2z" /></svg>
+                  </span>
+                  <span><b>{t(UI.callBack)}</b><small>{t(UI.callBackSub)}</small></span>
+                </button>
               </div>
             )}
 
-            {stage === 'handoff' && !agentActive && !agentEnded && (
-              <div className="genie-opts">
-                <button type="button" className="genie-opt agent" onClick={startAgent}>{t(UI.agentHere)}</button>
-                <button type="button" className="genie-opt agent" onClick={raiseTicket}>{t(UI.raiseTicket)}</button>
-                <a className="genie-opt wa" href={WHATSAPP_URL} target="_blank" rel="noopener noreferrer"
-                   onClick={() => { setMsgs(m => [...m, { from: 'bot', text: UI.whatsappSent }, { from: 'bot', text: UI.waSolved }]); setStage('wacheck') }}>
-                  {t(UI.whatsapp)}
-                </a>
+            {stage === 'callback' && !agentActive && !agentEnded && (
+              <div className="genie-cards">
+                <div className="genie-opts">
+                  {callSlots.map(d => (
+                    <button key={d.toISOString()} type="button" className="genie-opt" disabled={busy} onClick={() => void bookCall(d)}>{whenLabel(d)}</button>
+                  ))}
+                </div>
+                <div className="genie-when">
+                  <label htmlFor="genie-when">{t(UI.callOther)}</label>
+                  <div className="genie-when-row">
+                    <input id="genie-when" type="datetime-local" value={customTime} onChange={e => { setCustomTime(e.target.value); setNotice(null) }} />
+                    <button type="button" className="genie-send" disabled={!customTime || busy} onClick={() => void bookCall(new Date(customTime))}>
+                      {busy ? t(UI.sending) : t(UI.callConfirm)}
+                    </button>
+                  </div>
+                </div>
+                {notice && <div className="genie-notice">{typeof notice === 'string' ? notice : t(notice)}</div>}
               </div>
             )}
           </div>
@@ -634,6 +659,8 @@ const CSS = `
 .genie-fab:focus-visible{outline:2px solid #fff;outline-offset:3px}
 .genie-fab-label{position:absolute;right:68px;white-space:nowrap;padding:7px 12px;border-radius:50px;font-size:12.5px;font-weight:700;background:var(--surface,#161618);color:var(--text-primary,#fff);border:1px solid var(--border,#2a2a2e);opacity:0;transform:translateX(6px);pointer-events:none;transition:opacity .15s,transform .15s}
 @media (hover:hover){.genie-fab:hover .genie-fab-label{opacity:1;transform:none}}
+/* Get out of the way while any modal / side panel is open over the page. */
+body:has(.gz-notif,.modal-overlay,.manager-profile-overlay,[aria-modal="true"],[role="dialog"]:not(.genie-panel):not(.genie-hello)) :is(.genie-fab,.genie-hello){display:none}
 .genie-hello{position:fixed;right:24px;bottom:92px;z-index:1000;max-width:230px;padding:12px 30px 12px 14px;border-radius:16px;background:var(--surface,#161618);color:var(--text-primary,#fff);border:1px solid var(--border,#2a2a2e);box-shadow:0 8px 24px rgba(0,0,0,.35);animation:genieIn .25s ease}
 .genie-hello-t{font-size:13.5px;font-weight:800}
 .genie-hello-s{font-size:12px;color:var(--text-secondary,#a1a1aa);margin-top:2px}
@@ -665,6 +692,17 @@ const CSS = `
 .genie-opt.tab:hover{background:#1d4ed8;border-color:#1d4ed8}
 .genie-opt.agent:hover{background:#1d4ed8}
 .genie-opt.wa{border-color:#86efac;color:#15803d}
+.genie-opt:disabled{opacity:.5;cursor:default}
+.genie-cards{display:flex;flex-direction:column;gap:8px;margin-top:2px}
+.genie-card{display:flex;align-items:center;gap:12px;width:100%;text-align:left;font:inherit;padding:12px 14px;border-radius:14px;cursor:pointer;background:#fff;border:1.5px solid #dbeafe;color:#0f172a;transition:border-color .12s,background .12s}
+.genie-card:hover{border-color:#2563eb;background:#f8fbff}
+.genie-card:focus-visible{outline:2px solid #2563eb;outline-offset:2px}
+.genie-card b{display:block;font-size:13.5px;font-weight:700}
+.genie-card small{display:block;font-size:12px;color:#64748b;margin-top:2px}
+.genie-card-ico{flex-shrink:0;width:36px;height:36px;border-radius:10px;display:grid;place-items:center;background:#eff6ff;color:#2563eb}
+.genie-when label{display:block;font-size:12px;font-weight:600;color:#64748b;margin:4px 0 6px}
+.genie-when-row{display:flex;gap:8px}
+.genie-when-row input{flex:1;min-width:0;font:inherit;font-size:13px;padding:8px 10px;border-radius:10px;border:1.5px solid #dbeafe;background:#fff;color:#0f172a}
 .genie-opt.wa:hover{background:#f0fdf4}
 .genie-compose{padding:10px 12px 0;border-top:1px solid var(--border,#2a2a2e)}
 .genie-compose textarea{width:100%;resize:none;box-sizing:border-box;background:var(--surface-2,#161618)!important;color:var(--text-primary,#fff)!important;border:1.5px solid var(--border,#2a2a2e)!important;border-radius:12px;padding:9px 11px;font:inherit;font-size:13px;line-height:1.5;outline:none}

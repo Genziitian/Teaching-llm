@@ -4,8 +4,9 @@ import React, { useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import type { FullSession } from '@/lib/auth'
 import { getDefaultAvatar } from '@/lib/avatar'
+import { NAME_DIGIT_ERROR, nameHasDigit } from '@/lib/name-validation'
 
-const INDIAN_STATES = [
+export const INDIAN_STATES = [
   "Andhra Pradesh", "Arunachal Pradesh", "Assam", "Bihar", "Chhattisgarh", "Goa", "Gujarat", "Haryana",
   "Himachal Pradesh", "Jharkhand", "Karnataka", "Kerala", "Madhya Pradesh", "Maharashtra", "Manipur",
   "Meghalaya", "Mizoram", "Nagaland", "Odisha", "Punjab", "Rajasthan", "Sikkim", "Tamil Nadu", "Telangana",
@@ -98,6 +99,9 @@ export default function ProfileSetupBlocker({ user }: { user: FullSession }) {
     // Client-side validations
     if (!formData.firstName.trim() || !formData.lastName.trim()) {
       return setError('Please enter both your first and last name.')
+    }
+    if (nameHasDigit(formData.firstName, formData.lastName)) {
+      return setError(NAME_DIGIT_ERROR)
     }
     if (!formData.mobileNumber.match(/^\d{10}$/)) {
       return setError('Mobile number must be exactly 10 digits.')

@@ -265,7 +265,7 @@ export default function DeletionRequestsPage() {
   }
 
   return (
-    <div className="page-container fade-in" style={{ maxWidth: '1200px', margin: '0 auto', paddingBottom: '60px' }}>
+    <div className="page-container fade-in" style={{ paddingBottom: '60px' }}>
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px', flexWrap: 'wrap', gap: '16px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
@@ -293,9 +293,6 @@ export default function DeletionRequestsPage() {
             <h1 style={{ fontSize: '24px', fontWeight: 600, margin: 0, color: 'var(--text-primary)' }}>
               Account Deletion Requests
             </h1>
-            <p style={{ fontSize: '13px', color: 'var(--text-muted)', margin: '4px 0 0' }}>
-              Historical audit records, user reasons, and cancellation controls
-            </p>
           </div>
         </div>
 
@@ -308,8 +305,8 @@ export default function DeletionRequestsPage() {
         </Link>
       </div>
 
-      {/* Filter Tabs */}
-      <div style={{ display: 'flex', gap: '12px', marginBottom: '20px', flexWrap: 'wrap' }}>
+      {/* Filter Tabs + Search */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px', flexWrap: 'wrap' }}>
         {[
           { key: 'ALL', label: 'All Requests', count: counts.all },
           { key: 'PENDING', label: 'Pending', count: counts.pending, color: '#ef4444' },
@@ -350,7 +347,6 @@ export default function DeletionRequestsPage() {
             </span>
           </button>
         ))}
-      </div>
 
       {/* Search Input */}
       <div
@@ -358,11 +354,12 @@ export default function DeletionRequestsPage() {
           display: 'flex',
           alignItems: 'center',
           gap: '12px',
-          padding: '10px 20px',
+          padding: '9px 16px',
           borderRadius: '50px',
           background: 'var(--surface-2)',
           border: '1px solid var(--border)',
-          marginBottom: '24px',
+          flex: '0 1 300px',
+          marginLeft: 'auto',
         }}
       >
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" color="var(--text-muted)">
@@ -371,7 +368,7 @@ export default function DeletionRequestsPage() {
         </svg>
         <input
           type="text"
-          placeholder="Search by User Name, Email, Reason or Comments..."
+          placeholder="Search name, email, reason..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           style={{
@@ -391,6 +388,7 @@ export default function DeletionRequestsPage() {
             ✕
           </button>
         )}
+      </div>
       </div>
 
       {/* Request List */}

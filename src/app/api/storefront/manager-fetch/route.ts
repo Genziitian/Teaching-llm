@@ -87,16 +87,6 @@ export async function GET(request: NextRequest) {
       return NextResponse.json(data || [])
     }
 
-    if (tab === 'discounts') {
-      let query = supabase.from('discount_coupons').select('*').order('created_at', { ascending: false })
-      if (search) {
-        query = query.ilike('code', `%${search}%`)
-      }
-      const { data, error } = await query
-      if (error) throw error
-      return NextResponse.json(data || [])
-    }
-
     if (tab === 'payments') {
       if (filter === 'not-purchased') {
         let profileQuery = supabase.from('profiles').select('*').order('created_at', { ascending: false })

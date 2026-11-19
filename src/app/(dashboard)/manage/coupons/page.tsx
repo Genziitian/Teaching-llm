@@ -1,14 +1,12 @@
 'use client'
 
-import { useState, type ReactNode } from 'react'
+import { useState } from 'react'
 import useSWR, { mutate } from 'swr'
 import { useConfirmDialog } from '@/hooks/useConfirmDialog'
-import DiscountsStorefrontPanel from '@/components/storefront/native/DiscountsStorefrontPanel'
-import DiscountsSourceSwitch from '@/components/storefront/native/DiscountsSourceSwitch'
 
 const fetcher = (url: string) => fetch(url).then(res => res.json())
 
-function ClassCouponsPage({ sourceSwitch }: { sourceSwitch?: ReactNode } = {}) {
+function ClassCouponsPage() {
   const { data: coupons, isLoading } = useSWR('/api/manage/coupons?includeHidden=true', fetcher, { revalidateOnFocus: false })
   const { confirm, confirmDialog } = useConfirmDialog()
   const [showCreate, setShowCreate] = useState(false)
@@ -82,8 +80,7 @@ function ClassCouponsPage({ sourceSwitch }: { sourceSwitch?: ReactNode } = {}) {
   return (
     <div className="dashboard-inner-page" style={{ padding: '24px 32px' }}>
       {confirmDialog}
-      <div style={{ display: 'flex', justifyContent: sourceSwitch ? 'space-between' : 'flex-end', alignItems: 'center', marginBottom: '24px', gap: '12px', flexWrap: 'wrap' }}>
-        {sourceSwitch}
+      <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', marginBottom: '24px', gap: '12px', flexWrap: 'wrap' }}>
         <button onClick={() => { resetForm(); setEditingCoupon(null); setShowCreate(true) }} style={{ padding: '10px 20px', borderRadius: '12px', background: 'var(--gz-ink, #fff)', color: 'var(--gz-ink-inv, #000)', fontWeight: 600, fontSize: '14px', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', boxShadow: 'none' }}>
           + Create Coupon
         </button>
@@ -259,28 +256,7 @@ function ClassCouponsPage({ sourceSwitch }: { sourceSwitch?: ReactNode } = {}) {
   )
 }
 
-/** Managers get a 'Class coupons | Storefront discounts' switch; everyone else sees class coupons as before. */
+/** One coupon list for the app and website checkouts. */
 export default function CouponManagementPage() {
-  const { data: authData } = useSWR('/api/auth/me', fetcher, { revalidateOnFocus: false })
-  const [source, setSource] = useState<'class' | 'storefront'>('class')
-  const isManager = authData?.user?.role === 'MANAGER'
-
-  if (!isManager) return <ClassCouponsPage />
-
-  const sourceSwitch = (
-    <DiscountsSourceSwitch<'class' | 'storefront'>
-      value={source}
-      onChange={setSource}
-      options={[['class', 'Class coupons'], ['storefront', 'Storefront discounts']]}
-    />
-  )
-
-  if (source === 'class') return <ClassCouponsPage sourceSwitch={sourceSwitch} />
-
-  return (
-    <div className="dashboard-inner-page" style={{ padding: '24px 32px' }}>
-      <div style={{ marginBottom: '24px' }}>{sourceSwitch}</div>
-      <DiscountsStorefrontPanel />
-    </div>
-  )
+  return <ClassCouponsPage />
 }

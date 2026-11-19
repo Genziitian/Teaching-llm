@@ -1,6 +1,6 @@
 import { randomBytes, timingSafeEqual } from 'crypto'
 import { NextRequest } from 'next/server'
-import { isStorefrontConfigured, storefrontDb } from '@/lib/storefront/db'
+import { prisma } from '@/lib/db'
 import { readBody, jsonRes } from '@/lib/site/http'
 
 export const dynamic = 'force-dynamic'
@@ -118,70 +118,66 @@ export async function POST(request: NextRequest) {
   }
   const expiresAt = new Date(expiresAtMs).toISOString()
 
-  if (!isStorefrontConfigured()) {
-    return res.status(500).json({ error: 'Server configuration error' })
-  }
-  const supabase = storefrontDb()
   const minOrderValue = envNumber('PARTNER_COUPON_MIN_ORDER', 350)
 
   const isPercent = discountType === 'percentage'
   const shape = (c: any, reused: boolean) => ({
     code: c.code,
-    expiresAt: c.expires_at,
-    discountType: c.discount_percentage ? 'percentage' : 'fixed',
-    discountValue: c.discount_percentage || c.discount_amount,
-    minOrderValue: c.min_order_value,
+    expiresAt: new Date(c.expiresAt).toISOString(),
+    discountType: c.discountType === 'PERCENTAGE' ? 'percentage' : 'fixed',
+    discountValue: c.discountValue,
+    minOrderValue: c.minOrderValue,
     reused,
   })
 
   try {
-    // Live, unused coupons this partner already issued to this student
-    const { data: live, error: liveError } = await supabase
-      .from('discount_coupons')
-      .select('code, expires_at, discount_percentage, discount_amount, min_order_value')
-      .eq('partner_id', partner)
-      .eq('issued_to_email', email)
-      .eq('active', true)
-      .eq('used_count', 0)
-      .gt('expires_at', new Date().toISOString())
-      .order('created_at', { ascending: false })
-    if (liveError) throw liveError
-
-    // Same discount already issued -> return it (student may have already copied it)
-    const same = (live || []).find((c: any) =>
-      isPercent
-        ? Number(c.discount_percentage) === discountValue
-        : Number(c.discount_amount) === discountValue && !c.discount_percentage
-    )
+    // Same discount already issued by this partner to this student, still live and unused -> return it
+    // (the student may have already copied it). Different terms -> issue an additional coupon.
+    const same = await prisma.coupon.findFirst({
+      where: {
+        partnerId: partner,
+        issuedToEmail: email,
+        isActive: true,
+        currentUses: 0,
+        expiresAt: { gt: new Date() },
+        discountType: isPercent ? 'PERCENTAGE' : 'FIXED',
+        discountValue,
+      },
+      orderBy: { createdAt: 'desc' },
+    })
     if (same) return res.status(200).json(shape(same, true))
 
-    // Different terms -> issue an additional coupon. Older coupons are left active:
-    // a student may hold several live coupons at once.
+    // Coupons need a creator; partner coupons are attributed to the earliest manager account.
+    const creator = await prisma.user.findFirst({ where: { role: 'MANAGER' }, orderBy: { createdAt: 'asc' }, select: { id: true } })
+    if (!creator) throw new Error('No manager account to own partner coupons')
+
     for (let attempt = 0; attempt < 5; attempt++) {
       const code = generateCode()
-      const row = {
-        code,
-        discount_percentage: isPercent ? discountValue : null,
-        discount_amount: isPercent ? null : discountValue,
-        max_discount_amount: maxDiscountAmount,
-        applies_to: 'ALL',
-        expires_at: expiresAt,
-        max_uses: 1,
-        min_order_value: minOrderValue,
-        single_use_per_user: true,
-        hidden: true,
-        active: true,
-        allowed_emails: [email],
-        partner_id: partner,
-        issued_to_email: email,
-      }
-      const { error } = await supabase.from('discount_coupons').insert(row)
-
-      if (!error) {
+      try {
+        const row = await prisma.coupon.create({
+          data: {
+            code,
+            discountType: isPercent ? 'PERCENTAGE' : 'FIXED',
+            discountValue,
+            maxDiscount: maxDiscountAmount,
+            applicability: 'GLOBAL',
+            expiresAt: new Date(expiresAt),
+            maxUses: 1,
+            minOrderValue,
+            isSingleUsePerUser: true,
+            isHidden: true,
+            isActive: true,
+            targetUserEmails: JSON.stringify([email]),
+            partnerId: partner,
+            issuedToEmail: email,
+            createdById: creator.id,
+          },
+        })
         console.log(`[Partner Coupon] issued ${code} (${discountType} ${discountValue}) via ${partner}`)
         return res.status(201).json(shape(row, false))
+      } catch (e: any) {
+        if (e?.code !== 'P2002') throw e // only retry on code collision
       }
-      if (error.code !== '23505') throw error // only retry on code collision
     }
 
     return res.status(500).json({ error: 'Could not generate a unique code, try again' })

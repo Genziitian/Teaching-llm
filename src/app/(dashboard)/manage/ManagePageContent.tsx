@@ -2117,7 +2117,7 @@ export function ManagePageInner({ forcedTab }: ManagePageInnerProps = {}) {
             .nc-chip.on{background:var(--primary);border-color:var(--primary);color: var(--gz-ink-inv, #fff)}
             .nc-seg{display:flex;padding:4px;border-radius:12px;background:var(--surface-2);border:1px solid var(--border);gap:4px}
             .nc-seg button{flex:1;padding:9px 10px;border:none;border-radius:9px;background:transparent;color:var(--text-secondary);font-size:13px;font-weight:700;cursor:pointer;transition:all .15s;white-space:nowrap}
-            .nc-seg button.on{background:var(--primary);color:var(--button-text, #000);box-shadow:none}
+            .nc-seg button.on{background:var(--gz-ink);color:var(--gz-ink-inv);box-shadow:none}
             .nc-btn{padding:10px 14px;border-radius:12px;border:1.5px solid var(--border);background:var(--surface);color:var(--text-primary);font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap}
             .nc-btn:disabled{opacity:.6;cursor:not-allowed}
             .nc-imgrow{display:flex;gap:8px;flex-wrap:wrap}
@@ -2125,7 +2125,7 @@ export function ManagePageInner({ forcedTab }: ManagePageInnerProps = {}) {
             .nc-thumb{display:flex;align-items:center;gap:12px}
             .nc-thumb-img{width:96px;height:54px;border-radius:10px;background-size:cover;background-position:center;border:1px solid var(--border);flex-shrink:0}
             .nc-hint{font-size:12px;color:var(--text-muted);margin:0}
-            .nc-send{width:100%;padding:14px 20px;border-radius:14px;border:none;background:var(--primary);color:var(--button-text, #000);box-shadow:none;font-size:15px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:opacity .15s}
+            .nc-send{width:100%;padding:14px 20px;border-radius:14px;border:none;background:var(--gz-ink);color:var(--gz-ink-inv);box-shadow:none;font-size:15px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:opacity .15s}
             .nc-send:disabled{opacity:.45;cursor:not-allowed}
             .nc-why{font-size:12.5px;color:var(--text-muted);text-align:center;margin:8px 0 0}
             .nc-preview-title{display:flex;justify-content:space-between;align-items:center}

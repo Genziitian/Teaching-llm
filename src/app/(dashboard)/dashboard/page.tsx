@@ -1209,10 +1209,40 @@ export default function DashboardPage() {
           {isMobile && <HomeHeroSlider slides={homeSlides} />}
           {/* ── Row 1: slider (left) + Active Now / Up Next (right). Phones show the slider above instead. ── */}
           {!isMobile && (
-          <div className={`gz-live-grid ${homeSlides.length > 0 ? 'has-slider' : ''}`}>
-            {homeSlides.length > 0 && (
-              <div className="gz-hero-cell"><HomeHeroSlider slides={homeSlides} /></div>
-            )}
+          <div className="gz-live-grid has-slider">
+            <div className="gz-hero-cell">
+              <HomeHeroSlider
+                slides={homeSlides}
+                fallback={
+                  <div className="gz-panel gz-quick">
+                    <div className="gz-quick__head">
+                      <h3>Jump back in</h3>
+                      <span>Everything you need, one click away</span>
+                    </div>
+                    <div className="gz-quick__grid">
+                      {[
+                        { href: '/courses', label: 'My courses', sub: 'Lectures & notes', d: 'M2 4h6a4 4 0 0 1 4 4v12a3 3 0 0 0-3-3H2zM22 4h-6a4 4 0 0 0-4 4v12a3 3 0 0 1 3-3h7z' },
+                        { href: '/live', label: 'Live sessions', sub: 'Join or rewatch', d: 'M23 7l-7 5 7 5V7zM3 5h11a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2z' },
+                        { href: '/calendar', label: 'Calendar', sub: 'Classes & exams', d: 'M3 6a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2zM16 2v4M8 2v4M3 10h18' },
+                        { href: '/free-resources', label: 'Free resources', sub: 'Notes & PYQs', d: 'M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8zM14 2v6h6M8 13h8M8 17h5' },
+                        { href: '/community', label: 'Community', sub: 'Ask your batch', d: 'M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M9 3a4 4 0 1 0 0 8a4 4 0 1 0 0-8M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75' },
+                        { href: '/support', label: 'Support', sub: 'We reply fast', d: 'M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z' },
+                      ].map(q => (
+                        <Link key={q.href} href={q.href} className="gz-quick__item">
+                          <span className="gz-quick__ico" aria-hidden="true">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d={q.d} /></svg>
+                          </span>
+                          <span style={{ minWidth: 0 }}>
+                            <b>{q.label}</b>
+                            <small>{q.sub}</small>
+                          </span>
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
+                }
+              />
+            </div>
             {/* Active Now card */}
             <div className="card" style={{
               padding: '20px',

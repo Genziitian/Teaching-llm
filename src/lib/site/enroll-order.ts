@@ -5,6 +5,7 @@ import { findProfileByEmail } from '@/lib/site/profile'
 import { getEnrollUrl } from '@/lib/site/enroll-url'
 import { escapeLike } from '@/lib/site/http'
 import { getCourseSummary, sendToGoogleSheet } from '@/lib/site/google-sheet'
+import { recordSiteCouponUse } from '@/lib/site/coupon'
 
 export interface EnrollOrderInput {
   razorpayOrderId: string
@@ -193,24 +194,7 @@ export async function enrollPaidStorefrontOrder(request: NextRequest, input: Enr
   // === STEP 3: RECORD COUPON USAGE (runs regardless of LMS result) ===
   if (discountCode) {
     try {
-      const codeToApply = String(discountCode).trim().toUpperCase()
-      const { data: coupon } = await supabase
-        .from('discount_coupons')
-        .select('code, used_count, single_use_per_user')
-        .eq('code', codeToApply)
-        .maybeSingle()
-
-      if (coupon) {
-        if (coupon.single_use_per_user !== false) {
-          await supabase
-            .from('coupon_uses')
-            .upsert({ code: coupon.code, user_email: email, order_id: orderId }, { onConflict: 'code,user_email' })
-        }
-        await supabase
-          .from('discount_coupons')
-          .update({ used_count: Number(coupon.used_count || 0) + 1 })
-          .eq('code', coupon.code)
-      }
+      await recordSiteCouponUse(discountCode, email, orderId, resolvedPrice)
     } catch (couponErr) {
       console.error('[site:enroll-order] Coupon usage tracking error (non-fatal):', (couponErr as any)?.message || 'unknown')
     }

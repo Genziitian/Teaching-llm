@@ -1453,6 +1453,8 @@ model Coupon {
   totalRevenueGenerated Float         @default(0)
   isActive              Boolean       @default(true)
   createdById           String
+  partnerId             String?
+  issuedToEmail         String?
   createdAt             DateTime      @default(now())
   updatedAt             DateTime      @updatedAt
   createdBy             User          @relation("CouponCreator", fields: [createdById], references: [id])
@@ -1461,6 +1463,7 @@ model Coupon {
 
   @@index([code])
   @@index([isActive])
+  @@index([partnerId, issuedToEmail])
 }
 
 model CouponUsage {

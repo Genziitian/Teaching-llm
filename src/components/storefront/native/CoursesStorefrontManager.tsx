@@ -204,12 +204,6 @@ export default function CoursesStorefrontManager() {
           const u = await sfDb('courses', [{ m: 'upsert', a: [refs] }])
           if (u.error) { setFormError(u.error.message); return }
         }
-        const disc = await sfDb('discount_coupons', [{ m: 'select', a: ['*'] }, { m: 'eq', a: ['applies_to', prev] }])
-        if (disc.error) { setFormError(disc.error.message); return }
-        if ((disc.data || []).length) {
-          const u = await sfDb('discount_coupons', [{ m: 'upsert', a: [disc.data.map((d: any) => ({ ...d, applies_to: id }))] }])
-          if (u.error) { setFormError(u.error.message); return }
-        }
         saveErr = (await sfDb('courses', [{ m: 'delete', a: [] }, { m: 'eq', a: ['id', prev] }])).error
       } else {
         saveErr = (await withFallback(r => sfDb('courses', [{ m: 'upsert', a: [r] }]))).error

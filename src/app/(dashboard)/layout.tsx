@@ -10,6 +10,8 @@ import GenieWidget from '@/components/genie/GenieWidget'
 import GenieAgentAlerts from '@/components/genie/GenieAgentAlerts'
 import ProfileSetupBlocker from '@/components/ProfileSetupBlocker'
 import IdentitySetupBlocker from '@/components/IdentitySetupBlocker'
+import NameFixBlocker from '@/components/NameFixBlocker'
+import { nameHasDigit } from '@/lib/name-validation'
 import DynamicPromptBlocker from '@/components/DynamicPromptBlocker'
 import UserJourneyTracker from '@/components/UserJourneyTracker'
 import PushNotificationSetup from '@/components/PushNotificationSetup'
@@ -44,6 +46,10 @@ export default async function DashboardLayout({
 
   if (!session.isProfileComplete) {
     return <ProfileSetupBlocker user={session} />
+  }
+
+  if (nameHasDigit(session.name)) {
+    return <NameFixBlocker user={session} />
   }
 
   if (!session.isIdentityUpdated) {

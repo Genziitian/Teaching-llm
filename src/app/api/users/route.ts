@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/db'
+import { NAME_DIGIT_ERROR, nameHasDigit } from '@/lib/name-validation'
 import { getSession, isManagerOrSuperAdmin } from '@/lib/auth'
 import { logActivity, ACTION, MODULE } from '@/lib/activity-log'
 import { isCourseExpired } from '@/lib/course-state'
@@ -265,6 +266,9 @@ export async function POST(request: NextRequest) {
       enrollmentTypes = {},
     } = await request.json()
     const finalClassIds = classIds.length > 0 ? classIds : courseIds
+    if (nameHasDigit(name, firstName, lastName)) {
+      return NextResponse.json({ error: NAME_DIGIT_ERROR }, { status: 400 })
+    }
 
     const existingUser = await prisma.user.findUnique({
       where: { email: email.toLowerCase() },

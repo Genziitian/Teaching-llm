@@ -211,7 +211,7 @@ export default function Header({ userName, userRole }: HeaderProps) {
     'follow-ups': 'Follow-ups', referrals: 'Referrals', blogs: 'Blogs', faqs: 'FAQs', 'store-settings': 'Store settings',
     boxes: 'Boxes', 'site-data': 'Website data', 'storefront-tools': 'Tools', storefront: 'Storefront', 'storefront-courses': 'Storefront Courses',
   }
-  const manageTitle = pathname === '/manage' ? '' : (matchedKey && matchedKey !== '/manage' ? pageInfo.title : MANAGE_TITLES[pathname.replace(/^\/manage\//, '').split('/')[0]] || '')
+  const manageTitle = pathname === '/manage' ? 'Manage Courses' : (matchedKey && matchedKey !== '/manage' ? pageInfo.title : MANAGE_TITLES[pathname.replace(/^\/manage\//, '').split('/')[0]] || '')
 
   // const [notifications, setNotifications] = useState<Notification[]>([]) - Removed
 
@@ -417,7 +417,7 @@ export default function Header({ userName, userRole }: HeaderProps) {
 
         {/* Desktop / tablet title */}
         <div className="gz-head__titles">
-          {pathname.startsWith('/manage') ? (manageTitle ? <h1>{manageTitle}</h1> : null) : showGreetingHeadline ? (
+          {pathname.startsWith('/admin/deletion-requests') ? null : pathname.startsWith('/manage') ? (manageTitle ? <h1>{manageTitle}</h1> : null) : showGreetingHeadline ? (
             <>
               <h1 data-snow="text">{mounted ? getGreeting().heading : `Welcome, ${firstName}`}</h1>
               <p>{mounted ? getGreeting().subtext : 'Loading your dashboard...'}</p>

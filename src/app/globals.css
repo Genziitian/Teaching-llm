@@ -1550,7 +1550,7 @@ tr:hover td {
 
 .dismiss-btn {
   background: var(--primary);
-  color: white;
+  color: var(--button-text, #fff);
   padding: 14px 28px;
   border-radius: var(--radius-pill);
   font-weight: 600;
@@ -2242,7 +2242,7 @@ tr:hover td {
   gap: 8px !important;
   padding: 14px 32px !important;
   background: var(--primary) !important; /* Premium dark navy */
-  color: #ffffff !important;
+  color: var(--button-text, #fff) !important;
   font-size: 15px !important;
   font-weight: 700 !important;
   border-radius: 16px !important;
@@ -3111,7 +3111,7 @@ tr:hover td {
   @media (hover: hover) and (pointer: fine) {
 .next-lecture-btn:hover {
     background: var(--accent);
-    color: #fff;
+    color: var(--button-text, #fff);
   }
 }
 
@@ -3222,7 +3222,7 @@ tr:hover td {
 
   .desktop-content-row.content-active .desktop-content-icon {
     background: var(--accent);
-    color: #fff;
+    color: var(--button-text, #fff);
   }
 
   .desktop-content-info {

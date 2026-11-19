@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation'
 import { useConfirmDialog } from '@/hooks/useConfirmDialog'
 import { getDefaultAvatar } from '@/lib/avatar'
 import { isCourseExpired } from '@/lib/course-state'
+import { INDIAN_STATES } from '@/components/ProfileSetupBlocker'
 import UserAvatar from '@/components/UserAvatar'
 import SocialCardModal from '@/components/SocialCardModal'
 
@@ -93,6 +94,9 @@ export default function ManagerUserModal({ userId, onClose, onUpdate, mode = 'mo
     isIdentityUpdated: false
   })
   const [showSocialCard, setShowSocialCard] = useState(false)
+  const [showLoginActivity, setShowLoginActivity] = useState(false)
+  const [showCoursePicker, setShowCoursePicker] = useState(false)
+  const [pickedCourseIds, setPickedCourseIds] = useState<string[]>([])
   const bundledCourseIds = new Set(
     bundles
       .filter(bundle => formData.bundleIds.includes(bundle.id))
@@ -468,7 +472,12 @@ export default function ManagerUserModal({ userId, onClose, onUpdate, mode = 'mo
                     </div>
                     <div>
                       <label style={{ fontSize: '10px', fontWeight: 600, color: 'var(--text-muted)', letterSpacing: '0.05em', textTransform: 'uppercase', marginBottom: '8px', display: 'block' }}>State</label>
-                      <input style={neuInset} value={formData.state} onChange={e => setFormData({...formData, state: e.target.value})} />
+                      <select style={neuInset} value={formData.state} onChange={e => setFormData({...formData, state: e.target.value})}>
+                        <option value="">Select state</option>
+                        {/* keep a legacy free-text value (e.g. "BIHAR") selectable */}
+                        {formData.state && !INDIAN_STATES.includes(formData.state) && <option value={formData.state}>{formData.state}</option>}
+                        {INDIAN_STATES.map(s => <option key={s} value={s}>{s}</option>)}
+                      </select>
                     </div>
                   </div>
                 </div>
@@ -744,8 +753,9 @@ export default function ManagerUserModal({ userId, onClose, onUpdate, mode = 'mo
 
                     <div className="manager-profile-courses-wrap" style={{ flex: 1.5, display: 'flex', flexDirection: 'column', gap: '24px' }}>
                       <div className="manager-profile-section">
-                        <label style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-muted)', letterSpacing: '0.05em', textTransform: 'uppercase', marginBottom: '16px', display: 'block' }}>Login Activity</label>
-                        <LoginActivity userId={user.id} />
+                        <button type="button" className="btn btn-ghost" style={{ borderRadius: '12px', fontSize: '13px', fontWeight: 600 }} onClick={() => setShowLoginActivity(true)}>
+                          Login Activity
+                        </button>
                       </div>
                       {/* Regular Course Enrollments */}
                       <div className="manager-profile-section manager-profile-courses">
@@ -795,31 +805,51 @@ export default function ManagerUserModal({ userId, onClose, onUpdate, mode = 'mo
                             )
                           })}
                           
-                          <div className="manager-add-wrapper" style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                            <div style={{ position: 'relative', width: '100%' }}>
-                               <select 
-                                  className="manager-add-select"
-                                  onChange={(e) => {
-                                   if (e.target.value && !formData.courseIds.includes(e.target.value)) {
-                                      setFormData({
-                                         ...formData,
-                                         courseIds: [...formData.courseIds, e.target.value],
-                                         enrollmentTypes: {...formData.enrollmentTypes, [e.target.value]: 'LIVE'}
-                                       })
-                                    }
-                                  }}
-                                style={{
-                                  padding: '9px 16px', borderRadius: '12px', border: '1px dashed var(--border)', background: 'transparent',
-                                  fontSize: '13px', fontWeight: 600, color: 'var(--text-secondary)', cursor: 'pointer', appearance: 'none', boxShadow: 'none'
-                                }}
-                                value=""
-                             >
-                               <option value="">+ Add course</option>
-                               {courses.filter(c => !formData.courseIds.includes(c.id) && !bundledCourseIds.has(c.id) && isAssignableCourse(c)).map(c => (
-                                  <option key={c.id} value={c.id}>{c.name}</option>
-                               ))}
-                             </select>
-                           </div>
+                          <div className="manager-add-wrapper" style={{ position: 'relative' }}>
+                            <button
+                              type="button"
+                              className="manager-add-select"
+                              aria-expanded={showCoursePicker}
+                              onClick={() => { setPickedCourseIds([]); setShowCoursePicker(v => !v) }}
+                              style={{ padding: '9px 16px', borderRadius: '12px', border: '1px dashed var(--border)', background: 'transparent', fontSize: '13px', fontWeight: 600, color: 'var(--text-secondary)', cursor: 'pointer' }}
+                            >
+                              + Add courses
+                            </button>
+                            {showCoursePicker && (() => {
+                              const options = courses.filter(c => !formData.courseIds.includes(c.id) && !bundledCourseIds.has(c.id) && isAssignableCourse(c))
+                              const addPicked = () => {
+                                const types = { ...formData.enrollmentTypes }
+                                pickedCourseIds.forEach(id => { types[id] = 'LIVE' })
+                                setFormData({ ...formData, courseIds: [...formData.courseIds, ...pickedCourseIds], enrollmentTypes: types })
+                                setShowCoursePicker(false)
+                              }
+                              return (
+                                <div role="dialog" aria-label="Add courses" style={{ position: 'absolute', top: 'calc(100% + 6px)', left: 0, zIndex: 20, width: '280px', maxWidth: '80vw', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '12px', boxShadow: '0 12px 32px rgba(0,0,0,0.25)', padding: '8px' }}>
+                                  <div style={{ maxHeight: '260px', overflowY: 'auto', display: 'flex', flexDirection: 'column' }}>
+                                    {options.length === 0 && <div style={{ padding: '10px', fontSize: '13px', color: 'var(--text-muted)' }}>No more courses to add.</div>}
+                                    {options.map(c => (
+                                      <label key={c.id} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '8px 10px', borderRadius: '8px', cursor: 'pointer', fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)' }}>
+                                        <input
+                                          type="checkbox"
+                                          checked={pickedCourseIds.includes(c.id)}
+                                          onChange={e => setPickedCourseIds(ids => e.target.checked ? [...ids, c.id] : ids.filter(id => id !== c.id))}
+                                        />
+                                        <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: c.color, flexShrink: 0 }} />
+                                        {c.name}
+                                      </label>
+                                    ))}
+                                  </div>
+                                  {options.length > 0 && (
+                                    <div style={{ display: 'flex', gap: '8px', marginTop: '8px', paddingTop: '8px', borderTop: '1px solid var(--border)' }}>
+                                      <button type="button" className="btn btn-ghost" style={{ flex: 1, fontSize: '13px' }} onClick={() => setShowCoursePicker(false)}>Cancel</button>
+                                      <button type="button" className="btn btn-primary" style={{ flex: 1, fontSize: '13px' }} disabled={pickedCourseIds.length === 0} onClick={addPicked}>
+                                        Add{pickedCourseIds.length ? ` ${pickedCourseIds.length}` : ''}
+                                      </button>
+                                    </div>
+                                  )}
+                                </div>
+                              )
+                            })()}
                           </div>
                         </div>
                         {bundledCourseIds.size > 0 && (
@@ -829,64 +859,6 @@ export default function ManagerUserModal({ userId, onClose, onUpdate, mode = 'mo
                           </div>
                         )}
                       </div>
-
-                      {/* Demo Courses Section */}
-                      <div className="manager-profile-section manager-profile-demo-courses">
-                        <label style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-muted)', letterSpacing: '0.05em', textTransform: 'uppercase', marginBottom: '16px', display: 'block' }}>Demo Courses</label>
-                        <div className="manager-course-list" style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
-                          {courses.filter(c => formData.courseIds.includes(c.id) && formData.enrollmentTypes[c.id] === 'DEMO').map(c => {
-                            const expired = isExpiredCourse(c)
-                            return (
-                            <div className="manager-course-pill" key={c.id} style={{
-                              padding: '8px 12px', borderRadius: '12px', background: 'var(--surface)',
-                              border: '1px solid var(--border)', boxShadow: 'none',
-                              display: 'flex', alignItems: 'center', gap: '10px'
-                            }}>
-                               <div className="manager-course-dot" style={{ width: '10px', height: '10px', borderRadius: '50%', background: c.color }} />
-                               <span className="manager-course-name" style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)' }}>{c.name}</span>
-                               <span className="manager-status-badge" style={{ fontSize: '10px', fontWeight: '850', color: 'var(--accent)', background: 'var(--primary-light)', padding: '2px 8px', borderRadius: '14px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Demo</span>
-                               {expired && <span className="manager-status-badge" style={{ fontSize: '11px', color: 'var(--warning)', fontWeight: 600, background: '#ffedd5', padding: '2px 8px', borderRadius: '14px' }}>EXPIRED</span>}
-                               <button 
-                                  onClick={() => {
-                                    const newTypes = {...formData.enrollmentTypes}
-                                    delete newTypes[c.id]
-                                    setFormData({...formData, courseIds: formData.courseIds.filter(id => id !== c.id), enrollmentTypes: newTypes})
-                                  }}
-                                  style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: 'var(--danger)', display: 'flex' }}
-                                >
-                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-                               </button>
-                            </div>
-                            )
-                          })}
-                          
-                          <div className="manager-add-wrapper" style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                            <div style={{ position: 'relative', width: '100%' }}>
-                               <select 
-                                  className="manager-add-select"
-                                  onChange={(e) => {
-                                   if (e.target.value && !formData.courseIds.includes(e.target.value)) {
-                                      setFormData({
-                                         ...formData,
-                                         courseIds: [...formData.courseIds, e.target.value],
-                                         enrollmentTypes: {...formData.enrollmentTypes, [e.target.value]: 'DEMO'}
-                                       })
-                                    }
-                                  }}
-                                style={{
-                                  padding: '9px 16px', borderRadius: '12px', border: '1px dashed var(--border)', background: 'transparent',
-                                  fontSize: '13px', fontWeight: 600, color: 'var(--text-secondary)', cursor: 'pointer', appearance: 'none', boxShadow: 'none'
-                                }}
-                                value=""
-                             >
-                               <option value="">+ Add demo course</option>
-                               {courses.filter(c => !formData.courseIds.includes(c.id) && isAssignableCourse(c)).map(c => (
-                                  <option key={c.id} value={c.id}>{c.name}</option>
-                               ))}
-                             </select>
-                           </div>
-                          </div>
-                        </div>
                       </div>
                     </div>
                   </>
@@ -917,6 +889,30 @@ export default function ManagerUserModal({ userId, onClose, onUpdate, mode = 'mo
                 }}>
                 {saving ? 'Updating...' : <>Update Profile <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></>}
               </button>
+            {showLoginActivity && user && (
+              <div
+                onClick={(e) => { e.stopPropagation(); setShowLoginActivity(false) }}
+                style={{ position: 'fixed', inset: 0, zIndex: 1100, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}
+              >
+                <div
+                  role="dialog"
+                  aria-modal="true"
+                  aria-label="Login Activity"
+                  onClick={(e) => e.stopPropagation()}
+                  style={{ position: 'relative', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '14px', padding: '24px', width: '100%', maxWidth: '560px', maxHeight: '80vh', overflowY: 'auto' }}
+                >
+                  <button
+                    type="button"
+                    aria-label="Close"
+                    onClick={() => setShowLoginActivity(false)}
+                    style={{ position: 'absolute', top: '12px', right: '12px', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', display: 'flex' }}
+                  >
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                  </button>
+                  <LoginActivity userId={user.id} />
+                </div>
+              </div>
+            )}
             {showSocialCard && userId && (
               <SocialCardModal
                 userId={userId}
@@ -1078,7 +1074,6 @@ export default function ManagerUserModal({ userId, onClose, onUpdate, mode = 'mo
                 .manager-profile-iitm { order: 6; }
                 .manager-profile-bundles { order: 7; }
                 .manager-profile-courses { order: 8; }
-                .manager-profile-demo-courses { order: 9; }
                 .manager-profile-tracking { order: 10; }
                 .manager-profile-manager-controls { order: 10; }
                 .manager-profile-created { order: 11; }

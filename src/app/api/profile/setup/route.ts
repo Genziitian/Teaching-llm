@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
+import { NAME_DIGIT_ERROR, nameHasDigit } from '@/lib/name-validation'
 import { getSession } from '@/lib/auth'
 import { logActivity, ACTION, MODULE } from '@/lib/activity-log'
 
@@ -16,7 +17,10 @@ export async function PUT(request: NextRequest) {
     if (!firstName || !lastName || !firstName.trim() || !lastName.trim()) {
       return NextResponse.json({ error: 'First name and last name are required.' }, { status: 400 })
     }
-    
+    if (nameHasDigit(firstName, lastName)) {
+      return NextResponse.json({ error: NAME_DIGIT_ERROR }, { status: 400 })
+    }
+
     if (!mobileNumber || !/^\d{10}$/.test(mobileNumber)) {
       return NextResponse.json({ error: 'Mobile number must be exactly 10 digits.' }, { status: 400 })
     }

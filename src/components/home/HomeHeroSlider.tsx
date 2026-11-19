@@ -11,9 +11,13 @@ export interface HeroSlide {
 interface Props {
   slides: HeroSlide[]
   intervalMs?: number
+  /** Shown when there are no slides or every slide image failed to load. */
+  fallback?: React.ReactNode
 }
 
-export default function HomeHeroSlider({ slides, intervalMs = 4500 }: Props) {
+export default function HomeHeroSlider({ slides: allSlides, intervalMs = 4500, fallback = null }: Props) {
+  const [broken, setBroken] = useState<string[]>([])
+  const slides = allSlides.filter(s => s.image && !broken.includes(s.image))
   const [index, setIndex] = useState(0)
   const [paused, setPaused] = useState(false)
   const touchStartX = useRef<number | null>(null)
@@ -25,7 +29,7 @@ export default function HomeHeroSlider({ slides, intervalMs = 4500 }: Props) {
     return () => clearInterval(t)
   }, [paused, slides.length, intervalMs])
 
-  if (slides.length === 0) return null
+  if (slides.length === 0) return <>{fallback}</>
 
   const go = (i: number) => setIndex((i + slides.length) % slides.length)
 
@@ -77,7 +81,7 @@ export default function HomeHeroSlider({ slides, intervalMs = 4500 }: Props) {
               className="gz-hero__slide"
               style={{ flex: `0 0 ${100 / slides.length}%` }}
             >
-              <img src={s.image} alt={s.alt} loading={i === 0 ? 'eager' : 'lazy'} />
+              <img src={s.image} alt={s.alt} loading={i === 0 ? 'eager' : 'lazy'} onError={() => { setBroken(b => [...b, s.image]); setIndex(0) }} />
             </button>
           ))}
         </div>

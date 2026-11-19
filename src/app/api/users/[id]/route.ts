@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
+import { NAME_DIGIT_ERROR, nameHasDigit } from '@/lib/name-validation'
 import { getSession, isAdminOrManager, isManager } from '@/lib/auth'
 import { logActivity, ACTION, MODULE } from '@/lib/activity-log'
 import { isCourseExpired } from '@/lib/course-state'
@@ -116,6 +117,10 @@ export async function PUT(
     const nextCourseIds = classIds !== undefined ? classIds : courseIds
     const nextAssignedCourseIds = assignedClassIds !== undefined ? assignedClassIds : assignedCourseIds
     const nextBundleIds = Array.isArray(bundleIds) ? Array.from(new Set(bundleIds.filter(Boolean))) : undefined
+
+    if (nameHasDigit(name, firstName, lastName)) {
+      return NextResponse.json({ error: NAME_DIGIT_ERROR }, { status: 400 })
+    }
 
     const data: Record<string, any> = {}
     if (firstName !== undefined) data.firstName = firstName
