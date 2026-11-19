@@ -20,27 +20,37 @@ export default function CareersJobsBoard() {
     <div style={{ width: '100%', padding: '8px 0 48px' }}>
       {roles === null && <p style={{ color: 'var(--text-muted)' }}>Loading roles…</p>}
       {roles?.length === 0 && <p style={{ color: 'var(--text-muted)' }}>No open roles right now. Check back soon.</p>}
-      <div style={{ display: 'grid', gap: 12 }}>
-        {roles?.map((r) => (
-          <div key={r.id} style={{ border: '1px solid var(--border, #e5e7eb)', borderRadius: 12, padding: 16, background: 'var(--surface)' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
-              <div>
-                <h3 style={{ margin: 0, fontSize: 17, color: 'var(--text-primary)' }}>{r.title}</h3>
-                <p style={{ margin: '6px 0', fontSize: 14, color: 'var(--text-secondary)' }}>{r.summary}</p>
-                <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
-                  {[r.type, r.mode, r.pay, ...r.tags].filter(Boolean).map((t) => <span key={t} style={{ fontSize: 11, padding: '2px 10px', borderRadius: 999, background: 'var(--surface-2)', border: '1px solid var(--border)', color: 'var(--text-secondary)' }}>{t}</span>)}
-                  {r.comp && <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>{r.comp}</span>}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: 16 }}>
+        {roles?.map((r) => {
+          const chips = [r.type, r.mode, r.pay, ...r.tags].filter(Boolean)
+          const meta = [r.location, r.experience, r.openings ? `${r.openings} opening${r.openings > 1 ? 's' : ''}` : '', r.deadline ? `Apply by ${new Date(r.deadline).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}` : ''].filter(Boolean)
+          return (
+            <div key={r.id} style={{ border: '1px solid var(--border)', borderRadius: 16, padding: 18, background: 'var(--surface)', display: 'flex', flexDirection: 'column', gap: 12 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                <div style={{ width: 44, height: 44, borderRadius: 12, border: '1px solid var(--border)', background: 'var(--surface-2)', display: 'grid', placeItems: 'center', fontSize: 18, fontWeight: 700, color: 'var(--text-primary)', flexShrink: 0 }}>
+                  {r.title.trim().charAt(0).toUpperCase()}
                 </div>
-                {(r.location || r.experience || r.openings || r.deadline || (r.skills && r.skills.length > 0)) && (
-                  <p style={{ margin: '8px 0 0', fontSize: 12, color: 'var(--text-muted)' }}>
-                    {[r.location, r.experience, r.openings ? `${r.openings} opening${r.openings > 1 ? 's' : ''}` : '', r.deadline ? `Apply by ${new Date(r.deadline).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}` : '', r.skills && r.skills.length ? `Skills: ${r.skills.join(', ')}` : ''].filter(Boolean).join(' · ')}
-                  </p>
-                )}
+                <div style={{ minWidth: 0 }}>
+                  <h3 style={{ margin: 0, fontSize: 16, fontWeight: 600, color: 'var(--text-primary)' }}>{r.title}</h3>
+                  {r.comp && <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--success)', marginTop: 2 }}>{r.comp}</div>}
+                </div>
               </div>
-              <button style={{ ...btn, alignSelf: 'flex-start' }} onClick={() => setActive(r)}>Apply</button>
+              <p style={{ margin: 0, fontSize: 13.5, lineHeight: 1.5, color: 'var(--text-secondary)' }}>{r.summary}</p>
+              {chips.length > 0 && (
+                <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                  {chips.map((t) => <span key={t} style={{ fontSize: 11.5, padding: '3px 10px', borderRadius: 999, background: 'var(--surface-2)', border: '1px solid var(--border)', color: 'var(--text-secondary)' }}>{t}</span>)}
+                </div>
+              )}
+              {(meta.length > 0 || (r.skills && r.skills.length > 0)) && (
+                <div style={{ fontSize: 12, color: 'var(--text-muted)', lineHeight: 1.5 }}>
+                  {meta.join(' · ')}
+                  {r.skills && r.skills.length > 0 && <div>Skills: {r.skills.join(', ')}</div>}
+                </div>
+              )}
+              <button style={{ ...btn, marginTop: 'auto', width: '100%', padding: '10px 16px' }} onClick={() => setActive(r)}>Apply</button>
             </div>
-          </div>
-        ))}
+          )
+        })}
       </div>
     </div>
   )

@@ -25,7 +25,7 @@ Future<bool> handleCallSignal(RemoteMessage message) async {
     appName: 'Gen-Z IITian',
     handle: 'Voice call',
     type: 0, // audio
-    duration: 60000, // matches RING_TIMEOUT_MS on the server
+    duration: 60000, // matches RING_SECONDS on the server
     extra: {'callId': callId, 'name': name},
     missedCallNotification: const NotificationParams(
       showNotification: true,

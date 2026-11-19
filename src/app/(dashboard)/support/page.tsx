@@ -1101,7 +1101,6 @@ export default function SupportPage() {
             
             {/* Live Chat Card — REMOVED (backed up in scratch/live-chat-backup/) */}
 
-            {userRole === 'STUDENT' && <SupportCallBox />}
             {userRole === 'MANAGER' && <SupportCallRequests />}
 
             {/* Raise a Ticket Box (History merged inside) */}
@@ -1109,10 +1108,10 @@ export default function SupportPage() {
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
                 <div>
                   <div className="gz-sp-eyebrow">
-                    Raise a Ticket
+                    Talk to Support
                   </div>
                   <div className="gz-sp-sub gz-sp-sub--tight">
-                    Ask GenZie first. If you still need help, it raises a ticket for you.
+                    GenZie answers first. If you still need help, it connects you: a call, a call back or a ticket.
                   </div>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexShrink: 0 }}>
@@ -1126,7 +1125,7 @@ export default function SupportPage() {
                       Limit Reached ({MAX_ACTIVE_TICKETS}/{MAX_ACTIVE_TICKETS} Active)
                     </button>
                   ) : (
-                    <button onClick={() => window.dispatchEvent(new Event('genie:open'))} className="gz-btn">Raise a ticket</button>
+                    <button onClick={() => window.dispatchEvent(new Event('genie:open'))} className="gz-btn">Ask GenZie</button>
                   )
                 ) : (
                   <div style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: '600' }}>Review tickets below</div>
@@ -1141,6 +1140,9 @@ export default function SupportPage() {
                   <span>You have {MAX_ACTIVE_TICKETS} active tickets. You cannot create a new ticket until a manager resolves or closes an existing ticket.</span>
                 </div>
               )}
+
+              {/* Booked call back (if any), then ticket history */}
+              {userRole === 'STUDENT' && <SupportCallBox />}
 
               {/* History Section inside the box */}
               <div className="gz-sp-sec">

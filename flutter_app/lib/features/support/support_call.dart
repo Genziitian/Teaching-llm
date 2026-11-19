@@ -14,6 +14,7 @@ import 'package:video_player/video_player.dart';
 import '../../core/api/api_client.dart';
 import '../../core/auth/auth_providers.dart';
 import '../../theme/app_theme_tokens.dart';
+import 'new_ticket_sheet.dart';
 import 'support_providers.dart';
 
 // shortcut: STUN only, no TURN — calls between two strict NATs (some mobile carriers) won't connect; add a TURN server here and on the web if that shows up.
@@ -180,6 +181,9 @@ Future<void> showScheduleCallSheet(BuildContext context, WidgetRef ref, {String?
   );
 }
 
+/// Calls this manager turned down: they keep ringing for other managers, so hide them here.
+final _declinedCalls = <String>{};
+
 /// Support page section: incoming calls (both roles); managers also get missed calls and
 /// scheduled requests; students see their own scheduled request.
 class SupportCallsSection extends ConsumerWidget {
@@ -191,7 +195,9 @@ class SupportCallsSection extends ConsumerWidget {
     final manager = ref.watch(supportSessionProvider).role == 'MANAGER';
     final calls = ref.watch(supportCallsProvider).asData?.value ?? const [];
     final incoming = calls.where((c) =>
-        c['type'] == (manager ? 'CALL' : 'CALL_OUT') && c['status'] == 'RINGING');
+        c['type'] == (manager ? 'CALL' : 'CALL_OUT') &&
+        c['status'] == 'RINGING' &&
+        !_declinedCalls.contains('${c['id']}'));
     final todo = calls.where((c) =>
         (manager && c['type'] == 'CALL' && c['status'] == 'MISSED') ||
         (c['type'] == 'SCHEDULED' &&
@@ -258,7 +264,10 @@ class SupportCallsSection extends ConsumerWidget {
               label: const Text('Answer'),
             ),
             OutlinedButton(
-                onPressed: () => _patchCall(ref, '${c['id']}', 'end'),
+                onPressed: () {
+                  _declinedCalls.add('${c['id']}');
+                  _patchCall(ref, '${c['id']}', 'end');
+                },
                 child: const Text('Decline')),
             if (manager)
               TextButton.icon(
@@ -343,7 +352,8 @@ class SupportCallsSection extends ConsumerWidget {
         '${joined.length > 2 ? '\nIn call: ${joined.join(', ')}' : ''}';
   } else {
     outcome = switch (c['status']) {
-      'MISSED' => 'Missed',
+      'MISSED' => 'Not picked up',
+      'DECLINED' => 'Declined',
       'RINGING' => 'Ringing',
       'ACTIVE' => 'In progress',
       _ => 'Not answered',
@@ -405,6 +415,7 @@ class _SupportCallPageState extends ConsumerState<SupportCallPage> {
   DateTime? _startedAt;
   String _status = 'Connecting…';
   bool _ended = false;
+  bool _missed = false; // student's call went unanswered: offer a call back or a ticket
   bool _muted = false;
   bool _speaker = false;
 
@@ -582,8 +593,14 @@ class _SupportCallPageState extends ConsumerState<SupportCallPage> {
         return _finish(widget.callId == null
             ? (widget.userId != null
                 ? 'No answer. The student can call back, or try again later.'
-                : 'No one could pick up right now. Ask GenZie to book a call back and we will call you.')
+                : (() {
+                    _missed = true;
+                    return 'Nobody could pick up right now. Book a call back at a time that suits you, or raise a ticket.';
+                  })())
             : 'Call ended');
+      }
+      if (call['status'] == 'DECLINED') {
+        return _finish('${(call['caller'] as Map?)?['name'] ?? 'The student'} declined the call.');
       }
       if (call['status'] == 'ENDED') return _finish('Call ended');
       _studentId = (call['caller'] as Map?)?['id']?.toString();
@@ -878,7 +895,34 @@ class _SupportCallPageState extends ConsumerState<SupportCallPage> {
                       ),
               ),
               const SizedBox(height: 16),
-              if (!live)
+              if (!live && _missed) ...[
+                SizedBox(
+                  width: double.infinity,
+                  child: FilledButton(
+                    onPressed: () => showScheduleCallSheet(context, ref),
+                    child: const Text('Book a call back'),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton(
+                    onPressed: () async {
+                      final id = await NewTicketSheet.show(context);
+                      if (id != null && context.mounted) {
+                        context.pushReplacement('/support/tickets/${Uri.encodeComponent(id)}');
+                      }
+                    },
+                    style: OutlinedButton.styleFrom(foregroundColor: Colors.white),
+                    child: const Text('Raise a ticket'),
+                  ),
+                ),
+                TextButton(
+                  onPressed: () =>
+                      context.canPop() ? context.pop() : context.go('/support'),
+                  child: const Text('Close', style: TextStyle(color: Colors.white70)),
+                ),
+              ] else if (!live)
                 SizedBox(
                   width: double.infinity,
                   child: FilledButton(

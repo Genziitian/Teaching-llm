@@ -32,7 +32,7 @@ type Opt = { value: string; label: string; desc?: string }
 
 function Choice({ options, value, onChange, cols }: { options: Opt[]; value: string; onChange: (v: string) => void; cols?: number }) {
   return (
-    <div className="ja-choice" style={cols ? { gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))` } : undefined}>
+    <div className={`ja-choice${options.some(o => o.desc) ? '' : ' compact'}`} style={cols && options.some(o => o.desc) ? { gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))` } : undefined}>
       {options.map(o => (
         <button key={o.value} type="button" aria-pressed={value === o.value} className={value === o.value ? 'on' : ''} onClick={() => onChange(o.value)}>
           <b>{o.label}</b>{o.desc && <small>{o.desc}</small>}
@@ -159,13 +159,16 @@ export default function JobApplicationForm({ role, onBack }: { role: CareersRole
 
   const basics = (
     <>
-      <div className="ja-grid2">
-        <Field label="Full name"><input className="ja-input" value={f.name} onChange={e => set('name', e.target.value)} placeholder="e.g. Aryan Sharma" autoComplete="name" /></Field>
-        <Field label="Phone / WhatsApp"><input className="ja-input" value={f.phone} onChange={e => set('phone', e.target.value)} placeholder="98765 43210" inputMode="tel" autoComplete="tel" /></Field>
+      <div className="ja-g12">
+        <div className={kind === 'tutor' ? 'c5' : 'c6'}><Field label="Full name"><input className="ja-input" value={f.name} onChange={e => set('name', e.target.value)} placeholder="e.g. Aryan Sharma" autoComplete="name" /></Field></div>
+        <div className={kind === 'tutor' ? 'c4' : 'c6'}><Field label="Phone / WhatsApp"><input className="ja-input" value={f.phone} onChange={e => set('phone', e.target.value)} placeholder="98765 43210" inputMode="tel" autoComplete="tel" /></Field></div>
+        {kind === 'tutor' && <div className="c3"><Field label="Age"><input className="ja-input" value={f.age} onChange={e => set('age', e.target.value)} placeholder="e.g. 21" inputMode="numeric" /></Field></div>}
+        <div className="c6">
+          <Field label="Email address" hint="Linked to your GenZ IITian login, so it can't be changed here.">
+            <input className="ja-input" value={me?.email || ''} readOnly aria-readonly="true" />
+          </Field>
+        </div>
       </div>
-      <Field label="Email address" hint="Linked to your GenZ IITian login, so it can't be changed here.">
-        <input className="ja-input" value={me?.email || ''} readOnly aria-readonly="true" />
-      </Field>
     </>
   )
 
@@ -202,7 +205,6 @@ export default function JobApplicationForm({ role, onBack }: { role: CareersRole
             <>
               <Section n="01" title="Basic details" sub="How we identify you and reach you.">
                 {basics}
-                <div className="ja-grid2"><Field label="Age"><input className="ja-input" value={f.age} onChange={e => set('age', e.target.value)} placeholder="e.g. 21" inputMode="numeric" /></Field></div>
               </Section>
               <Section n="02" title="About you" sub="Helps us plan sessions around your schedule.">
                 <Field label="Gender"><Choice cols={4} value={f.gender} onChange={v => set('gender', v)} options={['Male', 'Female', 'Other', 'Prefer not to say'].map(v => ({ value: v, label: v }))} /></Field>
@@ -264,9 +266,9 @@ export default function JobApplicationForm({ role, onBack }: { role: CareersRole
                     { value: 'Hindi', label: 'Hindi', desc: 'Only' },
                   ]} />
                 </Field>
-                <div className="ja-grid2">
-                  <Field label="CGPA / grade in the subject" hint="For the subject(s) you want to teach."><input className="ja-input" value={f.cgpa} onChange={e => set('cgpa', e.target.value)} placeholder="e.g. 8.5 or S grade" /></Field>
-                  <Field label="Resume / CV link" hint="Set sharing to “Anyone with the link can view”."><input className="ja-input" value={f.resumeLink} onChange={e => set('resumeLink', e.target.value)} placeholder="https://drive.google.com/…" inputMode="url" /></Field>
+                <div className="ja-g12">
+                  <div className="c4"><Field label="CGPA / grade in the subject" hint="For the subject(s) you want to teach."><input className="ja-input" value={f.cgpa} onChange={e => set('cgpa', e.target.value)} placeholder="e.g. 8.5 or S grade" /></Field></div>
+                  <div className="c8"><Field label="Resume / CV link" hint="Set sharing to “Anyone with the link can view”."><input className="ja-input" value={f.resumeLink} onChange={e => set('resumeLink', e.target.value)} placeholder="https://drive.google.com/…" inputMode="url" /></Field></div>
                 </div>
               </Section>
             </>
@@ -320,9 +322,9 @@ const CSS = `
 .ja{width:100%;padding:4px 0 48px;display:flex;flex-direction:column;gap:16px}
 .ja-back{align-self:flex-start;background:none;border:none;padding:0;cursor:pointer;font:inherit;font-size:13px;color:var(--gz-ink-3)}
 .ja-back:hover{color:var(--gz-ink)}
-.ja-hero{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;padding:22px 24px;border:1px solid var(--gz-line);border-radius:var(--gz-r-card);background:var(--gz-panel)}
+.ja-hero{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;padding:18px 20px;border:1px solid var(--gz-line);border-radius:var(--gz-r-card);background:var(--gz-panel)}
 .ja-eyebrow{font-family:var(--gz-mono);font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--gz-ink-3)}
-.ja-hero h1{margin:4px 0 6px;font-size:26px;font-weight:600;letter-spacing:-.02em;color:var(--gz-ink)}
+.ja-hero h1{margin:4px 0 6px;font-size:24px;font-weight:600;letter-spacing:-.02em;color:var(--gz-ink)}
 .ja-hero p{margin:0 0 12px;font-size:14px;color:var(--gz-ink-2);max-width:640px}
 .ja-tags{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
 .ja-tags span{font-size:11.5px;padding:3px 10px;border-radius:999px;border:1px solid var(--gz-line);background:var(--gz-card);color:var(--gz-ink-2)}
@@ -334,22 +336,27 @@ const CSS = `
 .ja-steps li.on b{background:var(--gz-ink);color:var(--gz-ink-inv);border-color:var(--gz-ink)}
 .ja-steps li.ok b{background:#10b981;border-color:#10b981;color:#fff}
 .ja-form{display:flex;flex-direction:column;gap:16px}
-.ja-sec{display:flex;flex-direction:column;gap:16px;padding:22px 24px;border:1px solid var(--gz-line);border-radius:var(--gz-r-card);background:var(--gz-panel)}
+.ja-sec{display:flex;flex-direction:column;gap:14px;padding:18px 20px;border:1px solid var(--gz-line);border-radius:var(--gz-r-card);background:var(--gz-panel)}
 .ja-sec-head{display:flex;gap:12px;align-items:flex-start}
 .ja-num{flex-shrink:0;width:34px;height:34px;border-radius:10px;display:grid;place-items:center;font-family:var(--gz-mono);font-size:12px;font-weight:600;background:var(--gz-ink);color:var(--gz-ink-inv)}
 .ja-sec-head h3{margin:0;font-size:16px;font-weight:600;color:var(--gz-ink)}
 .ja-sec-head p{margin:2px 0 0;font-size:13px;color:var(--gz-ink-3)}
 .ja-grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
 .ja-field{display:flex;flex-direction:column;gap:6px;min-width:0}
-.ja-label{font-size:13.5px;font-weight:600;color:var(--gz-ink)}
+.ja-label{font-size:12.5px;font-weight:600;color:var(--gz-ink)}
 .ja-label i{color:#ef4444;font-style:normal;margin-left:2px}
 .ja-label em{font-style:normal;font-weight:400;color:var(--gz-ink-3)}
-.ja-hint{font-size:12px;color:var(--gz-ink-3);margin-top:-2px}
-.ja-input{width:100%;box-sizing:border-box;font:inherit;font-size:14px;padding:11px 14px;border-radius:10px;border:1px solid var(--gz-line);background:var(--gz-card);color:var(--gz-ink);outline:none;resize:vertical}
+.ja-hint{font-size:11.5px;color:var(--gz-ink-3);margin-top:-2px}
+.ja-input{width:100%;box-sizing:border-box;font:inherit;font-size:13.5px;height:38px;padding:0 12px;border-radius:8px;border:1px solid var(--gz-line);background:var(--gz-card);color:var(--gz-ink);outline:none;resize:vertical}
+.ja-input:is(textarea){height:auto;padding:9px 12px}
+.ja-g12{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:12px 16px}
+.c3{grid-column:span 3}.c4{grid-column:span 4}.c5{grid-column:span 5}.c6{grid-column:span 6}.c8{grid-column:span 8}
+.ja-choice.compact{display:flex;flex-wrap:wrap;gap:8px}
+.ja-choice.compact button{flex-direction:row;align-items:center;padding:7px 16px;border-radius:999px;font-size:13px}
 .ja-input:focus{border-color:var(--gz-ink);box-shadow:0 0 0 3px color-mix(in srgb,var(--gz-ink) 10%,transparent)}
 .ja-input[readonly]{opacity:.7;cursor:not-allowed}
 .ja-choice{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px}
-.ja-choice button{font:inherit;text-align:left;padding:11px 14px;border-radius:10px;border:1px solid var(--gz-line);background:var(--gz-card);color:var(--gz-ink);cursor:pointer;display:flex;flex-direction:column;gap:2px;transition:border-color .15s}
+.ja-choice button{font:inherit;text-align:left;padding:9px 12px;border-radius:10px;border:1px solid var(--gz-line);background:var(--gz-card);color:var(--gz-ink);cursor:pointer;display:flex;flex-direction:column;gap:2px;transition:border-color .15s}
 .ja-choice button:hover{border-color:var(--gz-line-hover)}
 .ja-choice button b{font-size:13.5px;font-weight:600}
 .ja-choice button small{font-size:12px;color:var(--gz-ink-3)}
@@ -371,5 +378,5 @@ const CSS = `
 .ja-done-ico{width:56px;height:56px;border-radius:50%;display:grid;place-items:center;font-size:26px;background:#10b981;color:#fff}
 .ja-done h3{margin:0;font-size:20px;color:var(--gz-ink)}
 .ja-done p{margin:0;max-width:440px;font-size:14px;color:var(--gz-ink-2)}
-@media (max-width:767px){.ja-grid2,.ja-courses{grid-template-columns:1fr}.ja-choice{grid-template-columns:repeat(2,minmax(0,1fr))!important}.ja-hero,.ja-sec{padding:18px 16px}}
+@media (max-width:767px){.ja-grid2,.ja-courses{grid-template-columns:1fr}.c3,.c4,.c5,.c6,.c8{grid-column:span 12}.ja-choice{grid-template-columns:repeat(2,minmax(0,1fr))!important}.ja-hero,.ja-sec{padding:18px 16px}}
 `

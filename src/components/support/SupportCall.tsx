@@ -64,6 +64,8 @@ function useSupportCall() {
   const [title, setTitle] = useState('Support')
   const [startedAt, setStartedAt] = useState<number | null>(null)
   const [ringingSince, setRingingSince] = useState<number | null>(null)
+  // Student's call couldn't happen: offer a call back or a ticket. 'missed' = nobody answered, 'closed' = outside hours.
+  const [missed, setMissed] = useState<null | 'missed' | 'closed'>(null)
   const [studentId, setStudentId] = useState<string | null>(null) // callerId is always the student
   const [muted, setMuted] = useState(false)
   const [video, setVideo] = useState<VideoMode>('off')
@@ -78,6 +80,8 @@ function useSupportCall() {
   const poll = useRef<ReturnType<typeof setInterval> | null>(null)
   const ticking = useRef(false)
   const callingStudent = useRef(false) // manager → student, for the no-answer message
+  const fromGenie = useRef(false) // student call placed from GenZie's hand-off
+  const connectedOnce = useRef(false)
 
   // Ringback while we wait for someone to pick up.
   useEffect(() => (state === 'ringing' ? playTone('ringback') : undefined), [state])
@@ -89,7 +93,8 @@ function useSupportCall() {
     syncPeers()
   }
 
-  const cleanup = (msg: string | null) => {
+  /** How a call finished; calls started from GenZie hand this back to it for the follow-up. */
+  const cleanup = (msg: string | null, outcome: CallOutcome = connectedOnce.current ? 'answered' : 'failed') => {
     if (poll.current) clearInterval(poll.current)
     poll.current = null
     peersRef.current.forEach(p => p.pc.close())
@@ -104,6 +109,15 @@ function useSupportCall() {
     setVideo('off')
     setMuted(false)
     setStartedAt(null)
+    if (fromGenie.current) {
+      // GenZie takes over: it reopens with "did it help?" or "call again / call back / ticket".
+      fromGenie.current = false
+      window.dispatchEvent(new CustomEvent('support-call:outcome', { detail: { outcome } }))
+      setMissed(null)
+      setMessage(null)
+      setState('idle')
+      return
+    }
     setMessage(msg)
     setState('ended')
   }
@@ -111,7 +125,7 @@ function useSupportCall() {
   const end = (msg: string | null = 'Call ended') => {
     const id = callId.current
     if (id) fetch(`/api/support/calls/${id}`, { method: 'PATCH', keepalive: true, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'end' }) }).catch(() => {})
-    cleanup(msg)
+    cleanup(msg, connectedOnce.current ? 'answered' : 'cancelled')
   }
 
   const newPeer = (id: string, name: string) => {
@@ -123,7 +137,7 @@ function useSupportCall() {
       syncPeers()
     }
     pc.onconnectionstatechange = () => {
-      if (pc.connectionState === 'connected') { setState('active'); setStartedAt(s => s ?? Date.now()) }
+      if (pc.connectionState === 'connected') { connectedOnce.current = true; setState('active'); setStartedAt(s => s ?? Date.now()) }
       if (pc.connectionState === 'failed') closePeer(id)
     }
     peersRef.current.set(id, { pc, name, stream, at: Date.now() })
@@ -157,10 +171,13 @@ function useSupportCall() {
     try {
       const call = await api(`/api/support/calls/${callId.current}`)
       if (call.status === 'MISSED') {
+        // The missed call sits in every manager's Missed calls list with a Call back button.
+        if (!callingStudent.current) setMissed('missed')
         return cleanup(callingStudent.current
           ? 'No answer. The student can call back, or try again later.'
-          : 'No one could pick up right now. Ask GenZie to book a call back and we will call you.')
+          : 'Nobody could pick up right now. Book a call back at a time that suits you, or raise a ticket.', 'missed')
       }
+      if (call.status === 'DECLINED') return cleanup(`${call.caller?.name || 'The student'} declined the call.`)
       if (call.status === 'ENDED') return cleanup('Call ended')
       setStudentId(call.caller?.id ?? null)
       const parts: { userId: string; joinedAt: string; video: VideoMode; user: { name: string; role: string } }[] = call.participants
@@ -200,6 +217,10 @@ function useSupportCall() {
   }
 
   const begin = async (name: string, enter: () => Promise<string>) => {
+    callingStudent.current = false // start() sets it again when a manager rings a student
+    fromGenie.current = false
+    connectedOnce.current = false
+    setMissed(null)
     setMessage(null)
     setTitle(name)
     setState('connecting')
@@ -210,6 +231,8 @@ function useSupportCall() {
       poll.current = setInterval(tick, 1500)
       tick()
     } catch (e: any) {
+      const closed = !callingStudent.current && e?.status === 400 && /10 AM/.test(e?.message || '')
+      if (closed) { setMissed('closed'); return cleanup('Live calls are open 10 AM – 10 PM. Book a call back for a time that suits you, or raise a ticket.', 'closed') }
       cleanup(e?.status === 409 ? 'This call is no longer ringing'
         : e?.name === 'NotAllowedError' ? 'Microphone permission is needed for calls.'
         : e?.message || 'Could not connect the call')
@@ -217,8 +240,9 @@ function useSupportCall() {
   }
 
   /** No userId: a student rings support. With userId: a manager rings that student. */
-  const start = (userId?: string, name?: string) => begin(name || 'Support', async () => {
+  const start = (userId?: string, name?: string, genie = false) => begin(name || 'Support', async () => {
     callingStudent.current = !!userId
+    fromGenie.current = genie
     const call = await api('/api/support/calls', { method: 'POST', body: JSON.stringify({ userId }) })
     setRingingSince(Date.now())
     setState('ringing')
@@ -277,9 +301,9 @@ function useSupportCall() {
   }, [])
 
   return {
-    state, message, title, startedAt, ringingSince, studentId, muted, video, peers, localVideo, canShareScreen,
+    state, message, title, startedAt, ringingSince, studentId, missed, muted, video, peers, localVideo, canShareScreen,
     start, accept, join, end, toggleMute, toggleCamera, toggleScreen,
-    reset: () => { setState('idle'); setMessage(null) },
+    reset: () => { setState('idle'); setMessage(null); setMissed(null) },
   }
 }
 
@@ -297,9 +321,18 @@ function useTimer(startedAt: number | null) {
 
 // Calls sit centred on a dimmed backdrop so they can't be missed.
 const backdropStyle: React.CSSProperties = {
-  position: 'fixed', inset: 0, zIndex: 10000, background: 'rgba(0,0,0,.45)',
+  position: 'fixed', inset: 0, zIndex: 10000, background: 'rgba(0,0,0,.35)',
+  backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)', // calls get the screen's full attention
   display: 'flex', alignItems: 'center', justifyContent: 'center',
   padding: '16px 16px calc(16px + env(safe-area-inset-bottom))',
+}
+
+// While a manager reads Student info the card docks bottom-right (no blur) so the details stay readable.
+const dockStyle: React.CSSProperties = {
+  position: 'fixed', right: 16, bottom: 'calc(16px + env(safe-area-inset-bottom))', zIndex: 10002, maxHeight: 'calc(100vh - 32px)', display: 'flex',
+}
+function CallLayer({ docked, children }: { docked: boolean; children: React.ReactNode }) {
+  return <div style={docked ? dockStyle : backdropStyle}>{children}</div>
 }
 
 const overlayStyle: React.CSSProperties = {
@@ -335,7 +368,7 @@ function Tile({ name, stream, on, mirrored }: { name: string; stream: MediaStrea
   )
 }
 
-function CallOverlay({ call, onViewStudent }: { call: ReturnType<typeof useSupportCall>; onViewStudent?: (id: string) => void }) {
+function CallOverlay({ call, onViewStudent, docked = false }: { call: ReturnType<typeof useSupportCall>; onViewStudent?: (id: string) => void; docked?: boolean }) {
   const timer = useTimer(call.startedAt)
   useTimer(call.state === 'ringing' ? call.ringingSince : null) // re-render every second for the countdown
   if (call.state === 'idle') return null
@@ -347,13 +380,15 @@ function CallOverlay({ call, onViewStudent }: { call: ReturnType<typeof useSuppo
     <button className={active ? 'gz-btn' : 'gz-btn gz-btn--ghost'} style={{ flex: '1 1 auto' }} onClick={onClick} aria-pressed={active}>{label}</button>
   )
   return (
-    <div style={backdropStyle}>
+    <CallLayer docked={docked}>
     <div style={{ ...overlayStyle, width: showGrid ? 'min(760px, calc(100vw - 32px))' : overlayStyle.width }} role="dialog" aria-modal="true" aria-label="Support call" aria-live="polite">
       {call.peers.map(p => <MediaEl key={p.id} stream={p.stream} kind="audio" />)}
       <div style={{ fontSize: 12, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '.08em', fontWeight: 600 }}>
-        {call.video === 'screen' ? 'Sharing your screen' : 'Support call'}
+        {call.missed === 'missed' ? 'No answer' : call.missed === 'closed' ? 'Support is closed' : call.video === 'screen' ? 'Sharing your screen' : 'Support call'}
       </div>
-      <div style={{ fontSize: 17, fontWeight: 600, marginTop: 4, overflowWrap: 'anywhere' }}>{call.title}</div>
+      <div style={{ fontSize: 17, fontWeight: 600, marginTop: 4, overflowWrap: 'anywhere' }}>
+        {call.missed === 'missed' ? 'Nobody picked up' : call.missed === 'closed' ? 'Back at 10 AM' : call.title}
+      </div>
       <div style={{ fontSize: 13, color: 'var(--text-muted)', marginTop: 2 }}>{label}</div>
       {showGrid && (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 8, marginTop: 12, maxHeight: '60vh', overflowY: 'auto' }}>
@@ -363,7 +398,18 @@ function CallOverlay({ call, onViewStudent }: { call: ReturnType<typeof useSuppo
       )}
       <div style={{ display: 'flex', gap: 8, marginTop: 14, flexWrap: 'wrap' }}>
         {!live ? (
-          <button className="gz-btn" style={{ flex: 1 }} onClick={call.reset}>Close</button>
+          <>
+            {call.missed ? (
+              <>
+                {/* GenZie owns both flows: the call-back picker and the message that becomes a ticket */}
+                <button className="gz-btn" style={{ flex: 1 }} onClick={() => { call.reset(); window.dispatchEvent(new Event('genie:callback')) }}>Book a call back</button>
+                <button className="gz-btn gz-btn--ghost" style={{ flex: 1 }} onClick={() => { call.reset(); window.dispatchEvent(new Event('genie:message')) }}>Raise a ticket</button>
+                <button className="gz-btn gz-btn--ghost" style={{ flex: '1 1 100%' }} onClick={call.reset}>Close</button>
+              </>
+            ) : (
+              <button className="gz-btn" style={{ flex: 1 }} onClick={call.reset}>Close</button>
+            )}
+          </>
         ) : (
           <>
             {onViewStudent && call.studentId && ctl('Student info', () => onViewStudent(call.studentId!))}
@@ -377,24 +423,24 @@ function CallOverlay({ call, onViewStudent }: { call: ReturnType<typeof useSuppo
         )}
       </div>
     </div>
-    </div>
+    </CallLayer>
   )
 }
 
 /** Start a call from anywhere on the page; the mounted SupportCallListener places it. */
-export function startSupportCall(userId?: string, name?: string) {
-  window.dispatchEvent(new CustomEvent('support-call:start', { detail: { userId, name } }))
+export function startSupportCall(userId?: string, name?: string, fromGenie = false) {
+  window.dispatchEvent(new CustomEvent('support-call:start', { detail: { userId, name, fromGenie } }))
 }
+
+/** How a call ended, as reported to GenZie (window event 'support-call:outcome'). */
+export type CallOutcome = 'answered' | 'missed' | 'cancelled' | 'failed' | 'closed'
 
 /** Manager joins a live call (the mounted SupportCallListener connects). */
 export function joinSupportCall(callId: string, name: string) {
   window.dispatchEvent(new CustomEvent('support-call:join', { detail: { callId, name } }))
 }
 
-/**
- * Student-facing box on the Support page. Calls, call backs and tickets all start in GenZie, which
- * answers first and then offers the right hand-off; this box opens it and shows any booked call.
- */
+/** The student's booked call back (if any), shown inside the Support page's "Talk to Support" box. */
 export function SupportCallBox() {
   const [rows, setRows] = useState<CallRow[]>([])
   const load = () => api('/api/support/calls').then(setRows).catch(() => {})
@@ -403,24 +449,14 @@ export function SupportCallBox() {
   const scheduled = rows.find(r => r.type === 'SCHEDULED' && (r.status === 'REQUESTED' || r.status === 'ACCEPTED'))
   const cancel = async (id: string) => { await api(`/api/support/calls/${id}`, { method: 'PATCH', body: JSON.stringify({ action: 'cancel' }) }).catch(() => {}); load() }
 
+  if (!scheduled) return null
   return (
-    <div className="ticket-box-pad gz-sp-box">
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 14, flexWrap: 'wrap' }}>
-        <div>
-          <div className="gz-sp-eyebrow">Talk to Support</div>
-          <div className="gz-sp-sub gz-sp-sub--tight">GenZie answers first. If you still need help, it connects you: a call, a call back or a ticket.</div>
-        </div>
-        <button className="gz-btn" onClick={() => window.dispatchEvent(new Event('genie:open'))}>Ask GenZie</button>
+    <div className="gz-sp-sec" style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+      <div style={{ flex: 1, minWidth: 0, fontSize: 13 }}>
+        <strong>{scheduled.status === 'ACCEPTED' ? 'Call booked' : 'Call back requested, waiting for confirmation'}</strong> · {new Date(scheduled.scheduledFor!).toLocaleString()}
+        <div style={{ color: 'var(--text-muted)', fontSize: 12, overflowWrap: 'anywhere' }}>{scheduled.note}</div>
       </div>
-      {scheduled && (
-        <div className="gz-sp-sec" style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-          <div style={{ flex: 1, minWidth: 0, fontSize: 13 }}>
-            <strong>{scheduled.status === 'ACCEPTED' ? 'Call booked' : 'Call back requested, waiting for confirmation'}</strong> · {new Date(scheduled.scheduledFor!).toLocaleString()}
-            <div style={{ color: 'var(--text-muted)', fontSize: 12, overflowWrap: 'anywhere' }}>{scheduled.note}</div>
-          </div>
-          <button className="gz-btn gz-btn--ghost gz-ed-sm" onClick={() => cancel(scheduled.id)}>Cancel</button>
-        </div>
-      )}
+      <button className="gz-btn gz-btn--ghost gz-ed-sm" onClick={() => cancel(scheduled.id)}>Cancel</button>
     </div>
   )
 }
@@ -517,7 +553,7 @@ export function CallHistoryList({ rows, onOpen }: { rows: CallRow[]; onOpen?: (r
         const pickedUp = !r.answeredAt ? null : r.type === 'CALL' ? r.manager?.name : r.caller.name
         const outcome = r.type === 'SCHEDULED' ? r.status.toLowerCase()
           : r.answeredAt ? `picked up by ${pickedUp || 'unknown'}${secs != null ? ` · ${Math.floor(secs / 60)}m ${secs % 60}s` : ''}${joined.length > 2 ? ` · in call: ${joined.join(', ')}` : ''}`
-          : r.status === 'MISSED' ? 'missed' : r.status === 'RINGING' ? 'ringing' : r.status === 'ACTIVE' ? 'in progress' : 'not answered'
+          : r.status === 'MISSED' ? 'not picked up' : r.status === 'DECLINED' ? 'declined' : r.status === 'RINGING' ? 'ringing' : r.status === 'ACTIVE' ? 'in progress' : 'not answered'
         return (
           <div key={r.id} className="gz-sp-row" style={{ cursor: onOpen ? 'pointer' : 'default' }}
             {...(onOpen ? { role: 'button', tabIndex: 0, title: `Open ${r.caller.name}`, onClick: () => onOpen(r), onKeyDown: (e: React.KeyboardEvent) => { if (e.key === 'Enter') onOpen(r) } } : {})}>
@@ -544,6 +580,7 @@ export function SupportCallListener({ role }: { role: 'STUDENT' | 'MANAGER' }) {
   const call = useSupportCall()
   const [ringing, setRinging] = useState<CallRow[]>([])
   const [profileId, setProfileId] = useState<string | null>(null) // manager: full student details
+  const declined = useRef(new Set<string>()) // calls I turned down; they may still ring for other managers
   const busy = call.state !== 'idle' && call.state !== 'ended'
   const incomingType = role === 'MANAGER' ? 'CALL' : 'CALL_OUT'
 
@@ -553,8 +590,8 @@ export function SupportCallListener({ role }: { role: 'STUDENT' | 'MANAGER' }) {
   joinRef.current = call.join
   useEffect(() => {
     const onStart = (e: Event) => {
-      const { userId, name } = (e as CustomEvent).detail || {}
-      startRef.current(userId, name)
+      const { userId, name, fromGenie } = (e as CustomEvent).detail || {}
+      startRef.current(userId, name, fromGenie)
     }
     const onJoin = (e: Event) => {
       const { callId, name } = (e as CustomEvent).detail || {}
@@ -571,7 +608,7 @@ export function SupportCallListener({ role }: { role: 'STUDENT' | 'MANAGER' }) {
   useEffect(() => {
     if (busy) return
     const check = () =>
-      api('/api/support/calls').then((rows: CallRow[]) => setRinging(rows.filter(r => r.type === incomingType && r.status === 'RINGING'))).catch(() => {})
+      api('/api/support/calls').then((rows: CallRow[]) => setRinging(rows.filter(r => r.type === incomingType && r.status === 'RINGING' && !declined.current.has(r.id)))).catch(() => {})
     // Timed polls skip hidden tabs; a pushed 'call' event checks even in a background tab so it can ring there too.
     const poll = () => { if (document.visibilityState === 'visible') check() }
     check()
@@ -588,6 +625,7 @@ export function SupportCallListener({ role }: { role: 'STUDENT' | 'MANAGER' }) {
   useEffect(() => (isRinging ? playTone('ringtone') : undefined), [isRinging])
   const fromName = incoming ? (role === 'MANAGER' ? incoming.caller.name : 'Support team') : ''
   const decline = async (id: string) => {
+    declined.current.add(id)
     setRinging(r => r.filter(x => x.id !== id))
     await api(`/api/support/calls/${id}`, { method: 'PATCH', body: JSON.stringify({ action: 'end' }) }).catch(() => {})
   }
@@ -595,22 +633,22 @@ export function SupportCallListener({ role }: { role: 'STUDENT' | 'MANAGER' }) {
   return (
     <>
       {incoming && (
-        <div style={backdropStyle}>
+        <CallLayer docked={!!profileId}>
         <div style={overlayStyle} role="alertdialog" aria-modal="true" aria-label="Incoming call">
           <div style={{ fontSize: 12, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '.08em', fontWeight: 600 }}>Incoming call</div>
           <div style={{ fontSize: 17, fontWeight: 600, marginTop: 4 }}>{fromName}</div>
           {fresh.length > 1 && <div style={{ fontSize: 12.5, color: 'var(--text-muted)' }}>+{fresh.length - 1} more waiting</div>}
           <div style={{ display: 'flex', gap: 8, marginTop: 14, flexWrap: 'wrap' }}>
-            {role === 'MANAGER' && <button className="gz-btn gz-btn--ghost" style={{ flex: '1 1 100%' }} onClick={() => setProfileId(incoming.caller.id)}>Student info</button>}
+            {role === 'MANAGER' && !profileId && <button className="gz-btn gz-btn--ghost" style={{ flex: '1 1 100%' }} onClick={() => setProfileId(incoming.caller.id)}>Student info</button>}
             <button className="gz-btn gz-btn--ghost" style={{ flex: 1 }} onClick={() => decline(incoming.id)}>Decline</button>
             <button className="gz-btn" style={{ flex: 1, background: '#10b981', color: '#fff', borderColor: '#10b981' }} onClick={() => { setRinging(r => r.filter(x => x.id !== incoming.id)); call.accept(incoming.id, fromName) }}>
               Answer
             </button>
           </div>
         </div>
-        </div>
+        </CallLayer>
       )}
-      <CallOverlay call={call} onViewStudent={role === 'MANAGER' ? setProfileId : undefined} />
+      <CallOverlay call={call} docked={!!profileId} onViewStudent={role === 'MANAGER' ? setProfileId : undefined} />
       {profileId && <ManagerUserModal userId={profileId} onClose={() => setProfileId(null)} />}
     </>
   )

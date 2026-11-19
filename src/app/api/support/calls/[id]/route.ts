@@ -3,6 +3,7 @@ import { prisma } from '@/lib/db'
 import { requireSupportSession } from '@/lib/support-ticket-access'
 import { callInclude, callListSelect, expireRingingCalls, joinCall, leaveCall } from '@/lib/support-calls'
 import { cancelSupportCallRing, sendSupportCallNotice } from '@/lib/system-notifications'
+import { sendFcmCallSignal } from '@/lib/fcm'
 
 export const dynamic = 'force-dynamic'
 
@@ -107,9 +108,15 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
       return NextResponse.json({ ok: true })
     } else if (body.action === 'end') {
       if (call.status === 'RINGING') {
-        // A student call declined by a manager stays MISSED so it shows up to call back; others end it.
-        const declinedByManager = call.type === 'CALL' && isManager && session.userId !== call.callerId
-        await prisma.supportCall.update({ where: { id: call.id }, data: { status: declinedByManager ? 'MISSED' : 'ENDED' } })
+        if (call.type === 'CALL' && isManager) {
+          // One manager declining only silences their own phones; it keeps ringing for the rest
+          // until someone answers or the ring window ends (then it's MISSED = nobody picked up).
+          sendFcmCallSignal([session.userId], 'cancel', call.id).catch(console.error)
+          return NextResponse.json({ ok: true })
+        }
+        // The student turning down a manager's call is DECLINED; the caller hanging up first is ENDED.
+        const status = call.type === 'CALL_OUT' && call.callerId === session.userId ? 'DECLINED' : 'ENDED'
+        await prisma.supportCall.update({ where: { id: call.id }, data: { status, endedAt: new Date() } })
         await prisma.supportCallParticipant.updateMany({ where: { callId: call.id, leftAt: null }, data: { leftAt: new Date() } })
         cancelSupportCallRing(call.id, call.type, call.callerId, session.userId).catch(console.error)
       } else if (call.status === 'ACTIVE') {

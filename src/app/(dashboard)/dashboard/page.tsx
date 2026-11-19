@@ -1,6 +1,7 @@
 'use client'
 
 import SupportUpdates from '@/components/support/SupportUpdates'
+import { SupportCallRequests } from '@/components/support/SupportCall'
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
@@ -1081,7 +1082,7 @@ export default function DashboardPage() {
 
             <div style={{ margin: '20px 0' }}>
               <div style={{ fontSize: '12px', color: 'var(--text-secondary)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '4px' }}>
-                Support System
+                Open tickets
               </div>
               <div style={{ fontSize: '28px', fontWeight: 600, color: 'var(--text-primary)' }}>
                 {dashboardData?.supportSummary?.openTickets ?? 0}
@@ -1105,6 +1106,13 @@ export default function DashboardPage() {
               {t('dashboard.support.goToSupport')}
             </Link>
           </div>
+        </div>
+      )}
+
+      {/* Manager: calls that need someone (live to join, missed to call back, booked call backs) */}
+      {isManager && (
+        <div className="gz-sp" style={{ marginTop: 16 }}>
+          <SupportCallRequests />
         </div>
       )}
 

@@ -17,7 +17,7 @@ import { startSupportCall } from '@/components/support/SupportCall'
  * (waiting → live → moved to ticket / ended). The agent's name is never shown.
  */
 
-type Stage = 'lang' | 'browse' | 'solved' | 'handoff' | 'describe' | 'callback' | 'closed'
+type Stage = 'lang' | 'browse' | 'solved' | 'handoff' | 'describe' | 'callback' | 'closed' | 'callReturn'
 interface Msg { from: 'bot' | 'me'; text: L; link?: { label: L; href: string } }
 interface StackItem { id: string; msgLen: number; chosen?: L }
 interface AgentSession {
@@ -52,6 +52,7 @@ const fill = (l: L, vars: Record<string, string | number>): L => {
 function isHidden(pathname: string): boolean {
   if (pathname === '/community' || pathname.startsWith('/community/')) return true
   if (pathname.startsWith('/materials/recordings')) return true
+  if (pathname === '/jobs' || pathname.startsWith('/jobs/')) return true // job application form
   if (/^\/courses\/[^/]+\/lectures\/[^/]+/.test(pathname)) return true
   return false
 }
@@ -166,7 +167,7 @@ export default function GenieWidget({ userRole, userName }: { userRole: string; 
         const s = JSON.parse(raw)
         if (Array.isArray(s.msgs) && s.msgs.length && !s.msgs.some((m: any) => m.kind === 'langAsk') && Array.isArray(s.stack) && s.stack.every((x: StackItem) => NODES[x.id])) {
           setMsgs(s.msgs); setStack(s.stack)
-          setStage(s.stage === 'lang' || s.stage === 'solved' || s.stage === 'handoff' || s.stage === 'describe' || s.stage === 'callback' || s.stage === 'closed' ? s.stage : 'browse')
+          setStage(s.stage === 'lang' || s.stage === 'solved' || s.stage === 'handoff' || s.stage === 'describe' || s.stage === 'callback' || s.stage === 'closed' || s.stage === 'callReturn' ? s.stage : 'browse')
           setLeafId(s.leafId && NODES[s.leafId] ? s.leafId : null)
           setOpen(!!s.open)
           restored = true
@@ -281,8 +282,20 @@ export default function GenieWidget({ userRole, userName }: { userRole: string; 
   // The Support page's "Raise a ticket" button opens GenZie; tickets are only created from the bot's hand-off.
   useEffect(() => {
     const onOpen = () => setOpen(true)
+    // After an unanswered call: open straight at the message box (it becomes a ticket).
+    const onMessage = () => { setOpen(true); startMessageRef.current() }
+    const onCallBack = () => { setOpen(true); startCallBackRef.current() }
+    const onOutcome = (e: Event) => { setOpen(true); showCallReturnRef.current((e as CustomEvent).detail?.outcome) }
+    window.addEventListener('support-call:outcome', onOutcome)
     window.addEventListener('genie:open', onOpen)
-    return () => window.removeEventListener('genie:open', onOpen)
+    window.addEventListener('genie:message', onMessage)
+    window.addEventListener('genie:callback', onCallBack)
+    return () => {
+      window.removeEventListener('genie:open', onOpen)
+      window.removeEventListener('genie:message', onMessage)
+      window.removeEventListener('genie:callback', onCallBack)
+      window.removeEventListener('support-call:outcome', onOutcome)
+    }
   }, [])
 
   // ── actions ──
@@ -356,13 +369,32 @@ export default function GenieWidget({ userRole, userName }: { userRole: string; 
     setMsgs(m => [...m, { from: 'me', text: UI.leaveMsg }, { from: 'bot', text: UI.describeTicket }])
     setStage('describe')
   }
+  const startMessageRef = useRef(startMessage)
+  startMessageRef.current = startMessage
+  const startCallBackRef = useRef(() => startCallBack())
+  startCallBackRef.current = () => startCallBack()
 
   /** Live call during support hours: rings every manager (web + native ring on their phones). */
+  // After a call started from GenZie ends, show the right next step for how it went.
+  const callOutcome = useRef<string>('answered')
+  function showCallReturn(outcome: string) {
+    callOutcome.current = outcome
+    const msg = outcome === 'answered' ? UI.callReturnAnswered
+      : outcome === 'missed' ? UI.callReturnMissed
+      : outcome === 'cancelled' ? UI.callReturnCancelled
+      : outcome === 'closed' ? UI.callReturnClosed
+      : UI.callReturnFailed
+    setMsgs(m => [...m, { from: 'bot', text: msg }])
+    setStage('callReturn')
+  }
+  const showCallReturnRef = useRef(showCallReturn)
+  showCallReturnRef.current = showCallReturn
+
   function callNow() {
     setMsgs(m => [...m, { from: 'me', text: UI.callNow }, { from: 'bot', text: UI.calling }])
     setStage('closed')
     setOpen(false)
-    startSupportCall()
+    startSupportCall(undefined, undefined, true) // GenZie resumes after, see support-call:outcome
   }
 
   function startCallBack() {
@@ -395,6 +427,7 @@ export default function GenieWidget({ userRole, userName }: { userRole: string; 
       const label = whenLabel(when)
       setMsgs(m => [...m, { from: 'me', text: { en: label, hi: label } }, { from: 'bot', text: fill(UI.callDone, { t: label }), link: { label: UI.goSupport, href: '/support' } }])
       setStage('closed')
+      setTimeout(() => setOpen(false), 3500) // let them read the confirmation, then close the chat
     } catch (e) {
       setNotice(fill(UI.callFail, { e: e instanceof Error ? e.message : 'error' }))
     } finally { setBusy(false) }
@@ -569,9 +602,28 @@ export default function GenieWidget({ userRole, userName }: { userRole: string; 
               </div>
             )}
 
+            {stage === 'callReturn' && !agentActive && !agentEnded && (
+              <div className="genie-opts">
+                {callOutcome.current === 'answered' ? (
+                  <div className="genie-opts row">
+                    <button type="button" className="genie-opt ok" onClick={() => answerSolved(true)}>{t(UI.yes)}</button>
+                    <button type="button" className="genie-opt" onClick={() => { setMsgs(m => [...m, { from: 'me', text: UI.no }, { from: 'bot', text: UI.needHuman }]); setStage('handoff') }}>{t(UI.no)}</button>
+                  </div>
+                ) : (
+                  <>
+                    {callOutcome.current !== 'closed' && isSupportOpen() && (
+                      <button type="button" className="genie-opt agent" onClick={callNow}>{t(UI.callAgain)}</button>
+                    )}
+                    <button type="button" className="genie-opt" onClick={startCallBack}>{t(UI.callBack)}</button>
+                    <button type="button" className="genie-opt" onClick={startMessage}>{t(UI.raiseTicket)}</button>
+                  </>
+                )}
+              </div>
+            )}
+
             {stage === 'handoff' && !agentActive && !agentEnded && (() => {
-              // Who gets what: problems that need screenshots / payment proof go to chat or a ticket;
-              // everything else can be sorted on a call. Live options only during team hours (10 AM – 10 PM IST).
+              // At most two choices. Open (10 AM – 10 PM IST): call now + chat; proof issues (screenshots) chat only.
+              // Closed: call back + leave a message; proof issues leave a message only.
               const open = isSupportOpen()
               const proof = !!leafId && (leafId.startsWith('pay.') || leafId === 'course.not-visible')
               return (
@@ -581,7 +633,7 @@ export default function GenieWidget({ userRole, userName }: { userRole: string; 
                     <span className="genie-card-ico" aria-hidden="true">
                       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M15.05 5A5 5 0 0 1 19 8.95M15.05 1A9 9 0 0 1 23 8.94" /><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2z" /></svg>
                     </span>
-                    <span><b>{t(UI.callNow)}</b><small>{t(UI.callNowSub)}</small></span>
+                    <span><b>{t(UI.callNow)}</b></span>
                   </button>
                   )}
                   {open && (
@@ -592,7 +644,7 @@ export default function GenieWidget({ userRole, userName }: { userRole: string; 
                     <span><b>{t(UI.agentHere)}</b><small>{t(UI.agentHereSub)}</small></span>
                   </button>
                   )}
-                  {!proof && (
+                  {!open && !proof && (
                   <button type="button" className="genie-card" onClick={startCallBack}>
                     <span className="genie-card-ico" aria-hidden="true">
                       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2z" /></svg>
@@ -600,7 +652,7 @@ export default function GenieWidget({ userRole, userName }: { userRole: string; 
                     <span><b>{t(UI.callBack)}</b><small>{t(UI.callBackSub)}</small></span>
                   </button>
                   )}
-                  {(!open || proof) && (
+                  {!open && (
                   <button type="button" className="genie-card" onClick={startMessage}>
                     <span className="genie-card-ico" aria-hidden="true">
                       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 4h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z" /><polyline points="22,6 12,13 2,6" /></svg>
@@ -730,7 +782,7 @@ body:has(.gz-notif,.modal-overlay,.manager-profile-overlay,[aria-modal="true"],[
 .genie-hello-t{font-size:13.5px;font-weight:800}
 .genie-hello-s{font-size:12px;color:var(--text-secondary,#a1a1aa);margin-top:2px}
 .genie-hello-x{position:absolute;top:6px;right:8px;background:none;border:none;color:var(--text-muted,#71717a);font-size:18px;line-height:1;cursor:pointer}
-.genie-panel{--surface:#ffffff;--surface-2:#f3f4f8;--border:#e3e4ea;--text-primary:#17171c;--text-secondary:#555560;--text-muted:#8a8a96;position:fixed;right:24px;bottom:92px;z-index:1000;width:380px;max-width:calc(100vw - 24px);height:min(560px,calc(100vh - 120px));display:flex;flex-direction:column;border-radius:22px;overflow:hidden;background:var(--surface,#0f0f10);color:var(--text-primary,#f4f4f5);border:1px solid var(--border,#2a2a2e);box-shadow:0 16px 48px rgba(0,0,0,.35);animation:genieIn .2s ease;outline:none}
+.genie-panel{position:fixed;right:24px;bottom:92px;z-index:1000;width:380px;max-width:calc(100vw - 24px);height:min(560px,calc(100vh - 120px));display:flex;flex-direction:column;border-radius:22px;overflow:hidden;background:var(--surface,#0f0f10);color:var(--text-primary,#f4f4f5);border:1px solid var(--border,#2a2a2e);box-shadow:0 16px 48px rgba(0,0,0,.35);animation:genieIn .2s ease;outline:none}
 .genie-head{display:flex;align-items:center;gap:10px;padding:12px 14px;border-bottom:1px solid var(--border,#2a2a2e)}
 .genie-avatar{width:30px;height:30px;border-radius:9px;display:flex;align-items:center;justify-content:center;color:var(--gz-panel,#fff);background:var(--gz-ink,#171717);flex-shrink:0}
 .genie-title{font-size:14.5px;font-weight:800;flex:1}

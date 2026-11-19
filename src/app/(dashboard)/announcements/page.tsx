@@ -292,7 +292,7 @@ export default function AnnouncementsPage() {
 
   if (loading) {
     return (
-      <div className="announcements-page-container gz-page" style={{ maxWidth: 860 }}>
+      <div className="announcements-page-container gz-page">
         {loadingFact && (
           <div style={{ marginBottom: '24px', display: 'flex', justifyContent: 'center' }}>
             <LoadingFactCard fact={loadingFact} />
@@ -321,7 +321,7 @@ export default function AnnouncementsPage() {
   }
 
   return (
-    <div className="announcements-page-container gz-page" style={{ maxWidth: 860 }}>
+    <div className="announcements-page-container gz-page">
       <style>{`
         @media (max-width: 768px) {
           .announcements-page-container {
