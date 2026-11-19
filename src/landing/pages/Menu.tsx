@@ -12,7 +12,6 @@ import {
 } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { useAuth } from '@/landing/context/AuthContext';
-import { CLASS_URL } from '@/landing/lib/links';
 
 type RowProps = {
   Icon: typeof Mail;
@@ -84,7 +83,7 @@ export default function Menu() {
       <div className="max-w-md mx-auto px-4 pt-5 pb-4">
         {/* Profile header */}
         <button
-          onClick={() => (user ? window.location.assign(`${CLASS_URL}/profile`) : openLoginModal())}
+          onClick={() => (user ? window.location.assign('/profile') : openLoginModal())}
           className="w-full flex items-center gap-3.5 rounded-[18px] border-[2.5px] border-[#0b1120] shadow-[4px_4px_0px_#0b1120] px-4 py-4 text-left"
           style={{ background: 'linear-gradient(105deg, #2563EB, #1D4ED8)' }}
         >
@@ -103,21 +102,21 @@ export default function Menu() {
         <Group label="EXPLORE">
           <MenuRow Icon={BookOpen} tint="#E7EEFF" glyph="#2563EB" label="Courses" to="/explore/courses" />
           <MenuRow Icon={UserCheck} tint="#D1FAE5" glyph="#059669" label="1:1 Personalised Teaching" to="/one-to-one" />
-          <MenuRow Icon={FolderOpen} tint="#E4F7EE" glyph="#0E9E6A" label="Resources (PYQs & Notes)" to="/resources" />
+          <MenuRow Icon={FolderOpen} tint="#E4F7EE" glyph="#0E9E6A" label="Resources (PYQs & Notes)" to="/free-resources/materials" />
           <MenuRow Icon={BookMarked} tint="#EDE9FE" glyph="#7C3AED" label="Booklet" to="/resources?tab=booklet" />
           <MenuRow Icon={ListChecks} tint="#FEF1DF" glyph="#FF7A00" label="Syllabus" to="/syllabus" />
-          <MenuRow Icon={ClipboardList} tint="#FBE3EE" glyph="#EC1E79" label="Graded Assignment" to="/graded-assignment" />
+          <MenuRow Icon={ClipboardList} tint="#FBE3EE" glyph="#EC1E79" label="Graded Assignment" to="/free-resources/materials" />
           <MenuRow Icon={Newspaper} tint="#E7EEFF" glyph="#2563EB" label="Blog" to="/blog" />
           <MenuRow Icon={FileText} tint="#E4F7EE" glyph="#0E9E6A" label="Docs" to="/docs" />
           <MenuRow Icon={Compass} tint="#FEF1DF" glyph="#FF7A00" label="Knowledge Hub" to="/knowledge" />
         </Group>
 
         <Group label="ACCOUNT">
-          {user && <MenuRow Icon={UserIcon} tint="#E7EEFF" glyph="#2563EB" label="My Profile" href={`${CLASS_URL}/profile`} />}
+          {user && <MenuRow Icon={UserIcon} tint="#E7EEFF" glyph="#2563EB" label="My Profile" href="/profile" />}
           {user && isEmployee && <MenuRow Icon={UserCheck} tint="#D1FAE5" glyph="#059669" label="Your ID" to="/employee/id" />}
           <MenuRow Icon={Gift} tint="#FEF1DF" glyph="#FF7A00" label="Refer & Earn" to="/refer" />
-          {user && <MenuRow Icon={LayoutDashboard} tint="#E4F7EE" glyph="#0E9E6A" label="Class Dashboard" href={CLASS_URL} external />}
-          {isManager && <MenuRow Icon={ShieldCheck} tint="#FCE4E4" glyph="#FF2424" label="Manager Panel" href={`${CLASS_URL}/manage`} />}
+          {user && <MenuRow Icon={LayoutDashboard} tint="#E4F7EE" glyph="#0E9E6A" label="Class Dashboard" href="/dashboard" />}
+          {isManager && <MenuRow Icon={ShieldCheck} tint="#FCE4E4" glyph="#FF2424" label="Manager Panel" href="/manage" />}
         </Group>
 
         <Group label="SOCIAL">

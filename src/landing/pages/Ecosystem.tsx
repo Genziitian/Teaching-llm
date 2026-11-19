@@ -8,7 +8,7 @@ import {
   ArrowRight, ArrowUpRight, Download, Check, Play, Youtube, Instagram, Linkedin, MessageCircle,
 } from 'lucide-react';
 import type { ReactNode } from 'react';
-import { CLASS_URL, CLASS_HOST } from '@/landing/lib/links';
+import { CLASS_HOST } from '@/landing/lib/links';
 
 /* ----------------------------------------------------------------------------
    Snapshot frames — real screenshots from /Image/ecosystem with a styled CSS
@@ -133,7 +133,7 @@ const PRODUCTS: Product[] = [
     key: 'dashboard', Icon: LayoutDashboard, tint: '#E4F7EE', glyph: '#0E9E6A', tag: 'Learn',
     name: 'Class Dashboard', desc: `${CLASS_HOST} — your student portal with live & recorded lectures, courses, live sessions, calendar and free resources.`,
     points: ['Live + recorded lectures', 'Sessions, calendar & store', 'Track courses and progress'],
-    cta: { label: 'Open Dashboard', href: CLASS_URL },
+    cta: { label: 'Open Dashboard', href: '/dashboard' },
     media: <BrowserMock url={CLASS_HOST}><Shot src={`${E}/dashboard.png`} alt="Class dashboard" fallback={DashboardSnap} /></BrowserMock>,
   },
   {
@@ -248,7 +248,7 @@ export default function Ecosystem() {
               <Link to="/explore/courses" className="inline-flex items-center gap-2 px-8 py-4 bg-[#10b981] text-[#0b1120] rounded-xl font-black text-base border-[3px] border-[#0b1120] shadow-[5px_5px_0px_#fff] hover:-translate-y-1 hover:shadow-[8px_8px_0px_#fff] transition-all">
                 Explore Courses <ArrowRight className="w-5 h-5" />
               </Link>
-              <a href={CLASS_URL} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 px-8 py-4 bg-white text-[#0b1120] rounded-xl font-black text-base border-[3px] border-[#0b1120] hover:-translate-y-1 transition-all">
+              <a href="/dashboard" className="inline-flex items-center gap-2 px-8 py-4 bg-white text-[#0b1120] rounded-xl font-black text-base border-[3px] border-[#0b1120] hover:-translate-y-1 transition-all">
                 Open Dashboard <ArrowUpRight className="w-5 h-5" />
               </a>
             </div>

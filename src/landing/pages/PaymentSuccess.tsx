@@ -6,7 +6,7 @@ import { useAuth } from '@/landing/context/AuthContext';
 import { Check, ArrowRight, CreditCard, MessageCircle, Clock, BookOpen, Hash } from 'lucide-react';
 import { apiService } from '@/landing/lib/api';
 import { supabase } from '@/landing/lib/supabase';
-import { CLASS_URL, CLASS_HOST } from '@/landing/lib/links';
+import { CLASS_HOST } from '@/landing/lib/links';
 
 export default function PaymentSuccess() {
   const { user } = useAuth();
@@ -16,7 +16,7 @@ export default function PaymentSuccess() {
   const [courseTitles, setCourseTitles] = useState<string>(location.state?.courseTitle || 'your selected course(s)');
   const [loadingOrder, setLoadingOrder] = useState(!orderDetails);
   const [countdown, setCountdown] = useState(15); // Increased to give time to read receipt
-  const LMS_URL = CLASS_URL;
+  const LMS_URL = '/dashboard';
   const reduce = useReducedMotion();
 
   useEffect(() => {

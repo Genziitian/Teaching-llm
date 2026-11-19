@@ -5,13 +5,12 @@ import { User as UserIcon, LogOut, LayoutDashboard, Gift, ChevronDown } from 'lu
 import { useAuth } from '@/landing/context/AuthContext';
 import { useCart } from '@/landing/context/CartContext';
 import QuizLabNavPill from '@/landing/components/QuizLabNavPill';
-import { CLASS_URL } from '@/landing/lib/links';
 
 const RESOURCE_LINKS = [
-  { to: '/resources', label: 'PYQs & Notes' },
+  { to: '/free-resources/materials', label: 'PYQs & Notes' }, // dashboard → Free Materials
   { to: '/resources?tab=booklet', label: 'Booklet' },
   { to: '/syllabus', label: 'Syllabus' },
-  { to: '/graded-assignment', label: 'Graded Assignment' },
+  { to: '/free-resources/materials', label: 'Graded Assignment' },
   { to: '/tools/cgpa-calculator', label: 'CGPA Calculator' },
   { to: '/blog', label: 'Blog' },
 ];
@@ -171,13 +170,13 @@ export default function Navbar() {
               >
                 <Gift className="w-5 h-5" />
               </Link>
-              <button 
-                onClick={() => window.open(CLASS_URL, '_blank', 'noopener,noreferrer')}
+              <a
+                href="/dashboard"
                 title="Dashboard" className="hidden sm:flex items-center gap-2 px-3 xl:px-4 py-2 whitespace-nowrap shrink-0 bg-white text-blue-600 border-2 border-[#0b1120] rounded-xl font-bold hover:bg-blue-50 transition-colors shadow-[4px_4px_0px_#0b1120]"
               >
                 <LayoutDashboard className="w-4 h-4" />
                 <span className="hidden xl:inline">Dashboard</span>
-              </button>
+              </a>
               <div className="relative" ref={userMenuRef}>
                 <button 
                   onClick={() => setUserMenuOpen(!userMenuOpen)}
@@ -191,14 +190,14 @@ export default function Navbar() {
                 </button>
                 {userMenuOpen && (
                   <div className="absolute top-full right-0 mt-3 w-56 animate-[fadeSlide_0.18s_ease-out] bg-white border-[3px] border-[#0b1120] rounded-xl shadow-[6px_6px_0px_#0b1120] py-2 z-50">
-                    <a href={`${CLASS_URL}/profile`} onClick={() => setUserMenuOpen(false)} className="flex items-center gap-3 px-4 py-2.5 text-sm font-bold text-gray-700 hover:bg-gray-50 transition-colors">
+                    <a href="/profile" onClick={() => setUserMenuOpen(false)} className="flex items-center gap-3 px-4 py-2.5 text-sm font-bold text-gray-700 hover:bg-gray-50 transition-colors">
                       <UserIcon className="w-4 h-4" /> My Profile
                     </a>
                     {isEmployee && <Link to="/employee/id" onClick={() => setUserMenuOpen(false)} className="flex items-center gap-3 px-4 py-2.5 text-sm font-bold text-blue-600 hover:bg-blue-50 transition-colors">
                       <UserIcon className="w-4 h-4" /> Your ID
                     </Link>}
                     {isManager && (
-                      <a href={`${CLASS_URL}/manage`} onClick={() => setUserMenuOpen(false)} className="flex items-center gap-3 px-4 py-2.5 text-sm font-bold text-red-500 hover:bg-red-50 transition-colors">
+                      <a href="/manage" onClick={() => setUserMenuOpen(false)} className="flex items-center gap-3 px-4 py-2.5 text-sm font-bold text-red-500 hover:bg-red-50 transition-colors">
                         <LayoutDashboard className="w-4 h-4" /> Manager Panel
                       </a>
                     )}
@@ -243,7 +242,7 @@ export default function Navbar() {
                 return item.href ? (
                   <a key={item.label} href={item.href} target="_blank" rel="noopener noreferrer" className={className}>{item.label}</a>
                 ) : (
-                  <Link key={item.to} to={item.to!} className={className}>{item.label}</Link>
+                  <Link key={item.label} to={item.to!} className={className}>{item.label}</Link>
                 );
               })}
             </div>
@@ -271,10 +270,10 @@ export default function Navbar() {
             </button>
             {mobileResourcesOpen && (
               <div className="flex flex-col gap-3 pl-4 pt-2 pb-2 border-l-2 border-gray-100 ml-2 mt-1">
-                <Link to="/resources" className="text-sm font-bold text-gray-600 hover:text-blue-600">PYQs & Notes</Link>
+                <Link to="/free-resources/materials" className="text-sm font-bold text-gray-600 hover:text-blue-600">PYQs & Notes</Link>
                 <Link to="/resources?tab=booklet" className="text-sm font-bold text-gray-600 hover:text-blue-600">Booklet</Link>
                 <Link to="/syllabus" className="text-sm font-bold text-gray-600 hover:text-blue-600">Syllabus</Link>
-                <Link to="/graded-assignment" className="text-sm font-bold text-gray-600 hover:text-blue-600">Graded Assignment</Link>
+                <Link to="/free-resources/materials" className="text-sm font-bold text-gray-600 hover:text-blue-600">Graded Assignment</Link>
                 <Link to="/tools/cgpa-calculator" className="text-sm font-bold text-gray-600 hover:text-blue-600">CGPA Calculator</Link>
                 <Link to="/blog" className="text-sm font-bold text-gray-600 hover:text-blue-600">Blog</Link>
               </div>

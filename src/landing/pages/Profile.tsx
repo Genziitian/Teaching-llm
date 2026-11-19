@@ -7,7 +7,7 @@ import { motion } from 'motion/react';
 import { apiService } from '@/landing/lib/api';
 import { Link } from '@/landing/shims/router';
 import StudentOneOnOneBookings from '@/landing/components/profile/StudentOneOnOneBookings';
-import { CLASS_URL, CLASS_HOST } from '@/landing/lib/links';
+import { CLASS_HOST } from '@/landing/lib/links';
 
 export default function Profile() {
   const { user, profile, signOut, isManager, loading: authLoading } = useAuth();
@@ -177,9 +177,7 @@ export default function Profile() {
               <Book className="w-5 h-5 sm:w-6 sm:h-6 text-[#10b981]" /> My Enrolled Courses
             </h2>
             <a
-              href={CLASS_URL}
-              target="_blank"
-              rel="noopener noreferrer"
+              href="/dashboard"
               className="inline-flex items-center justify-center gap-2 px-4 sm:px-5 py-2.5 sm:py-3 bg-[#10b981] text-[#0b1120] rounded-xl sm:rounded-2xl font-black text-xs sm:text-sm border-[2.5px] sm:border-[3px] border-[#0b1120] shadow-[3px_3px_0px_#0b1120] sm:shadow-[4px_4px_0px_#0b1120] hover:translate-y-0.5 active:translate-y-1 transition-all text-center"
             >
               <ExternalLink className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
@@ -201,9 +199,7 @@ export default function Profile() {
                   Browse Courses →
                 </Link>
                 <a
-                  href={CLASS_URL}
-                  target="_blank"
-                  rel="noopener noreferrer"
+                  href="/dashboard"
                   className="inline-flex items-center gap-2 px-5 py-3 bg-[#10b981] text-[#0b1120] rounded-xl font-black text-xs sm:text-sm border-[2.5px] border-[#0b1120] shadow-[3px_3px_0px_#0b1120] hover:translate-y-0.5 active:translate-y-1 transition-all"
                 >
                   <ExternalLink className="w-3.5 h-3.5 shrink-0" />
@@ -231,9 +227,7 @@ export default function Profile() {
 
                   <div className="pt-3.5 border-t-2 border-dashed border-gray-100 flex justify-end">
                     <a
-                      href={CLASS_URL}
-                      target="_blank"
-                      rel="noopener noreferrer"
+                      href="/dashboard"
                       className="inline-flex items-center gap-1.5 px-3.5 py-2 sm:px-4 sm:py-2.5 bg-[#0b1120] text-white rounded-xl font-black text-[11px] sm:text-xs border-2 border-[#0b1120] shadow-[2px_2px_0px_#10b981] hover:bg-gray-800 transition-all"
                     >
                       <span>Access Batch on Dashboard</span>
