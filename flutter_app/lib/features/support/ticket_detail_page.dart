@@ -13,6 +13,7 @@ import '../../shared/widgets/apple_input.dart';
 import '../../theme/app_theme_tokens.dart';
 import '../community/community_file_upload.dart';
 import 'support_providers.dart';
+import 'support_call.dart' show startSupportCall;
 import '../../shared/widgets/shimmer_loading.dart';
 
 class TicketDetailPage extends ConsumerStatefulWidget {
@@ -279,6 +280,19 @@ class _TicketDetailPageState extends ConsumerState<TicketDetailPage>
                       ),
                   ]),
                   if (manager) ...[
+                    if (data['user']?['role'] == 'STUDENT') ...[
+                      const SizedBox(height: 12),
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: OutlinedButton.icon(
+                          onPressed: () => startSupportCall(context,
+                              userId: '${data['user']['id']}',
+                              name: '${data['user']['name'] ?? 'Student'}'),
+                          icon: const Icon(Symbols.call_rounded, fill: 1),
+                          label: const Text('Call student'),
+                        ),
+                      ),
+                    ],
                     const SizedBox(height: 12),
                     ExpansionTile(
                         tilePadding: EdgeInsets.zero,

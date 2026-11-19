@@ -187,6 +187,20 @@ https://class.genziitian.in/download''';
                   onTap: () => context.push('/support/user-reports'),
                 ),
               _ActionRow(
+                icon: Symbols.work_rounded,
+                tile: const Color(0xFF5AC8FA),
+                title: 'Jobs',
+                textColor: textPrimary,
+                onTap: () => context.push('/jobs'),
+              ),
+              _ActionRow(
+                icon: Symbols.verified_user_rounded,
+                tile: const Color(0xFF30B0C7),
+                title: 'Verify Employee',
+                textColor: textPrimary,
+                onTap: () => context.push('/verify-employee'),
+              ),
+              _ActionRow(
                 icon: Symbols.star_rounded,
                 tile: const Color(0xFFFFCC00),
                 title: 'Course Feedback',

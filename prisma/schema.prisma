@@ -112,6 +112,9 @@ model User {
   noteAccesses            StoreNoteAccess[]
   assignedTickets         SupportTicket[]              @relation("TicketAssignee")
   supportTickets          SupportTicket[]              @relation("TicketStudent")
+  supportCallsMade        SupportCall[]                @relation("SupportCallCaller")
+  supportCallsTaken       SupportCall[]                @relation("SupportCallManager")
+  supportCallJoins        SupportCallParticipant[]
   createdUpdates          SystemUpdate[]               @relation("UpdateCreator")
   createdTestSeries       TestSeries[]                 @relation("TestSeriesCreator")
   testSeriesAccesses      TestSeriesAccess[]
@@ -166,6 +169,7 @@ model Course {
   aboutUs               String?
   startDate             DateTime?
   endDate               DateTime?
+  courseType            String?
   academicTerm          String?
   academicYear          Int?
   examCycle             String?
@@ -607,11 +611,24 @@ model ExamResponse {
   @@unique([attemptId, questionId])
 }
 
+/// One row per login. Device/location fields (nullable: older rows have none) power
+/// "Login activity" and new-device alerts. Location is city-level from Cloudflare's IP geo headers.
 model LoginLog {
-  id        String   @id @default(cuid())
-  userId    String
-  timestamp DateTime @default(now())
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id         String   @id @default(cuid())
+  userId     String
+  timestamp  DateTime @default(now())
+  deviceId   String? // web: gz_did cookie; app: random install id (X-Device-Id)
+  deviceName String? // "Samsung SM-A546E" (app) or "Chrome on Windows" (web)
+  platform   String? // android | web
+  os         String?
+  appVersion String?
+  ip         String?
+  city       String?
+  region     String?
+  country    String?
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, timestamp])
 }
 
 model SupportTicket {
@@ -634,6 +651,63 @@ model SupportTicket {
 
   @@index([courseId])
   @@index([studentId])
+}
+
+/// In-app voice calls (WebRTC, SDP exchanged through these rows). callerId is always the student.
+/// type CALL = student → support, CALL_OUT = manager → student (status RINGING|ACTIVE|ENDED|MISSED);
+/// type SCHEDULED = student asks for a call at scheduledFor, reason in note (REQUESTED|ACCEPTED|DECLINED|DONE|CANCELLED).
+/// managerId = who picked up / handled it.
+model SupportCall {
+  id           String    @id @default(cuid())
+  type         String    @default("CALL")
+  status       String    @default("RINGING")
+  callerId     String
+  managerId    String?
+  phone        String? // unused (calls are online only)
+  note         String?
+  offer        String? // unused since group calls (SDP lives in SupportCallSignal)
+  answer       String? // unused since group calls
+  scheduledFor DateTime?
+  answeredAt   DateTime?
+  endedAt      DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  caller       User                     @relation("SupportCallCaller", fields: [callerId], references: [id], onDelete: Cascade)
+  manager      User?                    @relation("SupportCallManager", fields: [managerId], references: [id])
+  participants SupportCallParticipant[]
+  signals      SupportCallSignal[]
+
+  @@index([status, type])
+  @@index([callerId])
+  @@index([createdAt])
+}
+
+/// Everyone who joined a call (student + any number of managers). leftAt null = still in the call.
+model SupportCallParticipant {
+  id       String      @id @default(cuid())
+  callId   String
+  userId   String
+  joinedAt DateTime    @default(now())
+  leftAt   DateTime?
+  video    String      @default("off") // off | camera | screen, so others know whether to show a video tile
+  call     SupportCall @relation(fields: [callId], references: [id], onDelete: Cascade)
+  user     User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([callId, userId])
+}
+
+/// WebRTC offer/answer between two participants (mesh: one connection per pair). Deleted once read.
+model SupportCallSignal {
+  id        String      @id @default(cuid())
+  callId    String
+  fromId    String
+  toId      String
+  type      String
+  sdp       String
+  createdAt DateTime    @default(now())
+  call      SupportCall @relation(fields: [callId], references: [id], onDelete: Cascade)
+
+  @@index([callId, toId])
 }
 
 model TicketReply {
@@ -1198,6 +1272,19 @@ model UpgradeTransaction {
   @@index([courseId])
   @@index([status])
   @@index([createdAt])
+}
+
+/// Former website database tables (profiles, website_orders, settings, blogs, employees ...), now stored in the platform
+/// database as JSON rows keyed by table name. Accessed only through src/lib/site-db/engine.ts.
+model SiteRow {
+  tableName String
+  rowKey    String
+  data      Json
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+
+  @@id([tableName, rowKey])
+  @@index([tableName])
 }
 
 model CourseOffering {
@@ -1827,4 +1914,25 @@ model GenieOption {
   @@unique([fromId, toId])
   @@index([fromId])
   @@index([toId])
+}
+
+// GenZie community learning: candidate Q&A pairs. Only APPROVED rows are used for auto-replies.
+// Plain id columns (no relations) so existing models stay untouched.
+model GenieLearnedQA {
+  id                String    @id @default(cuid())
+  question          String
+  answer            String
+  status            String    @default("PENDING") // PENDING | APPROVED | REJECTED
+  source            String    @default("STAFF_REPLY") // STAFF_REPLY | UNANSWERED (GenZie had no answer)
+  courseId          String?
+  questionMessageId String?
+  answerMessageId   String?   @unique
+  askedById         String?
+  answeredById      String?
+  reviewedById      String?
+  reviewedAt        DateTime?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  @@index([status])
 }

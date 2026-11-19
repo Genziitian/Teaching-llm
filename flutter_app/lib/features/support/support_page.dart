@@ -4,15 +4,14 @@ import 'package:material_symbols_icons/symbols.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
-import 'package:url_launcher/url_launcher.dart';
 import '../../shared/widgets/app_loading_wrapper.dart';
 import '../../shared/widgets/sub_page_header.dart';
 import '../../shared/widgets/apple_input.dart';
 import '../../shared/widgets/apple_pressable.dart';
 import '../../theme/app_theme_tokens.dart';
-import 'new_ticket_sheet.dart';
 import 'faq_page.dart' show faqProvider;
 import 'support_providers.dart';
+import 'support_call.dart';
 import '../../shared/widgets/shimmer_loading.dart';
 
 class SupportPage extends ConsumerStatefulWidget {
@@ -25,6 +24,7 @@ class _SupportPageState extends ConsumerState<SupportPage> with WidgetsBindingOb
   String _filter = 'All';
   String _search = '';
   Timer? _pollTimer;
+  Timer? _callPollTimer;
 
   @override
   void initState() {
@@ -35,11 +35,18 @@ class _SupportPageState extends ConsumerState<SupportPage> with WidgetsBindingOb
         ref.invalidate(supportTicketsProvider);
       }
     });
+    // Calls only ring for ~60s, so check for incoming ones more often than tickets.
+    _callPollTimer = Timer.periodic(const Duration(seconds: 4), (_) {
+      if (mounted && ModalRoute.of(context)?.isCurrent == true) {
+        ref.invalidate(supportCallsProvider);
+      }
+    });
   }
 
   @override
   void dispose() {
     _pollTimer?.cancel();
+    _callPollTimer?.cancel();
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
@@ -48,6 +55,7 @@ class _SupportPageState extends ConsumerState<SupportPage> with WidgetsBindingOb
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed && mounted) {
       ref.invalidate(supportTicketsProvider);
+      ref.invalidate(supportCallsProvider);
     }
   }
 
@@ -68,10 +76,8 @@ class _SupportPageState extends ConsumerState<SupportPage> with WidgetsBindingOb
       }
       return;
     }
-    final id = await NewTicketSheet.show(context);
-    if (id != null && mounted) {
-      context.push('/support/tickets/${Uri.encodeComponent(id)}');
-    }
+    // Tickets are raised through GenZie only: it answers first and opens the ticket form if still needed.
+    context.push('/support/genie');
   }
 
   @override
@@ -87,6 +93,35 @@ class _SupportPageState extends ConsumerState<SupportPage> with WidgetsBindingOb
     final hasReachedActiveLimit = role == 'STUDENT' && activeCount >= 5;
 
     final links = <Widget>[
+      // GenZie (guided answers) lives here, in the Support tab only.
+      _NavRow(
+        icon: Symbols.smart_toy_rounded,
+        color: const Color(0xFF34C759),
+        label: 'Ask GenZie',
+        onTap: () => context.push('/support/genie'),
+      ),
+      if (!manager)
+        _NavRow(
+          icon: Symbols.call_rounded,
+          color: const Color(0xFF007AFF),
+          label: 'Call support',
+          isLast: true,
+          onTap: () => showCallSupportSheet(context, ref),
+        ),
+      if (manager)
+        _NavRow(
+          icon: Symbols.support_agent_rounded,
+          color: const Color(0xFF007AFF),
+          label: 'Call center',
+          onTap: () => context.push('/support/call-center'),
+        ),
+      if (manager)
+        _NavRow(
+          icon: Symbols.school_rounded,
+          color: const Color(0xFFFF9500),
+          label: 'GenZie learning',
+          onTap: () => context.push('/support/genie-learning'),
+        ),
       if (manager)
         _NavRow(
           icon: Symbols.flag_rounded,
@@ -148,7 +183,7 @@ class _SupportPageState extends ConsumerState<SupportPage> with WidgetsBindingOb
                         child: Text(
                           hasReachedActiveLimit
                               ? 'Limit Reached (5/5 Active)'
-                              : 'New Ticket',
+                              : 'Raise a ticket',
                           style: TextStyle(
                             fontSize: 17,
                             fontWeight: FontWeight.w700,
@@ -157,39 +192,6 @@ class _SupportPageState extends ConsumerState<SupportPage> with WidgetsBindingOb
                                 ? tokens.textMuted
                                 : tokens.onPrimaryAccent,
                           ),
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Semantics(
-                    button: true,
-                    label: 'Chat on WhatsApp',
-                    child: ApplePressable(
-                      onTap: () => launchUrl(
-                        Uri.parse('https://wa.me/917254926179'),
-                        mode: LaunchMode.externalApplication,
-                      ),
-                      pressedScale: 0.92,
-                      child: Container(
-                        width: 54,
-                        height: 54,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: const Color(0xFF25D366),
-                          boxShadow: [
-                            BoxShadow(
-                              color: const Color(0xFF25D366)
-                                  .withValues(alpha: 0.38),
-                              blurRadius: 16,
-                              offset: const Offset(0, 6),
-                            ),
-                          ],
-                        ),
-                        child: Padding(
-                          padding: const EdgeInsets.all(13),
-                          child: Image.asset('assets/icons/whatsapp.png',
-                              fit: BoxFit.contain),
                         ),
                       ),
                     ),
@@ -236,6 +238,7 @@ class _SupportPageState extends ConsumerState<SupportPage> with WidgetsBindingOb
                 ),
               ),
             if (links.isNotEmpty) _Group(children: links),
+            const SupportCallsSection(),
             const SizedBox(height: 28),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 4),

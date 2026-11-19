@@ -39,6 +39,33 @@ class MainActivity : FlutterFragmentActivity() {
                 }
             }
 
+
+        // Device details for login activity / new-device alerts (lib/core/api/device_info.dart).
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "com.teaching.lms/device")
+            .setMethodCallHandler { call, result ->
+                if (call.method != "info") return@setMethodCallHandler result.notImplemented()
+                val maker = android.os.Build.MANUFACTURER.replaceFirstChar { it.uppercase() }
+                val model = android.os.Build.MODEL
+                val version = try { packageManager.getPackageInfo(packageName, 0).versionName } catch (_: Exception) { null }
+                result.success(mapOf(
+                    "name" to if (model.startsWith(maker, ignoreCase = true)) model else "$maker $model",
+                    "os" to "Android ${android.os.Build.VERSION.RELEASE}",
+                    "appVersion" to version,
+                ))
+            }
+
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "com.teaching.lms/screen_share")
+            .setMethodCallHandler { call, result ->
+                val intent = Intent(this, ScreenShareService::class.java)
+                when (call.method) {
+                    "start" -> {
+                        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) startForegroundService(intent) else startService(intent)
+                        result.success(true)
+                    }
+                    "stop" -> { stopService(intent); result.success(true) }
+                    else -> result.notImplemented()
+                }
+            }
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {

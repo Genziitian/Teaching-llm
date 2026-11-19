@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { ArrowLeft } from 'lucide-react'
 import CareersJobsBoard from '@/components/storefront/native/CareersJobsBoard'
 import CareersManageTabs from '@/components/storefront/native/CareersManageTabs'
+import JobsWorkspace, { useHasWork } from '@/components/storefront/native/JobsWorkspace'
 
 const fetcher = (url: string) => fetch(url).then(r => r.json())
 
@@ -15,6 +16,8 @@ function JobsContent() {
   const params = useSearchParams()
   const { data } = useSWR('/api/auth/me', fetcher, { revalidateOnFocus: false })
   const isManager = data?.user?.role === 'MANAGER'
+  const hasWork = useHasWork()
+  const tab = params?.get('view') === 'work' ? 'work' : 'board'
 
   if (isManager && params?.get('view') === 'manage') {
     return (
@@ -32,12 +35,17 @@ function JobsContent() {
 
   return (
     <>
-      {isManager && (
-        <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 12 }}>
-          <button className="btn btn-secondary" onClick={() => router.push('/jobs?view=manage')}>Manage</button>
+      <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, marginBottom: 12, flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', gap: 6 }}>
+          {hasWork && (['board', 'work'] as const).map((t) => (
+            <button key={t} className={`btn btn-sm ${tab === t ? 'btn-primary' : 'btn-secondary'}`} onClick={() => router.push(t === 'work' ? '/jobs?view=work' : '/jobs')}>
+              {t === 'board' ? 'Open roles' : 'My work'}
+            </button>
+          ))}
         </div>
-      )}
-      <CareersJobsBoard />
+        {isManager && <button className="btn btn-secondary" onClick={() => router.push('/jobs?view=manage')}>Manage</button>}
+      </div>
+      {tab === 'work' && hasWork ? <JobsWorkspace /> : <CareersJobsBoard />}
     </>
   )
 }

@@ -1,10 +1,14 @@
 'use client'
 
 import Link from 'next/link'
-import { Megaphone, ThumbsUp, Lightbulb, Mail, Eye, Package, ClipboardCheck, RefreshCw, PhoneCall, Gift, ScrollText, HelpCircle, Star, Settings, type LucideIcon } from 'lucide-react'
+import { Megaphone, ThumbsUp, Lightbulb, Mail, Eye, Package, ClipboardCheck, RefreshCw, PhoneCall, Gift, ScrollText, HelpCircle, Star, Settings, Network, Database, type LucideIcon } from 'lucide-react'
 import PageShell from '@/components/storefront/PageShell'
 
 const TOOLS: { href: string; icon: LucideIcon; title: string; text: string }[] = [
+  { href: '/manage/site-data', icon: Database, title: 'Website data', text: 'Import the old website data into the platform.' },
+  { href: '/manage/queries', icon: HelpCircle, title: 'Queries', text: 'Platform rules and answers for managers.' },
+  { href: '/manage/genie', icon: Network, title: 'Genie Map', text: 'The GenZie chat answer map.' },
+  { href: '/manage/genie/learning', icon: Lightbulb, title: 'GenZie learning', text: 'Approve answers GenZie learned from community chats.' },
   { href: '/manage/updates', icon: Megaphone, title: 'Updates', text: 'Greetings, updates and user messages.' },
   { href: '/manage/prompts', icon: ThumbsUp, title: 'User Prompts', text: 'Quick feedback prompts for users.' },
   { href: '/manage/facts', icon: Lightbulb, title: 'Loading Facts', text: 'Facts shown on loading screens.' },

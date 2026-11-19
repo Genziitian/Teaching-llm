@@ -51,6 +51,26 @@ function ClassTransactionsPage({ sourceSwitch }: { sourceSwitch?: ReactNode } = 
 
   const [searchTerm, setSearchTerm] = useState('')
   const [view, setView] = useState<'paid' | 'unpaid'>('paid')
+  const [onlyRefunded, setOnlyRefunded] = useState(false)
+  const [isManager, setIsManager] = useState(false)
+  useEffect(() => {
+    fetch('/api/auth/me').then(r => r.json()).then(d => setIsManager(d?.user?.role === 'MANAGER')).catch(() => {})
+  }, [])
+
+  // Only platform purchases (Order rows) can be marked refunded.
+  const canRefund = (tx: Transaction) => isManager && tx.type === 'PURCHASE' && (tx.status === 'SUCCESS' || tx.status === 'REFUNDED')
+  const toggleRefund = async (tx: Transaction) => {
+    const refunded = tx.status === 'SUCCESS'
+    let removeAccess = false
+    if (refunded) {
+      if (!window.confirm(`Mark ₹${tx.amount} from ${tx.user.name} as refunded?\n\nThis only records it here. Send the money back from Razorpay.`)) return
+      removeAccess = window.confirm('Also remove this student\'s access to the course(s) from this order?\n\nOK = remove access, Cancel = keep access.')
+    } else if (!window.confirm('Mark this order as paid again?')) return
+    const res = await fetch('/api/transactions/refund', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: tx.id, refunded, removeAccess }) })
+    const d = await res.json().catch(() => ({}))
+    if (!res.ok) { alert(d.error || 'Could not update'); return }
+    setData(prev => prev ? { ...prev, transactions: prev.transactions.map(t => t.id === tx.id ? { ...t, status: d.status === 'PAID' ? 'SUCCESS' : d.status } : t) } : prev)
+  }
 
   useEffect(() => {
     fetch('/api/manage/academic-terms')
@@ -91,6 +111,7 @@ function ClassTransactionsPage({ sourceSwitch }: { sourceSwitch?: ReactNode } = 
   }, [filter, selectedTerm, selectedExam])
 
   const filteredTransactions = data?.transactions.filter(tx => {
+    if (onlyRefunded && tx.status !== 'REFUNDED') return false
     const s = searchTerm.toLowerCase()
     const courseNames = getTransactionCourses(tx).map(course => course.name.toLowerCase()).join(' ')
     return (
@@ -106,6 +127,7 @@ function ClassTransactionsPage({ sourceSwitch }: { sourceSwitch?: ReactNode } = 
       SUCCESS: { bg: 'var(--success-light)', text: 'var(--success)' },
       PENDING: { bg: 'var(--warning-light)', text: 'var(--warning)' },
       FAILED: { bg: 'var(--danger-light)', text: 'var(--danger)' },
+      REFUNDED: { bg: 'var(--surface-2)', text: 'var(--text-secondary)' },
     }
     const c = colors[status] || { bg: 'var(--surface)', text: 'var(--text-secondary)' }
     return (
@@ -271,6 +293,19 @@ function ClassTransactionsPage({ sourceSwitch }: { sourceSwitch?: ReactNode } = 
               {f.label}
             </button>
           ))}
+          {isManager && (
+            <button
+              onClick={() => setOnlyRefunded(v => !v)}
+              style={{
+                padding: '8px 18px', borderRadius: '14px', fontSize: '13px', fontWeight: 600, cursor: 'pointer',
+                border: onlyRefunded ? '2px solid var(--primary)' : '2px solid var(--border)',
+                background: onlyRefunded ? 'var(--primary-light)' : 'white',
+                color: onlyRefunded ? 'var(--accent)' : 'var(--text-secondary)',
+              }}
+            >
+              Refunded only
+            </button>
+          )}
         </div>
 
         {/* Search Bar */}
@@ -437,6 +472,7 @@ function ClassTransactionsPage({ sourceSwitch }: { sourceSwitch?: ReactNode } = 
                     <th style={{ padding: '14px 20px', fontSize: '12px', color: 'var(--text-secondary)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Amount</th>
                     <th style={{ padding: '14px 20px', fontSize: '12px', color: 'var(--text-secondary)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Status</th>
                     <th style={{ padding: '14px 20px', fontSize: '12px', color: 'var(--text-secondary)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Date</th>
+                    {isManager && <th style={{ padding: '14px 20px', fontSize: '12px', color: 'var(--text-secondary)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Refund</th>}
                   </tr>
                 </thead>
                 <tbody>
@@ -458,6 +494,11 @@ function ClassTransactionsPage({ sourceSwitch }: { sourceSwitch?: ReactNode } = 
                           {new Date(tx.createdAt).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}
                         </span>
                       </td>
+                      {isManager && <td style={{ padding: '14px 20px' }}>{canRefund(tx) ? <button
+                        type="button"
+                        onClick={() => void toggleRefund(tx)}
+                        style={{ padding: '5px 12px', borderRadius: 999, border: '1px solid var(--border)', background: 'transparent', color: tx.status === 'REFUNDED' ? 'var(--text-secondary)' : 'var(--danger)', fontSize: 12, fontWeight: 600, cursor: 'pointer', boxShadow: 'none', whiteSpace: 'nowrap' }}
+                      >{tx.status === 'REFUNDED' ? 'Undo refund' : 'Refunded'}</button> : null}</td>}
                     </tr>
                   ))}
                 </tbody>
@@ -485,6 +526,11 @@ function ClassTransactionsPage({ sourceSwitch }: { sourceSwitch?: ReactNode } = 
                   </div>
                   <div style={{ fontSize: '18px', fontWeight: 600, color: 'var(--text-primary)' }}>₹{tx.amount.toLocaleString('en-IN')}</div>
                 </div>
+                {canRefund(tx) && <div><button
+                        type="button"
+                        onClick={() => void toggleRefund(tx)}
+                        style={{ padding: '5px 12px', borderRadius: 999, border: '1px solid var(--border)', background: 'transparent', color: tx.status === 'REFUNDED' ? 'var(--text-secondary)' : 'var(--danger)', fontSize: 12, fontWeight: 600, cursor: 'pointer', boxShadow: 'none', whiteSpace: 'nowrap' }}
+                      >{tx.status === 'REFUNDED' ? 'Undo refund' : 'Refunded'}</button></div>}
 
                 <div>
                   <div style={{ fontSize: '14.5px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '2px' }}>

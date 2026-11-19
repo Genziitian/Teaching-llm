@@ -8,6 +8,7 @@ import { formatIST } from '@/lib/date-utils'
 import ManagerUserModal from '@/components/ManagerUserModal'
 import UserAvatar from '@/components/UserAvatar'
 import StaffRoleBadge from '@/components/StaffRoleBadge'
+import { SupportCallBox, SupportCallRequests, startSupportCall } from '@/components/support/SupportCall'
 
 interface Ticket {
   id: string
@@ -446,6 +447,21 @@ export default function SupportPage() {
         window.history.replaceState({}, '', newUrl)
       }
     }
+  }, [])
+
+  // Students only create tickets from GenZie's hand-off: it leaves the topic in sessionStorage and opens the form here.
+  useEffect(() => {
+    const openFromGenie = () => {
+      let topic: string | null = null
+      try { topic = sessionStorage.getItem('genie-ticket-draft'); sessionStorage.removeItem('genie-ticket-draft') } catch {}
+      if (topic === null) return
+      setForm(f => ({ ...f, title: topic!.slice(0, 200), description: f.description || '' }))
+      setTicketError(null)
+      setShowCreate(true)
+    }
+    openFromGenie()
+    window.addEventListener('genie:raise-ticket', openFromGenie)
+    return () => window.removeEventListener('genie:raise-ticket', openFromGenie)
   }, [])
 
   // Deep link from Genie / manager popup: /support?ticket=ID opens that ticket
@@ -1085,6 +1101,9 @@ export default function SupportPage() {
             
             {/* Live Chat Card — REMOVED (backed up in scratch/live-chat-backup/) */}
 
+            {userRole === 'STUDENT' && <SupportCallBox />}
+            {userRole === 'MANAGER' && <SupportCallRequests />}
+
             {/* Raise a Ticket Box (History merged inside) */}
             <div className="ticket-box-pad gz-sp-box">
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
@@ -1093,7 +1112,7 @@ export default function SupportPage() {
                     Raise a Ticket
                   </div>
                   <div className="gz-sp-sub gz-sp-sub--tight">
-                    Send a ticket for follow-up issues.
+                    Ask GenZie first. If you still need help, it raises a ticket for you.
                   </div>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexShrink: 0 }}>
@@ -1107,7 +1126,7 @@ export default function SupportPage() {
                       Limit Reached ({MAX_ACTIVE_TICKETS}/{MAX_ACTIVE_TICKETS} Active)
                     </button>
                   ) : (
-                    <button onClick={() => { setTicketError(null); setShowCreate(true) }} className="gz-btn">+ New Ticket</button>
+                    <button onClick={() => window.dispatchEvent(new Event('genie:open'))} className="gz-btn">Raise a ticket</button>
                   )
                 ) : (
                   <div style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: '600' }}>Review tickets below</div>
@@ -1155,35 +1174,7 @@ export default function SupportPage() {
               </div>
 
               {/* Quick ticket typing bar — always visible */}
-              {(userRole === 'STUDENT' || userRole === 'ADMIN' || userRole === 'MODERATOR') && !hasReachedActiveLimit && (
-                <div className="quick-ticket-bar gz-sp-quick">
-                  <textarea
-                    className="quick-ticket-input"
-                    value={form.description}
-                    onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
-                    onKeyDown={e => {
-                      if (e.key === 'Enter' && !e.shiftKey && form.description.trim()) {
-                        e.preventDefault()
-                        setTicketError(null)
-                        setShowCreate(true)
-                      }
-                    }}
-                    placeholder="Explain me your problem..."
-                    rows={2}
-                    style={{ flex: 1, minWidth: 0, background: 'transparent', border: 'none', outline: 'none', resize: 'none', color: 'var(--text-primary)', fontSize: '13.5px', lineHeight: '1.5', fontFamily: 'inherit', padding: '4px 0' }}
-                  />
-                  <button
-                    onClick={() => { setTicketError(null); setShowCreate(true) }}
-                    disabled={!form.description.trim()}
-                    aria-label="Continue to ticket"
-                    title="Continue"
-                    className="gz-btn gz-btn--icon"
-                    style={{ flexShrink: 0, opacity: form.description.trim() ? 1 : 0.45, cursor: form.description.trim() ? 'pointer' : 'not-allowed' }}
-                  >
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="22" y1="2" x2="11" y2="13" /><polygon points="22 2 15 22 11 13 2 9 22 2" /></svg>
-                  </button>
-                </div>
-              )}
+              {/* No quick ticket bar: students raise tickets through GenZie only. */}
             </div>
 
             {userRole === 'MANAGER' && (
@@ -1799,6 +1790,9 @@ export default function SupportPage() {
                           color: userRole === 'MANAGER' ? 'var(--primary)' : 'inherit'
                         }}
                       >{selected.user.id === userId ? 'You' : selected.user.name}</span>
+                      {userRole === 'MANAGER' && selected.user.role === 'STUDENT' && (
+                        <> · <button className="gz-sp-link" onClick={() => startSupportCall(selected.user.id, selected.user.name)}>Call student</button></>
+                      )}
                     </span>
                     {selected.createdAt && <span>{dayOf(selected.createdAt)}, {timeOf(selected.createdAt)}</span>}
                   </div>

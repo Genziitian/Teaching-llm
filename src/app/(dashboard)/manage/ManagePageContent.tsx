@@ -1,5 +1,6 @@
 'use client'
 
+import { COURSE_TYPES, subjectsFor } from '@/lib/course-catalog'
 import { useEffect, useState, Suspense } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import useSWR, { mutate } from 'swr'
@@ -471,7 +472,7 @@ export function ManagePageInner({ forcedTab }: ManagePageInnerProps = {}) {
   function openCreate() {
     setEditId(null)
     setFormData(
-      tab === 'courses' ? { isDisabled: false, googleGroupEmail: '', courseIconType: 'book_open', icon: 'BookOpen', academicTerm: '', academicYear: new Date().getFullYear(), examCycle: 'FULL_TERM' } :
+      tab === 'courses' ? { isDisabled: false, googleGroupEmail: '', courseIconType: 'book_open', icon: 'BookOpen', academicTerm: '', academicYear: new Date().getFullYear(), examCycle: 'FULL_TERM', courseType: '' } :
       tab === 'faqs' ? { question: '', answer: '', order: faqs.length } :
       {}
     )
@@ -593,6 +594,10 @@ export function ManagePageInner({ forcedTab }: ManagePageInnerProps = {}) {
   }
 
   async function handleSave() {
+    if (tab === 'courses' && (!formData.courseType || !(formData.subject || '').trim())) {
+      alert('Please choose the course type and subject.')
+      return
+    }
     setSaving(true)
     try {
       if (tab === 'lectures') {
@@ -972,8 +977,31 @@ export function ManagePageInner({ forcedTab }: ManagePageInnerProps = {}) {
                   <input className="form-input" value={f.name || ''} onChange={e => set('name', e.target.value)} placeholder="Course name" />
                 </div>
                 <div className="ce-field">
-                  <label>Subject</label>
-                  <input className="form-input" value={f.subject || ''} onChange={e => set('subject', e.target.value)} placeholder="e.g. Computer Science" />
+                  <label>Course type *</label>
+                  <select
+                    className="form-input"
+                    value={f.courseType || ''}
+                    onChange={e => { set('courseType', e.target.value); const list = subjectsFor(e.target.value); if (list && !list.includes(f.subject || '')) set('subject', '') }}
+                  >
+                    <option value="">Select type</option>
+                    {COURSE_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
+                    {f.courseType && !(COURSE_TYPES as readonly string[]).includes(f.courseType) && <option value={f.courseType}>{f.courseType}</option>}
+                  </select>
+                </div>
+              </div>
+
+              <div className="ce-row">
+                <div className="ce-field">
+                  <label>Subject *</label>
+                  {subjectsFor(f.courseType) ? (
+                    <select className="form-input" value={f.subject || ''} onChange={e => set('subject', e.target.value)}>
+                      <option value="">Select subject</option>
+                      {subjectsFor(f.courseType)!.map(sub => <option key={sub} value={sub}>{sub}</option>)}
+                      {f.subject && !subjectsFor(f.courseType)!.includes(f.subject) && <option value={f.subject}>{f.subject}</option>}
+                    </select>
+                  ) : (
+                    <input className="form-input" value={f.subject || ''} onChange={e => set('subject', e.target.value)} placeholder={f.courseType === 'Diploma' ? 'Diploma subject' : 'Pick a course type first'} disabled={!f.courseType} />
+                  )}
                 </div>
               </div>
 

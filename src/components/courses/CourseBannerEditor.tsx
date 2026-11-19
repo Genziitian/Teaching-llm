@@ -5,7 +5,25 @@ import { useEffect, useRef, useState } from 'react'
 /** Recommended banner size. The header shows it at ~2.13:1; cards crop slightly (object-fit: cover). */
 export const BANNER_W = 1600
 export const BANNER_H = 750
-const MAX_MB = 5
+const MAX_MB = 20 // before compression; the saved file is shrunk to a few hundred KB
+const SERVER_MAX = 5 * 1024 * 1024
+
+/** Resize to BANNER_W wide and re-encode as WebP in the browser, so uploads and page loads stay fast. */
+async function compress(f: File, width = BANNER_W): Promise<File> {
+  try {
+    const bmp = await createImageBitmap(f)
+    const scale = Math.min(1, width / bmp.width)
+    const canvas = document.createElement('canvas')
+    canvas.width = Math.round(bmp.width * scale)
+    canvas.height = Math.round(bmp.height * scale)
+    canvas.getContext('2d')!.drawImage(bmp, 0, 0, canvas.width, canvas.height)
+    const blob: Blob | null = await new Promise(r => canvas.toBlob(r, 'image/webp', 0.82))
+    if (!blob || blob.size >= f.size) return f // keep the original if it is already smaller
+    return new File([blob], f.name.replace(/\.\w+$/, '') + '.webp', { type: 'image/webp' })
+  } catch {
+    return f
+  }
+}
 
 interface Props {
   courseId: string
@@ -17,6 +35,7 @@ interface Props {
 export default function CourseBannerEditor({ courseId, currentUrl, fallbackUrl, onChange }: Props) {
   const [open, setOpen] = useState(false)
   const [file, setFile] = useState<File | null>(null)
+  const [thumb, setThumb] = useState<File | null>(null)
   const [preview, setPreview] = useState<string | null>(null)
   const [dims, setDims] = useState<{ w: number; h: number } | null>(null)
   const [busy, setBusy] = useState(false)
@@ -44,7 +63,12 @@ export default function CourseBannerEditor({ courseId, currentUrl, fallbackUrl, 
     const img = new Image()
     img.onload = () => setDims({ w: img.naturalWidth, h: img.naturalHeight })
     img.src = url
-    setFile(f); setPreview(url)
+    setPreview(url); setFile(null)
+    setThumb(null)
+    void Promise.all([compress(f), compress(f, 640)]).then(([big, small]) => {
+      if (big.size > SERVER_MAX) { setError('Image is still too large after compression. Try a smaller one.'); return }
+      setFile(big); setThumb(small) // small copy is what the Courses list cards load
+    })
   }
 
   const save = async () => {
@@ -53,6 +77,7 @@ export default function CourseBannerEditor({ courseId, currentUrl, fallbackUrl, 
     try {
       const fd = new FormData()
       fd.append('banner', file)
+      if (thumb) fd.append('thumb', thumb)
       const res = await fetch(`/api/courses/${courseId}/banner`, { method: 'POST', body: fd })
       const data = await res.json().catch(() => ({}))
       if (!res.ok) throw new Error(data.error || 'Upload failed')

@@ -43,7 +43,15 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     if (file.size > MAX_BYTES) return NextResponse.json({ error: 'Image is too large. Maximum 5 MB' }, { status: 400 })
 
     const supabase = supabaseAdmin()
-    const path = `course-banners/${id}-${Date.now()}.${ext}`
+    // `-lg` marks banners that also have a `-sm` card copy (see lib/banner-url.ts).
+    const thumb = form.get('thumb') as File | null
+    const hasThumb = !!thumb && TYPES[thumb.type] === ext && thumb.size <= MAX_BYTES
+    const stamp = Date.now()
+    const path = `course-banners/${id}-${stamp}${hasThumb ? '-lg' : ''}.${ext}`
+    if (hasThumb) {
+      // Best effort: if the small copy fails, the card falls back to the full image.
+      await supabase.storage.from('lms-uploads').upload(`course-banners/${id}-${stamp}-sm.${ext}`, Buffer.from(await thumb!.arrayBuffer()), { contentType: thumb!.type, upsert: false, cacheControl: '31536000' })
+    }
     const { error: upErr } = await supabase.storage
       .from('lms-uploads')
       .upload(path, Buffer.from(await file.arrayBuffer()), { contentType: file.type, upsert: false, cacheControl: '31536000' })

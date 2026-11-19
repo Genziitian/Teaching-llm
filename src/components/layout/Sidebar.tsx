@@ -168,18 +168,6 @@ const NAV_ITEMS: NavItem[] = [
     ),
   },
   {
-    href: '/manage/queries',
-    label: 'Queries',
-    roles: ['MANAGER'],
-    icon: (
-      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <circle cx="12" cy="12" r="10" />
-        <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
-        <line x1="12" y1="17" x2="12.01" y2="17" />
-      </svg>
-    ),
-  },
-  {
     href: '/transactions',
     label: 'Transactions',
     roles: ['MANAGER'],
@@ -271,17 +259,6 @@ const NAV_ITEMS: NavItem[] = [
     ),
   },
   {
-    href: '/manage/genie',
-    label: 'Genie Map',
-    roles: ['MANAGER'],
-    icon: (
-      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <circle cx="5" cy="12" r="2.5"/><circle cx="19" cy="6" r="2.5"/><circle cx="19" cy="18" r="2.5"/>
-        <path d="M7.4 11l9.2-4M7.4 13l9.2 4"/>
-      </svg>
-    ),
-  },
-  {
     href: '/admin',
     label: 'User Admin',
     roles: ['MANAGER'],
@@ -310,7 +287,7 @@ const NAV_GROUPS: { title: string; hrefs: string[] }[] = [
   { title: 'Learn', hrefs: ['/dashboard', '/courses', '/live', '/calendar', '/free-resources'] },
   { title: 'Explore', hrefs: ['/courses/explore', QUIZ_LAB_URL, '/jobs'] },
   { title: 'Connect', hrefs: ['/community', '/announcements', '/support', '/feedback'] },
-  { title: 'Manage', hrefs: ['/manage', '/manage/queries', '/manage/notifications', '/manage/coupons', '/manage/genie', '/manage/employees', '/manage/one-on-one', '/manage/storefront-tools'] },
+  { title: 'Manage', hrefs: ['/manage', '/manage/notifications', '/manage/coupons', '/manage/employees', '/manage/one-on-one', '/manage/storefront-tools'] },
   { title: 'Admin', hrefs: ['/admin', '/transactions', '/data-analysis'] },
   { title: 'Company', hrefs: ['/company/about-us'] },
 ]

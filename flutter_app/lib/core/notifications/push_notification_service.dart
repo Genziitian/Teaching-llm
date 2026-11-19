@@ -3,15 +3,20 @@ import 'dart:convert';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter_callkit_incoming/entities/entities.dart';
+import 'package:flutter_callkit_incoming/flutter_callkit_incoming.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:go_router/go_router.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../api/api_client.dart';
+import 'incoming_call.dart';
 
 @pragma('vm:entry-point')
 Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp();
+  await handleCallSignal(message);
 }
 
 /// Owns the complete native push lifecycle for the Flutter application.
@@ -40,6 +45,8 @@ class PushNotificationService {
   String? _registeredToken;
   bool _signedIn = false;
   bool _initialized = false;
+  // Accept can arrive twice (event + activeCalls on cold start); answering twice would 409.
+  final _answeredCallIds = <String>{};
 
   Future<void> initialize() async {
     if (_initialized || kIsWeb) return;
@@ -72,7 +79,11 @@ class PushNotificationService {
               AndroidFlutterLocalNotificationsPlugin>();
       await androidPlugin?.createNotificationChannel(_channel);
 
-      FirebaseMessaging.onMessage.listen(_showForegroundNotification);
+      FirebaseMessaging.onMessage.listen((message) async {
+        if (await handleCallSignal(message)) return;
+        await _showForegroundNotification(message);
+      });
+      FlutterCallkitIncoming.onEvent.listen(_onCallEvent);
       FirebaseMessaging.onMessageOpenedApp.listen(
         (message) => _handleData(message.data),
       );
@@ -80,6 +91,11 @@ class PushNotificationService {
         _registeredToken = null;
         if (_signedIn) await _registerToken(token);
       });
+
+      // App was launched by tapping Answer on the native call screen.
+      for (final call in await FlutterCallkitIncoming.activeCalls()) {
+        if (call.isAccepted) _answerCall(call);
+      }
 
       final initialMessage = await _messaging.getInitialMessage();
       if (initialMessage != null) {
@@ -111,6 +127,36 @@ class PushNotificationService {
     }
   }
 
+  void _onCallEvent(CallEvent? event) {
+    switch (event) {
+      case CallEventActionCallAccept(:final callKitParams):
+        _answerCall(callKitParams);
+      case CallEventActionCallDecline(:final callKitParams):
+        _api
+            .patch('/api/support/calls/${callKitParams.id}',
+                body: {'action': 'end'})
+            .then((_) {}, onError: (_) {});
+      default:
+        break;
+    }
+  }
+
+  void _answerCall(CallKitParams call) {
+    if (!_answeredCallIds.add(call.id)) return;
+    _handleLink(answerCallRoute(call.id, call.nameCaller ?? 'Support'));
+  }
+
+  /// Android 14+: the full-screen ringing screen needs this special permission. Ask once.
+  Future<void> _askFullScreenCallPermission() async {
+    try {
+      if (await FlutterCallkitIncoming.canUseFullScreenIntent()) return;
+      final prefs = await SharedPreferences.getInstance();
+      if (prefs.getBool('asked_full_screen_call') ?? false) return;
+      await prefs.setBool('asked_full_screen_call', true);
+      await FlutterCallkitIncoming.requestFullIntentPermission();
+    } catch (_) {}
+  }
+
   /// Requests OS permission and synchronizes this device token to the backend.
   Future<bool> enableAndSync() async {
     if (!_initialized || kIsWeb) return false;
@@ -129,6 +175,7 @@ class PushNotificationService {
     final token = await _messaging.getToken();
     if (token == null || token.isEmpty) return false;
     await _registerToken(token);
+    await _askFullScreenCallPermission();
     return true;
   }
 

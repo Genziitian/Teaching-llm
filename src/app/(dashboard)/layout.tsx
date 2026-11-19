@@ -15,6 +15,7 @@ import UserJourneyTracker from '@/components/UserJourneyTracker'
 import PushNotificationSetup from '@/components/PushNotificationSetup'
 import { UserDataProvider } from '@/components/UserDataProvider'
 import GlobalUploadProgressModal from '@/components/GlobalUploadProgressModal'
+import { SupportCallListener } from '@/components/support/SupportCall'
 
 
 import { TourProvider } from '@/components/tour/TourContext'
@@ -73,6 +74,7 @@ export default async function DashboardLayout({
           <UserJourneyTracker enableDetailedLogs={session.enableDetailedLogs} />
           <PushNotificationSetup />
           <GlobalUploadProgressModal />
+          {(session.role === 'MANAGER' || session.role === 'STUDENT') && <SupportCallListener role={session.role} />}
         </div>
       </TourProvider>
     </UserDataProvider>

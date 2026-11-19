@@ -1491,7 +1491,7 @@ export default function CommunityPage() {
   }
 
   function openUserIdentity(user: CommMsg['sender']) {
-    if (!user?.id) return
+    if (!user?.id || user.role === 'BOT') return
     if (userRole === 'MANAGER' && user.id !== userId && user.role === 'STUDENT') {
       setManagerProfileChoice(user)
       return
@@ -4291,6 +4291,7 @@ export default function CommunityPage() {
               {messages.map((msg, idx) => {
                 const isMe = msg.sender.id === userId
                 const isAdmin = msg.sender.role !== 'STUDENT'
+                const isBot = msg.sender.role === 'BOT'
                 const isDirectMessageThread = isDM(selectedClass)
                 
                 const currentDate = new Date(msg.createdAt).toDateString()
@@ -4346,7 +4347,7 @@ export default function CommunityPage() {
                               borderRadius: isMe ? '16px 16px 4px 16px' : '16px 16px 16px 4px',
                               background: selectedMessage?.id === msg.id
                                 ? '#d0e1fd'
-                                : isMe ? '#dcf8c6' : isAdmin ? '#e0e7ff' : '#ffffff',
+                                : isMe ? '#dcf8c6' : isBot ? '#fff7e6' : isAdmin ? '#e0e7ff' : '#ffffff',
                               color: '#1e1e3a',
                               fontSize: '14px', lineHeight: '1.5',
                               boxShadow: selectedMessage?.id === msg.id
@@ -4356,7 +4357,7 @@ export default function CommunityPage() {
                               maxWidth: '100%',
                               border: selectedMessage?.id === msg.id
                                 ? 'none'
-                                : isMe ? 'none' : '1px solid #e8eaf0',
+                                : isMe ? 'none' : isBot ? '1px solid #fcd8a6' : '1px solid #e8eaf0',
                               position: 'relative',
                               transition: 'all 0.2s',
                             }}>
@@ -4495,6 +4496,12 @@ export default function CommunityPage() {
                                       {renderMessageContent(msg.content)}
                                     </div>
                                   )}
+                                </div>
+                              )}
+
+                              {isBot && (
+                                <div style={{ marginTop: '6px', fontSize: '11px', fontStyle: 'italic', color: '#92400e' }}>
+                                  GenZie · auto-reply, I might be wrong
                                 </div>
                               )}
 

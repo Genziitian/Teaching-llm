@@ -71,9 +71,42 @@ function coursesQuery(): any {
   return chain;
 }
 
+// Every other table also goes through our own API (reads: /api/site/read, writes: manager-only /api/storefront/db),
+// so the browser no longer talks to the old website database.
+const b64url = (str: string) => btoa(unescape(encodeURIComponent(str))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+const WRITES = ['insert', 'update', 'upsert', 'delete'];
+
+function remoteQuery(table: string): any {
+  const calls: { m: string; a: any[] }[] = [];
+  const chain: any = new Proxy({}, {
+    get(_t, prop: string) {
+      if (prop === 'then') {
+        return (resolve: any, reject: any) => {
+          const isRead = calls[0]?.m === 'select' && !calls.some((c) => WRITES.includes(c.m));
+          const req = isRead
+            ? fetch(`/api/site/read?q=${b64url(JSON.stringify({ table, calls }))}`, { credentials: 'same-origin' })
+            : fetch('/api/storefront/db', {
+                method: 'POST',
+                credentials: 'same-origin',
+                headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+                body: JSON.stringify({ table, calls }),
+              });
+          return req
+            .then((r) => r.json().catch(() => ({})))
+            .then((d) => ({ data: d?.data ?? null, error: d?.error ? (typeof d.error === 'string' ? { message: d.error } : d.error) : null, count: d?.count ?? null, status: d?.status ?? 200 }))
+            .catch((e) => ({ data: null, error: { message: e?.message || 'Network error' }, count: null, status: 0 }))
+            .then(resolve, reject);
+        };
+      }
+      return (...a: any[]) => { calls.push({ m: prop, a }); return chain; };
+    },
+  });
+  return chain;
+}
+
 export const supabase: SupabaseClient<any, 'public', any> = new Proxy(base as any, {
   get(target, prop) {
-    if (prop === 'from') return (table: string) => (table === 'courses' ? coursesQuery() : target.from(table));
+    if (prop === 'from') return (table: string) => (table === 'courses' ? coursesQuery() : remoteQuery(table));
     const v = Reflect.get(target, prop, target);
     return typeof v === 'function' ? v.bind(target) : v;
   },

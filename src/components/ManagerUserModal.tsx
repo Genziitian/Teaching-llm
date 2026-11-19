@@ -1,5 +1,6 @@
 'use client'
 
+import LoginActivity from '@/components/LoginActivity'
 import { useState, useEffect } from 'react'
 import { mutate } from 'swr'
 import { useRouter } from 'next/navigation'
@@ -742,6 +743,10 @@ export default function ManagerUserModal({ userId, onClose, onUpdate, mode = 'mo
                     </div>
 
                     <div className="manager-profile-courses-wrap" style={{ flex: 1.5, display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                      <div className="manager-profile-section">
+                        <label style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-muted)', letterSpacing: '0.05em', textTransform: 'uppercase', marginBottom: '16px', display: 'block' }}>Login Activity</label>
+                        <LoginActivity userId={user.id} />
+                      </div>
                       {/* Regular Course Enrollments */}
                       <div className="manager-profile-section manager-profile-courses">
                         <label style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-muted)', letterSpacing: '0.05em', textTransform: 'uppercase', marginBottom: '16px', display: 'block' }}>Course Enrollments</label>

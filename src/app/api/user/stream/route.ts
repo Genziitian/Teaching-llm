@@ -56,6 +56,10 @@ export async function GET(req: Request) {
         const handleSystemNotify = () => pushEvent('invalidate', { target: 'all' })
 
         // Attach listeners
+        // 4. A support call is ringing / stopped ringing for this user: the page checks right away.
+        const handleCall = () => pushEvent('call', {})
+        sseEmitter.on(`user:${userId}:call`, handleCall)
+
         sseEmitter.on(`user:${userId}:notify`, handleUserNotification)
         sseEmitter.on(`user:${userId}:unread`, handleUserUnread)
         sseEmitter.on('system:notify', handleSystemNotify)
@@ -68,6 +72,7 @@ export async function GET(req: Request) {
         req.signal.addEventListener('abort', () => {
           isClosed = true
           clearInterval(interval)
+          sseEmitter.off(`user:${userId}:call`, handleCall)
           sseEmitter.off(`user:${userId}:notify`, handleUserNotification)
           sseEmitter.off(`user:${userId}:unread`, handleUserUnread)
           sseEmitter.off('system:notify', handleSystemNotify)

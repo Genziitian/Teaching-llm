@@ -305,7 +305,7 @@
 /* ── Header ────────────────────────────────────────────────────────────── */
 .gz-head__titles { flex: 1; min-width: 150px; }
 .gz-head__titles h1 {
-  margin: 0; font-size: clamp(26px, 1.1vw + 17px, 38px); font-weight: 600; letter-spacing: -0.02em; line-height: 1.2; color: var(--gz-ink);
+  margin: 0; font-size: clamp(28px, 1.2vw + 18px, 40px); font-weight: 600; letter-spacing: -0.02em; line-height: 1.2; color: var(--gz-ink);
   text-align: left; position: static; transform: none;
 }
 .gz-head__titles p { margin: 4px 0 0; color: var(--gz-ink-3); font-size: clamp(15px, 0.3vw + 13px, 17px); text-align: left; }

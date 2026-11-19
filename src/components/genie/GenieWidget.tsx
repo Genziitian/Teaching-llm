@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { GENIE_MAX_MESSAGE, GENIE_NAME, GENIE_TREE, UI, WHATSAPP_URL } from '@/lib/genie/tree'
 import type { GenieLang, GenieNode, L } from '@/lib/genie/tree'
 import { MAX_IMAGE_BYTES, POLL_MS, SEND_GAP_MS } from '@/lib/genie/limits'
@@ -97,6 +97,7 @@ function Sparkle({ size = 24 }: { size?: number }) {
 
 export default function GenieWidget({ userRole, userName }: { userRole: string; userName?: string }) {
   const pathname = usePathname() || ''
+  const router = useRouter()
   const [mounted, setMounted] = useState(false)
   const [isNative, setIsNative] = useState(false)
   const [open, setOpen] = useState(false)
@@ -275,6 +276,13 @@ export default function GenieWidget({ userRole, userName }: { userRole: string; 
 
   const node = NODES[stack[stack.length - 1].id] || NODES.root
 
+  // The Support page's "Raise a ticket" button opens GenZie; tickets are only created from the bot's hand-off.
+  useEffect(() => {
+    const onOpen = () => setOpen(true)
+    window.addEventListener('genie:open', onOpen)
+    return () => window.removeEventListener('genie:open', onOpen)
+  }, [])
+
   // ── actions ──
   function chooseLang(l: GenieLang) {
     langChosen.current = true
@@ -350,6 +358,16 @@ export default function GenieWidget({ userRole, userName }: { userRole: string; 
       setMsgs(m => [...m, { from: 'me', text: UI.no }, { from: 'bot', text: UI.improving }])
       setStage('handoff')
     }
+  }
+
+  /** Hand-off: open the Support page's ticket form, pre-filled with the topic the student walked through. */
+  function raiseTicket() {
+    const topic = stack.map(x => x.chosen && t(x.chosen)).filter(Boolean).join(' → ')
+    setMsgs(m => [...m, { from: 'me', text: UI.raiseTicket }, { from: 'bot', text: UI.ticketOpening }])
+    try { sessionStorage.setItem('genie-ticket-draft', topic) } catch {}
+    setOpen(false)
+    if (pathname === '/support') window.dispatchEvent(new CustomEvent('genie:raise-ticket'))
+    else router.push('/support')
   }
 
   function startAgent() {
@@ -532,6 +550,7 @@ export default function GenieWidget({ userRole, userName }: { userRole: string; 
             {stage === 'handoff' && !agentActive && !agentEnded && (
               <div className="genie-opts">
                 <button type="button" className="genie-opt agent" onClick={startAgent}>{t(UI.agentHere)}</button>
+                <button type="button" className="genie-opt agent" onClick={raiseTicket}>{t(UI.raiseTicket)}</button>
                 <a className="genie-opt wa" href={WHATSAPP_URL} target="_blank" rel="noopener noreferrer"
                    onClick={() => { setMsgs(m => [...m, { from: 'bot', text: UI.whatsappSent }, { from: 'bot', text: UI.waSolved }]); setStage('wacheck') }}>
                   {t(UI.whatsapp)}

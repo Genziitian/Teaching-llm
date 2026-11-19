@@ -68,6 +68,10 @@ export default function StudentOneOnOneBookings({ email }: StudentOneOnOneBookin
   const [cancelBooking, setCancelBooking] = useState<Booking | null>(null);
   const [cancelReason, setCancelReason] = useState('');
 
+  // Edit details modal state (name, phone, level, subjects, notes; the time is changed with Reschedule)
+  const [editBooking, setEditBooking] = useState<Booking | null>(null);
+  const [editForm, setEditForm] = useState({ name: '', phone: '', level: '', subjects: '', user_notes: '' });
+
   const fetchBookings = async () => {
     if (!email) return;
     try {
@@ -115,6 +119,43 @@ export default function StudentOneOnOneBookings({ email }: StudentOneOnOneBookin
     setNewSlot(booking.slot_time || TIME_SLOTS[6].time);
     setRescheduleReason('');
     setStatusMessage(null);
+  };
+
+  const handleOpenEdit = (booking: Booking) => {
+    setEditBooking(booking);
+    setEditForm({
+      name: booking.name || '',
+      phone: booking.phone || '',
+      level: booking.level || '',
+      subjects: Array.isArray(booking.subjects) ? booking.subjects.join(', ') : String(booking.subjects || ''),
+      user_notes: booking.user_notes || booking.notes || '',
+    });
+    setStatusMessage(null);
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editBooking) return;
+    setActionLoading(true);
+    try {
+      const res = await fetch('/api/site/1on1-bookings/update', {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: editBooking.id, ...editForm }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (res.ok) {
+        setBookings((prev) => prev.map((b) => (b.id === editBooking.id ? { ...b, ...data.booking } : b)));
+        setStatusMessage({ type: 'success', text: 'Your booking details are updated.' });
+        setEditBooking(null);
+      } else {
+        setStatusMessage({ type: 'error', text: data.error || 'Could not update. Please try again.' });
+      }
+    } catch {
+      setStatusMessage({ type: 'error', text: 'Could not update. Please try again.' });
+    } finally {
+      setActionLoading(false);
+    }
   };
 
   const handleOpenCancel = (booking: Booking) => {
@@ -507,6 +548,14 @@ export default function StudentOneOnOneBookings({ email }: StudentOneOnOneBookin
                     <div className="flex items-center gap-2">
                       <button
                         type="button"
+                        onClick={() => handleOpenEdit(booking)}
+                        className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-300 rounded-lg text-xs font-bold transition-colors"
+                      >
+                        Edit details
+                      </button>
+
+                      <button
+                        type="button"
                         onClick={() => handleOpenReschedule(booking)}
                         className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-300 rounded-lg text-xs font-bold transition-colors"
                       >
@@ -686,6 +735,40 @@ export default function StudentOneOnOneBookings({ email }: StudentOneOnOneBookin
           </div>
         )}
       </AnimatePresence>
+
+      {/* Edit details Modal */}
+      {editBooking && (
+        <div className="fixed inset-0 z-[130] flex items-center justify-center p-3.5 sm:p-4 bg-black/60 backdrop-blur-sm" onClick={() => !actionLoading && setEditBooking(null)}>
+          <div className="bg-white border-[3.5px] border-[#0b1120] rounded-[1.5rem] p-5 sm:p-6 shadow-[8px_8px_0px_#0b1120] w-full max-w-md space-y-3" onClick={(e) => e.stopPropagation()}>
+            <h3 className="text-lg font-black text-[#0b1120]">Edit your booking details</h3>
+            {([['name', 'Name'], ['phone', 'Phone (10 digits)'], ['level', 'Level'], ['subjects', 'Subjects (comma separated)']] as const).map(([k, label]) => (
+              <label key={k} className="block text-xs font-bold text-slate-600">
+                {label}
+                <input
+                  value={editForm[k]}
+                  onChange={(e) => setEditForm({ ...editForm, [k]: e.target.value })}
+                  className="mt-1 w-full rounded-lg border-2 border-slate-300 px-3 py-2 text-sm font-medium text-slate-900"
+                />
+              </label>
+            ))}
+            <label className="block text-xs font-bold text-slate-600">
+              Notes for your tutor
+              <textarea
+                value={editForm.user_notes}
+                onChange={(e) => setEditForm({ ...editForm, user_notes: e.target.value })}
+                rows={3}
+                className="mt-1 w-full rounded-lg border-2 border-slate-300 px-3 py-2 text-sm font-medium text-slate-900"
+              />
+            </label>
+            <div className="flex gap-2 pt-1">
+              <button type="button" onClick={handleSaveEdit} disabled={actionLoading} className="flex-1 rounded-lg bg-[#0b1120] text-white py-2.5 text-sm font-bold disabled:opacity-50">
+                {actionLoading ? 'Saving…' : 'Save changes'}
+              </button>
+              <button type="button" onClick={() => setEditBooking(null)} disabled={actionLoading} className="flex-1 rounded-lg border-2 border-slate-300 py-2.5 text-sm font-bold text-slate-700">Cancel</button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Cancel Modal */}
       <AnimatePresence>

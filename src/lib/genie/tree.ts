@@ -57,6 +57,8 @@ export const UI: Record<string, L> = {
   },
   agentHere: { en: 'Chat here with an agent (fastest)', hi: 'Yahin agent se chat karo (sabse fast)' },
   whatsapp: { en: 'Chat with an agent on WhatsApp', hi: 'WhatsApp par agent se chat karo' },
+  raiseTicket: { en: 'Raise a support ticket', hi: 'Support ticket raise karo' },
+  ticketOpening: { en: 'Opening a ticket form with your issue filled in.', hi: 'Ticket form khul raha hai, aapki problem pehle se bhari hai.' },
   whatsappSent: {
     en: 'Opening WhatsApp. Our team will reply there.',
     hi: 'WhatsApp khul raha hai. Hamari team wahin reply karegi.',

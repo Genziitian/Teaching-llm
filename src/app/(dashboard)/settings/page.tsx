@@ -1,5 +1,6 @@
 'use client'
 
+import LoginActivity from '@/components/LoginActivity'
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { usePushNotifications } from '@/hooks/usePushNotifications'
@@ -703,6 +704,15 @@ export default function SettingsPage() {
             </div>
           </div>
         )}
+
+        {/* ── Login activity: devices + places this account logged in from ── */}
+        <div className="card" style={{ padding: isMobile ? '16px' : '28px' }}>
+          <h3 style={{ fontSize: '15px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '4px' }}>Login activity</h3>
+          <p style={{ fontSize: '12.5px', color: 'var(--text-muted)', margin: '0 0 14px' }}>
+            Devices and approximate places your account logged in from. We alert you when a new device logs in.
+          </p>
+          <LoginActivity />
+        </div>
 
         {/* ── Danger Zone: Account Deletion ── */}
         <div className="card" style={{ padding: isMobile ? '16px' : '28px', border: '1px solid rgba(239, 68, 68, 0.25)' }}>

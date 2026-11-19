@@ -1,5 +1,6 @@
 'use client'
 
+import { bannerThumb } from '@/lib/banner-url'
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import Script from 'next/script'
@@ -549,7 +550,11 @@ export default function CoursesPage() {
             >
               <div className="gz-cc__banner gz-cc__banner--art">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={courseArt(course)} alt="" loading="lazy" decoding="async" />
+                <img
+                  src={bannerThumb(courseArt(course))}
+                  onError={e => { const full = courseArt(course); if (e.currentTarget.src !== full && !e.currentTarget.dataset.fb) { e.currentTarget.dataset.fb = '1'; e.currentTarget.src = full } }}
+                  alt="" loading="lazy" decoding="async"
+                />
                 <span className="gz-cc__pill">{batchLabel}</span>
                 {isCourseExpired && <span className="gz-cc__expired">Expired</span>}
                 {isRecorded && !isFreeOrDemo && !isManager && (

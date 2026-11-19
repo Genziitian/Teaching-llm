@@ -26,7 +26,7 @@ interface Notification {
 
 const PAGE_TITLES: Record<string, { title: string; subtitle: string }> = {
   '/dashboard':  { title: 'Dashboard',        subtitle: 'Welcome back to your learning hub' },
-  '/courses/explore': { title: 'GenZ IITian Official Store', subtitle: 'You can also buy courses from ' },
+  '/courses/explore': { title: 'GenZ IITian Official Store', subtitle: '' },
   '/courses':    { title: 'Courses',          subtitle: 'Your enrolled subjects and lectures' },
   '/academics':  { title: 'Academics',        subtitle: 'Everything for your learning journey' },
   '/menu':       { title: 'Profile',          subtitle: 'View and edit your personal information' },
@@ -209,7 +209,7 @@ export default function Header({ userName, userRole }: HeaderProps) {
     queries: 'Queries', notifications: 'Notifications', coupons: 'Coupons', menus: 'Menu Visibility', genie: 'Genie Map',
     careers: 'Careers', employees: 'Employees', 'one-on-one': '1:1 Bookings', 'mail-assigner': 'Mail Assigner',
     'follow-ups': 'Follow-ups', referrals: 'Referrals', blogs: 'Blogs', faqs: 'FAQs', 'store-settings': 'Store settings',
-    boxes: 'Boxes', 'storefront-tools': 'Tools', storefront: 'Storefront', 'storefront-courses': 'Storefront Courses',
+    boxes: 'Boxes', 'site-data': 'Website data', 'storefront-tools': 'Tools', storefront: 'Storefront', 'storefront-courses': 'Storefront Courses',
   }
   const manageTitle = pathname === '/manage' ? '' : (matchedKey && matchedKey !== '/manage' ? pageInfo.title : MANAGE_TITLES[pathname.replace(/^\/manage\//, '').split('/')[0]] || '')
 

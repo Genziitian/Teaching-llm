@@ -3,9 +3,10 @@
 import { useState } from 'react'
 import CareersRolesAdmin from './CareersRolesAdmin'
 import CareersApplicationsAdmin from './CareersApplicationsAdmin'
+import JobsTasksAdmin from './JobsTasksAdmin'
 
 export default function CareersManageTabs() {
-  const [tab, setTab] = useState<'roles' | 'applications'>('roles')
+  const [tab, setTab] = useState<'roles' | 'applications' | 'tasks'>('roles')
   const t = (id: typeof tab, label: string) => (
     <button
       onClick={() => setTab(id)}
@@ -15,9 +16,9 @@ export default function CareersManageTabs() {
   return (
     <div style={{ width: '100%', padding: '8px 0 48px' }}>
       <div style={{ display: 'flex', gap: 4, borderBottom: '1px solid var(--border, #e5e7eb)', marginBottom: 16 }}>
-        {t('roles', 'Open roles')}{t('applications', 'Applications')}
+        {t('roles', 'Open roles')}{t('applications', 'Applications')}{t('tasks', 'Tasks')}
       </div>
-      {tab === 'roles' ? <CareersRolesAdmin /> : <CareersApplicationsAdmin />}
+      {tab === 'roles' ? <CareersRolesAdmin /> : tab === 'tasks' ? <JobsTasksAdmin /> : <CareersApplicationsAdmin />}
     </div>
   )
 }
