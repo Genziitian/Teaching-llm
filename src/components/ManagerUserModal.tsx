@@ -859,7 +859,6 @@ export default function ManagerUserModal({ userId, onClose, onUpdate, mode = 'mo
                           </div>
                         )}
                       </div>
-                      </div>
                     </div>
                   </>
                 ) : (
