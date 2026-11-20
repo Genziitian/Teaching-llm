@@ -53,7 +53,7 @@ export default function GlobalUploadProgressModal() {
       justifyContent: 'center', zIndex: 99999, padding: '20px'
     }}>
       <div style={{
-        background: 'var(--surface)', borderRadius: '24px',
+        background: 'var(--surface)', borderRadius: '14px',
         border: '1px solid var(--border)', width: '100%', maxWidth: '400px',
         boxShadow: '0 20px 50px rgba(0,0,0,0.4)', padding: '28px',
         display: 'flex', flexDirection: 'column', gap: '20px',
@@ -61,7 +61,7 @@ export default function GlobalUploadProgressModal() {
         fontFamily: 'inherit'
       }}>
         <div style={{
-          width: '56px', height: '56px', borderRadius: '50%', background: 'rgba(54,54,232,0.08)',
+          width: '56px', height: '56px', borderRadius: '50%', background: 'color-mix(in srgb, var(--primary) 8%, transparent)',
           display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--primary)',
           marginBottom: '4px'
         }}>
@@ -84,7 +84,7 @@ export default function GlobalUploadProgressModal() {
         </div>
         
         <div>
-          <h3 style={{ fontSize: '17px', fontWeight: '800', margin: '0 0 6px 0' }}>Uploading Attachment</h3>
+          <h3 style={{ fontSize: '17px', fontWeight: 600, margin: '0 0 6px 0' }}>Uploading Attachment</h3>
           <p style={{ fontSize: '12px', color: 'var(--text-muted)', wordBreak: 'break-all', margin: 0 }}>{fileName}</p>
         </div>
 
@@ -113,7 +113,7 @@ export default function GlobalUploadProgressModal() {
           }}
           style={{
             width: '100%', padding: '12px 0', borderRadius: '12px', border: 'none',
-            background: 'var(--danger-light)', color: 'var(--danger)', fontWeight: '800',
+            background: 'var(--danger-light)', color: 'var(--danger)', fontWeight: 600,
             fontSize: '13px', cursor: 'pointer', transition: 'all 0.15s', fontFamily: 'inherit'
           }}
           onMouseEnter={e => e.currentTarget.style.background = 'rgba(239,68,68,0.15)'}

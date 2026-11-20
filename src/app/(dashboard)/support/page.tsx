@@ -8,6 +8,7 @@ import { formatIST } from '@/lib/date-utils'
 import ManagerUserModal from '@/components/ManagerUserModal'
 import UserAvatar from '@/components/UserAvatar'
 import StaffRoleBadge from '@/components/StaffRoleBadge'
+import { SupportCallBox, SupportCallRequests, startSupportCall } from '@/components/support/SupportCall'
 
 interface Ticket {
   id: string
@@ -88,7 +89,7 @@ function pill(bg: string) {
     display: 'inline-flex', alignItems: 'center',
     padding: '3px 11px', borderRadius: '50px',
     background: bg + '18', color: bg,
-    fontSize: '11px', fontWeight: '700', letterSpacing: '0.4px',
+    fontSize: '11px', fontWeight: 600, letterSpacing: '0.4px',
     border: `1px solid ${bg}33`,
   } as React.CSSProperties
 }
@@ -119,7 +120,7 @@ function formatMessageDate(dateStr: string): string {
 function TicketStatusIcon({ status }: { status: string }) {
   const c = STATUS_COLORS[status] || 'var(--text-muted)'
   return (
-    <div style={{ width: '42px', height: '42px', borderRadius: '50%', background: c + '15', border: `1.5px solid ${c}35`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+    <div style={{ width: '34px', height: '34px', borderRadius: '9px', background: c + '15', border: `1px solid ${c}35`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
       {status === 'RESOLVED' && <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="2.5"><polyline points="20 6 9 17 4 12" /></svg>}
       {status === 'IN_PROGRESS' && <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="2.5"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg>}
       {status === 'OPEN' && <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="2.5"><circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" /></svg>}
@@ -131,7 +132,7 @@ function TicketStatusIcon({ status }: { status: string }) {
 function BackButton({ onClick }: { onClick: () => void }) {
   const neu = { background: 'var(--surface-2)', boxShadow: '6px 6px 12px var(--neu-dark), -6px -6px 12px var(--neu-light)' }
   return (
-    <button onClick={onClick} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-secondary)', fontFamily: 'inherit', fontSize: '14px', fontWeight: '700', display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '8px 14px', borderRadius: '50px', ...neu }}>
+    <button onClick={onClick} className="gz-btn gz-btn--ghost gz-ed-sm">
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M19 12H5M12 5l-7 7 7 7" /></svg>
       Back
     </button>
@@ -147,31 +148,31 @@ function CreateTicketModal({
   hasReachedActiveLimit?: boolean, ticketError?: string | null, submittingTicket?: boolean
 }) {
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal" onClick={e => e.stopPropagation()}>
-        <div className="modal-header">
-          <h3 style={{ fontSize: '16px', fontWeight: '800' }}>Raise a Support Ticket</h3>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)' }}>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
+    <div className="gz-modal-scrim gz-ed-scrim" onClick={onClose}>
+      <div className="gz-modal gz-ed-modal gz-sp-modal" onClick={e => e.stopPropagation()}>
+        <div className="gz-ed-modal__head">
+          <h3>Raise a Support Ticket</h3>
+          <button onClick={onClose} className="gz-ed-x" aria-label="Close">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
           </button>
         </div>
-        <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+        <div className="gz-ed-modal__body">
           {hasReachedActiveLimit && (
-            <div style={{ padding: '12px 14px', borderRadius: '12px', background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.25)', color: '#ef4444', fontSize: '12.5px', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <div className="gz-sp-alert">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
               <span>You already have {MAX_ACTIVE_TICKETS} active tickets. You cannot submit a new ticket until a manager resolves or closes an existing ticket.</span>
             </div>
           )}
           {ticketError && (
-            <div style={{ padding: '10px 14px', borderRadius: '12px', background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.25)', color: '#ef4444', fontSize: '12px', fontWeight: '600' }}>
+            <div className="gz-sp-alert">
               {ticketError}
             </div>
           )}
-          <div className="form-group">
-            <label className="form-label">Issue Type</label>
-            <div style={{ display: 'flex', gap: '8px' }}>
+          <div className="gz-ed-field">
+            <label>Issue Type</label>
+            <div className="gz-ed-seg">
               {['GENERAL', 'SUBJECT'].map(t => (
-                <button key={t} onClick={() => setForm((f: any) => ({ ...f, type: t }))} style={{ flex: 1, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '10px', borderRadius: '14px', border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontSize: '13px', fontWeight: '700', background: form.type === t ? 'var(--primary)' : 'var(--surface-2)', color: form.type === t ? '#fff' : 'var(--text-secondary)', boxShadow: form.type === t ? '4px 4px 10px rgba(54,54,232,0.3)' : '4px 4px 8px var(--neu-dark), -4px -4px 8px var(--neu-light)' }}>
+                <button key={t} type="button" onClick={() => setForm((f: any) => ({ ...f, type: t }))} className={`gz-ed-seg__btn ${form.type === t ? 'is-on' : ''}`}>
                   {t === 'GENERAL' ? (
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M3 18v-6a9 9 0 0118 0v6" /><path d="M21 19a2 2 0 01-2 2h-1a2 2 0 01-2-2v-3a2 2 0 012-2h3zM3 19a2 2 0 002 2h1a2 2 0 002-2v-3a2 2 0 00-2-2H3z" /></svg>
                   ) : (
@@ -183,41 +184,41 @@ function CreateTicketModal({
             </div>
           </div>
           {form.type === 'SUBJECT' && (
-            <div className="form-group">
-              <label className="form-label">Select Subject</label>
-              <select className="form-input" value={form.classId} onChange={e => setForm((f: any) => ({ ...f, classId: e.target.value }))}>
+            <div className="gz-ed-field">
+              <label>Select Subject</label>
+              <select className="gz-ed-input" value={form.classId} onChange={e => setForm((f: any) => ({ ...f, classId: e.target.value }))}>
                 <option value="">Choose a subject...</option>
                 {classes.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
               </select>
             </div>
           )}
           {userRole === 'MANAGER' && (
-            <div className="form-group">
-              <label className="form-label">Title *</label>
-              <input className="form-input" value={form.title} onChange={e => setForm((f: any) => ({ ...f, title: e.target.value }))} placeholder="Brief description of the issue" />
+            <div className="gz-ed-field">
+              <label>Title *</label>
+              <input className="gz-ed-input" value={form.title} onChange={e => setForm((f: any) => ({ ...f, title: e.target.value }))} placeholder="Brief description of the issue" />
             </div>
           )}
-          <div className="form-group">
-            <label className="form-label">Description *</label>
-            <textarea className="form-input" rows={4} value={form.description} onChange={e => setForm((f: any) => ({ ...f, description: e.target.value }))} placeholder="Explain your issue in detail..." style={{ resize: 'vertical' }} />
+          <div className="gz-ed-field">
+            <label>Description *</label>
+            <textarea className="gz-ed-input gz-ed-textarea" rows={4} value={form.description} onChange={e => setForm((f: any) => ({ ...f, description: e.target.value }))} placeholder="Explain your issue in detail..." style={{ resize: 'vertical' }} />
           </div>
           {userRole === 'MANAGER' && (
-            <div className="form-group">
-              <label className="form-label">Priority</label>
-              <div style={{ display: 'flex', gap: '8px' }}>
+            <div className="gz-ed-field">
+              <label>Priority</label>
+              <div className="gz-ed-seg gz-ed-seg--3">
                 {['LOW', 'MEDIUM', 'HIGH'].map(p => (
-                  <button key={p} onClick={() => setForm((f: any) => ({ ...f, priority: p }))} style={{ flex: 1, padding: '8px', borderRadius: '12px', border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontSize: '12px', fontWeight: '700', background: form.priority === p ? PRIORITY_COLORS[p] : 'var(--surface-2)', color: form.priority === p ? '#fff' : 'var(--text-secondary)', boxShadow: '3px 3px 6px var(--neu-dark), -3px -3px 6px var(--neu-light)' }}>{p}</button>
+                  <button key={p} type="button" onClick={() => setForm((f: any) => ({ ...f, priority: p }))} className={`gz-ed-seg__btn ${form.priority === p ? 'is-on' : ''}`}>{p}</button>
                 ))}
               </div>
             </div>
           )}
         </div>
-        <div className="modal-footer">
-          <button onClick={onClose} className="btn btn-ghost">Cancel</button>
+        <div className="gz-ed-modal__foot">
+          <button onClick={onClose} className="gz-btn gz-btn--ghost">Cancel</button>
           <button 
             onClick={submitTicket} 
             disabled={hasReachedActiveLimit || submittingTicket} 
-            className="btn btn-primary"
+            className="gz-btn"
             style={(hasReachedActiveLimit || submittingTicket) ? { opacity: 0.6, cursor: 'not-allowed' } : {}}
           >
             {submittingTicket ? 'Submitting...' : 'Submit Ticket'}
@@ -234,22 +235,22 @@ function StartChatModal({
   onClose: () => void, value: string, onChange: (val: string) => void, onSubmit: (val: string) => void 
 }) {
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal" onClick={e => e.stopPropagation()}>
-        <div className="modal-header">
-          <h3 style={{ fontSize: '16px', fontWeight: '800' }}>Start Live Support Chat</h3>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)' }}>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
+    <div className="gz-modal-scrim gz-ed-scrim" onClick={onClose}>
+      <div className="gz-modal gz-ed-modal gz-sp-modal" onClick={e => e.stopPropagation()}>
+        <div className="gz-ed-modal__head">
+          <h3>Start Live Support Chat</h3>
+          <button onClick={onClose} className="gz-ed-x" aria-label="Close">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
           </button>
         </div>
-        <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+        <div className="gz-ed-modal__body">
           <p style={{ fontSize: '13px', color: 'var(--text-secondary)', lineHeight: '1.5' }}>
             To help us assist you better, please describe your issue in detail before starting the chat.
           </p>
-          <div className="form-group">
-            <label className="form-label">Issue Description *</label>
+          <div className="gz-ed-field">
+            <label>Issue Description *</label>
             <textarea 
-              className="form-input" 
+              className="gz-ed-input gz-ed-textarea" 
               rows={4} 
               value={value} 
               onChange={e => onChange(e.target.value)} 
@@ -258,11 +259,11 @@ function StartChatModal({
             />
           </div>
         </div>
-        <div className="modal-footer">
-          <button onClick={onClose} className="btn btn-ghost">Cancel</button>
+        <div className="gz-ed-modal__foot">
+          <button onClick={onClose} className="gz-btn gz-btn--ghost">Cancel</button>
           <button 
             onClick={() => onSubmit(value)} 
-            className="btn btn-primary" 
+            className="gz-btn" 
             disabled={!value.trim()}
             style={{ opacity: !value.trim() ? 0.6 : 1 }}
           >
@@ -280,27 +281,27 @@ function FaqFormModal({
   onClose: () => void, faqForm: any, setFaqForm: (f: any) => void, editingFaq: Faq | null, saveFaq: () => void 
 }) {
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal" onClick={e => e.stopPropagation()}>
-        <div className="modal-header">
-          <h3 style={{ fontSize: '16px', fontWeight: '800' }}>{editingFaq ? 'Edit FAQ' : 'Add FAQ Item'}</h3>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)' }}>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
+    <div className="gz-modal-scrim gz-ed-scrim" onClick={onClose}>
+      <div className="gz-modal gz-ed-modal gz-sp-modal" onClick={e => e.stopPropagation()}>
+        <div className="gz-ed-modal__head">
+          <h3>{editingFaq ? 'Edit FAQ' : 'Add FAQ Item'}</h3>
+          <button onClick={onClose} className="gz-ed-x" aria-label="Close">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
           </button>
         </div>
-        <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-          <div className="form-group">
-            <label className="form-label">Question *</label>
-            <input className="form-input" value={faqForm.question} onChange={e => setFaqForm((f: any) => ({ ...f, question: e.target.value }))} placeholder="Enter the frequently asked question..." />
+        <div className="gz-ed-modal__body">
+          <div className="gz-ed-field">
+            <label>Question *</label>
+            <input className="gz-ed-input" value={faqForm.question} onChange={e => setFaqForm((f: any) => ({ ...f, question: e.target.value }))} placeholder="Enter the frequently asked question..." />
           </div>
-          <div className="form-group">
-            <label className="form-label">Answer *</label>
-            <textarea className="form-input" rows={4} value={faqForm.answer} onChange={e => setFaqForm((f: any) => ({ ...f, answer: e.target.value }))} placeholder="Provide a clear answer..." style={{ resize: 'vertical' }} />
+          <div className="gz-ed-field">
+            <label>Answer *</label>
+            <textarea className="gz-ed-input gz-ed-textarea" rows={4} value={faqForm.answer} onChange={e => setFaqForm((f: any) => ({ ...f, answer: e.target.value }))} placeholder="Provide a clear answer..." style={{ resize: 'vertical' }} />
           </div>
         </div>
-        <div className="modal-footer">
-          <button onClick={onClose} className="btn btn-ghost">Cancel</button>
-          <button onClick={saveFaq} className="btn btn-primary">{editingFaq ? 'Save Changes' : 'Add FAQ'}</button>
+        <div className="gz-ed-modal__foot">
+          <button onClick={onClose} className="gz-btn gz-btn--ghost">Cancel</button>
+          <button onClick={saveFaq} className="gz-btn">{editingFaq ? 'Save Changes' : 'Add FAQ'}</button>
         </div>
       </div>
     </div>
@@ -340,6 +341,7 @@ export default function SupportPage() {
   // FAQ
   const [faqs, setFaqs] = useState<Faq[]>([])
   const [expandedFaq, setExpandedFaq] = useState<string | null>(null)
+  const [showAllFaqs, setShowAllFaqs] = useState(false)
   const [showFaqForm, setShowFaqForm] = useState(false)
   const [editingFaq, setEditingFaq] = useState<Faq | null>(null)
   const [faqForm, setFaqForm] = useState({ question: '', answer: '' })
@@ -384,7 +386,7 @@ export default function SupportPage() {
 
   const neu = { background: 'var(--surface-2)', boxShadow: '6px 6px 12px var(--neu-dark), -6px -6px 12px var(--neu-light)' }
   const neuInset = { background: 'var(--surface-2)', boxShadow: 'inset 4px 4px 8px var(--neu-dark), inset -4px -4px 8px var(--neu-light)' }
-  const card = { background: 'var(--surface)', borderRadius: '24px', boxShadow: '0 2px 8px rgba(0,0,0,0.06), 0 6px 24px rgba(0,0,0,0.04)' }
+  const card = { background: 'var(--surface)', borderRadius: '14px', boxShadow: '0 2px 8px rgba(0,0,0,0.06), 0 6px 24px rgba(0,0,0,0.04)' }
 
   const loadTickets = useCallback(async () => {
     const [tr, cr, rr] = await Promise.all([
@@ -445,6 +447,21 @@ export default function SupportPage() {
         window.history.replaceState({}, '', newUrl)
       }
     }
+  }, [])
+
+  // Students only create tickets from GenZie's hand-off: it leaves the topic in sessionStorage and opens the form here.
+  useEffect(() => {
+    const openFromGenie = () => {
+      let topic: string | null = null
+      try { topic = sessionStorage.getItem('genie-ticket-draft'); sessionStorage.removeItem('genie-ticket-draft') } catch {}
+      if (topic === null) return
+      setForm(f => ({ ...f, title: topic!.slice(0, 200), description: f.description || '' }))
+      setTicketError(null)
+      setShowCreate(true)
+    }
+    openFromGenie()
+    window.addEventListener('genie:raise-ticket', openFromGenie)
+    return () => window.removeEventListener('genie:raise-ticket', openFromGenie)
   }, [])
 
   // Deep link from Genie / manager popup: /support?ticket=ID opens that ticket
@@ -823,7 +840,7 @@ export default function SupportPage() {
   // ══════════════════════════════════════════════════════════════════════════
   if (view === 'home') {
     return (
-      <div className="page-container fade-in apple-ui" style={{ maxHeight: isMobile ? 'calc(100vh - 72px)' : 'calc(100vh - 104px)', overflowY: 'auto', overflowX: 'hidden' }}>
+      <div className="page-container gz-sp fade-in apple-ui" style={{ maxHeight: isMobile ? 'calc(100vh - 72px)' : 'calc(100vh - 104px)', overflowY: 'auto', overflowX: 'hidden' }}>
         <style>{`
           .mobile-back-header {
             display: none !important;
@@ -939,7 +956,7 @@ export default function SupportPage() {
             </svg>
           </button>
           <div>
-            <span style={{ display: 'block', fontSize: '20px', fontWeight: 800, color: 'var(--text-primary)', fontFamily: "'Outfit', 'Nunito', sans-serif", letterSpacing: '-0.3px', lineHeight: '1.2' }}>
+            <span style={{ display: 'block', fontSize: '20px', fontWeight: 600, color: 'var(--text-primary)', fontFamily: "'Outfit', 'Nunito', sans-serif", letterSpacing: '-0.3px', lineHeight: '1.2' }}>
               Contact & Support
             </span>
             <span style={{ display: 'block', fontSize: '12px', color: 'var(--text-muted)', marginTop: '2px' }}>
@@ -952,10 +969,10 @@ export default function SupportPage() {
 
           {/* Left Column: FAQ + Request a Feature (last on mobile) */}
           <div className="faq-col-wrap">
-          <div className="faq-card-col" style={{ ...card }}>
+          <div className="faq-card-col gz-sp-card" style={{ ...card }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
-              <div style={{ width: '52px', height: '52px', borderRadius: '16px', background: 'var(--primary-light)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#3636e8" strokeWidth="2">
+              <div className="gz-sp-ico">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
                   <circle cx="12" cy="12" r="10" /><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3" /><line x1="12" y1="17" x2="12.01" y2="17" strokeWidth="2.5" strokeLinecap="round" />
                 </svg>
               </div>
@@ -977,19 +994,18 @@ export default function SupportPage() {
                       })
                       loadFaqs()
                     }}
-                    className="btn btn-secondary btn-sm"
-                    style={{ borderRadius: '50px', fontSize: '11px', padding: '6px 12px' }}
+                    className="gz-btn gz-btn--ghost gz-ed-sm"
                   >
                     Reset Defaults
                   </button>
-                  <button onClick={() => { setFaqForm({ question: '', answer: '' }); setEditingFaq(null); setShowFaqForm(true) }} className="btn btn-primary btn-sm" style={{ borderRadius: '50px' }}>
+                  <button onClick={() => { setFaqForm({ question: '', answer: '' }); setEditingFaq(null); setShowFaqForm(true) }} className="gz-btn gz-ed-sm">
                     + Add FAQ
                   </button>
                 </div>
               )}
             </div>
-            <h2 style={{ fontSize: '16px', fontWeight: '800', color: 'var(--text-primary)', marginBottom: '6px' }}>Frequently Asked Questions</h2>
-            <p style={{ fontSize: '13px', color: 'var(--text-secondary)', lineHeight: '1.6', marginBottom: '18px' }}>
+            <h2 className="gz-sp-h">Frequently Asked Questions</h2>
+            <p className="gz-sp-sub">
               Instant answers to common queries. Browse our knowledge base for solutions.
             </p>
 
@@ -998,32 +1014,32 @@ export default function SupportPage() {
               {faqs.length === 0 ? (
                 <p style={{ fontSize: '13px', color: 'var(--text-muted)', textAlign: 'center', padding: '20px 0' }}>No FAQs yet.</p>
               ) : (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                  {faqs.map(f => (
-                    <div key={f.id} style={{ borderRadius: '16px', border: '1.5px solid var(--border)', overflow: 'hidden' }}>
+                <div className="gz-sp-faqs">
+                  {(showAllFaqs ? faqs : faqs.slice(0, 3)).map(f => (
+                    <div key={f.id} className={`gz-sp-faq ${expandedFaq === f.id ? 'is-open' : ''}`}>
                       <div 
                         onClick={() => setExpandedFaq(expandedFaq === f.id ? null : f.id)}
-                        style={{ padding: '14px 18px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer', background: expandedFaq === f.id ? 'var(--surface-2)' : 'var(--surface)', transition: 'background 0.2s' }}
+                        className="gz-sp-faq__q"
                       >
-                        <span style={{ fontSize: '13.5px', fontWeight: '700', color: 'var(--text-primary)' }}>{f.question}</span>
-                        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                        <span>{f.question}</span>
+                        <div className="gz-sp-faq__acts">
                           {(userRole === 'MANAGER' || (userRole === 'ADMIN' || userRole === 'MODERATOR')) && (
                             <>
-                              <button onClick={e => { e.stopPropagation(); setFaqForm({ question: f.question, answer: f.answer }); setEditingFaq(f); setShowFaqForm(true) }} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', padding: '4px' }}>
+                              <button onClick={e => { e.stopPropagation(); setFaqForm({ question: f.question, answer: f.answer }); setEditingFaq(f); setShowFaqForm(true) }} className="gz-sp-icbtn" aria-label="Edit FAQ">
                                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" /><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" /></svg>
                               </button>
-                              <button onClick={e => { e.stopPropagation(); deleteFaq(f.id) }} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--danger)', padding: '4px' }}>
+                              <button onClick={e => { e.stopPropagation(); deleteFaq(f.id) }} className="gz-ed-del" aria-label="Delete FAQ">
                                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="3 6 5 6 21 6" /><path d="M19 6l-1 14H6L5 6" /><path d="M10 11v6M14 11v6" /><path d="M9 6V4h6v2" /></svg>
                               </button>
                             </>
                           )}
-                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9999b0" strokeWidth="2.5" style={{ transform: expandedFaq === f.id ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}>
+                          <svg className="gz-sp-chev" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ transform: expandedFaq === f.id ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}>
                             <polyline points="6 9 12 15 18 9" />
                           </svg>
                         </div>
                       </div>
                       {expandedFaq === f.id && (
-                        <div style={{ padding: '0 18px 16px', fontSize: '13px', color: 'var(--text-secondary)', lineHeight: '1.6', background: 'var(--surface-2)', whiteSpace: 'pre-wrap' }}>
+                        <div className="gz-sp-faq__a">
                           {f.answer}
                         </div>
                       )}
@@ -1031,35 +1047,44 @@ export default function SupportPage() {
                   ))}
                 </div>
               )}
+              {faqs.length > 3 && (
+                <button
+                  type="button"
+                  onClick={() => setShowAllFaqs(v => !v)}
+                  style={{ display: 'block', margin: '12px auto 0', padding: '7px 18px', borderRadius: 999, border: '1px solid var(--border)', background: 'transparent', color: 'var(--text-secondary)', fontSize: 13, fontWeight: 600, cursor: 'pointer', boxShadow: 'none' }}
+                >
+                  {showAllFaqs ? 'Show less' : `Show more (${faqs.length - 3})`}
+                </button>
+              )}
             </div>
           </div>
 
             {/* Request a Feature Box */}
             {(userRole !== 'ADMIN' && userRole !== 'MODERATOR') && (
-              <div className="ticket-box-pad" style={{ width: '100%', borderRadius: '24px', background: 'var(--surface-2)', border: '1.5px solid var(--border)', boxShadow: 'inset 0 1px 0 var(--neu-glow)', textAlign: 'left' }}>
+              <div className="ticket-box-pad gz-sp-box">
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <div>
-                    <div style={{ fontSize: '12px', fontWeight: '800', color: '#8b5cf6', letterSpacing: '0.03em', marginBottom: '4px', textTransform: 'uppercase' }}>
-                      💡 Request a Feature
+                    <div className="gz-sp-eyebrow">
+                      Request a Feature
                     </div>
-                    <div style={{ fontSize: '13px', color: 'var(--text-secondary)', lineHeight: '1.5' }}>
+                    <div className="gz-sp-sub gz-sp-sub--tight">
                       Have an idea? Tell us what you&apos;d love to see.
                     </div>
                   </div>
-                  <button onClick={() => setShowFeatureModal(true)} className="btn" style={{ borderRadius: '50px', padding: '10px 20px', background: 'linear-gradient(135deg, #8b5cf6, #6366f1)', color: '#fff', border: 'none', fontWeight: 700, fontSize: '13px', cursor: 'pointer' }}>+ Request</button>
+                  <button onClick={() => setShowFeatureModal(true)} className="gz-btn">+ Request</button>
                 </div>
                 {featureRequests.length > 0 && (
-                  <div style={{ marginTop: '16px', borderTop: '1px solid rgba(139,92,246,0.15)', paddingTop: '14px' }}>
+                  <div className="gz-sp-sec">
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-                      <span style={{ fontSize: '13px', fontWeight: 800, color: 'var(--text-primary)' }}>Your Requests</span>
-                      <button onClick={() => setView('featureRequests')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#8b5cf6', fontSize: '12px', fontWeight: '700', fontFamily: 'inherit' }}>View All →</button>
+                      <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)' }}>Your Requests</span>
+                      <button onClick={() => setView('featureRequests')} className="gz-sp-link">View All →</button>
                     </div>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                       {featureRequests.slice(0, 3).map(fr => (
-                        <div key={fr.id} onClick={() => setView('featureRequests')} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '10px 12px', background: 'var(--surface)', borderRadius: '14px', cursor: 'pointer', border: '1px solid var(--border)' }}>
-                          <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: fr.status === 'PENDING' ? '#f59e0b' : fr.status === 'ACCEPTED' ? '#10b981' : fr.status === 'REJECTED' ? '#ef4444' : '#6366f1', flexShrink: 0 }} />
+                        <div key={fr.id} onClick={() => setView('featureRequests')} className="gz-sp-row">
+                          <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: fr.status === 'PENDING' ? '#f59e0b' : fr.status === 'ACCEPTED' ? '#10b981' : fr.status === 'REJECTED' ? '#ef4444' : 'var(--primary)', flexShrink: 0 }} />
                           <div style={{ flex: 1, minWidth: 0 }}>
-                            <div style={{ fontSize: '13px', fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: 'var(--text-primary)' }}>{fr.title}</div>
+                            <div style={{ fontSize: '13px', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: 'var(--text-primary)' }}>{fr.title}</div>
                             <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>{fr.status} · {new Date(fr.createdAt).toLocaleDateString()}</div>
                           </div>
                         </div>
@@ -1076,15 +1101,17 @@ export default function SupportPage() {
             
             {/* Live Chat Card — REMOVED (backed up in scratch/live-chat-backup/) */}
 
+            {userRole === 'MANAGER' && <SupportCallRequests />}
+
             {/* Raise a Ticket Box (History merged inside) */}
-            <div className="ticket-box-pad" style={{ width: '100%', borderRadius: '24px', background: 'var(--surface-2)', border: '1.5px solid var(--border)', boxShadow: 'inset 0 1px 0 var(--neu-glow)', textAlign: 'left' }}>
+            <div className="ticket-box-pad gz-sp-box">
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
                 <div>
-                  <div style={{ fontSize: '12px', fontWeight: '800', color: 'var(--primary)', letterSpacing: '0.03em', marginBottom: '4px', textTransform: 'uppercase' }}>
-                    Raise a Ticket
+                  <div className="gz-sp-eyebrow">
+                    Talk to Support
                   </div>
-                  <div style={{ fontSize: '13px', color: 'var(--text-secondary)', lineHeight: '1.5' }}>
-                    Send a ticket for follow-up issues.
+                  <div className="gz-sp-sub gz-sp-sub--tight">
+                    GenZie answers first. If you still need help, it connects you: a call, a call back or a ticket.
                   </div>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexShrink: 0 }}>
@@ -1093,13 +1120,12 @@ export default function SupportPage() {
                     <button 
                       disabled 
                       title={`You already have ${MAX_ACTIVE_TICKETS} active tickets. Please wait until your existing tickets are resolved or closed.`}
-                      className="btn" 
-                      style={{ borderRadius: '50px', padding: '10px 18px', background: 'var(--surface)', color: 'var(--text-muted)', border: '1px solid var(--border)', cursor: 'not-allowed', opacity: 0.8, fontSize: '12px', fontWeight: '700' }}
+                      className="gz-btn gz-btn--ghost" style={{ cursor: 'not-allowed', opacity: 0.6 }}
                     >
                       Limit Reached ({MAX_ACTIVE_TICKETS}/{MAX_ACTIVE_TICKETS} Active)
                     </button>
                   ) : (
-                    <button onClick={() => { setTicketError(null); setShowCreate(true) }} className="btn btn-primary" style={{ borderRadius: '50px', padding: '10px 20px' }}>+ New Ticket</button>
+                    <button onClick={() => window.dispatchEvent(new Event('genie:open'))} className="gz-btn">Ask GenZie</button>
                   )
                 ) : (
                   <div style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: '600' }}>Review tickets below</div>
@@ -1109,17 +1135,20 @@ export default function SupportPage() {
               </div>
 
               {hasReachedActiveLimit && (
-                <div style={{ marginTop: '10px', padding: '10px 14px', borderRadius: '12px', background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.25)', color: '#ef4444', fontSize: '12px', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <div className="gz-sp-alert">
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
                   <span>You have {MAX_ACTIVE_TICKETS} active tickets. You cannot create a new ticket until a manager resolves or closes an existing ticket.</span>
                 </div>
               )}
 
+              {/* Booked call back (if any), then ticket history */}
+              {userRole === 'STUDENT' && <SupportCallBox />}
+
               {/* History Section inside the box */}
-              <div style={{ marginTop: '20px', borderTop: '1px solid #d9dcff', paddingTop: '20px' }}>
+              <div className="gz-sp-sec">
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-                  <h3 style={{ fontSize: '14px', fontWeight: '800', color: 'var(--text-primary)' }}>Recent History</h3>
-                  <button onClick={() => { setSelected(null); setView('allTickets') }} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--primary)', fontSize: '12px', fontWeight: '700', fontFamily: 'inherit', display: 'flex', alignItems: 'center', gap: '3px' }}>
+                  <h3 style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)' }}>Recent History</h3>
+                  <button onClick={() => { setSelected(null); setView('allTickets') }} className="gz-sp-link">
                     View All →
                   </button>
                 </div>
@@ -1132,11 +1161,11 @@ export default function SupportPage() {
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                     {tickets.slice(0, 5).map((t) => (
                       <div key={t.id} onClick={() => { setSelected(t); setView('allTickets') }}
-                        style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px', background: 'var(--surface)', borderRadius: '16px', cursor: 'pointer', border: '1px solid var(--border)' }}
+                        className="gz-sp-row"
                       >
                         <TicketStatusIcon status={t.status} />
                         <div style={{ flex: 1, minWidth: 0 }}>
-                          <div style={{ fontSize: '13.5px', fontWeight: '700', color: 'var(--text-primary)', marginBottom: '2px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t.title}</div>
+                          <div style={{ fontSize: '13.5px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '2px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t.title}</div>
                           <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>{getRelativeTime(t.updatedAt, t.status)}</div>
                         </div>
                         <span style={{ ...pill(STATUS_COLORS[t.status]), fontSize: '10px', padding: '2px 8px' }}>{t.status.replace('_', ' ')}</span>
@@ -1147,49 +1176,21 @@ export default function SupportPage() {
               </div>
 
               {/* Quick ticket typing bar — always visible */}
-              {(userRole === 'STUDENT' || userRole === 'ADMIN' || userRole === 'MODERATOR') && !hasReachedActiveLimit && (
-                <div className="quick-ticket-bar" style={{ marginTop: '16px', display: 'flex', alignItems: 'flex-end', gap: '10px', padding: '10px 10px 10px 16px', background: 'var(--surface)', border: '1.5px solid var(--border)', borderRadius: '18px', transition: 'border-color 0.15s' }}>
-                  <textarea
-                    className="quick-ticket-input"
-                    value={form.description}
-                    onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
-                    onKeyDown={e => {
-                      if (e.key === 'Enter' && !e.shiftKey && form.description.trim()) {
-                        e.preventDefault()
-                        setTicketError(null)
-                        setShowCreate(true)
-                      }
-                    }}
-                    placeholder="Explain me your problem..."
-                    rows={2}
-                    style={{ flex: 1, minWidth: 0, background: 'transparent', border: 'none', outline: 'none', resize: 'none', color: 'var(--text-primary)', fontSize: '13.5px', lineHeight: '1.5', fontFamily: 'inherit', padding: '4px 0' }}
-                  />
-                  <button
-                    onClick={() => { setTicketError(null); setShowCreate(true) }}
-                    disabled={!form.description.trim()}
-                    aria-label="Continue to ticket"
-                    title="Continue"
-                    className="btn btn-primary"
-                    style={{ borderRadius: '50px', width: '40px', height: '40px', padding: 0, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, opacity: form.description.trim() ? 1 : 0.45, cursor: form.description.trim() ? 'pointer' : 'not-allowed' }}
-                  >
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="22" y1="2" x2="11" y2="13" /><polygon points="22 2 15 22 11 13 2 9 22 2" /></svg>
-                  </button>
-                </div>
-              )}
+              {/* No quick ticket bar: students raise tickets through GenZie only. */}
             </div>
 
             {userRole === 'MANAGER' && (
-              <div className="ticket-box-pad" style={{ width: '100%', borderRadius: '24px', background: 'var(--surface-2)', border: '1.5px solid var(--border)', boxShadow: 'inset 0 1px 0 var(--neu-glow)', textAlign: 'left' }}>
+              <div className="ticket-box-pad gz-sp-box">
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '14px' }}>
                   <div>
-                    <div style={{ fontSize: '12px', fontWeight: '800', color: 'var(--danger)', letterSpacing: '0.03em', marginBottom: '4px', textTransform: 'uppercase' }}>
+                    <div className="gz-sp-eyebrow">
                       User Reports
                     </div>
-                    <div style={{ fontSize: '13px', color: 'var(--text-secondary)', lineHeight: '1.5' }}>
+                    <div className="gz-sp-sub gz-sp-sub--tight">
                       {`${userReports.length} report${userReports.length !== 1 ? 's' : ''}`}
                     </div>
                   </div>
-                  <button onClick={() => setView('userReports')} className="btn btn-ghost" style={{ borderRadius: '50px', padding: '10px 16px', color: 'var(--danger)' }}>
+                  <button onClick={() => setView('userReports')} className="gz-btn gz-btn--ghost">
                     View All Reports
                   </button>
                 </div>
@@ -1230,39 +1231,39 @@ export default function SupportPage() {
           />
         )}
         {showFeatureModal && (
-          <div onClick={() => setShowFeatureModal(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
-            <div onClick={e => e.stopPropagation()} style={{ width: '100%', maxWidth: '480px', maxHeight: '85vh', overflowY: 'auto', background: 'var(--surface)', borderRadius: '28px', padding: '28px 24px', boxShadow: '0 24px 60px rgba(0,0,0,0.2)' }}>
+          <div onClick={() => setShowFeatureModal(false)} className="gz-modal-scrim gz-ed-scrim" style={{ zIndex: 9999 }}>
+            <div onClick={e => e.stopPropagation()} className="gz-modal gz-sp-fmodal">
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-                <h2 style={{ fontSize: '18px', fontWeight: 900, margin: 0 }}>💡 Request a Feature</h2>
-                <button onClick={() => setShowFeatureModal(false)} style={{ background: 'none', border: 'none', fontSize: '20px', cursor: 'pointer', color: 'var(--text-muted)' }}>✕</button>
+                <h3 style={{ margin: 0 }}>Request a Feature</h3>
+                <button onClick={() => setShowFeatureModal(false)} className="gz-ed-x" aria-label="Close">✕</button>
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
                 <div>
-                  <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary)', marginBottom: '6px', display: 'block' }}>Feature Title *</label>
+                  <label className="gz-sp-label">Feature Title *</label>
                   <input
                     value={featureForm.title}
                     onChange={e => setFeatureForm(p => ({ ...p, title: e.target.value }))}
                     placeholder="e.g. Dark mode for lectures"
                     maxLength={120}
-                    style={{ width: '100%', padding: '12px 14px', borderRadius: '14px', border: '1.5px solid var(--border)', background: 'var(--surface-2)', fontSize: '14px', fontFamily: 'inherit', outline: 'none', boxSizing: 'border-box' }}
+                    className="gz-ed-input"
                   />
                 </div>
                 <div>
-                  <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary)', marginBottom: '6px', display: 'block' }}>Description *</label>
+                  <label className="gz-sp-label">Description *</label>
                   <textarea
                     value={featureForm.description}
                     onChange={e => setFeatureForm(p => ({ ...p, description: e.target.value }))}
                     placeholder="Describe the feature you'd like to see..."
                     rows={4}
                     maxLength={2000}
-                    style={{ width: '100%', padding: '12px 14px', borderRadius: '14px', border: '1.5px solid var(--border)', background: 'var(--surface-2)', fontSize: '14px', fontFamily: 'inherit', outline: 'none', resize: 'vertical', boxSizing: 'border-box' }}
+                    className="gz-ed-input gz-ed-textarea"
                   />
                 </div>
                 <div>
-                  <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary)', marginBottom: '6px', display: 'block' }}>Screenshots (optional, max 5)</label>
+                  <label className="gz-sp-label">Screenshots (optional, max 5)</label>
                   <input ref={featureImageRef} type="file" accept="image/*" multiple onChange={handleFeatureImageAdd} style={{ display: 'none' }} />
-                  <button onClick={() => featureImageRef.current?.click()} style={{ padding: '10px 16px', borderRadius: '12px', border: '1.5px dashed var(--border)', background: 'none', cursor: 'pointer', fontSize: '13px', fontWeight: 600, color: 'var(--text-secondary)', fontFamily: 'inherit', width: '100%' }}>
-                    📎 Add Photos ({featureImages.length}/5)
+                  <button onClick={() => featureImageRef.current?.click()} className="gz-ed-file__pick" style={{ width: '100%', justifyContent: 'center' }}>
+                    Add Photos ({featureImages.length}/5)
                   </button>
                   {featureImagePreviews.length > 0 && (
                     <div style={{ display: 'flex', gap: '8px', marginTop: '10px', flexWrap: 'wrap' }}>
@@ -1278,7 +1279,7 @@ export default function SupportPage() {
                 <button
                   onClick={submitFeatureRequest}
                   disabled={!featureForm.title.trim() || !featureForm.description.trim() || submittingFeature}
-                  style={{ padding: '13px', borderRadius: '14px', background: (!featureForm.title.trim() || !featureForm.description.trim()) ? 'var(--text-muted)' : 'linear-gradient(135deg, #8b5cf6, #6366f1)', color: '#fff', border: 'none', fontSize: '14px', fontWeight: 800, cursor: 'pointer', fontFamily: 'inherit', opacity: submittingFeature ? 0.6 : 1, marginTop: '4px' }}
+                  className="gz-btn" style={{ width: '100%', marginTop: '4px', opacity: (submittingFeature || !featureForm.title.trim() || !featureForm.description.trim()) ? 0.5 : 1 }}
                 >
                   {submittingFeature ? 'Submitting...' : 'Submit Feature Request'}
                 </button>
@@ -1295,7 +1296,7 @@ export default function SupportPage() {
   // ══════════════════════════════════════════════════════════════════════════
   if (view === 'featureRequests') {
     return (
-      <div className="page-container fade-in apple-ui" style={{ maxHeight: isMobile ? 'calc(100vh - 72px)' : 'calc(100vh - 104px)', display: 'flex', flexDirection: 'column', paddingBottom: '20px' }}>
+      <div className="page-container gz-sp fade-in apple-ui" style={{ maxHeight: isMobile ? 'calc(100vh - 72px)' : 'calc(100vh - 104px)', display: 'flex', flexDirection: 'column', paddingBottom: '20px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
           <BackButton onClick={() => setView('home')} />
           <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
@@ -1303,7 +1304,7 @@ export default function SupportPage() {
               {featureRequests.length} feature request{featureRequests.length !== 1 ? 's' : ''}
             </span>
             {(userRole === 'STUDENT' || (userRole === 'ADMIN' || userRole === 'MODERATOR')) && (
-              <button onClick={() => setShowFeatureModal(true)} className="btn btn-primary btn-sm" style={{ background: 'linear-gradient(135deg, #8b5cf6, #6366f1)', border: 'none', borderRadius: '50px', padding: '8px 16px' }}>
+              <button onClick={() => setShowFeatureModal(true)} className="btn btn-primary btn-sm" style={{ background: 'var(--gz-ink)', border: 'none', borderRadius: '50px', padding: '8px 16px' }}>
                 + Request
               </button>
             )}
@@ -1313,7 +1314,7 @@ export default function SupportPage() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', overflowY: 'auto', flex: 1, paddingRight: '4px' }}>
           {featureRequests.length === 0 ? (
             <div style={{ textAlign: 'center', padding: '40px 20px', color: 'var(--text-muted)' }}>
-              <p style={{ fontWeight: '700', fontSize: '16px', marginBottom: '4px' }}>No feature requests yet</p>
+              <p style={{ fontWeight: 600, fontSize: '16px', marginBottom: '4px' }}>No feature requests yet</p>
               <p style={{ fontSize: '13px' }}>Be the first to share an idea with us!</p>
             </div>
           ) : (
@@ -1321,7 +1322,7 @@ export default function SupportPage() {
               <div key={fr.id} style={{ ...card, padding: '20px', border: '1px solid var(--border)', position: 'relative', display: 'flex', flexDirection: 'column', gap: '12px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '12px' }}>
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <h3 style={{ fontSize: '16px', fontWeight: 800, margin: '0 0 6px', color: 'var(--text-primary)' }}>{fr.title}</h3>
+                    <h3 style={{ fontSize: '16px', fontWeight: 600, margin: '0 0 6px', color: 'var(--text-primary)' }}>{fr.title}</h3>
                     <p style={{ fontSize: '13.5px', color: 'var(--text-secondary)', margin: 0, whiteSpace: 'pre-wrap', lineHeight: 1.5 }}>{fr.description}</p>
                   </div>
                   <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '6px', flexShrink: 0 }}>
@@ -1335,8 +1336,8 @@ export default function SupportPage() {
                           border: '1.5px solid var(--border)',
                           background: 'var(--surface-2)',
                           fontSize: '12px',
-                          fontWeight: 700,
-                          color: fr.status === 'PENDING' ? '#f59e0b' : fr.status === 'ACCEPTED' ? '#10b981' : fr.status === 'REJECTED' ? '#ef4444' : '#6366f1',
+                          fontWeight: 600,
+                          color: fr.status === 'PENDING' ? '#f59e0b' : fr.status === 'ACCEPTED' ? '#10b981' : fr.status === 'REJECTED' ? '#ef4444' : 'var(--primary)',
                           outline: 'none',
                           cursor: 'pointer',
                         }}
@@ -1348,7 +1349,7 @@ export default function SupportPage() {
                       </select>
                     ) : (
                       <span style={{
-                        ...pill(fr.status === 'PENDING' ? '#f59e0b' : fr.status === 'ACCEPTED' ? '#10b981' : fr.status === 'REJECTED' ? '#ef4444' : '#6366f1'),
+                        ...pill(fr.status === 'PENDING' ? '#f59e0b' : fr.status === 'ACCEPTED' ? '#10b981' : fr.status === 'REJECTED' ? '#ef4444' : 'var(--primary)'),
                         fontSize: '10px',
                         padding: '2px 8px',
                       }}>
@@ -1379,7 +1380,7 @@ export default function SupportPage() {
                       {fr.user.avatar ? (
                         <img src={fr.user.avatar} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                       ) : (
-                        <span style={{ fontSize: '11px', fontWeight: 800 }}>{fr.user.name.substring(0, 2).toUpperCase()}</span>
+                        <span style={{ fontSize: '11px', fontWeight: 600 }}>{fr.user.name.substring(0, 2).toUpperCase()}</span>
                       )}
                     </div>
                     <div>
@@ -1393,7 +1394,7 @@ export default function SupportPage() {
                             padding: 0,
                             color: 'var(--primary)',
                             fontSize: '12px',
-                            fontWeight: 800,
+                            fontWeight: 600,
                             textAlign: 'left',
                             textDecoration: 'underline',
                           }}
@@ -1401,7 +1402,7 @@ export default function SupportPage() {
                           {fr.user.name} ({fr.user.role})
                         </button>
                       ) : (
-                        <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary)' }}>
+                        <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary)' }}>
                           {fr.user.name} ({fr.user.role})
                         </span>
                       )}
@@ -1417,39 +1418,39 @@ export default function SupportPage() {
         </div>
 
         {showFeatureModal && (
-          <div onClick={() => setShowFeatureModal(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
-            <div onClick={e => e.stopPropagation()} style={{ width: '100%', maxWidth: '480px', maxHeight: '85vh', overflowY: 'auto', background: 'var(--surface)', borderRadius: '28px', padding: '28px 24px', boxShadow: '0 24px 60px rgba(0,0,0,0.2)' }}>
+          <div onClick={() => setShowFeatureModal(false)} className="gz-modal-scrim gz-ed-scrim" style={{ zIndex: 9999 }}>
+            <div onClick={e => e.stopPropagation()} className="gz-modal gz-sp-fmodal">
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-                <h2 style={{ fontSize: '18px', fontWeight: 900, margin: 0 }}>💡 Request a Feature</h2>
-                <button onClick={() => setShowFeatureModal(false)} style={{ background: 'none', border: 'none', fontSize: '20px', cursor: 'pointer', color: 'var(--text-muted)' }}>✕</button>
+                <h3 style={{ margin: 0 }}>Request a Feature</h3>
+                <button onClick={() => setShowFeatureModal(false)} className="gz-ed-x" aria-label="Close">✕</button>
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
                 <div>
-                  <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary)', marginBottom: '6px', display: 'block' }}>Feature Title *</label>
+                  <label className="gz-sp-label">Feature Title *</label>
                   <input
                     value={featureForm.title}
                     onChange={e => setFeatureForm(p => ({ ...p, title: e.target.value }))}
                     placeholder="e.g. Dark mode for lectures"
                     maxLength={120}
-                    style={{ width: '100%', padding: '12px 14px', borderRadius: '14px', border: '1.5px solid var(--border)', background: 'var(--surface-2)', fontSize: '14px', fontFamily: 'inherit', outline: 'none', boxSizing: 'border-box' }}
+                    className="gz-ed-input"
                   />
                 </div>
                 <div>
-                  <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary)', marginBottom: '6px', display: 'block' }}>Description *</label>
+                  <label className="gz-sp-label">Description *</label>
                   <textarea
                     value={featureForm.description}
                     onChange={e => setFeatureForm(p => ({ ...p, description: e.target.value }))}
                     placeholder="Describe the feature you'd like to see..."
                     rows={4}
                     maxLength={2000}
-                    style={{ width: '100%', padding: '12px 14px', borderRadius: '14px', border: '1.5px solid var(--border)', background: 'var(--surface-2)', fontSize: '14px', fontFamily: 'inherit', outline: 'none', resize: 'vertical', boxSizing: 'border-box' }}
+                    className="gz-ed-input gz-ed-textarea"
                   />
                 </div>
                 <div>
-                  <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary)', marginBottom: '6px', display: 'block' }}>Screenshots (optional, max 5)</label>
+                  <label className="gz-sp-label">Screenshots (optional, max 5)</label>
                   <input ref={featureImageRef} type="file" accept="image/*" multiple onChange={handleFeatureImageAdd} style={{ display: 'none' }} />
-                  <button onClick={() => featureImageRef.current?.click()} style={{ padding: '10px 16px', borderRadius: '12px', border: '1.5px dashed var(--border)', background: 'none', cursor: 'pointer', fontSize: '13px', fontWeight: 600, color: 'var(--text-secondary)', fontFamily: 'inherit', width: '100%' }}>
-                    📎 Add Photos ({featureImages.length}/5)
+                  <button onClick={() => featureImageRef.current?.click()} className="gz-ed-file__pick" style={{ width: '100%', justifyContent: 'center' }}>
+                    Add Photos ({featureImages.length}/5)
                   </button>
                   {featureImagePreviews.length > 0 && (
                     <div style={{ display: 'flex', gap: '8px', marginTop: '10px', flexWrap: 'wrap' }}>
@@ -1465,7 +1466,7 @@ export default function SupportPage() {
                 <button
                   onClick={submitFeatureRequest}
                   disabled={!featureForm.title.trim() || !featureForm.description.trim() || submittingFeature}
-                  style={{ padding: '13px', borderRadius: '14px', background: (!featureForm.title.trim() || !featureForm.description.trim()) ? 'var(--text-muted)' : 'linear-gradient(135deg, #8b5cf6, #6366f1)', color: '#fff', border: 'none', fontSize: '14px', fontWeight: 800, cursor: 'pointer', fontFamily: 'inherit', opacity: submittingFeature ? 0.6 : 1, marginTop: '4px' }}
+                  className="gz-btn" style={{ width: '100%', marginTop: '4px', opacity: (submittingFeature || !featureForm.title.trim() || !featureForm.description.trim()) ? 0.5 : 1 }}
                 >
                   {submittingFeature ? 'Submitting...' : 'Submit Feature Request'}
                 </button>
@@ -1480,58 +1481,58 @@ export default function SupportPage() {
   if (view === 'userReports') {
     const canManageReports = userRole === 'MANAGER' || (userRole === 'ADMIN' || userRole === 'MODERATOR')
     return (
-      <div className="page-container fade-in apple-ui" style={{ maxHeight: isMobile ? 'calc(100vh - 72px)' : 'calc(100vh - 104px)', display: 'flex', flexDirection: 'column' }}>
+      <div className="page-container gz-sp fade-in apple-ui" style={{ maxHeight: isMobile ? 'calc(100vh - 72px)' : 'calc(100vh - 104px)', display: 'flex', flexDirection: 'column' }}>
         {confirmDialog}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', gap: '12px' }}>
           <BackButton onClick={() => setView('home')} />
-          <span style={{ fontSize: '13px', color: 'var(--text-muted)', fontWeight: '700' }}>{userReports.length} report{userReports.length !== 1 ? 's' : ''}</span>
+          <span style={{ fontSize: '13px', color: 'var(--text-muted)', fontWeight: 600 }}>{userReports.length} report{userReports.length !== 1 ? 's' : ''}</span>
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', overflowY: 'auto', paddingBottom: '12px' }}>
           {userReports.length === 0 ? (
             <div className="empty-state">
-              <p style={{ fontWeight: 800, fontSize: '15px', marginBottom: '4px' }}>No reports</p>
+              <p style={{ fontWeight: 600, fontSize: '15px', marginBottom: '4px' }}>No reports</p>
               <p style={{ fontSize: '13px', color: 'var(--text-muted)' }}>Nothing to review here.</p>
             </div>
           ) : userReports.map(report => (
-            <div key={report.id} style={{ padding: '16px', borderRadius: '20px', ...neu, display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            <div key={report.id} style={{ padding: '16px', borderRadius: '14px', ...neu, display: 'flex', flexDirection: 'column', gap: '12px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', alignItems: 'flex-start' }}>
                 <div style={{ minWidth: 0 }}>
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', alignItems: 'center', marginBottom: '8px' }}>
                     <span style={pill(report.status === 'NEW' ? 'var(--danger)' : report.status === 'UNDER_REVIEW' ? 'var(--warning)' : report.status === 'RESOLVED' ? 'var(--success)' : 'var(--text-muted)')}>
                       {report.status.replace('_', ' ')}
                     </span>
-                    <span style={{ fontSize: '12px', color: 'var(--text-muted)', fontWeight: 700 }}>
+                    <span style={{ fontSize: '12px', color: 'var(--text-muted)', fontWeight: 600 }}>
                       {formatIST(report.createdAt, { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true })}
                     </span>
                   </div>
-                  <div style={{ fontSize: '15px', fontWeight: 900, color: 'var(--text-primary)' }}>{formatReportReason(report.reason)}</div>
+                  <div style={{ fontSize: '15px', fontWeight: 600, color: 'var(--text-primary)' }}>{formatReportReason(report.reason)}</div>
                   {report.subReason && (
-                    <div style={{ fontSize: '12px', fontWeight: 800, color: 'var(--text-secondary)', marginTop: '3px' }}>{report.subReason}</div>
+                    <div style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary)', marginTop: '3px' }}>{report.subReason}</div>
                   )}
                 </div>
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : canManageReports ? '1fr 1fr' : '1fr', gap: '10px' }}>
                 <div style={{ padding: '12px', borderRadius: '14px', background: 'var(--surface)' }}>
-                  <div style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: 800, marginBottom: '8px' }}>Reported User</div>
+                  <div style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: 600, marginBottom: '8px' }}>Reported User</div>
                   <button
                     onClick={() => canManageReports && setSelectedUserDetailsId(report.reportedUser.id)}
                     style={{ display: 'flex', alignItems: 'center', gap: '10px', border: 'none', background: 'transparent', padding: 0, cursor: canManageReports ? 'pointer' : 'default', textAlign: 'left' }}
                   >
                     <UserAvatar user={report.reportedUser} size={32} />
-                    <span style={{ fontSize: '13px', fontWeight: 800, color: canManageReports ? 'var(--primary)' : 'var(--text-primary)' }}>{report.reportedUser.name}</span>
+                    <span style={{ fontSize: '13px', fontWeight: 600, color: canManageReports ? 'var(--primary)' : 'var(--text-primary)' }}>{report.reportedUser.name}</span>
                   </button>
                 </div>
                 {canManageReports && report.reporter && (
                   <div style={{ padding: '12px', borderRadius: '14px', background: 'var(--surface)' }}>
-                    <div style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: 800, marginBottom: '8px' }}>Reporter</div>
+                    <div style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: 600, marginBottom: '8px' }}>Reporter</div>
                     <button
                       onClick={() => setSelectedUserDetailsId(report.reporter!.id)}
                       style={{ display: 'flex', alignItems: 'center', gap: '10px', border: 'none', background: 'transparent', padding: 0, cursor: 'pointer', textAlign: 'left' }}
                     >
                       <UserAvatar user={report.reporter} size={32} />
-                      <span style={{ fontSize: '13px', fontWeight: 800, color: 'var(--primary)' }}>{report.reporter.name}</span>
+                      <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--primary)' }}>{report.reporter.name}</span>
                     </button>
                   </div>
                 )}
@@ -1561,7 +1562,7 @@ export default function SupportPage() {
                         cursor: 'pointer',
                         fontFamily: 'inherit',
                         fontSize: '11px',
-                        fontWeight: 800,
+                        fontWeight: 600,
                         background: report.status === status ? 'var(--primary)' : 'var(--surface-2)',
                         color: report.status === status ? '#fff' : 'var(--text-muted)',
                         boxShadow: '3px 3px 6px var(--neu-dark), -3px -3px 6px var(--neu-light)',
@@ -1594,7 +1595,7 @@ export default function SupportPage() {
     const isStudent = userRole === 'STUDENT'
     const canCreate = userRole === 'STUDENT' || userRole === 'ADMIN' || userRole === 'MODERATOR'
     const line = 'color-mix(in srgb, var(--text-primary) 12%, transparent)'
-    const panel: React.CSSProperties = { background: 'var(--surface)', border: `1px solid ${line}`, borderRadius: '16px' }
+    const panel: React.CSSProperties = { background: 'var(--surface)', border: `1px solid ${line}`, borderRadius: '12px' }
     const statusLabel = (s: string) => s === 'IN_PROGRESS' ? 'In progress' : s.charAt(0) + s.slice(1).toLowerCase()
     const priorityLabel = (p: string) => `${p.charAt(0)}${p.slice(1).toLowerCase()} priority`
     const chip = (c: string): React.CSSProperties => ({
@@ -1622,7 +1623,7 @@ export default function SupportPage() {
     const sendDisabled = (!replyText.trim() && !pendingReplyImage) || uploadingImage
 
     return (
-      <div className="page-container fade-in apple-ui" style={{ height: isMobile ? 'calc(100vh - 72px)' : 'calc(100vh - 104px)', display: 'flex', flexDirection: 'column' }}>
+      <div className="page-container gz-sp fade-in apple-ui" style={{ height: isMobile ? 'calc(100vh - 72px)' : 'calc(100vh - 104px)', display: 'flex', flexDirection: 'column' }}>
         {confirmDialog}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px', marginBottom: '16px', flexWrap: 'wrap' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px', minWidth: 0 }}>
@@ -1635,7 +1636,7 @@ export default function SupportPage() {
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5M12 5l-7 7 7 7" /></svg>
             </button>
             <div style={{ minWidth: 0 }}>
-              <div style={{ fontSize: '17px', fontWeight: 700, color: 'var(--text-primary)', lineHeight: 1.2 }}>{isStudent ? 'My tickets' : 'Tickets'}</div>
+              <div style={{ fontSize: '17px', fontWeight: 600, color: 'var(--text-primary)', lineHeight: 1.2 }}>{isStudent ? 'My tickets' : 'Tickets'}</div>
               <div style={{ fontSize: '12.5px', color: 'var(--text-secondary)', marginTop: '2px' }}>
                 {tickets.length} ticket{tickets.length !== 1 ? 's' : ''}{isStudent ? ` · ${activeTicketsCount} of ${MAX_ACTIVE_TICKETS} active` : ''}
               </div>
@@ -1664,7 +1665,7 @@ export default function SupportPage() {
             {tickets.length === 0 ? (
               <div style={{ ...panel, padding: '40px 24px', textAlign: 'center' }}>
                 <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" style={{ marginBottom: '12px' }}><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" /></svg>
-                <p style={{ fontWeight: 700, fontSize: '15px', marginBottom: '4px', color: 'var(--text-primary)' }}>No tickets yet</p>
+                <p style={{ fontWeight: 600, fontSize: '15px', marginBottom: '4px', color: 'var(--text-primary)' }}>No tickets yet</p>
                 <p style={{ fontSize: '13px', color: 'var(--text-secondary)', lineHeight: 1.5 }}>{canCreate ? 'Create a ticket to get help. If assigned tickets, they will appear here.' : 'No tickets have been raised.'}</p>
               </div>
             ) : tickets.map(t => {
@@ -1723,7 +1724,7 @@ export default function SupportPage() {
           {!selected && !isMobile && (
             <div style={{ ...panel, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', padding: '32px', minHeight: 0 }}>
               <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ marginBottom: '14px' }}><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" /></svg>
-              <div style={{ fontSize: '15px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '4px' }}>{tickets.length === 0 ? 'Nothing to show yet' : 'Select a ticket'}</div>
+              <div style={{ fontSize: '15px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '4px' }}>{tickets.length === 0 ? 'Nothing to show yet' : 'Select a ticket'}</div>
               <div style={{ fontSize: '13px', color: 'var(--text-secondary)', maxWidth: '320px', lineHeight: 1.5 }}>
                 {tickets.length === 0 ? 'Your conversations with the support team will appear here.' : 'Choose a ticket from the list to read the conversation and reply.'}
               </div>
@@ -1736,7 +1737,7 @@ export default function SupportPage() {
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '12px' }}>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ fontSize: '12px', color: 'var(--text-secondary)', fontWeight: 600, marginBottom: '4px', fontVariantNumeric: 'tabular-nums' }}>Ticket #{ticketNo(selected)}</div>
-                    <div style={{ fontSize: '17px', fontWeight: 700, color: 'var(--text-primary)', lineHeight: 1.3, wordBreak: 'break-word' }}>{selected.title}</div>
+                    <div style={{ fontSize: '17px', fontWeight: 600, color: 'var(--text-primary)', lineHeight: 1.3, wordBreak: 'break-word' }}>{selected.title}</div>
                     <div style={{ display: 'flex', gap: '6px', marginTop: '10px', flexWrap: 'wrap' }}>
                       <span style={chip(STATUS_COLORS[selected.status])}><span style={dot(STATUS_COLORS[selected.status])} />{statusLabel(selected.status)}</span>
                       <span style={neutralChip}>{priorityLabel(selected.priority)}</span>
@@ -1781,7 +1782,7 @@ export default function SupportPage() {
                 <div style={{ border: `1px solid ${line}`, borderRadius: '12px', padding: '12px 14px', background: 'var(--bg)', marginBottom: '12px' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', gap: '8px', flexWrap: 'wrap', fontSize: '12px', color: 'var(--text-secondary)', marginBottom: '6px' }}>
                     <span>
-                      <span style={{ fontWeight: 700, color: 'var(--text-primary)' }}>Original request</span> · <span
+                      <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>Original request</span> · <span
                         onClick={() => {
                           if (userRole === 'MANAGER') setSelectedUserDetailsId(selected.user.id)
                         }}
@@ -1791,6 +1792,9 @@ export default function SupportPage() {
                           color: userRole === 'MANAGER' ? 'var(--primary)' : 'inherit'
                         }}
                       >{selected.user.id === userId ? 'You' : selected.user.name}</span>
+                      {userRole === 'MANAGER' && selected.user.role === 'STUDENT' && (
+                        <> · <button className="gz-sp-link" onClick={() => startSupportCall(selected.user.id, selected.user.name)}>Call student</button></>
+                      )}
                     </span>
                     {selected.createdAt && <span>{dayOf(selected.createdAt)}, {timeOf(selected.createdAt)}</span>}
                   </div>
@@ -2018,7 +2022,7 @@ export default function SupportPage() {
   // ══════════════════════════════════════════════════════════════════════════
   if (view === 'chatHistory') {
     return (
-      <div className="page-container fade-in apple-ui" style={{ maxHeight: isMobile ? 'calc(100vh - 72px)' : 'calc(100vh - 104px)', display: 'flex', flexDirection: 'column' }}>
+      <div className="page-container gz-sp fade-in apple-ui" style={{ maxHeight: isMobile ? 'calc(100vh - 72px)' : 'calc(100vh - 104px)', display: 'flex', flexDirection: 'column' }}>
         {confirmDialog}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
           <BackButton onClick={() => { if (isMobile && selectedHistory) { setSelectedHistory(null) } else { setView('chat'); setSelectedHistory(null) } }} />
@@ -2031,13 +2035,13 @@ export default function SupportPage() {
             {historyChats.length === 0 ? (
               <div className="empty-state">
                 <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="1.5"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg>
-                <p style={{ fontWeight: '700', marginTop: '10px' }}>No chat history</p>
+                <p style={{ fontWeight: 600, marginTop: '10px' }}>No chat history</p>
                 <p style={{ fontSize: '13px', color: 'var(--text-muted)' }}>Closed chat transcripts will appear here.</p>
               </div>
             ) : historyChats.map(c => (
               <div key={c.id}
                 onClick={() => viewHistory(c)}
-                style={{ padding: '14px 16px', borderRadius: '18px', cursor: 'pointer', ...neu, outline: selectedHistory?.id === c.id ? '2px solid #3636e8' : 'none' }}>
+                style={{ padding: '14px 16px', borderRadius: '12px', cursor: 'pointer', ...neu, outline: selectedHistory?.id === c.id ? '2px solid var(--primary)' : 'none' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div 
@@ -2048,7 +2052,7 @@ export default function SupportPage() {
                         }
                       }}
                       style={{ 
-                        fontSize: '13.5px', fontWeight: '800', color: 'var(--text-primary)', marginBottom: '2px',
+                        fontSize: '13.5px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '2px',
                         cursor: userRole === 'MANAGER' ? 'pointer' : 'default',
                         textDecoration: userRole === 'MANAGER' ? 'underline' : 'none'
                       }}
@@ -2070,10 +2074,10 @@ export default function SupportPage() {
 
           {/* Transcript viewer */}
           {selectedHistory && (
-            <div style={{ borderRadius: '24px', ...neu, display: (isMobile && !selectedHistory) ? 'none' : 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+            <div style={{ borderRadius: '14px', ...neu, display: (isMobile && !selectedHistory) ? 'none' : 'flex', flexDirection: 'column', overflow: 'hidden' }}>
               <div style={{ padding: '14px 20px', borderBottom: '1.5px solid rgba(0,0,0,0.06)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <div>
-                  <div style={{ fontWeight: '800', fontSize: '15px', color: 'var(--text-primary)' }}>Chat with {selectedHistory.student.name}</div>
+                  <div style={{ fontWeight: 600, fontSize: '15px', color: 'var(--text-primary)' }}>Chat with {selectedHistory.student.name}</div>
                   <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '2px' }}>
                     {selectedHistory.agent ? `Agent: ${selectedHistory.agent.name}` : 'No agent'} · Transcript
                   </div>
@@ -2094,7 +2098,7 @@ export default function SupportPage() {
                     <div key={m.id} style={{ display: 'flex', justifyContent: isStudent ? 'flex-start' : 'flex-end', gap: '8px', alignItems: 'flex-end' }}>
                       {isStudent && <UserAvatar user={m.sender} size={28} />}
                       <div style={{ maxWidth: '70%', padding: '10px 14px', borderRadius: isStudent ? '18px 18px 18px 4px' : '18px 18px 4px 18px', background: isStudent ? 'var(--surface-2)' : 'var(--primary-light)', boxShadow: '3px 3px 8px var(--neu-dark), -3px -3px 8px var(--neu-light)', color: 'var(--text-primary)' }}>
-                        <div style={{ fontSize: '11px', fontWeight: '700', marginBottom: '3px', color: isStudent ? 'var(--text-muted)' : 'var(--primary)', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                        <div style={{ fontSize: '11px', fontWeight: 600, marginBottom: '3px', color: isStudent ? 'var(--text-muted)' : 'var(--primary)', display: 'flex', alignItems: 'center', gap: '4px' }}>
                           {m.sender.name}
                           {!isStudent && (
                             <span style={{ 
@@ -2103,10 +2107,10 @@ export default function SupportPage() {
                               gap: '2px',
                               padding: '1px 5px',
                               borderRadius: '50px',
-                              background: 'linear-gradient(135deg, #3636e8, #6366f1)',
+                              background: 'var(--primary)',
                               color: '#fff',
                               fontSize: '8px',
-                              fontWeight: '800',
+                              fontWeight: 600,
                               textTransform: 'capitalize'
                             }}>
                               {m.sender.role.toLowerCase()}

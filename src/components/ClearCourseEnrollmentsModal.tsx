@@ -138,7 +138,7 @@ export default function ClearCourseEnrollmentsModal({
     width: '100%',
     maxWidth: '520px',
     background: '#ffffff',
-    borderRadius: '24px',
+    borderRadius: '14px',
     border: '2.5px solid #0f172a',
     boxShadow: '8px 8px 0px #0f172a',
     padding: '28px 30px',
@@ -154,7 +154,7 @@ export default function ClearCourseEnrollmentsModal({
     width: '100%',
     padding: '13px 16px',
     fontSize: '15px',
-    fontWeight: 700,
+    fontWeight: 600,
     borderRadius: '14px',
     border: '2px solid #0f172a',
     outline: 'none',
@@ -169,7 +169,7 @@ export default function ClearCourseEnrollmentsModal({
     background: enabled ? (danger ? '#ef4444' : '#0f172a') : '#e2e8f0',
     color: enabled ? '#ffffff' : '#94a3b8',
     fontSize: '14px',
-    fontWeight: 800,
+    fontWeight: 600,
     cursor: enabled ? 'pointer' : 'not-allowed',
     boxShadow: enabled ? '3px 3px 0px #0f172a' : 'none',
   })
@@ -181,7 +181,7 @@ export default function ClearCourseEnrollmentsModal({
     background: '#ffffff',
     color: '#0f172a',
     fontSize: '14px',
-    fontWeight: 800,
+    fontWeight: 600,
     cursor: 'pointer',
     boxShadow: '3px 3px 0px #0f172a',
   }
@@ -191,10 +191,10 @@ export default function ClearCourseEnrollmentsModal({
       <div style={cardStyle} onClick={(e) => e.stopPropagation()}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div>
-            <div style={{ fontSize: '11px', fontWeight: 800, letterSpacing: '0.08em', color: '#64748b', textTransform: 'uppercase' }}>
+            <div style={{ fontSize: '11px', fontWeight: 600, letterSpacing: '0.08em', color: '#64748b', textTransform: 'uppercase' }}>
               Confirmation {step} of 3
             </div>
-            <h2 style={{ fontSize: '22px', fontWeight: 900, margin: '4px 0 0', letterSpacing: '-0.02em' }}>
+            <h2 style={{ fontSize: '22px', fontWeight: 600, margin: '4px 0 0', letterSpacing: '-0.02em' }}>
               Remove all enrolled students
             </h2>
           </div>
@@ -244,7 +244,7 @@ export default function ClearCourseEnrollmentsModal({
               borderRadius: 14,
               padding: '10px 14px',
               fontSize: 13,
-              fontWeight: 700,
+              fontWeight: 600,
               color: '#e11d48',
             }}
           >
@@ -287,7 +287,7 @@ export default function ClearCourseEnrollmentsModal({
             </button>
 
             {exported && (
-              <p style={{ margin: 0, fontSize: 12, fontWeight: 700, color: '#15803d' }}>
+              <p style={{ margin: 0, fontSize: 12, fontWeight: 600, color: '#15803d' }}>
                 Backup downloaded. You can continue.
               </p>
             )}
@@ -325,7 +325,7 @@ export default function ClearCourseEnrollmentsModal({
               Second confirmation: type the course name exactly to continue.
             </p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-              <label style={{ fontSize: 11, fontWeight: 800, letterSpacing: '0.06em', color: '#64748b', textTransform: 'uppercase' }}>
+              <label style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.06em', color: '#64748b', textTransform: 'uppercase' }}>
                 Type <span style={{ color: '#0f172a' }}>&quot;{courseName}&quot;</span>
               </label>
               <input
@@ -376,20 +376,20 @@ export default function ClearCourseEnrollmentsModal({
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  fontWeight: 900,
+                  fontWeight: 600,
                   flexShrink: 0,
                   fontSize: 14,
                 }}
               >
                 !
               </div>
-              <span style={{ fontSize: 12, fontWeight: 800, color: '#e11d48', lineHeight: 1.45, textTransform: 'uppercase', letterSpacing: '0.03em' }}>
+              <span style={{ fontSize: 12, fontWeight: 600, color: '#e11d48', lineHeight: 1.45, textTransform: 'uppercase', letterSpacing: '0.03em' }}>
                 Final step. This cannot be undone. {count ?? 0} student{count === 1 ? '' : 's'} will lose access immediately.
               </span>
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-              <label style={{ fontSize: 11, fontWeight: 800, letterSpacing: '0.06em', color: '#64748b', textTransform: 'uppercase' }}>
+              <label style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.06em', color: '#64748b', textTransform: 'uppercase' }}>
                 Re-type course name <span style={{ color: '#0f172a' }}>&quot;{courseName}&quot;</span>
               </label>
               <input
@@ -402,7 +402,7 @@ export default function ClearCourseEnrollmentsModal({
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-              <label style={{ fontSize: 11, fontWeight: 800, letterSpacing: '0.06em', color: '#64748b', textTransform: 'uppercase' }}>
+              <label style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.06em', color: '#64748b', textTransform: 'uppercase' }}>
                 Type <span style={{ color: '#0f172a' }}>&quot;{CONFIRM_PHRASE}&quot;</span>
               </label>
               <input

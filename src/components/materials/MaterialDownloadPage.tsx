@@ -29,7 +29,7 @@ export default function MaterialDownloadPage({
         </p>
         <a
           href={downloadUrl}
-          style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '11px 18px', borderRadius: '10px', background: 'var(--accent)', color: '#fff', fontWeight: 700, textDecoration: 'none' }}
+          style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '11px 18px', borderRadius: '10px', background: 'var(--accent)', color: '#fff', fontWeight: 600, textDecoration: 'none' }}
         >
           <Download size={16} /> Download PDF
         </a>

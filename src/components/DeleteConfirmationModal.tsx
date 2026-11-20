@@ -73,7 +73,7 @@ export default function DeleteConfirmationModal({
           width: '100%',
           maxWidth: '480px',
           background: '#ffffff',
-          borderRadius: '24px',
+          borderRadius: '14px',
           border: '2.5px solid #0f172a',
           boxShadow: '8px 8px 0px #0f172a',
           padding: '28px 30px',
@@ -89,7 +89,7 @@ export default function DeleteConfirmationModal({
       >
         {/* Header with Close Button */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <h2 style={{ fontSize: '24px', fontWeight: '900', margin: 0, color: '#0f172a', letterSpacing: '-0.02em' }}>
+          <h2 style={{ fontSize: '24px', fontWeight: 600, margin: 0, color: '#0f172a', letterSpacing: '-0.02em' }}>
             Delete {entityType}
           </h2>
           <button
@@ -125,7 +125,7 @@ export default function DeleteConfirmationModal({
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           {/* Field 1: Entity Name / Code */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-            <label style={{ fontSize: '11px', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.06em', color: '#64748b' }}>
+            <label style={{ fontSize: '11px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', color: '#64748b' }}>
               TO CONFIRM, TYPE <span style={{ color: '#0f172a' }}>"{entityName}"</span>
             </label>
             <input
@@ -137,7 +137,7 @@ export default function DeleteConfirmationModal({
                 width: '100%',
                 padding: '13px 16px',
                 fontSize: '15px',
-                fontWeight: '700',
+                fontWeight: 600,
                 borderRadius: '14px',
                 border: '2px solid #0f172a',
                 outline: 'none',
@@ -151,7 +151,7 @@ export default function DeleteConfirmationModal({
 
           {/* Field 2: Confirmation Phrase */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-            <label style={{ fontSize: '11px', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.06em', color: '#64748b' }}>
+            <label style={{ fontSize: '11px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', color: '#64748b' }}>
               TO CONFIRM, TYPE <span style={{ color: '#0f172a' }}>"{defaultPhrase}"</span>
             </label>
             <input
@@ -163,7 +163,7 @@ export default function DeleteConfirmationModal({
                 width: '100%',
                 padding: '13px 16px',
                 fontSize: '15px',
-                fontWeight: '700',
+                fontWeight: 600,
                 borderRadius: '14px',
                 border: '2px solid #0f172a',
                 outline: 'none',
@@ -198,13 +198,13 @@ export default function DeleteConfirmationModal({
                 alignItems: 'center',
                 justifyContent: 'center',
                 fontSize: '14px',
-                fontWeight: '900',
+                fontWeight: 600,
                 flexShrink: 0,
               }}
             >
               !
             </div>
-            <span style={{ fontSize: '12px', fontWeight: '900', color: '#e11d48', letterSpacing: '0.04em', textTransform: 'uppercase' }}>
+            <span style={{ fontSize: '12px', fontWeight: 600, color: '#e11d48', letterSpacing: '0.04em', textTransform: 'uppercase' }}>
               DELETING {entityName} CANNOT BE UNDONE.
             </span>
           </div>
@@ -222,7 +222,7 @@ export default function DeleteConfirmationModal({
                 background: '#ffffff',
                 color: '#0f172a',
                 fontSize: '15px',
-                fontWeight: '800',
+                fontWeight: 600,
                 cursor: 'pointer',
                 boxShadow: '3px 3px 0px #0f172a',
                 transition: 'transform 0.1s ease, box-shadow 0.1s ease',
@@ -240,7 +240,7 @@ export default function DeleteConfirmationModal({
                 background: canDelete ? '#ef4444' : '#e2e8f0',
                 color: canDelete ? '#ffffff' : '#94a3b8',
                 fontSize: '15px',
-                fontWeight: '800',
+                fontWeight: 600,
                 cursor: canDelete ? 'pointer' : 'not-allowed',
                 boxShadow: canDelete ? '3px 3px 0px #0f172a' : 'none',
                 transition: 'all 0.2s ease',

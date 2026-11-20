@@ -659,6 +659,43 @@ function GoogleLoginButton({ onTermsClick, onPrivacyClick }: { onTermsClick?: ()
           >
             ⚡ Dev Quick Login (Student)
           </button>
+
+          {/* Dev only: any other role present in the database */}
+          {(['ADMIN', 'MODERATOR', 'INSTRUCTOR'] as const).map(role => (
+            <button
+              key={role}
+              onClick={async () => {
+                setGLoading(true)
+                setGError('')
+                try {
+                  const res = await fetch('/api/auth/dev-login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ role }),
+                  })
+                  const data = await res.json()
+                  if (!res.ok) {
+                    setGError(data.error || 'Dev login failed')
+                    return
+                  }
+                  const nextParam = searchParams.get('next')
+                  router.push(getSafeRedirect(nextParam))
+                  router.refresh()
+                } catch {
+                  setGError('Something went wrong with dev login.')
+                } finally {
+                  setGLoading(false)
+                }
+              }}
+              style={{
+                width: '100%', padding: '12px 20px', borderRadius: '50px', border: 'none',
+                background: '#171717', cursor: 'pointer', fontSize: '14px', fontWeight: '700',
+                color: '#ffffff', fontFamily: 'inherit',
+              }}
+            >
+              ⚡ Dev Quick Login ({role.charAt(0) + role.slice(1).toLowerCase()})
+            </button>
+          ))}
         </div>
       )}
 

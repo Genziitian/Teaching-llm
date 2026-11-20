@@ -25,7 +25,7 @@ const THEME_INIT_SCRIPT = `
     var sys = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
     var r = (c === 'dark' || c === 'light' || c === 'black') ? c : sys;
     var now = new Date();
-    if (r === 'light' && now.getFullYear() * 10000 + (now.getMonth() + 1) * 100 + now.getDate() <= 20261231) r = 'black';
+    if (r === 'light' && now.getFullYear() * 10000 + (now.getMonth() + 1) * 100 + now.getDate() <= 20000101) r = 'black';
     var d = document.documentElement;
     d.setAttribute('data-theme', r);
     d.style.colorScheme = (r === 'dark' || r === 'black') ? 'dark' : 'light';
@@ -132,6 +132,7 @@ import GoogleAnalytics from '@/components/GoogleAnalytics'
 import { LanguageProvider } from '@/contexts/LanguageContext'
 import SeasonalEffects from '@/components/seasonal/SeasonalEffects'
 import SiteDecor from '@/components/seasonal/SiteDecor'
+import ClassOnly from '@/components/ClassOnly'
 
 export default function RootLayout({
   children,
@@ -156,14 +157,14 @@ export default function RootLayout({
                 <MobileBlocker />
                 <CapacitorBridge />
                 <AppUpdater />
-                <SplashOverlay />
-                <CapacitorPlayStoreBanner />
-                <AndroidAppModal />
-                <PaymentResultHost />
-        <PaymentFeedbackPrompt />
+                <ClassOnly><SplashOverlay /></ClassOnly>
+                <ClassOnly><CapacitorPlayStoreBanner /></ClassOnly>
+                <ClassOnly><AndroidAppModal /></ClassOnly>
+                <ClassOnly><PaymentResultHost /></ClassOnly>
+        <ClassOnly><PaymentFeedbackPrompt /></ClassOnly>
                 <ServiceWorkerRegister />
-                <SiteDecor />
-                <SeasonalEffects />
+                <ClassOnly><SiteDecor /></ClassOnly>
+                <ClassOnly><SeasonalEffects /></ClassOnly>
                 <CsrfProvider>{children}</CsrfProvider>
               </LanguageProvider>
             </ThemeProvider>

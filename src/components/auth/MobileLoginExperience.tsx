@@ -31,7 +31,7 @@ const SLIDES: OnboardingSlide[] = [
     title: 'Everything You Need to Succeed in IITM BS',
     quote: 'Live classes, recordings, premium notes, PYQs, and doubt support — designed specifically for IITM BS learners.',
     accent: '#3636e8',
-    iconBg: 'linear-gradient(135deg, #3636e8, #6366f1)',
+    iconBg: 'var(--primary)',
   },
 ]
 
@@ -82,13 +82,13 @@ export default function MobileLoginExperience() {
         <div style={{
           position: 'absolute', top: '-80px', left: '-60px',
           width: '260px', height: '260px', borderRadius: '50%',
-          background: 'radial-gradient(circle, rgba(99,102,241,0.18), transparent 70%)',
+          background: 'radial-gradient(circle, rgba(128, 128, 128,0.18), transparent 70%)',
           filter: 'blur(20px)',
         }} />
         <div style={{
           position: 'absolute', bottom: '-100px', right: '-80px',
           width: '320px', height: '320px', borderRadius: '50%',
-          background: 'radial-gradient(circle, rgba(139,92,246,0.14), transparent 70%)',
+          background: 'radial-gradient(circle, rgba(128, 128, 128,0.14), transparent 70%)',
           filter: 'blur(24px)',
         }} />
       </div>
@@ -140,7 +140,7 @@ function OnboardingView({
       <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', marginBottom: '12px', marginTop: '4px' }}>
         <span style={{ 
           fontSize: '15.5px', 
-          fontWeight: 900, 
+          fontWeight: 600, 
           color: 'var(--text-muted)', 
           letterSpacing: '0.18em', 
           textTransform: 'uppercase',
@@ -184,17 +184,17 @@ function OnboardingView({
         style={{
           background: 'linear-gradient(145deg, #1a1a2e 0%, #16213e 60%, #0f3460 100%)',
           border: '1px solid rgba(255,255,255,0.08)',
-          borderRadius: '28px',
+          borderRadius: '14px',
           padding: '24px 22px 20px',
           boxShadow: '0 18px 36px -12px rgba(0,0,0,0.5), 0 6px 12px -4px rgba(0,0,0,0.3)',
           animation: 'glSlideUp 0.4s cubic-bezier(0.16,1,0.3,1)',
         }}
       >
-        <div style={{ fontSize: '10.5px', fontWeight: 800, color: '#a78bfa', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: '10px' }}>
+        <div style={{ fontSize: '10.5px', fontWeight: 600, color: 'var(--primary)', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: '10px' }}>
           {slide.eyebrow}
         </div>
         <h1 style={{
-          fontSize: '22px', fontWeight: 900, lineHeight: 1.25, letterSpacing: '-0.02em',
+          fontSize: '22px', fontWeight: 600, lineHeight: 1.25, letterSpacing: '-0.02em',
           color: '#ffffff', margin: 0, marginBottom: '12px',
         }}>
           {slide.title}
@@ -214,7 +214,7 @@ function OnboardingView({
             padding: '16px',
             borderRadius: '50px',
             border: 'none', cursor: 'pointer', fontFamily: 'inherit',
-            fontSize: '15.5px', fontWeight: 800,
+            fontSize: '15.5px', fontWeight: 600,
             background: slide.iconBg,
             color: '#ffffff',
             boxShadow: `0 10px 24px ${slide.accent}55`,
@@ -429,7 +429,7 @@ function LoginView({ onBackToOnboarding }: { onBackToOnboarding: () => void }) {
       {/* 3. Welcome Back & Subtitle */}
       <div style={{ textAlign: 'center', marginBottom: '32px' }}>
         <h1 style={{
-          fontSize: '24px', fontWeight: 800, color: 'var(--text-primary)', margin: 0, letterSpacing: '-0.02em',
+          fontSize: '24px', fontWeight: 600, color: 'var(--text-primary)', margin: 0, letterSpacing: '-0.02em',
         }}>
           Welcome Back!
         </h1>
@@ -594,7 +594,7 @@ function LoginView({ onBackToOnboarding }: { onBackToOnboarding: () => void }) {
           }}
           style={{
             display: 'inline-flex', alignItems: 'center', gap: '6px',
-            fontSize: '14px', fontWeight: 700, color: '#4f46e5',
+            fontSize: '14px', fontWeight: 600, color: 'var(--primary)',
             textDecoration: 'none',
             background: 'transparent',
             padding: '6px 12px',
@@ -616,11 +616,11 @@ function LoginView({ onBackToOnboarding }: { onBackToOnboarding: () => void }) {
           By continuing, you agree to our
         </p>
         <p style={{ fontSize: '12px', margin: 0, fontWeight: 600 }}>
-          <a href="/company/terms-and-conditions" style={{ color: '#4f46e5', textDecoration: 'none' }}>Terms</a>
+          <a href="/company/terms-and-conditions" style={{ color: 'var(--primary)', textDecoration: 'none' }}>Terms</a>
           <span style={{ color: 'var(--text-secondary)' }}> · </span>
-          <a href="/company/privacy-policy" style={{ color: '#4f46e5', textDecoration: 'none' }}>Privacy</a>
+          <a href="/company/privacy-policy" style={{ color: 'var(--primary)', textDecoration: 'none' }}>Privacy</a>
           <span style={{ color: 'var(--text-secondary)' }}> · </span>
-          <a href="/company/refund-policy" style={{ color: '#4f46e5', textDecoration: 'none' }}>Refund</a>
+          <a href="/company/refund-policy" style={{ color: 'var(--primary)', textDecoration: 'none' }}>Refund</a>
         </p>
       </div>
 

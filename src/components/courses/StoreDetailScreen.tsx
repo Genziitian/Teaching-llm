@@ -31,7 +31,7 @@ export function splitPoints(v?: string | null): string[] {
 }
 
 const PLAN = { rec: '#0ea5e9', live: '#6366f1', champ: '#f43f5e' }
-const planPill = (c: string): React.CSSProperties => ({ display: 'inline-block', padding: '6px 12px', borderRadius: 999, fontSize: 12, fontWeight: 800, letterSpacing: '0.04em', textTransform: 'uppercase', color: c, background: `color-mix(in srgb, ${c} 14%, transparent)` })
+const planPill = (c: string): React.CSSProperties => ({ display: 'inline-block', padding: '6px 12px', borderRadius: 999, fontSize: 12, fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase', color: c, background: `color-mix(in srgb, ${c} 14%, transparent)` })
 const planCell = (c: string, offered = true): React.CSSProperties => ({ borderTop: '0.5px solid var(--border)', background: offered ? `color-mix(in srgb, ${c} 5%, transparent)` : 'transparent', opacity: offered ? 1 : 0.38, filter: offered ? undefined : 'grayscale(1)' })
 const planHead = (label: string, c: string, offered: boolean) => (
   <div style={{ display: 'inline-flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
@@ -42,7 +42,7 @@ const planHead = (label: string, c: string, offered: boolean) => (
 const NO = new Set(['Not included'])
 const cellVal = (v: string, c: string) => NO.has(v)
   ? <span style={{ color: 'var(--text-muted, #9ca3af)', fontWeight: 600 }} aria-label="Not included">&mdash;</span>
-  : <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontWeight: 700, color: 'var(--text-primary)' }}>
+  : <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontWeight: 600, color: 'var(--text-primary)' }}>
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M5 12.5l4.5 4.5L19 7.5" /></svg>{v}
     </span>
 
@@ -78,7 +78,7 @@ export default function StoreDetailScreen(props: {
   }, [])
 
   const accent = art?.accent || 'var(--accent)'
-  const h3: React.CSSProperties = { fontSize: 18, fontWeight: 800, letterSpacing: '-0.3px', margin: '0 0 14px', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: 10 }
+  const h3: React.CSSProperties = { fontSize: 18, fontWeight: 600, letterSpacing: '-0.3px', margin: '0 0 14px', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: 10 }
   const card: React.CSSProperties = { background: 'var(--surface)', border: '0.5px solid var(--border)', borderRadius: 26, padding: '24px 24px', boxShadow: '0 1px 2px rgba(0,0,0,0.03), 0 10px 28px rgba(0,0,0,0.05)' }
   const bar = <span aria-hidden style={{ width: 5, height: 18, borderRadius: 3, background: accent, flexShrink: 0 }} />
 
@@ -98,7 +98,7 @@ export default function StoreDetailScreen(props: {
     const fg = c.tone === 'secondary' ? 'var(--text-primary)' : c.tone === 'success' ? '#fff' : 'var(--button-text, #fff)'
     return (
       <button key={i} disabled={c.disabled} onClick={c.onClick} className="sds-cta"
-        style={{ width: '100%', padding: '15px 18px', borderRadius: 16, border: 'none', background: bg, color: fg, fontWeight: 700, fontSize: 16, cursor: c.disabled ? 'not-allowed' : 'pointer', opacity: c.disabled ? 0.5 : 1 }}>
+        style={{ width: '100%', padding: '15px 18px', borderRadius: 16, border: 'none', background: bg, color: fg, fontWeight: 600, fontSize: 16, cursor: c.disabled ? 'not-allowed' : 'pointer', opacity: c.disabled ? 0.5 : 1 }}>
         {c.label}{c.sub && <span style={{ display: 'block', fontSize: 12, fontWeight: 500, opacity: 0.8, marginTop: 2 }}>{c.sub}</span>}
       </button>
     )
@@ -132,14 +132,14 @@ export default function StoreDetailScreen(props: {
           <div className="sds-hero" style={{ position: 'relative', overflow: 'hidden', borderRadius: 30, marginBottom: 18, minHeight: 'clamp(190px, 32vw, 300px)', boxShadow: '0 2px 4px rgba(0,0,0,0.05), 0 20px 44px rgba(0,0,0,0.14)' }}>
             <img src={art.src} alt="" decoding="async" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'right center' }} />
             <div style={{ position: 'relative', height: '100%', minHeight: 'inherit', padding: 'clamp(20px, 4vw, 40px)', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', alignItems: 'flex-start', gap: 10, maxWidth: '62%' }}>
-              {eyebrow && <span style={{ fontSize: 12, fontWeight: 800, letterSpacing: '0.08em', textTransform: 'uppercase', padding: '6px 12px', borderRadius: 999, color: art.dark ? art.accent : '#fff', background: art.dark ? `${art.accent}1f` : 'rgba(255,255,255,0.22)' }}>{eyebrow}</span>}
-              <h1 style={{ fontSize: 'clamp(26px, 5.4vw, 52px)', fontWeight: 800, letterSpacing: '-1.4px', lineHeight: 1.03, margin: 0, color: art.dark ? art.accent : '#fff', overflowWrap: 'anywhere' }}>{title}</h1>
+              {eyebrow && <span style={{ fontSize: 12, fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', padding: '6px 12px', borderRadius: 999, color: art.dark ? art.accent : '#fff', background: art.dark ? `${art.accent}1f` : 'rgba(255,255,255,0.22)' }}>{eyebrow}</span>}
+              <h1 style={{ fontSize: 'clamp(26px, 5.4vw, 52px)', fontWeight: 600, letterSpacing: '-1.4px', lineHeight: 1.03, margin: 0, color: art.dark ? art.accent : '#fff', overflowWrap: 'anywhere' }}>{title}</h1>
             </div>
           </div>
         ) : (
           <>
-            {eyebrow && <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--accent)' }}>{eyebrow}</div>}
-            <h1 style={{ fontSize: 'clamp(28px, 5vw, 40px)', fontWeight: 800, letterSpacing: '-0.8px', lineHeight: 1.1, margin: '8px 0 10px', color: 'var(--text-primary)' }}>{title}</h1>
+            {eyebrow && <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--accent)' }}>{eyebrow}</div>}
+            <h1 style={{ fontSize: 'clamp(28px, 5vw, 40px)', fontWeight: 600, letterSpacing: '-0.8px', lineHeight: 1.1, margin: '8px 0 10px', color: 'var(--text-primary)' }}>{title}</h1>
           </>
         )}
         {description && <p style={{ fontSize: 16, lineHeight: 1.55, color: 'var(--text-secondary)', margin: '0 0 24px', whiteSpace: 'pre-wrap', maxWidth: 680 }}>{description}</p>}
@@ -161,7 +161,7 @@ export default function StoreDetailScreen(props: {
                       style={{ width: '100%', boxSizing: 'border-box', padding: 14, borderRadius: 14, border: '0.5px solid var(--border)', background: 'var(--surface-hover)', color: 'var(--text-primary)', fontSize: 15, lineHeight: 1.5, outline: 'none', resize: 'vertical', fontFamily: 'inherit' }} />
                     <div style={{ display: 'flex', gap: 10, marginTop: 12 }}>
                       <button disabled={saving} onClick={async () => { setSaving(true); try { await points!.onSave(draft); setEditing(false) } finally { setSaving(false) } }}
-                        style={{ padding: '11px 20px', borderRadius: 999, border: 'none', background: 'var(--accent)', color: 'var(--button-text, #fff)', fontWeight: 700, fontSize: 14, cursor: 'pointer' }}>{saving ? 'Saving...' : 'Save'}</button>
+                        style={{ padding: '11px 20px', borderRadius: 999, border: 'none', background: 'var(--accent)', color: 'var(--button-text, #fff)', fontWeight: 600, fontSize: 14, cursor: 'pointer' }}>{saving ? 'Saving...' : 'Save'}</button>
                       <button onClick={() => setEditing(false)} style={{ padding: '11px 20px', borderRadius: 999, border: 'none', background: 'var(--surface-hover)', color: 'var(--text-primary)', fontWeight: 600, fontSize: 14, cursor: 'pointer' }}>Cancel</button>
                     </div>
                   </>
@@ -178,7 +178,7 @@ export default function StoreDetailScreen(props: {
                   <table className="sds-table" style={{ width: '100%', borderCollapse: 'separate', borderSpacing: 0 }}>
                     <thead>
                       <tr>
-                        <th style={{ fontWeight: 700, color: 'var(--text-secondary)', fontSize: 12, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Feature</th>
+                        <th style={{ fontWeight: 600, color: 'var(--text-secondary)', fontSize: 12, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Feature</th>
                         <th>{planHead('Recorded', PLAN.rec, compare.hasRecorded)}</th>
                         <th>{planHead('Live Pro', PLAN.live, compare.hasLive)}</th>
                         {compare.hasChampion && <th>{planHead('Champion', PLAN.champ, true)}</th>}

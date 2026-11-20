@@ -20,7 +20,7 @@ const fetcher = (url: string) => fetch(url).then(res => res.json())
 
 const rarityColors: Record<LoadingFactRarity, { bg: string; color: string; border: string }> = {
   COMMON: { bg: 'var(--surface-2)', color: 'var(--text-secondary)', border: 'var(--border)' },
-  RARE: { bg: 'rgba(99,102,241,0.12)', color: '#818cf8', border: 'rgba(99,102,241,0.35)' },
+  RARE: { bg: 'color-mix(in srgb, var(--primary) 12%, transparent)', color: '#818cf8', border: 'color-mix(in srgb, var(--primary) 35%, transparent)' },
   ULTRA_RARE: { bg: 'rgba(245,158,11,0.12)', color: '#f59e0b', border: 'rgba(245,158,11,0.35)' },
 }
 
@@ -205,7 +205,7 @@ export default function LoadingFactsAdminPage() {
           border: `1px solid ${active ? 'var(--primary)' : 'var(--border)'}`,
           background: active ? 'var(--primary-light)' : 'var(--surface)',
           color: active ? 'var(--primary)' : 'var(--text-secondary)',
-          fontWeight: 700,
+          fontWeight: 600,
           fontSize: '12px',
           cursor: 'pointer',
         }}
@@ -274,7 +274,7 @@ export default function LoadingFactsAdminPage() {
           border: '1px solid rgba(239,68,68,0.35)',
           color: 'var(--danger)',
           fontSize: '13px',
-          fontWeight: 700,
+          fontWeight: 600,
         }}>
           Could not load facts. Refresh the page to try again.
         </div>
@@ -289,7 +289,7 @@ export default function LoadingFactsAdminPage() {
           border: '1px solid rgba(245,158,11,0.35)',
           color: '#f59e0b',
           fontSize: '13px',
-          fontWeight: 700,
+          fontWeight: 600,
         }}>
           {warning}
         </div>
@@ -297,7 +297,7 @@ export default function LoadingFactsAdminPage() {
 
       {showAdd && (
         <div className="card" style={{ padding: '20px', marginBottom: '18px', borderTop: '4px solid var(--primary)' }}>
-          <h2 style={{ fontSize: '16px', fontWeight: 800, marginBottom: '14px' }}>{editing ? 'Edit Fact' : 'Add Fact'}</h2>
+          <h2 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '14px' }}>{editing ? 'Edit Fact' : 'Add Fact'}</h2>
           <textarea
             className="form-input"
             rows={4}
@@ -306,7 +306,7 @@ export default function LoadingFactsAdminPage() {
             placeholder='e.g. Fact : "Ye question exam mein thodi aayega." Famous last words.'
           />
           <div style={{ display: 'flex', gap: '16px', marginTop: '12px', flexWrap: 'wrap', alignItems: 'center' }}>
-            <label style={{ fontSize: '13px', fontWeight: 700 }}>
+            <label style={{ fontSize: '13px', fontWeight: 600 }}>
               Rarity
               <select
                 className="form-input"
@@ -319,11 +319,11 @@ export default function LoadingFactsAdminPage() {
                 <option value="ULTRA_RARE">Super Rare</option>
               </select>
             </label>
-            <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', fontWeight: 700, marginTop: '18px' }}>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', fontWeight: 600, marginTop: '18px' }}>
               <input type="checkbox" checked={form.isCoupon} onChange={e => setForm(prev => ({ ...prev, isCoupon: e.target.checked }))} />
               Coupon fact
             </label>
-            <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', fontWeight: 700, marginTop: '18px' }}>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', fontWeight: 600, marginTop: '18px' }}>
               <input type="checkbox" checked={form.isActive} onChange={e => setForm(prev => ({ ...prev, isActive: e.target.checked }))} />
               Active
             </label>
@@ -339,7 +339,7 @@ export default function LoadingFactsAdminPage() {
 
       {showBulk && (
         <div className="card" style={{ padding: '20px', marginBottom: '18px', borderTop: '4px solid #f59e0b' }}>
-          <h2 style={{ fontSize: '16px', fontWeight: 800, marginBottom: '8px' }}>Bulk Add Facts</h2>
+          <h2 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '8px' }}>Bulk Add Facts</h2>
           <p style={{ fontSize: '12px', color: 'var(--text-secondary)', marginBottom: '12px' }}>
             One fact per line. Prefix a line with <code>[RARE]</code> or <code>[SUPER RARE]</code> to override the default rarity.
           </p>
@@ -351,7 +351,7 @@ export default function LoadingFactsAdminPage() {
             placeholder={'Quiz ke 1 din pehle padhai start.\n[RARE] Famous last words: ye easy paper hoga.\n[SUPER RARE] Ultra rare drop just dropped.'}
           />
           <div style={{ display: 'flex', gap: '16px', marginTop: '12px', flexWrap: 'wrap', alignItems: 'center' }}>
-            <label style={{ fontSize: '13px', fontWeight: 700 }}>
+            <label style={{ fontSize: '13px', fontWeight: 600 }}>
               Default rarity
               <select
                 className="form-input"
@@ -364,7 +364,7 @@ export default function LoadingFactsAdminPage() {
                 <option value="ULTRA_RARE">Super Rare</option>
               </select>
             </label>
-            <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', fontWeight: 700, marginTop: '18px' }}>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', fontWeight: 600, marginTop: '18px' }}>
               <input type="checkbox" checked={bulkCoupon} onChange={e => setBulkCoupon(e.target.checked)} />
               Mark as coupon facts
             </label>
@@ -389,7 +389,7 @@ export default function LoadingFactsAdminPage() {
           border: '1px solid rgba(239, 68, 68, 0.3)',
           marginBottom: '12px',
         }}>
-          <span style={{ fontSize: '13px', fontWeight: 800, color: 'var(--danger)' }}>
+          <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--danger)' }}>
             {selectedIds.size} selected
           </span>
           <div style={{ display: 'flex', gap: '8px' }}>
@@ -404,14 +404,14 @@ export default function LoadingFactsAdminPage() {
       {isLoading ? (
         <div style={{ textAlign: 'center', padding: '60px', color: 'var(--text-muted)' }}>Loading facts...</div>
       ) : facts.length === 0 ? (
-        <div style={{ textAlign: 'center', padding: '60px', background: 'var(--surface)', borderRadius: '20px', border: '2px dashed var(--border)' }}>
+        <div style={{ textAlign: 'center', padding: '60px', background: 'var(--surface)', borderRadius: '14px', border: '2px dashed var(--border)' }}>
           <div style={{ fontSize: '42px', marginBottom: '12px' }}>💡</div>
-          <p style={{ fontSize: '16px', fontWeight: 700 }}>No facts found</p>
+          <p style={{ fontSize: '16px', fontWeight: 600 }}>No facts found</p>
           <p style={{ fontSize: '13px', color: 'var(--text-muted)' }}>Add one, bulk paste, or clear your search.</p>
         </div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-          <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', fontWeight: 700, color: 'var(--text-muted)' }}>
+          <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', fontWeight: 600, color: 'var(--text-muted)' }}>
             <input
               type="checkbox"
               checked={allVisibleSelected}
@@ -442,7 +442,7 @@ export default function LoadingFactsAdminPage() {
                 style={{
                   background: 'var(--surface)',
                   border: '1px solid var(--border)',
-                  borderRadius: '16px',
+                  borderRadius: '12px',
                   padding: '14px 16px',
                   display: 'flex',
                   gap: '12px',
@@ -455,7 +455,7 @@ export default function LoadingFactsAdminPage() {
                   <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '8px' }}>
                     <span style={{
                       fontSize: '11px',
-                      fontWeight: 800,
+                      fontWeight: 600,
                       letterSpacing: '0.04em',
                       textTransform: 'uppercase',
                       padding: '3px 8px',
@@ -467,12 +467,12 @@ export default function LoadingFactsAdminPage() {
                       {FACT_RARITY_LABELS[rarity]}
                     </span>
                     {fact.isCoupon && (
-                      <span style={{ fontSize: '11px', fontWeight: 800, padding: '3px 8px', borderRadius: '999px', background: 'rgba(16,185,129,0.12)', color: '#34d399' }}>
+                      <span style={{ fontSize: '11px', fontWeight: 600, padding: '3px 8px', borderRadius: '999px', background: 'rgba(16,185,129,0.12)', color: '#34d399' }}>
                         Coupon
                       </span>
                     )}
                     {fact.isActive === false && (
-                      <span style={{ fontSize: '11px', fontWeight: 800, padding: '3px 8px', borderRadius: '999px', background: 'var(--surface-2)', color: 'var(--text-muted)' }}>
+                      <span style={{ fontSize: '11px', fontWeight: 600, padding: '3px 8px', borderRadius: '999px', background: 'var(--surface-2)', color: 'var(--text-muted)' }}>
                         Hidden
                       </span>
                     )}
@@ -492,7 +492,7 @@ export default function LoadingFactsAdminPage() {
       {totalPages > 1 && (
         <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '12px', marginTop: '20px' }}>
           <button type="button" className="btn btn-ghost" disabled={page <= 1} onClick={() => setPage(p => Math.max(1, p - 1))}>Previous</button>
-          <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-secondary)' }}>Page {page} of {totalPages} · {total} facts</span>
+          <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-secondary)' }}>Page {page} of {totalPages} · {total} facts</span>
           <button type="button" className="btn btn-ghost" disabled={page >= totalPages} onClick={() => setPage(p => Math.min(totalPages, p + 1))}>Next</button>
         </div>
       )}

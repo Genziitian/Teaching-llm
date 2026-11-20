@@ -89,7 +89,7 @@ export default function ImageCropper({ image, aspect = 16 / 9, onCropComplete, o
 
       <div style={{ marginTop: '24px', display: 'flex', flexWrap: 'wrap', gap: '16px', alignItems: 'center', justifyContent: 'center' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px', background: 'var(--surface)', padding: '8px 16px', borderRadius: '50px' }}>
-          <span style={{ fontSize: '13px', color: 'var(--text-primary)', fontWeight: 700 }}>Zoom</span>
+          <span style={{ fontSize: '13px', color: 'var(--text-primary)', fontWeight: 600 }}>Zoom</span>
           <input
             type="range"
             value={zoom}
@@ -108,7 +108,7 @@ export default function ImageCropper({ image, aspect = 16 / 9, onCropComplete, o
             style={{
               padding: '10px 24px', borderRadius: '50px',
               background: 'rgba(255,255,255,0.1)', color: '#fff',
-              fontSize: '14px', fontWeight: 700, cursor: 'pointer',
+              fontSize: '14px', fontWeight: 600, cursor: 'pointer',
               border: '1px solid rgba(255,255,255,0.2)'
             }}
           >
@@ -119,8 +119,8 @@ export default function ImageCropper({ image, aspect = 16 / 9, onCropComplete, o
             style={{
               padding: '10px 24px', borderRadius: '50px', border: 'none',
               background: 'var(--primary)', color: '#fff',
-              fontSize: '14px', fontWeight: 700, cursor: 'pointer',
-              boxShadow: '0 4px 12px rgba(54,54,232,0.4)'
+              fontSize: '14px', fontWeight: 600, cursor: 'pointer',
+              boxShadow: '0 4px 12px color-mix(in srgb, var(--primary) 40%, transparent)'
             }}
           >
             Apply Crop

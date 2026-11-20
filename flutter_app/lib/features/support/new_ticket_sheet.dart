@@ -7,22 +7,26 @@ import '../../theme/app_theme_tokens.dart';
 import 'support_providers.dart';
 
 class NewTicketSheet extends ConsumerStatefulWidget {
-  const NewTicketSheet({super.key});
-  static Future<String?> show(BuildContext context) =>
+  const NewTicketSheet({super.key, this.initialText});
+
+  /// Pre-filled description (GenZie passes the topic the student walked through).
+  final String? initialText;
+  static Future<String?> show(BuildContext context, {String? initialText}) =>
       showModalBottomSheet<String>(
         context: context,
         useRootNavigator: true,
         isScrollControlled: true,
         showDragHandle: true,
         useSafeArea: true,
-        builder: (_) => const NewTicketSheet(),
+        builder: (_) => NewTicketSheet(initialText: initialText),
       );
   @override
   ConsumerState<NewTicketSheet> createState() => _NewTicketSheetState();
 }
 
 class _NewTicketSheetState extends ConsumerState<NewTicketSheet> {
-  final _description = TextEditingController();
+  late final _description = TextEditingController(
+      text: widget.initialText == null ? '' : '${widget.initialText}\n\n');
   String _type = 'GENERAL';
   String? _courseId;
   String? _error;

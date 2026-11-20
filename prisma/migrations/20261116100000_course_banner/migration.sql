@@ -1,0 +1,1 @@
+ALTER TABLE "Class" ADD COLUMN IF NOT EXISTS "bannerUrl" TEXT;

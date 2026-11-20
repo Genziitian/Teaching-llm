@@ -204,7 +204,7 @@ export async function PUT(
     await ensureCourseColumns()
 
     const { id } = await params
-    const { name, description, subject, color, icon, courseIconType, expiresAt, teacherName, isCommunityActive, isDisabled, googleGroupEmail, liveGoogleGroupEmail, liveUpgradePrice, requireFeedback, aboutUs, startDate, endDate, academicTerm, academicYear, examCycle } = await request.json()
+    const { name, description, subject, color, icon, courseIconType, expiresAt, teacherName, isCommunityActive, isDisabled, googleGroupEmail, liveGoogleGroupEmail, liveUpgradePrice, requireFeedback, aboutUs, startDate, endDate, academicTerm, academicYear, examCycle, courseType } = await request.json()
 
     const existingCourse = await (prisma.course.findUnique as any)({
       where: { id },
@@ -265,6 +265,7 @@ export async function PUT(
           academicTerm: academicTerm !== undefined ? (academicTerm || null) : undefined,
           academicYear: academicYear !== undefined ? (academicYear ? Number(academicYear) : null) : undefined,
           examCycle: examCycle !== undefined ? (examCycle || null) : undefined,
+          courseType: courseType !== undefined ? (courseType || null) : undefined,
         },
       })
 

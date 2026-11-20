@@ -300,7 +300,7 @@ export default function HomeworkBanner({
                 padding: '3px 10px',
                 borderRadius: '999px',
                 fontSize: '11px',
-                fontWeight: 800,
+                fontWeight: 600,
                 textTransform: 'uppercase',
                 letterSpacing: '0.04em',
                 background: isPastDue
@@ -334,7 +334,7 @@ export default function HomeworkBanner({
                   padding: '3px 10px',
                   borderRadius: '999px',
                   fontSize: '11px',
-                  fontWeight: 800,
+                  fontWeight: 600,
                   textTransform: 'uppercase',
                   letterSpacing: '0.04em',
                   background: 'rgba(100, 116, 139, 0.14)',
@@ -354,7 +354,7 @@ export default function HomeworkBanner({
                 fontWeight: 600
               }}>
                 <Calendar size={13} /> Due: {formatDate(hw.dueAt)}
-                <span style={{ fontWeight: 700, color: isPastDue ? '#94a3b8' : '#d97706', marginLeft: '4px' }}>
+                <span style={{ fontWeight: 600, color: isPastDue ? '#94a3b8' : '#d97706', marginLeft: '4px' }}>
                   ({formatCountdown(hw.dueAt)})
                 </span>
               </span>
@@ -375,7 +375,7 @@ export default function HomeworkBanner({
                     background: isOpen ? 'rgba(239, 68, 68, 0.08)' : 'rgba(34, 197, 94, 0.1)',
                     color: isOpen ? '#ef4444' : '#10b981',
                     fontSize: '12px',
-                    fontWeight: 800,
+                    fontWeight: 600,
                     cursor: togglingId === hw.id ? 'not-allowed' : 'pointer',
                     opacity: togglingId === hw.id ? 0.7 : 1
                   }}
@@ -396,7 +396,7 @@ export default function HomeworkBanner({
                     background: 'var(--surface-2)',
                     color: 'var(--text-primary)',
                     fontSize: '12px',
-                    fontWeight: 700,
+                    fontWeight: 600,
                     cursor: 'pointer'
                   }}
                   title="View student submissions"
@@ -422,7 +422,7 @@ export default function HomeworkBanner({
           </div>
 
           <div style={{ marginTop: '10px' }}>
-            <h3 style={{ fontSize: '17px', fontWeight: 800, margin: '0 0 4px', color: 'var(--text-primary)' }}>
+            <h3 style={{ fontSize: '17px', fontWeight: 600, margin: '0 0 4px', color: 'var(--text-primary)' }}>
               {hw.title}
             </h3>
             {hw.description && (
@@ -442,7 +442,7 @@ export default function HomeworkBanner({
                 {hw.description.length > 120 && (
                   <button
                     onClick={() => setExpandedDesc(prev => ({ ...prev, [hw.id]: !prev[hw.id] }))}
-                    style={{ background: 'none', border: 'none', color: courseColor, fontSize: '12px', fontWeight: 700, cursor: 'pointer', padding: '2px 0', display: 'inline-flex', alignItems: 'center', gap: '2px' }}
+                    style={{ background: 'none', border: 'none', color: courseColor, fontSize: '12px', fontWeight: 600, cursor: 'pointer', padding: '2px 0', display: 'inline-flex', alignItems: 'center', gap: '2px' }}
                   >
                     {isExpanded ? <>Less <ChevronUp size={12} /></> : <>Read more <ChevronDown size={12} /></>}
                   </button>
@@ -496,7 +496,7 @@ export default function HomeworkBanner({
                     background: 'var(--surface-2)',
                     color: 'var(--text-primary)',
                     fontSize: '12.5px',
-                    fontWeight: 800,
+                    fontWeight: 600,
                     cursor: 'pointer'
                   }}
                 >
@@ -533,7 +533,7 @@ export default function HomeworkBanner({
                     : '#fff',
                   boxShadow: isPastDue || isSubmitted || !canSubmit ? 'none' : '0 4px 12px rgba(0,0,0,0.15)',
                   fontSize: '13px',
-                  fontWeight: 700,
+                  fontWeight: 600,
                   cursor: canSubmit ? 'pointer' : 'not-allowed',
                   opacity: canSubmit ? 1 : 0.65
                 }}
@@ -593,13 +593,13 @@ export default function HomeworkBanner({
                 textAlign: 'left'
               }}
             >
-              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', color: '#d97706', fontSize: '12px', fontWeight: 900, textTransform: 'uppercase', flexShrink: 0 }}>
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', color: '#d97706', fontSize: '12px', fontWeight: 600, textTransform: 'uppercase', flexShrink: 0 }}>
                 <Clock size={14} /> Homework #{getSerial(activeHomework[0].id)}
               </span>
-              <span style={{ color: 'var(--text-primary)', fontSize: '15px', fontWeight: 900, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 'min(420px, 100%)' }}>
+              <span style={{ color: 'var(--text-primary)', fontSize: '15px', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 'min(420px, 100%)' }}>
                 {activeHomework[0].title}
               </span>
-              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', color: 'var(--text-secondary)', fontSize: '12px', fontWeight: 700, flexShrink: 0 }}>
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', color: 'var(--text-secondary)', fontSize: '12px', fontWeight: 600, flexShrink: 0 }}>
                 <Calendar size={13} /> {formatDate(activeHomework[0].dueAt)}
                 <span style={{ color: '#d97706' }}>({formatCountdown(activeHomework[0].dueAt)})</span>
               </span>
@@ -615,7 +615,7 @@ export default function HomeworkBanner({
                     openHomeworkDetail(activeHomework[0].id)
                   }
                 }}
-                style={{ border: 'none', background: courseColor, color: '#fff', borderRadius: '999px', padding: '9px 18px', fontSize: '13px', fontWeight: 900, cursor: 'pointer', boxShadow: '0 6px 14px rgba(0,0,0,0.14)' }}
+                style={{ border: 'none', background: courseColor, color: '#fff', borderRadius: '999px', padding: '9px 18px', fontSize: '13px', fontWeight: 600, cursor: 'pointer', boxShadow: '0 6px 14px rgba(0,0,0,0.14)' }}
               >
                 View Homework
               </button>
@@ -629,7 +629,7 @@ export default function HomeworkBanner({
                       setShowAllHomework(true)
                     }
                   }}
-                  style={{ border: '1px solid var(--border)', background: 'var(--surface)', color: 'var(--text-primary)', borderRadius: '999px', padding: '9px 14px', fontSize: '12px', fontWeight: 800, cursor: 'pointer' }}
+                  style={{ border: '1px solid var(--border)', background: 'var(--surface)', color: 'var(--text-primary)', borderRadius: '999px', padding: '9px 14px', fontSize: '12px', fontWeight: 600, cursor: 'pointer' }}
                 >
                   View All Homework
                 </button>
@@ -638,7 +638,7 @@ export default function HomeworkBanner({
                 <button
                   type="button"
                   onClick={() => setShowCreateModal(true)}
-                  style={{ border: 'none', background: courseColor, color: '#fff', borderRadius: '999px', padding: '9px 14px', fontSize: '12px', fontWeight: 800, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+                  style={{ border: 'none', background: courseColor, color: '#fff', borderRadius: '999px', padding: '9px 14px', fontSize: '12px', fontWeight: 600, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
                 >
                   <Plus size={13} /> New Homework
                 </button>
@@ -655,7 +655,7 @@ export default function HomeworkBanner({
               <div style={{
                 background: 'var(--surface)',
                 border: '1px dashed var(--border)',
-                borderRadius: '16px',
+                borderRadius: '12px',
                 padding: '24px 20px',
                 display: 'flex',
                 alignItems: 'center',
@@ -666,7 +666,7 @@ export default function HomeworkBanner({
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                   <FileText size={20} style={{ color: courseColor }} />
                   <div>
-                    <p style={{ fontWeight: 700, fontSize: '14px', margin: 0, color: 'var(--text-primary)' }}>
+                    <p style={{ fontWeight: 600, fontSize: '14px', margin: 0, color: 'var(--text-primary)' }}>
                       No active homework for this course
                     </p>
                     <p style={{ fontSize: '12px', margin: 0, color: 'var(--text-secondary)' }}>
@@ -681,12 +681,12 @@ export default function HomeworkBanner({
                     alignItems: 'center',
                     gap: '6px',
                     padding: '8px 16px',
-                    borderRadius: '20px',
+                    borderRadius: '14px',
                     border: 'none',
                     background: courseColor,
                     color: '#fff',
                     fontSize: '13px',
-                    fontWeight: 700,
+                    fontWeight: 600,
                     cursor: 'pointer'
                   }}
                 >
@@ -697,12 +697,12 @@ export default function HomeworkBanner({
               <div style={{
                 background: 'var(--surface)',
                 border: '1px dashed var(--border)',
-                borderRadius: '16px',
+                borderRadius: '12px',
                 padding: '36px 20px',
                 textAlign: 'center'
               }}>
                 <FileText size={36} style={{ color: 'var(--text-muted)', margin: '0 auto 8px', display: 'block' }} />
-                <p style={{ fontWeight: 800, fontSize: '15px', margin: '0 0 4px', color: 'var(--text-primary)' }}>
+                <p style={{ fontWeight: 600, fontSize: '15px', margin: '0 0 4px', color: 'var(--text-primary)' }}>
                   No homework assigned yet
                 </p>
                 <p style={{ fontSize: '12.5px', margin: 0, color: 'var(--text-secondary)' }}>
@@ -732,7 +732,7 @@ export default function HomeworkBanner({
                         borderRadius: '999px',
                         padding: '6px 14px',
                         fontSize: '12px',
-                        fontWeight: 800,
+                        fontWeight: 600,
                         cursor: 'pointer'
                       }}
                     >
@@ -752,12 +752,12 @@ export default function HomeworkBanner({
                           alignItems: 'center',
                           gap: '6px',
                           padding: '8px 16px',
-                          borderRadius: '20px',
+                          borderRadius: '14px',
                           border: 'none',
                           background: courseColor,
                           color: '#fff',
                           fontSize: '13px',
-                          fontWeight: 700,
+                          fontWeight: 600,
                           cursor: 'pointer'
                         }}
                       >
@@ -770,7 +770,7 @@ export default function HomeworkBanner({
               ) : (
                 <div>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px', flexWrap: 'wrap', gap: '10px' }}>
-                    <h2 style={{ fontSize: '18px', fontWeight: 900, margin: 0, color: 'var(--text-primary)' }}>
+                    <h2 style={{ fontSize: '18px', fontWeight: 600, margin: 0, color: 'var(--text-primary)' }}>
                       Homework Assignments ({sortedHomework.length})
                     </h2>
                     {isManager && (
@@ -781,12 +781,12 @@ export default function HomeworkBanner({
                           alignItems: 'center',
                           gap: '6px',
                           padding: '8px 16px',
-                          borderRadius: '20px',
+                          borderRadius: '14px',
                           border: 'none',
                           background: courseColor,
                           color: '#fff',
                           fontSize: '13px',
-                          fontWeight: 700,
+                          fontWeight: 600,
                           cursor: 'pointer'
                         }}
                       >
@@ -890,7 +890,7 @@ function HomeworkMaterialPickerModal({
     }}>
       <div style={{
         background: 'var(--surface)',
-        borderRadius: '18px',
+        borderRadius: '12px',
         width: '100%',
         maxWidth: '420px',
         boxShadow: '0 20px 40px rgba(0,0,0,0.22)',
@@ -905,7 +905,7 @@ function HomeworkMaterialPickerModal({
           gap: '12px'
         }}>
           <div>
-            <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 900, color: 'var(--text-primary)' }}>
+            <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 600, color: 'var(--text-primary)' }}>
               View Homework Material
             </h3>
             <p style={{ margin: '2px 0 0', fontSize: '12px', color: 'var(--text-secondary)' }}>
@@ -940,7 +940,7 @@ function HomeworkMaterialPickerModal({
                 border: '1px solid var(--border)',
                 color: 'var(--text-primary)',
                 fontSize: '13px',
-                fontWeight: 800,
+                fontWeight: 600,
                 cursor: 'pointer',
                 width: '100%',
                 textAlign: 'left'
@@ -983,7 +983,7 @@ function HomeworkImagePreviewModal({
         gap: '12px',
         borderBottom: '1px solid rgba(255,255,255,0.12)'
       }}>
-        <h3 style={{ margin: 0, color: '#fff', fontSize: '15px', fontWeight: 900 }}>{material.label}</h3>
+        <h3 style={{ margin: 0, color: '#fff', fontSize: '15px', fontWeight: 600 }}>{material.label}</h3>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <a
             href={material.url}
@@ -999,7 +999,7 @@ function HomeworkImagePreviewModal({
               background: '#10b981',
               color: '#fff',
               fontSize: '12px',
-              fontWeight: 900,
+              fontWeight: 600,
               textDecoration: 'none'
             }}
           >
@@ -1157,7 +1157,7 @@ function SubmitHomeworkModal({
     }}>
       <div style={{
         background: 'var(--surface)',
-        borderRadius: '24px',
+        borderRadius: '14px',
         width: '100%',
         maxWidth: '520px',
         boxShadow: '0 20px 40px rgba(0,0,0,0.2)',
@@ -1191,7 +1191,7 @@ function SubmitHomeworkModal({
                   <circle className="hw-success__ring" cx="26" cy="26" r="23" fill="none" stroke="var(--success)" strokeWidth="3" strokeLinecap="round" transform="rotate(-90 26 26)" />
                   <path className="hw-success__check" d="M15 27l7.5 7.5L37 19" fill="none" stroke="var(--success)" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
-                <h3 className="hw-rise" style={{ fontSize: '18px', fontWeight: 800, margin: '18px 0 4px', color: 'var(--text-primary)' }}>
+                <h3 className="hw-rise" style={{ fontSize: '18px', fontWeight: 600, margin: '18px 0 4px', color: 'var(--text-primary)' }}>
                   Homework submitted
                 </h3>
                 <p className="hw-rise" style={{ fontSize: '13px', color: 'var(--text-secondary)', margin: 0 }}>
@@ -1214,7 +1214,7 @@ function SubmitHomeworkModal({
                 }}>
                   <Upload className="hw-bob" size={26} style={{ color: courseColor }} />
                 </div>
-                <h3 style={{ fontSize: '17px', fontWeight: 800, margin: '0 0 4px', color: 'var(--text-primary)' }}>
+                <h3 style={{ fontSize: '17px', fontWeight: 600, margin: '0 0 4px', color: 'var(--text-primary)' }}>
                   {selectedFiles.length === 0 ? 'Submitting' : phase === 'uploading' ? 'Uploading your files' : 'Finishing up'}
                 </h3>
                 <p style={{ fontSize: '12.5px', color: 'var(--text-secondary)', margin: '0 0 20px', maxWidth: '100%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
@@ -1236,7 +1236,7 @@ function SubmitHomeworkModal({
                   <div className="hw-bar__fill" style={{ width: `${progress}%`, height: '100%', borderRadius: '99px', background: courseColor }} />
                 </div>
 
-                <div style={{ width: '100%', maxWidth: '360px', display: 'flex', justifyContent: 'space-between', marginTop: '8px', fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary)', fontVariantNumeric: 'tabular-nums' }}>
+                <div style={{ width: '100%', maxWidth: '360px', display: 'flex', justifyContent: 'space-between', marginTop: '8px', fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary)', fontVariantNumeric: 'tabular-nums' }}>
                   <span>{phase === 'uploading' ? `${progress}%` : 'Saving your submission...'}</span>
                   {selectedFiles.length > 0 && <span>{(totalBytes / 1024 / 1024).toFixed(2)} MB</span>}
                 </div>
@@ -1257,7 +1257,7 @@ function SubmitHomeworkModal({
                       background: 'var(--surface-2)',
                       color: 'var(--text-primary)',
                       fontSize: '12.5px',
-                      fontWeight: 700,
+                      fontWeight: 600,
                       cursor: 'pointer'
                     }}
                   >
@@ -1276,7 +1276,7 @@ function SubmitHomeworkModal({
           justifyContent: 'space-between'
         }}>
           <div>
-            <h2 style={{ fontSize: '18px', fontWeight: 800, margin: 0, color: 'var(--text-primary)' }}>
+            <h2 style={{ fontSize: '18px', fontWeight: 600, margin: 0, color: 'var(--text-primary)' }}>
               Submit Homework
             </h2>
             <p style={{ fontSize: '12.5px', color: 'var(--text-secondary)', margin: '2px 0 0' }}>
@@ -1342,7 +1342,7 @@ function SubmitHomeworkModal({
               padding: '12px 14px',
               marginBottom: '16px'
             }}>
-              <p style={{ margin: 0, fontSize: '12px', fontWeight: 700, color: '#10b981' }}>
+              <p style={{ margin: 0, fontSize: '12px', fontWeight: 600, color: '#10b981' }}>
                 You previously submitted on {formatDate(homework.mySubmission.submittedAt)}.
               </p>
               <p style={{ margin: '2px 0 0', fontSize: '11.5px', color: 'var(--text-secondary)' }}>
@@ -1353,14 +1353,14 @@ function SubmitHomeworkModal({
 
           {/* File Upload Box */}
           <div style={{ marginBottom: '18px' }}>
-            <label style={{ display: 'block', fontSize: '13px', fontWeight: 700, marginBottom: '6px', color: 'var(--text-primary)' }}>
+            <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, marginBottom: '6px', color: 'var(--text-primary)' }}>
               Upload Photos or PDFs
             </label>
             <div
               onClick={() => fileInputRef.current?.click()}
               style={{
                 border: '2px dashed var(--border)',
-                borderRadius: '16px',
+                borderRadius: '12px',
                 padding: '24px 16px',
                 textAlign: 'center',
                 cursor: 'pointer',
@@ -1369,7 +1369,7 @@ function SubmitHomeworkModal({
               }}
             >
               <Upload size={28} style={{ color: courseColor, margin: '0 auto 8px', display: 'block' }} />
-              <p style={{ fontSize: '13.5px', fontWeight: 700, margin: '0 0 4px', color: 'var(--text-primary)' }}>
+              <p style={{ fontSize: '13.5px', fontWeight: 600, margin: '0 0 4px', color: 'var(--text-primary)' }}>
                 Click to browse files
               </p>
               <p style={{ fontSize: '11.5px', color: 'var(--text-secondary)', margin: 0 }}>
@@ -1388,7 +1388,7 @@ function SubmitHomeworkModal({
             {/* List of newly selected files */}
             {selectedFiles.length > 0 && (
               <div style={{ marginTop: '12px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-secondary)' }}>
+                <span style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-secondary)' }}>
                   Selected Files ({selectedFiles.length}):
                 </span>
                 {selectedFiles.map((file, i) => (
@@ -1423,7 +1423,7 @@ function SubmitHomeworkModal({
 
           {/* Student Note */}
           <div style={{ marginBottom: '18px' }}>
-            <label style={{ display: 'block', fontSize: '13px', fontWeight: 700, marginBottom: '6px', color: 'var(--text-primary)' }}>
+            <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, marginBottom: '6px', color: 'var(--text-primary)' }}>
               Note or Comments (Optional)
             </label>
             <textarea
@@ -1458,7 +1458,7 @@ function SubmitHomeworkModal({
                 background: 'var(--surface-2)',
                 color: 'var(--text-primary)',
                 fontSize: '13px',
-                fontWeight: 700,
+                fontWeight: 600,
                 cursor: 'pointer'
               }}
             >
@@ -1475,7 +1475,7 @@ function SubmitHomeworkModal({
                 background: !canSubmit ? 'var(--surface-2)' : courseColor,
                 color: !canSubmit ? 'var(--text-muted)' : '#fff',
                 fontSize: '13px',
-                fontWeight: 700,
+                fontWeight: 600,
                 cursor: !canSubmit ? 'not-allowed' : loading ? 'not-allowed' : 'pointer',
                 opacity: !canSubmit ? 0.65 : loading ? 0.7 : 1
               }}
@@ -1632,7 +1632,7 @@ function HomeworkFormModal({
     }}>
       <div style={{
         background: 'var(--surface)',
-        borderRadius: '18px',
+        borderRadius: '12px',
         width: '100%',
         maxWidth: '980px',
         boxShadow: '0 20px 40px rgba(0,0,0,0.2)',
@@ -1649,7 +1649,7 @@ function HomeworkFormModal({
           justifyContent: 'space-between'
         }}>
           <div>
-            <h2 style={{ fontSize: '18px', fontWeight: 800, margin: 0, color: 'var(--text-primary)' }}>
+            <h2 style={{ fontSize: '18px', fontWeight: 600, margin: 0, color: 'var(--text-primary)' }}>
               {isEditing ? 'Edit Homework' : 'Create New Homework'}
             </h2>
           </div>
@@ -1686,7 +1686,7 @@ function HomeworkFormModal({
             <div>
               {/* Title */}
               <div style={{ marginBottom: '14px' }}>
-                <label style={{ display: 'block', fontSize: '13px', fontWeight: 700, marginBottom: '6px', color: 'var(--text-primary)' }}>
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, marginBottom: '6px', color: 'var(--text-primary)' }}>
                   Homework Title *
                 </label>
                 <input
@@ -1710,7 +1710,7 @@ function HomeworkFormModal({
 
               {/* Days and Time Selection */}
               <div style={{ marginBottom: '14px' }}>
-                <label style={{ display: 'block', fontSize: '13px', fontWeight: 700, marginBottom: '6px', color: 'var(--text-primary)' }}>
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, marginBottom: '6px', color: 'var(--text-primary)' }}>
                   Set Deadline (Days & Time) *
                 </label>
 
@@ -1723,12 +1723,12 @@ function HomeworkFormModal({
                       onClick={() => setDays(d)}
                       style={{
                         padding: '6px 14px',
-                        borderRadius: '20px',
+                        borderRadius: '14px',
                         border: days === d ? `1.5px solid ${courseColor}` : '1px solid var(--border)',
                         background: days === d ? courseColor : 'var(--surface-2)',
                         color: days === d ? '#fff' : 'var(--text-primary)',
                         fontSize: '12px',
-                        fontWeight: 700,
+                        fontWeight: 600,
                         cursor: 'pointer',
                         transition: 'all 0.15s'
                       }}
@@ -1764,7 +1764,7 @@ function HomeworkFormModal({
                         background: 'var(--surface-2)',
                         color: 'var(--text-primary)',
                         fontSize: '13.5px',
-                        fontWeight: 700,
+                        fontWeight: 600,
                         boxSizing: 'border-box'
                       }}
                     />
@@ -1812,7 +1812,7 @@ function HomeworkFormModal({
                       {computedDueAt.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })} at {computedDueAt.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}
                     </strong>
                   </span>
-                  <span style={{ fontSize: '11px', color: courseColor, fontWeight: 800 }}>
+                  <span style={{ fontSize: '11px', color: courseColor, fontWeight: 600 }}>
                     ({days} {days === 1 ? 'day' : 'days'} from now)
                   </span>
                 </div>
@@ -1833,7 +1833,7 @@ function HomeworkFormModal({
                 flexWrap: 'wrap'
               }}>
                 <div style={{ minWidth: 0 }}>
-                  <p style={{ margin: 0, fontSize: '13px', fontWeight: 800, color: 'var(--text-primary)' }}>
+                  <p style={{ margin: 0, fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)' }}>
                     Submission Control
                   </p>
                   <p style={{ margin: '2px 0 0', fontSize: '11.5px', color: 'var(--text-secondary)' }}>
@@ -1853,7 +1853,7 @@ function HomeworkFormModal({
                     background: isOpen ? 'rgba(34, 197, 94, 0.1)' : 'rgba(239, 68, 68, 0.08)',
                     color: isOpen ? '#10b981' : '#ef4444',
                     fontSize: '12px',
-                    fontWeight: 800,
+                    fontWeight: 600,
                     cursor: 'pointer'
                   }}
                 >
@@ -1866,7 +1866,7 @@ function HomeworkFormModal({
             <div>
               {/* Description */}
               <div style={{ marginBottom: '14px' }}>
-                <label style={{ display: 'block', fontSize: '13px', fontWeight: 700, marginBottom: '6px', color: 'var(--text-primary)' }}>
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, marginBottom: '6px', color: 'var(--text-primary)' }}>
                   Description or Instructions
                 </label>
                 <textarea
@@ -1892,7 +1892,7 @@ function HomeworkFormModal({
               {/* Attachments */}
               <div style={{ marginBottom: 0 }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
-              <label style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-primary)' }}>
+              <label style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)' }}>
                 Attach Question Papers / Photos / PDFs
               </label>
               <button
@@ -1904,7 +1904,7 @@ function HomeworkFormModal({
                   border: 'none',
                   color: courseColor,
                   fontSize: '12px',
-                  fontWeight: 700,
+                  fontWeight: 600,
                   cursor: 'pointer',
                   display: 'flex',
                   alignItems: 'center',
@@ -2001,7 +2001,7 @@ function HomeworkFormModal({
                 background: 'var(--surface-2)',
                 color: 'var(--text-primary)',
                 fontSize: '13px',
-                fontWeight: 700,
+                fontWeight: 600,
                 cursor: 'pointer'
               }}
             >
@@ -2018,7 +2018,7 @@ function HomeworkFormModal({
                 background: courseColor,
                 color: '#fff',
                 fontSize: '13px',
-                fontWeight: 700,
+                fontWeight: 600,
                 cursor: loading ? 'not-allowed' : 'pointer',
                 opacity: loading ? 0.7 : 1
               }}
@@ -2113,7 +2113,7 @@ function SubmissionsViewerModal({
     }}>
       <div style={{
         background: 'var(--surface)',
-        borderRadius: '24px',
+        borderRadius: '14px',
         width: '100%',
         maxWidth: '720px',
         boxShadow: '0 20px 40px rgba(0,0,0,0.2)',
@@ -2131,7 +2131,7 @@ function SubmissionsViewerModal({
           justifyContent: 'space-between'
         }}>
           <div>
-            <h2 style={{ fontSize: '18px', fontWeight: 800, margin: 0, color: 'var(--text-primary)' }}>
+            <h2 style={{ fontSize: '18px', fontWeight: 600, margin: 0, color: 'var(--text-primary)' }}>
               Submissions Tracker
             </h2>
             <p style={{ fontSize: '12.5px', color: 'var(--text-secondary)', margin: '2px 0 0' }}>
@@ -2185,7 +2185,7 @@ function SubmissionsViewerModal({
                     gap: '8px'
                   }}>
                     <div>
-                      <h4 style={{ margin: 0, fontSize: '14px', fontWeight: 800, color: 'var(--text-primary)' }}>
+                      <h4 style={{ margin: 0, fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)' }}>
                         {student.name}
                       </h4>
                       <p style={{ margin: '2px 0 0', fontSize: '12px', color: 'var(--text-secondary)' }}>
@@ -2208,7 +2208,7 @@ function SubmissionsViewerModal({
                             display: 'inline-flex',
                             alignItems: 'center',
                             gap: '4px',
-                            fontWeight: 800
+                            fontWeight: 600
                           }}
                         >
                           <CheckCircle2 size={12} /> View Submission
@@ -2260,7 +2260,7 @@ function SubmissionsViewerModal({
                                 border: '1px solid var(--border)',
                                 color: courseColor,
                                 fontSize: '11.5px',
-                                fontWeight: 700,
+                                fontWeight: 600,
                                 textDecoration: 'none'
                               }}
                             >
@@ -2285,7 +2285,7 @@ function SubmissionsViewerModal({
                             display: 'inline-flex',
                             alignItems: 'center',
                             gap: '4px',
-                            fontWeight: 800
+                            fontWeight: 600
                           }}
                           title="Delete this student's submission"
                         >
@@ -2316,7 +2316,7 @@ function SubmissionsViewerModal({
               background: courseColor,
               color: '#fff',
               fontSize: '13px',
-              fontWeight: 700,
+              fontWeight: 600,
               cursor: 'pointer'
             }}
           >

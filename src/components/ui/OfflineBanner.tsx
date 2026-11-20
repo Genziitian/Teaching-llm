@@ -34,7 +34,7 @@ export default function OfflineBanner({ cachedAt, showDownloadsLink = true }: Of
         width: '100%',
         background: 'linear-gradient(135deg, rgba(239, 68, 68, 0.12), rgba(245, 158, 11, 0.12))',
         border: '1px solid rgba(239, 68, 68, 0.25)',
-        borderRadius: '16px',
+        borderRadius: '12px',
         padding: '12px 18px',
         marginBottom: '20px',
         display: 'flex',
@@ -64,7 +64,7 @@ export default function OfflineBanner({ cachedAt, showDownloadsLink = true }: Of
         </div>
         <div style={{ minWidth: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span style={{ fontSize: '13.5px', fontWeight: 700, color: 'var(--text-primary)' }}>
+            <span style={{ fontSize: '13.5px', fontWeight: 600, color: 'var(--text-primary)' }}>
               You&apos;re Offline
             </span>
             <span

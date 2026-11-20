@@ -42,7 +42,7 @@ export default function OfflinePageNotice({
           width: '100%',
           background: 'var(--surface)',
           border: '1px solid var(--border)',
-          borderRadius: '24px',
+          borderRadius: '14px',
           padding: '40px 28px',
           textAlign: 'center',
           boxShadow: '0 20px 50px rgba(0, 0, 0, 0.25)',
@@ -73,7 +73,7 @@ export default function OfflinePageNotice({
         <h2
           style={{
             fontSize: '22px',
-            fontWeight: 800,
+            fontWeight: 600,
             color: 'var(--text-primary)',
             marginBottom: '10px',
             letterSpacing: '-0.02em',
@@ -116,10 +116,10 @@ export default function OfflinePageNotice({
               background: 'var(--primary)',
               color: '#ffffff',
               fontSize: '14.5px',
-              fontWeight: 700,
+              fontWeight: 600,
               border: 'none',
               cursor: isChecking ? 'not-allowed' : 'pointer',
-              boxShadow: '0 4px 16px rgba(99, 102, 241, 0.35)',
+              boxShadow: '0 4px 16px color-mix(in srgb, var(--primary) 35%, transparent)',
               transition: 'all 0.2s ease',
             }}
           >

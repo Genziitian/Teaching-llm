@@ -89,8 +89,13 @@ const nextConfig = {
           // Control referrer information sent with requests
           { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
           // Opt-out of Google FLoC/Topics tracking
-          { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=()' },
+          { key: 'Permissions-Policy', value: 'camera=(self), microphone=(self), geolocation=()' },
         ],
+      },
+      {
+        // Built-in illustrations rarely change: let browsers keep them for a week instead of re-downloading.
+        source: '/store-art/:path*',
+        headers: [{ key: 'Cache-Control', value: 'public, max-age=604800, stale-while-revalidate=86400' }],
       },
       {
         // CORS: Only allow same-origin API access (block other websites)

@@ -734,7 +734,7 @@ export default function SecureYouTubePlayer({
       )}
 
       {!ready && !errorMsg && (
-        <div style={{ position: 'absolute', inset: 0, display: 'grid', placeItems: 'center', zIndex: 3, color: 'rgba(255,255,255,0.72)', fontSize: '13px', fontWeight: 700 }}>
+        <div style={{ position: 'absolute', inset: 0, display: 'grid', placeItems: 'center', zIndex: 3, color: 'rgba(255,255,255,0.72)', fontSize: '13px', fontWeight: 600 }}>
           Loading player...
         </div>
       )}
@@ -762,13 +762,13 @@ export default function SecureYouTubePlayer({
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 12px 0' }}>
             {isLive && (
-              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '4px 10px', borderRadius: '50px', background: '#ef4444', color: '#fff', fontSize: '10.5px', fontWeight: 900, letterSpacing: '1.2px' }}>
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '4px 10px', borderRadius: '50px', background: '#ef4444', color: '#fff', fontSize: '10.5px', fontWeight: 600, letterSpacing: '1.2px' }}>
                 <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#fff' }} />
                 LIVE
               </span>
             )}
             {title ? (
-              <div style={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: '#fff', fontSize: '13.5px', fontWeight: 800 }}>
+              <div style={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: '#fff', fontSize: '13.5px', fontWeight: 600 }}>
                 {title}
               </div>
             ) : (
@@ -796,7 +796,7 @@ export default function SecureYouTubePlayer({
             {!isLive && (
               <div style={{ position: 'relative', height: '28px', display: 'flex', alignItems: 'center' }}>
                 <div style={{ position: 'absolute', left: 0, right: 0, height: '3px', borderRadius: '99px', background: 'rgba(255,255,255,0.27)' }}>
-                  <div style={{ width: `${playedPct}%`, height: '100%', borderRadius: '99px', background: '#4f46e5' }} />
+                  <div style={{ width: `${playedPct}%`, height: '100%', borderRadius: '99px', background: 'var(--primary)' }} />
                 </div>
                 <div style={{ position: 'absolute', left: `${playedPct}%`, transform: 'translateX(-50%)', width: '14px', height: '14px', borderRadius: '50%', background: '#fff' }} />
                 <input
@@ -814,7 +814,7 @@ export default function SecureYouTubePlayer({
             )}
 
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <span style={{ color: '#fff', fontSize: '11.5px', fontWeight: 800, fontVariantNumeric: 'tabular-nums' }}>
+              <span style={{ color: '#fff', fontSize: '11.5px', fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}>
                 {isLive ? 'Live' : `${fmtTime(position)} / ${fmtTime(duration)}`}
               </span>
               <div style={{ flex: 1 }} />
@@ -833,7 +833,7 @@ export default function SecureYouTubePlayer({
                     background: 'rgba(0,0,0,0.32)',
                     cursor: 'pointer',
                     fontSize: '11.5px',
-                    fontWeight: 800,
+                    fontWeight: 600,
                   }}
                 >
                   <Gauge size={16} />
@@ -855,7 +855,7 @@ export default function SecureYouTubePlayer({
                     background: 'rgba(0,0,0,0.32)',
                     cursor: 'pointer',
                     fontSize: '11.5px',
-                    fontWeight: 800,
+                    fontWeight: 600,
                   }}
                 >
                   <Settings size={16} />
@@ -917,7 +917,7 @@ export default function SecureYouTubePlayer({
             }}
           >
             <div style={{ width: '36px', height: '4px', borderRadius: '2px', background: 'rgba(255,255,255,0.34)', margin: '0 auto 12px' }} />
-            <div style={{ fontSize: '17px', fontWeight: 900, marginBottom: '10px' }}>Playback Speed</div>
+            <div style={{ fontSize: '17px', fontWeight: 600, marginBottom: '10px' }}>Playback Speed</div>
             {SPEED_OPTIONS.map(rate => (
               <QualityRow
                 key={rate}
@@ -949,7 +949,7 @@ export default function SecureYouTubePlayer({
             }}
           >
             <div style={{ width: '36px', height: '4px', borderRadius: '2px', background: 'rgba(255,255,255,0.34)', margin: '0 auto 12px' }} />
-            <div style={{ fontSize: '17px', fontWeight: 900, marginBottom: '10px' }}>Quality</div>
+            <div style={{ fontSize: '17px', fontWeight: 600, marginBottom: '10px' }}>Quality</div>
             <QualityRow
               label="Auto"
               sub={availableQualities.length ? `Best for your connection (up to ${QUALITY_LABELS[availableQualities[0]] || availableQualities[0]})` : ''}
@@ -1061,7 +1061,7 @@ function QualityRow({
         width: '100%',
         border: 0,
         borderRadius: '10px',
-        background: selected ? 'rgba(79,70,229,0.18)' : 'transparent',
+        background: selected ? 'rgba(128, 128, 128,0.18)' : 'transparent',
         color: '#fff',
         padding: '12px',
         display: 'flex',
@@ -1073,7 +1073,7 @@ function QualityRow({
     >
       {selected ? <CheckCircle2 size={18} color="#6366f1" /> : <Circle size={18} color="rgba(255,255,255,0.6)" />}
       <span style={{ display: 'flex', flexDirection: 'column', gap: '1px', minWidth: 0 }}>
-        <span style={{ fontSize: '14px', fontWeight: 800 }}>{label}</span>
+        <span style={{ fontSize: '14px', fontWeight: 600 }}>{label}</span>
         {sub ? <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.6)' }}>{sub}</span> : null}
       </span>
     </button>

@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 
 import '../../config/api_config.dart';
 import '../auth/token_storage.dart';
+import 'device_info.dart';
 
 /// Thin Dio wrapper that:
 ///  - prefixes every request with [ApiConfig.baseUrl]
@@ -27,6 +28,7 @@ class ApiClient {
 
     _dio.interceptors.add(InterceptorsWrapper(
       onRequest: (options, handler) async {
+        options.headers.addAll(DeviceInfo.headers);
         final token = await _tokens.read();
         if (token != null && token.isNotEmpty) {
           options.headers['Authorization'] = 'Bearer $token';

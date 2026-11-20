@@ -67,11 +67,11 @@ export default function PaymentFeedbackPrompt() {
         {sent ? (
           <div style={{ textAlign: 'center', padding: '28px 0' }}>
             <div style={{ fontSize: 40 }}>💙</div>
-            <div style={{ fontWeight: 800, fontSize: 18, marginTop: 6 }}>Thank you!</div>
+            <div style={{ fontWeight: 600, fontSize: 18, marginTop: 6 }}>Thank you!</div>
             <div style={{ fontSize: 14, opacity: 0.7, marginTop: 4 }}>Our team will use this to help you.</div>
           </div>
         ) : (<>
-          <div style={{ fontWeight: 800, fontSize: 20, letterSpacing: '-0.02em' }}>What&apos;s stopping you?</div>
+          <div style={{ fontWeight: 600, fontSize: 20, letterSpacing: '-0.02em' }}>What&apos;s stopping you?</div>
           <div style={{ fontSize: 14, opacity: 0.7, margin: '4px 0 14px' }}>You didn&apos;t finish buying <b>{att.itemName}</b>. Tell us why - pick any that fit.</div>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
             {OPTIONS.map(([k, l]) => <button key={k} className={`pf-chip${picked.includes(k) ? ' on' : ''}`} onClick={() => toggle(k)}>{l}</button>)}

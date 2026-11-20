@@ -82,6 +82,8 @@ export function UserDataProvider({ children }: { children: ReactNode }) {
           } catch (err) {}
         })
 
+        es.addEventListener('call', () => window.dispatchEvent(new Event('support-call:check')))
+
         es.onerror = () => {
           es?.close()
           // Reconnect after 5 seconds

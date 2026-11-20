@@ -89,12 +89,12 @@ export default function ShareLinkModal({ open, onClose, title, message, url }: S
         aria-modal="true"
         aria-label="Share"
         style={{
-          width: '100%', maxWidth: '400px', background: 'var(--surface)', borderRadius: '20px',
+          width: '100%', maxWidth: '400px', background: 'var(--surface)', borderRadius: '14px',
           padding: '20px', boxShadow: '0 20px 60px rgba(0,0,0,0.3)', display: 'flex', flexDirection: 'column', gap: '14px',
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <div style={{ fontSize: '17px', fontWeight: 700, color: 'var(--text-primary)' }}>Share</div>
+          <div style={{ fontSize: '17px', fontWeight: 600, color: 'var(--text-primary)' }}>Share</div>
           <button
             onClick={onClose}
             aria-label="Close"

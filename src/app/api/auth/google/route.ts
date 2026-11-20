@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { signToken, getCookieConfig } from '@/lib/auth'
+import { recordLogin } from '@/lib/login-device'
 import { logActivity, ACTION, MODULE } from '@/lib/activity-log'
 import { v4 as uuidv4 } from 'uuid'
 import { queueGoogleGroupSyncJobs } from '@/lib/google-group-sync'
@@ -165,10 +166,8 @@ export async function POST(request: NextRequest) {
 
     response.cookies.set(cookieName, token, options)
 
-    // Record attendance
-    await prisma.loginLog.create({
-      data: { userId: user.id }
-    })
+    // Record attendance + device/location; alerts the user on a new device
+    await recordLogin(request, response, user.id)
 
     logActivity({
       userId: user.id,

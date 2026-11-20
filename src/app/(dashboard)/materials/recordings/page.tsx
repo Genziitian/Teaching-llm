@@ -173,13 +173,13 @@ export default function RecordingsPage() {
         >
           <div
             style={{
-              background: 'var(--surface-2)', borderRadius: '18px', width: '100%', maxWidth: '560px',
+              background: 'var(--surface-2)', borderRadius: '12px', width: '100%', maxWidth: '560px',
               padding: '22px', boxShadow: '0 24px 48px rgba(0,0,0,0.25)',
             }}
             onClick={e => e.stopPropagation()}
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-              <h3 style={{ fontSize: '18px', fontWeight: '800', color: 'var(--text-primary)' }}>Edit Recording</h3>
+              <h3 style={{ fontSize: '18px', fontWeight: 600, color: 'var(--text-primary)' }}>Edit Recording</h3>
               <button onClick={() => setEditingLecture(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '22px', color: 'var(--text-secondary)' }}>×</button>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
@@ -207,7 +207,7 @@ export default function RecordingsPage() {
         onClick={() => setVideoModal(null)}
         >
           <div style={{
-            background: 'var(--surface-2)', borderRadius: '16px', overflow: 'hidden',
+            background: 'var(--surface-2)', borderRadius: '12px', overflow: 'hidden',
             width: '100%', maxWidth: '880px',
             boxShadow: '0 24px 48px rgba(0,0,0,0.4)',
           }}
@@ -266,11 +266,11 @@ export default function RecordingsPage() {
           onClick={() => setCourseFilter('all')}
           style={{
             padding: '8px 20px', borderRadius: '50px', border: 'none', cursor: 'pointer',
-            fontFamily: 'inherit', fontSize: '13.5px', fontWeight: '700', transition: 'all 0.2s ease',
+            fontFamily: 'inherit', fontSize: '13.5px', fontWeight: 600, transition: 'all 0.2s ease',
             background: courseFilter === 'all' ? 'var(--primary)' : 'var(--surface-2)',
             color:      courseFilter === 'all' ? '#ffffff'  : 'var(--text-secondary)',
             boxShadow:  courseFilter === 'all'
-              ? '4px 4px 10px rgba(54,54,232,0.35), -2px -2px 6px var(--neu-glow)'
+              ? '4px 4px 10px rgba(128, 128, 128,0.35), -2px -2px 6px var(--neu-glow)'
               : '4px 4px 8px var(--neu-dark), -4px -4px 8px var(--neu-light)',
           }}
         >
@@ -282,7 +282,7 @@ export default function RecordingsPage() {
             onClick={() => setCourseFilter(cls.id)}
             style={{
               padding: '8px 20px', borderRadius: '50px', border: 'none', cursor: 'pointer',
-              fontFamily: 'inherit', fontSize: '13.5px', fontWeight: '700', transition: 'all 0.2s ease',
+              fontFamily: 'inherit', fontSize: '13.5px', fontWeight: 600, transition: 'all 0.2s ease',
               background: courseFilter === cls.id ? cls.color : 'var(--surface-2)',
               color:      courseFilter === cls.id ? '#ffffff' : 'var(--text-secondary)',
               boxShadow:  courseFilter === cls.id
@@ -323,13 +323,13 @@ export default function RecordingsPage() {
 
               {/* Info */}
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: '15px', fontWeight: '700', color: 'var(--text-primary)', marginBottom: '4px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <div style={{ fontSize: '15px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '4px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{lec.title}</span>
                   {lec.createdAt && new Date().getTime() - new Date(lec.createdAt).getTime() < 24 * 60 * 60 * 1000 && (
                     <span style={{
                       background: 'linear-gradient(135deg, #ef4444, #dc2626)',
                       color: 'white', padding: '2px 6px', borderRadius: '4px',
-                      fontSize: '9px', fontWeight: '800', textTransform: 'uppercase',
+                      fontSize: '9px', fontWeight: 600, textTransform: 'uppercase',
                       letterSpacing: '0.05em', boxShadow: '0 2px 4px rgba(239, 68, 68, 0.3)',
                       flexShrink: 0
                     }}>
@@ -343,7 +343,7 @@ export default function RecordingsPage() {
                       padding: '2px 10px', borderRadius: '50px',
                       background: (course.color || 'var(--accent)') + '18',
                       color: course.color || 'var(--accent)',
-                      fontWeight: '700', fontSize: '12px',
+                      fontWeight: 600, fontSize: '12px',
                     }}>
                       {course.name}
                     </span>
@@ -354,7 +354,7 @@ export default function RecordingsPage() {
                     </span>
                   )}
                   {lec.isRecordingOnly && (
-                    <span style={{ fontSize: '12px', color: 'var(--accent)', fontWeight: '700' }}>
+                    <span style={{ fontSize: '12px', color: 'var(--accent)', fontWeight: 600 }}>
                       Recording only
                     </span>
                   )}
@@ -407,7 +407,7 @@ export default function RecordingsPage() {
           <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="1.5">
             <circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/>
           </svg>
-          <p style={{ fontSize: '16px', fontWeight: '700', marginBottom: '4px' }}>No recordings found</p>
+          <p style={{ fontSize: '16px', fontWeight: 600, marginBottom: '4px' }}>No recordings found</p>
           <p style={{ fontSize: '13px' }}>Try adjusting your search or course filter</p>
         </div>
       )}

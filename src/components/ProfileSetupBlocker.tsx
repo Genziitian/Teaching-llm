@@ -4,8 +4,9 @@ import React, { useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import type { FullSession } from '@/lib/auth'
 import { getDefaultAvatar } from '@/lib/avatar'
+import { NAME_DIGIT_ERROR, nameHasDigit } from '@/lib/name-validation'
 
-const INDIAN_STATES = [
+export const INDIAN_STATES = [
   "Andhra Pradesh", "Arunachal Pradesh", "Assam", "Bihar", "Chhattisgarh", "Goa", "Gujarat", "Haryana",
   "Himachal Pradesh", "Jharkhand", "Karnataka", "Kerala", "Madhya Pradesh", "Maharashtra", "Manipur",
   "Meghalaya", "Mizoram", "Nagaland", "Odisha", "Punjab", "Rajasthan", "Sikkim", "Tamil Nadu", "Telangana",
@@ -99,6 +100,9 @@ export default function ProfileSetupBlocker({ user }: { user: FullSession }) {
     if (!formData.firstName.trim() || !formData.lastName.trim()) {
       return setError('Please enter both your first and last name.')
     }
+    if (nameHasDigit(formData.firstName, formData.lastName)) {
+      return setError(NAME_DIGIT_ERROR)
+    }
     if (!formData.mobileNumber.match(/^\d{10}$/)) {
       return setError('Mobile number must be exactly 10 digits.')
     }
@@ -164,11 +168,11 @@ export default function ProfileSetupBlocker({ user }: { user: FullSession }) {
         width: '100%',
         maxWidth: '540px',
         padding: '40px',
-        borderRadius: '24px',
+        borderRadius: '14px',
         boxShadow: '0 20px 40px rgba(0,0,0,0.08)'
       }}>
         <div style={{ textAlign: 'center', marginBottom: '30px' }}>
-          <h1 style={{ fontSize: '26px', fontWeight: 900, color: 'var(--text-primary)', marginBottom: '8px' }}>
+          <h1 style={{ fontSize: '26px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '8px' }}>
             Welcome back to GenZ IITian!
           </h1>
           <p style={{ fontSize: '14px', color: 'var(--text-secondary)', lineHeight: 1.6 }}>
@@ -215,8 +219,8 @@ export default function ProfileSetupBlocker({ user }: { user: FullSession }) {
                 height: '84px',
                 borderRadius: '50%',
                 cursor: 'pointer',
-                boxShadow: '0 6px 18px rgba(99,102,241,0.2)',
-                border: '3px solid #6366f1',
+                boxShadow: '0 6px 18px color-mix(in srgb, var(--primary) 20%, transparent)',
+                border: '3px solid var(--primary)',
                 overflow: 'hidden',
                 background: '#eff0fe',
                 display: 'flex',
@@ -251,7 +255,7 @@ export default function ProfileSetupBlocker({ user }: { user: FullSession }) {
                 transition: 'opacity 0.2s',
               }}>
                 {uploadingAvatar ? (
-                  <span style={{ color: '#fff', fontSize: '11px', fontWeight: 800 }}>...</span>
+                  <span style={{ color: '#fff', fontSize: '11px', fontWeight: 600 }}>...</span>
                 ) : (
                   <div style={{
                     background: 'rgba(255,255,255,0.92)',
@@ -261,7 +265,7 @@ export default function ProfileSetupBlocker({ user }: { user: FullSession }) {
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    color: '#4f46e5',
+                    color: 'var(--primary)',
                     boxShadow: '0 2px 6px rgba(0,0,0,0.15)'
                   }}>
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
@@ -281,9 +285,9 @@ export default function ProfileSetupBlocker({ user }: { user: FullSession }) {
                 style={{
                   background: 'none',
                   border: 'none',
-                  color: '#4f46e5',
+                  color: 'var(--primary)',
                   fontSize: '12px',
-                  fontWeight: 700,
+                  fontWeight: 600,
                   cursor: 'pointer',
                   padding: '2px 6px',
                 }}
@@ -319,7 +323,7 @@ export default function ProfileSetupBlocker({ user }: { user: FullSession }) {
           
           <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) minmax(0,1fr)', gap: '16px' }}>
             <div className="form-group" style={{ margin: 0 }}>
-              <label className="form-label" style={{ fontWeight: 700 }}>First Name</label>
+              <label className="form-label" style={{ fontWeight: 600 }}>First Name</label>
               <input
                 type="text"
                 name="firstName"
@@ -331,7 +335,7 @@ export default function ProfileSetupBlocker({ user }: { user: FullSession }) {
               />
             </div>
             <div className="form-group" style={{ margin: 0 }}>
-              <label className="form-label" style={{ fontWeight: 700 }}>Last Name</label>
+              <label className="form-label" style={{ fontWeight: 600 }}>Last Name</label>
               <input
                 type="text"
                 name="lastName"
@@ -346,7 +350,7 @@ export default function ProfileSetupBlocker({ user }: { user: FullSession }) {
 
           <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) minmax(0,1fr)', gap: '16px' }}>
              <div className="form-group" style={{ margin: 0 }}>
-              <label className="form-label" style={{ fontWeight: 700 }}>Mobile Number</label>
+              <label className="form-label" style={{ fontWeight: 600 }}>Mobile Number</label>
               <input
                 type="text"
                 name="mobileNumber"
@@ -359,7 +363,7 @@ export default function ProfileSetupBlocker({ user }: { user: FullSession }) {
               />
             </div>
             <div className="form-group" style={{ margin: 0 }}>
-              <label className="form-label" style={{ fontWeight: 700 }}>Age</label>
+              <label className="form-label" style={{ fontWeight: 600 }}>Age</label>
               <input
                 type="number"
                 name="age"
@@ -373,7 +377,7 @@ export default function ProfileSetupBlocker({ user }: { user: FullSession }) {
           </div>
 
           <div className="form-group" style={{ margin: 0 }}>
-            <label className="form-label" style={{ fontWeight: 700 }}>State / Territory</label>
+            <label className="form-label" style={{ fontWeight: 600 }}>State / Territory</label>
             <select
               name="state"
               className="form-input"
@@ -389,7 +393,7 @@ export default function ProfileSetupBlocker({ user }: { user: FullSession }) {
           </div>
 
           <div className="form-group" style={{ margin: 0 }}>
-            <label className="form-label" style={{ fontWeight: 700 }}>Gender</label>
+            <label className="form-label" style={{ fontWeight: 600 }}>Gender</label>
             <div style={{ display: 'flex', gap: '12px' }}>
               {['MALE', 'FEMALE', 'OTHER'].map(g => (
                 <div
@@ -403,8 +407,8 @@ export default function ProfileSetupBlocker({ user }: { user: FullSession }) {
                     textAlign: 'center',
                     cursor: 'pointer',
                     fontSize: '14px',
-                    fontWeight: 700,
-                    border: formData.gender === g ? '2px solid #6366f1' : '2px solid #e0e3ea',
+                    fontWeight: 600,
+                    border: formData.gender === g ? '2px solid var(--primary)' : '2px solid #e0e3ea',
                     background: formData.gender === g ? '#eff0fe' : 'var(--surface)',
                     color: formData.gender === g ? 'var(--accent)' : 'var(--text-secondary)',
                     transition: 'all 0.2s'
@@ -425,8 +429,8 @@ export default function ProfileSetupBlocker({ user }: { user: FullSession }) {
               width: '100%',
               padding: '16px',
               fontSize: '16px',
-              fontWeight: 800,
-              boxShadow: '0 8px 20px rgba(99,102,241,0.3)',
+              fontWeight: 600,
+              boxShadow: '0 8px 20px color-mix(in srgb, var(--primary) 30%, transparent)',
               display: 'flex',
               justifyContent: 'center',
               alignItems: 'center',
@@ -452,7 +456,7 @@ export default function ProfileSetupBlocker({ user }: { user: FullSession }) {
         }}>
           <div className="fade-in" style={{
             background: 'var(--surface)',
-            borderRadius: '20px',
+            borderRadius: '14px',
             padding: '36px 32px',
             maxWidth: '420px',
             width: '100%',
@@ -473,7 +477,7 @@ export default function ProfileSetupBlocker({ user }: { user: FullSession }) {
               </svg>
             </div>
 
-            <h2 style={{ fontSize: '20px', fontWeight: 900, color: 'var(--text-primary)', marginBottom: '12px' }}>
+            <h2 style={{ fontSize: '20px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '12px' }}>
               Please check all details carefully
             </h2>
             <p style={{ fontSize: '14px', color: 'var(--text-secondary)', lineHeight: 1.65, marginBottom: '28px' }}>
@@ -492,7 +496,7 @@ export default function ProfileSetupBlocker({ user }: { user: FullSession }) {
               ].map(({ label, value }) => (
                 <div key={label} style={{ display: 'flex', justifyContent: 'space-between', padding: '5px 0', borderBottom: '1px solid #eee', fontSize: '13.5px' }}>
                   <span style={{ color: 'var(--text-secondary)', fontWeight: 600 }}>{label}</span>
-                  <span style={{ color: 'var(--text-primary)', fontWeight: 700 }}>{value}</span>
+                  <span style={{ color: 'var(--text-primary)', fontWeight: 600 }}>{value}</span>
                 </div>
               ))}
             </div>
@@ -503,7 +507,7 @@ export default function ProfileSetupBlocker({ user }: { user: FullSession }) {
                 style={{
                   flex: 1, padding: '13px', borderRadius: '12px',
                   border: '2px solid #e0e3ea', background: 'var(--surface)',
-                  color: 'var(--text-secondary)', fontSize: '14px', fontWeight: 700,
+                  color: 'var(--text-secondary)', fontSize: '14px', fontWeight: 600,
                   cursor: 'pointer', fontFamily: 'inherit'
                 }}
               >
@@ -514,8 +518,8 @@ export default function ProfileSetupBlocker({ user }: { user: FullSession }) {
                 className="btn btn-primary"
                 style={{
                   flex: 1, padding: '13px', borderRadius: '12px',
-                  fontSize: '14px', fontWeight: 800,
-                  boxShadow: '0 6px 16px rgba(99,102,241,0.3)'
+                  fontSize: '14px', fontWeight: 600,
+                  boxShadow: '0 6px 16px color-mix(in srgb, var(--primary) 30%, transparent)'
                 }}
               >
                 Continue

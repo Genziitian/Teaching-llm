@@ -131,7 +131,7 @@ export default function GoogleSyncPage() {
       <div className="page-container fade-in" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '60vh' }}>
         <div className="card" style={{ padding: '40px', textAlign: 'center', maxWidth: '400px' }}>
           <div style={{ fontSize: '48px', marginBottom: '16px' }}>🔒</div>
-          <div style={{ fontSize: '18px', fontWeight: '700', color: 'var(--text-primary)', marginBottom: '8px' }}>Access Denied</div>
+          <div style={{ fontSize: '18px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '8px' }}>Access Denied</div>
           <div style={{ fontSize: '13px', color: 'var(--text-muted)' }}>Only managers can access Google Sync monitoring.</div>
         </div>
       </div>
@@ -163,23 +163,15 @@ export default function GoogleSyncPage() {
 
   return (
     <div className="page-container fade-in" style={{ paddingBottom: '40px' }}>
-      {/* Header */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '12px' }}>
-        <div>
-          <h1 style={{ fontSize: '20px', fontWeight: '800', color: 'var(--text-primary)', margin: 0 }}>Google Sync Dashboard</h1>
-          <p style={{ fontSize: '13px', color: 'var(--text-muted)', margin: '4px 0 0 0' }}>Monitor real-time Google Workspace group sync jobs.</p>
-        </div>
-      </div>
-
       {/* Sync Jobs Monitor */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
         {/* Stats Banner */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: '16px' }}>
           <div className="card" style={{ padding: '16px' }}>
-            <div style={{ fontSize: '11px', color: totalActiveQueueJobs > 0 ? '#f59e0b' : 'var(--text-muted)', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+            <div style={{ fontSize: '11px', color: totalActiveQueueJobs > 0 ? '#f59e0b' : 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
               ⏳ Pending Jobs in Queue
             </div>
-            <div style={{ fontSize: '24px', fontWeight: '800', color: totalActiveQueueJobs > 0 ? '#f59e0b' : 'var(--text-primary)', marginTop: '4px' }}>
+            <div style={{ fontSize: '24px', fontWeight: 600, color: totalActiveQueueJobs > 0 ? '#f59e0b' : 'var(--text-primary)', marginTop: '4px' }}>
               {totalActiveQueueJobs.toLocaleString()} <span style={{ fontSize: '14px', fontWeight: '600' }}>jobs</span>
             </div>
             <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '4px' }}>
@@ -188,10 +180,10 @@ export default function GoogleSyncPage() {
           </div>
 
           <div className="card" style={{ padding: '16px', background: 'var(--primary-light, #e0e7ff)', border: '1px solid var(--border)' }}>
-            <div style={{ fontSize: '11px', color: 'var(--primary, #4338ca)', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+            <div style={{ fontSize: '11px', color: 'var(--primary, #4338ca)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
               ⏱️ Estimated Time to Finish (ETA)
             </div>
-            <div style={{ fontSize: '24px', fontWeight: '800', color: 'var(--primary, #4338ca)', marginTop: '4px' }}>
+            <div style={{ fontSize: '24px', fontWeight: 600, color: 'var(--primary, #4338ca)', marginTop: '4px' }}>
               {formattedSyncETA}
             </div>
             <div style={{ fontSize: '11px', color: 'var(--primary, #4338ca)', marginTop: '4px', opacity: 0.9 }}>
@@ -200,10 +192,10 @@ export default function GoogleSyncPage() {
           </div>
 
           <div className="card" style={{ padding: '16px' }}>
-            <div style={{ fontSize: '11px', color: syncJobsFailedCount > 0 ? 'var(--danger)' : 'var(--text-muted)', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+            <div style={{ fontSize: '11px', color: syncJobsFailedCount > 0 ? 'var(--danger)' : 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
               ❌ Failed Jobs
             </div>
-            <div style={{ fontSize: '24px', fontWeight: '800', color: syncJobsFailedCount > 0 ? 'var(--danger)' : 'var(--text-primary)', marginTop: '4px' }}>
+            <div style={{ fontSize: '24px', fontWeight: 600, color: syncJobsFailedCount > 0 ? 'var(--danger)' : 'var(--text-primary)', marginTop: '4px' }}>
               {syncJobsFailedCount.toLocaleString()} <span style={{ fontSize: '14px', fontWeight: '600' }}>jobs</span>
             </div>
             <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '4px' }}>
@@ -253,7 +245,7 @@ export default function GoogleSyncPage() {
               onClick={handleForceRunSyncEngine}
               disabled={isProcessingSync}
               className="btn btn-sm"
-              style={{ fontSize: '12px', background: 'var(--primary)', color: '#ffffff', border: 'none', fontWeight: '700' }}
+              style={{ fontSize: '12px', background: 'var(--primary)', color: '#ffffff', border: 'none', fontWeight: 600 }}
             >
               {isProcessingSync ? 'Processing Batch...' : '▶️ Run 1 Batch Now'}
             </button>
@@ -291,7 +283,7 @@ export default function GoogleSyncPage() {
           ) : jobs.length === 0 ? (
             <div style={{ padding: '40px', textAlign: 'center', color: 'var(--text-muted)' }}>
               <div style={{ fontSize: '32px', marginBottom: '8px' }}>🎉</div>
-              <div style={{ fontSize: '15px', fontWeight: '700', color: 'var(--text-primary)', marginBottom: '4px' }}>No Sync Jobs In Queue</div>
+              <div style={{ fontSize: '15px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '4px' }}>No Sync Jobs In Queue</div>
               <div style={{ fontSize: '12px' }}>All background sync jobs have completed or queue is empty.</div>
             </div>
           ) : (
@@ -299,13 +291,13 @@ export default function GoogleSyncPage() {
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px', textAlign: 'left' }}>
                 <thead>
                   <tr style={{ background: 'var(--surface-2)', borderBottom: '1px solid var(--border)' }}>
-                    <th style={{ padding: '12px 16px', fontWeight: '700' }}>User Email</th>
-                    <th style={{ padding: '12px 16px', fontWeight: '700' }}>Group Email</th>
-                    <th style={{ padding: '12px 16px', fontWeight: '700' }}>Action</th>
-                    <th style={{ padding: '12px 16px', fontWeight: '700' }}>Status</th>
-                    <th style={{ padding: '12px 16px', fontWeight: '700' }}>Attempts</th>
-                    <th style={{ padding: '12px 16px', fontWeight: '700' }}>Last Error</th>
-                    <th style={{ padding: '12px 16px', fontWeight: '700' }}>Created At</th>
+                    <th style={{ padding: '12px 16px', fontWeight: 600 }}>User Email</th>
+                    <th style={{ padding: '12px 16px', fontWeight: 600 }}>Group Email</th>
+                    <th style={{ padding: '12px 16px', fontWeight: 600 }}>Action</th>
+                    <th style={{ padding: '12px 16px', fontWeight: 600 }}>Status</th>
+                    <th style={{ padding: '12px 16px', fontWeight: 600 }}>Attempts</th>
+                    <th style={{ padding: '12px 16px', fontWeight: 600 }}>Last Error</th>
+                    <th style={{ padding: '12px 16px', fontWeight: 600 }}>Created At</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -317,7 +309,7 @@ export default function GoogleSyncPage() {
                         <td style={{ padding: '12px 16px', color: 'var(--text-secondary)' }}>{job.groupEmail}</td>
                         <td style={{ padding: '12px 16px' }}>
                           <span style={{
-                            fontWeight: '700',
+                            fontWeight: 600,
                             fontSize: '11px',
                             padding: '2px 8px',
                             borderRadius: '4px',
@@ -329,7 +321,7 @@ export default function GoogleSyncPage() {
                         </td>
                         <td style={{ padding: '12px 16px' }}>
                           <span style={{
-                            fontWeight: '700',
+                            fontWeight: 600,
                             fontSize: '11px',
                             padding: '2px 8px',
                             borderRadius: '4px',
@@ -342,7 +334,7 @@ export default function GoogleSyncPage() {
                         <td style={{ padding: '12px 16px', color: 'var(--text-muted)' }}>{job.attemptCount} / 3</td>
                         <td style={{ padding: '12px 16px', color: 'var(--danger)', fontSize: '11px' }}>
                           {errLabel ? (
-                            <div style={{ fontWeight: '700', color: 'var(--danger)' }}>{errLabel}</div>
+                            <div style={{ fontWeight: 600, color: 'var(--danger)' }}>{errLabel}</div>
                           ) : null}
                           {job.lastError || '-'}
                         </td>

@@ -250,6 +250,23 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
 
             const SizedBox(height: 28),
 
+            // ── SECURITY: login activity ──────────────────
+            _SectionHeader(title: 'SECURITY', color: tokens.textMuted),
+            _Group(
+              children: [
+                _SettingsRow(
+                  icon: Symbols.devices_rounded,
+                  tile: const Color(0xFF007AFF),
+                  title: 'Login activity',
+                  subtitle: "Devices and places you're logged in from",
+                  isLast: true,
+                  onTap: () => context.push('/settings/login-activity'),
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 28),
+
             // ── 3. DANGER ZONE (ACCOUNT DELETION) ──────────────────
             _SectionHeader(title: 'DANGER ZONE', color: tokens.danger),
             Padding(

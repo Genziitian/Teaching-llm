@@ -131,790 +131,265 @@ export default function DownloadPage() {
   return (
     <>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap');
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+          --dl-bg: #ececea; --dl-card: #fbfbfa; --dl-panel: #ffffff; --dl-soft: #f2f2f0;
+          --dl-line: rgba(20,20,18,0.10); --dl-line2: rgba(20,20,18,0.18);
+          --dl-ink: #141412; --dl-ink2: #55554f; --dl-ink3: #8a8a84; --dl-on-ink: #fbfbfa;
+          --dl-ok: #1f8f5f; --dl-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+          --dl-phone: #141412;
+        }
+        @media (prefers-color-scheme: dark) {
+          :root {
+            --dl-bg: #0e0e0d; --dl-card: #171716; --dl-panel: #1d1d1b; --dl-soft: #222220;
+            --dl-line: rgba(255,255,255,0.08); --dl-line2: rgba(255,255,255,0.16);
+            --dl-ink: #f2f2ef; --dl-ink2: #a3a39c; --dl-ink3: #74746e; --dl-on-ink: #141412;
+            --dl-ok: #4ade80; --dl-phone: #2a2a28;
+          }
+        }
         html { scroll-behavior: smooth; }
-        body { font-family: 'Inter', sans-serif; background: #05050f; color: #fff; overflow-x: hidden; -webkit-font-smoothing: antialiased; }
+        body { font-family: 'Inter', system-ui, sans-serif; background: var(--dl-bg); color: var(--dl-ink); overflow-x: hidden; -webkit-font-smoothing: antialiased; }
+        img { max-width: 100%; }
 
         /* ─── NAVBAR ─── */
         .navbar {
           position: fixed; top: 0; left: 0; right: 0; z-index: 100;
-          padding: 18px 40px;
-          display: flex; align-items: center; justify-content: space-between;
-          background: rgba(5,5,15,0.8);
-          backdrop-filter: blur(20px);
-          border-bottom: 1px solid rgba(255,255,255,0.05);
+          height: 64px; padding: 0 clamp(16px, 4vw, 40px);
+          display: flex; align-items: center; justify-content: space-between; gap: 12px;
+          background: var(--dl-bg); border-bottom: 1px solid var(--dl-line);
         }
-        .nav-logo {
-          display: flex; align-items: center; gap: 10px;
-          font-size: 18px; font-weight: 800; color: #fff; letter-spacing: -0.3px;
-        }
-        .nav-logo-dot { width: 8px; height: 8px; border-radius: 50%; background: linear-gradient(135deg,#6366f1,#a855f7); }
-        .nav-cta {
-          background: linear-gradient(135deg,#6366f1,#8b5cf6);
-          color: #fff; border: none; border-radius: 12px;
-          padding: 10px 22px; font-size: 13px; font-weight: 700;
-          cursor: pointer; font-family: 'Inter', sans-serif;
-          transition: all 0.2s ease; box-shadow: 0 4px 16px rgba(99,102,241,0.35);
-        }
-        .nav-cta:hover { transform: translateY(-1px); box-shadow: 0 8px 24px rgba(99,102,241,0.5); }
-        .nav-actions { display: flex; align-items: center; gap: 12px; }
+        .nav-logo { display: flex; align-items: center; gap: 10px; font-size: 16px; font-weight: 800; color: var(--dl-ink); letter-spacing: -0.2px; white-space: nowrap; }
+        .nav-logo-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--dl-ink); }
+        .nav-actions { display: flex; align-items: center; gap: 8px; }
         .nav-login-link {
-          color: #94a3b8; text-decoration: none; font-size: 13px; font-weight: 600;
-          padding: 10px 16px; transition: all 0.2s ease;
-          border-radius: 12px; border: 1px solid transparent;
+          color: var(--dl-ink2); text-decoration: none; font-size: 13px; font-weight: 600;
+          padding: 9px 14px; border-radius: 10px; border: 1px solid transparent; transition: background .15s;
         }
-        .nav-login-link:hover { color: #fff; background: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.08); }
+        .nav-login-link:hover { color: var(--dl-ink); background: var(--dl-soft); }
+        .nav-cta {
+          background: var(--dl-ink); color: var(--dl-on-ink); border: 1px solid var(--dl-ink); border-radius: 10px;
+          padding: 9px 16px; font-size: 13px; font-weight: 700; cursor: pointer; font-family: inherit;
+          transition: opacity .15s; white-space: nowrap;
+        }
+        .nav-cta:hover { opacity: .88; }
 
         /* ─── HERO ─── */
         .hero {
-          min-height: 100vh; padding: 120px 40px 80px;
+          min-height: 100vh; padding: 112px clamp(16px, 4vw, 40px) 72px;
           display: flex; align-items: center; justify-content: center;
-          gap: 80px; flex-wrap: wrap;
-          background:
-            radial-gradient(ellipse 70% 50% at 20% 50%, rgba(99,102,241,0.12) 0%, transparent 60%),
-            radial-gradient(ellipse 50% 40% at 80% 20%, rgba(168,85,247,0.08) 0%, transparent 60%),
-            radial-gradient(ellipse 40% 30% at 70% 80%, rgba(236,72,153,0.06) 0%, transparent 60%),
-            #05050f;
+          gap: clamp(32px, 6vw, 80px); flex-wrap: wrap; background: var(--dl-bg);
         }
-
-        /* ─── LEFT ─── */
-        .hero-left { flex: 1; min-width: 300px; max-width: 580px; }
+        .hero-left { flex: 1 1 420px; min-width: 0; max-width: 580px; }
 
         .badge {
           display: inline-flex; align-items: center; gap: 8px;
-          background: rgba(99,102,241,0.12); border: 1px solid rgba(99,102,241,0.25);
-          border-radius: 100px; padding: 7px 18px;
-          font-size: 12px; font-weight: 600; color: #a5b4fc;
-          letter-spacing: 0.5px; margin-bottom: 28px;
+          background: var(--dl-card); border: 1px solid var(--dl-line); border-radius: 100px;
+          padding: 7px 14px; font-family: var(--dl-mono); font-size: 11px; font-weight: 600; color: var(--dl-ink2);
+          letter-spacing: .04em; text-transform: uppercase; margin-bottom: 24px; max-width: 100%;
         }
-        .badge-live {
-          width: 7px; height: 7px; border-radius: 50%; background: #6366f1;
-          animation: blink 2s infinite;
-        }
-        @keyframes blink {
-          0%,100% { opacity:1; box-shadow: 0 0 0 0 rgba(99,102,241,0.5); }
-          50% { opacity:0.6; box-shadow: 0 0 0 4px rgba(99,102,241,0); }
-        }
+        .badge-live { width: 7px; height: 7px; border-radius: 50%; background: var(--dl-ok); flex-shrink: 0; }
 
-        .hero-eyebrow {
-          font-size: 13px; font-weight: 600; color: #6366f1;
-          letter-spacing: 2px; text-transform: uppercase; margin-bottom: 16px;
-        }
+        .hero-eyebrow { font-family: var(--dl-mono); font-size: 12px; font-weight: 600; color: var(--dl-ink3); letter-spacing: .14em; text-transform: uppercase; margin-bottom: 14px; }
+        .hero-title { font-size: clamp(34px, 5.5vw, 60px); font-weight: 800; line-height: 1.06; letter-spacing: -0.035em; margin-bottom: 4px; }
+        .hero-title-sub { font-size: clamp(30px, 4.6vw, 52px); font-weight: 800; line-height: 1.06; letter-spacing: -0.035em; margin-bottom: 24px; color: var(--dl-ink3); }
+        .accent { color: var(--dl-ink3); }
+        .hero-desc { font-size: 16px; line-height: 1.7; color: var(--dl-ink2); margin-bottom: 32px; max-width: 520px; }
+        .hero-desc strong { color: var(--dl-ink); font-weight: 600; }
 
-        .hero-title {
-          font-size: clamp(36px, 5.5vw, 62px); font-weight: 900;
-          line-height: 1.08; letter-spacing: -2px; margin-bottom: 8px;
-        }
-        .hero-title-sub {
-          font-size: clamp(28px, 4vw, 46px); font-weight: 900;
-          line-height: 1.08; letter-spacing: -1.5px; margin-bottom: 28px;
-        }
-
-        .grad { background: linear-gradient(135deg, #6366f1 0%, #a855f7 50%, #ec4899 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
-        .grad2 { background: linear-gradient(135deg, #f59e0b, #ef4444); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
-
-        .hero-desc {
-          font-size: 16px; line-height: 1.75; color: #94a3b8; font-weight: 400;
-          margin-bottom: 40px; max-width: 520px;
-        }
-        .hero-desc strong { color: #e2e8f0; font-weight: 600; }
-
-        .btn-row { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; margin-bottom: 20px; }
+        .btn-row { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin-bottom: 20px; }
 
         .dl-btn {
           display: inline-flex; align-items: center; gap: 12px;
-          background: linear-gradient(135deg, #6366f1, #8b5cf6);
-          color: #fff; border: none; border-radius: 16px;
-          padding: 16px 32px; font-size: 16px; font-weight: 700;
-          cursor: pointer; font-family: 'Inter', sans-serif;
-          transition: all 0.3s cubic-bezier(0.34,1.56,0.64,1);
-          box-shadow: 0 8px 28px rgba(99,102,241,0.4); position: relative; overflow: hidden;
-          text-decoration: none;
+          background: var(--dl-ink); color: var(--dl-on-ink); border: 1px solid var(--dl-ink); border-radius: 14px;
+          padding: 13px 24px; font-size: 15px; font-weight: 700; cursor: pointer; font-family: inherit;
+          transition: opacity .15s, transform .15s; text-decoration: none;
         }
-        .dl-btn::after {
-          content: ''; position: absolute; inset: 0;
-          background: linear-gradient(135deg, #818cf8, #a78bfa);
-          opacity: 0; transition: opacity 0.3s;
-        }
-        .dl-btn:hover::after { opacity: 1; }
-        .dl-btn:hover { transform: translateY(-3px) scale(1.02); box-shadow: 0 16px 40px rgba(99,102,241,0.55); }
-        .dl-btn:active { transform: scale(0.98); }
-        .dl-btn > * { position: relative; z-index: 1; }
-        .dl-btn:disabled { opacity: 0.7; cursor: wait; }
-
-        .dl-icon {
-          width: 40px; height: 40px; border-radius: 11px;
-          background: rgba(255,255,255,0.2);
-          display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0;
-        }
+        .dl-btn:hover { opacity: .9; }
+        .dl-btn:active { transform: scale(.98); }
+        .dl-btn:disabled { opacity: .5; cursor: not-allowed; }
+        .dl-icon { width: 36px; height: 36px; border-radius: 10px; background: var(--dl-soft); display: flex; align-items: center; justify-content: center; font-size: 17px; flex-shrink: 0; }
 
         .share-btn {
-          display: inline-flex; align-items: center; gap: 9px;
-          background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
-          color: #94a3b8; border-radius: 16px; padding: 16px 26px;
-          font-size: 15px; font-weight: 600; cursor: pointer;
-          font-family: 'Inter', sans-serif; transition: all 0.25s ease;
+          display: inline-flex; align-items: center; gap: 9px; background: var(--dl-card); border: 1px solid var(--dl-line2);
+          color: var(--dl-ink); border-radius: 14px; padding: 14px 22px; font-size: 14px; font-weight: 600; cursor: pointer;
+          font-family: inherit; transition: background .15s;
         }
-        .share-btn:hover { background: rgba(255,255,255,0.09); border-color: rgba(255,255,255,0.18); color: #fff; transform: translateY(-2px); }
+        .share-btn:hover { background: var(--dl-soft); }
 
-        .meta-pills { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 6px; }
-        .pill {
-          display: flex; align-items: center; gap: 6px;
-          background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);
-          border-radius: 100px; padding: 6px 14px;
-          font-size: 12px; color: #64748b; font-weight: 500;
-        }
-        .pill-dot { width: 6px; height: 6px; border-radius: 50%; background: #22c55e; flex-shrink: 0; }
-
-        /* ─── PLAY STORE BUTTON & ANNOUNCEMENT ─── */
         .play-btn {
-          display: inline-flex; align-items: center; gap: 14px;
-          background: #111119; color: #fff; border: 1.5px solid rgba(255,255,255,0.18);
-          border-radius: 16px; padding: 12px 24px; cursor: pointer; text-decoration: none;
-          font-family: 'Inter', sans-serif;
-          box-shadow: 0 8px 24px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.12);
-          transition: all 0.25s cubic-bezier(0.34,1.56,0.64,1);
+          display: inline-flex; align-items: center; gap: 12px; background: var(--dl-card); color: var(--dl-ink);
+          border: 1px solid var(--dl-line2); border-radius: 14px; padding: 10px 20px 10px 12px; cursor: pointer; text-decoration: none;
+          font-family: inherit; transition: background .15s, transform .15s;
         }
-        .play-btn:hover {
-          background: #191924; border-color: rgba(52,211,153,0.5);
-          box-shadow: 0 12px 32px rgba(16,185,129,0.22);
-          transform: translateY(-2px) scale(1.02);
-        }
-        .play-btn:active { transform: scale(0.98); }
-
-        .announcement-banner {
-          display: flex; align-items: center; justify-content: space-between; gap: 16px;
-          background: linear-gradient(135deg, rgba(1,135,95,0.15) 0%, rgba(99,102,241,0.14) 100%);
-          border: 1px solid rgba(52,211,153,0.35);
-          border-radius: 18px; padding: 14px 20px; margin-bottom: 24px;
-          box-shadow: 0 8px 30px rgba(1,135,95,0.12);
-          backdrop-filter: blur(10px);
-          animation: bannerFadeIn 0.5s ease-out;
-        }
-        @keyframes bannerFadeIn {
-          from { opacity: 0; transform: translateY(-6px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-        .announcement-body {
-          display: flex; align-items: center; gap: 10px; font-size: 13.5px;
-          line-height: 1.5; color: #e2e8f0; text-align: left;
-        }
-        .announcement-tag {
-          display: inline-flex; align-items: center; gap: 5px;
-          background: #01875f; color: #fff; font-size: 10.5px;
-          font-weight: 800; letter-spacing: 0.05em; padding: 4px 10px;
-          border-radius: 8px; text-transform: uppercase; flex-shrink: 0;
-        }
-        .announcement-text { color: #cbd5e1; }
-        .announcement-text strong { color: #fff; }
-        .announcement-cta {
-          display: inline-flex; align-items: center; gap: 8px;
-          background: #ffffff; color: #0f172a; font-size: 13px;
-          font-weight: 700; padding: 8px 16px; border-radius: 12px;
-          text-decoration: none; flex-shrink: 0; transition: all 0.2s ease;
-          box-shadow: 0 4px 14px rgba(255,255,255,0.15);
-        }
-        .announcement-cta:hover {
-          background: #f1f5f9; transform: translateY(-1px);
-          box-shadow: 0 6px 20px rgba(255,255,255,0.25);
-        }
+        .play-btn:hover { background: var(--dl-soft); }
+        .play-btn:active { transform: scale(.98); }
 
         /* ─── PHONE MOCKUP ─── */
-        .hero-right { flex-shrink: 0; position: relative; display: flex; flex-direction: column; align-items: center; }
-
-        .phone-glow {
-          position: absolute; width: 320px; height: 580px;
-          border-radius: 60px;
-          background: radial-gradient(circle at 50% 50%, rgba(99,102,241,0.25) 0%, transparent 70%);
-          filter: blur(40px); z-index: 0;
-          animation: breathe 4s ease-in-out infinite alternate;
-        }
-        @keyframes breathe { from { opacity:0.5; transform: scale(0.92); } to { opacity:1; transform: scale(1.08); } }
-
+        .hero-right { flex: 0 0 auto; position: relative; display: flex; flex-direction: column; align-items: center; max-width: 100%; }
         .phone-frame {
-          width: 270px; height: 555px; border-radius: 48px;
-          background: #0f172a;
-          border: 1.5px solid rgba(255,255,255,0.1);
-          box-shadow: 0 0 0 1px rgba(255,255,255,0.04), 0 40px 100px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,255,255,0.08);
-          overflow: hidden; position: relative; z-index: 1;
+          width: 270px; height: 555px; border-radius: 44px; background: var(--dl-phone);
+          border: 6px solid var(--dl-phone); outline: 1px solid var(--dl-line2);
+          overflow: hidden; position: relative;
         }
-        .phone-notch {
-          position: absolute; top: 0; left: 50%; transform: translateX(-50%);
-          width: 110px; height: 30px;
-          background: #0f172a; border-radius: 0 0 22px 22px; z-index: 10;
-        }
-        .phone-screen { width: 100%; height: 100%; object-fit: cover; object-position: top; display: block; }
-
-        .dots { display: flex; gap: 6px; margin-top: 18px; z-index: 2; }
-        .dot {
-          width: 7px; height: 7px; border-radius: 50%;
-          background: rgba(255,255,255,0.15); cursor: pointer;
-          border: none; transition: all 0.3s ease;
-        }
-        .dot.on { background: #6366f1; width: 22px; border-radius: 4px; }
-
-        /* floating screen labels */
+        .phone-notch { position: absolute; top: 0; left: 50%; transform: translateX(-50%); width: 100px; height: 24px; background: var(--dl-phone); border-radius: 0 0 16px 16px; z-index: 10; }
+        .phone-screen { width: 100%; height: 100%; object-fit: cover; object-position: top; display: block; background: #fff; }
+        .dots { display: flex; gap: 6px; margin-top: 18px; }
+        .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--dl-line2); cursor: pointer; border: none; transition: all .2s; }
+        .dot.on { background: var(--dl-ink); width: 22px; border-radius: 4px; }
         .screen-label {
-          position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);
-          background: rgba(0,0,0,0.7); backdrop-filter: blur(10px);
-          border: 1px solid rgba(255,255,255,0.1);
-          border-radius: 100px; padding: 5px 14px;
-          font-size: 11px; color: #94a3b8; font-weight: 600; white-space: nowrap; z-index: 5;
+          position: absolute; bottom: 18px; left: 50%; transform: translateX(-50%);
+          background: var(--dl-ink); color: var(--dl-on-ink); border-radius: 100px; padding: 5px 14px;
+          font-family: var(--dl-mono); font-size: 11px; font-weight: 600; white-space: nowrap; z-index: 5;
         }
 
-        /* ─── STATS BAR ─── */
+        /* ─── STATS ─── */
         .stats {
-          background: rgba(255,255,255,0.025);
-          border-top: 1px solid rgba(255,255,255,0.06);
-          border-bottom: 1px solid rgba(255,255,255,0.06);
-          padding: 36px 40px;
-          display: flex; justify-content: center; gap: 60px; flex-wrap: wrap;
+          background: var(--dl-card); border-top: 1px solid var(--dl-line); border-bottom: 1px solid var(--dl-line);
+          padding: 28px clamp(16px, 4vw, 40px);
+          display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; max-width: 1080px; margin: 0 auto; border-left: 1px solid var(--dl-line); border-right: 1px solid var(--dl-line);
         }
-        .stat {
-          text-align: center;
-          transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), background 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
-          cursor: default;
-          padding: 14px 28px;
-          border-radius: 20px;
-          border: 1px solid transparent;
-        }
-        .stat:hover {
-          transform: translateY(-6px) scale(1.05);
-          background: rgba(255, 255, 255, 0.02);
-          border-color: rgba(255, 255, 255, 0.04);
-          box-shadow: 0 12px 30px rgba(0, 0, 0, 0.2);
-        }
-        .stat-highlight {
-          background: rgba(99, 102, 241, 0.05);
-          border: 1px solid rgba(99, 102, 241, 0.15);
-          box-shadow: 0 8px 32px rgba(99, 102, 241, 0.06);
-        }
-        .stat-highlight:hover {
-          background: rgba(99, 102, 241, 0.08);
-          border-color: rgba(99, 102, 241, 0.25);
-          box-shadow: 0 12px 36px rgba(99, 102, 241, 0.12);
-        }
-        .stat-n {
-          font-size: 38px; font-weight: 900; letter-spacing: -1.5px; line-height: 1;
-          background: linear-gradient(135deg, #6366f1, #a855f7);
-          -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
-          margin-bottom: 6px;
-          display: inline-block;
-          animation: pulse-glow 3s ease-in-out infinite alternate;
-        }
-        @keyframes pulse-glow {
-          0% { filter: drop-shadow(0 0 2px rgba(99, 102, 241, 0.2)); }
-          100% { filter: drop-shadow(0 0 10px rgba(168, 85, 247, 0.5)); }
-        }
-        .stat-l { font-size: 13px; color: #475569; font-weight: 500; }
+        .stat { text-align: center; padding: 14px 8px; border-radius: 14px; }
+        .stat-highlight { background: var(--dl-soft); }
+        .stat-n { font-size: clamp(26px, 4vw, 36px); font-weight: 800; letter-spacing: -0.03em; line-height: 1; color: var(--dl-ink); margin-bottom: 8px; }
+        .stat-l { font-family: var(--dl-mono); font-size: 11px; color: var(--dl-ink3); font-weight: 600; letter-spacing: .06em; text-transform: uppercase; }
 
         /* ─── ABOUT ─── */
-        .about-section {
-          padding: 90px 40px; max-width: 780px; margin: 0 auto; text-align: center;
-        }
-        .section-tag {
-          font-size: 12px; font-weight: 700; color: #6366f1;
-          letter-spacing: 2.5px; text-transform: uppercase; margin-bottom: 18px;
-        }
-        .section-h { font-size: clamp(26px,4vw,40px); font-weight: 800; letter-spacing: -0.8px; line-height: 1.2; margin-bottom: 24px; }
-        .about-text {
-          font-size: 17px; line-height: 1.8; color: #64748b;
-          margin-bottom: 16px;
-        }
-        .about-text strong { color: #94a3b8; font-weight: 600; }
+        .about-section { padding: 80px clamp(16px, 4vw, 40px); max-width: 780px; margin: 0 auto; text-align: center; }
+        .section-tag { font-family: var(--dl-mono); font-size: 12px; font-weight: 600; color: var(--dl-ink3); letter-spacing: .14em; text-transform: uppercase; margin-bottom: 16px; }
+        .section-h { font-size: clamp(26px, 4vw, 38px); font-weight: 800; letter-spacing: -0.03em; line-height: 1.15; margin-bottom: 22px; }
+        .about-text { font-size: 16.5px; line-height: 1.75; color: var(--dl-ink2); margin-bottom: 14px; }
+        .about-text strong { color: var(--dl-ink); font-weight: 600; }
         .about-highlight {
-          display: inline-flex; align-items: center; gap: 8px;
-          background: rgba(99,102,241,0.08); border: 1px solid rgba(99,102,241,0.2);
-          border-radius: 12px; padding: 12px 20px;
-          font-size: 15px; font-weight: 600; color: #a5b4fc;
-          margin-top: 8px;
+          display: inline-flex; align-items: center; gap: 8px; background: var(--dl-card); border: 1px solid var(--dl-line);
+          border-radius: 12px; padding: 12px 18px; font-size: 14.5px; font-weight: 600; color: var(--dl-ink); margin-top: 8px;
         }
 
         /* ─── FEATURES ─── */
-        .features-section { padding: 20px 40px 90px; max-width: 1080px; margin: 0 auto; }
-        .features-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(290px, 1fr)); gap: 16px; }
-        .feat-card {
-          background: rgba(255,255,255,0.025); border: 1px solid rgba(255,255,255,0.06);
-          border-radius: 20px; padding: 28px;
-          transition: all 0.3s ease; cursor: default;
-        }
-        .feat-card:hover { background: rgba(99,102,241,0.07); border-color: rgba(99,102,241,0.2); transform: translateY(-4px); }
-        .feat-icon {
-          width: 52px; height: 52px; border-radius: 15px;
-          background: rgba(99,102,241,0.1); display: flex; align-items: center; justify-content: center;
-          font-size: 24px; margin-bottom: 18px;
-        }
-        .feat-title { font-size: 16px; font-weight: 700; color: #e2e8f0; margin-bottom: 8px; }
-        .feat-desc { font-size: 14px; color: #475569; line-height: 1.65; }
+        .features-section { padding: 16px clamp(16px, 4vw, 40px) 80px; max-width: 1080px; margin: 0 auto; }
+        .features-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr)); gap: 14px; }
+        .feat-card { background: var(--dl-card); border: 1px solid var(--dl-line); border-radius: 18px; padding: 24px; }
+        .feat-icon { width: 46px; height: 46px; border-radius: 13px; background: var(--dl-soft); display: flex; align-items: center; justify-content: center; font-size: 22px; margin-bottom: 16px; }
+        .feat-title { font-size: 16px; font-weight: 700; color: var(--dl-ink); margin-bottom: 6px; }
+        .feat-desc { font-size: 14px; color: var(--dl-ink2); line-height: 1.6; }
 
         /* ─── SCREENSHOTS ─── */
-        .screens-section {
-          padding: 70px 40px 90px;
-          background: rgba(255,255,255,0.015);
-          border-top: 1px solid rgba(255,255,255,0.05);
-          border-bottom: 1px solid rgba(255,255,255,0.05);
-          text-align: center;
-        }
-        .screens-row {
-          display: flex; gap: 20px; overflow-x: auto; padding: 24px 0 16px;
-          scrollbar-width: none; justify-content: center; flex-wrap: wrap;
-        }
+        .screens-section { padding: 64px clamp(16px, 4vw, 40px) 72px; background: var(--dl-card); border-top: 1px solid var(--dl-line); border-bottom: 1px solid var(--dl-line); text-align: center; }
+        .screens-row { display: flex; gap: 18px; overflow-x: auto; padding: 20px 4px 12px; scrollbar-width: none; justify-content: center; flex-wrap: wrap; }
         .screen-item { flex-shrink: 0; }
-        .screen-phone {
-          width: 175px; height: 355px; border-radius: 32px;
-          border: 1.5px solid rgba(255,255,255,0.08);
-          overflow: hidden; background: #0f172a;
-          box-shadow: 0 20px 60px rgba(0,0,0,0.5);
-          transition: transform 0.3s ease;
-        }
-        .screen-phone:hover { transform: translateY(-10px) scale(1.03); }
+        .screen-phone { width: 170px; height: 345px; border-radius: 28px; border: 5px solid var(--dl-phone); outline: 1px solid var(--dl-line2); overflow: hidden; background: var(--dl-phone); transition: transform .2s; }
+        .screen-phone:hover { transform: translateY(-6px); }
         .screen-phone img { width: 100%; height: 100%; object-fit: cover; object-position: top; display: block; }
-        .screen-lbl { margin-top: 12px; font-size: 12px; color: #334155; font-weight: 600; letter-spacing: 0.5px; }
+        .screen-lbl { margin-top: 12px; font-family: var(--dl-mono); font-size: 11px; color: var(--dl-ink3); font-weight: 600; letter-spacing: .06em; text-transform: uppercase; }
 
         /* ─── INSTALL ─── */
-        .install-section { padding: 80px 40px; max-width: 680px; margin: 0 auto; text-align: center; }
-        .steps { display: flex; flex-direction: column; gap: 14px; margin: 40px 0; text-align: left; }
-        .step {
-          display: flex; align-items: flex-start; gap: 18px;
-          background: rgba(255,255,255,0.025); border: 1px solid rgba(255,255,255,0.06);
-          border-radius: 18px; padding: 22px 24px;
-          transition: all 0.25s ease;
-        }
-        .step:hover { background: rgba(99,102,241,0.06); border-color: rgba(99,102,241,0.15); }
-        .step-n {
-          width: 38px; height: 38px; border-radius: 12px;
-          background: linear-gradient(135deg, #6366f1, #8b5cf6);
-          display: flex; align-items: center; justify-content: center;
-          font-size: 16px; font-weight: 800; flex-shrink: 0;
-          box-shadow: 0 4px 12px rgba(99,102,241,0.35);
-        }
-        .step-body strong { display: block; color: #e2e8f0; font-size: 15px; font-weight: 700; margin-bottom: 4px; }
-        .step-body span { font-size: 14px; color: #475569; line-height: 1.6; }
+        .install-section { padding: 72px clamp(16px, 4vw, 40px); max-width: 680px; margin: 0 auto; text-align: center; }
+        .steps { display: flex; flex-direction: column; gap: 12px; margin: 36px 0 0; text-align: left; }
+        .step { display: flex; align-items: flex-start; gap: 16px; background: var(--dl-card); border: 1px solid var(--dl-line); border-radius: 16px; padding: 20px; }
+        .step-n { width: 36px; height: 36px; border-radius: 11px; background: var(--dl-ink); color: var(--dl-on-ink); display: flex; align-items: center; justify-content: center; font-family: var(--dl-mono); font-size: 14px; font-weight: 700; flex-shrink: 0; }
+        .step-body strong { display: block; color: var(--dl-ink); font-size: 15px; font-weight: 700; margin-bottom: 4px; }
+        .step-body span { font-size: 14px; color: var(--dl-ink2); line-height: 1.6; }
 
         /* ─── CTA ─── */
-        .cta-section {
-          padding: 100px 40px;
-          text-align: center;
-          background:
-            radial-gradient(ellipse 80% 60% at 50% 50%, rgba(99,102,241,0.1) 0%, transparent 70%),
-            #05050f;
-        }
-        .cta-h { font-size: clamp(30px,5vw,54px); font-weight: 900; letter-spacing: -1.5px; margin-bottom: 18px; line-height: 1.1; }
-        .cta-sub { font-size: 17px; color: #475569; margin-bottom: 44px; font-weight: 400; }
-        .cta-btn-row { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; justify-content: center; }
+        .cta-section { padding: 88px clamp(16px, 4vw, 40px); text-align: center; background: var(--dl-bg); border-top: 1px solid var(--dl-line); }
+        .cta-h { font-size: clamp(28px, 5vw, 50px); font-weight: 800; letter-spacing: -0.035em; margin-bottom: 14px; line-height: 1.08; }
+        .cta-sub { font-size: 16px; color: var(--dl-ink2); margin-bottom: 36px; }
+        .cta-btn-row { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: center; }
 
         /* ─── FOOTER ─── */
-        .footer {
-          padding: 36px 40px; text-align: center;
-          border-top: 1px solid rgba(255,255,255,0.05);
-        }
-        .footer p { font-size: 13px; color: #1e293b; }
-        .footer a { color: #6366f1; text-decoration: none; font-weight: 500; }
-        .footer a:hover { color: #a5b4fc; }
+        .footer { padding: 28px clamp(16px, 4vw, 40px); text-align: center; border-top: 1px solid var(--dl-line); }
+        .footer p { font-size: 13px; color: var(--dl-ink3); line-height: 1.8; }
+        .footer a { color: var(--dl-ink); text-decoration: none; font-weight: 600; }
+        .footer a:hover { text-decoration: underline; }
 
         /* ─── TOAST ─── */
         .toast {
-          position: fixed; bottom: 36px; left: 50%; transform: translateX(-50%);
-          background: #0f172a; border: 1px solid rgba(99,102,241,0.4);
-          color: #e2e8f0; padding: 14px 26px; border-radius: 14px;
-          font-size: 14px; font-weight: 600; z-index: 9999;
-          box-shadow: 0 12px 40px rgba(0,0,0,0.5);
-          animation: popUp 0.35s cubic-bezier(0.34,1.56,0.64,1);
-          white-space: nowrap;
-        }
-        @keyframes popUp {
-          from { opacity:0; transform: translateX(-50%) translateY(16px) scale(0.95); }
-          to   { opacity:1; transform: translateX(-50%) translateY(0) scale(1); }
+          position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%);
+          background: var(--dl-ink); color: var(--dl-on-ink); padding: 12px 22px; border-radius: 12px;
+          font-size: 14px; font-weight: 600; z-index: 9999; max-width: calc(100vw - 32px); text-align: center;
         }
 
-        /* ─── PERMANENT QR CARD ─── */
-        .qr-card-container {
-          margin-top: 24px;
-          display: flex;
-          align-items: center;
-          gap: 20px;
-          background: rgba(255, 255, 255, 0.02);
-          border: 1px solid rgba(255, 255, 255, 0.06);
-          border-radius: 20px;
-          padding: 20px;
-          max-width: 440px;
-          text-align: left;
+        /* ─── MODALS ─── */
+        .qr-modal-overlay, .ios-modal-overlay {
+          position: fixed; inset: 0; background: rgba(10,10,9,0.55); display: flex; align-items: center; justify-content: center; z-index: 10000; padding: 16px;
         }
-        .qr-card-img-wrapper {
-          background: #fff;
-          padding: 8px;
-          border-radius: 12px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          flex-shrink: 0;
+        .qr-modal-content, .ios-modal-content {
+          background: var(--dl-panel); color: var(--dl-ink); border: 1px solid var(--dl-line2); border-radius: 22px;
+          padding: 32px 26px; width: 100%; max-width: 420px; max-height: calc(100dvh - 32px); overflow-y: auto; text-align: center; position: relative;
+          display: flex; flex-direction: column; align-items: center;
         }
-        .qr-card-img {
-          width: 100px;
-          height: 100px;
-          display: block;
+        .qr-modal-close, .ios-modal-close {
+          position: absolute; top: 14px; right: 14px; background: var(--dl-soft); border: none; color: var(--dl-ink2);
+          width: 32px; height: 32px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center;
         }
-        .qr-card-info {
-          display: flex;
-          flex-direction: column;
-          gap: 6px;
-        }
-        .qr-card-title {
-          font-size: 15px;
-          font-weight: 700;
-          color: #fff;
-        }
-        .qr-card-subtitle {
-          font-size: 13px;
-          color: #94a3b8;
-          line-height: 1.4;
-        }
-        .qr-card-hint {
-          font-size: 11px;
-          color: rgba(255, 255, 255, 0.35);
-          font-weight: 500;
-          margin-top: 4px;
-        }
-
-        /* ─── QR MODAL OVERLAY ─── */
-        .qr-modal-overlay {
-          position: fixed;
-          top: 0; left: 0; right: 0; bottom: 0;
-          background: rgba(5, 5, 15, 0.85);
-          backdrop-filter: blur(12px);
-          -webkit-backdrop-filter: blur(12px);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          z-index: 10000;
-          padding: 20px;
-        }
-        .qr-modal-content {
-          background: rgba(20, 20, 35, 0.95);
-          border: 1.5px solid rgba(255, 255, 255, 0.08);
-          border-radius: 24px;
-          padding: 36px 30px;
-          max-width: 360px;
-          width: 100%;
-          text-align: center;
-          box-shadow: 0 25px 60px rgba(0, 0, 0, 0.5), 0 0 40px rgba(99, 102, 241, 0.1);
-          position: relative;
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          animation: qrModalUp 0.35s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-        @keyframes qrModalUp {
-          from { opacity: 0; transform: translateY(20px) scale(0.96); }
-          to { opacity: 1; transform: translateY(0) scale(1); }
-        }
-        .qr-modal-close {
-          position: absolute;
-          top: 20px;
-          right: 20px;
-          background: rgba(255, 255, 255, 0.05);
-          border: none;
-          color: #94a3b8;
-          width: 32px;
-          height: 32px;
-          border-radius: 50%;
-          cursor: pointer;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          transition: all 0.2s;
-        }
-        .qr-modal-close:hover {
-          background: rgba(255, 255, 255, 0.1);
-          color: #fff;
-        }
-        .qr-modal-title {
-          font-size: 20px;
-          font-weight: 800;
-          color: #fff;
-          margin-bottom: 8px;
-        }
-        .qr-modal-desc {
-          font-size: 14px;
-          color: #94a3b8;
-          line-height: 1.5;
-          margin-bottom: 24px;
-        }
-        .qr-modal-code-wrapper {
-          background: #fff;
-          padding: 12px;
-          border-radius: 16px;
-          margin-bottom: 20px;
-          box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
-        }
-        .qr-modal-code {
-          width: 180px;
-          height: 180px;
-          display: block;
-        }
-        .qr-modal-hint {
-          font-size: 13px;
-          font-weight: 600;
-          color: #a5b4fc;
-          margin-bottom: 8px;
-        }
-        .qr-modal-specs {
-          font-size: 11px;
-          color: #475569;
-          font-weight: 600;
-          text-transform: uppercase;
-          letter-spacing: 0.5px;
-          margin-bottom: 24px;
-        }
+        .qr-modal-close:hover, .ios-modal-close:hover { color: var(--dl-ink); }
+        .qr-modal-title, .ios-modal-title { font-size: 20px; font-weight: 800; color: var(--dl-ink); margin-bottom: 6px; letter-spacing: -0.02em; }
+        .qr-modal-desc, .ios-modal-subtitle { font-size: 14px; color: var(--dl-ink2); line-height: 1.5; margin-bottom: 22px; }
+        .qr-modal-specs { font-family: var(--dl-mono); font-size: 10.5px; color: var(--dl-ink3); font-weight: 600; text-transform: uppercase; letter-spacing: .05em; margin-bottom: 20px; }
         .btn-copy-link {
-          width: 100%;
-          background: rgba(255, 255, 255, 0.05);
-          border: 1px solid rgba(255, 255, 255, 0.08);
-          border-radius: 12px;
-          padding: 11px 0;
-          font-size: 13.5px;
-          font-weight: 700;
-          color: #e2e8f0;
-          cursor: pointer;
-          transition: all 0.2s;
+          width: 100%; background: var(--dl-card); border: 1px solid var(--dl-line2); border-radius: 12px; padding: 11px 0;
+          font-size: 13.5px; font-weight: 700; color: var(--dl-ink); cursor: pointer; font-family: inherit;
         }
-        .btn-copy-link:hover {
-          background: rgba(255, 255, 255, 0.08);
-          border-color: rgba(255, 255, 255, 0.12);
-        }
-        .dl-btn:disabled {
-          opacity: 0.6;
-          cursor: not-allowed;
-          background: #475569 !important;
-          box-shadow: none !important;
-          transform: none !important;
-        }
+        .btn-copy-link:hover { background: var(--dl-soft); }
+        .ios-modal-handle { display: none; }
+        .ios-step { display: flex; align-items: flex-start; gap: 14px; text-align: left; padding: 12px 0; border-bottom: 1px solid var(--dl-line); width: 100%; }
+        .ios-step:last-child { border-bottom: none; }
+        .ios-step-num { width: 30px; height: 30px; border-radius: 9px; background: var(--dl-ink); color: var(--dl-on-ink); display: flex; align-items: center; justify-content: center; font-family: var(--dl-mono); font-size: 13px; font-weight: 700; flex-shrink: 0; }
+        .ios-step-text { font-size: 14px; color: var(--dl-ink2); line-height: 1.5; }
+        .ios-step-text strong { color: var(--dl-ink); font-weight: 700; }
+        .ios-step-text svg { stroke: var(--dl-ink); }
+        .ios-install-btn { display: flex; align-items: center; gap: 12px; padding: 12px 24px; border-radius: 14px; }
+        .ios-installed-btn { display: flex; align-items: center; gap: 10px; padding: 13px 24px; border-radius: 14px; background: var(--dl-card); border: 1px solid var(--dl-line2); color: var(--dl-ok); font-size: 15px; font-weight: 700; }
 
-        /* ─── IOS INSTALL BUTTON ─── */
-        .ios-install-btn {
-          display: flex;
-          align-items: center;
-          gap: 14px;
-          padding: 14px 28px;
-          border-radius: 16px;
-          background: linear-gradient(135deg, #6366f1, #8b5cf6);
-          color: #fff;
-          border: none;
-          cursor: pointer;
-          font-size: 15px;
-          font-weight: 700;
-          font-family: 'Inter', sans-serif;
-          transition: all 0.2s ease;
-          box-shadow: 0 6px 20px rgba(99, 102, 241, 0.35);
-        }
-        .ios-install-btn:hover {
-          transform: translateY(-2px);
-          box-shadow: 0 10px 30px rgba(99, 102, 241, 0.5);
-        }
-        .ios-install-btn:active {
-          transform: scale(0.98);
-        }
-        .ios-installed-btn {
-          display: flex;
-          align-items: center;
-          gap: 10px;
-          padding: 14px 28px;
-          border-radius: 16px;
-          background: rgba(34, 197, 94, 0.12);
-          border: 1px solid rgba(34, 197, 94, 0.3);
-          color: #4ade80;
-          font-size: 15px;
-          font-weight: 700;
-          font-family: 'Inter', sans-serif;
-          cursor: default;
-        }
-
-        /* ─── DUAL QR CARDS ─── */
-        .dual-qr-wrapper {
-          margin-top: 28px;
-          text-align: left;
-        }
-        .dual-qr-title {
-          font-size: 15px;
-          font-weight: 700;
-          color: #e2e8f0;
-          margin-bottom: 14px;
-        }
-        .dual-qr-flex {
-          display: flex;
-          gap: 14px;
-        }
+        /* ─── QR CARDS ─── */
+        .dual-qr-wrapper { margin-top: 26px; text-align: left; }
+        .dual-qr-title { font-size: 15px; font-weight: 700; color: var(--dl-ink); margin-bottom: 14px; }
+        .dual-qr-flex { display: flex; gap: 12px; flex-wrap: wrap; }
         .dual-qr-card {
-          flex: 1;
-          background: rgba(255, 255, 255, 0.02);
-          border: 1px solid rgba(255, 255, 255, 0.06);
-          border-radius: 18px;
-          padding: 18px;
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          gap: 12px;
-          text-align: center;
-          transition: all 0.25s ease;
+          flex: 1 1 150px; min-width: 0; background: var(--dl-card); border: 1px solid var(--dl-line); border-radius: 16px; padding: 16px;
+          display: flex; flex-direction: column; align-items: center; gap: 10px; text-align: center;
         }
-        .dual-qr-card:hover {
-          background: rgba(99, 102, 241, 0.04);
-          border-color: rgba(99, 102, 241, 0.15);
-        }
-        .dual-qr-card-label {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          font-size: 14px;
-          font-weight: 700;
-          color: #fff;
-        }
-        .dual-qr-card-sub {
-          font-size: 11.5px;
-          color: #94a3b8;
-          line-height: 1.4;
-        }
-        .dual-qr-code-wrap {
-          background: #fff;
-          padding: 6px;
-          border-radius: 10px;
-        }
-        .dual-qr-code-wrap img {
-          width: 110px;
-          height: 110px;
-          display: block;
-        }
-
-        /* ─── IOS INSTALL MODAL (BOTTOM SHEET) ─── */
-        .ios-modal-overlay {
-          position: fixed;
-          top: 0; left: 0; right: 0; bottom: 0;
-          background: rgba(5, 5, 15, 0.85);
-          backdrop-filter: blur(12px);
-          -webkit-backdrop-filter: blur(12px);
-          display: flex;
-          align-items: flex-end;
-          justify-content: center;
-          z-index: 10000;
-          padding: 0;
-        }
-        @media (min-width: 641px) {
-          .ios-modal-overlay {
-            align-items: center;
-            padding: 20px;
-          }
-        }
-        .ios-modal-content {
-          background: rgba(20, 20, 35, 0.97);
-          border: 1.5px solid rgba(255, 255, 255, 0.08);
-          border-radius: 24px 24px 0 0;
-          padding: 32px 24px 40px;
-          width: 100%;
-          max-width: 420px;
-          text-align: center;
-          box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.4);
-          position: relative;
-          animation: iosSheetUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-        @media (min-width: 641px) {
-          .ios-modal-content {
-            border-radius: 24px;
-            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.5), 0 0 40px rgba(99, 102, 241, 0.1);
-            animation: qrModalUp 0.35s cubic-bezier(0.16, 1, 0.3, 1);
-          }
-        }
-        @keyframes iosSheetUp {
-          from { opacity: 0; transform: translateY(100%); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-        .ios-modal-handle {
-          width: 40px;
-          height: 4px;
-          border-radius: 2px;
-          background: rgba(255, 255, 255, 0.15);
-          margin: 0 auto 20px;
-        }
-        .ios-modal-close {
-          position: absolute;
-          top: 16px;
-          right: 16px;
-          background: rgba(255, 255, 255, 0.05);
-          border: none;
-          color: #94a3b8;
-          width: 32px;
-          height: 32px;
-          border-radius: 50%;
-          cursor: pointer;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          transition: all 0.2s;
-        }
-        .ios-modal-close:hover {
-          background: rgba(255, 255, 255, 0.1);
-          color: #fff;
-        }
-        .ios-modal-title {
-          font-size: 20px;
-          font-weight: 800;
-          color: #fff;
-          margin-bottom: 6px;
-        }
-        .ios-modal-subtitle {
-          font-size: 13px;
-          color: #94a3b8;
-          margin-bottom: 28px;
-        }
-        .ios-step {
-          display: flex;
-          align-items: flex-start;
-          gap: 14px;
-          text-align: left;
-          padding: 12px 0;
-          border-bottom: 1px solid rgba(255, 255, 255, 0.04);
-        }
-        .ios-step:last-child {
-          border-bottom: none;
-        }
-        .ios-step-num {
-          width: 32px;
-          height: 32px;
-          border-radius: 10px;
-          background: linear-gradient(135deg, #6366f1, #8b5cf6);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-size: 14px;
-          font-weight: 800;
-          color: #fff;
-          flex-shrink: 0;
-          box-shadow: 0 4px 10px rgba(99, 102, 241, 0.3);
-        }
-        .ios-step-text {
-          font-size: 14px;
-          color: #cbd5e1;
-          line-height: 1.5;
-        }
-        .ios-step-text strong {
-          color: #fff;
-          font-weight: 700;
-        }
+        .dual-qr-card-label { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 700; color: var(--dl-ink); }
+        .dual-qr-card-sub { font-size: 11.5px; color: var(--dl-ink2); line-height: 1.4; }
+        .dual-qr-code-wrap { background: #fff; padding: 6px; border-radius: 10px; border: 1px solid var(--dl-line); }
+        .dual-qr-code-wrap img { width: 110px; height: 110px; display: block; }
+        .cta-qr { background: var(--dl-card); border: 1px solid var(--dl-line); border-radius: 22px; padding: 22px; }
 
         /* ─── RESPONSIVE ─── */
-        @media (max-width: 640px) {
-          .navbar { padding: 16px 20px; }
-          .hero { padding: 100px 20px 60px; gap: 50px; }
-          .stats { gap: 36px; padding: 32px 20px; }
-          .features-section, .about-section, .install-section { padding-left: 20px; padding-right: 20px; }
-          .screens-section { padding: 60px 20px 70px; }
-          .cta-section { padding: 70px 20px; }
-          .screen-phone { width: 150px; height: 305px; }
-          .announcement-banner { flex-direction: column; align-items: stretch; gap: 12px; padding: 14px; }
-          .announcement-body { flex-direction: column; align-items: flex-start; gap: 8px; font-size: 13px; }
-          .announcement-cta { width: 100%; justify-content: center; }
-          .play-btn { width: 100%; justify-content: center; }
+        @media (max-width: 900px) {
+          .hero { min-height: 0; padding-top: 96px; flex-direction: column; align-items: stretch; }
+          .hero-left { max-width: none; flex: 0 0 auto; }
+          .hero-right { align-self: center; }
+          .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); border-left: none; border-right: none; }
         }
+        @media (max-width: 640px) {
+          .navbar { height: 58px; }
+          .nav-login-link { padding: 8px 10px; }
+          .hero { padding-bottom: 48px; gap: 40px; }
+          .hero-desc { font-size: 15px; }
+          .btn-row > div { width: 100%; }
+          .play-btn, .dl-btn, .share-btn { width: 100%; justify-content: center; }
+          .play-btn > div { text-align: left; }
+          .about-section { padding-top: 56px; padding-bottom: 56px; }
+          .features-section { padding-bottom: 56px; }
+          .screens-section { padding-top: 48px; padding-bottom: 52px; }
+          .screens-row { flex-wrap: nowrap; justify-content: flex-start; scroll-snap-type: x mandatory; margin: 0 -16px; padding-left: 16px; padding-right: 16px; }
+          .screen-item { scroll-snap-align: center; }
+          .screen-phone { width: 150px; height: 305px; }
+          .install-section { padding-top: 52px; padding-bottom: 52px; }
+          .step { padding: 16px; gap: 12px; }
+          .cta-section { padding-top: 60px; padding-bottom: 60px; }
+          .cta-qr { padding: 16px; }
+          .qr-modal-content, .ios-modal-content { padding: 28px 18px; }
+          .ios-modal-overlay { align-items: flex-end; padding: 0; }
+          .ios-modal-content { border-radius: 22px 22px 0 0; max-width: none; }
+          .ios-modal-handle { display: block; width: 40px; height: 4px; border-radius: 2px; background: var(--dl-line2); margin: 0 auto 18px; }
+        }
+        @media (max-width: 380px) {
+          .phone-frame { width: 240px; height: 495px; }
+          .stat-n { font-size: 24px; }
+        }
+        @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } * { transition: none !important; } }
       `}</style>
 
       {/* ─── NAVBAR ─── */}
@@ -943,25 +418,6 @@ export default function DownloadPage() {
       {/* ─── HERO ─── */}
       <section className="hero">
         <div className="hero-left">
-          {/* Announcement Banner */}
-          <div className="announcement-banner">
-            <div className="announcement-body">
-              <span className="announcement-tag">Google Play</span>
-              <span className="announcement-text">
-                🎉 <strong>Official Release:</strong> We are proud to announce our official app is now live on Google Play Store! Please download it.
-              </span>
-            </div>
-            <a
-              href={PLAY_STORE_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="announcement-cta"
-            >
-              <PlayGlyph size={15} />
-              <span>Install App</span>
-            </a>
-          </div>
-
           <div className="badge">
             <span className="badge-live" />
             First-of-its-kind · IITM BS Community
@@ -971,7 +427,7 @@ export default function DownloadPage() {
 
           <h1 className="hero-title">Everything You Need,</h1>
           <h2 className="hero-title-sub">
-            <span className="grad">In One Place.</span>
+            <span className="accent">In One Place.</span>
           </h2>
 
           <p className="hero-desc">
@@ -993,7 +449,7 @@ export default function DownloadPage() {
                       <span className="dl-icon">📱</span>
                       <span>Install on iPhone</span>
                     </button>
-                    <p style={{ fontSize: '13px', color: '#94a3b8', margin: '4px 0 0 0', fontWeight: '500' }}>
+                    <p style={{ fontSize: '13px', color: 'var(--dl-ink2)', margin: '4px 0 0 0', fontWeight: '500' }}>
                       Add GenZ IITian to your Home Screen
                     </p>
                   </div>
@@ -1006,7 +462,7 @@ export default function DownloadPage() {
                   className="play-btn"
                   onClick={() => posthog.capture('play_store_clicked', { source: 'hero' })}
                 >
-                  <span className="dl-icon" style={{ background: 'rgba(255,255,255,0.08)' }}>
+                  <span className="dl-icon" style={{ background: 'var(--dl-soft)' }}>
                     <PlayGlyph size={24} />
                   </span>
                   <div style={{ textAlign: 'left' }}>
@@ -1046,7 +502,7 @@ export default function DownloadPage() {
                     href={PLAY_STORE_URL}
                     target="_blank"
                     rel="noopener noreferrer"
-                    style={{ fontSize: '11px', color: '#34d399', fontWeight: '700', textDecoration: 'none' }}
+                    style={{ fontSize: '11px', color: 'var(--dl-ok)', fontWeight: '700', textDecoration: 'none' }}
                   >
                     Google Play Store ↗
                   </a>
@@ -1063,7 +519,7 @@ export default function DownloadPage() {
                     />
                   </div>
                   <div className="dual-qr-card-sub">Scan to add GenZ IITian to your iPhone</div>
-                  <div style={{ fontSize: '11px', color: '#a855f7', fontWeight: '700' }}>Add to Home Screen</div>
+                  <div style={{ fontSize: '11px', color: 'var(--dl-ink2)', fontWeight: '700' }}>Add to Home Screen</div>
                 </div>
               </div>
             </div>
@@ -1072,7 +528,6 @@ export default function DownloadPage() {
 
         {/* Phone Mockup */}
         <div className="hero-right">
-          <div className="phone-glow" />
           <div className="phone-frame">
             <div className="phone-notch" />
             <img
@@ -1083,7 +538,7 @@ export default function DownloadPage() {
               onError={(e) => {
                 e.currentTarget.style.display = 'none'
                 const parent = e.currentTarget.parentElement!
-                parent.style.background = 'linear-gradient(180deg, #1e1b4b 0%, #312e81 50%, #1e1b4b 100%)'
+                parent.style.background = 'var(--dl-soft)'
               }}
             />
             <div className="screen-label">{SCREENSHOTS[activeScreen].label}</div>
@@ -1121,7 +576,7 @@ export default function DownloadPage() {
               <div className="screen-phone">
                 <img src={s.src} alt={s.label} onError={(e) => {
                   e.currentTarget.style.display = 'none'
-                  e.currentTarget.parentElement!.style.background = 'linear-gradient(180deg, #1e1b4b 0%, #312e81 100%)'
+                  e.currentTarget.parentElement!.style.background = 'var(--dl-soft)'
                 }} />
               </div>
               <div className="screen-lbl">{s.label}</div>
@@ -1133,7 +588,7 @@ export default function DownloadPage() {
       {/* ─── ABOUT ─── */}
       <section className="about-section">
         <p className="section-tag">About The App</p>
-        <h2 className="section-h">Built by Students,<br /><span className="grad">For Students</span></h2>
+        <h2 className="section-h">Built by Students,<br /><span className="accent">For Students</span></h2>
         <p className="about-text">
           For the first time, students can <strong>access everything they need in one place.</strong>{' '}
           Explore and purchase courses, connect with fellow learners, receive instant updates,
@@ -1153,7 +608,7 @@ export default function DownloadPage() {
       <section className="features-section">
         <div style={{ textAlign: 'center', marginBottom: 48 }}>
           <p className="section-tag">What's Inside</p>
-          <h2 className="section-h">Everything For Your<br /><span className="grad2">Learning Journey</span></h2>
+          <h2 className="section-h">Everything For Your<br /><span className="accent">Learning Journey</span></h2>
         </div>
         <div className="features-grid">
           {FEATURES.map((f, i) => (
@@ -1171,7 +626,7 @@ export default function DownloadPage() {
       {/* ─── INSTALL GUIDE ─── */}
       <section className="install-section">
         <p className="section-tag">Quick Setup</p>
-        <h2 className="section-h">Install in <span className="grad">3 Simple Steps</span></h2>
+        <h2 className="section-h">Install in <span className="accent">3 Simple Steps</span></h2>
         <div className="steps">
           {[
             { n: '1', t: 'Open Google Play Store', b: 'Click the button or scan the QR code to open GenZ IITian directly on the Google Play Store.' },
@@ -1191,7 +646,7 @@ export default function DownloadPage() {
 
       {/* ─── CTA ─── */}
       <section className="cta-section">
-        <h2 className="cta-h">Ready to Join the<br /><span className="grad">IITM BS Community?</span></h2>
+        <h2 className="cta-h">Ready to Join the<br /><span className="accent">IITM BS Community?</span></h2>
         <p className="cta-sub">Install our official app from the Google Play Store and start learning today.</p>
         <div className="cta-btn-row" style={{ display: 'flex', flexDirection: 'column', gap: '8px', alignItems: 'center' }}>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '14px', alignItems: 'center', justifyContent: 'center' }}>
@@ -1206,7 +661,7 @@ export default function DownloadPage() {
                     <span className="dl-icon">📱</span>
                     <span>Install on iPhone</span>
                   </button>
-                  <p style={{ fontSize: '13px', color: '#94a3b8', margin: '4px 0 0 0', fontWeight: '500' }}>
+                  <p style={{ fontSize: '13px', color: 'var(--dl-ink2)', margin: '4px 0 0 0', fontWeight: '500' }}>
                     Add GenZ IITian to your Home Screen
                   </p>
                 </div>
@@ -1219,7 +674,7 @@ export default function DownloadPage() {
                 className="play-btn"
                 onClick={() => posthog.capture('play_store_clicked', { source: 'cta' })}
               >
-                <span className="dl-icon" style={{ background: 'rgba(255,255,255,0.08)' }}>
+                <span className="dl-icon" style={{ background: 'var(--dl-soft)' }}>
                   <PlayGlyph size={24} />
                 </span>
                 <div style={{ textAlign: 'left' }}>
@@ -1241,7 +696,7 @@ export default function DownloadPage() {
 
         {(device === 'desktop' || !device) && (
           <div style={{ marginTop: '32px', display: 'flex', justifyContent: 'center' }}>
-            <div className="dual-qr-wrapper" style={{ background: 'rgba(255, 255, 255, 0.01)', border: '1px solid rgba(255, 255, 255, 0.04)', borderRadius: '24px', padding: '24px' }}>
+            <div className="dual-qr-wrapper cta-qr">
               <div className="dual-qr-title" style={{ textAlign: 'center', marginBottom: '20px' }}>Get GenZ IITian on your phone</div>
               <div className="dual-qr-flex" style={{ justifyContent: 'center' }}>
                 <div className="dual-qr-card" style={{ maxWidth: '175px' }}>
@@ -1348,7 +803,7 @@ export default function DownloadPage() {
                 target="_blank"
                 rel="noopener noreferrer"
                 className="btn-copy-link"
-                style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', background: 'linear-gradient(135deg, #01875f, #029e6f)', color: '#fff' }}
+                style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
               >
                 <PlayGlyph size={16} />
                 <span>Open Google Play Store</span>
@@ -1389,7 +844,7 @@ export default function DownloadPage() {
                 <div className="ios-step-text">
                   Tap the <strong>Share</strong> button
                   <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', padding: '4px', borderRadius: '6px', verticalAlign: 'middle', margin: '0 4px' }}>
-                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                       <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/>
                       <polyline points="16 6 12 2 8 6"/>
                       <line x1="12" y1="2" x2="12" y2="15"/>
@@ -1404,7 +859,7 @@ export default function DownloadPage() {
                 <div className="ios-step-text">
                   Scroll down and tap <strong>Add to Home Screen</strong>
                   <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', padding: '4px', borderRadius: '6px', verticalAlign: 'middle', margin: '0 4px' }}>
-                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                       <rect x="3" y="3" width="18" height="18" rx="5" ry="5"/>
                       <line x1="12" y1="8" x2="12" y2="16"/>
                       <line x1="8" y1="12" x2="16" y2="12"/>

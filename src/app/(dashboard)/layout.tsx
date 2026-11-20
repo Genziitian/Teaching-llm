@@ -1,3 +1,4 @@
+import './redesign.css'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { getFullSession } from '@/lib/auth'
@@ -9,11 +10,14 @@ import GenieWidget from '@/components/genie/GenieWidget'
 import GenieAgentAlerts from '@/components/genie/GenieAgentAlerts'
 import ProfileSetupBlocker from '@/components/ProfileSetupBlocker'
 import IdentitySetupBlocker from '@/components/IdentitySetupBlocker'
+import NameFixBlocker from '@/components/NameFixBlocker'
+import { nameHasDigit } from '@/lib/name-validation'
 import DynamicPromptBlocker from '@/components/DynamicPromptBlocker'
 import UserJourneyTracker from '@/components/UserJourneyTracker'
 import PushNotificationSetup from '@/components/PushNotificationSetup'
 import { UserDataProvider } from '@/components/UserDataProvider'
 import GlobalUploadProgressModal from '@/components/GlobalUploadProgressModal'
+import { SupportCallListener } from '@/components/support/SupportCall'
 
 
 import { TourProvider } from '@/components/tour/TourContext'
@@ -44,6 +48,10 @@ export default async function DashboardLayout({
     return <ProfileSetupBlocker user={session} />
   }
 
+  if (nameHasDigit(session.name)) {
+    return <NameFixBlocker user={session} />
+  }
+
   if (!session.isIdentityUpdated) {
     return <IdentitySetupBlocker user={session} />
   }
@@ -62,7 +70,7 @@ export default async function DashboardLayout({
             <main className="dashboard-scroll-region">
               {children}
             </main>
-            <GenieWidget userRole={session.role} />
+            <GenieWidget userRole={session.role} userName={session.name} />
             <GenieAgentAlerts userRole={session.role} />
             <MobileBottomNav userRole={session.role} />
           </div>
@@ -72,6 +80,7 @@ export default async function DashboardLayout({
           <UserJourneyTracker enableDetailedLogs={session.enableDetailedLogs} />
           <PushNotificationSetup />
           <GlobalUploadProgressModal />
+          {(session.role === 'MANAGER' || session.role === 'STUDENT') && <SupportCallListener role={session.role} />}
         </div>
       </TourProvider>
     </UserDataProvider>

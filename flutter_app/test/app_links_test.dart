@@ -75,7 +75,6 @@ void main() {
     addTearDown(container.dispose);
     for (final path in [
       '/academics',
-      '/exam-protection',
       '/free-resources',
       '/store/notes',
       '/community',

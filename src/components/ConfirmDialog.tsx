@@ -80,7 +80,7 @@ export default function ConfirmDialog({
         }}
         onClick={e => e.stopPropagation()}
       >
-        <div style={{ fontSize: '20px', fontWeight: '800', color: 'var(--text-primary)', marginBottom: '8px' }}>
+        <div style={{ fontSize: '20px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '8px' }}>
           {title}
         </div>
         <p style={{ fontSize: '14px', lineHeight: '1.6', color: 'var(--text-secondary)', marginBottom: '22px' }}>
@@ -105,11 +105,11 @@ export default function ConfirmDialog({
               padding: '10px 22px',
               fontFamily: 'inherit',
               fontSize: '13px',
-              fontWeight: '700',
+              fontWeight: 600,
               cursor: loading ? 'not-allowed' : 'pointer',
               color: '#fff',
               background: confirmBg,
-              boxShadow: '0 4px 12px ' + (tone === 'danger' ? 'rgba(239,68,68,0.3)' : 'rgba(54,54,232,0.3)'),
+              boxShadow: '0 4px 12px ' + (tone === 'danger' ? 'rgba(239,68,68,0.3)' : 'color-mix(in srgb, var(--primary) 30%, transparent)'),
               opacity: loading ? 0.7 : 1,
               transition: 'all 0.2s ease'
             }}

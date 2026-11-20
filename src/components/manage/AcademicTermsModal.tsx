@@ -148,7 +148,7 @@ export default function AcademicTermsModal({ isOpen, onClose, onUpdated }: Acade
         style={{
           background: 'var(--surface, #1e1e2d)',
           color: 'var(--text-primary, #ffffff)',
-          borderRadius: '16px',
+          borderRadius: '12px',
           width: '100%',
           maxWidth: '780px',
           maxHeight: '90vh',
@@ -171,7 +171,7 @@ export default function AcademicTermsModal({ isOpen, onClose, onUpdated }: Acade
           }}
         >
           <div>
-            <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 800 }}>
+            <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 600 }}>
               Academic Terms & Exam Cycles
             </h3>
             <p style={{ margin: '4px 0 0', fontSize: '12px', color: 'var(--text-muted, #9999b0)' }}>
@@ -218,7 +218,7 @@ export default function AcademicTermsModal({ isOpen, onClose, onUpdated }: Acade
             /* Editing / Creating View */
             <div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <h4 style={{ margin: 0, fontSize: '15px', fontWeight: 800 }}>
+                <h4 style={{ margin: 0, fontSize: '15px', fontWeight: 600 }}>
                   {isNew ? 'Create New Academic Term' : `Edit ${editingTerm.name}`}
                 </h4>
                 <button
@@ -240,7 +240,7 @@ export default function AcademicTermsModal({ isOpen, onClose, onUpdated }: Acade
 
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '14px' }}>
                 <div>
-                  <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: '6px' }}>
+                  <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: '6px' }}>
                     Term Trimester
                   </label>
                   <select
@@ -267,7 +267,7 @@ export default function AcademicTermsModal({ isOpen, onClose, onUpdated }: Acade
                 </div>
 
                 <div>
-                  <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: '6px' }}>
+                  <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: '6px' }}>
                     Academic Year
                   </label>
                   <input
@@ -293,7 +293,7 @@ export default function AcademicTermsModal({ isOpen, onClose, onUpdated }: Acade
 
               {/* Term Dates */}
               <div style={{ background: 'var(--surface-2, #252538)', padding: '16px', borderRadius: '12px', border: '1px solid var(--border, #36364e)' }}>
-                <div style={{ fontSize: '12px', fontWeight: 800, textTransform: 'uppercase', color: 'var(--text-secondary)', marginBottom: '12px' }}>
+                <div style={{ fontSize: '12px', fontWeight: 600, textTransform: 'uppercase', color: 'var(--text-secondary)', marginBottom: '12px' }}>
                   Term Start & End Dates
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
@@ -336,13 +336,13 @@ export default function AcademicTermsModal({ isOpen, onClose, onUpdated }: Acade
 
               {/* Exam Cycles */}
               <div style={{ background: 'var(--surface-2, #252538)', padding: '16px', borderRadius: '12px', border: '1px solid var(--border, #36364e)' }}>
-                <div style={{ fontSize: '12px', fontWeight: 800, textTransform: 'uppercase', color: 'var(--text-secondary)', marginBottom: '12px' }}>
+                <div style={{ fontSize: '12px', fontWeight: 600, textTransform: 'uppercase', color: 'var(--text-secondary)', marginBottom: '12px' }}>
                   Exam Stage Start & End Dates
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                   {/* Quiz 1 */}
                   <div style={{ display: 'grid', gridTemplateColumns: '100px 1fr 1fr', gap: '12px', alignItems: 'center' }}>
-                    <span style={{ fontSize: '12px', fontWeight: 700, color: '#a78bfa' }}>Quiz 1</span>
+                    <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--primary)' }}>Quiz 1</span>
                     <input
                       type="date"
                       value={editingTerm.examCycles?.QUIZ_1?.startDate || ''}
@@ -385,7 +385,7 @@ export default function AcademicTermsModal({ isOpen, onClose, onUpdated }: Acade
 
                   {/* Quiz 2 */}
                   <div style={{ display: 'grid', gridTemplateColumns: '100px 1fr 1fr', gap: '12px', alignItems: 'center' }}>
-                    <span style={{ fontSize: '12px', fontWeight: 700, color: '#34d399' }}>Quiz 2</span>
+                    <span style={{ fontSize: '12px', fontWeight: 600, color: '#34d399' }}>Quiz 2</span>
                     <input
                       type="date"
                       value={editingTerm.examCycles?.QUIZ_2?.startDate || ''}
@@ -428,7 +428,7 @@ export default function AcademicTermsModal({ isOpen, onClose, onUpdated }: Acade
 
                   {/* End Term */}
                   <div style={{ display: 'grid', gridTemplateColumns: '100px 1fr 1fr', gap: '12px', alignItems: 'center' }}>
-                    <span style={{ fontSize: '12px', fontWeight: 700, color: '#fbbf24' }}>End Term</span>
+                    <span style={{ fontSize: '12px', fontWeight: 600, color: '#fbbf24' }}>End Term</span>
                     <input
                       type="date"
                       value={editingTerm.examCycles?.END_TERM?.startDate || ''}
@@ -506,10 +506,10 @@ export default function AcademicTermsModal({ isOpen, onClose, onUpdated }: Acade
                     padding: '8px 22px',
                     borderRadius: '8px',
                     border: 'none',
-                    background: '#6366f1',
+                    background: 'var(--primary)',
                     color: '#fff',
                     fontSize: '12px',
-                    fontWeight: 700,
+                    fontWeight: 600,
                     cursor: 'pointer',
                   }}
                 >
@@ -521,20 +521,20 @@ export default function AcademicTermsModal({ isOpen, onClose, onUpdated }: Acade
             /* Terms List View */
             <div>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-secondary)' }}>
+                <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-secondary)' }}>
                   Configured Trimesters ({terms.length})
                 </span>
                 <button
                   type="button"
                   onClick={handleStartAdd}
                   style={{
-                    background: '#6366f1',
+                    background: 'var(--primary)',
                     color: '#fff',
                     border: 'none',
                     padding: '8px 16px',
                     borderRadius: '8px',
                     fontSize: '12px',
-                    fontWeight: 700,
+                    fontWeight: 600,
                     cursor: 'pointer',
                     display: 'flex',
                     alignItems: 'center',
@@ -574,7 +574,7 @@ export default function AcademicTermsModal({ isOpen, onClose, onUpdated }: Acade
                     >
                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                          <span style={{ fontSize: '15px', fontWeight: 800 }}>{t.name}</span>
+                          <span style={{ fontSize: '15px', fontWeight: 600 }}>{t.name}</span>
                           {t.isCurrent && (
                             <span
                               style={{
@@ -583,7 +583,7 @@ export default function AcademicTermsModal({ isOpen, onClose, onUpdated }: Acade
                                 background: '#dcfce7',
                                 color: '#16a34a',
                                 fontSize: '10px',
-                                fontWeight: 800,
+                                fontWeight: 600,
                                 textTransform: 'uppercase',
                               }}
                             >
@@ -628,19 +628,19 @@ export default function AcademicTermsModal({ isOpen, onClose, onUpdated }: Acade
 
                       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '8px', fontSize: '11px', color: 'var(--text-muted)' }}>
                         <div>
-                          <span style={{ fontWeight: 700, color: 'var(--text-secondary)' }}>Term Duration: </span>
+                          <span style={{ fontWeight: 600, color: 'var(--text-secondary)' }}>Term Duration: </span>
                           <span>{t.startDate} to {t.endDate}</span>
                         </div>
                         <div>
-                          <span style={{ fontWeight: 700, color: '#a78bfa' }}>Quiz 1: </span>
+                          <span style={{ fontWeight: 600, color: 'var(--primary)' }}>Quiz 1: </span>
                           <span>{t.examCycles?.QUIZ_1?.startDate || '--'} to {t.examCycles?.QUIZ_1?.endDate || '--'}</span>
                         </div>
                         <div>
-                          <span style={{ fontWeight: 700, color: '#34d399' }}>Quiz 2: </span>
+                          <span style={{ fontWeight: 600, color: '#34d399' }}>Quiz 2: </span>
                           <span>{t.examCycles?.QUIZ_2?.startDate || '--'} to {t.examCycles?.QUIZ_2?.endDate || '--'}</span>
                         </div>
                         <div>
-                          <span style={{ fontWeight: 700, color: '#fbbf24' }}>End Term: </span>
+                          <span style={{ fontWeight: 600, color: '#fbbf24' }}>End Term: </span>
                           <span>{t.examCycles?.END_TERM?.startDate || '--'} to {t.examCycles?.END_TERM?.endDate || '--'}</span>
                         </div>
                       </div>
@@ -671,7 +671,7 @@ export default function AcademicTermsModal({ isOpen, onClose, onUpdated }: Acade
               background: 'var(--surface-2, #28283c)',
               color: 'var(--text-primary, #fff)',
               fontSize: '12px',
-              fontWeight: 700,
+              fontWeight: 600,
               cursor: 'pointer',
             }}
           >
