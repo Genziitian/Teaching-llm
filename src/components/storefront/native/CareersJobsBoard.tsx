@@ -3,18 +3,21 @@
 import { useEffect, useState } from 'react'
 import type { CareersRole } from './CareersTypes'
 import JobApplicationForm from './JobApplicationForm'
+import JobDetail from './JobDetail'
 
 const btn: React.CSSProperties = { padding: '8px 16px', borderRadius: 8, border: 'none', background: 'var(--primary)', color: 'var(--button-text, #000)', fontWeight: 600, fontSize: 14, cursor: 'pointer', boxShadow: 'none' }
 
 export default function CareersJobsBoard() {
   const [roles, setRoles] = useState<CareersRole[] | null>(null)
   const [active, setActive] = useState<CareersRole | null>(null)
+  const [detail, setDetail] = useState<CareersRole | null>(null)
 
   useEffect(() => {
     fetch('/api/site/careers-roles').then((r) => r.json()).then((d) => setRoles(d.roles || [])).catch(() => setRoles([]))
   }, [])
 
   if (active) return <JobApplicationForm key={active.id} role={active} onBack={() => setActive(null)} />
+  if (detail) return <JobDetail role={detail} onBack={() => setDetail(null)} onApply={() => { setActive(detail); setDetail(null) }} />
 
   return (
     <div style={{ width: '100%', padding: '8px 0 48px' }}>
@@ -47,7 +50,10 @@ export default function CareersJobsBoard() {
                   {r.skills && r.skills.length > 0 && <div>Skills: {r.skills.join(', ')}</div>}
                 </div>
               )}
-              <button style={{ ...btn, marginTop: 'auto', width: '100%', padding: '10px 16px' }} onClick={() => setActive(r)}>Apply</button>
+              <div style={{ display: 'flex', gap: 8, marginTop: 'auto' }}>
+                <button style={{ ...btn, flex: 1, padding: '10px 16px' }} onClick={() => setActive(r)}>Apply</button>
+                <button style={{ ...btn, background: 'transparent', color: 'var(--text-secondary)', border: '1px solid var(--border)', padding: '6px 14px', fontSize: 13, fontWeight: 500, alignSelf: 'center' }} onClick={() => setDetail(r)}>Details</button>
+              </div>
             </div>
           )
         })}

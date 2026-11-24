@@ -608,6 +608,7 @@ export default function GenieWidget({ userRole, userName }: { userRole: string; 
                   <div className="genie-opts row">
                     <button type="button" className="genie-opt ok" onClick={() => answerSolved(true)}>{t(UI.yes)}</button>
                     <button type="button" className="genie-opt" onClick={() => { setMsgs(m => [...m, { from: 'me', text: UI.no }, { from: 'bot', text: UI.needHuman }]); setStage('handoff') }}>{t(UI.no)}</button>
+                    {isSupportOpen() && <button type="button" className="genie-opt" onClick={callNow}>{t(UI.callAgain)}</button>}
                   </div>
                 ) : (
                   <>

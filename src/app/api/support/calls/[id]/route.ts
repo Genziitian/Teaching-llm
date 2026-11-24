@@ -106,6 +106,13 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
       if (!['off', 'camera', 'screen'].includes(body.video)) return NextResponse.json({ error: 'Invalid video mode' }, { status: 400 })
       await prisma.supportCallParticipant.updateMany({ where: { callId: call.id, userId: session.userId, leftAt: null }, data: { video: body.video } })
       return NextResponse.json({ ok: true })
+    } else if (body.action === 'request-camera') {
+      // Browsers can't force a camera on; we ask the student, whose call screen shows a blocking prompt.
+      if (!isManager) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+      if (call.status !== 'ACTIVE') return NextResponse.json({ error: 'This call is not live' }, { status: 409 })
+      // Reuse the per-recipient signal channel (deleted once the student reads it). sdp is a dummy marker.
+      await prisma.supportCallSignal.create({ data: { callId: call.id, fromId: session.userId, toId: call.callerId, type: 'camera', sdp: 'v=0 camera' } })
+      return NextResponse.json({ ok: true })
     } else if (body.action === 'end') {
       if (call.status === 'RINGING') {
         if (call.type === 'CALL' && isManager) {

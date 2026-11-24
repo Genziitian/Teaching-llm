@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { playTone } from '@/lib/call-tones'
 import ManagerUserModal from '@/components/ManagerUserModal'
-import { RING_SECONDS } from '@/lib/support-limits'
+import { RING_SECONDS, isSupportOpen } from '@/lib/support-limits'
 
 // shortcut: STUN only, no TURN server — calls between two strict/symmetric NATs (some mobile carriers) won't connect; add a TURN server (e.g. coturn / Twilio NTS) to ICE_SERVERS if that shows up.
 const ICE_SERVERS: RTCIceServer[] = [{ urls: ['stun:stun.l.google.com:19302', 'stun:stun1.l.google.com:19302'] }]
@@ -66,6 +66,7 @@ function useSupportCall() {
   const [ringingSince, setRingingSince] = useState<number | null>(null)
   // Student's call couldn't happen: offer a call back or a ticket. 'missed' = nobody answered, 'closed' = outside hours.
   const [missed, setMissed] = useState<null | 'missed' | 'closed'>(null)
+  const [cameraAsked, setCameraAsked] = useState(false) // student: a manager asked them to turn on camera
   const [studentId, setStudentId] = useState<string | null>(null) // callerId is always the student
   const [muted, setMuted] = useState(false)
   const [video, setVideo] = useState<VideoMode>('off')
@@ -189,7 +190,9 @@ function useSupportCall() {
       if (call.status === 'ACTIVE') setState(s => (s === 'ringing' ? 'connecting' : s))
 
       for (const s of call.signals as { fromId: string; type: string; sdp: string }[]) {
-        if (s.type === 'offer') {
+        if (s.type === 'camera') {
+          setCameraAsked(true)
+        } else if (s.type === 'offer') {
           const pc = newPeer(s.fromId, names.get(s.fromId) || 'Participant')
           await pc.setRemoteDescription({ type: 'offer', sdp: s.sdp })
           await attachMedia(pc)
@@ -267,6 +270,7 @@ function useSupportCall() {
     old?.stop()
     setLocalVideo(track ? new MediaStream([track]) : null)
     setVideo(track ? mode : 'off')
+    if (track && mode === 'camera') setCameraAsked(false)
     if (callId.current) api(`/api/support/calls/${callId.current}`, { method: 'PATCH', body: JSON.stringify({ action: 'media', video: track ? mode : 'off' }) }).catch(() => {})
   }
   const toggleCamera = async () => {
@@ -290,6 +294,13 @@ function useSupportCall() {
     audio.current?.getAudioTracks().forEach(t => { t.enabled = muted })
     setMuted(m => !m)
   }
+  const [cameraRequested, setCameraRequested] = useState(false) // manager: shows "Asked" briefly
+  const requestCamera = async () => {
+    if (!callId.current) return
+    setCameraRequested(true)
+    setTimeout(() => setCameraRequested(false), 4000)
+    api(`/api/support/calls/${callId.current}`, { method: 'PATCH', body: JSON.stringify({ action: 'request-camera' }) }).catch(() => {})
+  }
 
   // Hang up if the tab closes or the component unmounts mid-call.
   const endRef = useRef(end)
@@ -301,7 +312,7 @@ function useSupportCall() {
   }, [])
 
   return {
-    state, message, title, startedAt, ringingSince, studentId, missed, muted, video, peers, localVideo, canShareScreen,
+    state, message, title, startedAt, ringingSince, studentId, missed, muted, cameraAsked, cameraRequested, requestCamera, video, peers, localVideo, canShareScreen,
     start, accept, join, end, toggleMute, toggleCamera, toggleScreen,
     reset: () => { setState('idle'); setMessage(null); setMissed(null) },
   }
@@ -332,14 +343,92 @@ const dockStyle: React.CSSProperties = {
   position: 'fixed', right: 16, bottom: 'calc(16px + env(safe-area-inset-bottom))', zIndex: 10002, maxHeight: 'calc(100vh - 32px)', display: 'flex',
 }
 function CallLayer({ docked, children }: { docked: boolean; children: React.ReactNode }) {
-  return <div style={docked ? dockStyle : backdropStyle}>{children}</div>
+  return <div style={docked ? dockStyle : backdropStyle}><style>{CALL_CSS}</style>{children}</div>
 }
 
 const overlayStyle: React.CSSProperties = {
-  maxHeight: '100%', overflowY: 'auto',
-  width: 'min(320px, calc(100vw - 32px))', background: 'var(--gz-panel, var(--surface-1, #fff))',
-  border: '1px solid var(--gz-line, rgba(0,0,0,.1))', borderRadius: 16, padding: 18,
-  boxShadow: '0 12px 40px rgba(0,0,0,.22)', color: 'var(--text-primary)',
+  position: 'relative', maxHeight: '100%', overflowY: 'auto', textAlign: 'center',
+  width: 'min(380px, calc(100vw - 32px))', background: 'var(--gz-panel, var(--surface-1, #fff))',
+  border: '1px solid var(--gz-line, rgba(0,0,0,.1))', borderRadius: 24, padding: '26px 20px 22px',
+  boxShadow: '0 24px 64px rgba(0,0,0,.35)', color: 'var(--text-primary)',
+}
+
+// Call UI look: slide-up card, pulsing avatar while ringing, round icon buttons. Motion is off for reduced-motion users.
+const CALL_CSS = `
+@keyframes ccIn{from{opacity:0;transform:translateY(16px) scale(.96)}to{opacity:1;transform:none}}
+@keyframes ccRing{0%{transform:scale(1);opacity:.5}100%{transform:scale(1.85);opacity:0}}
+@keyframes ccWiggle{0%,60%,100%{transform:rotate(0)}10%,30%{transform:rotate(-14deg)}20%,40%{transform:rotate(14deg)}50%{transform:rotate(-8deg)}}
+@keyframes ccBlink{0%,100%{opacity:1}50%{opacity:.35}}
+.cc-card{animation:ccIn .28s cubic-bezier(.2,.8,.2,1) both}
+.cc-eyebrow{font-size:11.5px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--gz-ink-3,#6b6b68);margin-bottom:16px}
+.cc-avatar{position:relative;width:88px;height:88px;border-radius:50%;margin:0 auto 14px;display:grid;place-items:center;font-size:34px;font-weight:600;background:color-mix(in srgb,var(--gz-ink,#171717) 9%,var(--gz-panel,#fff));color:var(--gz-ink,#171717)}
+.cc-avatar.pulse::before,.cc-avatar.pulse::after{content:'';position:absolute;inset:0;border-radius:50%;border:2px solid var(--gz-ink-3,#6b6b68);animation:ccRing 2.2s ease-out infinite}
+.cc-avatar.pulse::after{animation-delay:1.1s}
+.cc-name{font-size:21px;font-weight:600;line-height:1.25;overflow-wrap:anywhere}
+.cc-status{margin-top:4px;font-size:13.5px;line-height:1.45;color:var(--gz-ink-3,#6b6b68);font-variant-numeric:tabular-nums;display:flex;align-items:center;justify-content:center;gap:7px}
+.cc-dot{width:8px;height:8px;border-radius:50%;background:#10b981;animation:ccBlink 2s ease-in-out infinite}
+.cc-actions{display:flex;flex-wrap:wrap;justify-content:center;gap:14px 12px;margin-top:22px}
+.cc-stack{display:flex;flex-direction:column;gap:8px;width:100%}
+.cc-ctl{display:flex;flex-direction:column;align-items:center;gap:6px;font-size:11.5px;color:var(--gz-ink-3,#6b6b68);min-width:56px}
+.cc-round{width:54px;height:54px;border-radius:50%;border:1px solid var(--gz-line,#e7e7e3);background:var(--gz-panel,#fff);color:var(--gz-ink,#171717);display:grid;place-items:center;cursor:pointer;transition:transform .12s,background .15s,box-shadow .15s}
+.cc-round:hover{background:color-mix(in srgb,var(--gz-ink,#171717) 8%,var(--gz-panel,#fff))}
+.cc-round:active{transform:scale(.9)}
+.cc-round:focus-visible{outline:2px solid var(--gz-ink,#171717);outline-offset:3px}
+.cc-round.on{background:var(--gz-ink,#171717);color:var(--gz-panel,#fff);border-color:transparent}
+.cc-round.danger,.cc-round.success{border-color:transparent;color:#fff;box-shadow:0 6px 16px rgba(0,0,0,.25)}
+.cc-round.danger{background:#ef4444}
+.cc-round.danger:hover{background:#dc2626}
+.cc-round.success{background:#10b981}
+.cc-round.success:hover{background:#059669}
+.cc-round.success svg{animation:ccWiggle 1.8s ease-in-out infinite}
+@media (prefers-reduced-motion:reduce){.cc-card,.cc-dot,.cc-avatar::before,.cc-avatar::after,.cc-round.success svg{animation:none!important}}
+`
+
+const ICONS: Record<string, React.ReactNode> = {
+  phone: <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z" />,
+  hangup: <path transform="rotate(135 12 12)" d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z" />,
+  mic: <><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z" /><path d="M19 10v2a7 7 0 0 1-14 0v-2M12 19v3" /></>,
+  micOff: <><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z" /><path d="M19 10v2a7 7 0 0 1-14 0v-2M12 19v3M2 2l20 20" /></>,
+  video: <><path d="M23 7l-7 5 7 5V7z" /><rect x="1" y="5" width="15" height="14" rx="2" /></>,
+  videoOff: <><path d="M23 7l-7 5 7 5V7z" /><rect x="1" y="5" width="15" height="14" rx="2" /><path d="M2 2l20 20" /></>,
+  screen: <><rect x="2" y="3" width="20" height="14" rx="2" /><path d="M8 21h8M12 17v4" /></>,
+  user: <><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></>,
+  eye: <><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" /><circle cx="12" cy="12" r="3" /></>,
+}
+
+function Ico({ n }: { n: string }) {
+  return <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{ICONS[n]}</svg>
+}
+
+/** Round icon button with its label underneath (like a phone's call screen). */
+function RoundBtn({ icon, label, onClick, tone, on, pressed }: { icon: string; label: string; onClick: () => void; tone?: 'danger' | 'success'; on?: boolean; pressed?: boolean }) {
+  return (
+    <div className="cc-ctl">
+      <button type="button" className={`cc-round${tone ? ` ${tone}` : ''}${on ? ' on' : ''}`} onClick={onClick} aria-label={label} aria-pressed={pressed}><Ico n={icon} /></button>
+      <span aria-hidden="true">{label}</span>
+    </div>
+  )
+}
+
+function CallAvatar({ name, pulse }: { name: string; pulse?: boolean }) {
+  return <div className={`cc-avatar${pulse ? ' pulse' : ''}`} aria-hidden="true">{(name.trim()[0] || '?').toUpperCase()}</div>
+}
+
+/** The ringing-in card for managers (student calling support) and students (support calling). */
+function IncomingCall({ name, role, more, showInfo, onDecline, onAnswer, onInfo }: { name: string; role: 'STUDENT' | 'MANAGER'; more: number; showInfo: boolean; onDecline: () => void; onAnswer: () => void; onInfo: () => void }) {
+  return (
+    <div className="cc-card" style={overlayStyle} role="alertdialog" aria-modal="true" aria-label="Incoming call">
+      <div className="cc-eyebrow">Incoming call</div>
+      <CallAvatar name={name} pulse />
+      <div className="cc-name">{name}</div>
+      <div className="cc-status">{more > 0 ? `+${more} more waiting` : role === 'MANAGER' ? 'Calling support' : 'Calling you'}</div>
+      <div className="cc-actions">
+        <RoundBtn icon="hangup" label="Decline" tone="danger" onClick={onDecline} />
+        {role === 'MANAGER' && showInfo && <RoundBtn icon="user" label="Info" onClick={onInfo} />}
+        <RoundBtn icon="phone" label="Answer" tone="success" onClick={onAnswer} />
+      </div>
+    </div>
+  )
 }
 
 function MediaEl({ stream, kind, mirrored }: { stream: MediaStream; kind: 'audio' | 'video'; mirrored?: boolean }) {
@@ -376,49 +465,54 @@ function CallOverlay({ call, onViewStudent, docked = false }: { call: ReturnType
   const label = { connecting: 'Connecting…', ringing: `Ringing… ${left}s`, active: timer || 'Connected', ended: call.message || 'Call ended', idle: '' }[call.state]
   const live = call.state !== 'ended'
   const showGrid = live && (call.video !== 'off' || call.peers.some(p => p.video !== 'off'))
-  const ctl = (label: string, onClick: () => void, active = false) => (
-    <button className={active ? 'gz-btn' : 'gz-btn gz-btn--ghost'} style={{ flex: '1 1 auto' }} onClick={onClick} aria-pressed={active}>{label}</button>
-  )
+  const heading = call.missed === 'missed' ? 'No answer' : call.missed === 'closed' ? 'Support is closed' : call.video === 'screen' ? 'Sharing your screen' : 'Support call'
+  const name = call.missed === 'missed' ? 'Nobody picked up' : call.missed === 'closed' ? 'Back at 10 AM' : call.title
   return (
     <CallLayer docked={docked}>
-    <div style={{ ...overlayStyle, width: showGrid ? 'min(760px, calc(100vw - 32px))' : overlayStyle.width }} role="dialog" aria-modal="true" aria-label="Support call" aria-live="polite">
+    <div className="cc-card" style={{ ...overlayStyle, width: showGrid ? 'min(760px, calc(100vw - 32px))' : overlayStyle.width }} role="dialog" aria-modal="true" aria-label="Support call" aria-live="polite">
       {call.peers.map(p => <MediaEl key={p.id} stream={p.stream} kind="audio" />)}
-      <div style={{ fontSize: 12, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '.08em', fontWeight: 600 }}>
-        {call.missed === 'missed' ? 'No answer' : call.missed === 'closed' ? 'Support is closed' : call.video === 'screen' ? 'Sharing your screen' : 'Support call'}
-      </div>
-      <div style={{ fontSize: 17, fontWeight: 600, marginTop: 4, overflowWrap: 'anywhere' }}>
-        {call.missed === 'missed' ? 'Nobody picked up' : call.missed === 'closed' ? 'Back at 10 AM' : call.title}
-      </div>
-      <div style={{ fontSize: 13, color: 'var(--text-muted)', marginTop: 2 }}>{label}</div>
+      {call.cameraAsked && call.video !== 'camera' && call.state !== 'ended' && (
+        <div role="alertdialog" aria-label="Camera requested" style={{ position: 'absolute', inset: 0, zIndex: 1, background: 'rgba(0,0,0,.78)', backdropFilter: 'blur(6px)', borderRadius: 24, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 16, padding: 24, textAlign: 'center' }}>
+          <div style={{ width: 56, height: 56, borderRadius: '50%', display: 'grid', placeItems: 'center', background: 'rgba(255,255,255,.12)', color: '#fff' }}><Ico n="video" /></div>
+          <div style={{ fontSize: 16, fontWeight: 600, color: '#fff' }}>Support needs you to turn on your camera</div>
+          <button className="gz-btn" style={{ background: '#10b981', color: '#fff', borderColor: '#10b981' }} onClick={call.toggleCamera}>Turn on camera</button>
+        </div>
+      )}
+      <div className="cc-eyebrow">{heading}</div>
+      {!showGrid && <CallAvatar name={name} pulse={call.state === 'ringing' || call.state === 'connecting'} />}
+      <div className="cc-name">{name}</div>
+      <div className="cc-status">{call.state === 'active' && <span className="cc-dot" aria-hidden="true" />}{label}</div>
       {showGrid && (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 8, marginTop: 12, maxHeight: '60vh', overflowY: 'auto' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 8, marginTop: 14, maxHeight: '55vh', overflowY: 'auto' }}>
           {call.peers.map(p => <Tile key={p.id} name={p.name} stream={p.stream} on={p.video !== 'off'} />)}
           <Tile name="You" stream={call.localVideo} on={call.video !== 'off'} mirrored={call.video === 'camera'} />
         </div>
       )}
-      <div style={{ display: 'flex', gap: 8, marginTop: 14, flexWrap: 'wrap' }}>
+      <div className="cc-actions">
         {!live ? (
-          <>
+          <div className="cc-stack">
             {call.missed ? (
               <>
                 {/* GenZie owns both flows: the call-back picker and the message that becomes a ticket */}
-                <button className="gz-btn" style={{ flex: 1 }} onClick={() => { call.reset(); window.dispatchEvent(new Event('genie:callback')) }}>Book a call back</button>
-                <button className="gz-btn gz-btn--ghost" style={{ flex: 1 }} onClick={() => { call.reset(); window.dispatchEvent(new Event('genie:message')) }}>Raise a ticket</button>
-                <button className="gz-btn gz-btn--ghost" style={{ flex: '1 1 100%' }} onClick={call.reset}>Close</button>
+                <button className="gz-btn" onClick={() => { call.reset(); window.dispatchEvent(new Event('genie:callback')) }}>Book a call back</button>
+                <button className="gz-btn gz-btn--ghost" onClick={() => { call.reset(); window.dispatchEvent(new Event('genie:message')) }}>Raise a ticket</button>
               </>
             ) : (
-              <button className="gz-btn" style={{ flex: 1 }} onClick={call.reset}>Close</button>
+              /* Hung up by mistake (either side): manager redials that student, student redials support in hours */
+              (onViewStudent ? !!call.studentId : isSupportOpen()) && (
+                <button className="gz-btn" onClick={() => { const id = onViewStudent ? call.studentId! : undefined; const name = onViewStudent ? call.title : undefined; call.reset(); startSupportCall(id, name) }}>Call again</button>
+              )
             )}
-          </>
+            <button className="gz-btn gz-btn--ghost" onClick={call.reset}>Close</button>
+          </div>
         ) : (
           <>
-            {onViewStudent && call.studentId && ctl('Student info', () => onViewStudent(call.studentId!))}
-            {ctl(call.muted ? 'Unmute' : 'Mute', call.toggleMute, call.muted)}
-            {ctl(call.video === 'camera' ? 'Camera off' : 'Camera', call.toggleCamera, call.video === 'camera')}
-            {call.canShareScreen && ctl(call.video === 'screen' ? 'Stop sharing' : 'Share screen', call.toggleScreen, call.video === 'screen')}
-            <button className="gz-btn" style={{ flex: '1 1 auto', background: '#ef4444', color: '#fff', borderColor: '#ef4444' }} onClick={() => call.end()}>
-              End
-            </button>
+            {onViewStudent && call.studentId && <RoundBtn icon="user" label="Info" onClick={() => onViewStudent(call.studentId!)} />}
+            {onViewStudent && <RoundBtn icon="eye" label={call.cameraRequested ? 'Asked' : 'Ask camera'} on={call.cameraRequested} pressed={call.cameraRequested} onClick={call.requestCamera} />}
+            <RoundBtn icon={call.muted ? 'micOff' : 'mic'} label={call.muted ? 'Unmute' : 'Mute'} on={call.muted} pressed={call.muted} onClick={call.toggleMute} />
+            <RoundBtn icon={call.video === 'camera' ? 'video' : 'videoOff'} label="Camera" on={call.video === 'camera'} pressed={call.video === 'camera'} onClick={call.toggleCamera} />
+            {call.canShareScreen && <RoundBtn icon="screen" label={call.video === 'screen' ? 'Stop share' : 'Share'} on={call.video === 'screen'} pressed={call.video === 'screen'} onClick={call.toggleScreen} />}
+            <RoundBtn icon="hangup" label="End" tone="danger" onClick={() => call.end()} />
           </>
         )}
       </div>
@@ -513,29 +607,27 @@ export function LiveCallRow({ row: r }: { row: CallRow }) {
 
 /** One missed / scheduled call with the manager's actions. */
 export function CallActionRow({ row: r, onChange }: { row: CallRow; onChange: () => void }) {
+  const [profile, setProfile] = useState(false) // open the student's full details
   const act = async (action: string) => { await api(`/api/support/calls/${r.id}`, { method: 'PATCH', body: JSON.stringify({ action }) }).catch(() => {}); onChange() }
   const label = r.type === 'SCHEDULED'
     ? `${r.status === 'REQUESTED' ? 'Wants a call' : 'Booked call'} · ${new Date(r.scheduledFor!).toLocaleString()}`
     : `Missed call · ${new Date(r.createdAt).toLocaleString()}`
   return (
-    <div className="gz-sp-row" style={{ cursor: 'default', flexWrap: 'wrap' }}>
+    <div className="gz-sp-row" onClick={() => setProfile(true)} role="button" tabIndex={0} onKeyDown={e => e.key === 'Enter' && setProfile(true)} style={{ cursor: 'pointer', flexWrap: 'wrap' }}>
+      {profile && <ManagerUserModal userId={r.caller.id} onClose={() => setProfile(false)} />}
       <div style={{ flex: 1, minWidth: 160 }}>
         <div style={{ fontSize: 13.5, fontWeight: 600 }}>{r.caller.name}</div>
         <div style={{ fontSize: 11.5, color: 'var(--text-muted)' }}>{label}</div>
-        {r.note && <div style={{ fontSize: 12.5, marginTop: 4, overflowWrap: 'anywhere' }}>{r.note}</div>}
+        {/* Long GenZie topic trimmed to one line; the full note is on the details page */}
+        {r.note && <div style={{ fontSize: 12.5, marginTop: 4, color: 'var(--text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.note}</div>}
       </div>
       {r.type === 'SCHEDULED' && r.status === 'REQUESTED' ? (
         <>
-          <button className="gz-btn gz-ed-sm" onClick={() => act('approve')}>Approve</button>
-          <button className="gz-btn gz-btn--ghost gz-ed-sm" onClick={() => act('decline')}>Decline</button>
+          <button className="gz-btn gz-ed-sm" onClick={e => { e.stopPropagation(); act('approve') }}>Approve</button>
+          <button className="gz-btn gz-btn--ghost gz-ed-sm" onClick={e => { e.stopPropagation(); act('decline') }}>Decline</button>
         </>
       ) : (
-        <>
-          <button className="gz-btn gz-ed-sm" onClick={() => { startSupportCall(r.caller.id, r.caller.name); setTimeout(onChange, 1500) }}>
-            {r.type === 'SCHEDULED' ? 'Call now' : 'Call back'}
-          </button>
-          <button className="gz-btn gz-btn--ghost gz-ed-sm" onClick={() => act('done')}>{r.type === 'SCHEDULED' ? 'Done' : 'Dismiss'}</button>
-        </>
+        <button className="gz-btn gz-btn--ghost gz-ed-sm" onClick={e => { e.stopPropagation(); setProfile(true) }}>Details</button>
       )}
     </div>
   )
@@ -634,18 +726,12 @@ export function SupportCallListener({ role }: { role: 'STUDENT' | 'MANAGER' }) {
     <>
       {incoming && (
         <CallLayer docked={!!profileId}>
-        <div style={overlayStyle} role="alertdialog" aria-modal="true" aria-label="Incoming call">
-          <div style={{ fontSize: 12, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '.08em', fontWeight: 600 }}>Incoming call</div>
-          <div style={{ fontSize: 17, fontWeight: 600, marginTop: 4 }}>{fromName}</div>
-          {fresh.length > 1 && <div style={{ fontSize: 12.5, color: 'var(--text-muted)' }}>+{fresh.length - 1} more waiting</div>}
-          <div style={{ display: 'flex', gap: 8, marginTop: 14, flexWrap: 'wrap' }}>
-            {role === 'MANAGER' && !profileId && <button className="gz-btn gz-btn--ghost" style={{ flex: '1 1 100%' }} onClick={() => setProfileId(incoming.caller.id)}>Student info</button>}
-            <button className="gz-btn gz-btn--ghost" style={{ flex: 1 }} onClick={() => decline(incoming.id)}>Decline</button>
-            <button className="gz-btn" style={{ flex: 1, background: '#10b981', color: '#fff', borderColor: '#10b981' }} onClick={() => { setRinging(r => r.filter(x => x.id !== incoming.id)); call.accept(incoming.id, fromName) }}>
-              Answer
-            </button>
-          </div>
-        </div>
+          <IncomingCall
+            name={fromName} role={role} more={fresh.length - 1} showInfo={!profileId}
+            onDecline={() => decline(incoming.id)}
+            onInfo={() => setProfileId(incoming.caller.id)}
+            onAnswer={() => { setRinging(r => r.filter(x => x.id !== incoming.id)); call.accept(incoming.id, fromName) }}
+          />
         </CallLayer>
       )}
       <CallOverlay call={call} docked={!!profileId} onViewStudent={role === 'MANAGER' ? setProfileId : undefined} />

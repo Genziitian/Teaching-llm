@@ -416,6 +416,8 @@ class _SupportCallPageState extends ConsumerState<SupportCallPage> {
   String _status = 'Connecting…';
   bool _ended = false;
   bool _missed = false; // student's call went unanswered: offer a call back or a ticket
+  bool _cameraAsked = false; // a manager asked this student to turn their camera on
+  bool _cameraRequested = false; // manager: brief 'Asked' confirmation
   bool _muted = false;
   bool _speaker = false;
 
@@ -620,7 +622,9 @@ class _SupportCallPageState extends ConsumerState<SupportCallPage> {
 
       for (final s in (call['signals'] as List).cast<Map<String, dynamic>>()) {
         final from = '${s['fromId']}';
-        if (s['type'] == 'offer') {
+        if (s['type'] == 'camera') {
+          if (mounted) setState(() => _cameraAsked = true);
+        } else if (s['type'] == 'offer') {
           final pc = (await _newPeer(from, names[from] ?? 'Participant')).pc;
           await pc.setRemoteDescription(
               RTCSessionDescription('${s['sdp']}', 'offer'));
@@ -671,7 +675,12 @@ class _SupportCallPageState extends ConsumerState<SupportCallPage> {
     }
     _localRenderer.srcObject = stream;
     final wasScreen = _video == 'screen';
-    if (mounted) setState(() => _video = stream == null ? 'off' : mode);
+    if (mounted) {
+      setState(() {
+        _video = stream == null ? 'off' : mode;
+        if (mode == 'camera' && stream != null) _cameraAsked = false;
+      });
+    }
     for (final t in old?.getTracks() ?? <MediaStreamTrack>[]) {
       await t.stop();
     }
@@ -696,6 +705,15 @@ class _SupportCallPageState extends ConsumerState<SupportCallPage> {
     } catch (_) {
       _snack('Camera permission is needed for video.');
     }
+  }
+
+  void _requestCamera() {
+    if (_id == null) return;
+    setState(() => _cameraRequested = true);
+    Future.delayed(const Duration(seconds: 4),
+        () => mounted ? setState(() => _cameraRequested = false) : null);
+    _api.patch<dynamic>('/api/support/calls/$_id',
+        body: {'action': 'request-camera'}).then((_) {}, onError: (_) {});
   }
 
   Future<void> _toggleScreen() async {
@@ -877,22 +895,52 @@ class _SupportCallPageState extends ConsumerState<SupportCallPage> {
               ),
               const SizedBox(height: 16),
               Expanded(
-                child: live && anyVideo
-                    ? GridView.count(
-                        crossAxisCount: tiles.length <= 2 ? 1 : 2,
-                        mainAxisSpacing: 8,
-                        crossAxisSpacing: 8,
-                        childAspectRatio: tiles.length <= 2 ? 4 / 3 : 3 / 4,
-                        children: tiles,
-                      )
-                    : const Center(
-                        child: CircleAvatar(
-                          radius: 52,
-                          backgroundColor: Color(0xFF2C2C2E),
-                          child: Icon(Symbols.support_agent_rounded,
-                              size: 52, color: Colors.white),
+                child: Stack(children: [
+                  Positioned.fill(
+                    child: live && anyVideo
+                        ? GridView.count(
+                            crossAxisCount: tiles.length <= 2 ? 1 : 2,
+                            mainAxisSpacing: 8,
+                            crossAxisSpacing: 8,
+                            childAspectRatio: tiles.length <= 2 ? 4 / 3 : 3 / 4,
+                            children: tiles,
+                          )
+                        : const Center(
+                            child: CircleAvatar(
+                              radius: 52,
+                              backgroundColor: Color(0xFF2C2C2E),
+                              child: Icon(Symbols.support_agent_rounded,
+                                  size: 52, color: Colors.white),
+                            ),
+                          ),
+                  ),
+                  if (live && _cameraAsked && _video != 'camera')
+                    Positioned.fill(
+                      child: Container(
+                        color: Colors.black.withValues(alpha: 0.75),
+                        padding: const EdgeInsets.all(24),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Text('Support needs you to turn on your camera',
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w600,
+                                    color: Colors.white)),
+                            const SizedBox(height: 14),
+                            FilledButton.icon(
+                              style: FilledButton.styleFrom(
+                                  backgroundColor: const Color(0xFF34C759)),
+                              onPressed: _toggleCamera,
+                              icon: const Icon(Symbols.videocam_rounded, fill: 1),
+                              label: const Text('Turn on camera'),
+                            ),
+                          ],
                         ),
                       ),
+                    ),
+                ]),
               ),
               const SizedBox(height: 16),
               if (!live && _missed) ...[
@@ -922,24 +970,48 @@ class _SupportCallPageState extends ConsumerState<SupportCallPage> {
                       context.canPop() ? context.pop() : context.go('/support'),
                   child: const Text('Close', style: TextStyle(color: Colors.white70)),
                 ),
-              ] else if (!live)
+              ] else if (!live) ...[
+                // Hung up by mistake (either side): manager redials that student, student redials support in hours.
+                if (ref.read(supportSessionProvider).role == 'MANAGER'
+                    ? (widget.userId ?? _studentId) != null
+                    : isSupportOpen()) ...[
+                  SizedBox(
+                    width: double.infinity,
+                    child: FilledButton(
+                      onPressed: () {
+                        final manager = ref.read(supportSessionProvider).role == 'MANAGER';
+                        context.pushReplacement(_callRoute(
+                            userId: manager ? (widget.userId ?? _studentId) : null,
+                            name: manager ? _title : null));
+                      },
+                      child: const Text('Call again'),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                ],
                 SizedBox(
                   width: double.infinity,
-                  child: FilledButton(
+                  child: OutlinedButton(
                     onPressed: () =>
                         context.canPop() ? context.pop() : context.go('/support'),
+                    style: OutlinedButton.styleFrom(foregroundColor: Colors.white),
                     child: const Text('Close'),
                   ),
-                )
+                ),
+              ]
               else
                 Wrap(
                   alignment: WrapAlignment.center,
                   spacing: 14,
                   runSpacing: 12,
                   children: [
-                    if (ref.read(supportSessionProvider).role == 'MANAGER' && _studentId != null)
+                    if (ref.read(supportSessionProvider).role == 'MANAGER' && _studentId != null) ...[
                       control(Symbols.person_rounded, 'Student info',
                           () => context.push('/support/call-center/${Uri.encodeComponent(_studentId!)}')),
+                      control(Symbols.photo_camera_front_rounded,
+                          _cameraRequested ? 'Asked' : 'Ask camera', _requestCamera,
+                          active: _cameraRequested),
+                    ],
                     control(_muted ? Symbols.mic_off_rounded : Symbols.mic_rounded,
                         _muted ? 'Unmute' : 'Mute', () {
                       setState(() => _muted = !_muted);

@@ -91,6 +91,12 @@ export default function CareersRolesAdmin() {
             <div><label style={lbl}>Openings</label><input style={inp} type="number" min={1} value={edit.openings || ''} onChange={(e) => setEdit({ ...edit, openings: Number(e.target.value) || undefined })} /></div>
             <div><label style={lbl}>Apply by</label><input style={inp} type="date" value={edit.deadline || ''} onChange={(e) => setEdit({ ...edit, deadline: e.target.value })} /></div>
           </div>
+          <div><label style={lbl}>Full job description (shown on the Details page)</label><textarea style={{ ...inp, minHeight: 140 }} placeholder={'Responsibilities, requirements, what a week looks like...'} value={edit.details || ''} onChange={(e) => setEdit({ ...edit, details: e.target.value })} /></div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 14 }}>
+            <div><label style={lbl}>Contact person</label><input style={inp} value={edit.contactName || ''} onChange={(e) => setEdit({ ...edit, contactName: e.target.value })} /></div>
+            <div><label style={lbl}>Contact email</label><input style={inp} type="email" value={edit.contactEmail || ''} onChange={(e) => setEdit({ ...edit, contactEmail: e.target.value })} /></div>
+            <div><label style={lbl}>Contact phone / WhatsApp</label><input style={inp} value={edit.contactPhone || ''} onChange={(e) => setEdit({ ...edit, contactPhone: e.target.value })} /></div>
+          </div>
           <div><label style={lbl}>About the role</label><textarea style={{ ...inp, minHeight: 90 }} value={edit.summary} onChange={(e) => setEdit({ ...edit, summary: e.target.value })} /></div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 14 }}>
             <div><label style={lbl}>Skills (comma separated)</label><input style={inp} placeholder="Maths, Python, Hindi" value={edit.skillsText ?? (edit.skills || []).join(', ')} onChange={(e) => setEdit({ ...edit, skillsText: e.target.value })} /></div>

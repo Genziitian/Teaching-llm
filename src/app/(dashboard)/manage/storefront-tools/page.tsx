@@ -28,10 +28,10 @@ const TOOLS: { href: string; icon: LucideIcon; title: string; text: string }[] =
 export default function StorefrontToolsPage() {
   return (
     <PageShell title="Storefront tools" description="Manage the genziitian.in website from here.">
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 16 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gridAutoRows: '1fr', gap: 16 }}>
         {TOOLS.map(tool => (
-          <Link key={tool.href} href={tool.href} style={{ textDecoration: 'none' }}>
-            <div style={{ border: '1px solid var(--border)', background: 'var(--surface)', borderRadius: 16, padding: '28px 24px', minHeight: 132, display: 'flex', flexDirection: 'column', gap: 6 }}>
+          <Link key={tool.href} href={tool.href} style={{ textDecoration: 'none', display: 'flex' }}>
+            <div style={{ border: '1px solid var(--border)', background: 'var(--surface)', borderRadius: 16, padding: '28px 24px', minHeight: 132, flex: 1, display: 'flex', flexDirection: 'column', gap: 6 }}>
               <div style={{ width: 38, height: 38, borderRadius: 10, border: '1px solid var(--border)', background: 'var(--surface-2)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-primary)', marginBottom: 6 }}>
                 <tool.icon size={19} strokeWidth={1.8} />
               </div>

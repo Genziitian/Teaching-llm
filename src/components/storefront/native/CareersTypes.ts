@@ -16,6 +16,10 @@ export type CareersRole = {
   openings?: number
   deadline?: string
   skills?: string[]
+  details?: string
+  contactName?: string
+  contactEmail?: string
+  contactPhone?: string
 }
 
 export const ROLE_TYPES = ['Full-time', 'Part-time', 'Internship', 'Contract', 'Volunteer']
@@ -62,6 +66,10 @@ export function parseCareersRoles(value: unknown): CareersRole[] {
         openings: Number(r.openings) > 0 ? Number(r.openings) : undefined,
         deadline: r.deadline ? String(r.deadline) : undefined,
         skills: Array.isArray(r.skills) ? r.skills.map(String).filter(Boolean) : undefined,
+        details: r.details ? String(r.details) : undefined,
+        contactName: r.contactName ? String(r.contactName) : undefined,
+        contactEmail: r.contactEmail ? String(r.contactEmail) : undefined,
+        contactPhone: r.contactPhone ? String(r.contactPhone) : undefined,
       }))
     return out
   } catch {
