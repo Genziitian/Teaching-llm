@@ -567,7 +567,7 @@ export default function LecturePage() {
                 ? '2px solid var(--border)' 
                 : 'none',
             paddingLeft: depth > 0 && !isHighlighted ? '16px' : isHighlighted ? '12px' : '0',
-            backgroundColor: isHighlighted ? 'rgba(54, 54, 232, 0.05)' : 'transparent',
+            backgroundColor: isHighlighted ? 'color-mix(in srgb, var(--primary) 5%, transparent)' : 'transparent',
             paddingTop: isHighlighted ? '8px' : '0',
             paddingBottom: isHighlighted ? '8px' : '0',
             paddingRight: isHighlighted ? '12px' : '0',
@@ -579,15 +579,15 @@ export default function LecturePage() {
             <UserAvatar user={comment.user} size={36} />
             <div style={{ flex: 1 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '2px' }}>
-                <span style={{ fontSize: '14px', fontWeight: '700', color: 'var(--text-primary)' }}>{comment.user.name}</span>
+                <span style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)' }}>{comment.user.name}</span>
                 {comment.user.role !== 'STUDENT' && (
                   <span style={{ 
                     fontSize: '10px', 
-                    background: 'linear-gradient(135deg, #3636e8, #6366f1)', 
+                    background: 'var(--primary)', 
                     color: '#fff', 
                     padding: '1px 8px', 
                     borderRadius: '50px', 
-                    fontWeight: '800',
+                    fontWeight: 600,
                     display: 'inline-flex',
                     alignItems: 'center',
                     gap: '3px',
@@ -627,7 +627,7 @@ export default function LecturePage() {
                     onChange={(e) => setReplyText(e.target.value)}
                     placeholder="Write a reply..."
                     style={{ 
-                      flex: 1, padding: '8px 16px', borderRadius: '20px', border: '1px solid var(--border)',
+                      flex: 1, padding: '8px 16px', borderRadius: '14px', border: '1px solid var(--border)',
                       fontSize: '13px', outline: 'none'
                     }}
                     autoFocus
@@ -669,8 +669,8 @@ export default function LecturePage() {
           </div>
         )}
         <div className="skeleton" style={{ height: '30px', width: '200px', marginBottom: '20px' }} />
-        <div className="skeleton" style={{ height: '500px', borderRadius: '24px', marginBottom: '24px' }} />
-        <div className="skeleton" style={{ height: '200px', borderRadius: '24px' }} />
+        <div className="skeleton" style={{ height: '500px', borderRadius: '14px', marginBottom: '24px' }} />
+        <div className="skeleton" style={{ height: '200px', borderRadius: '14px' }} />
       </div>
     )
   }
@@ -688,7 +688,7 @@ export default function LecturePage() {
         <div style={{ alignSelf: 'flex-start', marginBottom: '24px' }}>
           <Link href={`/courses/${params.id}`} style={{
             display: 'inline-flex', alignItems: 'center', gap: '8px',
-            color: 'var(--text-secondary)', fontWeight: '700', fontSize: '14px',
+            color: 'var(--text-secondary)', fontWeight: 600, fontSize: '14px',
             textDecoration: 'none'
           }}>
             <ChevronLeft size={16} /> Back to Course
@@ -698,7 +698,7 @@ export default function LecturePage() {
         {/* Lock Card Container */}
         <div style={{
           background: 'var(--surface-2)',
-          borderRadius: '32px',
+          borderRadius: '14px',
           padding: '48px 32px',
           maxWidth: '520px',
           width: '100%',
@@ -714,13 +714,13 @@ export default function LecturePage() {
             width: '80px', height: '80px', borderRadius: '50%',
             background: 'var(--surface)', color: 'var(--accent)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            boxShadow: '0 8px 16px rgba(99, 102, 241, 0.15)'
+            boxShadow: '0 8px 16px color-mix(in srgb, var(--primary) 15%, transparent)'
           }}>
             <span style={{ fontSize: '36px' }}>🔒</span>
           </div>
 
           <div>
-            <h1 style={{ fontSize: '24px', fontWeight: '900', color: 'var(--text-primary)', marginBottom: '12px' }}>
+            <h1 style={{ fontSize: '24px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '12px' }}>
               Lecture Locked in Demo Mode
             </h1>
             <p style={{ fontSize: '14.5px', color: 'var(--text-secondary)', lineHeight: '1.6', margin: 0 }}>
@@ -734,9 +734,9 @@ export default function LecturePage() {
                 onClick={() => handleUnlockClick(content.topic?.course?.id || params.id as string)}
                 style={{
                   width: '100%', padding: '16px', borderRadius: '50px', border: 'none',
-                  background: 'linear-gradient(135deg, #6366f1, #4f46e5)',
-                  color: 'white', fontWeight: '800', fontSize: '15px', cursor: 'pointer',
-                  boxShadow: '0 8px 20px rgba(99, 102, 241, 0.3)',
+                  background: 'var(--primary)',
+                  color: 'white', fontWeight: 600, fontSize: '15px', cursor: 'pointer',
+                  boxShadow: '0 8px 20px color-mix(in srgb, var(--primary) 30%, transparent)',
                   transition: 'all 0.2s',
                 }}
                 onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-1px)'}
@@ -772,7 +772,7 @@ export default function LecturePage() {
                 style={{
                   width: '100%', padding: '14px', borderRadius: '50px',
                   border: '1.5px solid var(--border)', background: 'transparent',
-                  color: 'var(--text-secondary)', fontWeight: '800', fontSize: '14px', cursor: 'pointer',
+                  color: 'var(--text-secondary)', fontWeight: 600, fontSize: '14px', cursor: 'pointer',
                   transition: 'all 0.2s',
                 }}
               >
@@ -790,17 +790,17 @@ export default function LecturePage() {
             display: 'flex', alignItems: 'center', justifyContent: 'center'
           }}>
             <div style={{
-              background: 'var(--surface)', padding: '40px', borderRadius: '32px',
+              background: 'var(--surface)', padding: '40px', borderRadius: '14px',
               textAlign: 'center', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5)',
               width: '320px'
             }}>
               <div className="spinner" style={{
                 width: '40px', height: '40px', border: '4px solid #f3f3f3',
-                borderTop: '4px solid #6366f1', borderRadius: '50%',
+                borderTop: '4px solid var(--primary)', borderRadius: '50%',
                 margin: '0 auto 20px',
                 animation: 'spin 1s linear infinite'
               }} />
-              <h3 style={{ fontSize: '18px', fontWeight: '800', color: 'var(--text-primary)', marginBottom: '8px' }}>Processing...</h3>
+              <h3 style={{ fontSize: '18px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '8px' }}>Processing...</h3>
               <p style={{ fontSize: '14px', color: 'var(--text-secondary)', fontWeight: '500' }}>Please wait while we set up your course access.</p>
             </div>
           </div>
@@ -815,7 +815,7 @@ export default function LecturePage() {
             padding: '20px', overflow: 'auto'
           }} onClick={() => setShowPurchaseModal(false)}>
             <div style={{
-              background: 'var(--surface)', borderRadius: '32px', width: '100%', maxWidth: '480px',
+              background: 'var(--surface)', borderRadius: '14px', width: '100%', maxWidth: '480px',
               boxShadow: '0 0 100px var(--neu-glow), 0 25px 50px -12px rgba(0, 0, 0, 0.5)',
               padding: '30px',
               animation: 'modalSlideUp 0.3s ease-out',
@@ -830,7 +830,7 @@ export default function LecturePage() {
 
               {/* Course Header Color Band */}
               <div style={{
-                background: `linear-gradient(135deg, ${offering.course?.color || '#6366f1'}, ${colorWithOpacity(offering.course?.color || '#6366f1', 'cc')})`,
+                background: `linear-gradient(135deg, ${offering.course?.color || 'var(--primary)'}, ${colorWithOpacity(offering.course?.color || 'var(--primary)', 'cc')})`,
                 margin: '-30px -30px 24px -30px',
                 padding: '40px 30px 30px 30px',
                 borderTopLeftRadius: '32px',
@@ -848,7 +848,7 @@ export default function LecturePage() {
                 }}>
                   <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20M4 19.5A2.5 2.5 0 0 0 6.5 22H20M4 19.5V5A2.5 2.5 0 0 1 6.5 2.5H20v20H6.5a2.5 2.5 0 0 1-2-2.5z"/></svg>
                 </div>
-                <h2 style={{ fontSize: '24px', fontWeight: '900', color: '#fff', marginBottom: '4px', textShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
+                <h2 style={{ fontSize: '24px', fontWeight: 600, color: '#fff', marginBottom: '4px', textShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
                   {offering.course?.name}
                 </h2>
                 <p style={{ fontSize: '13px', color: 'rgba(255, 255, 255, 0.7)', fontWeight: '600', marginBottom: '0' }}>
@@ -862,8 +862,8 @@ export default function LecturePage() {
                   style={{
                     display: 'inline-flex', alignItems: 'center', gap: '4px',
                     background: 'rgba(255,255,255,0.2)', border: '1px solid rgba(255,255,255,0.4)',
-                    padding: '6px 14px', borderRadius: '20px', color: '#fff',
-                    fontSize: '11px', fontWeight: '800', cursor: 'pointer',
+                    padding: '6px 14px', borderRadius: '14px', color: '#fff',
+                    fontSize: '11px', fontWeight: 600, cursor: 'pointer',
                     marginTop: '12px', transition: 'all 0.2s',
                   }}
                   onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.3)'}
@@ -877,18 +877,18 @@ export default function LecturePage() {
                 {/* Recorded Batch Option */}
                 {offering.hasRecorded && (
                   <div style={{
-                    padding: '16px', borderRadius: '20px',
-                    background: 'var(--surface-2, rgba(99, 102, 241, 0.02))',
+                    padding: '16px', borderRadius: '14px',
+                    background: 'var(--surface-2, color-mix(in srgb, var(--primary) 2%, transparent))',
                     border: '1.5px solid var(--border)',
                     boxShadow: '0 4px 12px rgba(0,0,0,0.02)'
                   }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
                       <div>
-                        <div style={{ fontSize: '11px', fontWeight: '800', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '4px' }}>
+                        <div style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '4px' }}>
                           📹 Recorded Batch - PLUS
                         </div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                          <span style={{ fontSize: '22px', fontWeight: '900', color: 'var(--text-primary)' }}>
+                          <span style={{ fontSize: '22px', fontWeight: 600, color: 'var(--text-primary)' }}>
                             ₹{Math.max(Number(offering.recordedDiscountPrice || 0), 1)}
                           </span>
                           {Number(offering.recordedOriginalPrice || 0) > Math.max(Number(offering.recordedDiscountPrice || 0), 1) && (
@@ -905,7 +905,7 @@ export default function LecturePage() {
                       style={{
                         width: '100%', padding: '12px', borderRadius: '50px',
                         border: '2.5px solid var(--accent)', background: 'transparent',
-                        color: 'var(--accent)', fontSize: '14px', fontWeight: '800',
+                        color: 'var(--accent)', fontSize: '14px', fontWeight: 600,
                         cursor: purchasing ? 'not-allowed' : 'pointer',
                         transition: 'all 0.2s',
                       }}
@@ -918,27 +918,27 @@ export default function LecturePage() {
                 {/* Live Batch Option */}
                 {offering.hasLive && (
                   <div style={{
-                    padding: '16px', borderRadius: '20px',
-                    background: 'var(--surface-2, rgba(99, 102, 241, 0.02))',
+                    padding: '16px', borderRadius: '14px',
+                    background: 'var(--surface-2, color-mix(in srgb, var(--primary) 2%, transparent))',
                     border: '1.5px solid var(--accent)',
                     position: 'relative',
-                    boxShadow: '0 8px 24px rgba(99,102,241,0.08)'
+                    boxShadow: '0 8px 24px color-mix(in srgb, var(--primary) 8%, transparent)'
                   }}>
                     <div style={{
                       position: 'absolute', top: '12px', right: '16px',
-                      padding: '3px 10px', borderRadius: '20px',
+                      padding: '3px 10px', borderRadius: '14px',
                       background: 'var(--accent)', color: '#fff',
-                      fontSize: '9px', fontWeight: '900', letterSpacing: '0.08em',
+                      fontSize: '9px', fontWeight: 600, letterSpacing: '0.08em',
                     }}>
                       PRO
                     </div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
                       <div>
-                        <div style={{ fontSize: '11px', fontWeight: '800', color: 'var(--accent)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '4px' }}>
+                        <div style={{ fontSize: '11px', fontWeight: 600, color: 'var(--accent)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '4px' }}>
                           🔴 Live + Recorded Batch - PRO
                         </div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                          <span style={{ fontSize: '22px', fontWeight: '900', color: 'var(--text-primary)' }}>
+                          <span style={{ fontSize: '22px', fontWeight: 600, color: 'var(--text-primary)' }}>
                             ₹{Math.max(Number(offering.liveDiscountPrice || 0), 1)}
                           </span>
                           {Number(offering.liveOriginalPrice || 0) > Math.max(Number(offering.liveDiscountPrice || 0), 1) && (
@@ -955,7 +955,7 @@ export default function LecturePage() {
                       style={{
                         width: '100%', padding: '12px', borderRadius: '50px',
                         border: 'none', background: 'var(--accent)',
-                        color: '#fff', fontSize: '14px', fontWeight: '800',
+                        color: '#fff', fontSize: '14px', fontWeight: 600,
                         cursor: purchasing ? 'not-allowed' : 'pointer',
                         transition: 'all 0.2s',
                       }}
@@ -988,7 +988,7 @@ export default function LecturePage() {
                     border: 'none',
                     color: 'var(--accent)',
                     fontSize: '11.5px',
-                    fontWeight: '800',
+                    fontWeight: 600,
                     cursor: 'pointer',
                     textDecoration: 'underline',
                     padding: '4px 8px',
@@ -1014,7 +1014,7 @@ export default function LecturePage() {
             setShowPurchaseModal(true)
           }}>
             <div style={{
-              background: '#1e2230', borderRadius: '24px', width: '100%', maxWidth: '520px',
+              background: '#1e2230', borderRadius: '14px', width: '100%', maxWidth: '520px',
               boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
               padding: '30px',
               animation: 'modalSlideUp 0.3s ease-out',
@@ -1033,22 +1033,22 @@ export default function LecturePage() {
                 ✕
               </button>
 
-              <h2 style={{ fontSize: '22px', fontWeight: '800', marginBottom: '4px', color: '#ffffff' }}>Batch Comparison</h2>
+              <h2 style={{ fontSize: '22px', fontWeight: 600, marginBottom: '4px', color: '#ffffff' }}>Batch Comparison</h2>
               <p style={{ fontSize: '13px', color: '#a0aec0', marginBottom: '24px', fontWeight: '500' }}>
                 Choose the experience that fits your learning style
               </p>
 
               {/* Comparison Table */}
               <div style={{
-                borderRadius: '16px', overflow: 'hidden', border: '1px solid #2d3748',
+                borderRadius: '12px', overflow: 'hidden', border: '1px solid #2d3748',
                 background: '#1a1d28', marginBottom: '24px'
               }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '13px' }}>
                   <thead>
                     <tr style={{ borderBottom: '1px solid #2d3748', background: '#171923' }}>
-                      <th style={{ padding: '14px 16px', fontWeight: '700', color: '#a0aec0', width: '40%' }}>FEATURES</th>
-                      <th style={{ padding: '14px 16px', fontWeight: '800', color: '#d69e2e', textAlign: 'center', width: '30%', background: 'rgba(214, 158, 46, 0.05)' }}>PLUS</th>
-                      <th style={{ padding: '14px 16px', fontWeight: '800', color: '#6366f1', textAlign: 'center', width: '30%', background: 'rgba(99, 102, 241, 0.05)' }}>PRO</th>
+                      <th style={{ padding: '14px 16px', fontWeight: 600, color: '#a0aec0', width: '40%' }}>FEATURES</th>
+                      <th style={{ padding: '14px 16px', fontWeight: 600, color: '#d69e2e', textAlign: 'center', width: '30%', background: 'rgba(214, 158, 46, 0.05)' }}>PLUS</th>
+                      <th style={{ padding: '14px 16px', fontWeight: 600, color: 'var(--primary)', textAlign: 'center', width: '30%', background: 'color-mix(in srgb, var(--primary) 5%, transparent)' }}>PRO</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -1063,16 +1063,16 @@ export default function LecturePage() {
                       <tr key={row.name} style={{ borderBottom: index < 5 ? '1px solid #2d3748' : 'none' }}>
                         <td style={{ padding: '12px 16px', fontWeight: '600', color: '#e2e8f0' }}>{row.name}</td>
                         <td style={{
-                          padding: '12px 16px', textAlign: 'center', fontWeight: '700',
+                          padding: '12px 16px', textAlign: 'center', fontWeight: 600,
                           color: row.plus.includes('✅') ? '#48bb78' : '#e53e3e',
                           background: 'rgba(214, 158, 46, 0.02)'
                         }}>
                           {row.plus}
                         </td>
                         <td style={{
-                          padding: '12px 16px', textAlign: 'center', fontWeight: '700',
+                          padding: '12px 16px', textAlign: 'center', fontWeight: 600,
                           color: row.pro.includes('✅') ? '#48bb78' : '#e53e3e',
-                          background: 'rgba(99, 102, 241, 0.02)'
+                          background: 'color-mix(in srgb, var(--primary) 2%, transparent)'
                         }}>
                           {row.pro}
                         </td>
@@ -1091,9 +1091,9 @@ export default function LecturePage() {
                   }}
                   style={{
                     padding: '12px 32px', borderRadius: '50px', border: 'none',
-                    background: 'linear-gradient(135deg, #6366f1, #4f46e5)', color: '#ffffff',
-                    fontSize: '14px', fontWeight: '800', cursor: 'pointer',
-                    boxShadow: '0 4px 15px rgba(99, 102, 241, 0.3)', transition: 'all 0.2s'
+                    background: 'var(--primary)', color: '#ffffff',
+                    fontSize: '14px', fontWeight: 600, cursor: 'pointer',
+                    boxShadow: '0 4px 15px color-mix(in srgb, var(--primary) 30%, transparent)', transition: 'all 0.2s'
                   }}
                   onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-1px)'}
                   onMouseLeave={e => e.currentTarget.style.transform = 'translateY(0)'}
@@ -1114,23 +1114,23 @@ export default function LecturePage() {
             padding: '20px'
           }} onClick={() => { setSuccessOrderId(null); window.location.reload() }}>
             <div style={{
-              background: 'var(--surface)', borderRadius: '32px', width: '100%', maxWidth: '440px',
+              background: 'var(--surface)', borderRadius: '14px', width: '100%', maxWidth: '440px',
               boxShadow: '0 0 100px var(--neu-glow), 0 25px 50px -12px rgba(0, 0, 0, 0.5)',
               padding: '40px', textAlign: 'center',
               animation: 'modalSlideUp 0.3s ease-out'
             }} onClick={e => e.stopPropagation()}>
               <div style={{ fontSize: '64px', marginBottom: '16px' }}>🎉</div>
-              <h2 style={{ fontSize: '22px', fontWeight: '800', color: 'var(--text-primary)', marginBottom: '8px' }}>Course Unlocked!</h2>
+              <h2 style={{ fontSize: '22px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '8px' }}>Course Unlocked!</h2>
               <p style={{ fontSize: '15px', color: 'var(--text-secondary)', lineHeight: '1.6', marginBottom: '24px' }}>
                 Your payment was verified successfully. You now have full access to all lectures, class materials, and student benefits.
               </p>
               <button
                 onClick={() => { setSuccessOrderId(null); window.location.reload() }}
                 style={{
-                  width: '100%', padding: '16px', borderRadius: '18px', border: 'none',
-                  background: 'linear-gradient(135deg, var(--accent) 0%, var(--primary) 100%)',
-                  color: 'white', fontWeight: '700', fontSize: '15px', cursor: 'pointer',
-                  boxShadow: '0 4px 12px rgba(99, 102, 241, 0.3)',
+                  width: '100%', padding: '16px', borderRadius: '12px', border: 'none',
+                  background: 'var(--primary)',
+                  color: 'white', fontWeight: 600, fontSize: '15px', cursor: 'pointer',
+                  boxShadow: '0 4px 12px color-mix(in srgb, var(--primary) 30%, transparent)',
                 }}
               >
                 Got it, let&apos;s go! 🚀
@@ -1171,7 +1171,7 @@ export default function LecturePage() {
                     <ChevronLeft size={20} /> Back
                   </button>
                   <div style={{ display: 'flex', flexDirection: 'column' }}>
-                    <h1 style={{ fontSize: '18px', fontWeight: 800, margin: 0, color: 'var(--text-primary)' }}>
+                    <h1 style={{ fontSize: '18px', fontWeight: 600, margin: 0, color: 'var(--text-primary)' }}>
                       {content.title}
                     </h1>
                     <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{content.topic.title} / {content.topic.course.name}</span>
@@ -1180,14 +1180,14 @@ export default function LecturePage() {
 
                 {showSourceToggle && (
                   <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <span style={{ fontSize: '12px', fontWeight: '700', color: 'var(--text-secondary)' }}>
+                    <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary)' }}>
                       Video Source:
                     </span>
                     <div style={{
                       display: 'inline-flex',
                       background: 'var(--surface-2)',
                       padding: '3px',
-                      borderRadius: '20px',
+                      borderRadius: '14px',
                       boxShadow: 'inset 2px 2px 5px var(--neu-dark), inset -2px -2px 5px var(--neu-light)'
                     }}>
                       <button
@@ -1196,9 +1196,9 @@ export default function LecturePage() {
                         style={{
                           border: 'none',
                           padding: '4px 14px',
-                          borderRadius: '16px',
+                          borderRadius: '12px',
                           fontSize: '11px',
-                          fontWeight: '800',
+                          fontWeight: 600,
                           cursor: 'pointer',
                           background: selectedSource === 'GOOGLE' ? 'var(--accent)' : 'transparent',
                           color: selectedSource === 'GOOGLE' ? '#fff' : 'var(--text-secondary)',
@@ -1213,9 +1213,9 @@ export default function LecturePage() {
                         style={{
                           border: 'none',
                           padding: '4px 14px',
-                          borderRadius: '16px',
+                          borderRadius: '12px',
                           fontSize: '11px',
-                          fontWeight: '800',
+                          fontWeight: 600,
                           cursor: 'pointer',
                           background: selectedSource === 'YOUTUBE' ? 'var(--accent)' : 'transparent',
                           color: selectedSource === 'YOUTUBE' ? '#fff' : 'var(--text-secondary)',
@@ -1236,9 +1236,9 @@ export default function LecturePage() {
                 )}
               </div>
               <LectureVideoPlayer videoUrl={content.videoUrl || undefined} youtubeUrl={content.youtubeUrl || undefined} videoSource={content.videoSource} title={content.title} contentId={content.id} selectedSource={selectedSource} onSourceChange={setSelectedSource} hideToggle={true} />
-                <section style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--surface)', padding: '16px 24px', borderRadius: '16px', border: '1px solid var(--border)', marginTop: '24px' }}>
+                <section style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--surface)', padding: '16px 24px', borderRadius: '12px', border: '1px solid var(--border)', marginTop: '24px' }}>
                   <div style={{ display: 'flex', flexDirection: 'column' }}>
-                    <h2 style={{ fontSize: '16px', fontWeight: '800', color: 'var(--text-primary)', margin: 0 }}>Study Materials</h2>
+                    <h2 style={{ fontSize: '16px', fontWeight: 600, color: 'var(--text-primary)', margin: 0 }}>Study Materials</h2>
                     <span style={{ fontSize: '13px', color: 'var(--text-secondary)', marginTop: '4px' }}>
                       {content.pptUrl ? "Lecture Notes / Slides PDF" : "No study material available"}
                     </span>
@@ -1259,22 +1259,22 @@ export default function LecturePage() {
                   )}
                 </section>
                 {content.description && content.description.trim() !== '' && (
-                  <section style={{ background: 'var(--surface)', padding: '24px', borderRadius: '24px', boxShadow: '0 4px 12px rgba(0,0,0,0.03)', marginTop: '24px' }}>
-                    <h2 style={{ fontSize: '18px', fontWeight: '800', color: 'var(--text-primary)', marginBottom: '12px' }}>About this Lecture</h2>
+                  <section style={{ background: 'var(--surface)', padding: '24px', borderRadius: '14px', boxShadow: '0 4px 12px rgba(0,0,0,0.03)', marginTop: '24px' }}>
+                    <h2 style={{ fontSize: '18px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '12px' }}>About this Lecture</h2>
                     <div style={{ fontSize: '15px', color: 'var(--text-secondary)', lineHeight: '1.7', whiteSpace: 'pre-wrap' }}>
                       {displayedDescription}
                     </div>
                     {isLongDescription && (
-                      <button onClick={() => setShowFullDescription(!showFullDescription)} style={{ background: 'none', border: 'none', color: 'var(--accent)', fontSize: '14px', fontWeight: '700', cursor: 'pointer', marginTop: '12px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                      <button onClick={() => setShowFullDescription(!showFullDescription)} style={{ background: 'none', border: 'none', color: 'var(--accent)', fontSize: '14px', fontWeight: 600, cursor: 'pointer', marginTop: '12px', display: 'flex', alignItems: 'center', gap: '4px' }}>
                         {showFullDescription ? <>Show Less <ChevronUp size={16} /></> : <>Read More <ChevronDown size={16} /></>}
                       </button>
                     )}
                   </section>
                 )}
-                <section style={{ background: 'var(--surface)', padding: '24px', borderRadius: '24px', boxShadow: '0 4px 12px rgba(0,0,0,0.03)', marginTop: '24px' }}>
+                <section style={{ background: 'var(--surface)', padding: '24px', borderRadius: '14px', boxShadow: '0 4px 12px rgba(0,0,0,0.03)', marginTop: '24px' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-                    <h2 style={{ fontSize: '18px', fontWeight: '800', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <MessageSquare size={20} color="#6366f1" /> Discussion & Q&A
+                    <h2 style={{ fontSize: '18px', fontWeight: 600, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <MessageSquare size={20} color="var(--primary)" /> Discussion & Q&A
                     </h2>
                     <span style={{ fontSize: '13px', color: 'var(--text-muted)', fontWeight: '600' }}>{comments.length} Comment{comments.length !== 1 ? 's' : ''}</span>
                   </div>
@@ -1284,9 +1284,9 @@ export default function LecturePage() {
                         {currentUser?.avatar ? <img src={currentUser.avatar} alt={currentUser.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <User size={24} color="#94a3b8" />}
                       </div>
                       <div style={{ flex: 1 }}>
-                        <textarea value={newComment} onChange={(e) => setNewComment(e.target.value)} placeholder="Ask a question or share your thoughts..." style={{ width: '100%', padding: '12px 16px', borderRadius: '16px', border: '2px solid var(--border)', fontSize: '14px', minHeight: '80px', outline: 'none', resize: 'vertical' }} />
+                        <textarea value={newComment} onChange={(e) => setNewComment(e.target.value)} placeholder="Ask a question or share your thoughts..." style={{ width: '100%', padding: '12px 16px', borderRadius: '12px', border: '2px solid var(--border)', fontSize: '14px', minHeight: '80px', outline: 'none', resize: 'vertical' }} />
                         <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '8px' }}>
-                          <button onClick={() => handlePostComment()} disabled={!newComment.trim()} style={{ background: 'var(--accent)', color: 'white', border: 'none', borderRadius: '12px', padding: '8px 20px', fontWeight: '700', fontSize: '14px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', opacity: newComment.trim() ? 1 : 0.6 }}>
+                          <button onClick={() => handlePostComment()} disabled={!newComment.trim()} style={{ background: 'var(--accent)', color: 'white', border: 'none', borderRadius: '12px', padding: '8px 20px', fontWeight: 600, fontSize: '14px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', opacity: newComment.trim() ? 1 : 0.6 }}>
                             Post Comment <Send size={16} />
                           </button>
                         </div>
@@ -1308,7 +1308,7 @@ export default function LecturePage() {
                     <button onClick={() => setActiveContentType('VIDEO')} style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'var(--surface-2)', color: 'var(--text-primary)', border: 'none', padding: '8px 16px', borderRadius: '8px', cursor: 'pointer', fontWeight: 600 }}>
                       <ChevronLeft size={16} /> Back to Video
                     </button>
-                    <h2 style={{ fontSize: '18px', fontWeight: 800, margin: 0, color: 'var(--text-primary)' }}>{activePdfContent?.title}</h2>
+                    <h2 style={{ fontSize: '18px', fontWeight: 600, margin: 0, color: 'var(--text-primary)' }}>{activePdfContent?.title}</h2>
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                     {activePdfContent?.pptUrl && (
@@ -1346,7 +1346,7 @@ export default function LecturePage() {
                       href={activePdfContent.pptUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '10px 16px', borderRadius: '9px', background: 'var(--accent)', color: '#fff', fontWeight: 700, textDecoration: 'none' }}
+                      style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '10px 16px', borderRadius: '9px', background: 'var(--accent)', color: '#fff', fontWeight: 600, textDecoration: 'none' }}
                     >
                       <ExternalLink size={15} /> Download Notes
                     </a>
@@ -1357,7 +1357,7 @@ export default function LecturePage() {
           </div>
           <div ref={rightPanelRef} className="desktop-right-panel" style={{ flex: '2.8', borderLeft: '1px solid var(--border)', background: 'var(--bg)', display: 'flex', flexDirection: 'column', position: 'sticky', top: 0, height: '100vh', overflow: 'hidden' }}>
             <div style={{ padding: '20px 24px', borderBottom: '1px solid var(--border)', flexShrink: 0 }}>
-              <h2 style={{ fontSize: '15px', fontWeight: 900, margin: 0, letterSpacing: '0.06em', color: 'var(--text-primary)', textTransform: 'uppercase' }}>Next Lectures</h2>
+              <h2 style={{ fontSize: '15px', fontWeight: 600, margin: 0, letterSpacing: '0.06em', color: 'var(--text-primary)', textTransform: 'uppercase' }}>Next Lectures</h2>
             </div>
             <div ref={scrollListRef} className="desktop-right-panel-scroll" style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', position: 'relative' }}>
               {courseTopics.map(topic => {
@@ -1373,7 +1373,7 @@ export default function LecturePage() {
                     });
                   }} style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--surface-2)', border: 'none', padding: '16px 20px', cursor: 'pointer', borderRadius: '0', position: 'sticky', top: 0, zIndex: 2, borderBottom: '1px solid var(--border)' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px', overflow: 'hidden', flex: 1, minWidth: 0 }}>
-                      <span style={{ fontWeight: 700, fontSize: '14px', color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', textAlign: 'left' }}>{topic.title}</span>
+                      <span style={{ fontWeight: 600, fontSize: '14px', color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', textAlign: 'left' }}>{topic.title}</span>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexShrink: 0 }}>
                       <span style={{ fontSize: '12px', color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>{topicItems.length} items</span>
@@ -1421,7 +1421,7 @@ export default function LecturePage() {
                               <div style={{ flex: 1, minWidth: 0 }}>
                                 <div style={{ fontSize: '14px', fontWeight: 600, color: isActive ? 'var(--accent)' : 'var(--text-primary)', marginBottom: '4px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                                   {item.title}
-                                  {isNewContentItem(item) && <span style={{ marginLeft: '8px', fontSize: '10px', background: '#ef4444', color: 'white', padding: '2px 6px', borderRadius: '4px', fontWeight: 800 }}>NEW</span>}
+                                  {isNewContentItem(item) && <span style={{ marginLeft: '8px', fontSize: '10px', background: '#ef4444', color: 'white', padding: '2px 6px', borderRadius: '4px', fontWeight: 600 }}>NEW</span>}
                                 </div>
                                 <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{getRelativeTimeString(item.createdAt)}</div>
                               </div>
@@ -1466,7 +1466,7 @@ export default function LecturePage() {
             <ChevronLeft size={18} />
           </Link>
           <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontSize: '15px', fontWeight: 800, color: 'var(--text-primary)', lineHeight: 1.2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            <div style={{ fontSize: '15px', fontWeight: 600, color: 'var(--text-primary)', lineHeight: 1.2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
               {content.topic.course.name}
             </div>
           </div>
@@ -1486,12 +1486,12 @@ export default function LecturePage() {
           </Link>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: '16px' }}>
             <div>
-              <h1 style={{ fontSize: '28px', fontWeight: '800', color: 'var(--text-primary)', marginBottom: '4px' }}>{content.title}</h1>
+              <h1 style={{ fontSize: '28px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '4px' }}>{content.title}</h1>
               <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
                 <span style={{
                   fontSize: '12px', color: content.topic.course.color,
                   background: content.topic.course.color + '15',
-                  padding: '4px 10px', borderRadius: '6px', fontWeight: '700'
+                  padding: '4px 10px', borderRadius: '6px', fontWeight: 600
                 }}>
                   {content.topic.title}
                 </span>
@@ -1517,13 +1517,13 @@ export default function LecturePage() {
             <span style={{
               fontSize: '11px', color: content.topic.course.color,
               background: content.topic.course.color + '18',
-              padding: '4px 10px', borderRadius: '50px', fontWeight: 800,
+              padding: '4px 10px', borderRadius: '50px', fontWeight: 600,
               letterSpacing: '0.04em', textTransform: 'uppercase',
             }}>
               {content.topic.title}
             </span>
           </div>
-          <h1 style={{ fontSize: '22px', fontWeight: 900, color: 'var(--text-primary)', margin: 0, lineHeight: 1.2, letterSpacing: '-0.02em' }}>
+          <h1 style={{ fontSize: '22px', fontWeight: 600, color: 'var(--text-primary)', margin: 0, lineHeight: 1.2, letterSpacing: '-0.02em' }}>
             {content.title}
           </h1>
         </div>
@@ -1536,10 +1536,10 @@ export default function LecturePage() {
             {/* About this Lecture — only show on mobile if description exists */}
             {content.description && content.description.trim() !== '' && (
             <section style={{ 
-              background: 'var(--surface)', padding: '20px', borderRadius: '20px', 
+              background: 'var(--surface)', padding: '20px', borderRadius: '14px', 
               boxShadow: '0 4px 12px rgba(0,0,0,0.03)' 
             }}>
-              <h2 style={{ fontSize: '16px', fontWeight: '800', color: 'var(--text-primary)', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <h2 style={{ fontSize: '16px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
                 About this Lecture
               </h2>
               <div style={{ fontSize: '14px', color: 'var(--text-secondary)', lineHeight: '1.6', whiteSpace: 'pre-wrap' }}>
@@ -1550,7 +1550,7 @@ export default function LecturePage() {
                   onClick={() => setShowFullDescription(!showFullDescription)}
                   style={{ 
                     background: 'none', border: 'none', color: 'var(--accent)', fontSize: '13px', 
-                    fontWeight: '700', cursor: 'pointer', marginTop: '10px', padding: '0',
+                    fontWeight: 600, cursor: 'pointer', marginTop: '10px', padding: '0',
                     display: 'flex', alignItems: 'center', gap: '4px'
                   }}
                 >
@@ -1566,10 +1566,10 @@ export default function LecturePage() {
 
             {/* Study Materials */}
             <section style={{ 
-              background: 'var(--surface)', padding: '20px', borderRadius: '20px', 
+              background: 'var(--surface)', padding: '20px', borderRadius: '14px', 
               boxShadow: '0 4px 12px rgba(0,0,0,0.03)' 
             }}>
-              <h3 style={{ fontSize: '16px', fontWeight: '800', color: 'var(--text-primary)', marginBottom: '14px' }}>Study Materials</h3>
+              <h3 style={{ fontSize: '16px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '14px' }}>Study Materials</h3>
               {content.pptUrl ? (
                 <div style={{ 
                   background: 'var(--surface)', padding: '14px', borderRadius: '14px', 
@@ -1583,7 +1583,7 @@ export default function LecturePage() {
                       <Download size={16} />
                     </div>
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: '13px', fontWeight: '700', color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                         Lecture Resources
                       </div>
                       <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>PDF / Presentation / Notes</div>
@@ -1594,7 +1594,7 @@ export default function LecturePage() {
                       onClick={() => setDownloadConfirmContentId(content.id)}
                       style={{
                         background: 'var(--accent)', color: 'white', border: 'none', textAlign: 'center',
-                        padding: '10px', borderRadius: '10px', fontSize: '13px', fontWeight: '700',
+                        padding: '10px', borderRadius: '10px', fontSize: '13px', fontWeight: 600,
                         cursor: 'pointer', fontFamily: 'inherit', width: '100%',
                       }}
                     >
@@ -1607,7 +1607,7 @@ export default function LecturePage() {
                       rel="noopener noreferrer"
                       style={{
                         background: 'var(--accent)', color: 'white', textDecoration: 'none', textAlign: 'center',
-                        padding: '10px', borderRadius: '10px', fontSize: '13px', fontWeight: '700',
+                        padding: '10px', borderRadius: '10px', fontSize: '13px', fontWeight: 600,
                         display: 'block',
                       }}
                     >
@@ -1624,12 +1624,12 @@ export default function LecturePage() {
 
             {/* Discussion Section (Moved directly after Study Materials!) */}
             <section style={{ 
-              background: 'var(--surface)', padding: '20px', borderRadius: '20px', 
+              background: 'var(--surface)', padding: '20px', borderRadius: '14px', 
               boxShadow: '0 4px 12px rgba(0,0,0,0.03)' 
             }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-                <h2 style={{ fontSize: '16px', fontWeight: '800', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <MessageSquare size={18} color="#6366f1" />
+                <h2 style={{ fontSize: '16px', fontWeight: 600, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <MessageSquare size={18} color="var(--primary)" />
                   Discussion & Q&A
                 </h2>
                 <span style={{ fontSize: '12px', color: 'var(--text-muted)', fontWeight: '600' }}>
@@ -1669,7 +1669,7 @@ export default function LecturePage() {
                         disabled={!newComment.trim()}
                         style={{ 
                           background: 'var(--accent)', color: 'white', border: 'none', borderRadius: '8px', 
-                          padding: '6px 14px', fontWeight: '700', fontSize: '13px', cursor: 'pointer',
+                          padding: '6px 14px', fontWeight: 600, fontSize: '13px', cursor: 'pointer',
                           display: 'flex', alignItems: 'center', gap: '6px', opacity: newComment.trim() ? 1 : 0.6,
                         }}
                       >
@@ -1698,10 +1698,10 @@ export default function LecturePage() {
 
             {/* Course Info */}
             <section style={{ 
-              background: 'var(--surface)', padding: '20px', borderRadius: '20px', 
+              background: 'var(--surface)', padding: '20px', borderRadius: '14px', 
               boxShadow: '0 4px 12px rgba(0,0,0,0.03)' 
             }}>
-              <h3 style={{ fontSize: '16px', fontWeight: '800', color: 'var(--text-primary)', marginBottom: '14px' }}>Course Info</h3>
+              <h3 style={{ fontSize: '16px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '14px' }}>Course Info</h3>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                 <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
                   <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: content.topic.course.color }} />
@@ -1716,7 +1716,7 @@ export default function LecturePage() {
                 onClick={() => router.push(`/courses/${params.id}`)}
                 style={{ 
                   marginTop: '16px', width: '100%', background: 'var(--surface)', border: 'none', 
-                  padding: '10px', borderRadius: '10px', fontSize: '13px', fontWeight: '700', 
+                  padding: '10px', borderRadius: '10px', fontSize: '13px', fontWeight: 600, 
                   color: 'var(--text-secondary)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px'
                 }}
               >
@@ -1734,10 +1734,10 @@ export default function LecturePage() {
             {/* Description Section */}
             {content.description && content.description.trim() !== '' && (
             <section style={{ 
-              background: 'var(--surface)', padding: '24px', borderRadius: '24px', 
+              background: 'var(--surface)', padding: '24px', borderRadius: '14px', 
               boxShadow: '0 4px 12px rgba(0,0,0,0.03)', marginBottom: '24px' 
             }}>
-              <h2 style={{ fontSize: '18px', fontWeight: '800', color: 'var(--text-primary)', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <h2 style={{ fontSize: '18px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
                 About this Lecture
               </h2>
               <div style={{ fontSize: '15px', color: 'var(--text-secondary)', lineHeight: '1.7', whiteSpace: 'pre-wrap' }}>
@@ -1748,7 +1748,7 @@ export default function LecturePage() {
                   onClick={() => setShowFullDescription(!showFullDescription)}
                   style={{ 
                     background: 'none', border: 'none', color: 'var(--accent)', fontSize: '14px', 
-                    fontWeight: '700', cursor: 'pointer', marginTop: '12px', padding: '0',
+                    fontWeight: 600, cursor: 'pointer', marginTop: '12px', padding: '0',
                     display: 'flex', alignItems: 'center', gap: '4px'
                   }}
                 >
@@ -1764,12 +1764,12 @@ export default function LecturePage() {
 
             {/* Discussion Section */}
             <section style={{ 
-              background: 'var(--surface)', padding: '24px', borderRadius: '24px', 
+              background: 'var(--surface)', padding: '24px', borderRadius: '14px', 
               boxShadow: '0 4px 12px rgba(0,0,0,0.03)' 
             }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-                <h2 style={{ fontSize: '18px', fontWeight: '800', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <MessageSquare size={20} color="#6366f1" />
+                <h2 style={{ fontSize: '18px', fontWeight: 600, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <MessageSquare size={20} color="var(--primary)" />
                   Discussion & Q&A
                 </h2>
                 <span style={{ fontSize: '13px', color: 'var(--text-muted)', fontWeight: '600' }}>
@@ -1796,7 +1796,7 @@ export default function LecturePage() {
                       onChange={(e) => setNewComment(e.target.value)}
                       placeholder="Ask a question or share your thoughts..."
                       style={{ 
-                        width: '100%', padding: '12px 16px', borderRadius: '16px', border: '2px solid var(--border)',
+                        width: '100%', padding: '12px 16px', borderRadius: '12px', border: '2px solid var(--border)',
                         fontSize: '14px', minHeight: '80px', outline: 'none', resize: 'vertical',
                         transition: 'border-color 0.2s', fontFamily: 'inherit'
                       }}
@@ -1809,7 +1809,7 @@ export default function LecturePage() {
                         disabled={!newComment.trim()}
                         style={{ 
                           background: 'var(--accent)', color: 'white', border: 'none', borderRadius: '12px', 
-                          padding: '8px 20px', fontWeight: '700', fontSize: '14px', cursor: 'pointer',
+                          padding: '8px 20px', fontWeight: 600, fontSize: '14px', cursor: 'pointer',
                           display: 'flex', alignItems: 'center', gap: '8px', opacity: newComment.trim() ? 1 : 0.6,
                           transition: 'transform 0.1s'
                         }}
@@ -1843,13 +1843,13 @@ export default function LecturePage() {
           {/* Right Column: Sidebar */}
           <div>
             <section style={{ 
-              background: 'var(--surface)', padding: '24px', borderRadius: '24px', 
+              background: 'var(--surface)', padding: '24px', borderRadius: '14px', 
               boxShadow: '0 4px 12px rgba(0,0,0,0.03)', position: 'sticky', top: '24px'
             }}>
-              <h3 style={{ fontSize: '16px', fontWeight: '800', color: 'var(--text-primary)', marginBottom: '16px' }}>Study Materials</h3>
+              <h3 style={{ fontSize: '16px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '16px' }}>Study Materials</h3>
               {content.pptUrl ? (
                 <div style={{ 
-                  background: 'var(--surface)', padding: '16px', borderRadius: '16px', 
+                  background: 'var(--surface)', padding: '16px', borderRadius: '12px', 
                   border: '1px dashed #cbd5e1', display: 'flex', flexDirection: 'column', gap: '12px'
                 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
@@ -1860,7 +1860,7 @@ export default function LecturePage() {
                       <Download size={18} />
                     </div>
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: '13px', fontWeight: '700', color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                         Lecture Resources
                       </div>
                       <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>PDF / Presentation / Notes</div>
@@ -1871,7 +1871,7 @@ export default function LecturePage() {
                       onClick={() => setDownloadConfirmContentId(content.id)}
                       style={{
                         background: 'var(--accent)', color: 'white', border: 'none', textAlign: 'center',
-                        padding: '10px', borderRadius: '10px', fontSize: '13px', fontWeight: '700',
+                        padding: '10px', borderRadius: '10px', fontSize: '13px', fontWeight: 600,
                         cursor: 'pointer', fontFamily: 'inherit', width: '100%',
                         transition: 'opacity 0.2s'
                       }}
@@ -1887,7 +1887,7 @@ export default function LecturePage() {
                       rel="noopener noreferrer"
                       style={{
                         background: 'var(--accent)', color: 'white', textDecoration: 'none', textAlign: 'center',
-                        padding: '10px', borderRadius: '10px', fontSize: '13px', fontWeight: '700',
+                        padding: '10px', borderRadius: '10px', fontSize: '13px', fontWeight: 600,
                         transition: 'opacity 0.2s', display: 'block',
                       }}
                       onMouseEnter={e => (e.currentTarget as HTMLElement).style.opacity = '0.9'}
@@ -1904,7 +1904,7 @@ export default function LecturePage() {
               )}
 
               <div style={{ marginTop: '32px' }}>
-                <h3 style={{ fontSize: '16px', fontWeight: '800', color: 'var(--text-primary)', marginBottom: '16px' }}>Course Info</h3>
+                <h3 style={{ fontSize: '16px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '16px' }}>Course Info</h3>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                   <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
                     <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: content.topic.course.color }} />
@@ -1919,7 +1919,7 @@ export default function LecturePage() {
                   onClick={() => router.push(`/courses/${params.id}`)}
                   style={{ 
                     marginTop: '24px', width: '100%', background: 'var(--surface)', border: 'none', 
-                    padding: '12px', borderRadius: '12px', fontSize: '13px', fontWeight: '700', 
+                    padding: '12px', borderRadius: '12px', fontSize: '13px', fontWeight: 600, 
                     color: 'var(--text-secondary)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px'
                   }}
                   onMouseEnter={e => e.currentTarget.style.background = 'var(--surface-2)'}
@@ -1950,13 +1950,13 @@ export default function LecturePage() {
             background: 'var(--surface)',
             width: '100%',
             maxWidth: '400px',
-            borderRadius: '24px',
+            borderRadius: '14px',
             padding: '24px',
             boxShadow: '0 20px 40px rgba(0,0,0,0.15)',
             border: '1px solid var(--border)',
             textAlign: 'center',
           }}>
-            <h3 style={{ fontSize: '18px', fontWeight: '800', color: 'var(--text-primary)', marginBottom: '12px' }}>
+            <h3 style={{ fontSize: '18px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '12px' }}>
               Download Material
             </h3>
             <p style={{ fontSize: '14.5px', color: 'var(--text-secondary)', lineHeight: '1.5', marginBottom: '24px' }}>
@@ -1972,7 +1972,7 @@ export default function LecturePage() {
                   border: '1px solid var(--border)',
                   background: 'var(--surface)',
                   color: 'var(--text-secondary)',
-                  fontWeight: '700',
+                  fontWeight: 600,
                   fontSize: '13.5px',
                   cursor: 'pointer',
                 }}
@@ -1992,7 +1992,7 @@ export default function LecturePage() {
                   border: 'none',
                   background: 'var(--accent)',
                   color: 'white',
-                  fontWeight: '700',
+                  fontWeight: 600,
                   fontSize: '13.5px',
                   cursor: 'pointer',
                   boxShadow: '0 4px 12px var(--accent-light)',

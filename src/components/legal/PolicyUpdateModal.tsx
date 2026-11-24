@@ -186,12 +186,12 @@ export default function PolicyUpdateModal() {
         .policy-link:active { transform: scale(0.96); }
         .policy-cta {
           width: 100%; height: 48px; border: none; border-radius: 14px; cursor: pointer;
-          background: var(--accent, #3636e8); color: var(--button-text, #fff);
+          background: var(--accent, var(--primary)); color: var(--button-text, #fff);
           font-size: 15px; font-weight: 700; letter-spacing: -0.1px;
           transition: transform 120ms ease, opacity 120ms ease;
         }
         .policy-cta:active { transform: scale(0.98); }
-        .policy-cta:focus-visible { outline: 3px solid var(--accent, #3636e8); outline-offset: 3px; }
+        .policy-cta:focus-visible { outline: 3px solid var(--accent, var(--primary)); outline-offset: 3px; }
         @keyframes policyFade { from { opacity: 0 } to { opacity: 1 } }
         @keyframes policyIn { from { opacity: 0; transform: translateY(14px) scale(0.96) } to { opacity: 1; transform: none } }
         @keyframes policyRise { from { opacity: 0; transform: translateY(12px) } to { opacity: 1; transform: none } }
@@ -221,7 +221,7 @@ export default function PolicyUpdateModal() {
           <div
             className="policy-rise"
             style={{
-              animationDelay: '60ms', fontSize: 12, fontWeight: 700, letterSpacing: '0.08em',
+              animationDelay: '60ms', fontSize: 12, fontWeight: 600, letterSpacing: '0.08em',
               textTransform: 'uppercase', color: 'var(--text-secondary, #64748b)', marginBottom: 6,
             }}
           >
@@ -231,7 +231,7 @@ export default function PolicyUpdateModal() {
             id="policy-modal-title"
             className="policy-rise"
             style={{
-              animationDelay: '110ms', margin: 0, fontSize: 22, fontWeight: 800,
+              animationDelay: '110ms', margin: 0, fontSize: 22, fontWeight: 600,
               lineHeight: 1.15, letterSpacing: '-0.03em',
             }}
           >
@@ -266,7 +266,7 @@ export default function PolicyUpdateModal() {
                 {r.icon}
               </div>
               <div>
-                <div style={{ fontSize: 14, fontWeight: 700, lineHeight: 1.3 }}>{r.title}</div>
+                <div style={{ fontSize: 14, fontWeight: 600, lineHeight: 1.3 }}>{r.title}</div>
                 <div style={{ fontSize: 13, lineHeight: 1.45, color: 'var(--text-secondary, #475569)', marginTop: 2 }}>
                   {r.text}
                 </div>

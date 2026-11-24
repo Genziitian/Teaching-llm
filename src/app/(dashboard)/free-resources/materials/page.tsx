@@ -39,7 +39,7 @@ function FilterSelect({
           color: '#6b6b8a',
         }}
       >
-        <span style={{ color: '#4F46E5', display: 'inline-flex' }}>{icon}</span>
+        <span style={{ color: 'var(--primary)', display: 'inline-flex' }}>{icon}</span>
         {label}
       </label>
       <div style={{ position: 'relative' }}>
@@ -275,7 +275,7 @@ export default function FreeMaterialsPage() {
   }
 
   return (
-    <div className="page-container fade-in">
+    <div className="gz-page fade-in">
       {confirmDialog}
 
       <div className="page-header">
@@ -309,7 +309,7 @@ export default function FreeMaterialsPage() {
           480px up. Each select sits inside a relative-positioned wrapper
           so a small SVG glyph can be absolutely positioned on the left. */}
       <div
-        className="card"
+        className="gz-panel"
         style={{
           padding: '14px',
           display: 'grid',
@@ -351,48 +351,12 @@ export default function FreeMaterialsPage() {
       </div>
 
       {/* Category tabs — labels shrink on narrow screens via CSS clamp(). */}
-      <div
-        className="card"
-        style={{
-          padding: '6px',
-          display: 'flex',
-          gap: '4px',
-          marginBottom: '16px',
-        }}
-      >
-        {CATEGORIES.map(c => {
-          const active = c.value === category
-          return (
-            <button
-              key={c.value}
-              onClick={() => setCategory(c.value)}
-              title={c.label}
-              style={{
-                flex: 1,
-                minWidth: 0,
-                padding: '10px 8px',
-                border: 'none',
-                borderRadius: '10px',
-                background: active ? 'var(--accent)' : 'transparent',
-                color: active ? '#ffffff' : 'var(--text-secondary)',
-                fontSize: 'clamp(11px, 2.6vw, 13.5px)',
-                fontWeight: active ? 800 : 600,
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '6px',
-                fontFamily: 'inherit',
-                transition: 'all 0.15s ease',
-                whiteSpace: 'nowrap',
-                overflow: 'hidden',
-              }}
-            >
-              <span>{c.icon}</span>
-              <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{c.label}</span>
-            </button>
-          )
-        })}
+      <div className="gz-tabs gz-tabs--full">
+        {CATEGORIES.map(c => (
+          <button key={c.value} className={c.value === category ? 'is-on' : ''} onClick={() => setCategory(c.value)} title={c.label}>
+            {c.label}
+          </button>
+        ))}
       </div>
 
       {/* List */}
@@ -405,7 +369,7 @@ export default function FreeMaterialsPage() {
           <div style={{ fontSize: '32px', marginBottom: '8px' }}>
             {CATEGORIES.find(c => c.value === category)?.icon}
           </div>
-          <div style={{ fontWeight: 700, color: 'var(--text-primary)', fontSize: '15px' }}>
+          <div style={{ fontWeight: 600, color: 'var(--text-primary)', fontSize: '15px' }}>
             No {CATEGORIES.find(c => c.value === category)?.label.toLowerCase()} yet
           </div>
           <div style={{ marginTop: '4px', fontSize: '12.5px' }}>
@@ -430,7 +394,7 @@ export default function FreeMaterialsPage() {
                 style={{
                   background: viewMode === 'GRID' ? 'var(--accent)' : 'transparent',
                   color: viewMode === 'GRID' ? '#ffffff' : 'var(--text-secondary)',
-                  border: 'none', borderRadius: '6px', padding: '6px 12px', fontSize: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', transition: 'all 0.15s ease', fontWeight: 700
+                  border: 'none', borderRadius: '6px', padding: '6px 12px', fontSize: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', transition: 'all 0.15s ease', fontWeight: 600
                 }}
               >
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -447,7 +411,7 @@ export default function FreeMaterialsPage() {
                 style={{
                   background: viewMode === 'LIST' ? 'var(--accent)' : 'transparent',
                   color: viewMode === 'LIST' ? '#ffffff' : 'var(--text-secondary)',
-                  border: 'none', borderRadius: '6px', padding: '6px 12px', fontSize: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', transition: 'all 0.15s ease', fontWeight: 700
+                  border: 'none', borderRadius: '6px', padding: '6px 12px', fontSize: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', transition: 'all 0.15s ease', fontWeight: 600
                 }}
               >
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -466,11 +430,11 @@ export default function FreeMaterialsPage() {
           {viewMode === 'GRID' ? (
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 260px), 1fr))', gap: '14px' }}>
               {materials.map(mat => (
-                <div key={mat.id} className="card" style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                <div key={mat.id} className="gz-panel gz-mat" style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                     <span style={{ fontSize: '28px' }}>{getFileIcon(mat.fileType)}</span>
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: '15px', fontWeight: '700', color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      <div style={{ fontSize: '15px', fontWeight: 600, color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                         {mat.title}
                       </div>
                       {mat.description && (
@@ -482,21 +446,21 @@ export default function FreeMaterialsPage() {
                   </div>
 
                   <div style={{ display: 'flex', gap: '6px', alignItems: 'center', flexWrap: 'wrap' }}>
-                    <span style={{ fontSize: '11px', padding: '2px 8px', borderRadius: '10px', background: mat.sourceType === 'LINK' ? 'var(--info-light)' : 'var(--success-light)', color: mat.sourceType === 'LINK' ? 'var(--info)' : 'var(--success)', fontWeight: '600' }}>
+                    <span style={{ fontSize: '11px', padding: '2px 8px', borderRadius: '6px', background: 'var(--gz-chip)', color: 'var(--gz-ink-2)', fontFamily: 'var(--gz-mono)', fontWeight: '600' }}>
                       {mat.sourceType === 'LINK' ? 'LINK' : (mat.fileType || 'File').toUpperCase()}
                     </span>
                     {mat.subject && (
-                      <span style={{ fontSize: '11px', padding: '2px 8px', borderRadius: '10px', background: 'var(--primary-light)', color: 'var(--accent)', fontWeight: 600 }}>
+                      <span style={{ fontSize: '11px', padding: '2px 8px', borderRadius: '6px', background: 'var(--gz-chip)', color: 'var(--gz-ink-2)', fontWeight: 600 }}>
                         {mat.subject}
                       </span>
                     )}
                     {mat.level && (
-                      <span style={{ fontSize: '11px', padding: '2px 8px', borderRadius: '10px', background: 'var(--warning-light)', color: 'var(--warning)', fontWeight: 600 }}>
+                      <span style={{ fontSize: '11px', padding: '2px 8px', borderRadius: '6px', background: 'var(--gz-chip)', color: 'var(--gz-ink-2)', fontWeight: 600 }}>
                         {mat.level}
                       </span>
                     )}
                     {mat.term && (
-                      <span style={{ fontSize: '11px', padding: '2px 8px', borderRadius: '10px', background: 'var(--success-light)', color: 'var(--success)', fontWeight: 600 }}>
+                      <span style={{ fontSize: '11px', padding: '2px 8px', borderRadius: '6px', background: 'var(--gz-chip)', color: 'var(--gz-ink-2)', fontWeight: 600 }}>
                         {mat.term}
                       </span>
                     )}
@@ -579,7 +543,7 @@ export default function FreeMaterialsPage() {
               {materials.map(mat => (
                 <div
                   key={mat.id}
-                  className="card"
+                  className="gz-panel"
                   style={{
                     padding: '16px 20px',
                     display: 'flex',
@@ -593,7 +557,7 @@ export default function FreeMaterialsPage() {
                   <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flex: 1, minWidth: '280px' }}>
                     <span style={{ fontSize: '32px', flexShrink: 0 }}>{getFileIcon(mat.fileType)}</span>
                     <div style={{ minWidth: 0, flex: 1 }}>
-                      <div style={{ fontSize: '15px', fontWeight: '700', color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      <div style={{ fontSize: '15px', fontWeight: 600, color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                         {mat.title}
                       </div>
                       {mat.description && (
@@ -603,21 +567,21 @@ export default function FreeMaterialsPage() {
                       )}
                       {/* Badges/Tags */}
                       <div style={{ display: 'flex', gap: '6px', alignItems: 'center', flexWrap: 'wrap', marginTop: '6px' }}>
-                        <span style={{ fontSize: '10px', padding: '1px 6px', borderRadius: '8px', background: mat.sourceType === 'LINK' ? 'var(--info-light)' : 'var(--success-light)', color: mat.sourceType === 'LINK' ? 'var(--info)' : 'var(--success)', fontWeight: '600' }}>
+                        <span style={{ fontSize: '10px', padding: '1px 6px', borderRadius: '6px', background: 'var(--gz-chip)', color: 'var(--gz-ink-2)', fontFamily: 'var(--gz-mono)', fontWeight: '600' }}>
                           {mat.sourceType === 'LINK' ? 'LINK' : (mat.fileType || 'File').toUpperCase()}
                         </span>
                         {mat.subject && (
-                          <span style={{ fontSize: '10px', padding: '1px 6px', borderRadius: '8px', background: 'var(--primary-light)', color: 'var(--accent)', fontWeight: 600 }}>
+                          <span style={{ fontSize: '10px', padding: '1px 6px', borderRadius: '6px', background: 'var(--gz-chip)', color: 'var(--gz-ink-2)', fontWeight: 600 }}>
                             {mat.subject}
                           </span>
                         )}
                         {mat.level && (
-                          <span style={{ fontSize: '10px', padding: '1px 6px', borderRadius: '8px', background: 'var(--warning-light)', color: 'var(--warning)', fontWeight: 600 }}>
+                          <span style={{ fontSize: '10px', padding: '1px 6px', borderRadius: '6px', background: 'var(--gz-chip)', color: 'var(--gz-ink-2)', fontWeight: 600 }}>
                             {mat.level}
                           </span>
                         )}
                         {mat.term && (
-                          <span style={{ fontSize: '10px', padding: '1px 6px', borderRadius: '8px', background: 'var(--success-light)', color: 'var(--success)', fontWeight: 600 }}>
+                          <span style={{ fontSize: '10px', padding: '1px 6px', borderRadius: '6px', background: 'var(--gz-chip)', color: 'var(--gz-ink-2)', fontWeight: 600 }}>
                             {mat.term}
                           </span>
                         )}
@@ -717,7 +681,7 @@ export default function FreeMaterialsPage() {
             style={{ width: '560px', maxWidth: '95vw', maxHeight: '90vh', overflowY: 'auto', padding: '28px' }}
             onClick={e => e.stopPropagation()}
           >
-            <h2 style={{ fontSize: '18px', fontWeight: '800', marginBottom: '20px', color: 'var(--text-primary)' }}>
+            <h2 style={{ fontSize: '18px', fontWeight: 600, marginBottom: '20px', color: 'var(--text-primary)' }}>
               {editId ? 'Edit Free Material' : 'Add Free Material'}
             </h2>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>

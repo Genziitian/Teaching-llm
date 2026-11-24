@@ -127,8 +127,8 @@ export default function SwipeableMessage({
           if (!info.triggered) {
             info.triggered = true
             iconRef.current.style.color = 'var(--primary)'
-            iconRef.current.style.backgroundColor = 'rgba(54, 54, 232, 0.16)'
-            iconRef.current.style.boxShadow = '0 2px 8px rgba(54, 54, 232, 0.15)'
+            iconRef.current.style.backgroundColor = 'color-mix(in srgb, var(--primary) 16%, transparent)'
+            iconRef.current.style.boxShadow = '0 2px 8px color-mix(in srgb, var(--primary) 15%, transparent)'
             
             // Light haptic feedback if supported by browser/device
             if (typeof window !== 'undefined' && window.navigator && window.navigator.vibrate) {

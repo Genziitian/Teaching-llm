@@ -1325,6 +1325,7 @@ class _Bubble extends StatelessWidget {
     final name = (sender['name'] as String?) ?? 'User';
     final role = ((sender['role'] as String?) ?? 'STUDENT').toUpperCase();
     final isMentor = role == 'MENTOR' || role == 'ADMIN' || role == 'MANAGER';
+    final isBot = role == 'BOT';
     final rawContent = (message['content'] as String?) ?? '';
     final imageUrl = message['imageUrl'] as String?;
     final time = _formatTime(message['createdAt'] as String?);
@@ -1416,7 +1417,7 @@ class _Bubble extends StatelessWidget {
               Opacity(
                 opacity: continuation ? 0 : 1,
                 child: InkWell(
-                  onTap: senderId != null && senderId.isNotEmpty
+                  onTap: senderId != null && senderId.isNotEmpty && !isBot
                       ? () => showSocialCard(context, userId: senderId)
                       : null,
                   borderRadius: BorderRadius.circular(50),
@@ -1446,7 +1447,7 @@ class _Bubble extends StatelessWidget {
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             InkWell(
-                              onTap: senderId != null && senderId.isNotEmpty
+                              onTap: senderId != null && senderId.isNotEmpty && !isBot
                                   ? () => showSocialCard(context, userId: senderId)
                                   : null,
                               child: Text(
@@ -1518,8 +1519,16 @@ class _Bubble extends StatelessWidget {
                                           .withOpacity(0.85)
                                       : const Color(0xFFFF3B30)
                                           .withOpacity(0.08))
-                                  : (isMine ? null : tokens.cardBg),
-                          border: (isMine || !isDeleted)
+                                  : (isMine
+                                      ? null
+                                      : isBot
+                                          ? (context.isDark
+                                              ? const Color(0x2EFF9500)
+                                              : const Color(0xFFFFF7E6))
+                                          : tokens.cardBg),
+                          border: isBot && !isDeleted
+                              ? Border.all(color: const Color(0xFFFCD8A6))
+                              : (isMine || !isDeleted)
                               ? null
                               : Border.all(
                                   color: const Color(0xFFFF3B30)
@@ -1736,6 +1745,20 @@ class _Bubble extends StatelessWidget {
                                     color: isMine
                                         ? Colors.white.withOpacity(0.7)
                                         : tokens.textMuted,
+                                  ),
+                                ),
+                              if (isBot)
+                                Padding(
+                                  padding: const EdgeInsets.only(top: 6),
+                                  child: Text(
+                                    'GenZie · auto-reply, I might be wrong',
+                                    style: TextStyle(
+                                      fontSize: 11.5,
+                                      fontStyle: FontStyle.italic,
+                                      color: context.isDark
+                                          ? const Color(0xFFFDE68A)
+                                          : const Color(0xFF92400E),
+                                    ),
                                   ),
                                 ),
                             ],

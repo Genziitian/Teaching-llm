@@ -246,8 +246,8 @@ export default function StudyResourcesPage() {
                 display: 'flex', alignItems: 'center', gap: '8px',
                 padding: '11px 20px', borderRadius: '50px',
                 background: 'var(--primary)', color: '#ffffff',
-                boxShadow: '4px 4px 10px rgba(54,54,232,0.35)',
-                border: 'none', cursor: 'pointer', fontSize: '13px', fontWeight: '700',
+                boxShadow: '4px 4px 10px color-mix(in srgb, var(--primary) 35%, transparent)',
+                border: 'none', cursor: 'pointer', fontSize: '13px', fontWeight: 600,
                 transition: 'all 0.2s'
               }}
               onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-1px)'}
@@ -341,20 +341,20 @@ export default function StudyResourcesPage() {
                   width: '46px', height: '46px', borderRadius: '50%', flexShrink: 0,
                   background: 'var(--surface-2)', boxShadow: '3px 3px 7px var(--neu-dark), -3px -3px 7px var(--neu-light)',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontSize: '9px', fontWeight: '800', color: style.color, letterSpacing: '0.03em',
+                  fontSize: '9px', fontWeight: 600, color: style.color, letterSpacing: '0.03em',
                 }}>
                   {ft.slice(0, 4)}
                 </div>
 
                 {/* Info */}
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: '14.5px', fontWeight: '700', color: 'var(--text-primary)', marginBottom: '3px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <div style={{ fontSize: '14.5px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '3px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{mat.title}</span>
                     {mat.createdAt && new Date().getTime() - new Date(mat.createdAt).getTime() < 24 * 60 * 60 * 1000 && (
                       <span style={{
                         background: 'linear-gradient(135deg, #ef4444, #dc2626)',
                         color: 'white', padding: '2px 6px', borderRadius: '4px',
-                        fontSize: '9px', fontWeight: '800', textTransform: 'uppercase',
+                        fontSize: '9px', fontWeight: 600, textTransform: 'uppercase',
                         letterSpacing: '0.05em', boxShadow: '0 2px 4px rgba(239, 68, 68, 0.3)',
                         flexShrink: 0
                       }}>
@@ -367,7 +367,7 @@ export default function StudyResourcesPage() {
                       <span style={{
                         padding: '1px 8px', borderRadius: '50px',
                         background: 'var(--primary-light)', color: 'var(--accent)',
-                        fontWeight: '700', fontSize: '10px', textTransform: 'uppercase'
+                        fontWeight: 600, fontSize: '10px', textTransform: 'uppercase'
                       }}>
                         Global
                       </span>
@@ -376,7 +376,7 @@ export default function StudyResourcesPage() {
                         padding: '1px 8px', borderRadius: '50px',
                         background: (mat.course.color || 'var(--accent)') + '18',
                         color: mat.course.color || 'var(--accent)',
-                        fontWeight: '700', fontSize: '10px',
+                        fontWeight: 600, fontSize: '10px',
                       }}>
                         {mat.course.name}
                       </span>
@@ -422,7 +422,7 @@ export default function StudyResourcesPage() {
                     style={{
                       width: '42px', height: '42px', borderRadius: '50%', border: 'none',
                       background: 'var(--primary)', color: '#ffffff',
-                      boxShadow: '4px 4px 10px rgba(54,54,232,0.3)',
+                      boxShadow: '4px 4px 10px color-mix(in srgb, var(--primary) 30%, transparent)',
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
                       cursor: 'pointer', flexShrink: 0, transition: 'all 0.15s',
                       textDecoration: 'none',
@@ -446,9 +446,9 @@ export default function StudyResourcesPage() {
       {/* Modal */}
       {isModalOpen && (
         <div className="modal-overlay" style={{ zIndex: 1000 }}>
-          <div className="modal" style={{ maxWidth: '500px', borderRadius: '32px' }}>
+          <div className="modal" style={{ maxWidth: '500px', borderRadius: '14px' }}>
             <div className="modal-header">
-              <h3 style={{ fontWeight: 800 }}>{isEditing ? 'Edit Material' : 'Add New Material'}</h3>
+              <h3 style={{ fontWeight: 600 }}>{isEditing ? 'Edit Material' : 'Add New Material'}</h3>
               <button onClick={() => setIsModalOpen(false)}>
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
               </button>
@@ -456,7 +456,7 @@ export default function StudyResourcesPage() {
             <form onSubmit={handleSubmit}>
               <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                 <div className="form-group">
-                  <label className="form-label" style={{ fontSize: '12px', opacity: 0.6, fontWeight: 700 }}>TITLE</label>
+                  <label className="form-label" style={{ fontSize: '12px', opacity: 0.6, fontWeight: 600 }}>TITLE</label>
                   <input 
                     className="form-input"
                     value={title}
@@ -466,18 +466,18 @@ export default function StudyResourcesPage() {
                   />
                 </div>
                 <div className="form-group">
-                  <label className="form-label" style={{ fontSize: '12px', opacity: 0.6, fontWeight: 700 }}>DESCRIPTION (OPTIONAL)</label>
+                  <label className="form-label" style={{ fontSize: '12px', opacity: 0.6, fontWeight: 600 }}>DESCRIPTION (OPTIONAL)</label>
                   <textarea 
                     className="form-input"
                     value={description}
                     onChange={e => setDescription(e.target.value)}
                     placeholder="Brief summary of the material..."
-                    style={{ minHeight: '80px', borderRadius: '18px', padding: '12px 16px' }}
+                    style={{ minHeight: '80px', borderRadius: '12px', padding: '12px 16px' }}
                   />
                 </div>
 
                 <div className="form-group">
-                  <label className="form-label" style={{ fontSize: '12px', opacity: 0.6, fontWeight: 700 }}>SOURCE TYPE *</label>
+                  <label className="form-label" style={{ fontSize: '12px', opacity: 0.6, fontWeight: 600 }}>SOURCE TYPE *</label>
                   <div style={{ display: 'flex', gap: '12px', marginTop: '8px' }}>
                     <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', flex: 1, padding: '12px', borderRadius: '8px', border: `2px solid ${sourceType === 'FILE' ? 'var(--accent)' : 'var(--surface-2)'}`, background: sourceType === 'FILE' ? 'var(--primary-light)' : 'transparent' }}>
                       <input
@@ -504,7 +504,7 @@ export default function StudyResourcesPage() {
 
                 {sourceType === 'FILE' ? (
                   <div className="form-group">
-                    <label className="form-label" style={{ fontSize: '12px', opacity: 0.6, fontWeight: 700 }}>FILE SOURCE *</label>
+                    <label className="form-label" style={{ fontSize: '12px', opacity: 0.6, fontWeight: 600 }}>FILE SOURCE *</label>
                     <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
                       <div style={{ flex: 1, position: 'relative' }}>
                         <input
@@ -529,7 +529,7 @@ export default function StudyResourcesPage() {
                         <div style={{
                           padding: '12px 16px', borderRadius: '14px',
                           background: 'var(--primary-light)', color: 'var(--accent)',
-                          fontSize: '11px', fontWeight: '800'
+                          fontSize: '11px', fontWeight: 600
                         }}>
                           {fileType}
                         </div>
@@ -538,19 +538,19 @@ export default function StudyResourcesPage() {
                   </div>
                 ) : (
                   <div className="form-group">
-                    <label className="form-label" style={{ fontSize: '12px', opacity: 0.6, fontWeight: 700 }}>EXTERNAL LINK URL *</label>
+                    <label className="form-label" style={{ fontSize: '12px', opacity: 0.6, fontWeight: 600 }}>EXTERNAL LINK URL *</label>
                     <input
                       className="form-input"
                       value={fileUrl}
                       onChange={e => setFileUrl(e.target.value)}
                       placeholder="https://example.com/resource"
-                      style={{ borderRadius: '16px' }}
+                      style={{ borderRadius: '12px' }}
                     />
                   </div>
                 )}
 
                 <div className="form-group">
-                  <label className="form-label" style={{ fontSize: '12px', opacity: 0.6, fontWeight: 700 }}>ASSIGNMENT</label>
+                  <label className="form-label" style={{ fontSize: '12px', opacity: 0.6, fontWeight: 600 }}>ASSIGNMENT</label>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                     <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}>
                       <input 
@@ -576,7 +576,7 @@ export default function StudyResourcesPage() {
                         className="form-input"
                         value={courseId}
                         onChange={e => setCourseId(e.target.value)}
-                        style={{ borderRadius: '16px' }}
+                        style={{ borderRadius: '12px' }}
                         required={!isGlobal}
                       >
                         <option value="">Select Course...</option>

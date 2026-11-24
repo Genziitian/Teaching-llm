@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { requireSupportSession } from '@/lib/support-ticket-access'
 import { sendNewLiveChatNotificationToManagers } from '@/lib/system-notifications'
-import { db, sweep, validImageUrl, GENIE_TYPE } from '@/lib/genie/server'
+import { createTicketFromSession, db, sweep, validImageUrl, GENIE_TYPE } from '@/lib/genie/server'
 import { GENIE_MAX_MESSAGE, MAX_REQUESTS_PER_DAY, WAIT_FALLBACK_MS } from '@/lib/genie/limits'
 
 export async function POST(req: NextRequest) {
@@ -39,6 +39,11 @@ export async function POST(req: NextRequest) {
       },
       select: { id: true },
     })
+    if (body.ticketNow === true) {
+      // Student chose to leave a message: becomes a ticket now instead of waiting for a live agent.
+      await createTicketFromSession(s.id, 'message')
+      return NextResponse.json({ id: s.id })
+    }
     sendNewLiveChatNotificationToManagers(s.id, me.name, message || '(photo)').catch(() => {})
     return NextResponse.json({ id: s.id })
   } catch (e) {

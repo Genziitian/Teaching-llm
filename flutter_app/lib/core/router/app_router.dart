@@ -5,7 +5,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../features/academics/academics_page.dart';
-import '../../features/exam_protection/exam_protection_page.dart';
 import '../../features/academics/calendar_page.dart';
 import '../../features/academics/free_courses_page.dart';
 import '../../features/academics/free_materials_browse_page.dart';
@@ -43,11 +42,18 @@ import '../../features/profile/profile_page.dart';
 import '../../features/settings/notification_settings_page.dart';
 import '../../features/settings/settings_page.dart';
 import '../../features/support/faq_page.dart';
+import '../../features/support/genie_page.dart';
+import '../../features/jobs/jobs_page.dart';
+import '../../features/verify/verify_employee_page.dart';
 import '../../features/support/feature_requests_page.dart';
+import '../../features/settings/login_activity_page.dart';
+import '../../features/support/call_center_page.dart';
+import '../../features/support/support_call.dart';
 import '../../features/support/support_page.dart';
 import '../../features/support/support_providers.dart';
 import '../../features/support/ticket_detail_page.dart';
 import '../../features/support/user_reports_page.dart';
+import '../../features/support/genie_learning_page.dart';
 import '../../features/transactions/transactions_page.dart';
 import '../../shared/widgets/app_scaffold.dart';
 import '../auth/auth_providers.dart';
@@ -236,9 +242,6 @@ final routerProvider = Provider<GoRouter>((ref) {
         if (loc.startsWith('/support') && !canAccessSupport(user.role)) {
           return '/dashboard';
         }
-        if (loc.startsWith('/exam-protection') && user.role != 'STUDENT') {
-          return '/dashboard';
-        }
         pendingLocation = null;
         return null;
       }
@@ -373,6 +376,21 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         caseSensitive: false,
+        path: '/jobs',
+        pageBuilder: (context, state) => _buildSmoothPage(key: state.pageKey, child: const JobsPage()),
+      ),
+      GoRoute(
+        caseSensitive: false,
+        path: '/verify-employee',
+        pageBuilder: (context, state) => _buildSmoothPage(key: state.pageKey, child: const VerifyEmployeePage()),
+      ),
+      GoRoute(
+        caseSensitive: false,
+        path: '/support/genie',
+        pageBuilder: (context, state) => _buildSmoothPage(key: state.pageKey, child: const GeniePage()),
+      ),
+      GoRoute(
+        caseSensitive: false,
         path: '/faq',
         pageBuilder: (context, state) => _buildSmoothPage(
           key: state.pageKey,
@@ -401,6 +419,14 @@ final routerProvider = Provider<GoRouter>((ref) {
         pageBuilder: (context, state) => _buildSmoothPage(
           key: state.pageKey,
           child: const SettingsPage(),
+        ),
+      ),
+      GoRoute(
+        caseSensitive: false,
+        path: '/settings/login-activity',
+        pageBuilder: (context, state) => _buildSmoothPage(
+          key: state.pageKey,
+          child: const LoginActivityPage(),
         ),
       ),
       GoRoute(
@@ -541,14 +567,6 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         caseSensitive: false,
-        path: '/exam-protection',
-        pageBuilder: (context, state) => _buildSmoothPage(
-          key: state.pageKey,
-          child: const ExamProtectionPage(),
-        ),
-      ),
-      GoRoute(
-        caseSensitive: false,
         path: '/purchase-history',
         pageBuilder: (context, state) => _buildSmoothPage(
           key: state.pageKey,
@@ -668,6 +686,35 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         caseSensitive: false,
+        path: '/support/call-center',
+        pageBuilder: (context, state) => _buildSmoothPage(
+          key: state.pageKey,
+          child: const CallCenterPage(),
+        ),
+      ),
+      GoRoute(
+        caseSensitive: false,
+        path: '/support/call-center/:userId',
+        pageBuilder: (context, state) => _buildSmoothPage(
+          key: state.pageKey,
+          child: StudentCallProfilePage(userId: state.pathParameters['userId']!),
+        ),
+      ),
+      GoRoute(
+        caseSensitive: false,
+        path: '/support/call',
+        pageBuilder: (context, state) => _buildSmoothPage(
+          key: state.pageKey,
+          child: SupportCallPage(
+            callId: state.uri.queryParameters['id'],
+            userId: state.uri.queryParameters['userId'],
+            peerName: state.uri.queryParameters['name'],
+            join: state.uri.queryParameters['join'] == '1',
+          ),
+        ),
+      ),
+      GoRoute(
+        caseSensitive: false,
         path: '/support/tickets/:id',
         pageBuilder: (context, state) => _buildSmoothPage(
           key: state.pageKey,
@@ -680,6 +727,14 @@ final routerProvider = Provider<GoRouter>((ref) {
         pageBuilder: (context, state) => _buildSmoothPage(
           key: state.pageKey,
           child: const FeatureRequestsPage(),
+        ),
+      ),
+      GoRoute(
+        caseSensitive: false,
+        path: '/support/genie-learning',
+        pageBuilder: (context, state) => _buildSmoothPage(
+          key: state.pageKey,
+          child: const GenieLearningPage(),
         ),
       ),
       GoRoute(

@@ -140,7 +140,7 @@ export default function FestiveSettingsCard({ isManager, isMobile }: { isManager
         Festive effects
       </h3>
       <p style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 18 }}>
-        Snow, festival decorations and festival greetings. These switches only change this device.
+        Festival decorations and festival greetings. These switches only change this device.
       </p>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
@@ -152,11 +152,7 @@ export default function FestiveSettingsCard({ isManager, isMobile }: { isManager
           <Toggle checked={!allOff} onChange={v => writePrefs({ off: v ? undefined : true })} />
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)', gap: 10, opacity: allOff ? 0.5 : 1, transition: 'opacity .2s' }}>
-          <div style={row}>
-            <div style={{ flex: 1 }}><div style={title}>Snow</div><div style={sub}>Falling and settling snow</div></div>
-            <Toggle checked={snowOn} disabled={allOff} onChange={v => writeSnowPref(v)} />
-          </div>
+        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(2, 1fr)', gap: 10, opacity: allOff ? 0.5 : 1, transition: 'opacity .2s' }}>
           <div style={row}>
             <div style={{ flex: 1 }}><div style={title}>Decorations</div><div style={sub}>Garlands and lights on top</div></div>
             <Toggle checked={prefs.decor !== false} disabled={allOff} onChange={v => writePrefs({ decor: v ? undefined : false })} />

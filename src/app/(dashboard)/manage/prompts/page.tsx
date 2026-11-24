@@ -107,8 +107,8 @@ export default function PromptsAdminPage() {
       </div>
 
       {isCreating && (
-        <div className="card" style={{ padding: '24px', marginBottom: '30px', borderTop: '4px solid #6366f1' }}>
-          <h2 style={{ fontSize: '18px', fontWeight: 700, marginBottom: '20px' }}>{editingPromptId ? 'Edit Prompt' : 'Create New Prompt'}</h2>
+        <div className="card" style={{ padding: '24px', marginBottom: '30px', borderTop: '4px solid var(--primary)' }}>
+          <h2 style={{ fontSize: '18px', fontWeight: 600, marginBottom: '20px' }}>{editingPromptId ? 'Edit Prompt' : 'Create New Prompt'}</h2>
           
           <div className="form-group">
             <label className="form-label">Title (Required)</label>
@@ -195,7 +195,7 @@ export default function PromptsAdminPage() {
         <div style={{ padding: '40px', textAlign: 'center', color: 'var(--text-muted)' }}>Loading...</div>
       ) : prompts.length === 0 ? (
         <div className="card" style={{ padding: '60px 20px', textAlign: 'center' }}>
-          <h3 style={{ fontSize: '18px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '8px' }}>No Prompts Found</h3>
+          <h3 style={{ fontSize: '18px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '8px' }}>No Prompts Found</h3>
           <p style={{ color: 'var(--text-secondary)', fontSize: '14px' }}>Create your first prompt to start collecting responses.</p>
         </div>
       ) : (
@@ -205,9 +205,9 @@ export default function PromptsAdminPage() {
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                 <div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '6px' }}>
-                    <h3 style={{ fontSize: '18px', fontWeight: 700, color: 'var(--text-primary)', margin: 0 }}>{p.title}</h3>
+                    <h3 style={{ fontSize: '18px', fontWeight: 600, color: 'var(--text-primary)', margin: 0 }}>{p.title}</h3>
                     <span style={{ 
-                      padding: '4px 10px', borderRadius: '20px', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase',
+                      padding: '4px 10px', borderRadius: '14px', fontSize: '11px', fontWeight: 600, textTransform: 'uppercase',
                       background: p.isActive ? 'var(--success-light)' : '#f3f4f8', 
                       color: p.isActive ? 'var(--success)' : 'var(--text-secondary)' 
                     }}>

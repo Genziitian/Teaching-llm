@@ -11,6 +11,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../core/auth/auth_providers.dart';
 import '../../core/tour/tour_target_registry.dart';
 import '../../core/l10n/language_provider.dart';
+import '../../core/greetings.dart';
 import '../../core/l10n/app_translations.dart';
 import '../prompts/admin_message_session.dart';
 import '../../shared/widgets/app_topbar.dart';
@@ -112,6 +113,12 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
                 _HomeGreeting(
                   firstName: firstName,
                   greeting: _greet(currentLanguage),
+                  subtext: currentLanguage == 'en'
+                      ? greetingFor(firstName).subtext
+                      : null,
+                  headline: currentLanguage == 'en'
+                      ? greetingFor(firstName).heading
+                      : null,
                 ),
 
                 // ── Account deletion status ─────────────────────────
@@ -339,9 +346,17 @@ class _ToolbarButton extends StatelessWidget {
 /// Top of Home, in the style of the App Store "Today" header:
 /// date caption + toolbar buttons + avatar, then a large greeting.
 class _HomeGreeting extends ConsumerWidget {
-  const _HomeGreeting({required this.firstName, required this.greeting});
+  const _HomeGreeting({
+    required this.firstName,
+    required this.greeting,
+    this.headline,
+    this.subtext,
+  });
   final String firstName;
   final String greeting;
+  // English only: full greeting line + subtext; other languages use the old layout.
+  final String? headline;
+  final String? subtext;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -399,6 +414,31 @@ class _HomeGreeting extends ConsumerWidget {
             ],
           ),
           const SizedBox(height: 14),
+          if (headline != null) ...[
+            Text(
+              headline!,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontSize: 28,
+                height: 1.15,
+                letterSpacing: -0.8,
+                fontWeight: FontWeight.w700,
+                color: tokens.textPrimary,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              subtext ?? '',
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.w500,
+                color: tokens.textSecondary,
+              ),
+            ),
+          ] else ...[
           Text(
             greeting,
             maxLines: 1,
@@ -422,6 +462,7 @@ class _HomeGreeting extends ConsumerWidget {
               color: tokens.textPrimary,
             ),
           ),
+          ],
         ],
       ),
     );

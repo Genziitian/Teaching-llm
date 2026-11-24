@@ -469,7 +469,7 @@ export default function AdminPage() {
   const roleColors: Record<string, { bg: string; color: string }> = {
     MANAGER: { bg: 'var(--primary-light)', color: 'var(--accent)' },
     ADMIN: { bg: 'var(--info-light)', color: 'var(--info)' },
-    MODERATOR: { bg: 'rgba(139, 92, 246, 0.12)', color: '#8b5cf6' },
+    MODERATOR: { bg: 'var(--gz-purple-bg)', color: 'var(--gz-purple)' },
     INSTRUCTOR: { bg: 'var(--warning-light)', color: 'var(--warning)' },
     STUDENT: { bg: 'var(--success-light)', color: 'var(--success)' },
   }
@@ -499,6 +499,8 @@ export default function AdminPage() {
     }
     return true
   })
+  // Reserve the Dismiss slot only when some visible row needs it, so every row's buttons line up.
+  const anyDismiss = userRole === 'MANAGER' && filtered.some(u => !!u.deletionRequestedAt)
 
   const activeAdvanceFilterCount = [iitmLevelFilter, stateFilter, iitmCategoryFilter].filter(Boolean).length
 
@@ -521,7 +523,7 @@ export default function AdminPage() {
     ] : []),
     ...(userRole === 'MANAGER' ? [
       { label: 'Admins', key: 'ADMIN', color: 'var(--info)', bg: 'var(--info-light)' },
-      { label: 'Moderators', key: 'MODERATOR', color: '#8b5cf6', bg: 'rgba(139, 92, 246, 0.12)' },
+      { label: 'Moderators', key: 'MODERATOR', color: 'var(--gz-purple)', bg: 'var(--gz-purple-bg)' },
     ] : []),
     { label: 'Students', key: 'STUDENT', color: 'var(--success)', bg: 'var(--success-light)' },
   ]
@@ -625,7 +627,7 @@ export default function AdminPage() {
                 background: 'var(--accent)',
                 color: '#fff',
                 fontSize: '10px',
-                fontWeight: '800',
+                fontWeight: 600,
                 minWidth: '16px',
                 height: '16px',
                 padding: '0 5px',
@@ -713,7 +715,7 @@ export default function AdminPage() {
                   background: '#ef4444',
                   color: '#fff',
                   fontSize: '11px',
-                  fontWeight: '800',
+                  fontWeight: 600,
                   padding: '1px 7px',
                   borderRadius: '10px',
                 }}
@@ -800,7 +802,7 @@ export default function AdminPage() {
               alignItems: 'center',
               gap: '14px',
               cursor: 'pointer',
-              border: filter === s.key ? `2px solid ${s.color}` : '1px solid #d8dae3',
+              border: filter === s.key ? '1px solid var(--gz-ink)' : '1px solid var(--gz-line)',
               transition: 'all 0.15s',
               textAlign: 'left',
             }}
@@ -808,7 +810,7 @@ export default function AdminPage() {
             <div style={{
               width: '42px', height: '42px', borderRadius: '10px', background: s.bg,
               display: 'flex', alignItems: 'center', justifyContent: 'center', color: s.color,
-              fontSize: '18px', fontWeight: '700', flexShrink: 0,
+              fontSize: '18px', fontWeight: 600, flexShrink: 0,
             }}>
               {counts[s.key as keyof typeof counts]}
             </div>
@@ -827,7 +829,7 @@ export default function AdminPage() {
         <div style={{
           display: 'flex', alignItems: 'center', gap: '10px',
           padding: '10px 18px', marginBottom: '12px', borderRadius: '12px',
-          background: 'linear-gradient(135deg, #eff6ff, var(--border))',
+          background: 'var(--gz-card)',
           border: '1px solid var(--border)', fontSize: '13px', color: '#3730a3',
         }}>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -888,8 +890,8 @@ export default function AdminPage() {
                       )}
                       {user.isSuperManager && (
                         <span style={{
-                          fontSize: '10px', fontWeight: '700', color: 'var(--warning)',
-                          background: 'linear-gradient(135deg, var(--border), var(--border))', padding: '2px 10px', borderRadius: '20px',
+                          fontSize: '10px', fontWeight: 600, color: 'var(--warning)',
+                          background: 'var(--gz-chip)', padding: '2px 10px', borderRadius: '14px',
                           border: '1px solid #fcd34d', letterSpacing: '0.5px',
                         }}>
                           ⭐ SYSTEM OWNER
@@ -897,17 +899,17 @@ export default function AdminPage() {
                       )}
                       {user.isTerminated && (
                         <span style={{
-                          fontSize: '10px', fontWeight: '700', color: 'var(--danger)',
-                          background: 'var(--danger-light)', padding: '1px 8px', borderRadius: '20px',
+                          fontSize: '10px', fontWeight: 600, color: 'var(--danger)',
+                          background: 'var(--danger-light)', padding: '1px 8px', borderRadius: '14px',
                         }}>
                           TERMINATED
                         </span>
                       )}
                       {user.deletionRequestedAt && (
                         <span style={{
-                          fontSize: '10px', fontWeight: '700', color: 'var(--danger, #ef4444)',
+                          fontSize: '10px', fontWeight: 600, color: 'var(--danger, #ef4444)',
                           background: 'rgba(239, 68, 68, 0.12)', border: '1px solid rgba(239, 68, 68, 0.3)',
-                          padding: '1px 8px', borderRadius: '20px', display: 'inline-flex', alignItems: 'center', gap: '4px',
+                          padding: '1px 8px', borderRadius: '14px', display: 'inline-flex', alignItems: 'center', gap: '4px',
                         }}>
                           ⚠️ DELETION REQUESTED ({new Date(user.deletionRequestedAt).toLocaleDateString()})
                         </span>
@@ -924,7 +926,7 @@ export default function AdminPage() {
                       {user.notificationGroupSerial != null && (
                         <>
                           <span style={{ color: 'var(--border)' }}>•</span>
-                          <span style={{ color: '#7DD3FC', fontWeight: '700', letterSpacing: '0.04em', flexShrink: 0 }}>
+                          <span style={{ color: '#7DD3FC', fontWeight: 600, letterSpacing: '0.04em', flexShrink: 0 }}>
                             #{user.notificationGroupSerial}
                           </span>
                         </>
@@ -951,7 +953,7 @@ export default function AdminPage() {
                       <div style={{ display: 'flex', gap: '4px', marginTop: '6px', flexWrap: 'wrap' }}>
                         {user.courseBundleAssignments.map(bundleAssignment => (
                           <span key={bundleAssignment.bundleId} style={{
-                            padding: '2px 8px', borderRadius: '50px', fontSize: '10px', fontWeight: '700',
+                            padding: '2px 8px', borderRadius: '50px', fontSize: '10px', fontWeight: 600,
                             background: 'var(--primary-light)', color: 'var(--accent)',
                             whiteSpace: 'nowrap',
                           }}>
@@ -990,8 +992,8 @@ export default function AdminPage() {
                     <div style={{ width: '170px', display: 'flex', justifyContent: 'center', flexShrink: 0, gap: '6px', flexWrap: 'wrap' }}>
                       {user.isGoogleUser && (
                         <span style={{
-                          fontSize: '10px', fontWeight: '700', color: '#4285f4',
-                          background: 'linear-gradient(135deg, #e8f0fe, #d2e3fc)', padding: '3px 10px', borderRadius: '20px',
+                          fontSize: '10px', fontWeight: 600, color: '#4285f4',
+                          background: 'var(--gz-blue-bg)', padding: '3px 10px', borderRadius: '14px',
                           border: '1px solid #c6d9f1', letterSpacing: '0.5px',
                           display: 'inline-flex', alignItems: 'center', gap: '4px',
                         }}>
@@ -1006,8 +1008,8 @@ export default function AdminPage() {
                       )}
                       {isNewUser && (
                         <span style={{
-                          fontSize: '10px', fontWeight: '700', color: '#065f46',
-                          background: 'linear-gradient(135deg, #dcfce7, var(--border))', padding: '3px 10px', borderRadius: '20px',
+                          fontSize: '10px', fontWeight: 600, color: '#065f46',
+                          background: 'var(--gz-green-bg)', padding: '3px 10px', borderRadius: '14px',
                           border: '1px solid #86efac', letterSpacing: '0.5px',
                           display: 'inline-flex', alignItems: 'center', gap: '4px',
                         }}>
@@ -1029,7 +1031,8 @@ export default function AdminPage() {
                     </div>
 
                     {/* Actions Column */}
-                    <div style={{ minWidth: '190px', display: 'flex', gap: '8px', justifyContent: 'flex-end', flexShrink: 0, flexWrap: 'wrap' }}>
+                    <div style={{ width: anyDismiss ? 340 : 220, display: 'flex', gap: '8px', justifyContent: 'flex-end', alignItems: 'center', flexShrink: 0, flexWrap: 'nowrap' }}>
+                      {anyDismiss && <div style={{ width: 120, display: 'flex', justifyContent: 'flex-end', flexShrink: 0 }}>
                       {user.deletionRequestedAt && userRole === 'MANAGER' && (
                         <button
                           onClick={() => handleDismissDeletionRequest(user)}
@@ -1045,13 +1048,15 @@ export default function AdminPage() {
                           Dismiss Request
                         </button>
                       )}
-                      <Link href={`/admin/users/${user.id}`} className="btn btn-ghost btn-sm" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                      </div>}
+                      <Link href={`/admin/users/${user.id}`} className="btn btn-ghost btn-sm" style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '4px', width: 72, flexShrink: 0 }}>
                         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                           <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/>
                           <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
                         </svg>
                         Edit
                       </Link>
+                      <div style={{ width: 95, flexShrink: 0 }}>
                       {!user.isSuperManager && user.role === 'STUDENT' && userRole === 'MANAGER' && (
                         <button
                           onClick={() => handleToggleTerminate(user)}
@@ -1073,11 +1078,14 @@ export default function AdminPage() {
                           )}
                         </button>
                       )}
+                      </div>
+                      <div style={{ width: 34, flexShrink: 0 }}>
                       {!user.isSuperManager && userRole === 'MANAGER' && (
                         <button onClick={() => handleDelete(user.id)} className="btn btn-sm" style={{ color: 'var(--danger)', border: '1px solid #fee2e2' }}>
                           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
                         </button>
                       )}
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -1097,7 +1105,7 @@ export default function AdminPage() {
           <div
             className="modal"
             onClick={e => e.stopPropagation()}
-            style={{ maxWidth: '560px', width: '94%', borderRadius: '20px' }}
+            style={{ maxWidth: '560px', width: '94%', borderRadius: '14px' }}
           >
             <div className="modal-header">
               <div>
@@ -1156,7 +1164,7 @@ export default function AdminPage() {
                         background: 'var(--bg)',
                         textAlign: 'center',
                       }}>
-                        <div style={{ fontSize: '20px', fontWeight: 800, color: stat.color }}>{stat.value}</div>
+                        <div style={{ fontSize: '20px', fontWeight: 600, color: stat.color }}>{stat.value}</div>
                         <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '2px' }}>{stat.label}</div>
                       </div>
                     ))}
@@ -1370,10 +1378,10 @@ export default function AdminPage() {
               {/* Notification Group Email(s) Visibility & Tag Editor */}
               <div className="form-group" style={{ background: 'var(--surface-2)', padding: '14px', borderRadius: '10px', border: '1px solid var(--border-light)' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                  <label className="form-label" style={{ margin: 0, fontWeight: '700', fontSize: '12px', color: 'var(--text-primary)' }}>
+                  <label className="form-label" style={{ margin: 0, fontWeight: 600, fontSize: '12px', color: 'var(--text-primary)' }}>
                     📢 Assigned Notification Group Email(s)
                   </label>
-                  <a href="/google-sync" style={{ fontSize: '11px', color: 'var(--primary)', textDecoration: 'none', fontWeight: '700' }}>
+                  <a href="/google-sync" style={{ fontSize: '11px', color: 'var(--primary)', textDecoration: 'none', fontWeight: 600 }}>
                     Manage Pools →
                   </a>
                 </div>
@@ -1387,11 +1395,11 @@ export default function AdminPage() {
                     form.notificationGroupEmails.map(email => (
                       <span key={email} style={{
                         fontSize: '12px',
-                        fontWeight: '700',
+                        fontWeight: 600,
                         background: 'var(--primary-light, #e0e7ff)',
                         color: 'var(--primary, #4338ca)',
                         padding: '6px 12px',
-                        borderRadius: '20px',
+                        borderRadius: '14px',
                         display: 'inline-flex',
                         alignItems: 'center',
                         gap: '6px',
@@ -1425,7 +1433,7 @@ export default function AdminPage() {
                   <button
                     type="button"
                     className="btn btn-sm"
-                    style={{ background: 'var(--surface-3)', border: '1px solid var(--border)', fontSize: '11px', fontWeight: '700' }}
+                    style={{ background: 'var(--surface-3)', border: '1px solid var(--border)', fontSize: '11px', fontWeight: 600 }}
                     onClick={() => {
                       const input = document.getElementById('modalNotifGroupInput') as HTMLInputElement
                       const val = (input?.value || '').trim().toLowerCase()
@@ -1449,7 +1457,7 @@ export default function AdminPage() {
                   background: 'var(--surface)', padding: '12px', borderRadius: '10px',
                   border: '1px solid var(--border)', display: 'flex', flexDirection: 'column', gap: '10px'
                 }}>
-                  <div style={{ fontSize: '12px', fontWeight: '700', color: 'var(--text-secondary)', marginBottom: '2px' }}>GRANULAR PERMISSIONS</div>
+                  <div style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '2px' }}>GRANULAR PERMISSIONS</div>
                   
                   <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer' }}>
                     <span style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>Allow User Termination</span>
@@ -1568,10 +1576,10 @@ export default function AdminPage() {
                             <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>({cls.subject})</span>
                           )}
                           {cls.isExpired && (
-                            <span style={{ fontSize: '11px', color: 'var(--warning)', fontWeight: '700' }}>Expired</span>
+                            <span style={{ fontSize: '11px', color: 'var(--warning)', fontWeight: 600 }}>Expired</span>
                           )}
                           {cls.isEffectivelyDisabled && !cls.isExpired && (
-                            <span style={{ fontSize: '11px', color: 'var(--danger)', fontWeight: '700' }}>Disabled</span>
+                            <span style={{ fontSize: '11px', color: 'var(--danger)', fontWeight: 600 }}>Disabled</span>
                           )}
                           {bundledCourseIds.has(cls.id) && (
                             <span style={{ fontSize: '11px', color: 'var(--accent)', fontWeight: '600' }}>Included by selected bundle</span>
@@ -1640,10 +1648,10 @@ export default function AdminPage() {
                             <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>({cls.subject})</span>
                           )}
                           {cls.isExpired && (
-                            <span style={{ fontSize: '11px', color: 'var(--warning)', fontWeight: '700' }}>Expired</span>
+                            <span style={{ fontSize: '11px', color: 'var(--warning)', fontWeight: 600 }}>Expired</span>
                           )}
                           {cls.isEffectivelyDisabled && !cls.isExpired && (
-                            <span style={{ fontSize: '11px', color: 'var(--danger)', fontWeight: '700' }}>Disabled</span>
+                            <span style={{ fontSize: '11px', color: 'var(--danger)', fontWeight: 600 }}>Disabled</span>
                           )}
                         </label>
                       ))

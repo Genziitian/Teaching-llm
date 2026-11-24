@@ -152,9 +152,9 @@ export default function DeletionRequestsPage() {
               alignItems: 'center',
               gap: '6px',
               padding: '4px 10px',
-              borderRadius: '20px',
+              borderRadius: '14px',
               fontSize: '11.5px',
-              fontWeight: '700',
+              fontWeight: 600,
               background: 'rgba(239, 68, 68, 0.12)',
               color: '#ef4444',
               border: '1px solid rgba(239, 68, 68, 0.25)',
@@ -179,9 +179,9 @@ export default function DeletionRequestsPage() {
               alignItems: 'center',
               gap: '6px',
               padding: '4px 10px',
-              borderRadius: '20px',
+              borderRadius: '14px',
               fontSize: '11.5px',
-              fontWeight: '700',
+              fontWeight: 600,
               background: 'rgba(59, 130, 246, 0.14)',
               color: '#3b82f6',
               border: '1px solid rgba(59, 130, 246, 0.3)',
@@ -203,9 +203,9 @@ export default function DeletionRequestsPage() {
           <span
             style={{
               padding: '4px 10px',
-              borderRadius: '20px',
+              borderRadius: '14px',
               fontSize: '11.5px',
-              fontWeight: '700',
+              fontWeight: 600,
               background: 'rgba(59, 130, 246, 0.1)',
               color: '#3b82f6',
               border: '1px solid rgba(59, 130, 246, 0.25)',
@@ -219,12 +219,12 @@ export default function DeletionRequestsPage() {
           <span
             style={{
               padding: '4px 10px',
-              borderRadius: '20px',
+              borderRadius: '14px',
               fontSize: '11.5px',
-              fontWeight: '700',
-              background: 'rgba(168, 85, 247, 0.1)',
-              color: '#a855f7',
-              border: '1px solid rgba(168, 85, 247, 0.25)',
+              fontWeight: 600,
+              background: 'rgba(128, 128, 128, 0.1)',
+              color: 'var(--primary)',
+              border: '1px solid rgba(128, 128, 128, 0.25)',
             }}
           >
             CANCELLED BY MANAGER
@@ -235,9 +235,9 @@ export default function DeletionRequestsPage() {
           <span
             style={{
               padding: '4px 10px',
-              borderRadius: '20px',
+              borderRadius: '14px',
               fontSize: '11.5px',
-              fontWeight: '700',
+              fontWeight: 600,
               background: 'rgba(100, 116, 139, 0.15)',
               color: '#64748b',
               border: '1px solid rgba(100, 116, 139, 0.25)',
@@ -251,9 +251,9 @@ export default function DeletionRequestsPage() {
           <span
             style={{
               padding: '4px 10px',
-              borderRadius: '20px',
+              borderRadius: '14px',
               fontSize: '11.5px',
-              fontWeight: '700',
+              fontWeight: 600,
               background: 'var(--surface-2)',
               color: 'var(--text-secondary)',
             }}
@@ -265,7 +265,7 @@ export default function DeletionRequestsPage() {
   }
 
   return (
-    <div className="page-container fade-in" style={{ maxWidth: '1200px', margin: '0 auto', paddingBottom: '60px' }}>
+    <div className="page-container fade-in" style={{ paddingBottom: '60px' }}>
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px', flexWrap: 'wrap', gap: '16px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
@@ -290,12 +290,9 @@ export default function DeletionRequestsPage() {
             </svg>
           </button>
           <div>
-            <h1 style={{ fontSize: '24px', fontWeight: '800', margin: 0, color: 'var(--text-primary)' }}>
+            <h1 style={{ fontSize: '24px', fontWeight: 600, margin: 0, color: 'var(--text-primary)' }}>
               Account Deletion Requests
             </h1>
-            <p style={{ fontSize: '13px', color: 'var(--text-muted)', margin: '4px 0 0' }}>
-              Historical audit records, user reasons, and cancellation controls
-            </p>
           </div>
         </div>
 
@@ -308,8 +305,8 @@ export default function DeletionRequestsPage() {
         </Link>
       </div>
 
-      {/* Filter Tabs */}
-      <div style={{ display: 'flex', gap: '12px', marginBottom: '20px', flexWrap: 'wrap' }}>
+      {/* Filter Tabs + Search */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px', flexWrap: 'wrap' }}>
         {[
           { key: 'ALL', label: 'All Requests', count: counts.all },
           { key: 'PENDING', label: 'Pending', count: counts.pending, color: '#ef4444' },
@@ -341,7 +338,7 @@ export default function DeletionRequestsPage() {
                 padding: '2px 8px',
                 borderRadius: '12px',
                 fontSize: '11px',
-                fontWeight: '700',
+                fontWeight: 600,
                 background: statusFilter === tab.key ? 'rgba(255,255,255,0.25)' : 'var(--surface-2)',
                 color: statusFilter === tab.key ? '#fff' : tab.color || 'var(--text-muted)',
               }}
@@ -350,7 +347,6 @@ export default function DeletionRequestsPage() {
             </span>
           </button>
         ))}
-      </div>
 
       {/* Search Input */}
       <div
@@ -358,11 +354,12 @@ export default function DeletionRequestsPage() {
           display: 'flex',
           alignItems: 'center',
           gap: '12px',
-          padding: '10px 20px',
+          padding: '9px 16px',
           borderRadius: '50px',
           background: 'var(--surface-2)',
           border: '1px solid var(--border)',
-          marginBottom: '24px',
+          flex: '0 1 300px',
+          marginLeft: 'auto',
         }}
       >
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" color="var(--text-muted)">
@@ -371,7 +368,7 @@ export default function DeletionRequestsPage() {
         </svg>
         <input
           type="text"
-          placeholder="Search by User Name, Email, Reason or Comments..."
+          placeholder="Search name, email, reason..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           style={{
@@ -392,6 +389,7 @@ export default function DeletionRequestsPage() {
           </button>
         )}
       </div>
+      </div>
 
       {/* Request List */}
       {isLoading ? (
@@ -404,7 +402,7 @@ export default function DeletionRequestsPage() {
             textAlign: 'center',
             padding: '60px 20px',
             background: 'var(--surface-2)',
-            borderRadius: '20px',
+            borderRadius: '14px',
             border: '1px dashed var(--border)',
           }}
         >
@@ -439,7 +437,7 @@ export default function DeletionRequestsPage() {
                 onClick={() => setSelectedRequestId(item.id)}
                 style={{
                   padding: '18px 22px',
-                  borderRadius: '16px',
+                  borderRadius: '12px',
                   background: 'var(--surface-2)',
                   border: isPending ? '1.5px solid rgba(239, 68, 68, 0.4)' : '1px solid var(--border)',
                   cursor: 'pointer',
@@ -462,7 +460,7 @@ export default function DeletionRequestsPage() {
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      fontWeight: '800',
+                      fontWeight: 600,
                       fontSize: '15px',
                     }}
                   >
@@ -470,7 +468,7 @@ export default function DeletionRequestsPage() {
                   </div>
                   <div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <span style={{ fontWeight: '700', fontSize: '15px', color: 'var(--text-primary)' }}>
+                      <span style={{ fontWeight: 600, fontSize: '15px', color: 'var(--text-primary)' }}>
                         {item.userName}
                       </span>
                       {getStatusBadge(item.status)}
@@ -550,7 +548,7 @@ export default function DeletionRequestsPage() {
           <div
             style={{
               background: 'var(--surface)',
-              borderRadius: '24px',
+              borderRadius: '14px',
               width: '100%',
               maxWidth: '680px',
               maxHeight: '90vh',
@@ -569,7 +567,7 @@ export default function DeletionRequestsPage() {
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '20px' }}>
                   <div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                      <h2 style={{ fontSize: '20px', fontWeight: '800', margin: 0, color: 'var(--text-primary)' }}>
+                      <h2 style={{ fontSize: '20px', fontWeight: 600, margin: 0, color: 'var(--text-primary)' }}>
                         Deletion Request Details
                       </h2>
                       {getStatusBadge(selectedRequest.status)}
@@ -608,15 +606,15 @@ export default function DeletionRequestsPage() {
                   }}
                 >
                   <div>
-                    <div style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: '700', textTransform: 'uppercase' }}>
+                    <div style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase' }}>
                       User Name
                     </div>
-                    <div style={{ fontSize: '14px', fontWeight: '700', color: 'var(--text-primary)', marginTop: '2px' }}>
+                    <div style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)', marginTop: '2px' }}>
                       {selectedRequest.userName}
                     </div>
                   </div>
                   <div>
-                    <div style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: '700', textTransform: 'uppercase' }}>
+                    <div style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase' }}>
                       User Email
                     </div>
                     <div style={{ fontSize: '14px', color: 'var(--text-primary)', marginTop: '2px' }}>
@@ -624,7 +622,7 @@ export default function DeletionRequestsPage() {
                     </div>
                   </div>
                   <div>
-                    <div style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: '700', textTransform: 'uppercase' }}>
+                    <div style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase' }}>
                       User ID
                     </div>
                     <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '2px', fontFamily: 'monospace' }}>
@@ -642,15 +640,15 @@ export default function DeletionRequestsPage() {
                     marginBottom: '24px',
                   }}
                 >
-                  <div style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: '700', textTransform: 'uppercase' }}>
+                  <div style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase' }}>
                     Reason For Leaving
                   </div>
-                  <div style={{ fontSize: '15px', fontWeight: '700', color: 'var(--text-primary)', marginTop: '2px' }}>
+                  <div style={{ fontSize: '15px', fontWeight: 600, color: 'var(--text-primary)', marginTop: '2px' }}>
                     {selectedRequest.reasonLabel}
                   </div>
 
                   <div style={{ marginTop: '12px' }}>
-                    <div style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: '700', textTransform: 'uppercase' }}>
+                    <div style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase' }}>
                       Additional Feedback / Comment
                     </div>
                     <div
@@ -672,7 +670,7 @@ export default function DeletionRequestsPage() {
 
                 {/* REAL AUDIT TIMELINE */}
                 <div style={{ marginBottom: '28px' }}>
-                  <h3 style={{ fontSize: '15px', fontWeight: '800', color: 'var(--text-primary)', marginBottom: '16px' }}>
+                  <h3 style={{ fontSize: '15px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '16px' }}>
                     Deletion Event Timeline
                   </h3>
 
@@ -728,7 +726,7 @@ export default function DeletionRequestsPage() {
 
                           <div>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                              <span style={{ fontWeight: '700', fontSize: '14px', color: 'var(--text-primary)' }}>
+                              <span style={{ fontWeight: 600, fontSize: '14px', color: 'var(--text-primary)' }}>
                                 {ev.eventType === 'ACCOUNT_DELETION_REQUESTED'
                                   ? 'Account Deletion Requested'
                                   : ev.eventType === 'ACCOUNT_DELETION_CANCELLED_BY_USER'
@@ -841,7 +839,7 @@ export default function DeletionRequestsPage() {
 
                       {showAcceptPrompt && (
                         <div style={{ width: '100%', background: 'rgba(16, 185, 129, 0.08)', border: '1px solid rgba(16, 185, 129, 0.3)', padding: '16px', borderRadius: '14px' }}>
-                          <p style={{ fontSize: '13.5px', fontWeight: '700', margin: '0 0 6px', color: '#10b981' }}>
+                          <p style={{ fontSize: '13.5px', fontWeight: 600, margin: '0 0 6px', color: '#10b981' }}>
                             Accept deletion request & notify user?
                           </p>
                           <p style={{ fontSize: '12.5px', color: 'var(--text-secondary)', margin: '0 0 10px' }}>
@@ -885,7 +883,7 @@ export default function DeletionRequestsPage() {
 
                       {showCancelPrompt && (
                         <div style={{ width: '100%', background: 'var(--surface-2)', padding: '16px', borderRadius: '14px' }}>
-                          <p style={{ fontSize: '13.5px', fontWeight: '700', margin: '0 0 8px', color: 'var(--text-primary)' }}>
+                          <p style={{ fontSize: '13.5px', fontWeight: 600, margin: '0 0 8px', color: 'var(--text-primary)' }}>
                             Cancel deletion and restore user account?
                           </p>
                           <input
@@ -926,7 +924,7 @@ export default function DeletionRequestsPage() {
 
                       {showDeletePrompt && (
                         <div style={{ width: '100%', background: 'rgba(239, 68, 68, 0.08)', border: '1px solid rgba(239, 68, 68, 0.3)', padding: '16px', borderRadius: '14px' }}>
-                          <p style={{ fontSize: '13.5px', fontWeight: '700', margin: '0 0 6px', color: '#ef4444' }}>
+                          <p style={{ fontSize: '13.5px', fontWeight: 600, margin: '0 0 6px', color: '#ef4444' }}>
                             Confirm manual account deletion
                           </p>
                           <p style={{ fontSize: '12.5px', color: 'var(--text-secondary)', margin: '0 0 12px' }}>

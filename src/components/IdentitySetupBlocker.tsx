@@ -79,7 +79,7 @@ export default function IdentitySetupBlocker({ user }: { user: any }) {
         width: '100%',
         maxWidth: '680px',
         padding: '24px 32px',
-        borderRadius: '24px',
+        borderRadius: '14px',
         boxShadow: '0 20px 45px rgba(0,0,0,0.08)',
         border: '1px solid rgba(255,255,255,0.7)',
         backdropFilter: 'blur(10px)',
@@ -94,16 +94,16 @@ export default function IdentitySetupBlocker({ user }: { user: any }) {
             width: '44px',
             height: '44px',
             borderRadius: '12px',
-            background: 'linear-gradient(135deg, #818cf8, #4f46e5)',
+            background: 'var(--primary)',
             color: '#fff',
             marginBottom: '10px',
-            boxShadow: '0 6px 12px rgba(79,70,229,0.15)'
+            boxShadow: '0 6px 12px color-mix(in srgb, var(--primary) 15%, transparent)'
           }}>
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
               <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
             </svg>
           </div>
-          <h1 style={{ fontSize: '21px', fontWeight: 900, color: 'var(--text-primary)', marginBottom: '0px', letterSpacing: '-0.02em' }}>
+          <h1 style={{ fontSize: '21px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '0px', letterSpacing: '-0.02em' }}>
             Update Your Profile
           </h1>
         </div>
@@ -133,7 +133,7 @@ export default function IdentitySetupBlocker({ user }: { user: any }) {
           
           {/* Question 1: When you Join IITM BS DEGREE (Horizontal Split) */}
           <div className="form-group" style={{ margin: 0 }}>
-            <label className="form-label" style={{ fontWeight: 800, fontSize: '13.5px', color: 'var(--text-primary)', marginBottom: '8px', display: 'block' }}>
+            <label className="form-label" style={{ fontWeight: 600, fontSize: '13.5px', color: 'var(--text-primary)', marginBottom: '8px', display: 'block' }}>
               When did you join IITM BS?
             </label>
             
@@ -144,7 +144,7 @@ export default function IdentitySetupBlocker({ user }: { user: any }) {
             }}>
               {/* Year Selector */}
               <div>
-                <span style={{ fontSize: '11px', fontWeight: '800', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px', display: 'block' }}>
+                <span style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px', display: 'block' }}>
                   Select Year
                 </span>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px' }}>
@@ -158,11 +158,11 @@ export default function IdentitySetupBlocker({ user }: { user: any }) {
                         style={{
                           padding: '10px 4px',
                           borderRadius: '10px',
-                          border: isSelected ? '2px solid #6366f1' : '2px solid #e2e8f0',
+                          border: isSelected ? '2px solid var(--primary)' : '2px solid #e2e8f0',
                           background: isSelected ? '#eff0fe' : 'var(--surface)',
                           color: isSelected ? 'var(--accent)' : 'var(--text-secondary)',
                           fontSize: '13px',
-                          fontWeight: 700,
+                          fontWeight: 600,
                           cursor: 'pointer',
                           transition: 'all 0.15s',
                           outline: 'none'
@@ -177,7 +177,7 @@ export default function IdentitySetupBlocker({ user }: { user: any }) {
 
               {/* Month Selector */}
               <div>
-                <span style={{ fontSize: '11px', fontWeight: '800', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px', display: 'block' }}>
+                <span style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px', display: 'block' }}>
                   Select Term
                 </span>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px' }}>
@@ -191,11 +191,11 @@ export default function IdentitySetupBlocker({ user }: { user: any }) {
                         style={{
                           padding: '10px 4px',
                           borderRadius: '10px',
-                          border: isSelected ? '2px solid #6366f1' : '2px solid #e2e8f0',
+                          border: isSelected ? '2px solid var(--primary)' : '2px solid #e2e8f0',
                           background: isSelected ? '#eff0fe' : 'var(--surface)',
                           color: isSelected ? 'var(--accent)' : 'var(--text-secondary)',
                           fontSize: '13px',
-                          fontWeight: 700,
+                          fontWeight: 600,
                           cursor: 'pointer',
                           transition: 'all 0.15s',
                           outline: 'none'
@@ -220,7 +220,7 @@ export default function IdentitySetupBlocker({ user }: { user: any }) {
           }}>
             {/* Question 2: Which Level are You in */}
             <div className="form-group" style={{ margin: 0 }}>
-              <label className="form-label" style={{ fontWeight: 800, fontSize: '13.5px', color: 'var(--text-primary)', marginBottom: '8px', display: 'block' }}>
+              <label className="form-label" style={{ fontWeight: 600, fontSize: '13.5px', color: 'var(--text-primary)', marginBottom: '8px', display: 'block' }}>
                 Which Level are You in :
               </label>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '8px' }}>
@@ -234,11 +234,11 @@ export default function IdentitySetupBlocker({ user }: { user: any }) {
                       style={{
                         padding: '12px 6px',
                         borderRadius: '10px',
-                        border: isSelected ? '2px solid #6366f1' : '2px solid #e2e8f0',
+                        border: isSelected ? '2px solid var(--primary)' : '2px solid #e2e8f0',
                         background: isSelected ? '#eff0fe' : 'var(--surface)',
                         color: isSelected ? 'var(--accent)' : 'var(--text-secondary)',
                         fontSize: '13px',
-                        fontWeight: 700,
+                        fontWeight: 600,
                         cursor: 'pointer',
                         transition: 'all 0.15s',
                         textAlign: 'center',
@@ -254,7 +254,7 @@ export default function IdentitySetupBlocker({ user }: { user: any }) {
 
             {/* Question 3: Are You */}
             <div className="form-group" style={{ margin: 0 }}>
-              <label className="form-label" style={{ fontWeight: 800, fontSize: '13.5px', color: 'var(--text-primary)', marginBottom: '8px', display: 'block' }}>
+              <label className="form-label" style={{ fontWeight: 600, fontSize: '13.5px', color: 'var(--text-primary)', marginBottom: '8px', display: 'block' }}>
                 Are You :
               </label>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
@@ -272,11 +272,11 @@ export default function IdentitySetupBlocker({ user }: { user: any }) {
                       style={{
                         padding: '10px 12px',
                         borderRadius: '10px',
-                        border: isSelected ? '2px solid #6366f1' : '2px solid #e2e8f0',
+                        border: isSelected ? '2px solid var(--primary)' : '2px solid #e2e8f0',
                         background: isSelected ? '#eff0fe' : 'var(--surface)',
                         color: isSelected ? 'var(--accent)' : 'var(--text-secondary)',
                         fontSize: '12.5px',
-                        fontWeight: 700,
+                        fontWeight: 600,
                         cursor: 'pointer',
                         transition: 'all 0.15s',
                         textAlign: 'left',
@@ -292,7 +292,7 @@ export default function IdentitySetupBlocker({ user }: { user: any }) {
                           width: '15px',
                           height: '15px',
                           borderRadius: '50%',
-                          background: '#6366f1',
+                          background: 'var(--primary)',
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
@@ -317,8 +317,8 @@ export default function IdentitySetupBlocker({ user }: { user: any }) {
               width: '100%',
               padding: '14px',
               fontSize: '15px',
-              fontWeight: 800,
-              boxShadow: '0 6px 16px rgba(99,102,241,0.2)',
+              fontWeight: 600,
+              boxShadow: '0 6px 16px color-mix(in srgb, var(--primary) 20%, transparent)',
               display: 'flex',
               justifyContent: 'center',
               alignItems: 'center',
@@ -326,7 +326,7 @@ export default function IdentitySetupBlocker({ user }: { user: any }) {
               opacity: loading ? 0.7 : 1,
               cursor: loading ? 'not-allowed' : 'pointer',
               border: 'none',
-              background: 'linear-gradient(135deg, #6366f1, #4f46e5)',
+              background: 'var(--primary)',
               color: '#ffffff'
             }}
           >
@@ -351,7 +351,7 @@ export default function IdentitySetupBlocker({ user }: { user: any }) {
         }}>
           <div className="fade-in" style={{
             background: 'var(--surface)',
-            borderRadius: '24px',
+            borderRadius: '14px',
             padding: '40px 32px',
             maxWidth: '440px',
             width: '100%',
@@ -374,11 +374,11 @@ export default function IdentitySetupBlocker({ user }: { user: any }) {
               </svg>
             </div>
 
-            <h2 style={{ fontSize: '22px', fontWeight: 900, color: 'var(--text-primary)', marginBottom: '10px', letterSpacing: '-0.01em' }}>
+            <h2 style={{ fontSize: '22px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '10px', letterSpacing: '-0.01em' }}>
               Thank You!
             </h2>
             <p style={{ fontSize: '14.5px', color: 'var(--text-secondary)', lineHeight: 1.5, marginBottom: '28px' }}>
-              Your identity has been updated. Welcome to <strong style={{ color: '#4f46e5' }}>GenZ IITian</strong> family!
+              Your identity has been updated. Welcome to <strong style={{ color: 'var(--primary)' }}>GenZ IITian</strong> family!
             </p>
 
             <button
@@ -392,10 +392,10 @@ export default function IdentitySetupBlocker({ user }: { user: any }) {
                 display: 'inline-block',
                 borderRadius: '12px',
                 fontSize: '14.5px',
-                fontWeight: 800,
-                boxShadow: '0 6px 16px rgba(99,102,241,0.2)',
+                fontWeight: 600,
+                boxShadow: '0 6px 16px color-mix(in srgb, var(--primary) 20%, transparent)',
                 border: 'none',
-                background: 'linear-gradient(135deg, #6366f1, #4f46e5)',
+                background: 'var(--primary)',
                 color: '#ffffff',
                 cursor: 'pointer'
               }}

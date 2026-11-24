@@ -1,5 +1,5 @@
 import { prisma } from '@/lib/db'
-import { sendFcmToUsers, sendFcmToTopic } from '@/lib/fcm'
+import { sendFcmToUsers, sendFcmToTopic, sendFcmCallSignal } from '@/lib/fcm'
 import { sendPushToUsers } from '@/lib/push'
 import { sseEmitter } from '@/lib/sse'
 
@@ -1426,5 +1426,62 @@ export async function processHomeworkDueReminders() {
     }
   } catch (err) {
     console.error('[Homework-Notification] Error processing homework due reminders:', err)
+  }
+}
+
+/** Ring every manager: web push for the browser, native full-screen ring in the app. */
+export async function sendSupportCallNotificationToManagers(callId: string, callerName: string) {
+  try {
+    const managerIds = await getManagerIds()
+    if (managerIds.length === 0) return
+    const payload = {
+      title: 'Incoming support call 📞',
+      body: `${callerName} is calling support. Open Support to answer.`,
+      url: '/support',
+      tag: 'support_call',
+      importance: 'high' as const,
+      sound: 'default' as const,
+    }
+    await Promise.allSettled([sendPushToUsers(managerIds, payload), sendFcmCallSignal(managerIds, 'ring', callId, callerName)])
+  } catch (err) {
+    console.error('[system-notifications] support call notify failed:', err)
+  }
+}
+
+/** Ring one student when support calls them. */
+export async function sendSupportCallNotificationToStudent(callId: string, studentId: string) {
+  try {
+    const payload = {
+      title: 'Support is calling you 📞',
+      body: 'Tap to answer the call from the support team.',
+      url: '/support',
+      tag: 'support_call',
+      importance: 'high' as const,
+      sound: 'default' as const,
+    }
+    await Promise.allSettled([sendPushToUsers([studentId], payload), sendFcmCallSignal([studentId], 'ring', callId, 'Support team')])
+  } catch (err) {
+    console.error('[system-notifications] support call notify failed:', err)
+  }
+}
+
+/** Stop the native ringing on phones that are still ringing for this call. */
+export async function cancelSupportCallRing(callId: string, type: string, studentId: string, exceptUserId?: string) {
+  try {
+    const ids = type === 'CALL' ? await getManagerIds() : [studentId]
+    await sendFcmCallSignal(ids.filter(id => id !== exceptUserId), 'cancel', callId)
+  } catch (err) {
+    console.error('[system-notifications] support call cancel failed:', err)
+  }
+}
+
+/** Plain support-call notice (scheduled call requested / approved / declined). */
+export async function sendSupportCallNotice(userIds: string[], title: string, body: string) {
+  try {
+    if (userIds.length === 0) return
+    const payload = { title, body, url: '/support', tag: 'support_call_schedule', importance: 'high' as const, sound: 'default' as const }
+    await Promise.allSettled([sendPushToUsers(userIds, payload), sendFcmToUsers(userIds, payload)])
+  } catch (err) {
+    console.error('[system-notifications] support call notice failed:', err)
   }
 }

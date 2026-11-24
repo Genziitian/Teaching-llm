@@ -1,5 +1,6 @@
 'use client'
 
+import { bannerThumb } from '@/lib/banner-url'
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import Script from 'next/script'
@@ -60,6 +61,9 @@ function TeacherIcon({ size = 24, color, background }: { size?: number; color: s
   )
 }
 
+/** "term 1" -> "Term 1". Only all-lowercase words are changed, so acronyms like "PRO" or "IITM" stay as typed. */
+const titleCase = (v: string) => v.replace(/\b[a-z][a-z]*\b/g, w => w[0].toUpperCase() + w.slice(1))
+
 export default function CoursesPage() {
   const router = useRouter()
   const { resolvedTheme } = useTheme()
@@ -80,6 +84,7 @@ export default function CoursesPage() {
 
   const courses = Array.isArray(data) ? data : (data as any)?.courses || []
   const [search, setSearch] = useState('')
+  const [batchTab, setBatchTab] = useState<'all' | 'pro' | 'one' | 'general'>('all')
   const [debouncedSearch, setDebouncedSearch] = useState('')
   const [infoModalCourse, setInfoModalCourse] = useState<CourseItem | null>(null)
   const [upgradeModalCourse, setUpgradeModalCourse] = useState<CourseItem | null>(null)
@@ -102,10 +107,37 @@ export default function CoursesPage() {
     return () => clearTimeout(handler)
   }, [search])
 
+  const isOneOnOne = (c: CourseItem) => /(^|\s)1\s*[:×x]\s*1\b/i.test(c.name || '')
+  const batchKind = (c: CourseItem): 'pro' | 'one' | 'general' | 'plus' => {
+    if (c.enrollmentType === 'FREE' || c.isDemo) return 'general'
+    if (isOneOnOne(c)) return 'one'
+    if (c.enrollmentType === 'RECORDED') return 'plus'
+    return 'pro'
+  }
+  // Tab bucket comes from the course's access type: Live (+recorded) -> PRO, Recorded/free/demo -> General.
+  // 1:1 batches are still found by name (no dedicated field exists).
+  const tabKind = (c: CourseItem): 'pro' | 'one' | 'general' => {
+    if (isOneOnOne(c)) return 'one'
+    return c.enrollmentType === 'LIVE' ? 'pro' : 'general'
+  }
   const filtered = courses.filter((c: CourseItem) =>
-    c.name.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
-    c.subject?.toLowerCase().includes(debouncedSearch.toLowerCase())
+    (c.name.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
+      c.subject?.toLowerCase().includes(debouncedSearch.toLowerCase())) &&
+    (batchTab === 'all' || tabKind(c) === batchTab)
   )
+  // Banner art: the same illustrations the Store uses, picked from the course's term / name
+  const courseArt = (c: CourseItem & { academicTerm?: string | null }) => {
+    if ((c as any).bannerUrl) return (c as any).bannerUrl as string
+    const t = `${(c as any).academicTerm || ''} ${c.subject || ''} ${c.name || ''}`.toLowerCase()
+    if (/crash/.test(t)) return '/store-art/store-course.webp'
+    if (/re-?attempt/.test(t)) return '/store-art/term-reattempt.webp'
+    if (/qualifier/.test(t)) return '/store-art/term-qualifier.webp'
+    if (/diploma/.test(t)) return '/store-art/term-diploma.webp'
+    if (/degree/.test(t)) return '/store-art/term-degree.webp'
+    if (/foundation/.test(t)) return '/store-art/term-foundation.webp'
+    if (batchKind(c) === 'general') return '/store-art/term-general.webp'
+    return '/store-art/store-course.webp'
+  }
 
   async function handleUpgrade(courseId: string) {
     setIsProcessing(true)
@@ -330,7 +362,7 @@ export default function CoursesPage() {
                 }} />
                 <div className="skeleton" style={{
                   position: 'absolute', top: '10px', left: '12px',
-                  height: '16px', width: '70px', borderRadius: '20px'
+                  height: '16px', width: '70px', borderRadius: '14px'
                 }} />
               </div>
 
@@ -373,19 +405,18 @@ export default function CoursesPage() {
           Failed to load courses. {error.message}
         </div>
       ) : null}
-      <div className="courses-header-row" style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '12px', flexWrap: 'wrap', marginBottom: '32px' }}>
-        <div className="courses-search-wrap" style={{ position: 'relative' }}>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#000000" strokeWidth="2.5" style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)' }}>
-            <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
-          </svg>
-          <input
-            type="text"
-            placeholder="Search courses..."
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            className="search-input courses-search-input"
-            style={{ width: '260px', borderRadius: '50px', paddingLeft: '40px' }}
-          />
+      <div className="gz-courses-bar">
+        <input
+          type="text"
+          placeholder="Search courses…"
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+          className="gz-input gz-courses-bar__search"
+        />
+        <div className="gz-tabs">
+          {([['all', 'All'], ['pro', 'PRO'], ['one', '1:1'], ['general', 'General']] as const).map(([k, label]) => (
+            <button key={k} className={batchTab === k ? 'is-on' : ''} onClick={() => setBatchTab(k)}>{label}</button>
+          ))}
         </div>
       </div>
       <style>{`
@@ -502,448 +533,92 @@ export default function CoursesPage() {
         }
       `}</style>
 
-      <div className="grid-3 courses-grid">
+        <div className="gz-cc-grid gz-cc-grid--courses">
         {filtered.map((course: CourseItem) => {
+          const kind = batchKind(course)
           const isRecorded = ['RECORDED', 'FREE'].includes(course.enrollmentType || '')
-          const isLive = course.enrollmentType === 'LIVE'
           const isFreeOrDemo = course.enrollmentType === 'FREE' || !!course.isDemo
-          const coursePalette = getCourseDisplayPalette(course.color, resolvedTheme)
-          const liveCardGlow = coursePalette.isRefinedLightPalette ? coursePalette.softBorder : colorWithOpacity(course.color, '40')
-          const liveCardHoverGlow = coursePalette.isRefinedLightPalette ? coursePalette.softBorder : colorWithOpacity(course.color, '60')
-          const courseCardBannerBg = coursePalette.isRefinedLightPalette
-            ? coursePalette.background
-            : (isGradient(course.color) ? course.color : `linear-gradient(135deg, ${extractHex(course.color)}ee, ${extractHex(course.color)}99)`)
-          const courseSubjectBg = coursePalette.isRefinedLightPalette ? coursePalette.softBg : colorWithOpacity(course.color, '18')
-          const courseTeacherBg = coursePalette.isRefinedLightPalette ? coursePalette.softBg : colorWithOpacity(course.color, '14')
           const hasUpgradePrice = isRecorded && !isFreeOrDemo && course.liveUpgradePrice != null && course.liveUpgradePrice > 0
-          
-          const courseOffering = Array.isArray(offeringsData)
-            ? offeringsData.find((o: any) => o.courseId === course.id)
-            : null
-          const plusPrice = (courseOffering?.hasRecorded && courseOffering?.recordedDiscountPrice != null && courseOffering.recordedDiscountPrice > 0)
-            ? courseOffering.recordedDiscountPrice
-            : (courseOffering?.hasLive && courseOffering?.liveDiscountPrice != null && courseOffering.liveDiscountPrice > 0)
-              ? courseOffering.liveDiscountPrice
-              : null
-          
-          // Determine batch type: General (free/demo), PRO (live), or Plus (recorded)
-          const getBatchBadge = () => {
-            if (isFreeOrDemo) return { text: 'General Batch', color: '#bae6fd' }
-            if (isLive) return { text: 'PRO Batch', color: '#fff' }
-            if (isRecorded) return { text: 'PLUS', color: '#ffffff' }
-            return { text: 'General Batch', color: '#bae6fd' }
-          }
-          const batchBadge = getBatchBadge()
-
+          const batchLabel = kind === 'general' ? 'General Batch' : kind === 'one' ? '1:1 Batch' : kind === 'plus' ? 'PLUS' : 'PRO Batch'
           const isCourseExpired = (course as any).isExpired
+          const tint = /^#/.test(course.color || '') ? course.color : 'var(--gz-ink)'
 
-          const innerCard = (
-            <div
-              data-snow
-              style={{
-                background: 'var(--surface-2)',
-                borderRadius: 'var(--course-card-radius, 28px)',
-                boxShadow: (isLive && !isCourseExpired)
-                  ? `8px 8px 16px var(--neu-dark), -8px -8px 16px var(--neu-light), 0 0 0 2px ${liveCardGlow}`
-                  : '8px 8px 16px var(--neu-dark), -8px -8px 16px var(--neu-light)',
-                overflow: 'hidden',
-                cursor: isCourseExpired ? 'default' : 'pointer',
-                transition: 'all 0.25s ease',
-                display: 'flex',
-                flexDirection: 'column',
-                width: '100%',
-                maxWidth: 'var(--course-card-max, 420px)',
-                margin: '0 auto',
-                height: '100%',
-                position: 'relative',
-                filter: isCourseExpired ? 'grayscale(100%) opacity(0.85)' : 'none',
-              }}
-              onMouseEnter={e => {
-                if (isCourseExpired) return;
-                e.currentTarget.style.transform = 'translateY(-4px)'
-                e.currentTarget.style.boxShadow = isLive
-                  ? `12px 12px 24px var(--neu-dark), -12px -12px 24px var(--neu-light), 0 0 0 2px ${liveCardHoverGlow}`
-                  : '12px 12px 24px var(--neu-dark), -12px -12px 24px var(--neu-light)'
-                if (!isFreeOrDemo && isRecorded) setShowUpgradeHint(course.id)
-              }}
-              onMouseLeave={e => {
-                if (isCourseExpired) return;
-                e.currentTarget.style.transform = 'translateY(0)'
-                e.currentTarget.style.boxShadow = isLive
-                  ? `8px 8px 16px var(--neu-dark), -8px -8px 16px var(--neu-light), 0 0 0 2px ${liveCardGlow}`
-                  : '8px 8px 16px var(--neu-dark), -8px -8px 16px var(--neu-light)'
-                setShowUpgradeHint(null)
-              }}
+          const inner = (
+            <div data-snow className={`gz-cc${isCourseExpired ? ' is-expired' : ''}`}
+              onMouseEnter={() => { if (!isCourseExpired && !isFreeOrDemo && isRecorded) setShowUpgradeHint(course.id) }}
+              onMouseLeave={() => setShowUpgradeHint(null)}
             >
-              {isCourseExpired && (
-                <div style={{
-                  position: 'absolute', top: 0, left: 0, right: 0, height: '100px',
-                  background: 'rgba(0,0,0,0.6)', zIndex: 20,
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  color: 'white', fontSize: '20px', fontWeight: '900', letterSpacing: '0.1em'
-                }}>
-                  EXPIRED
-                </div>
-              )}
-              {/* Gradient Banner */}
-              <div style={{
-                height: 'var(--course-banner-height, 100px)',
-                background: isRecorded || isFreeOrDemo ? 'linear-gradient(135deg, #4b5563, #6b7280)' : courseCardBannerBg,
-                position: 'relative',
-                overflow: 'hidden',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}>
-                <div style={{ position: 'absolute', width: '130px', height: '130px', borderRadius: '50%', background: 'rgba(255,255,255,0.12)', top: '-50px', right: '-30px' }} />
-                <div style={{ position: 'absolute', width: '70px', height: '70px', borderRadius: '50%', background: 'rgba(255,255,255,0.08)', bottom: '-20px', left: '24px' }} />
-                <CourseIconBadge
-                  type={course.courseIconType || course.icon}
-                  size="var(--course-icon-size, 58px)"
-                  iconSize={28}
-                  radius="18px"
-                  style={{
-                    backdropFilter: 'blur(4px)',
-                    boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-                    zIndex: 1,
-                  }}
+              <div className="gz-cc__banner gz-cc__banner--art">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={bannerThumb(courseArt(course))}
+                  onError={e => { const full = courseArt(course); if (e.currentTarget.src !== full && !e.currentTarget.dataset.fb) { e.currentTarget.dataset.fb = '1'; e.currentTarget.src = full } }}
+                  alt="" loading="lazy" decoding="async"
                 />
-
-                {/* Batch badge on banner */}
-                {(isLive || isRecorded || isFreeOrDemo) && (
-                  <div style={{
-                    position: 'absolute', top: '10px', left: '12px',
-                    display: 'flex', flexDirection: 'column', gap: '4px', zIndex: 10,
-                  }}>
-                    <div style={{
-                      padding: 'var(--course-badge-padding, 3px 10px)', borderRadius: '20px',
-                      background: isLive ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.3)',
-                      backdropFilter: 'blur(8px)',
-                      fontSize: 'var(--course-badge-font, 10px)', fontWeight: '800', color: batchBadge.color,
-                      letterSpacing: '0.06em',
-                      width: 'fit-content',
-                    }}>
-                      {batchBadge.text}
-                    </div>
-                  </div>
+                <span className="gz-cc__pill">{batchLabel}</span>
+                {isCourseExpired && <span className="gz-cc__expired">Expired</span>}
+                {isRecorded && !isFreeOrDemo && !isManager && (
+                  <button
+                    className="gz-cc__info"
+                    onClick={e => { e.preventDefault(); e.stopPropagation(); setInfoModalCourse(course) }}
+                    title="Compare PRO vs PLUS"
+                    aria-label="Compare PRO and PLUS batches"
+                  >i</button>
                 )}
-
-                    {/* Info button for recorded non-free users + tooltip */}
-                    {isRecorded && !isFreeOrDemo && !isManager && (
-                      <div style={{ position: 'absolute', top: '10px', right: '12px' }}>
-                        <button
-                          onClick={(e) => { e.preventDefault(); e.stopPropagation(); setInfoModalCourse(course) }}
-                          style={{
-                            width: '28px', height: '28px', borderRadius: '50%',
-                            background: 'rgba(255,255,255,0.3)', backdropFilter: 'blur(8px)',
-                            border: 'none', cursor: 'pointer',
-                            display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            color: '#fff', fontSize: '14px', fontWeight: '800',
-                          }}
-                          title={`Compare PRO vs ${isFreeOrDemo ? 'General Batch' : 'PLUS'}`}
-                        >
-                          i
-                        </button>
-                        <div style={{
-                          position: 'absolute', top: 'calc(100% + 8px)', right: '0',
-                          background: '#0f172a', color: '#ffffff', padding: '8px 14px', borderRadius: '12px',
-                          fontSize: '11px', fontWeight: '600', width: '200px', textAlign: 'center',
-                          boxShadow: '0 8px 25px rgba(0,0,0,0.4)', pointerEvents: 'none',
-                          opacity: showUpgradeHint === course.id ? 1 : 0, 
-                          transform: showUpgradeHint === course.id ? 'translateY(0)' : 'translateY(5px)',
-                          transition: 'all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1)', zIndex: 100,
-                          lineHeight: '1.4'
-                        }}>
-                          Click here to see difference between PLUS AND PRO batches
-                          <div style={{ position: 'absolute', bottom: '100%', right: '10px', border: '6px solid transparent', borderBottomColor: '#0f172a' }} />
-                        </div>
-                      </div>
-                    )}
               </div>
 
-              {/* Card Body */}
-              <div style={{ padding: 'var(--course-card-padding, 18px 20px 16px)', display: 'flex', flexDirection: 'column', flex: 1 }}>
-                <h3 style={{ 
-                  fontSize: 'var(--course-title-size, 16px)', 
-                  fontWeight: '700', 
-                  color: 'var(--text-primary)', 
-                  marginBottom: '4px', 
-                  lineHeight: '1.3',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                  flexWrap: 'wrap',
-                }}>
-                  <span>{course.name}</span>
-                  {course.isDemo && (
-                    <span style={{
-                      fontSize: '9px',
-                      padding: '2px 8px',
-                      borderRadius: '6px',
-                      background: 'rgba(99, 102, 241, 0.15)',
-                      color: 'var(--accent)',
-                      fontWeight: '800',
-                      letterSpacing: '0.05em',
-                      textTransform: 'uppercase',
-                      border: '1px solid rgba(99, 102, 241, 0.3)',
-                    }}>
-                      DEMO
-                    </span>
-                  )}
-                </h3>
+              <div className="gz-cc__body">
+                <div className="gz-cc__name">
+                  {titleCase(course.name)}
+                  {course.isDemo && <span className="gz-cc__tag" style={{ marginLeft: 8, background: 'var(--gz-chip)', color: 'var(--gz-ink-2)' }}>DEMO</span>}
+                </div>
+                <div className="gz-cc__meta">
+                  {course.subject && <span className="gz-cc__tag" style={{ background: 'var(--gz-chip)', color: 'var(--gz-ink-2)' }}>{titleCase(course.subject)}</span>}
+                  {course.teacherName && <span className="gz-cc__who">{titleCase(course.teacherName)}</span>}
+                </div>
 
-                {course.subject && (
-                  <span style={{
-                    display: 'inline-block',
-                    padding: '3px 12px',
-                    borderRadius: '50px',
-                    background: isRecorded ? 'var(--surface-2)' : courseSubjectBg,
-                    color: isRecorded ? 'var(--text-secondary)' : coursePalette.accent,
-                    fontSize: '12px',
-                    fontWeight: '700',
-                    marginBottom: '8px',
-                    letterSpacing: '0.02em',
-                  }}>
-                    {course.subject}
-                  </span>
-                )}
-
-                {/* Show description for LIVE users and General Batch */}
-                {(!isRecorded || isFreeOrDemo) && course.description && (
-                  <p style={{
-                    fontSize: '13px',
-                    color: 'var(--text-secondary)',
-                    lineHeight: '1.55',
-                    marginBottom: '14px',
-                    display: 'var(--course-desc-display, -webkit-box)',
-                    WebkitLineClamp: 2,
-                    WebkitBoxOrient: 'vertical',
-                    overflow: 'hidden',
-                  }}>
-                    {course.description}
-                  </p>
-                )}
-
-                {/* Show teacher */}
-                {course.teacherName && (
-                  <div style={{ display: 'var(--course-teacher-display, flex)', alignItems: 'center', gap: '6px', marginBottom: 'var(--course-teacher-margin, 14px)' }}>
-                    <TeacherIcon size={24} color={coursePalette.accent} background={courseTeacherBg} />
-                    <span style={{ fontSize: '12.5px', color: 'var(--text-muted)', fontWeight: '500' }}>
-                      {course.teacherName}
-                    </span>
-                  </div>
-                )}
-
-                {/* Upgrade button for RECORDED users */}
                 {hasUpgradePrice && (
-                  <div style={{ position: 'relative', marginTop: 'auto' }}>
-                    <button
-                      onClick={(e) => { e.preventDefault(); e.stopPropagation(); setUpgradeModalCourse(course) }}
-                      style={{
-                        width: '100%',
-                        padding: 'var(--course-upgrade-padding, 14px 16px)',
-                        borderRadius: '50px',
-                        border: 'none',
-                        background: 'var(--primary)',
-                        color: '#fff',
-                        fontSize: 'var(--course-upgrade-font-size, 13px)',
-                        fontWeight: '800',
-                        cursor: 'pointer',
-                        marginBottom: '4px',
-                        boxShadow: '0 8px 16px rgba(30, 30, 58, 0.4)',
-                        transition: 'all 0.25s',
-                        letterSpacing: '0.02em',
-                        display: 'flex',
-                        flexDirection: 'var(--course-upgrade-flex-dir, row)' as any,
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        position: 'relative',
-                        overflow: 'hidden',
-                      }}
-                    >
-                      <span style={{ 
-                        position: 'var(--course-badge-pos, absolute)' as any,
-                        left: 'var(--course-badge-left, 12px)',
-                        margin: 'var(--course-optional-margin, 0)',
-                        fontSize: '8px', background: 'rgba(255,255,255,0.15)', padding: '2px 8px', borderRadius: '20px', 
-                        color: '#fff', letterSpacing: '0.05em', fontWeight: '900', border: '1px solid rgba(255,255,255,0.2)' 
-                      }}>
-                        OPTIONAL
-                      </span>
-                      <span>
-                        ⚡ Upgrade to PRO — ₹{course.liveUpgradePrice}
-                      </span>
-
-                    </button>
-                    
-                    <style dangerouslySetInnerHTML={{ __html: `
-                      @keyframes fadeIn { from { opacity: 0; transform: translate(-50%, 5px); } to { opacity: 1; transform: translate(-50%, 0); } }
-                    `}} />
-                  </div>
+                  <button className="gz-btn" onClick={e => { e.preventDefault(); e.stopPropagation(); setUpgradeModalCourse(course) }}>
+                    ⚡ Upgrade to PRO — ₹{course.liveUpgradePrice}
+                  </button>
                 )}
 
-                {/* Mobile-only Course Feedback option */}
                 {isStudent && !feedbacks.some((f: any) => f.courseId === course.id) && (
                   <button
-                    onClick={(e) => {
-                      e.preventDefault()
-                      e.stopPropagation()
-                      setSelectedFeedbackCourse(course)
-                    }}
-                    className="mobile-only-feedback-btn"
-                    style={{
-                      width: '100%',
-                      padding: '10px 14px',
-                      borderRadius: '50px',
-                      border: 'none',
-                      background: 'var(--surface)',
-                      color: 'var(--warning)',
-                      fontSize: '12.5px',
-                      fontWeight: '800',
-                      cursor: 'pointer',
-                      marginTop: '8px',
-                      marginBottom: '10px',
-                      boxShadow: '4px 4px 8px var(--neu-dark), -4px -4px 8px var(--neu-light)',
-                      display: 'none',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      gap: '6px',
-                      fontFamily: "'Outfit', 'Nunito', sans-serif",
-                    }}
+                    className="gz-btn gz-btn--ghost mobile-only-feedback-btn"
+                    onClick={e => { e.preventDefault(); e.stopPropagation(); setSelectedFeedbackCourse(course) }}
                   >
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M12 20h9" />
-                      <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
-                    </svg>
                     Give Feedback
                   </button>
                 )}
 
-                {/* Stats row */}
-                <div style={{
-                  display: 'flex',
-                  gap: 'var(--course-stats-gap, 10px)',
-                  paddingTop: '12px',
-                  borderTop: '1.5px solid rgba(0,0,0,0.06)',
-                  marginTop: 'auto',
-                }}>
-                  <div style={{
-                    flex: 1, padding: 'var(--course-stats-padding, 8px 10px)', borderRadius: '14px',
-                    background: 'var(--surface-2)', boxShadow: 'inset 3px 3px 6px var(--neu-dark), inset -3px -3px 6px var(--neu-light)', textAlign: 'center',
-                  }}>
-                    <div style={{ fontSize: 'var(--course-stats-font-size, 15px)', fontWeight: '800', color: 'var(--text-primary)' }}>{course._count?.topics || 0}</div>
-                    <div style={{ fontSize: 'var(--course-stats-label-size, 11px)', color: 'var(--text-muted)', fontWeight: '600' }}>Topics</div>
-                  </div>
-                  <div style={{
-                    flex: 1, padding: 'var(--course-stats-padding, 8px 10px)', borderRadius: '14px',
-                    background: 'var(--surface-2)', boxShadow: 'inset 3px 3px 6px var(--neu-dark), inset -3px -3px 6px var(--neu-light)', textAlign: 'center',
-                  }}>
-                    <div style={{ fontSize: 'var(--course-stats-font-size, 15px)', fontWeight: '800', color: 'var(--text-primary)' }}>{course._count?.lectures || 0}</div>
-                    <div style={{ fontSize: 'var(--course-stats-label-size, 11px)', color: 'var(--text-muted)', fontWeight: '600' }}>Lectures</div>
-                  </div>
-                  <div style={{
-                    flex: 1, padding: 'var(--course-stats-padding, 8px 10px)', borderRadius: '14px',
-                    background: 'var(--surface-2)', boxShadow: 'inset 3px 3px 6px var(--neu-dark), inset -3px -3px 6px var(--neu-light)', textAlign: 'center',
-                  }}>
-                    <div style={{ fontSize: 'var(--course-stats-font-size, 15px)', fontWeight: '800', color: 'var(--text-primary)' }}>{course._count?.materials || 0}</div>
-                    <div style={{ fontSize: 'var(--course-stats-label-size, 11px)', color: 'var(--text-muted)', fontWeight: '600' }}>Materials</div>
-                  </div>
+                <div className="gz-cc__stats">
+                  <div><b>{course._count?.topics || 0}</b><span>Topics</span></div>
+                  <div><b>{course._count?.lectures || 0}</b><span>Lectures</span></div>
+                  <div><b>{course._count?.materials || 0}</b><span>Materials</span></div>
                 </div>
               </div>
             </div>
           )
 
           return isCourseExpired ? (
-            <div key={course.id} style={{ display: 'flex' }}>
-              {innerCard}
-            </div>
+            <div key={course.id} style={{ display: 'flex' }}>{inner}</div>
           ) : (
-            <Link key={course.id} href={`/courses/${course.id}`} style={{ textDecoration: 'none', display: 'flex' }}>
-              {innerCard}
-            </Link>
+            <Link key={course.id} href={`/courses/${course.id}`} style={{ textDecoration: 'none', color: 'inherit', display: 'flex' }}>{inner}</Link>
           )
         })}
 
         {helpCard && helpCard.isEnabled && (
-          <a href={helpCard.redirectUrl} target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none', display: 'flex' }}>
-            <div
-              data-snow
-              style={{
-                background: 'var(--surface-2)',
-                borderRadius: '28px',
-                boxShadow: '8px 8px 16px var(--neu-dark), -8px -8px 16px var(--neu-light)',
-                overflow: 'hidden',
-                cursor: 'pointer',
-                transition: 'all 0.25s ease',
-                display: 'flex',
-                flexDirection: 'column',
-                width: '100%',
-                height: '100%',
-              }}
-              onMouseEnter={e => {
-                e.currentTarget.style.transform = 'translateY(-4px)'
-                e.currentTarget.style.boxShadow = '12px 12px 24px var(--neu-dark), -12px -12px 24px var(--neu-light)'
-              }}
-              onMouseLeave={e => {
-                e.currentTarget.style.transform = 'translateY(0)'
-                e.currentTarget.style.boxShadow = '8px 8px 16px var(--neu-dark), -8px -8px 16px var(--neu-light)'
-              }}
-            >
-              {/* Simple Gradient Banner */}
-              <div style={{
-                height: '100px',
-                background: `linear-gradient(135deg, #6366f1ee, #6366f199)`,
-                position: 'relative',
-                overflow: 'hidden',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}>
-                <div style={{ position: 'absolute', width: '130px', height: '130px', borderRadius: '50%', background: 'rgba(255,255,255,0.12)', top: '-50px', right: '-30px' }} />
-                <div style={{ position: 'absolute', width: '70px', height: '70px', borderRadius: '50%', background: 'rgba(255,255,255,0.08)', bottom: '-20px', left: '24px' }} />
-                <div style={{
-                  width: '58px',
-                  height: '58px',
-                  borderRadius: '50%',
-                  background: 'rgba(255,255,255,0.25)',
-                  backdropFilter: 'blur(4px)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  color: 'white',
-                  boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-                  zIndex: 1,
-                }} className="help-icon-float">
-                  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-                </div>
+          <a href={helpCard.redirectUrl} target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none', color: 'inherit', display: 'flex' }}>
+            <div data-snow className="gz-cc gz-cc--help">
+              <div className="gz-cc__banner gz-cc__banner--help">
+                <span className="help-icon-float gz-cc__arrow">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                </span>
               </div>
-
-              {/* Card Body */}
-              <div style={{ padding: '24px 20px', display: 'flex', flexDirection: 'column', flex: 1, justifyContent: 'center', alignItems: 'center', textAlign: 'center' }}>
-                <h3 style={{ 
-                  fontSize: '18px', 
-                  fontWeight: '800', 
-                  color: 'var(--text-primary)', 
-                  marginBottom: '20px', 
-                  lineHeight: '1.3',
-                }}>
-                  {helpCard.title}
-                </h3>
-
-                <button style={{
-                  width: '100%',
-                  padding: '12px',
-                  borderRadius: '16px',
-                  background: 'var(--accent)',
-                  color: 'white',
-                  border: 'none',
-                  fontSize: '14px',
-                  fontWeight: '700',
-                  boxShadow: '4px 4px 8px rgba(99, 102, 241, 0.3)',
-                  cursor: 'pointer'
-                }}>
-                  {helpCard.buttonText || 'Enroll in More'}
-                </button>
+              <div className="gz-cc__body" style={{ alignItems: 'center', textAlign: 'center', justifyContent: 'center' }}>
+                <div className="gz-cc__name">{helpCard.title}</div>
+                <span className="gz-btn" style={{ width: '100%' }}>{helpCard.buttonText || 'Enroll in More'}</span>
               </div>
             </div>
           </a>
@@ -955,7 +630,7 @@ export default function CoursesPage() {
           <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="1.5">
             <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
           </svg>
-          <p style={{ fontSize: '16px', fontWeight: '700', marginBottom: '4px' }}>No courses found</p>
+          <p style={{ fontSize: '16px', fontWeight: 600, marginBottom: '4px' }}>No courses found</p>
           <p style={{ fontSize: '13px' }}>Try a different search term</p>
         </div>
       )}
@@ -987,7 +662,7 @@ export default function CoursesPage() {
             }
           `}} />
           <div style={{
-            background: 'var(--surface)', borderRadius: '24px', width: '100%', maxWidth: '750px',
+            background: 'var(--surface)', borderRadius: '14px', width: '100%', maxWidth: '750px',
             boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)', overflow: 'hidden',
             animation: 'modalSlideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1)'
           }} onClick={e => e.stopPropagation()}>
@@ -996,13 +671,13 @@ export default function CoursesPage() {
               <button onClick={() => setInfoModalCourse(null)} style={{ position: 'absolute', top: '16px', right: '16px', background: 'var(--surface)', border: 'none', width: '32px', height: '32px', borderRadius: '10px', cursor: 'pointer', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
               </button>
-              <h2 className="batch-cmp-title" style={{ fontWeight: '800', color: 'var(--text-primary)', marginBottom: '6px', paddingRight: '40px' }}>Batch Comparison</h2>
+              <h2 className="batch-cmp-title" style={{ fontWeight: 600, color: 'var(--text-primary)', marginBottom: '6px', paddingRight: '40px' }}>Batch Comparison</h2>
               <p className="batch-cmp-sub" style={{ color: 'var(--text-secondary)', fontWeight: '500', margin: 0 }}>Choose the experience that fits your learning style</p>
             </div>
 
             {/* Comparison Table */}
             <div className="batch-cmp-table-wrap">
-              <div style={{ borderRadius: '16px', overflow: 'hidden', border: '1.5px solid var(--border)', background: 'var(--surface)' }}>
+              <div style={{ borderRadius: '12px', overflow: 'hidden', border: '1.5px solid var(--border)', background: 'var(--surface)' }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', tableLayout: 'fixed' }}>
                   <colgroup>
                     <col style={{ width: '38%' }} />
@@ -1011,11 +686,11 @@ export default function CoursesPage() {
                   </colgroup>
                   <thead>
                     <tr style={{ background: 'var(--surface)' }}>
-                      <th className="batch-cmp-th" style={{ color: 'var(--text-secondary)', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Features</th>
-                      <th className="batch-cmp-th" style={{ color: 'var(--warning)', fontWeight: '800', background: 'var(--warning-light)', textAlign: 'center', wordBreak: 'break-word' }}>
+                      <th className="batch-cmp-th" style={{ color: 'var(--text-secondary)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Features</th>
+                      <th className="batch-cmp-th" style={{ color: 'var(--warning)', fontWeight: 600, background: 'var(--warning-light)', textAlign: 'center', wordBreak: 'break-word' }}>
                         {infoModalCourse?.enrollmentType === 'FREE' || infoModalCourse?.enrollmentType === 'DEMO' ? 'General' : 'PLUS'}
                       </th>
-                      <th className="batch-cmp-th" style={{ color: 'var(--primary-dark)', fontWeight: '800', background: 'var(--primary-light)', textAlign: 'center' }}>PRO</th>
+                      <th className="batch-cmp-th" style={{ color: 'var(--primary-dark)', fontWeight: 600, background: 'var(--primary-light)', textAlign: 'center' }}>PRO</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -1030,7 +705,7 @@ export default function CoursesPage() {
                       <tr key={i} style={{ borderTop: '1px solid var(--border)' }}>
                         <td className="batch-cmp-td" style={{ color: 'var(--text-secondary)', fontWeight: '600' }}>{row.f}</td>
                         <td className="batch-cmp-td" style={{ color: 'var(--warning)', textAlign: 'center', background: 'var(--warning-light)' }}>{row.g}</td>
-                        <td className="batch-cmp-td" style={{ color: 'var(--primary-dark)', fontWeight: '700', textAlign: 'center', background: 'var(--surface)' }}>{row.p}</td>
+                        <td className="batch-cmp-td" style={{ color: 'var(--primary-dark)', fontWeight: 600, textAlign: 'center', background: 'var(--surface)' }}>{row.p}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -1039,7 +714,7 @@ export default function CoursesPage() {
             </div>
 
             <div className="batch-cmp-footer" style={{ textAlign: 'center' }}>
-              <button onClick={() => setInfoModalCourse(null)} style={{ background: 'var(--primary)', color: 'white', padding: '12px 32px', borderRadius: '14px', fontSize: '14px', fontWeight: '700', border: 'none', cursor: 'pointer', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)' }}>
+              <button onClick={() => setInfoModalCourse(null)} style={{ background: 'var(--primary)', color: 'white', padding: '12px 32px', borderRadius: '14px', fontSize: '14px', fontWeight: 600, border: 'none', cursor: 'pointer', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)' }}>
                 Got it, thanks!
               </button>
             </div>
@@ -1060,7 +735,7 @@ export default function CoursesPage() {
           <div
             onClick={e => e.stopPropagation()}
             style={{
-              background: 'var(--surface)', borderRadius: '32px', width: '100%', maxWidth: '440px',
+              background: 'var(--surface)', borderRadius: '14px', width: '100%', maxWidth: '440px',
               boxShadow: '0 0 100px var(--neu-glow), 0 25px 50px -12px rgba(0, 0, 0, 0.5)',
               padding: '40px', textAlign: 'center', position: 'relative',
               animation: 'modalSlideUp 0.3s ease-out'
@@ -1068,10 +743,10 @@ export default function CoursesPage() {
           >
             {upgrading ? (
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '20px 0' }}>
-                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#6366f1" strokeWidth="2" style={{ animation: 'spin 1s linear infinite', marginBottom: '24px' }}>
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" strokeWidth="2" style={{ animation: 'spin 1s linear infinite', marginBottom: '24px' }}>
                   <circle cx="12" cy="12" r="10" strokeOpacity="0.25"/><path d="M12 2a10 10 0 0 1 10 10" strokeOpacity="1"/>
                 </svg>
-                <h2 style={{ fontSize: '20px', fontWeight: '800', color: 'var(--text-primary)', marginBottom: '12px' }}>Processing Payment...</h2>
+                <h2 style={{ fontSize: '20px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '12px' }}>Processing Payment...</h2>
                 <p style={{ fontSize: '14px', color: 'var(--text-secondary)', lineHeight: '1.6' }}>
                   Please wait while we securely process your transaction.<br/>Do not close or refresh this page.
                 </p>
@@ -1083,17 +758,17 @@ export default function CoursesPage() {
                   onClick={() => setUpgradeModalCourse(null)}
                   style={{ position: 'absolute', top: '24px', right: '24px', background: 'none', border: 'none', fontSize: '28px', color: 'var(--text-muted)', cursor: 'pointer', lineHeight: 1 }}
                 >&times;</button>
-                <div style={{ width: '80px', height: '80px', borderRadius: '24px', background: 'var(--surface)', color: '#fbbf24', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 24px' }}>
+                <div style={{ width: '80px', height: '80px', borderRadius: '14px', background: 'var(--surface)', color: '#fbbf24', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 24px' }}>
                   <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
                 </div>
-                <h2 style={{ fontSize: '22px', fontWeight: '800', color: 'var(--text-primary)', marginBottom: '8px' }}>Upgrade to PRO Batch</h2>
-                <div style={{ fontSize: '16px', fontWeight: '700', color: 'var(--text-primary)', marginBottom: '20px' }}>{upgradeModalCourse.name}</div>
+                <h2 style={{ fontSize: '22px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '8px' }}>Upgrade to PRO Batch</h2>
+                <div style={{ fontSize: '16px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '20px' }}>{upgradeModalCourse.name}</div>
                 <p style={{ fontSize: '15px', color: 'var(--text-secondary)', lineHeight: '1.6', marginBottom: '32px' }}>
                   You will get access to <strong>live classes, real-time mentorship,</strong> and everything as in your current plan.
                 </p>
 
-                <div style={{ background: 'var(--surface)', borderRadius: '20px', padding: '24px', marginBottom: '32px', border: '1.5px solid var(--border)' }}>
-                  <div style={{ fontSize: '36px', fontWeight: '900', color: 'var(--accent)', marginBottom: '8px' }}>₹{upgradeModalCourse.liveUpgradePrice}</div>
+                <div style={{ background: 'var(--surface)', borderRadius: '14px', padding: '24px', marginBottom: '32px', border: '1.5px solid var(--border)' }}>
+                  <div style={{ fontSize: '36px', fontWeight: 600, color: 'var(--accent)', marginBottom: '8px' }}>₹{upgradeModalCourse.liveUpgradePrice}</div>
                   <div style={{ fontSize: '14px', color: 'var(--text-muted)', fontWeight: '600' }}>One-time upgrade fee</div>
                 </div>
 
@@ -1101,8 +776,8 @@ export default function CoursesPage() {
                   <button
                     onClick={() => setUpgradeModalCourse(null)}
                     style={{
-                      flex: 1, padding: '16px', borderRadius: '18px', border: '2px solid var(--border)', background: 'var(--surface)',
-                      color: 'var(--text-secondary)', fontWeight: '700', cursor: 'pointer'
+                      flex: 1, padding: '16px', borderRadius: '12px', border: '2px solid var(--border)', background: 'var(--surface)',
+                      color: 'var(--text-secondary)', fontWeight: 600, cursor: 'pointer'
                     }}
                   >
                     Cancel
@@ -1110,10 +785,10 @@ export default function CoursesPage() {
                   <button
                     onClick={() => handleUpgrade(upgradeModalCourse.id)}
                     style={{
-                      flex: 1.5, padding: '16px', borderRadius: '18px', border: 'none',
-                      background: 'linear-gradient(135deg, #6366f1, #4f46e5)',
-                      color: 'white', fontWeight: '700', cursor: 'pointer',
-                      boxShadow: '0 4px 12px rgba(79, 70, 229, 0.3)',
+                      flex: 1.5, padding: '16px', borderRadius: '12px', border: 'none',
+                      background: 'var(--primary)',
+                      color: 'white', fontWeight: 600, cursor: 'pointer',
+                      boxShadow: '0 4px 12px color-mix(in srgb, var(--primary) 30%, transparent)',
                       display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px'
                     }}
                   >
@@ -1137,7 +812,7 @@ export default function CoursesPage() {
           padding: '20px', overflow: 'auto'
         }} onClick={() => setShowPurchaseModal(false)}>
           <div style={{
-            background: 'var(--surface)', borderRadius: '32px', width: '100%', maxWidth: '480px',
+            background: 'var(--surface)', borderRadius: '14px', width: '100%', maxWidth: '480px',
             boxShadow: '0 0 100px var(--neu-glow), 0 25px 50px -12px rgba(0, 0, 0, 0.5)',
             padding: '30px',
             animation: 'modalSlideUp 0.3s ease-out',
@@ -1152,7 +827,7 @@ export default function CoursesPage() {
 
             {/* Course Header Color Band */}
             <div style={{
-              background: `linear-gradient(135deg, ${offering.course?.color || '#6366f1'}, ${colorWithOpacity(offering.course?.color || '#6366f1', 'cc')})`,
+              background: `linear-gradient(135deg, ${offering.course?.color || 'var(--primary)'}, ${colorWithOpacity(offering.course?.color || 'var(--primary)', 'cc')})`,
               margin: '-30px -30px 24px -30px',
               padding: '40px 30px 30px 30px',
               borderTopLeftRadius: '32px',
@@ -1170,7 +845,7 @@ export default function CoursesPage() {
               }}>
                 <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20M4 19.5A2.5 2.5 0 0 0 6.5 22H20M4 19.5V5A2.5 2.5 0 0 1 6.5 2.5H20v20H6.5a2.5 2.5 0 0 1-2-2.5z"/></svg>
               </div>
-              <h2 style={{ fontSize: '24px', fontWeight: '900', color: '#fff', marginBottom: '4px', textShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
+              <h2 style={{ fontSize: '24px', fontWeight: 600, color: '#fff', marginBottom: '4px', textShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
                 {offering.course?.name}
               </h2>
               <p style={{ fontSize: '13px', color: 'rgba(255, 255, 255, 0.7)', fontWeight: '600', marginBottom: '0' }}>
@@ -1184,8 +859,8 @@ export default function CoursesPage() {
                 style={{
                   display: 'inline-flex', alignItems: 'center', gap: '4px',
                   background: 'rgba(255,255,255,0.2)', border: '1px solid rgba(255,255,255,0.4)',
-                  padding: '6px 14px', borderRadius: '20px', color: '#fff',
-                  fontSize: '11px', fontWeight: '800', cursor: 'pointer',
+                  padding: '6px 14px', borderRadius: '14px', color: '#fff',
+                  fontSize: '11px', fontWeight: 600, cursor: 'pointer',
                   marginTop: '12px', transition: 'all 0.2s',
                 }}
                 onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.3)'}
@@ -1199,18 +874,18 @@ export default function CoursesPage() {
               {/* Recorded Batch Option */}
               {offering.hasRecorded && (
                 <div style={{
-                  padding: '16px', borderRadius: '20px',
-                  background: 'var(--surface-2, rgba(99, 102, 241, 0.02))',
+                  padding: '16px', borderRadius: '14px',
+                  background: 'var(--surface-2, color-mix(in srgb, var(--primary) 2%, transparent))',
                   border: '1.5px solid var(--border)',
                   boxShadow: '0 4px 12px rgba(0,0,0,0.02)'
                 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
                     <div>
-                      <div style={{ fontSize: '11px', fontWeight: '800', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '4px' }}>
+                      <div style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '4px' }}>
                         📹 Recorded Batch - PLUS
                       </div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <span style={{ fontSize: '22px', fontWeight: '900', color: 'var(--text-primary)' }}>
+                        <span style={{ fontSize: '22px', fontWeight: 600, color: 'var(--text-primary)' }}>
                           ₹{Math.max(Number(offering.recordedDiscountPrice || 0), 1)}
                         </span>
                         {Number(offering.recordedOriginalPrice || 0) > Math.max(Number(offering.recordedDiscountPrice || 0), 1) && (
@@ -1227,7 +902,7 @@ export default function CoursesPage() {
                     style={{
                       width: '100%', padding: '12px', borderRadius: '50px',
                       border: '2.5px solid var(--accent)', background: 'transparent',
-                      color: 'var(--accent)', fontSize: '14px', fontWeight: '800',
+                      color: 'var(--accent)', fontSize: '14px', fontWeight: 600,
                       cursor: purchasing ? 'not-allowed' : 'pointer',
                       transition: 'all 0.2s',
                     }}
@@ -1240,27 +915,27 @@ export default function CoursesPage() {
               {/* Live Batch Option */}
               {offering.hasLive && (
                 <div style={{
-                  padding: '16px', borderRadius: '20px',
-                  background: 'var(--surface-2, rgba(99, 102, 241, 0.02))',
+                  padding: '16px', borderRadius: '14px',
+                  background: 'var(--surface-2, color-mix(in srgb, var(--primary) 2%, transparent))',
                   border: '1.5px solid var(--accent)',
                   position: 'relative',
-                  boxShadow: '0 8px 24px rgba(99,102,241,0.08)'
+                  boxShadow: '0 8px 24px color-mix(in srgb, var(--primary) 8%, transparent)'
                 }}>
                   <div style={{
                     position: 'absolute', top: '12px', right: '16px',
-                    padding: '3px 10px', borderRadius: '20px',
+                    padding: '3px 10px', borderRadius: '14px',
                     background: 'var(--accent)', color: '#fff',
-                    fontSize: '9px', fontWeight: '900', letterSpacing: '0.08em',
+                    fontSize: '9px', fontWeight: 600, letterSpacing: '0.08em',
                   }}>
                     PRO
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
                     <div>
-                      <div style={{ fontSize: '11px', fontWeight: '800', color: 'var(--accent)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '4px' }}>
+                      <div style={{ fontSize: '11px', fontWeight: 600, color: 'var(--accent)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '4px' }}>
                         🔴 Live + Recorded Batch - PRO
                       </div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <span style={{ fontSize: '22px', fontWeight: '900', color: 'var(--text-primary)' }}>
+                        <span style={{ fontSize: '22px', fontWeight: 600, color: 'var(--text-primary)' }}>
                           ₹{Math.max(Number(offering.liveDiscountPrice || 0), 1)}
                         </span>
                         {Number(offering.liveOriginalPrice || 0) > Math.max(Number(offering.liveDiscountPrice || 0), 1) && (
@@ -1277,7 +952,7 @@ export default function CoursesPage() {
                     style={{
                       width: '100%', padding: '12px', borderRadius: '50px',
                       border: 'none', background: 'var(--accent)',
-                      color: '#fff', fontSize: '14px', fontWeight: '800',
+                      color: '#fff', fontSize: '14px', fontWeight: 600,
                       cursor: purchasing ? 'not-allowed' : 'pointer',
                       transition: 'all 0.2s',
                     }}
@@ -1310,7 +985,7 @@ export default function CoursesPage() {
                   border: 'none',
                   color: 'var(--accent)',
                   fontSize: '11.5px',
-                  fontWeight: '800',
+                  fontWeight: 600,
                   cursor: 'pointer',
                   textDecoration: 'underline',
                   padding: '4px 8px',
@@ -1333,23 +1008,23 @@ export default function CoursesPage() {
           padding: '20px'
         }} onClick={() => { setSuccessOrderId(null); window.location.reload() }}>
           <div style={{
-            background: 'var(--surface)', borderRadius: '32px', width: '100%', maxWidth: '440px',
+            background: 'var(--surface)', borderRadius: '14px', width: '100%', maxWidth: '440px',
             boxShadow: '0 0 100px var(--neu-glow), 0 25px 50px -12px rgba(0, 0, 0, 0.5)',
             padding: '40px', textAlign: 'center',
             animation: 'modalSlideUp 0.3s ease-out'
           }} onClick={e => e.stopPropagation()}>
             <div style={{ fontSize: '64px', marginBottom: '16px' }}>🎉</div>
-            <h2 style={{ fontSize: '22px', fontWeight: '800', color: 'var(--text-primary)', marginBottom: '8px' }}>Course Unlocked!</h2>
+            <h2 style={{ fontSize: '22px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '8px' }}>Course Unlocked!</h2>
             <p style={{ fontSize: '15px', color: 'var(--text-secondary)', lineHeight: '1.6', marginBottom: '24px' }}>
               Your payment was verified successfully. You now have full access to all lectures, class materials, and student benefits.
             </p>
             <button
               onClick={() => { setSuccessOrderId(null); window.location.reload() }}
               style={{
-                width: '100%', padding: '16px', borderRadius: '18px', border: 'none',
-                background: 'linear-gradient(135deg, var(--accent) 0%, var(--primary) 100%)',
-                color: 'white', fontWeight: '700', fontSize: '15px', cursor: 'pointer',
-                boxShadow: '0 4px 12px rgba(99, 102, 241, 0.3)',
+                width: '100%', padding: '16px', borderRadius: '12px', border: 'none',
+                background: 'var(--primary)',
+                color: 'white', fontWeight: 600, fontSize: '15px', cursor: 'pointer',
+                boxShadow: '0 4px 12px color-mix(in srgb, var(--primary) 30%, transparent)',
               }}
             >
               Got it, let&apos;s go! 🚀
@@ -1370,7 +1045,7 @@ export default function CoursesPage() {
           setShowPurchaseModal(true)
         }}>
           <div style={{
-            background: '#1e2230', borderRadius: '24px', width: '100%', maxWidth: '520px',
+            background: '#1e2230', borderRadius: '14px', width: '100%', maxWidth: '520px',
             boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
             padding: '30px',
             animation: 'modalSlideUp 0.3s ease-out',
@@ -1389,22 +1064,22 @@ export default function CoursesPage() {
               ✕
             </button>
 
-            <h2 style={{ fontSize: '22px', fontWeight: '800', marginBottom: '4px', color: '#ffffff' }}>Batch Comparison</h2>
+            <h2 style={{ fontSize: '22px', fontWeight: 600, marginBottom: '4px', color: '#ffffff' }}>Batch Comparison</h2>
             <p style={{ fontSize: '13px', color: '#a0aec0', marginBottom: '24px', fontWeight: '500' }}>
               Choose the experience that fits your learning style
             </p>
 
             {/* Comparison Table */}
             <div style={{
-              borderRadius: '16px', overflow: 'hidden', border: '1px solid #2d3748',
+              borderRadius: '12px', overflow: 'hidden', border: '1px solid #2d3748',
               background: '#1a1d28', marginBottom: '24px'
             }}>
               <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '13px' }}>
                 <thead>
                   <tr style={{ borderBottom: '1px solid #2d3748', background: '#171923' }}>
-                    <th style={{ padding: '14px 16px', fontWeight: '700', color: '#a0aec0', width: '40%' }}>FEATURES</th>
-                    <th style={{ padding: '14px 16px', fontWeight: '800', color: '#d69e2e', textAlign: 'center', width: '30%', background: 'rgba(214, 158, 46, 0.05)' }}>PLUS</th>
-                    <th style={{ padding: '14px 16px', fontWeight: '800', color: '#6366f1', textAlign: 'center', width: '30%', background: 'rgba(99, 102, 241, 0.05)' }}>PRO</th>
+                    <th style={{ padding: '14px 16px', fontWeight: 600, color: '#a0aec0', width: '40%' }}>FEATURES</th>
+                    <th style={{ padding: '14px 16px', fontWeight: 600, color: '#d69e2e', textAlign: 'center', width: '30%', background: 'rgba(214, 158, 46, 0.05)' }}>PLUS</th>
+                    <th style={{ padding: '14px 16px', fontWeight: 600, color: 'var(--primary)', textAlign: 'center', width: '30%', background: 'color-mix(in srgb, var(--primary) 5%, transparent)' }}>PRO</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -1419,16 +1094,16 @@ export default function CoursesPage() {
                     <tr key={row.name} style={{ borderBottom: index < 5 ? '1px solid #2d3748' : 'none' }}>
                       <td style={{ padding: '12px 16px', fontWeight: '600', color: '#e2e8f0' }}>{row.name}</td>
                       <td style={{
-                        padding: '12px 16px', textAlign: 'center', fontWeight: '700',
+                        padding: '12px 16px', textAlign: 'center', fontWeight: 600,
                         color: row.plus.includes('✅') ? '#48bb78' : '#e53e3e',
                         background: 'rgba(214, 158, 46, 0.02)'
                       }}>
                         {row.plus}
                       </td>
                       <td style={{
-                        padding: '12px 16px', textAlign: 'center', fontWeight: '700',
+                        padding: '12px 16px', textAlign: 'center', fontWeight: 600,
                         color: row.pro.includes('✅') ? '#48bb78' : '#e53e3e',
-                        background: 'rgba(99, 102, 241, 0.02)'
+                        background: 'color-mix(in srgb, var(--primary) 2%, transparent)'
                       }}>
                         {row.pro}
                       </td>
@@ -1447,9 +1122,9 @@ export default function CoursesPage() {
                 }}
                 style={{
                   padding: '12px 32px', borderRadius: '50px', border: 'none',
-                  background: 'linear-gradient(135deg, #6366f1, #4f46e5)', color: '#ffffff',
-                  fontSize: '14px', fontWeight: '800', cursor: 'pointer',
-                  boxShadow: '0 4px 15px rgba(99, 102, 241, 0.3)', transition: 'all 0.2s'
+                  background: 'var(--primary)', color: '#ffffff',
+                  fontSize: '14px', fontWeight: 600, cursor: 'pointer',
+                  boxShadow: '0 4px 15px color-mix(in srgb, var(--primary) 30%, transparent)', transition: 'all 0.2s'
                 }}
                 onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-1px)'}
                 onMouseLeave={e => e.currentTarget.style.transform = 'translateY(0)'}
@@ -1470,27 +1145,27 @@ export default function CoursesPage() {
           padding: '20px'
         }} onClick={() => setUpgradeSuccessOrderId(null)}>
           <div style={{
-            background: 'var(--surface)', borderRadius: '32px', width: '100%', maxWidth: '440px',
+            background: 'var(--surface)', borderRadius: '14px', width: '100%', maxWidth: '440px',
             boxShadow: '0 0 100px var(--neu-glow), 0 25px 50px -12px rgba(0, 0, 0, 0.5)',
             padding: '40px', textAlign: 'center',
             animation: 'modalSlideUp 0.3s ease-out'
           }} onClick={e => e.stopPropagation()}>
             <div style={{ fontSize: '64px', marginBottom: '16px' }}>🎉</div>
-            <h2 style={{ fontSize: '22px', fontWeight: '800', color: 'var(--text-primary)', marginBottom: '8px' }}>Welcome to PRO!</h2>
+            <h2 style={{ fontSize: '22px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '8px' }}>Welcome to PRO!</h2>
             <p style={{ fontSize: '15px', color: 'var(--text-secondary)', lineHeight: '1.6', marginBottom: '24px' }}>
               Your upgrade was successful. You now have full access to live classes, mentorship, and priority support.
             </p>
-            <div style={{ background: 'var(--success-light)', borderRadius: '16px', padding: '16px', marginBottom: '24px', border: '1.5px solid var(--border)' }}>
-              <div style={{ fontSize: '12px', color: 'var(--success)', fontWeight: '700', textTransform: 'uppercase', marginBottom: '4px' }}>Order ID</div>
-              <div style={{ fontSize: '18px', fontWeight: '800', color: 'var(--success)', fontFamily: 'monospace' }}>{upgradeSuccessOrderId}</div>
+            <div style={{ background: 'var(--success-light)', borderRadius: '12px', padding: '16px', marginBottom: '24px', border: '1.5px solid var(--border)' }}>
+              <div style={{ fontSize: '12px', color: 'var(--success)', fontWeight: 600, textTransform: 'uppercase', marginBottom: '4px' }}>Order ID</div>
+              <div style={{ fontSize: '18px', fontWeight: 600, color: 'var(--success)', fontFamily: 'monospace' }}>{upgradeSuccessOrderId}</div>
             </div>
             <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '20px' }}>A confirmation email has been sent to your registered email.</p>
             <button
               onClick={() => setUpgradeSuccessOrderId(null)}
               style={{
-                width: '100%', padding: '16px', borderRadius: '18px', border: 'none',
+                width: '100%', padding: '16px', borderRadius: '12px', border: 'none',
                 background: 'linear-gradient(135deg, #22c55e, #16a34a)',
-                color: 'white', fontWeight: '700', fontSize: '15px', cursor: 'pointer',
+                color: 'white', fontWeight: 600, fontSize: '15px', cursor: 'pointer',
                 boxShadow: '0 4px 12px rgba(22, 163, 74, 0.3)',
               }}
             >
@@ -1508,16 +1183,16 @@ export default function CoursesPage() {
           display: 'flex', alignItems: 'center', justifyContent: 'center'
         }}>
           <div style={{
-            background: 'var(--surface)', padding: '40px', borderRadius: '32px',
+            background: 'var(--surface)', padding: '40px', borderRadius: '14px',
             textAlign: 'center', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5)',
             width: '320px'
           }}>
             <div className="spinner" style={{
               width: '40px', height: '40px', border: '4px solid #f3f3f3',
-              borderTop: '4px solid #6366f1', borderRadius: '50%',
+              borderTop: '4px solid var(--primary)', borderRadius: '50%',
               margin: '0 auto 20px'
             }} />
-            <h3 style={{ fontSize: '18px', fontWeight: '800', color: 'var(--text-primary)', marginBottom: '8px' }}>Processing...</h3>
+            <h3 style={{ fontSize: '18px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '8px' }}>Processing...</h3>
             <p style={{ fontSize: '14px', color: 'var(--text-secondary)', fontWeight: '500' }}>Please wait while we set up your course access.</p>
           </div>
         </div>

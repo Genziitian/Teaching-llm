@@ -7,6 +7,7 @@ import FeedbackModal from '@/components/FeedbackModal'
 import ManagerUserModal from '@/components/ManagerUserModal'
 import { useLoadingFact } from '@/hooks/useLoadingFact'
 import LoadingFactCard from '@/components/ui/LoadingFactCard'
+import ReviewsManager from '@/components/storefront/native/ReviewsManager'
 
 const fetcher = (url: string) => fetch(url).then(r => r.json())
 
@@ -51,7 +52,7 @@ export default function FeedbackPage() {
   }
 
   if (user.role === 'MANAGER') {
-    return <ManagerFeedbackView />
+    return <ManagerFeedbackSwitch />
   }
 
   if ((user.role === 'ADMIN' || user.role === 'MODERATOR') || user.role === 'INSTRUCTOR') {
@@ -99,7 +100,7 @@ function StudentFeedbackView({ userId }: { userId: string }) {
   if (isLoading) return <div className="page-container animate-pulse" />
 
   return (
-    <div className="page-container fade-in" style={{ maxWidth: '900px', margin: '0 auto', padding: 'clamp(16px, 4vw, 32px)' }}>
+    <div className="gz-page fade-in">
       <style>{`
         .mobile-back-header {
           display: none !important;
@@ -153,7 +154,7 @@ function StudentFeedbackView({ userId }: { userId: string }) {
         <div style={{ flex: 1, minWidth: 0 }}>
           <h1 style={{
             fontSize: '22px',
-            fontWeight: 900,
+            fontWeight: 600,
             color: 'var(--text-primary)',
             margin: 0,
             lineHeight: 1.1,
@@ -179,7 +180,7 @@ function StudentFeedbackView({ userId }: { userId: string }) {
         <div
           style={{
             background: 'var(--surface)',
-            borderRadius: '24px',
+            borderRadius: '14px',
             padding: '24px 28px',
             boxShadow: '0 4px 20px rgba(0,0,0,0.03)',
             display: 'flex',
@@ -191,12 +192,12 @@ function StudentFeedbackView({ userId }: { userId: string }) {
         >
           <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
             <span style={{
-              fontSize: '11px', fontWeight: '800', color: 'var(--text-muted)',
+              fontSize: '11px', fontWeight: 600, color: 'var(--text-muted)',
               textTransform: 'uppercase', letterSpacing: '0.05em'
             }}>
               Platform Feedback
             </span>
-            <h3 style={{ fontSize: '20px', fontWeight: '800', color: 'var(--text-primary)', margin: 0 }}>
+            <h3 style={{ fontSize: '20px', fontWeight: 600, color: 'var(--text-primary)', margin: 0 }}>
               {isNativeApp ? 'App Feedback' : 'Website Feedback'}
             </h3>
           </div>
@@ -208,7 +209,7 @@ function StudentFeedbackView({ userId }: { userId: string }) {
           {hasPlatformFeedback && platformFeedbackObj && (
             <div style={{ width: '100%', marginTop: '6px', paddingTop: '12px', borderTop: '1px solid var(--border)', display: 'flex', flexDirection: 'column', gap: '12px' }}>
               <div>
-                <span style={{ fontSize: '10.5px', fontWeight: '800', color: 'var(--text-muted)', textTransform: 'uppercase', display: 'block', marginBottom: '2px' }}>
+                <span style={{ fontSize: '10.5px', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', display: 'block', marginBottom: '2px' }}>
                   Rating
                 </span>
                 <div style={{ display: 'flex', gap: '2px' }}>
@@ -244,7 +245,7 @@ function StudentFeedbackView({ userId }: { userId: string }) {
               padding: '12px 28px',
               borderRadius: '50px',
               border: 'none',
-              fontWeight: '700',
+              fontWeight: 600,
               fontSize: '14px',
               cursor: 'pointer',
               transition: 'transform 0.2s ease',
@@ -265,7 +266,7 @@ function StudentFeedbackView({ userId }: { userId: string }) {
               key={course.id}
               style={{
                 background: 'var(--surface)',
-                borderRadius: '24px',
+                borderRadius: '14px',
                 padding: '24px 28px',
                 boxShadow: '0 4px 20px rgba(0,0,0,0.03)',
                 display: 'flex',
@@ -277,12 +278,12 @@ function StudentFeedbackView({ userId }: { userId: string }) {
             >
               <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                 <span style={{
-                  fontSize: '11px', fontWeight: '800', color: 'var(--text-muted)',
+                  fontSize: '11px', fontWeight: 600, color: 'var(--text-muted)',
                   textTransform: 'uppercase', letterSpacing: '0.05em'
                 }}>
                   {course.subject}
                 </span>
-                <h3 style={{ fontSize: '20px', fontWeight: '800', color: 'var(--text-primary)', margin: 0 }}>{course.name}</h3>
+                <h3 style={{ fontSize: '20px', fontWeight: 600, color: 'var(--text-primary)', margin: 0 }}>{course.name}</h3>
               </div>
 
               <p style={{ fontSize: '14px', color: submitted ? 'var(--success)' : 'var(--text-muted)', fontWeight: '600', margin: 0 }}>
@@ -299,7 +300,7 @@ function StudentFeedbackView({ userId }: { userId: string }) {
                       { label: 'Recommend', val: feedbackObj.recommendScore },
                     ].map(r => (
                       <div key={r.label}>
-                        <span style={{ fontSize: '10.5px', fontWeight: '800', color: 'var(--text-muted)', textTransform: 'uppercase', display: 'block', marginBottom: '2px' }}>
+                        <span style={{ fontSize: '10.5px', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', display: 'block', marginBottom: '2px' }}>
                           {r.label}
                         </span>
                         <div style={{ display: 'flex', gap: '2px' }}>
@@ -327,7 +328,7 @@ function StudentFeedbackView({ userId }: { userId: string }) {
                       color: 'var(--text-primary)',
                       padding: '8px 16px',
                       borderRadius: '50px',
-                      fontWeight: '700',
+                      fontWeight: 600,
                       fontSize: '12.5px',
                       cursor: 'pointer',
                       transition: 'background 0.2s',
@@ -350,7 +351,7 @@ function StudentFeedbackView({ userId }: { userId: string }) {
                     padding: '12px 28px',
                     borderRadius: '50px',
                     border: 'none',
-                    fontWeight: '700',
+                    fontWeight: 600,
                     fontSize: '14px',
                     cursor: 'pointer',
                     transition: 'transform 0.2s ease',
@@ -415,6 +416,19 @@ function StudentFeedbackView({ userId }: { userId: string }) {
         />
       )}
     </div>
+  )
+}
+
+function ManagerFeedbackSwitch() {
+  const [mode, setMode] = useState<'feedback' | 'reviews'>('feedback')
+  return (
+    <>
+      <div style={{ display: 'flex', gap: 8, padding: '0 0 16px' }}>
+        <button className={`btn btn-sm ${mode === 'feedback' ? 'btn-primary' : 'btn-secondary'}`} onClick={() => setMode('feedback')}>Class feedback</button>
+        <button className={`btn btn-sm ${mode === 'reviews' ? 'btn-primary' : 'btn-secondary'}`} onClick={() => setMode('reviews')}>Course reviews</button>
+      </div>
+      {mode === 'reviews' ? <div className="gz-page fade-in"><ReviewsManager /></div> : <ManagerFeedbackView />}
+    </>
   )
 }
 
@@ -490,7 +504,7 @@ function ManagerFeedbackView() {
   if (isLoading) return <div className="page-container animate-pulse" />
 
   return (
-    <div className="page-container fade-in" style={{ padding: 'clamp(16px, 4vw, 32px)' }}>
+    <div className="gz-page fade-in">
       <style dangerouslySetInnerHTML={{__html: `
         @media (min-width: 768px) {
           .feedback-mobile-header {
@@ -541,7 +555,7 @@ function ManagerFeedbackView() {
         <div style={{ flex: 1, minWidth: 0 }}>
           <h1 style={{
             fontSize: '22px',
-            fontWeight: 900,
+            fontWeight: 600,
             color: 'var(--text-primary)',
             margin: 0,
             lineHeight: 1.1,
@@ -565,13 +579,13 @@ function ManagerFeedbackView() {
         <button
           onClick={() => setShowForceSettings(true)}
           style={{
-            background: '#0a0a0a',
-            color: 'white',
-            padding: '10px 20px',
+            background: 'var(--gz-ink, #0a0a0a)',
+            color: 'var(--gz-ink-inv, white)',
+            padding: '8px 16px',
             borderRadius: '12px',
             border: 'none',
-            fontWeight: '700',
-            fontSize: '14px',
+            fontWeight: 600,
+            fontSize: '13px',
             cursor: 'pointer',
             display: 'flex',
             alignItems: 'center',
@@ -581,7 +595,7 @@ function ManagerFeedbackView() {
           onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.02)'}
           onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
         >
-          <span>⚙️</span> Required Feedback
+          Required Feedback
         </button>
         <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
           <div style={{ position: 'relative' }}>
@@ -627,7 +641,7 @@ function ManagerFeedbackView() {
       </div>      {/* Analytics Card */}
       <div style={{
         background: 'var(--surface)',
-        borderRadius: '24px',
+        borderRadius: '14px',
         padding: '24px',
         border: '1px solid var(--border)',
         boxShadow: '0 4px 12px rgba(0,0,0,0.03)',
@@ -636,7 +650,7 @@ function ManagerFeedbackView() {
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '24px' }}>
           {/* Left panel: Overall Rating */}
           <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', borderRight: '1px solid var(--border)', paddingRight: '20px' }}>
-            <span style={{ fontSize: '14px', fontWeight: '800', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '8px' }}>
+            <span style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '8px' }}>
               Overall Rating
             </span>
             <span style={{ fontSize: '42px', fontWeight: '950', color: 'var(--text-primary)', lineHeight: '1.0' }}>
@@ -655,13 +669,13 @@ function ManagerFeedbackView() {
               const pct = totalResponses > 0 ? (count / totalResponses) * 100 : 0
               return (
                 <div key={star} style={{ display: 'flex', alignItems: 'center', gap: '12px', fontSize: '13px' }}>
-                  <div style={{ width: '40px', fontWeight: '800', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                  <div style={{ width: '40px', fontWeight: 600, color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '4px' }}>
                     {star} <span style={{ color: '#fbbf24' }}>★</span>
                   </div>
                   <div style={{ flex: 1, height: '8px', background: 'var(--surface-2)', borderRadius: '4px', overflow: 'hidden', position: 'relative' }}>
                     <div style={{ height: '100%', width: `${pct}%`, background: 'var(--primary)', borderRadius: '4px', transition: 'width 0.3s ease' }} />
                   </div>
-                  <div style={{ width: '32px', textAlign: 'right', fontWeight: '800', color: 'var(--text-primary)' }}>
+                  <div style={{ width: '32px', textAlign: 'right', fontWeight: 600, color: 'var(--text-primary)' }}>
                     {count}
                   </div>
                 </div>
@@ -678,11 +692,11 @@ function ManagerFeedbackView() {
             { label: 'Materials', val: materialAvg },
             { label: 'Recommend', val: recommendAvg },
           ].map(cat => (
-            <div key={cat.label} style={{ background: 'var(--surface-2)', padding: '12px', borderRadius: '16px', border: '1px solid var(--border)', textAlign: 'center' }}>
-              <div style={{ fontSize: '11px', fontWeight: '800', color: 'var(--text-secondary)', textTransform: 'uppercase', marginBottom: '4px', letterSpacing: '0.05em' }}>
+            <div key={cat.label} style={{ background: 'var(--surface-2)', padding: '12px', borderRadius: '12px', border: '1px solid var(--border)', textAlign: 'center' }}>
+              <div style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-secondary)', textTransform: 'uppercase', marginBottom: '4px', letterSpacing: '0.05em' }}>
                 {cat.label}
               </div>
-              <div style={{ fontSize: '16px', fontWeight: '900', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '2px' }}>
+              <div style={{ fontSize: '16px', fontWeight: 600, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '2px' }}>
                 {cat.val.toFixed(1)}
                 <span style={{ color: '#fbbf24', fontSize: '12px' }}>★</span>
               </div>
@@ -699,7 +713,7 @@ function ManagerFeedbackView() {
               key={f.id}
               style={{
                 background: 'var(--surface)',
-                borderRadius: '20px',
+                borderRadius: '14px',
                 padding: '24px',
                 boxShadow: '0 4px 12px rgba(0,0,0,0.03)',
                 border: '1px solid var(--border)',
@@ -717,7 +731,7 @@ function ManagerFeedbackView() {
                       cursor: 'pointer',
                       textAlign: 'left',
                       color: 'var(--primary)',
-                      fontWeight: '700',
+                      fontWeight: 600,
                       fontSize: '16px',
                       marginBottom: '2px',
                       display: 'inline-block',
@@ -733,10 +747,10 @@ function ManagerFeedbackView() {
                   </p>
                 </div>
                 <div style={{ 
-                  background: isAppOrWeb ? 'rgba(54,54,232,0.05)' : 'var(--surface)', 
+                  background: isAppOrWeb ? 'color-mix(in srgb, var(--primary) 5%, transparent)' : 'var(--surface)', 
                   padding: '6px 14px', borderRadius: '50px', 
-                  fontSize: '12px', fontWeight: '700', 
-                  color: f.course.id === 'APP' ? '#3636e8' : f.course.id === 'WEB' ? '#10b981' : 'var(--primary)', 
+                  fontSize: '12px', fontWeight: 600, 
+                  color: f.course.id === 'APP' ? 'var(--primary)' : f.course.id === 'WEB' ? '#10b981' : 'var(--primary)', 
                   border: '1px solid var(--border)' 
                 }}>
                   {f.course.name}
@@ -746,7 +760,7 @@ function ManagerFeedbackView() {
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '16px', marginBottom: '20px' }}>
                 {isAppOrWeb ? (
                   <div>
-                    <p style={{ fontSize: '11px', fontWeight: '800', color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: '4px' }}>
+                    <p style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: '4px' }}>
                       Rating
                     </p>
                     <div style={{ display: 'flex', gap: '2px' }}>
@@ -765,7 +779,7 @@ function ManagerFeedbackView() {
                     { label: 'Recommend', val: f.recommendScore },
                   ].map(r => (
                     <div key={r.label}>
-                      <p style={{ fontSize: '11px', fontWeight: '800', color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: '4px' }}>{r.label}</p>
+                      <p style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: '4px' }}>{r.label}</p>
                       <div style={{ display: 'flex', gap: '2px' }}>
                         {[1,2,3,4,5].map(s => (
                           <svg key={s} width="12" height="12" viewBox="0 0 24 24" fill={s <= r.val ? '#fbbf24' : 'var(--surface-2)'}>
@@ -897,7 +911,7 @@ function ForceFeedbackSettingsModal({
         background: 'var(--surface)',
         width: '100%',
         maxWidth: '520px',
-        borderRadius: '24px',
+        borderRadius: '14px',
         padding: '28px',
         boxShadow: '0 20px 40px rgba(0,0,0,0.2)',
         border: '1px solid var(--border)',
@@ -925,7 +939,7 @@ function ForceFeedbackSettingsModal({
           </svg>
         </button>
 
-        <h3 style={{ fontSize: '20px', fontWeight: '800', color: 'var(--text-primary)', marginBottom: '8px' }}>
+        <h3 style={{ fontSize: '20px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '8px' }}>
           Forced Feedback Settings
         </h3>
         <p style={{ fontSize: '13.5px', color: 'var(--text-secondary)', marginBottom: '20px', lineHeight: '1.4' }}>
@@ -957,7 +971,7 @@ function ForceFeedbackSettingsModal({
                   padding: '14px 16px',
                   borderRadius: '14px',
                   border: hasChanged ? '1.5px solid var(--primary)' : '1px solid var(--border)',
-                  background: hasChanged ? 'rgba(99, 102, 241, 0.04)' : 'var(--surface)',
+                  background: hasChanged ? 'color-mix(in srgb, var(--primary) 4%, transparent)' : 'var(--surface)',
                   cursor: 'pointer',
                   width: '100%',
                   textAlign: 'left',
@@ -986,7 +1000,7 @@ function ForceFeedbackSettingsModal({
                 </div>
 
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: '14px', fontWeight: '700', color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  <div style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                     {c.name}
                   </div>
                   <div style={{ fontSize: '11.5px', fontWeight: '600', color: 'var(--text-muted)', marginTop: '2px' }}>
@@ -1010,7 +1024,7 @@ function ForceFeedbackSettingsModal({
                   }} />
                   <span style={{
                     fontSize: '11px',
-                    fontWeight: '700',
+                    fontWeight: 600,
                     color: isEnabled ? 'var(--success)' : 'var(--text-muted)',
                   }}>
                     {isEnabled ? 'ON' : 'OFF'}
@@ -1018,9 +1032,9 @@ function ForceFeedbackSettingsModal({
                   {hasChanged && (
                     <span style={{
                       fontSize: '9px',
-                      fontWeight: '800',
+                      fontWeight: 600,
                       color: 'var(--primary)',
-                      background: 'rgba(99, 102, 241, 0.1)',
+                      background: 'color-mix(in srgb, var(--primary) 10%, transparent)',
                       padding: '2px 6px',
                       borderRadius: '6px',
                       marginLeft: '4px',
@@ -1059,7 +1073,7 @@ function ForceFeedbackSettingsModal({
                 border: '1px solid var(--border)',
                 background: 'var(--surface)',
                 color: 'var(--text-secondary)',
-                fontWeight: '700',
+                fontWeight: 600,
                 fontSize: '13.5px',
                 cursor: 'pointer',
               }}
@@ -1075,7 +1089,7 @@ function ForceFeedbackSettingsModal({
                 border: 'none',
                 background: changedCourses.length === 0 ? 'var(--surface-2)' : '#0a0a0a',
                 color: changedCourses.length === 0 ? 'var(--text-muted)' : 'white',
-                fontWeight: '700',
+                fontWeight: 600,
                 fontSize: '13.5px',
                 cursor: changedCourses.length === 0 || isUpdating ? 'default' : 'pointer',
                 opacity: isUpdating ? 0.7 : 1,
@@ -1164,7 +1178,7 @@ function AppFeedbackModal({ initialData, onClose, onSuccess }: AppFeedbackModalP
         background: 'var(--surface)',
         width: '100%',
         maxWidth: '450px',
-        borderRadius: '24px',
+        borderRadius: '14px',
         padding: '24px',
         boxShadow: '0 20px 40px rgba(0,0,0,0.15)',
         border: '1px solid var(--border)',
@@ -1188,7 +1202,7 @@ function AppFeedbackModal({ initialData, onClose, onSuccess }: AppFeedbackModalP
           </svg>
         </button>
 
-        <h3 style={{ fontSize: '18px', fontWeight: '800', color: 'var(--text-primary)', marginBottom: '6px' }}>
+        <h3 style={{ fontSize: '18px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '6px' }}>
           {initialData.type === 'APP' ? 'App Review' : 'Website Review'}
         </h3>
         <p style={{ fontSize: '13px', color: 'var(--text-secondary)', marginBottom: '20px' }}>
@@ -1197,7 +1211,7 @@ function AppFeedbackModal({ initialData, onClose, onSuccess }: AppFeedbackModalP
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           <div>
-            <p style={{ fontSize: '14px', fontWeight: '700', color: 'var(--text-primary)', marginBottom: '8px' }}>Rating</p>
+            <p style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '8px' }}>Rating</p>
             <div style={{ display: 'flex', gap: '8px' }}>
               {[1, 2, 3, 4, 5].map(s => (
                 <button
@@ -1224,7 +1238,7 @@ function AppFeedbackModal({ initialData, onClose, onSuccess }: AppFeedbackModalP
           </div>
 
           <div>
-            <p style={{ fontSize: '14px', fontWeight: '700', color: 'var(--text-primary)', marginBottom: '8px' }}>Comments</p>
+            <p style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '8px' }}>Comments</p>
             <textarea
               placeholder="Tell us what you liked or how we can improve..."
               value={comment}
@@ -1256,7 +1270,7 @@ function AppFeedbackModal({ initialData, onClose, onSuccess }: AppFeedbackModalP
                 border: '1px solid var(--border)',
                 background: 'var(--surface)',
                 color: 'var(--text-secondary)',
-                fontWeight: '700',
+                fontWeight: 600,
                 cursor: 'pointer',
               }}
             >
@@ -1272,7 +1286,7 @@ function AppFeedbackModal({ initialData, onClose, onSuccess }: AppFeedbackModalP
                 border: 'none',
                 background: '#0a0a0a',
                 color: 'white',
-                fontWeight: '700',
+                fontWeight: 600,
                 cursor: 'pointer',
                 opacity: isSubmitting ? 0.7 : 1,
               }}
@@ -1368,7 +1382,7 @@ function AdminFeedbackView({ user }: { user: any }) {
   }
 
   return (
-    <div className="page-container fade-in" style={{ padding: 'clamp(16px, 4vw, 32px)', maxWidth: '900px', margin: '0 auto' }}>
+    <div className="gz-page fade-in">
       {/* Mobile back header */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '28px' }}>
         <button
@@ -1406,7 +1420,7 @@ function AdminFeedbackView({ user }: { user: any }) {
         <div style={{ flex: 1, minWidth: 0 }}>
           <h1 style={{
             fontSize: '22px',
-            fontWeight: 900,
+            fontWeight: 600,
             color: 'var(--text-primary)',
             margin: 0,
             lineHeight: 1.1,
@@ -1429,7 +1443,7 @@ function AdminFeedbackView({ user }: { user: any }) {
 
       {/* Course Selector */}
       <div style={{ marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
-        <span style={{ fontSize: '15px', fontWeight: '700', color: 'var(--text-secondary)' }}>
+        <span style={{ fontSize: '15px', fontWeight: 600, color: 'var(--text-secondary)' }}>
           Viewing feedback for:
         </span>
         <div style={{ position: 'relative', display: 'inline-block' }}>
@@ -1442,7 +1456,7 @@ function AdminFeedbackView({ user }: { user: any }) {
               border: '1px solid var(--border)',
               background: 'var(--surface)',
               fontSize: '15px',
-              fontWeight: '800',
+              fontWeight: 600,
               color: 'var(--primary)',
               outline: 'none',
               appearance: 'none',
@@ -1464,7 +1478,7 @@ function AdminFeedbackView({ user }: { user: any }) {
       {/* Analytics Card */}
       <div style={{
         background: 'var(--surface)',
-        borderRadius: '24px',
+        borderRadius: '14px',
         padding: '24px',
         border: '1px solid var(--border)',
         boxShadow: '0 4px 12px rgba(0,0,0,0.03)',
@@ -1473,7 +1487,7 @@ function AdminFeedbackView({ user }: { user: any }) {
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '24px' }}>
           {/* Left panel: Overall Rating */}
           <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', borderRight: '1px solid var(--border)', paddingRight: '20px' }}>
-            <span style={{ fontSize: '14px', fontWeight: '800', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '8px' }}>
+            <span style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '8px' }}>
               Overall Rating
             </span>
             <span style={{ fontSize: '42px', fontWeight: '950', color: 'var(--text-primary)', lineHeight: '1.0' }}>
@@ -1492,13 +1506,13 @@ function AdminFeedbackView({ user }: { user: any }) {
               const pct = totalResponses > 0 ? (count / totalResponses) * 100 : 0
               return (
                 <div key={star} style={{ display: 'flex', alignItems: 'center', gap: '12px', fontSize: '13px' }}>
-                  <div style={{ width: '40px', fontWeight: '800', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                  <div style={{ width: '40px', fontWeight: 600, color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '4px' }}>
                     {star} <span style={{ color: '#fbbf24' }}>★</span>
                   </div>
                   <div style={{ flex: 1, height: '8px', background: 'var(--surface-2)', borderRadius: '4px', overflow: 'hidden', position: 'relative' }}>
                     <div style={{ height: '100%', width: `${pct}%`, background: 'var(--primary)', borderRadius: '4px', transition: 'width 0.3s ease' }} />
                   </div>
-                  <div style={{ width: '32px', textAlign: 'right', fontWeight: '800', color: 'var(--text-primary)' }}>
+                  <div style={{ width: '32px', textAlign: 'right', fontWeight: 600, color: 'var(--text-primary)' }}>
                     {count}
                   </div>
                 </div>
@@ -1515,11 +1529,11 @@ function AdminFeedbackView({ user }: { user: any }) {
             { label: 'Materials', val: materialAvg },
             { label: 'Recommend', val: recommendAvg },
           ].map(cat => (
-            <div key={cat.label} style={{ background: 'var(--surface-2)', padding: '12px', borderRadius: '16px', border: '1px solid var(--border)', textAlign: 'center' }}>
-              <div style={{ fontSize: '11px', fontWeight: '800', color: 'var(--text-secondary)', textTransform: 'uppercase', marginBottom: '4px', letterSpacing: '0.05em' }}>
+            <div key={cat.label} style={{ background: 'var(--surface-2)', padding: '12px', borderRadius: '12px', border: '1px solid var(--border)', textAlign: 'center' }}>
+              <div style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-secondary)', textTransform: 'uppercase', marginBottom: '4px', letterSpacing: '0.05em' }}>
                 {cat.label}
               </div>
-              <div style={{ fontSize: '16px', fontWeight: '900', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '2px' }}>
+              <div style={{ fontSize: '16px', fontWeight: 600, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '2px' }}>
                 {cat.val.toFixed(1)}
                 <span style={{ color: '#fbbf24', fontSize: '12px' }}>★</span>
               </div>
@@ -1529,18 +1543,18 @@ function AdminFeedbackView({ user }: { user: any }) {
       </div>
 
       {/* Individual Anonymized Feedback Cards */}
-      <h2 style={{ fontSize: '16px', fontWeight: '800', color: 'var(--text-primary)', marginBottom: '16px', letterSpacing: '-0.01em' }}>
+      <h2 style={{ fontSize: '16px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '16px', letterSpacing: '-0.01em' }}>
         Individual Responses
       </h2>
 
       {isLoading ? (
         <div className="animate-pulse" style={{ display: 'grid', gap: '16px' }}>
           {[1, 2, 3].map(i => (
-            <div key={i} style={{ height: '140px', background: 'var(--surface)', borderRadius: '20px', border: '1px solid var(--border)' }} />
+            <div key={i} style={{ height: '140px', background: 'var(--surface)', borderRadius: '14px', border: '1px solid var(--border)' }} />
           ))}
         </div>
       ) : feedbacks.length === 0 ? (
-        <div style={{ textAlign: 'center', padding: '60px', background: 'var(--surface)', borderRadius: '20px', border: '1px solid var(--border)', color: 'var(--text-muted)' }}>
+        <div style={{ textAlign: 'center', padding: '60px', background: 'var(--surface)', borderRadius: '14px', border: '1px solid var(--border)', color: 'var(--text-muted)' }}>
           <p style={{ fontSize: '15px', fontWeight: '600' }}>No feedback submissions for this course yet.</p>
         </div>
       ) : (
@@ -1550,7 +1564,7 @@ function AdminFeedbackView({ user }: { user: any }) {
               key={f.id}
               style={{
                 background: 'var(--surface)',
-                borderRadius: '20px',
+                borderRadius: '14px',
                 padding: '20px',
                 border: '1px solid var(--border)',
                 boxShadow: '0 4px 10px rgba(0,0,0,0.02)'
@@ -1558,7 +1572,7 @@ function AdminFeedbackView({ user }: { user: any }) {
             >
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px', flexWrap: 'wrap', gap: '8px' }}>
                 <div>
-                  <span style={{ fontSize: '14px', fontWeight: '800', color: 'var(--text-primary)', fontFamily: 'monospace' }}>
+                  <span style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)', fontFamily: 'monospace' }}>
                     Student ID: {f.student?.securityNumber || 'ANONYMOUS'}
                   </span>
                   <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '2px', fontWeight: '600' }}>
@@ -1576,7 +1590,7 @@ function AdminFeedbackView({ user }: { user: any }) {
                   { label: 'Recommend', val: f.recommendScore },
                 ].map(r => (
                   <div key={r.label}>
-                    <p style={{ fontSize: '10px', fontWeight: '800', color: 'var(--text-secondary)', textTransform: 'uppercase', marginBottom: '2px', letterSpacing: '0.05em' }}>
+                    <p style={{ fontSize: '10px', fontWeight: 600, color: 'var(--text-secondary)', textTransform: 'uppercase', marginBottom: '2px', letterSpacing: '0.05em' }}>
                       {r.label}
                     </p>
                     {renderStars(r.val)}

@@ -1,5 +1,7 @@
 'use client'
 
+import SupportUpdates from '@/components/support/SupportUpdates'
+import { SupportCallRequests } from '@/components/support/SupportCall'
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
@@ -8,6 +10,7 @@ import Script from 'next/script'
 import { formatISTDate, getEventStatus } from '@/lib/date-utils'
 import { normalizeMeetLink } from '@/lib/meet-link'
 import HomeHeroSlider, { HeroSlide } from '@/components/home/HomeHeroSlider'
+import AttendanceHeatmap from '@/components/home/AttendanceHeatmap'
 import HomeFestiveSlot from '@/components/seasonal/HomeFestiveSlot'
 import { colorWithOpacity } from '@/lib/color-utils'
 import { saveDashboardSnapshot, getDashboardSnapshot } from '@/lib/offline-db'
@@ -554,7 +557,7 @@ export default function DashboardPage() {
         {!isMobile && (
           <>
             {/* Hero Slider Skeleton */}
-            <div className="card" style={{ height: '240px', borderRadius: '24px', marginBottom: '24px', overflow: 'hidden' }}>
+            <div className="card" style={{ height: '240px', borderRadius: '14px', marginBottom: '24px', overflow: 'hidden' }}>
               <div className="skeleton" style={{ width: '100%', height: '100%' }} />
             </div>
 
@@ -566,9 +569,9 @@ export default function DashboardPage() {
               marginBottom: '20px'
             }}>
               {/* Active Session Skeleton */}
-              <div className="card" style={{ padding: '20px', borderRadius: '20px', display: 'flex', flexDirection: 'column', gap: '16px', height: '200px' }}>
+              <div className="card" style={{ padding: '20px', borderRadius: '14px', display: 'flex', flexDirection: 'column', gap: '16px', height: '200px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <div className="skeleton" style={{ height: '24px', width: '120px', borderRadius: '20px' }} />
+                  <div className="skeleton" style={{ height: '24px', width: '120px', borderRadius: '14px' }} />
                   <div className="skeleton" style={{ height: '18px', width: '60px' }} />
                 </div>
                 <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '8px' }}>
@@ -582,7 +585,7 @@ export default function DashboardPage() {
               </div>
 
               {/* Up Next Skeleton */}
-              <div className="card" style={{ padding: '20px', borderRadius: '20px', display: 'flex', flexDirection: 'column', gap: '16px', height: '200px' }}>
+              <div className="card" style={{ padding: '20px', borderRadius: '14px', display: 'flex', flexDirection: 'column', gap: '16px', height: '200px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <div className="skeleton" style={{ height: '20px', width: '80px', borderRadius: '4px' }} />
                   <div className="skeleton" style={{ height: '14px', width: '60px', borderRadius: '4px' }} />
@@ -607,7 +610,7 @@ export default function DashboardPage() {
           /* Mobile-only {t('dashboard.upNext.upcomingSession')} skeleton */
           <div style={{ marginBottom: '24px' }}>
             <div className="skeleton" style={{ height: '20px', width: '150px', marginBottom: '14px', borderRadius: '4px' }} />
-            <div style={{ display: 'flex', alignItems: 'center', gap: '14px', padding: '18px', borderRadius: '20px', background: 'var(--surface)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '14px', padding: '18px', borderRadius: '14px', background: 'var(--surface)' }}>
               <div className="skeleton" style={{ width: '48px', height: '48px', borderRadius: '14px', flexShrink: 0 }} />
               <div style={{ flex: 1 }}>
                 <div className="skeleton" style={{ height: '12px', width: '80px', marginBottom: '6px', borderRadius: '4px' }} />
@@ -620,7 +623,7 @@ export default function DashboardPage() {
         )}
 
         {/* Row 2: {t('dashboard.recent.title')} Viewed */}
-        <div className={isMobile ? '' : 'card'} style={isMobile ? { marginBottom: '24px' } : { padding: '22px 20px', borderRadius: '22px', marginBottom: '20px' }}>
+        <div className={isMobile ? '' : 'card'} style={isMobile ? { marginBottom: '24px' } : { padding: '22px 20px', borderRadius: '14px', marginBottom: '20px' }}>
           <div className="skeleton" style={{ height: '20px', width: '150px', marginBottom: isMobile ? '14px' : '18px', borderRadius: '4px' }} />
           <div style={{
             display: 'flex',
@@ -647,10 +650,10 @@ export default function DashboardPage() {
         {/* Row 4: Video + Announcements Skeleton */}
         <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '20px', marginBottom: '24px' }}>
           {!isMobile && (
-            <div className="card" style={{ padding: '20px 24px', borderRadius: '20px', background: 'var(--surface)', border: '1px solid var(--border)', boxShadow: 'none' }}>
+            <div className="card" style={{ padding: '20px 24px', borderRadius: '14px', background: 'var(--surface)', border: '1px solid var(--border)', boxShadow: 'none' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
                 <div className="skeleton" style={{ height: '18px', width: '140px', borderRadius: '4px' }} />
-                <div className="skeleton" style={{ height: '18px', width: '60px', borderRadius: '20px' }} />
+                <div className="skeleton" style={{ height: '18px', width: '60px', borderRadius: '14px' }} />
               </div>
               <div className="skeleton" style={{ width: '100%', aspectRatio: '16/9', borderRadius: '12px', marginBottom: '16px' }} />
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '12px', borderTop: '1px solid var(--border)' }}>
@@ -659,7 +662,7 @@ export default function DashboardPage() {
               </div>
             </div>
           )}
-          <div className="card" style={{ padding: '20px 24px', borderRadius: '20px', background: 'var(--surface)', border: '1px solid var(--border)', boxShadow: 'none' }}>
+          <div className="card" style={{ padding: '20px 24px', borderRadius: '14px', background: 'var(--surface)', border: '1px solid var(--border)', boxShadow: 'none' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: '16px', borderBottom: '1px solid var(--border)', marginBottom: '4px' }}>
               <div className="skeleton" style={{ height: '18px', width: '130px', borderRadius: '4px' }} />
               <div className="skeleton" style={{ height: '14px', width: '75px', borderRadius: '4px' }} />
@@ -845,134 +848,61 @@ export default function DashboardPage() {
       {/* Offline Banner Indicator */}
       <OfflineBanner cachedAt={cachedAt} />
 
-      {/* Stats Grid */}
-      <div
-        className="dashboard-stats-grid"
-        style={{
-          marginBottom: isMobile ? '16px' : '24px',
-          marginTop: isMobile ? '16px' : '-8px',
-          display: 'grid',
-          gridTemplateColumns: isMobile ? '1fr' : 'repeat(4, 1fr)',
-          gap: isMobile ? '12px' : '20px'
-        }}
-      >
-        {statCards.filter(c => !c.isSupport && c.label !== 'Active Sessions' && !isMobile).map((card) => {
-          const mobileHero = isMobile && card.isTimer
-          const cardHref = (card as { href?: string }).href
-          return (
-          <div 
-            key={card.label} 
-            className="stat-card" 
-            role={cardHref ? 'link' : undefined}
-            tabIndex={cardHref ? 0 : undefined}
-            onKeyDown={cardHref ? (e) => { if (e.key === 'Enter') router.push(cardHref) } : undefined}
-            onClick={() => {
-              if (cardHref) {
-                router.push(cardHref)
-              } else if (card.label === 'Total Courses' || card.label === 'Lectures') {
-                router.push('/courses')
-              }
-            }}
-            style={{
-              background: mobileHero
-                ? 'linear-gradient(135deg, var(--surface) 0%, var(--surface) 55%, var(--primary-light) 100%)'
-                : (card.isTimer ? card.bg : undefined),
-              padding: mobileHero ? '22px 22px' : (isMobile ? '12px 14px' : '22px 24px'),
-              gap: isMobile ? '14px' : '20px',
-              borderRadius: mobileHero ? '22px' : (isMobile ? '16px' : '20px'),
-              border: mobileHero ? '1px solid rgba(99, 102, 241, 0.10)' : undefined,
-              boxShadow: mobileHero ? '0 12px 30px -10px rgba(15, 23, 42, 0.12), 0 4px 10px -2px rgba(15, 23, 42, 0.04)' : undefined,
-              position: 'relative', overflow: 'hidden',
-              cursor: cardHref ? 'pointer' : 'default',
-            } as React.CSSProperties}
-          >
-            {mobileHero && (
-              <span style={{ position: 'absolute', top: '-40px', right: '-30px', width: '140px', height: '140px', borderRadius: '50%', background: 'radial-gradient(circle, rgba(99,102,241,0.10), transparent 70%)', pointerEvents: 'none' }} />
-            )}
-            <div style={{
-              display: 'flex',
-              width: '100%',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              height: '100%',
-              position: 'relative',
-              zIndex: 1
-            }}>
-              {/* Left stack: Icon & Label */}
-              <div style={{ 
-                display: 'flex', 
-                flexDirection: 'column', 
-                justifyContent: 'space-between', 
-                height: '100%', 
-                alignItems: 'flex-start' 
-              }}>
-                <div className="stat-card-icon" style={{
-                  background: mobileHero ? 'linear-gradient(135deg, #6366f1, #4f46e5)' : (card.isTimer ? 'rgba(255,255,255,0.4)' : card.bg),
-                  color: mobileHero ? '#ffffff' : card.color,
-                  width: mobileHero ? '48px' : (isMobile ? '36px' : '48px'),
-                  height: mobileHero ? '48px' : (isMobile ? '36px' : '48px'),
-                  borderRadius: mobileHero ? '14px' : (isMobile ? '10px' : '14px'),
-                  boxShadow: mobileHero ? '0 8px 18px rgba(99,102,241,0.35)' : undefined,
-                  flexShrink: 0,
-                }}>
-                  {card.icon}
-                </div>
-                <div className="stat-card-label" style={{
-                  color: mobileHero ? 'var(--accent)' : (card.isTimer && (examCountdown?.daysLeft ?? 0) > 0 ? 'var(--quiz-countdown-label-color)' : undefined),
-                  fontSize: mobileHero ? '10.5px' : undefined,
-                  fontWeight: mobileHero ? 800 : undefined,
-                  letterSpacing: mobileHero ? '0.08em' : undefined,
-                }}>
-                  {card.label}
-                </div>
-              </div>
-
-              {/* Right: Value (number) */}
-              <div className="stat-card-value" style={{
-                fontSize: mobileHero 
-                  ? '26px' 
-                  : (isMobile 
-                      ? '24px' 
-                      : (card.isTimer ? '36px' : '48px')),
-                fontWeight: 900,
-                color: mobileHero ? 'var(--text-primary)' : 'var(--text-primary)',
-                letterSpacing: '-0.02em',
-                lineHeight: 1,
-                marginRight: card.isTimer ? '24px' : '48px', // Shift non-timer numbers further left to center them
-              }}>
-                {card.value}
-              </div>
-            </div>
-
-            {card.isTimer && isManager && (
-              <button
-                onClick={() => {
+      {/* Stats Grid (desktop; phones use the compact blocks further down) */}
+      {!isMobile && (
+        <div className="gz-grid-stats" style={{ marginBottom: '16px' }}>
+          {(() => {
+            const nextUp = upNextSessions[0]
+            const nextUpLabel = nextUp
+              ? 'Next: ' + new Date(nextUp.startTime).toLocaleString('en-GB', { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit', hour12: true })
+              : 'Nothing scheduled'
+            const daysLeft = examCountdown?.daysLeft ?? 0
+            const TOTAL_TICKS = 30
+            const ticksFilled = Math.max(0, Math.min(TOTAL_TICKS, TOTAL_TICKS - daysLeft))
+            const items: {
+              key: string; label: string; hint?: string; value: React.ReactNode; unit: string; foot: string
+              link?: string; href?: string; onLink?: () => void; ticks?: boolean
+            }[] = [
+              { key: 'courses', label: t('dashboard.stats.totalCourses'), value: stats?.totalCourses ?? 0, unit: 'enrolled', foot: 'All enrolled courses', link: 'Open →', href: '/courses' },
+              { key: 'lectures', label: t('dashboard.stats.lectures'), value: stats?.totalLectures ?? 0, unit: 'available', foot: 'Across all courses', link: 'Browse →', href: '/courses' },
+              isStudentView
+                ? { key: 'upcoming', label: t('dashboard.stats.upcomingSessions'), value: upNextCount, unit: 'scheduled', foot: nextUpLabel, link: 'Live →', href: '/live' }
+                : { key: 'students', label: t('dashboard.stats.studentsEnrolled'), value: (stats?.totalStudents ?? 0).toLocaleString('en-IN'), unit: 'students', foot: 'All courses', link: 'Manage →', href: '/admin' },
+              {
+                key: 'exam', label: t('dashboard.stats.examCountdown'), hint: examCountdown?.title || undefined, value: daysLeft, unit: 'Days', foot: 'days left', ticks: true,
+                link: isManager ? 'Edit' : undefined,
+                onLink: isManager ? () => {
                   setTimerTitle(examCountdown?.title || 'Exam Countdown')
                   setTimerDays(examCountdown?.daysLeft || 0)
                   setIsEditingTimer(true)
-                }}
-                style={{
-                  position: 'absolute',
-                  top: '10px',
-                  right: '10px',
-                  width: '24px',
-                  height: '24px',
-                  borderRadius: '50%',
-                  background: 'var(--quiz-countdown-edit-bg)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  border: 'none',
-                  cursor: 'pointer'
-                }}
-              >
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--quiz-countdown-edit-icon)" strokeWidth="2.5"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-              </button>
-            )}
-          </div>
-          )
-        })}
-      </div>
+                } : undefined,
+              },
+            ]
+            return items.map(it => (
+              <div key={it.key} className="gz-stat">
+                <div className="gz-stat__head"><span>{it.label}</span><span>{it.hint}</span></div>
+                <div className="gz-stat__body">
+                  <div className="gz-stat__num"><b>{it.value}</b><span>{it.unit}</span></div>
+                  {it.ticks && (
+                    <div className="gz-ticks" aria-hidden="true">
+                      {Array.from({ length: TOTAL_TICKS }, (_, i) => <span key={i} className={i < ticksFilled ? 'on' : ''} />)}
+                    </div>
+                  )}
+                  <div className="gz-stat__foot">
+                    <span>{it.foot}</span>
+                    {it.link && (it.onLink
+                      ? <button type="button" onClick={it.onLink} style={{ background: 'none', border: 'none', padding: 0, font: 'inherit', fontWeight: 500, color: 'var(--gz-ink)', cursor: 'pointer' }}>{it.link}</button>
+                      : <Link href={it.href || '#'}>{it.link}</Link>)}
+                  </div>
+                </div>
+              </div>
+            ))
+          })()}
+        </div>
+      )}
+
+      {/* Attendance heatmap — PLACEHOLDER data (see component) */}
+      {!isMobile && <div style={{ marginBottom: '16px' }}><AttendanceHeatmap /></div>}
 
       {/* Manager Specific Cards (Active Sessions & Support) */}
       {isManager && (
@@ -985,7 +915,7 @@ export default function DashboardPage() {
           {/* Active Sessions Card (Student UI Style) */}
           <div className="card" style={{
             padding: '24px',
-            borderRadius: '20px',
+            borderRadius: '14px',
             display: 'flex',
             flexDirection: 'column',
             justifyContent: 'space-between',
@@ -998,14 +928,14 @@ export default function DashboardPage() {
                   <div style={{
                     display: 'inline-flex', alignItems: 'center', gap: '7px',
                     background: 'rgba(244,63,94,0.1)',
-                    padding: '6px 14px', borderRadius: '20px',
+                    padding: '6px 14px', borderRadius: '14px',
                   }}>
                     <div style={{
                       width: '7px', height: '7px', borderRadius: '50%',
                       background: 'var(--danger)', flexShrink: 0,
                       animation: 'livePulse 1.5s infinite',
                     }} />
-                    <span style={{ fontSize: '11px', fontWeight: '800', color: 'var(--danger)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                    <span style={{ fontSize: '11px', fontWeight: 600, color: 'var(--danger)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
                       Active Sessions
                     </span>
                   </div>
@@ -1041,7 +971,7 @@ export default function DashboardPage() {
                     flex: 1
                   }}
                 >
-                  <div style={{ fontSize: '22px', fontWeight: '800', color: 'var(--text-primary)', lineHeight: '1.2', marginBottom: '8px' }}>
+                  <div style={{ fontSize: '22px', fontWeight: 600, color: 'var(--text-primary)', lineHeight: '1.2', marginBottom: '8px' }}>
                     {frontSession.title}
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -1089,7 +1019,7 @@ export default function DashboardPage() {
                       boxShadow: '0 8px 20px rgba(244,63,94,0.3)',
                       padding: '12px 24px',
                       fontSize: '14px',
-                      fontWeight: '800'
+                      fontWeight: 600
                     }}
                   >
                     {t('dashboard.live.joinInstructor')}
@@ -1098,13 +1028,13 @@ export default function DashboardPage() {
               </div>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '180px', gap: '16px' }}>
-                <div style={{ width: '56px', height: '56px', borderRadius: '16px', background: 'var(--danger-light)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <div style={{ width: '56px', height: '56px', borderRadius: '12px', background: 'var(--danger-light)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#f43f5e" strokeWidth="2">
                     <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/>
                   </svg>
                 </div>
                 <div style={{ textAlign: 'center' }}>
-                  <div style={{ fontSize: '16px', color: 'var(--text-primary)', fontWeight: '700' }}>{t('dashboard.live.noActiveSessions')}</div>
+                  <div style={{ fontSize: '16px', color: 'var(--text-primary)', fontWeight: 600 }}>{t('dashboard.live.noActiveSessions')}</div>
                   <div style={{ fontSize: '13px', color: 'var(--text-muted)', marginTop: '4px' }}>{t('dashboard.live.allOffline')}</div>
                 </div>
               </div>
@@ -1114,7 +1044,7 @@ export default function DashboardPage() {
           {/* Support System Card (Refined) */}
           <div className="card" style={{
             padding: '24px',
-            borderRadius: '20px',
+            borderRadius: '14px',
             background: 'var(--primary-light)',
             display: 'flex',
             flexDirection: 'column',
@@ -1130,20 +1060,19 @@ export default function DashboardPage() {
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                color: 'var(--primary)',
-                boxShadow: '0 4px 12px rgba(54,54,232,0.1)'
+                color: 'var(--primary)'
               }}>
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                   <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
                 </svg>
               </div>
               <div style={{
-                padding: '6px 12px',
+                padding: '3px 8px',
                 borderRadius: '50px',
                 background: dashboardData?.supportSummary?.isSupportActive ? 'var(--success-light)' : 'var(--danger-light)',
                 color: dashboardData?.supportSummary?.isSupportActive ? 'var(--success)' : 'var(--danger)',
-                fontSize: '11px',
-                fontWeight: '800',
+                fontSize: '9px',
+                fontWeight: 600,
                 textTransform: 'uppercase',
                 letterSpacing: '0.05em'
               }}>
@@ -1152,14 +1081,11 @@ export default function DashboardPage() {
             </div>
 
             <div style={{ margin: '20px 0' }}>
-              <div style={{ fontSize: '12px', color: 'var(--text-secondary)', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '4px' }}>
-                Support System
+              <div style={{ fontSize: '12px', color: 'var(--text-secondary)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '4px' }}>
+                Open tickets
               </div>
-              <div style={{ fontSize: '28px', fontWeight: '900', color: 'var(--text-primary)' }}>
+              <div style={{ fontSize: '28px', fontWeight: 600, color: 'var(--text-primary)' }}>
                 {dashboardData?.supportSummary?.openTickets ?? 0}
-              </div>
-              <div style={{ fontSize: '13px', color: 'var(--text-secondary)', fontWeight: '600' }}>
-                {t('dashboard.support.openTickets')}
               </div>
             </div>
 
@@ -1171,7 +1097,7 @@ export default function DashboardPage() {
               background: 'var(--button-background, var(--primary))',
               color: 'var(--button-text, #fff)',
               fontSize: '13px',
-              fontWeight: '800',
+              fontWeight: 600,
               borderRadius: '12px',
               boxShadow: 'var(--shadow-sm)',
               textDecoration: 'none',
@@ -1183,12 +1109,19 @@ export default function DashboardPage() {
         </div>
       )}
 
+      {/* Manager: calls that need someone (live to join, missed to call back, booked call backs) */}
+      {isManager && (
+        <div className="gz-sp" style={{ marginTop: 16 }}>
+          <SupportCallRequests />
+        </div>
+      )}
+
       {/* Timer Edit Modal */}
       {isEditingTimer && (
         <div className="modal-overlay" style={{ zIndex: 1000 }}>
           <div className="modal" style={{ maxWidth: '400px' }}>
             <div className="modal-header">
-              <h3 style={{ fontWeight: 800 }}>{t('dashboard.timer.editTitle')}</h3>
+              <h3 style={{ fontWeight: 600 }}>{t('dashboard.timer.editTitle')}</h3>
               <button onClick={() => setIsEditingTimer(false)}>
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
               </button>
@@ -1221,14 +1154,15 @@ export default function DashboardPage() {
         </div>
       )}
 
-      {!isManager && (
+      {/* Home sections (slider, live, recent lecture, announcements, shortcuts) are shown to every role. */}
+      {(
         <>
           {deletionRequestData?.hasRequested && (
             <div
               style={{
                 marginBottom: '16px',
                 padding: '14px 20px',
-                borderRadius: '16px',
+                borderRadius: '12px',
                 background: deletionRequestData.request?.status === 'APPROVED'
                   ? 'linear-gradient(135deg, rgba(59, 130, 246, 0.12), rgba(16, 185, 129, 0.12))'
                   : 'linear-gradient(135deg, rgba(239, 68, 68, 0.12), rgba(245, 158, 11, 0.12))',
@@ -1247,7 +1181,7 @@ export default function DashboardPage() {
                   {deletionRequestData.request?.status === 'APPROVED' ? '⏳' : '⚠️'}
                 </span>
                 <div>
-                  <div style={{ fontSize: '14px', fontWeight: '800', color: 'var(--text-primary)' }}>
+                  <div style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)' }}>
                     {deletionRequestData.request?.status === 'APPROVED'
                       ? t('dashboard.deletion.managerAccepted')
                       : t('dashboard.deletion.requested')}
@@ -1266,7 +1200,7 @@ export default function DashboardPage() {
                 style={{
                   borderRadius: '50px',
                   fontSize: '12.5px',
-                  fontWeight: '700',
+                  fontWeight: 600,
                   padding: '7px 18px',
                   background: 'var(--surface)',
                   color: deletionRequestData.request?.status === 'APPROVED' ? '#3b82f6' : '#ef4444',
@@ -1281,20 +1215,49 @@ export default function DashboardPage() {
             </div>
           )}
 
-          <HomeHeroSlider slides={homeSlides} />
-          {/* ── Row 1: Active Now + Up Next (desktop only on mobile they're replaced by Featured Courses) ── */}
+          {isMobile && role === 'STUDENT' && <SupportUpdates />}
+          {isMobile && <HomeHeroSlider slides={homeSlides} />}
+          {/* ── Row 1: slider (left) + Active Now / Up Next (right). Phones show the slider above instead. ── */}
           {!isMobile && (
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: '1fr 1fr',
-            gap: '20px',
-            marginBottom: '20px',
-            alignItems: 'stretch',
-          }}>
+          <div className="gz-live-grid has-slider">
+            <div className="gz-hero-cell" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              {role === 'STUDENT' && <SupportUpdates />}
+              <HomeHeroSlider
+                slides={homeSlides}
+                fallback={
+                  <div className="gz-panel gz-quick">
+                    <div className="gz-quick__head">
+                      <h3>Jump back in</h3>
+                      <span>Everything you need, one click away</span>
+                    </div>
+                    <div className="gz-quick__grid">
+                      {[
+                        { href: '/courses', label: 'My courses', sub: 'Lectures & notes', d: 'M2 4h6a4 4 0 0 1 4 4v12a3 3 0 0 0-3-3H2zM22 4h-6a4 4 0 0 0-4 4v12a3 3 0 0 1 3-3h7z' },
+                        { href: '/live', label: 'Live sessions', sub: 'Join or rewatch', d: 'M23 7l-7 5 7 5V7zM3 5h11a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2z' },
+                        { href: '/calendar', label: 'Calendar', sub: 'Classes & exams', d: 'M3 6a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2zM16 2v4M8 2v4M3 10h18' },
+                        { href: '/free-resources', label: 'Free resources', sub: 'Notes & PYQs', d: 'M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8zM14 2v6h6M8 13h8M8 17h5' },
+                        { href: '/community', label: 'Community', sub: 'Ask your batch', d: 'M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M9 3a4 4 0 1 0 0 8a4 4 0 1 0 0-8M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75' },
+                        { href: '/support', label: 'Support', sub: 'We reply fast', d: 'M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z' },
+                      ].map(q => (
+                        <Link key={q.href} href={q.href} className="gz-quick__item">
+                          <span className="gz-quick__ico" aria-hidden="true">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d={q.d} /></svg>
+                          </span>
+                          <span style={{ minWidth: 0 }}>
+                            <b>{q.label}</b>
+                            <small>{q.sub}</small>
+                          </span>
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
+                }
+              />
+            </div>
             {/* Active Now card */}
             <div className="card" style={{
               padding: '20px',
-              borderRadius: '20px',
+              borderRadius: '14px',
               display: 'flex',
               flexDirection: 'column',
               justifyContent: 'space-between',
@@ -1306,7 +1269,7 @@ export default function DashboardPage() {
                     <div style={{
                       display: 'inline-flex', alignItems: 'center', gap: '7px',
                       background: 'rgba(16,185,129,0.12)',
-                      padding: '5px 12px', borderRadius: '20px',
+                      padding: '5px 12px', borderRadius: '14px',
                       animation: 'badgeGlow 2s ease-in-out infinite',
                     }}>
                       <div style={{
@@ -1314,7 +1277,7 @@ export default function DashboardPage() {
                         background: 'var(--success)', flexShrink: 0,
                         animation: 'greenPulse 1.5s infinite',
                       }} />
-                      <span style={{ fontSize: '11px', fontWeight: '700', color: 'var(--success)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                      <span style={{ fontSize: '11px', fontWeight: 600, color: 'var(--success)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
                         Active Now
                       </span>
                     </div>
@@ -1335,7 +1298,7 @@ export default function DashboardPage() {
                             transition: 'box-shadow 0.15s',
                           }}
                         >
-                          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#6366f1" strokeWidth="2.5">
+                          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" strokeWidth="2.5">
                             <polyline points="9 18 15 12 9 6"/>
                           </svg>
                         </button>
@@ -1358,7 +1321,7 @@ export default function DashboardPage() {
                     }}
                   >
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: '22px', fontWeight: '800', color: 'var(--text-primary)', lineHeight: '1.2', marginBottom: '2px' }}>
+                      <div style={{ fontSize: '22px', fontWeight: 600, color: 'var(--text-primary)', lineHeight: '1.2', marginBottom: '2px' }}>
                         {frontSession.title}
                       </div>
                       <div style={{ fontSize: '13px', color: 'var(--text-secondary)', fontWeight: '600' }}>
@@ -1378,7 +1341,7 @@ export default function DashboardPage() {
                           padding: '14px 32px',
                           borderRadius: '14px', border: 'none', cursor: 'pointer',
                           background: 'linear-gradient(135deg, #ef4444, #dc2626)',
-                          color: '#ffffff', fontSize: '15px', fontWeight: '800',
+                          color: '#ffffff', fontSize: '15px', fontWeight: 600,
                           letterSpacing: '0.01em',
                           animation: 'joinPulse 2s ease-in-out infinite, joinGlow 2.5s ease-in-out infinite',
                           transition: 'transform 0.2s, background 0.18s',
@@ -1410,7 +1373,7 @@ export default function DashboardPage() {
                           padding: '14px 32px',
                           borderRadius: '14px',
                           background: 'var(--danger)',
-                          color: '#ffffff', fontSize: '15px', fontWeight: '800',
+                          color: '#ffffff', fontSize: '15px', fontWeight: 600,
                           textDecoration: 'none', letterSpacing: '0.01em',
                           animation: 'joinPulse 2s ease-in-out infinite, joinGlow 2.5s ease-in-out infinite',
                           transition: 'transform 0.2s, background 0.18s',
@@ -1475,10 +1438,10 @@ export default function DashboardPage() {
               aria-label="Open live sessions"
               onClick={(e) => { if (!e.defaultPrevented) router.push('/live') }}
               onKeyDown={(e) => { if (e.key === 'Enter' && e.target === e.currentTarget) router.push('/live') }}
-              style={{ padding: '20px', borderRadius: '20px', display: 'flex', flexDirection: 'column', cursor: 'pointer' }}
+              style={{ padding: '20px', borderRadius: '14px', display: 'flex', flexDirection: 'column', cursor: 'pointer' }}
             >
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
-                <h3 style={{ fontSize: '15px', fontWeight: '700', color: 'var(--text-primary)' }}>{t('dashboard.upNext.title')}</h3>
+                <h3 style={{ fontSize: '15px', fontWeight: 600, color: 'var(--text-primary)' }}>{t('dashboard.upNext.title')}</h3>
                 <Link href="/live" style={{ fontSize: '12px', color: 'var(--accent)', fontWeight: '600', textDecoration: 'none' }}>
                   {t('dashboard.announcements.viewAll')} →
                 </Link>
@@ -1525,8 +1488,8 @@ export default function DashboardPage() {
                         <div style={{ flex: 1, minWidth: 0 }}>
                           {idx === 0 && (
                             <div style={{
-                              display: 'inline-block', fontSize: '9.5px', fontWeight: '700', color: 'var(--accent)',
-                              background: 'var(--primary-light)', padding: '1px 7px', borderRadius: '20px',
+                              display: 'inline-block', fontSize: '9.5px', fontWeight: 600, color: 'var(--accent)',
+                              background: 'var(--primary-light)', padding: '1px 7px', borderRadius: '14px',
                               textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: '3px',
                             }}>
                               Up Next
@@ -1560,11 +1523,11 @@ export default function DashboardPage() {
             <div style={{ marginBottom: '24px' }}>
               <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: '14px', padding: '0 4px', gap: '12px' }}>
                 <div style={{ minWidth: 0 }}>
-                  <h3 style={{ fontSize: '18px', fontWeight: 900, color: 'var(--text-primary)', letterSpacing: '-0.02em', margin: 0 }}>
+                  <h3 style={{ fontSize: '18px', fontWeight: 600, color: 'var(--text-primary)', letterSpacing: '-0.02em', margin: 0 }}>
                     {t('dashboard.upNext.upcomingSession')}
                   </h3>
                 </div>
-                <Link href="/live" style={{ fontSize: '12px', color: 'var(--accent)', fontWeight: 800, textDecoration: 'none', whiteSpace: 'nowrap', flexShrink: 0 }}>
+                <Link href="/live" style={{ fontSize: '12px', color: 'var(--accent)', fontWeight: 600, textDecoration: 'none', whiteSpace: 'nowrap', flexShrink: 0 }}>
                   {t('dashboard.announcements.viewAll')} →
                 </Link>
               </div>
@@ -1582,7 +1545,7 @@ export default function DashboardPage() {
                   style={{
                     display: 'flex', alignItems: 'center', gap: '14px',
                     padding: '18px',
-                    borderRadius: '20px',
+                    borderRadius: '14px',
                     background: 'var(--surface)',
                     border: '1px solid rgba(15, 23, 42, 0.05)',
                     boxShadow: '0 14px 30px -12px rgba(15, 23, 42, 0.15), 0 4px 8px -2px rgba(15, 23, 42, 0.04)',
@@ -1601,11 +1564,11 @@ export default function DashboardPage() {
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', fontSize: '10px', fontWeight: 800, color: 'var(--danger)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '3px' }}>
+                    <div style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', fontSize: '10px', fontWeight: 600, color: 'var(--danger)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '3px' }}>
                       <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--danger)', animation: 'redLivePulse 1.4s infinite' }} />
                       {t('dashboard.live.liveNow')}
                     </div>
-                    <div style={{ fontSize: '15.5px', fontWeight: 800, color: 'var(--text-primary)', lineHeight: 1.25, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    <div style={{ fontSize: '15.5px', fontWeight: 600, color: 'var(--text-primary)', lineHeight: 1.25, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                       {frontSession.title}
                     </div>
                     <div style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: 600, marginTop: '2px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
@@ -1615,7 +1578,7 @@ export default function DashboardPage() {
                   {frontSession.isRecordedOnly ? (
                     <span style={{
                       display: 'inline-flex', alignItems: 'center', gap: '5px',
-                      fontSize: '12px', fontWeight: 800, color: '#ffffff',
+                      fontSize: '12px', fontWeight: 600, color: '#ffffff',
                       padding: '8px 14px', borderRadius: '50px',
                       background: 'linear-gradient(135deg, #ef4444, #f97316)',
                       boxShadow: '0 6px 14px rgba(239,68,68,0.4)',
@@ -1627,7 +1590,7 @@ export default function DashboardPage() {
                   ) : (
                     <span style={{
                       display: 'inline-flex', alignItems: 'center', gap: '5px',
-                      fontSize: '12px', fontWeight: 800, color: '#ffffff',
+                      fontSize: '12px', fontWeight: 600, color: '#ffffff',
                       padding: '8px 14px', borderRadius: '50px',
                       background: 'linear-gradient(135deg, #ef4444, #f97316)',
                       boxShadow: '0 6px 14px rgba(239,68,68,0.4)',
@@ -1653,7 +1616,7 @@ export default function DashboardPage() {
                   style={{
                     display: 'flex', alignItems: 'center', gap: '14px',
                     padding: '18px',
-                    borderRadius: '20px',
+                    borderRadius: '14px',
                     background: 'var(--surface)',
                     border: '1px solid rgba(15, 23, 42, 0.05)',
                     boxShadow: '0 14px 30px -12px rgba(15, 23, 42, 0.15), 0 4px 8px -2px rgba(15, 23, 42, 0.04)',
@@ -1661,20 +1624,20 @@ export default function DashboardPage() {
                     position: 'relative', overflow: 'hidden',
                   }}
                 >
-                  <span style={{ position: 'absolute', top: 0, left: 0, width: '4px', height: '100%', background: 'linear-gradient(180deg, #6366f1, #4f46e5)' }} />
+                  <span style={{ position: 'absolute', top: 0, left: 0, width: '4px', height: '100%', background: 'var(--primary)' }} />
                   <div style={{
                     width: '48px', height: '48px', borderRadius: '14px', flexShrink: 0,
-                    background: 'linear-gradient(135deg, #6366f1, #4f46e5)', color: '#ffffff',
+                    background: 'var(--primary)', color: '#ffffff',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    boxShadow: '0 8px 18px rgba(99,102,241,0.40)',
+                    boxShadow: '0 8px 18px color-mix(in srgb, var(--primary) 40%, transparent)',
                   }}>
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: '10px', fontWeight: 800, color: 'var(--accent)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '3px' }}>
+                    <div style={{ fontSize: '10px', fontWeight: 600, color: 'var(--accent)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '3px' }}>
                       {upNextSessions[0].time}
                     </div>
-                    <div style={{ fontSize: '15.5px', fontWeight: 800, color: 'var(--text-primary)', lineHeight: 1.25, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    <div style={{ fontSize: '15.5px', fontWeight: 600, color: 'var(--text-primary)', lineHeight: 1.25, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                       {upNextSessions[0].title}
                     </div>
                     <div style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: 600, marginTop: '2px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
@@ -1689,13 +1652,13 @@ export default function DashboardPage() {
               ) : (
                 <div style={{
                   padding: '32px 16px', textAlign: 'center', color: 'var(--text-muted)', fontSize: '13px',
-                  background: 'var(--surface)', borderRadius: '20px',
+                  background: 'var(--surface)', borderRadius: '14px',
                   border: '1px solid rgba(15, 23, 42, 0.05)',
                 }}>
                   <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#cbd5e1" strokeWidth="1.8" style={{ marginBottom: '8px' }}>
                     <polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>
                   </svg>
-                  <div style={{ fontWeight: 700, color: 'var(--text-secondary)' }}>{t('dashboard.upNext.noUpcoming')}</div>
+                  <div style={{ fontWeight: 600, color: 'var(--text-secondary)' }}>{t('dashboard.upNext.noUpcoming')}</div>
                   <div style={{ fontSize: '11px', marginTop: '2px' }}>{t('dashboard.upNext.checkBack')}</div>
                 </div>
               )}
@@ -1704,14 +1667,14 @@ export default function DashboardPage() {
 
           {/* ── Row 2: {t('dashboard.recent.title')} Viewed ── */}
           {recentViewedLecture && (
-            <div className={isMobile ? '' : 'card'} style={isMobile ? { marginBottom: '24px' } : { padding: '22px 20px', borderRadius: '22px', marginBottom: '20px' }}>
+            <div className={isMobile ? '' : 'card'} style={isMobile ? { marginBottom: '24px' } : { padding: '22px 20px', borderRadius: '14px', marginBottom: '20px' }}>
               <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: isMobile ? '14px' : '18px', padding: isMobile ? '0 4px' : '0', gap: '12px' }}>
                 <div style={{ minWidth: 0 }}>
                   <h3 style={{ fontSize: isMobile ? '18px' : '16px', fontWeight: isMobile ? 900 : 700, color: 'var(--text-primary)', letterSpacing: isMobile ? '-0.02em' : 'normal', margin: 0 }}>
                     {t('dashboard.recent.title')}
                   </h3>
                 </div>
-                <Link href="/materials/recordings" style={{ fontSize: '12px', color: 'var(--accent)', fontWeight: 800, textDecoration: 'none', whiteSpace: 'nowrap', flexShrink: 0 }}>
+                <Link href="/materials/recordings" style={{ fontSize: '12px', color: 'var(--accent)', fontWeight: 600, textDecoration: 'none', whiteSpace: 'nowrap', flexShrink: 0 }}>
                   {t('dashboard.announcements.viewAll')} →
                 </Link>
               </div>
@@ -1756,11 +1719,11 @@ export default function DashboardPage() {
                           </svg>
                         </div>
                         <div style={{ flex: 1, minWidth: 0 }}>
-                          <div style={{ fontSize: isMobile ? '10px' : '11px', color: accent, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '3px' }}>
+                          <div style={{ fontSize: isMobile ? '10px' : '11px', color: accent, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '3px' }}>
                             {lec.topic?.course?.name || 'Course Lecture'}
                           </div>
                           <div style={{
-                            fontSize: isMobile ? '15.5px' : '18px', fontWeight: 800, color: 'var(--text-primary)',
+                            fontSize: isMobile ? '15.5px' : '18px', fontWeight: 600, color: 'var(--text-primary)',
                             lineHeight: '1.25', marginBottom: '4px',
                             overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
                           }}>
@@ -1780,7 +1743,7 @@ export default function DashboardPage() {
                           boxShadow: `0 8px 18px ${accent}40`,
                           padding: isMobile ? '12px 22px' : '12px 28px',
                           fontSize: isMobile ? '13.5px' : '14px',
-                          fontWeight: 800,
+                          fontWeight: 600,
                           whiteSpace: 'nowrap',
                           width: isMobile ? '100%' : 'auto',
                           justifyContent: 'center',
@@ -1856,7 +1819,7 @@ export default function DashboardPage() {
                   <div 
                     className="quick-action-icon-box" 
                     style={{ 
-                      background: 'linear-gradient(135deg, #f43f5e, #a855f7)',
+                      background: 'var(--primary)',
                       boxShadow: '0 6px 14px rgba(244, 63, 94, 0.3)'
                     }}
                   >
@@ -1923,302 +1886,78 @@ export default function DashboardPage() {
         </>
       )}
 
-      {/* ── Row 3: Video Box (Left) + Announcements (Right) [Web View Grid] ── */}
-      <div className="dashboard-video-announcements-row">
-        {/* How to Use Me — button that opens the walkthrough on YouTube (Web View Only) */}
-        {!isMobile && (
-          <a
-            className="dashboard-video-box dashboard-video-box-web-only"
-            href="https://youtu.be/kFu0yHDSeWM?si=PHHL4K3RLr5uoE6-"
-            target="_blank"
-            rel="noopener noreferrer"
-            aria-label="How to Use Me — view the platform walkthrough on YouTube"
-          >
-            <span className="dashboard-video-box__icon">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                <polygon points="6 3 20 12 6 21 6 3"/>
-              </svg>
-            </span>
-            <span style={{ flex: 1, minWidth: 0 }}>
-              <span style={{ display: 'block', fontSize: '15.5px', fontWeight: 700, color: 'var(--text-primary)' }}>
-                How to Use Me
-              </span>
-              <span style={{ display: 'block', fontSize: '12.5px', color: 'var(--text-secondary)', marginTop: '2px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                Platform walkthrough &amp; student guide
-              </span>
-            </span>
-            <span className="dashboard-video-box__cta">
-              View now
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                <path d="M7 17L17 7M8 7h9v9"/>
-              </svg>
-            </span>
-          </a>
+      {/* ── Announcements (left) + shortcuts (right) ── */}
+      <div className="gz-row" style={{ alignItems: 'flex-start', marginBottom: '24px' }}>
+        {announcements.length > 0 && (
+          <div className="gz-panel gz-ann announcements-web-container">
+            <div className="gz-ann__head">
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span style={{ fontWeight: 500, fontSize: '14px' }}>{t('dashboard.announcements.title')}</span>
+                <span className="gz-badge">{announcements.length}</span>
+              </div>
+              <Link href="/announcements" className="gz-ann__all">{t('dashboard.announcements.viewAll')} →</Link>
+            </div>
+            {announcements.map((a: any) => {
+              const { body: parsedBody, metadata } = parseAnnouncementContent(a.content)
+              const isHighPriority = metadata.importance === 'high'
+              const formattedDate = new Date(a.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })
+
+              let dot = '#3b74c4'
+              let badgeLabel = 'General'
+              let badgeCls = 'blue'
+              if (isHighPriority || a.type === 'error') { dot = '#d64533'; badgeLabel = isHighPriority ? 'Important' : 'Alert'; badgeCls = 'red' }
+              else if (a.type === 'warning') { dot = '#c98a1b'; badgeLabel = 'Update'; badgeCls = 'amber' }
+              else if (a.type === 'success') { dot = '#2a9d5c'; badgeLabel = 'Success'; badgeCls = 'green' }
+              const hasCta = Boolean(metadata.ctaText && metadata.ctaLink)
+
+              return (
+                <div key={a.id} className="gz-ann__row announcement-compact-row">
+                  <span className="gz-ann__dot" style={{ background: dot }} />
+                  <span style={{ flex: 1, minWidth: 0 }}>
+                    <span className="gz-ann__top">
+                      <span style={{ fontWeight: 500, display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+                        {a.title}
+                        <span className={`gz-pill gz-pill--${badgeCls}`} style={{ fontSize: '10.5px', padding: '1px 6px' }}>{badgeLabel}</span>
+                      </span>
+                      <span className="gz-mono gz-ann__date">{formattedDate}</span>
+                    </span>
+                    <span className="gz-ann__body">{parsedBody}</span>
+                    {hasCta && (
+                      <a
+                        href={metadata.ctaLink}
+                        target={metadata.ctaLink!.startsWith('http') ? '_blank' : '_self'}
+                        rel="noopener noreferrer"
+                        className="gz-btn gz-btn--ghost"
+                        style={{ height: '28px', padding: '0 10px', fontSize: '12px', marginTop: '8px', borderRadius: '8px' }}
+                      >
+                        {metadata.ctaText} →
+                      </a>
+                    )}
+                  </span>
+                </div>
+              )
+            })}
+          </div>
         )}
 
-        {/* Right: Announcements (Compact Square) */}
-        {announcements.length > 0 && (
-          <div
-            className="card dashboard-announcements-compact-card announcements-web-container"
-            style={{
-              padding: '20px 24px',
-              borderRadius: '20px',
-              background: 'var(--surface)',
-              border: '1px solid var(--border)',
-              boxShadow: 'none',
-              display: 'flex',
-              flexDirection: 'column',
-              overflow: 'hidden',
-            }}
-          >
-            <div
-              style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                paddingBottom: '14px',
-                borderBottom: '1px solid var(--border)',
-                marginBottom: '4px',
-                flexWrap: 'wrap',
-                gap: '8px',
-              }}
+        {!isMobile && (
+          <div className="gz-aside">
+            <a
+              className="gz-card-link"
+              href="https://youtu.be/kFu0yHDSeWM?si=PHHL4K3RLr5uoE6-"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="How to Use Me — view the platform walkthrough on YouTube"
             >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <h3 style={{ fontSize: '16px', fontWeight: '700', color: 'var(--text-primary)', margin: 0 }}>
-                  {t('dashboard.announcements.title')}
-                </h3>
-                <span style={{
-                  fontSize: '11px',
-                  fontWeight: '700',
-                  padding: '2px 8px',
-                  borderRadius: '10px',
-                  background: 'var(--surface-2)',
-                  color: 'var(--text-secondary)',
-                }}>
-                  {announcements.length}
-                </span>
-              </div>
-              <Link
-                href="/announcements"
-                style={{
-                  fontSize: '13px',
-                  fontWeight: '600',
-                  color: 'var(--primary)',
-                  textDecoration: 'none',
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '4px',
-                  transition: 'opacity 0.15s ease',
-                }}
-              >
-                {t('dashboard.announcements.viewAll')} →
-              </Link>
-            </div>
-
-            <div
-              className="dashboard-announcements-scroll"
-              style={{
-                display: 'flex',
-                flexDirection: 'column',
-                overflowY: 'auto',
-                maxHeight: '340px',
-                paddingRight: '4px',
-              }}
-            >
-              {announcements.map((a, index) => {
-                const { body: parsedBody, metadata } = parseAnnouncementContent(a.content)
-                const isHighPriority = metadata.importance === 'high'
-                const formattedDate = new Date(a.createdAt).toLocaleDateString('en-GB', {
-                  day: '2-digit',
-                  month: '2-digit',
-                  year: 'numeric',
-                })
-
-                let iconSvg = (
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M22 17H2a3 3 0 0 0 3-3V9a7 7 0 0 1 14 0v5a3 3 0 0 0 3 3zm-8.27 4a2 2 0 0 1-3.46 0"/>
-                  </svg>
-                )
-                let iconColor = 'var(--primary, #4f46e5)'
-                let iconBg = 'rgba(79, 70, 229, 0.1)'
-                let badgeLabel = 'General'
-                let badgeColor = 'var(--primary, #4f46e5)'
-                let badgeBg = 'rgba(79, 70, 229, 0.08)'
-
-                if (isHighPriority || a.type === 'error') {
-                  iconColor = 'var(--danger, #ef4444)'
-                  iconBg = 'rgba(239, 68, 68, 0.1)'
-                  badgeLabel = isHighPriority ? 'Important' : 'Alert'
-                  badgeColor = '#ef4444'
-                  badgeBg = 'rgba(239, 68, 68, 0.08)'
-                  iconSvg = (
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <circle cx="12" cy="12" r="10"/>
-                      <line x1="12" y1="8" x2="12" y2="12"/>
-                      <line x1="12" y1="16" x2="12.01" y2="16"/>
-                    </svg>
-                  )
-                } else if (a.type === 'warning') {
-                  iconColor = '#f59e0b'
-                  iconBg = 'rgba(245, 158, 11, 0.1)'
-                  badgeLabel = 'Update'
-                  badgeColor = '#d97706'
-                  badgeBg = 'rgba(245, 158, 11, 0.08)'
-                  iconSvg = (
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
-                      <line x1="12" y1="9" x2="12" y2="13"/>
-                      <line x1="12" y1="17" x2="12.01" y2="17"/>
-                    </svg>
-                  )
-                } else if (a.type === 'success') {
-                  iconColor = '#10b981'
-                  iconBg = 'rgba(16, 185, 129, 0.1)'
-                  badgeLabel = 'Success'
-                  badgeColor = '#059669'
-                  badgeBg = 'rgba(16, 185, 129, 0.08)'
-                  iconSvg = (
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
-                      <polyline points="22 4 12 14.01 9 11.01"/>
-                    </svg>
-                  )
-                }
-
-                const isLast = index === announcements.length - 1
-                const hasCta = Boolean(metadata.ctaText && metadata.ctaLink)
-
-                return (
-                  <div
-                    key={a.id}
-                    className="announcement-compact-row"
-                    style={{
-                      padding: '13px 0',
-                      borderBottom: isLast ? 'none' : '1px solid var(--border)',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      gap: '7px',
-                      maxWidth: '100%',
-                      boxSizing: 'border-box',
-                    }}
-                  >
-                    {/* Top Row: Icon + Title + Badge + Date */}
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0, flex: 1 }}>
-                        <div
-                          style={{
-                            width: '32px',
-                            height: '32px',
-                            borderRadius: '8px',
-                            background: iconBg,
-                            color: iconColor,
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            flexShrink: 0,
-                          }}
-                        >
-                          {iconSvg}
-                        </div>
-                        <div style={{ minWidth: 0, flex: 1, display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
-                          <span
-                            style={{
-                              fontSize: '13.5px',
-                              fontWeight: '700',
-                              color: 'var(--text-primary)',
-                              lineHeight: '1.25',
-                            }}
-                          >
-                            {a.title}
-                          </span>
-                          <span
-                            style={{
-                              fontSize: '10px',
-                              fontWeight: '700',
-                              padding: '1px 6px',
-                              borderRadius: '4px',
-                              background: badgeBg,
-                              color: badgeColor,
-                              letterSpacing: '0.02em',
-                              whiteSpace: 'nowrap',
-                            }}
-                          >
-                            {badgeLabel}
-                          </span>
-                        </div>
-                      </div>
-                      <span
-                        style={{
-                          fontSize: '11.5px',
-                          color: 'var(--text-muted)',
-                          fontWeight: '500',
-                          whiteSpace: 'nowrap',
-                          flexShrink: 0,
-                        }}
-                      >
-                        {formattedDate}
-                      </span>
-                    </div>
-
-                    {/* Bottom Row: Description + CTA Button */}
-                    <div
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                        gap: '10px',
-                        paddingLeft: '42px',
-                      }}
-                    >
-                      <div
-                        style={{
-                          fontSize: '12.5px',
-                          color: 'var(--text-secondary)',
-                          lineHeight: '1.4',
-                          display: '-webkit-box',
-                          WebkitLineClamp: 1,
-                          WebkitBoxOrient: 'vertical',
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis',
-                          flex: 1,
-                        }}
-                      >
-                        {parsedBody}
-                      </div>
-
-                      {hasCta && (
-                        <a
-                          href={metadata.ctaLink}
-                          target={metadata.ctaLink!.startsWith('http') ? '_blank' : '_self'}
-                          rel="noopener noreferrer"
-                          style={{
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            gap: '4px',
-                            padding: '5px 12px',
-                            borderRadius: '8px',
-                            background: 'var(--button-background, var(--primary))',
-                            color: 'var(--button-text, #ffffff)',
-                            fontSize: '11.5px',
-                            fontWeight: '700',
-                            textDecoration: 'none',
-                            whiteSpace: 'nowrap',
-                            flexShrink: 0,
-                            transition: 'opacity 0.15s ease',
-                          }}
-                        >
-                          <span>{metadata.ctaText}</span>
-                          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                            <polyline points="9 18 15 12 9 6"></polyline>
-                          </svg>
-                        </a>
-                      )}
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
+              <span className="gz-card-link__ico">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><polygon points="6 3 20 12 6 21 6 3" /></svg>
+              </span>
+              <span className="gz-card-link__text">
+                <span className="gz-card-link__title">How to Use Me</span>
+                <span className="gz-card-link__sub">Platform walkthrough &amp; student guide</span>
+              </span>
+              <span className="gz-card-link__go">View now ↗</span>
+            </a>
           </div>
         )}
       </div>
@@ -2289,16 +2028,16 @@ export default function DashboardPage() {
         padding: '20px'
       }} onClick={() => !upgrading && setUpgradeModalCourse(null)}>
         <div style={{
-          background: 'var(--surface)', borderRadius: '32px', width: '100%', maxWidth: '440px',
+          background: 'var(--surface)', borderRadius: '14px', width: '100%', maxWidth: '440px',
           boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)', overflow: 'hidden',
           animation: 'modalSlideUp 0.3s ease-out', position: 'relative'
         }} onClick={e => e.stopPropagation()}>
           {upgrading ? (
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '60px 20px' }}>
-              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#6366f1" strokeWidth="2" style={{ animation: 'spin 1s linear infinite', marginBottom: '24px' }}>
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" strokeWidth="2" style={{ animation: 'spin 1s linear infinite', marginBottom: '24px' }}>
                 <circle cx="12" cy="12" r="10" strokeOpacity="0.25"/><path d="M12 2a10 10 0 0 1 10 10" strokeOpacity="1"/>
               </svg>
-              <h2 style={{ fontSize: '20px', fontWeight: '800', color: 'var(--text-primary)', marginBottom: '12px' }}>Processing Payment...</h2>
+              <h2 style={{ fontSize: '20px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '12px' }}>Processing Payment...</h2>
               <p style={{ fontSize: '14px', color: 'var(--text-secondary)', lineHeight: '1.6', textAlign: 'center' }}>
                 Please wait while we securely process your transaction.<br/>Do not close or refresh this page.
               </p>
@@ -2310,34 +2049,34 @@ export default function DashboardPage() {
                 onClick={() => setUpgradeModalCourse(null)}
                 style={{ position: 'absolute', top: '24px', right: '24px', background: 'none', border: 'none', fontSize: '28px', color: 'var(--text-muted)', cursor: 'pointer', lineHeight: 1 }}
               >&times;</button>
-              <div style={{ width: '80px', height: '80px', borderRadius: '24px', background: 'var(--surface)', color: '#fbbf24', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 24px' }}>
+              <div style={{ width: '80px', height: '80px', borderRadius: '14px', background: 'var(--surface)', color: '#fbbf24', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 24px' }}>
                 <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
               </div>
-              <h2 style={{ fontSize: '22px', fontWeight: '800', color: 'var(--text-primary)', marginBottom: '8px' }}>Upgrade to PRO Batch</h2>
-              <div style={{ fontSize: '16px', fontWeight: '700', color: 'var(--text-primary)', marginBottom: '20px' }}>{upgradeModalCourse.name}</div>
+              <h2 style={{ fontSize: '22px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '8px' }}>Upgrade to PRO Batch</h2>
+              <div style={{ fontSize: '16px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '20px' }}>{upgradeModalCourse.name}</div>
               <p style={{ fontSize: '15px', color: 'var(--text-secondary)', lineHeight: '1.6', marginBottom: '32px' }}>
                 You will get access to <strong>live classes, real-time mentorship,</strong> and everything as in your current plan.
               </p>
 
-              <div style={{ background: 'var(--surface-2)', borderRadius: '20px', padding: '24px', marginBottom: '32px', border: '1.5px solid var(--border)' }}>
-                <div style={{ fontSize: '36px', fontWeight: '900', color: 'var(--accent)', marginBottom: '8px' }}>₹{upgradeModalCourse.liveUpgradePrice}</div>
+              <div style={{ background: 'var(--surface-2)', borderRadius: '14px', padding: '24px', marginBottom: '32px', border: '1.5px solid var(--border)' }}>
+                <div style={{ fontSize: '36px', fontWeight: 600, color: 'var(--accent)', marginBottom: '8px' }}>₹{upgradeModalCourse.liveUpgradePrice}</div>
                 <div style={{ fontSize: '14px', color: 'var(--text-muted)', fontWeight: '600' }}>One-time upgrade fee</div>
               </div>
 
               <div style={{ display: 'flex', gap: '14px' }}>
                 <button
                   onClick={() => setUpgradeModalCourse(null)}
-                  style={{ flex: 1, padding: '16px', borderRadius: '18px', border: '2px solid var(--border)', background: 'var(--surface)', color: 'var(--text-secondary)', fontWeight: '700', cursor: 'pointer' }}
+                  style={{ flex: 1, padding: '16px', borderRadius: '12px', border: '2px solid var(--border)', background: 'var(--surface)', color: 'var(--text-secondary)', fontWeight: 600, cursor: 'pointer' }}
                 >
                   Cancel
                 </button>
                 <button
                   onClick={() => handleUpgrade(upgradeModalCourse.id)}
                   style={{
-                    flex: 1.5, padding: '16px', borderRadius: '18px', border: 'none',
-                    background: 'linear-gradient(135deg, #6366f1, #4f46e5)',
-                    color: 'white', fontWeight: '700', cursor: 'pointer',
-                    boxShadow: '0 4px 12px rgba(79, 70, 229, 0.3)',
+                    flex: 1.5, padding: '16px', borderRadius: '12px', border: 'none',
+                    background: 'var(--primary)',
+                    color: 'white', fontWeight: 600, cursor: 'pointer',
+                    boxShadow: '0 4px 12px color-mix(in srgb, var(--primary) 30%, transparent)',
                     display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px'
                   }}
                 >
@@ -2362,7 +2101,7 @@ export default function DashboardPage() {
         padding: '20px', overflow: 'auto'
       }} onClick={() => setShowPurchaseModal(false)}>
         <div style={{
-          background: 'var(--surface)', borderRadius: '32px', width: '100%', maxWidth: '480px',
+          background: 'var(--surface)', borderRadius: '14px', width: '100%', maxWidth: '480px',
           boxShadow: '0 0 100px var(--neu-glow), 0 25px 50px -12px rgba(0, 0, 0, 0.5)',
           padding: '30px',
           animation: 'modalSlideUp 0.3s ease-out',
@@ -2377,7 +2116,7 @@ export default function DashboardPage() {
 
           {/* Course Header Color Band */}
           <div style={{
-            background: `linear-gradient(135deg, ${offering.course?.color || '#6366f1'}, ${colorWithOpacity(offering.course?.color || '#6366f1', 'cc')})`,
+            background: `linear-gradient(135deg, ${offering.course?.color || 'var(--primary)'}, ${colorWithOpacity(offering.course?.color || 'var(--primary)', 'cc')})`,
             margin: '-30px -30px 24px -30px',
             padding: '40px 30px 30px 30px',
             borderTopLeftRadius: '32px',
@@ -2395,7 +2134,7 @@ export default function DashboardPage() {
             }}>
               <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20M4 19.5A2.5 2.5 0 0 0 6.5 22H20M4 19.5V5A2.5 2.5 0 0 1 6.5 2.5H20v20H6.5a2.5 2.5 0 0 1-2-2.5z"/></svg>
             </div>
-            <h2 style={{ fontSize: '24px', fontWeight: '900', color: '#fff', marginBottom: '4px', textShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
+            <h2 style={{ fontSize: '24px', fontWeight: 600, color: '#fff', marginBottom: '4px', textShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
               {offering.course?.name}
             </h2>
             <p style={{ fontSize: '13px', color: 'rgba(255, 255, 255, 0.7)', fontWeight: '600', marginBottom: '0' }}>
@@ -2409,8 +2148,8 @@ export default function DashboardPage() {
               style={{
                 display: 'inline-flex', alignItems: 'center', gap: '4px',
                 background: 'rgba(255,255,255,0.2)', border: '1px solid rgba(255,255,255,0.4)',
-                padding: '6px 14px', borderRadius: '20px', color: '#fff',
-                fontSize: '11px', fontWeight: '800', cursor: 'pointer',
+                padding: '6px 14px', borderRadius: '14px', color: '#fff',
+                fontSize: '11px', fontWeight: 600, cursor: 'pointer',
                 marginTop: '12px', transition: 'all 0.2s',
               }}
               onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.3)'}
@@ -2424,18 +2163,18 @@ export default function DashboardPage() {
             {/* Recorded Batch Option */}
             {offering.hasRecorded && (
               <div style={{
-                padding: '16px', borderRadius: '20px',
-                background: 'var(--surface-2, rgba(99, 102, 241, 0.02))',
+                padding: '16px', borderRadius: '14px',
+                background: 'var(--surface-2, color-mix(in srgb, var(--primary) 2%, transparent))',
                 border: '1.5px solid var(--border)',
                 boxShadow: '0 4px 12px rgba(0,0,0,0.02)'
               }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
                   <div>
-                    <div style={{ fontSize: '11px', fontWeight: '800', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '4px' }}>
+                    <div style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '4px' }}>
                       📹 Recorded Batch - PLUS
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <span style={{ fontSize: '22px', fontWeight: '900', color: 'var(--text-primary)' }}>
+                      <span style={{ fontSize: '22px', fontWeight: 600, color: 'var(--text-primary)' }}>
                         ₹{Math.max(Number(offering.recordedDiscountPrice || 0), 1)}
                       </span>
                       {Number(offering.recordedOriginalPrice || 0) > Math.max(Number(offering.recordedDiscountPrice || 0), 1) && (
@@ -2452,7 +2191,7 @@ export default function DashboardPage() {
                   style={{
                     width: '100%', padding: '12px', borderRadius: '50px',
                     border: '2.5px solid var(--accent)', background: 'transparent',
-                    color: 'var(--accent)', fontSize: '14px', fontWeight: '800',
+                    color: 'var(--accent)', fontSize: '14px', fontWeight: 600,
                     cursor: purchasing ? 'not-allowed' : 'pointer',
                     transition: 'all 0.2s',
                   }}
@@ -2465,27 +2204,27 @@ export default function DashboardPage() {
             {/* Live Batch Option */}
             {offering.hasLive && (
               <div style={{
-                padding: '16px', borderRadius: '20px',
-                background: 'var(--surface-2, rgba(99, 102, 241, 0.02))',
+                padding: '16px', borderRadius: '14px',
+                background: 'var(--surface-2, color-mix(in srgb, var(--primary) 2%, transparent))',
                 border: '1.5px solid var(--accent)',
                 position: 'relative',
-                boxShadow: '0 8px 24px rgba(99,102,241,0.08)'
+                boxShadow: '0 8px 24px color-mix(in srgb, var(--primary) 8%, transparent)'
               }}>
                 <div style={{
                   position: 'absolute', top: '12px', right: '16px',
-                  padding: '3px 10px', borderRadius: '20px',
+                  padding: '3px 10px', borderRadius: '14px',
                   background: 'var(--accent)', color: '#fff',
-                  fontSize: '9px', fontWeight: '900', letterSpacing: '0.08em',
+                  fontSize: '9px', fontWeight: 600, letterSpacing: '0.08em',
                 }}>
                   PRO
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
                   <div>
-                    <div style={{ fontSize: '11px', fontWeight: '800', color: 'var(--accent)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '4px' }}>
+                    <div style={{ fontSize: '11px', fontWeight: 600, color: 'var(--accent)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '4px' }}>
                       🔴 Live + Recorded Batch - PRO
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <span style={{ fontSize: '22px', fontWeight: '900', color: 'var(--text-primary)' }}>
+                      <span style={{ fontSize: '22px', fontWeight: 600, color: 'var(--text-primary)' }}>
                         ₹{Math.max(Number(offering.liveDiscountPrice || 0), 1)}
                       </span>
                       {Number(offering.liveOriginalPrice || 0) > Math.max(Number(offering.liveDiscountPrice || 0), 1) && (
@@ -2502,7 +2241,7 @@ export default function DashboardPage() {
                   style={{
                     width: '100%', padding: '12px', borderRadius: '50px',
                     border: 'none', background: 'var(--accent)',
-                    color: '#fff', fontSize: '14px', fontWeight: '800',
+                    color: '#fff', fontSize: '14px', fontWeight: 600,
                     cursor: purchasing ? 'not-allowed' : 'pointer',
                     transition: 'all 0.2s',
                   }}
@@ -2535,7 +2274,7 @@ export default function DashboardPage() {
                 border: 'none',
                 color: 'var(--accent)',
                 fontSize: '11.5px',
-                fontWeight: '800',
+                fontWeight: 600,
                 cursor: 'pointer',
                 textDecoration: 'underline',
                 padding: '4px 8px',
@@ -2558,23 +2297,23 @@ export default function DashboardPage() {
         padding: '20px'
       }} onClick={() => { setSuccessOrderId(null); window.location.reload() }}>
         <div style={{
-          background: 'var(--surface)', borderRadius: '32px', width: '100%', maxWidth: '440px',
+          background: 'var(--surface)', borderRadius: '14px', width: '100%', maxWidth: '440px',
           boxShadow: '0 0 100px var(--neu-glow), 0 25px 50px -12px rgba(0, 0, 0, 0.5)',
           padding: '40px', textAlign: 'center',
           animation: 'modalSlideUp 0.3s ease-out'
         }} onClick={e => e.stopPropagation()}>
           <div style={{ fontSize: '64px', marginBottom: '16px' }}>🎉</div>
-          <h2 style={{ fontSize: '22px', fontWeight: '800', color: 'var(--text-primary)', marginBottom: '8px' }}>Course Unlocked!</h2>
+          <h2 style={{ fontSize: '22px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '8px' }}>Course Unlocked!</h2>
           <p style={{ fontSize: '15px', color: 'var(--text-secondary)', lineHeight: '1.6', marginBottom: '24px' }}>
             Your payment was verified successfully. You now have full access to all lectures, class materials, and student benefits.
           </p>
           <button
             onClick={() => { setSuccessOrderId(null); window.location.reload() }}
             style={{
-              width: '100%', padding: '16px', borderRadius: '18px', border: 'none',
-              background: 'linear-gradient(135deg, var(--accent) 0%, var(--primary) 100%)',
-              color: 'white', fontWeight: '700', fontSize: '15px', cursor: 'pointer',
-              boxShadow: '0 4px 12px rgba(99, 102, 241, 0.3)',
+              width: '100%', padding: '16px', borderRadius: '12px', border: 'none',
+              background: 'var(--primary)',
+              color: 'white', fontWeight: 600, fontSize: '15px', cursor: 'pointer',
+              boxShadow: '0 4px 12px color-mix(in srgb, var(--primary) 30%, transparent)',
             }}
           >
             Got it, let&apos;s go! 🚀
@@ -2595,7 +2334,7 @@ export default function DashboardPage() {
         setShowPurchaseModal(true)
       }}>
         <div style={{
-          background: '#1e2230', borderRadius: '24px', width: '100%', maxWidth: '520px',
+          background: '#1e2230', borderRadius: '14px', width: '100%', maxWidth: '520px',
           boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
           padding: '30px',
           animation: 'modalSlideUp 0.3s ease-out',
@@ -2614,22 +2353,22 @@ export default function DashboardPage() {
             ✕
           </button>
 
-          <h2 style={{ fontSize: '22px', fontWeight: '800', marginBottom: '4px', color: '#ffffff' }}>Batch Comparison</h2>
+          <h2 style={{ fontSize: '22px', fontWeight: 600, marginBottom: '4px', color: '#ffffff' }}>Batch Comparison</h2>
           <p style={{ fontSize: '13px', color: '#a0aec0', marginBottom: '24px', fontWeight: '500' }}>
             Choose the experience that fits your learning style
           </p>
 
           {/* Comparison Table */}
           <div style={{
-            borderRadius: '16px', overflow: 'hidden', border: '1px solid #2d3748',
+            borderRadius: '12px', overflow: 'hidden', border: '1px solid #2d3748',
             background: '#1a1d28', marginBottom: '24px'
           }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '13px' }}>
               <thead>
                 <tr style={{ borderBottom: '1px solid #2d3748', background: '#171923' }}>
-                  <th style={{ padding: '14px 16px', fontWeight: '700', color: '#a0aec0', width: '40%' }}>FEATURES</th>
-                  <th style={{ padding: '14px 16px', fontWeight: '800', color: '#d69e2e', textAlign: 'center', width: '30%', background: 'rgba(214, 158, 46, 0.05)' }}>PLUS</th>
-                  <th style={{ padding: '14px 16px', fontWeight: '800', color: '#6366f1', textAlign: 'center', width: '30%', background: 'rgba(99, 102, 241, 0.05)' }}>PRO</th>
+                  <th style={{ padding: '14px 16px', fontWeight: 600, color: '#a0aec0', width: '40%' }}>FEATURES</th>
+                  <th style={{ padding: '14px 16px', fontWeight: 600, color: '#d69e2e', textAlign: 'center', width: '30%', background: 'rgba(214, 158, 46, 0.05)' }}>PLUS</th>
+                  <th style={{ padding: '14px 16px', fontWeight: 600, color: 'var(--primary)', textAlign: 'center', width: '30%', background: 'color-mix(in srgb, var(--primary) 5%, transparent)' }}>PRO</th>
                 </tr>
               </thead>
               <tbody>
@@ -2644,16 +2383,16 @@ export default function DashboardPage() {
                   <tr key={row.name} style={{ borderBottom: index < 5 ? '1px solid #2d3748' : 'none' }}>
                     <td style={{ padding: '12px 16px', fontWeight: '600', color: '#e2e8f0' }}>{row.name}</td>
                     <td style={{
-                      padding: '12px 16px', textAlign: 'center', fontWeight: '700',
+                      padding: '12px 16px', textAlign: 'center', fontWeight: 600,
                       color: row.plus.includes('✅') ? '#48bb78' : '#e53e3e',
                       background: 'rgba(214, 158, 46, 0.02)'
                     }}>
                       {row.plus}
                     </td>
                     <td style={{
-                      padding: '12px 16px', textAlign: 'center', fontWeight: '700',
+                      padding: '12px 16px', textAlign: 'center', fontWeight: 600,
                       color: row.pro.includes('✅') ? '#48bb78' : '#e53e3e',
-                      background: 'rgba(99, 102, 241, 0.02)'
+                      background: 'color-mix(in srgb, var(--primary) 2%, transparent)'
                     }}>
                       {row.pro}
                     </td>
@@ -2672,9 +2411,9 @@ export default function DashboardPage() {
               }}
               style={{
                 padding: '12px 32px', borderRadius: '50px', border: 'none',
-                background: 'linear-gradient(135deg, #6366f1, #4f46e5)', color: '#ffffff',
-                fontSize: '14px', fontWeight: '800', cursor: 'pointer',
-                boxShadow: '0 4px 15px rgba(99, 102, 241, 0.3)', transition: 'all 0.2s'
+                background: 'var(--primary)', color: '#ffffff',
+                fontSize: '14px', fontWeight: 600, cursor: 'pointer',
+                boxShadow: '0 4px 15px color-mix(in srgb, var(--primary) 30%, transparent)', transition: 'all 0.2s'
               }}
               onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-1px)'}
               onMouseLeave={e => e.currentTarget.style.transform = 'translateY(0)'}
@@ -2695,27 +2434,27 @@ export default function DashboardPage() {
         padding: '20px'
       }} onClick={() => setUpgradeSuccessOrderId(null)}>
         <div style={{
-          background: 'var(--surface)', borderRadius: '32px', width: '100%', maxWidth: '440px',
+          background: 'var(--surface)', borderRadius: '14px', width: '100%', maxWidth: '440px',
           boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
           padding: '40px', textAlign: 'center',
           animation: 'modalSlideUp 0.3s ease-out'
         }} onClick={e => e.stopPropagation()}>
           <div style={{ fontSize: '64px', marginBottom: '16px' }}>🎉</div>
-          <h2 style={{ fontSize: '22px', fontWeight: '800', color: 'var(--text-primary)', marginBottom: '8px' }}>Welcome to PRO!</h2>
+          <h2 style={{ fontSize: '22px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '8px' }}>Welcome to PRO!</h2>
           <p style={{ fontSize: '15px', color: 'var(--text-secondary)', lineHeight: '1.6', marginBottom: '24px' }}>
             Your upgrade was successful. You now have full access to live classes, mentorship, and priority support.
           </p>
-          <div style={{ background: 'var(--success-light)', borderRadius: '16px', padding: '16px', marginBottom: '24px', border: '1.5px solid var(--success)' }}>
-            <div style={{ fontSize: '12px', color: 'var(--success)', fontWeight: '700', textTransform: 'uppercase', marginBottom: '4px' }}>Order ID</div>
-            <div style={{ fontSize: '18px', fontWeight: '800', color: 'var(--success)', fontFamily: 'monospace' }}>{upgradeSuccessOrderId}</div>
+          <div style={{ background: 'var(--success-light)', borderRadius: '12px', padding: '16px', marginBottom: '24px', border: '1.5px solid var(--success)' }}>
+            <div style={{ fontSize: '12px', color: 'var(--success)', fontWeight: 600, textTransform: 'uppercase', marginBottom: '4px' }}>Order ID</div>
+            <div style={{ fontSize: '18px', fontWeight: 600, color: 'var(--success)', fontFamily: 'monospace' }}>{upgradeSuccessOrderId}</div>
           </div>
           <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '20px' }}>A confirmation email has been sent to your registered email.</p>
           <button
             onClick={() => setUpgradeSuccessOrderId(null)}
             style={{
-              width: '100%', padding: '16px', borderRadius: '18px', border: 'none',
+              width: '100%', padding: '16px', borderRadius: '12px', border: 'none',
               background: 'linear-gradient(135deg, #22c55e, #16a34a)',
-              color: 'white', fontWeight: '700', fontSize: '15px', cursor: 'pointer',
+              color: 'white', fontWeight: 600, fontSize: '15px', cursor: 'pointer',
               boxShadow: '0 4px 12px rgba(22, 163, 74, 0.3)',
             }}
           >
@@ -2733,17 +2472,17 @@ export default function DashboardPage() {
         display: 'flex', alignItems: 'center', justifyContent: 'center'
       }}>
         <div style={{
-          background: 'var(--surface)', padding: '40px', borderRadius: '32px',
+          background: 'var(--surface)', padding: '40px', borderRadius: '14px',
           textAlign: 'center', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5)',
           width: '320px'
         }}>
           <div className="spinner" style={{
             width: '40px', height: '40px', border: '4px solid #f3f3f3',
-            borderTop: '4px solid #6366f1', borderRadius: '50%',
+            borderTop: '4px solid var(--primary)', borderRadius: '50%',
             margin: '0 auto 20px',
             animation: 'spin 1s linear infinite'
           }} />
-          <h3 style={{ fontSize: '18px', fontWeight: '800', color: 'var(--text-primary)', marginBottom: '8px' }}>Processing...</h3>
+          <h3 style={{ fontSize: '18px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '8px' }}>Processing...</h3>
           <p style={{ fontSize: '14px', color: 'var(--text-secondary)', fontWeight: '500' }}>Please wait while we set up your course access.</p>
         </div>
       </div>
@@ -2770,7 +2509,7 @@ export default function DashboardPage() {
             width: '100%',
             maxWidth: '480px',
             background: 'var(--surface)',
-            borderRadius: '24px',
+            borderRadius: '14px',
             padding: '28px',
             boxShadow: '0 20px 40px rgba(0, 0, 0, 0.1)',
             border: '1px solid var(--border)',
@@ -2796,7 +2535,7 @@ export default function DashboardPage() {
             </svg>
           </div>
 
-          <h3 style={{ fontSize: '18px', fontWeight: 900, color: 'var(--text-primary)', margin: '0 0 10px', fontFamily: "'Outfit', sans-serif" }}>
+          <h3 style={{ fontSize: '18px', fontWeight: 600, color: 'var(--text-primary)', margin: '0 0 10px', fontFamily: "'Outfit', sans-serif" }}>
             {typeof document !== 'undefined' && document.documentElement.classList.contains('is-native') 
               ? 'Liked our App? Please rate us so we know!' 
               : 'Liked our Website? Please rate us so we know!'}
@@ -2893,7 +2632,7 @@ export default function DashboardPage() {
                 border: 'none',
                 background: rating === 0 ? 'var(--text-muted)' : 'var(--primary)',
                 color: rating === 0 ? 'var(--text-secondary)' : '#ffffff',
-                fontWeight: '700',
+                fontWeight: 600,
                 fontSize: '14px',
                 cursor: rating === 0 ? 'default' : 'pointer',
                 opacity: rating === 0 ? 0.5 : 1,
@@ -2919,7 +2658,7 @@ export default function DashboardPage() {
                 border: '1px solid var(--border)',
                 background: 'transparent',
                 color: 'var(--text-secondary)',
-                fontWeight: '700',
+                fontWeight: 600,
                 fontSize: '14px',
                 cursor: 'pointer',
                 transition: 'all 0.2s',

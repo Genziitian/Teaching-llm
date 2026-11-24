@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { signToken, getCookieConfig } from '@/lib/auth'
+import { recordLogin } from '@/lib/login-device'
 import { logActivity, ACTION, MODULE } from '@/lib/activity-log'
 
 // One-tap "Quick login as Student" used by the Capacitor APK as a
@@ -8,7 +9,7 @@ import { logActivity, ACTION, MODULE } from '@/lib/activity-log'
 // user whose email is configured in STUDENT_QUICK_LOGIN_EMAIL. The
 // endpoint returns 403 when the env var is unset, so production stays
 // inert by default — set the env var only when testers need access.
-export async function POST(_request: NextRequest) {
+export async function POST(request: NextRequest) {
   const targetEmail = process.env.STUDENT_QUICK_LOGIN_EMAIL?.trim().toLowerCase()
   if (!targetEmail) {
     return NextResponse.json({ error: 'Quick login is disabled.' }, { status: 403 })
@@ -46,7 +47,8 @@ export async function POST(_request: NextRequest) {
     })
     response.cookies.set(cookieName, token, options)
 
-    await prisma.loginLog.create({ data: { userId: user.id } })
+    // Record attendance + device/location; alerts the user on a new device
+    await recordLogin(request, response, user.id)
     logActivity({
       userId: user.id,
       userName: user.name,

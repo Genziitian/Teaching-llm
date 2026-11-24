@@ -1253,7 +1253,7 @@ export default function CommunityPage() {
         for (const subPart of splitPart) {
           if (subPart.toLowerCase() === tagStr.toLowerCase()) {
             nextParts.push(
-              <span key={`${member.id}-${Math.random()}`} style={{ color: 'var(--primary)', fontWeight: '800', cursor: 'pointer' }}>
+              <span key={`${member.id}-${Math.random()}`} style={{ color: 'var(--primary)', fontWeight: 600, cursor: 'pointer' }}>
                 {subPart}
               </span>
             )
@@ -1491,7 +1491,7 @@ export default function CommunityPage() {
   }
 
   function openUserIdentity(user: CommMsg['sender']) {
-    if (!user?.id) return
+    if (!user?.id || user.role === 'BOT') return
     if (userRole === 'MANAGER' && user.id !== userId && user.role === 'STUDENT') {
       setManagerProfileChoice(user)
       return
@@ -1568,7 +1568,7 @@ export default function CommunityPage() {
   )
 
   const DirectMessageSkeleton = () => (
-    <div className="community-skeleton-card" style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '10px 14px', borderRadius: '18px', minHeight: '56px' }}>
+    <div className="community-skeleton-card" style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '10px 14px', borderRadius: '12px', minHeight: '56px' }}>
       <SkeletonBlock style={{ width: '32px', height: '32px', borderRadius: '50%', flexShrink: 0 }} />
       <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: '7px' }}>
         <SkeletonBlock style={{ width: '62%', height: '12px' }} />
@@ -1578,7 +1578,7 @@ export default function CommunityPage() {
   )
 
   const ComposerSkeleton = () => (
-    <div className="community-skeleton-card" style={{ borderRadius: '20px', padding: '18px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
+    <div className="community-skeleton-card" style={{ borderRadius: '14px', padding: '18px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
       <div style={{ display: 'flex', gap: '12px' }}>
         <SkeletonBlock style={{ width: '38px', height: '38px', borderRadius: '50%', flexShrink: 0 }} />
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '10px', paddingTop: '4px' }}>
@@ -1597,7 +1597,7 @@ export default function CommunityPage() {
   )
 
   const PostCardSkeleton = () => (
-    <div className="community-skeleton-card" style={{ borderRadius: '20px', padding: '18px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+    <div className="community-skeleton-card" style={{ borderRadius: '14px', padding: '18px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
       <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
         <SkeletonBlock style={{ width: '36px', height: '36px', borderRadius: '50%', flexShrink: 0 }} />
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '7px' }}>
@@ -1624,7 +1624,7 @@ export default function CommunityPage() {
   const ChatMessageSkeleton = ({ align = 'left' }: { align?: 'left' | 'right' }) => (
     <div style={{ display: 'flex', justifyContent: align === 'right' ? 'flex-end' : 'flex-start', gap: '8px', alignItems: 'flex-end' }}>
       {align === 'left' && <SkeletonBlock style={{ width: '32px', height: '32px', borderRadius: '50%', flexShrink: 0 }} />}
-      <div className="community-skeleton-card" style={{ width: align === 'right' ? '58%' : '64%', maxWidth: '420px', borderRadius: '18px', padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+      <div className="community-skeleton-card" style={{ width: align === 'right' ? '58%' : '64%', maxWidth: '420px', borderRadius: '12px', padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
         <SkeletonBlock style={{ width: '72%', height: '12px' }} />
         <SkeletonBlock style={{ width: '48%', height: '12px' }} />
       </div>
@@ -1654,7 +1654,7 @@ export default function CommunityPage() {
         <ChatMessageSkeleton align="right" />
       </div>
       <div style={{ padding: '12px 16px', borderTop: '1.5px solid var(--border)', flexShrink: 0 }}>
-        <div className="community-skeleton-card" style={{ borderRadius: '20px', padding: '12px 14px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+        <div className="community-skeleton-card" style={{ borderRadius: '14px', padding: '12px 14px', display: 'flex', alignItems: 'center', gap: '10px' }}>
           <SkeletonBlock style={{ width: '30px', height: '30px', borderRadius: '50%' }} />
           <SkeletonBlock style={{ flex: 1, height: '16px' }} />
           <SkeletonBlock style={{ width: '42px', height: '30px', borderRadius: '999px' }} />
@@ -1696,14 +1696,14 @@ export default function CommunityPage() {
         .community-sidebar-tab:focus-visible {
           background: var(--primary-light) !important;
           color: var(--primary) !important;
-          box-shadow: 0 8px 18px rgba(54,54,232,0.16) !important;
+          box-shadow: 0 8px 18px rgba(128, 128, 128,0.16) !important;
         }
         .community-channel-btn:hover:not(.active),
         .community-channel-btn:focus-visible:not(.active) {
           background: color-mix(in srgb, var(--primary-light) 34%, var(--surface) 66%) !important;
           border-color: color-mix(in srgb, var(--primary) 42%, var(--border) 58%) !important;
           color: var(--text-primary) !important;
-          box-shadow: 0 8px 18px rgba(54,54,232,0.14) !important;
+          box-shadow: 0 8px 18px rgba(128, 128, 128,0.14) !important;
         }
         .community-sidebar-tab:focus-visible,
         .community-channel-btn:focus-visible {
@@ -1883,7 +1883,7 @@ export default function CommunityPage() {
             <div style={{ flex: 1, minWidth: 0 }}>
               <h1 style={{
                 fontSize: '22px',
-                fontWeight: 900,
+                fontWeight: 600,
                 color: 'var(--text-primary)',
                 margin: 0,
                 lineHeight: 1.1,
@@ -1913,7 +1913,7 @@ export default function CommunityPage() {
               style={{
                 margin: '10px 2px 14px',
                 padding: '16px',
-                borderRadius: '22px',
+                borderRadius: '14px',
                 background: 'var(--surface)',
                 border: '1px solid var(--border)',
                 boxShadow: '0 14px 32px rgba(15, 23, 42, 0.06), 0 4px 12px rgba(15, 23, 42, 0.03)',
@@ -1928,7 +1928,7 @@ export default function CommunityPage() {
                       margin: 0,
                       color: 'var(--text-primary)',
                       fontSize: '19px',
-                      fontWeight: 900,
+                      fontWeight: 600,
                       lineHeight: 1.15,
                       fontFamily: "'Outfit', 'Nunito', sans-serif",
                     }}>
@@ -1970,10 +1970,10 @@ export default function CommunityPage() {
                       background: 'var(--primary)',
                       color: 'var(--bg)',
                       fontSize: '12.5px',
-                      fontWeight: 900,
+                      fontWeight: 600,
                       fontFamily: 'inherit',
                       cursor: 'pointer',
-                      boxShadow: '0 8px 18px rgba(54, 54, 232, 0.24)',
+                      boxShadow: '0 8px 18px color-mix(in srgb, var(--primary) 24%, transparent)',
                     }}
                   >
                     Create Post
@@ -1987,7 +1987,7 @@ export default function CommunityPage() {
                       background: 'var(--surface-2)',
                       color: 'var(--text-primary)',
                       fontSize: '12.5px',
-                      fontWeight: 900,
+                      fontWeight: 600,
                       fontFamily: 'inherit',
                       cursor: 'pointer',
                     }}
@@ -2009,7 +2009,7 @@ export default function CommunityPage() {
                 style={{
                   color: 'var(--text-muted)',
                   fontSize: '11px',
-                  fontWeight: 900,
+                  fontWeight: 600,
                   letterSpacing: '0.13em',
                   textTransform: 'uppercase',
                   fontFamily: "'Outfit', sans-serif",
@@ -2024,7 +2024,7 @@ export default function CommunityPage() {
                   border: 'none',
                   color: 'var(--primary)',
                   fontSize: '12px',
-                  fontWeight: 800,
+                  fontWeight: 600,
                   fontFamily: 'inherit',
                   cursor: 'pointer',
                   padding: '4px 0',
@@ -2042,12 +2042,12 @@ export default function CommunityPage() {
             ) : courseClasses.length === 0 ? (
               <div style={{
                 padding: '18px 14px',
-                borderRadius: '18px',
+                borderRadius: '12px',
                 border: '1px solid var(--border)',
                 background: 'var(--surface)',
                 color: 'var(--text-muted)',
                 fontSize: '13px',
-                fontWeight: 700,
+                fontWeight: 600,
                 textAlign: 'center',
               }}>
                 No courses available
@@ -2068,7 +2068,7 @@ export default function CommunityPage() {
                     gap: '12px',
                     padding: '12px 12px',
                     minHeight: '72px',
-                    borderRadius: '18px',
+                    borderRadius: '12px',
                     border: '1px solid color-mix(in srgb, var(--border) 82%, transparent)',
                     background: 'color-mix(in srgb, var(--surface) 82%, var(--surface-2) 18%)',
                     boxShadow: '0 8px 20px rgba(15, 23, 42, 0.055), 0 2px 7px rgba(15, 23, 42, 0.035)',
@@ -2179,7 +2179,7 @@ export default function CommunityPage() {
                           top: '32px',
                           right: '0px',
                           background: 'var(--surface)',
-                          borderRadius: '16px',
+                          borderRadius: '12px',
                           boxShadow: 'var(--shadow-md)',
                           border: '1px solid var(--border)',
                           padding: '8px',
@@ -2294,7 +2294,7 @@ export default function CommunityPage() {
                   cursor: 'pointer', textAlign: 'left', fontFamily: 'inherit',
                   background: (sidebarTab === 'general' && !selectedClass) ? 'var(--primary-light)' : 'transparent',
                   color: (sidebarTab === 'general' && !selectedClass) ? 'var(--primary)' : 'var(--text-primary)',
-                  fontWeight: '700', fontSize: '13px', transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                  fontWeight: 600, fontSize: '13px', transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
                 }}
                 onMouseEnter={e => {
                   e.currentTarget.style.transform = 'translateY(-1px)'
@@ -2315,67 +2315,6 @@ export default function CommunityPage() {
                 General Discussion
               </button>
 
-              <button
-                className={`community-sidebar-tab ${(sidebarTab === 'announcements' && !selectedClass) ? 'active' : ''}`}
-                onClick={() => {
-                  setSidebarTab('announcements')
-                  setSelectedClass(null)
-                }}
-                style={{
-                  display: 'flex', alignItems: 'center', gap: '12px',
-                  padding: '10px 14px', borderRadius: '14px', border: 'none',
-                  cursor: 'pointer', textAlign: 'left', fontFamily: 'inherit',
-                  background: (sidebarTab === 'announcements' && !selectedClass) ? 'var(--primary-light)' : 'transparent',
-                  color: (sidebarTab === 'announcements' && !selectedClass) ? 'var(--primary)' : 'var(--text-primary)',
-                  fontWeight: '700', fontSize: '13px', transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
-                }}
-                onMouseEnter={e => {
-                  e.currentTarget.style.transform = 'translateY(-1px)'
-                  if (sidebarTab !== 'announcements' || selectedClass) {
-                    e.currentTarget.style.background = 'var(--surface-3)'
-                  }
-                }}
-                onMouseLeave={e => {
-                  e.currentTarget.style.transform = 'translateY(0)'
-                  if (sidebarTab !== 'announcements' || selectedClass) {
-                    e.currentTarget.style.background = 'transparent'
-                  }
-                }}
-              >
-                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
-                  <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
-                  <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
-                </svg>
-                Announcements
-              </button>
-
-              <button
-                className="community-sidebar-tab"
-                onClick={() => setGuidelinesOpen(true)}
-                style={{
-                  display: 'flex', alignItems: 'center', gap: '12px',
-                  padding: '10px 14px', borderRadius: '14px', border: 'none',
-                  cursor: 'pointer', textAlign: 'left', fontFamily: 'inherit',
-                  background: 'transparent',
-                  color: 'var(--text-primary)',
-                  fontWeight: '700', fontSize: '13px', transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
-                }}
-                onMouseEnter={e => {
-                  e.currentTarget.style.transform = 'translateY(-1px)'
-                  e.currentTarget.style.background = 'var(--surface-3)'
-                }}
-                onMouseLeave={e => {
-                  e.currentTarget.style.transform = 'translateY(0)'
-                  e.currentTarget.style.background = 'transparent'
-                }}
-              >
-                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
-                  <circle cx="12" cy="12" r="10" />
-                  <line x1="12" y1="16" x2="12" y2="12" />
-                  <line x1="12" y1="8" x2="12.01" y2="8" />
-                </svg>
-	                Community Guidelines
-	              </button>
 	              <div
 	                aria-hidden="true"
 	                className="community-sidebar-divider"
@@ -2389,8 +2328,8 @@ export default function CommunityPage() {
 	            </div>
 
             <div className="community-courses-panel">
-              <div style={{ fontSize: '11px', fontWeight: '800', color: 'var(--text-muted)', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '8px', padding: '0 6px' }}>
-                Communities
+              <div style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-muted)', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '8px', padding: '0 6px' }}>
+                Your course chats
               </div>
               {shouldShowCourseSkeletons ? (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
@@ -2488,12 +2427,12 @@ export default function CommunityPage() {
 	                    </div>
 	                  )}
                   {userRole === 'MANAGER' && cls.isCommunityActive === false && (
-                    <div style={{ fontSize: '10px', fontWeight: '800', marginTop: '4px', color: active ? '#fff' : 'var(--danger)' }}>
+                    <div style={{ fontSize: '10px', fontWeight: 600, marginTop: '4px', color: active ? '#fff' : 'var(--danger)' }}>
                       COMMUNITY OFF
                     </div>
                   )}
                   {isExpiredCommunity && (
-                    <div style={{ fontSize: '10px', fontWeight: '900', marginTop: '4px', color: active ? '#fff' : '#64748b', letterSpacing: '0.08em' }}>
+                    <div style={{ fontSize: '10px', fontWeight: 600, marginTop: '4px', color: active ? '#fff' : '#64748b', letterSpacing: '0.08em' }}>
                       EXPIRED
                     </div>
                   )}
@@ -2514,7 +2453,7 @@ export default function CommunityPage() {
         {/* Direct Messages section — hidden for students with zero DMs, and hidden entirely on mobile views */}
         {!isMobile && (shouldShowDirectSkeletons || userRole === 'MANAGER' || directChatClasses.length > 0) && (
           <>
-            <div style={{ fontSize: '12px', fontWeight: '800', color: 'var(--text-muted)', letterSpacing: '0.08em', textTransform: 'uppercase', margin: '12px 0 4px', padding: '0 4px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-muted)', letterSpacing: '0.08em', textTransform: 'uppercase', margin: '12px 0 4px', padding: '0 4px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <span>Direct Messages</span>
               {userRole === 'MANAGER' && (
                 <button
@@ -2537,13 +2476,13 @@ export default function CommunityPage() {
                 className={`dm-channel-btn ${selectedClass?.id === cls.id ? 'active' : ''}`}
                 style={{
                   display: 'flex', alignItems: 'center', gap: '12px',
-                  padding: '10px 14px', borderRadius: '18px', border: 'none',
+                  padding: '10px 14px', borderRadius: '12px', border: 'none',
                   cursor: 'pointer', textAlign: 'left', fontFamily: 'inherit',
                   transition: 'all 0.2s',
-                  background: selectedClass?.id === cls.id ? '#3636e8' : undefined,
+                  background: selectedClass?.id === cls.id ? 'var(--primary)' : undefined,
                   color: selectedClass?.id === cls.id ? '#fff' : 'var(--community-item-text)',
                   boxShadow: selectedClass?.id === cls.id
-                    ? '5px 5px 12px rgba(54,54,232,0.35), -3px -3px 8px var(--community-item-shadow-light)'
+                    ? '5px 5px 12px rgba(128, 128, 128,0.35), -3px -3px 8px var(--community-item-shadow-light)'
                     : undefined,
                   opacity: cls.isDmDisabled ? 0.55 : 1,
                   position: 'relative'
@@ -2560,11 +2499,11 @@ export default function CommunityPage() {
                   }}
                 />
                 <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: cls.isDmDisabled ? '2px' : 0, paddingRight: cls.hasUnread && selectedClass?.id !== cls.id ? '12px' : 0 }}>
-                  <div style={{ fontSize: '13px', fontWeight: '700', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                  <div style={{ fontSize: '13px', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: '4px' }}>
                     <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{cls.name.replace('Chat with ', '')}</span>
                   </div>
                   {cls.isDmDisabled && (
-                    <div style={{ fontSize: '10px', opacity: 0.68, fontWeight: '700' }}>
+                    <div style={{ fontSize: '10px', opacity: 0.68, fontWeight: 600 }}>
                       Hidden From Student
                     </div>
                   )}
@@ -2588,7 +2527,7 @@ export default function CommunityPage() {
               padding: '10px 14px', borderRadius: '14px',
               cursor: 'pointer', textAlign: 'left', fontFamily: 'inherit',
               background: 'var(--surface-2)', border: '1px solid var(--border)',
-              color: 'var(--text-primary)', fontWeight: '700', fontSize: '13px',
+              color: 'var(--text-primary)', fontWeight: 600, fontSize: '13px',
               transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
               marginTop: '16px', width: '100%'
             }}
@@ -2652,7 +2591,7 @@ export default function CommunityPage() {
                   </svg>
                 </div>
                 <div>
-                  <div style={{ fontWeight: '800', fontSize: '16px', color: 'var(--text-primary)' }}>General Discussion</div>
+                  <div style={{ fontWeight: 600, fontSize: '16px', color: 'var(--text-primary)' }}>General Discussion</div>
                 </div>
               </div>
               {/* Guidelines Button */}
@@ -2660,7 +2599,7 @@ export default function CommunityPage() {
                 onClick={() => setGuidelinesOpen(true)}
                 style={{
                   padding: '6px 12px', borderRadius: '10px', background: 'none', border: '1.5px solid var(--border)',
-                  fontSize: '12px', fontWeight: '800', color: 'var(--text-secondary)', cursor: 'pointer', transition: 'all 0.2s',
+                  fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary)', cursor: 'pointer', transition: 'all 0.2s',
                   display: 'flex', alignItems: 'center', gap: '6px'
                 }}
               >
@@ -2681,7 +2620,7 @@ export default function CommunityPage() {
                 <ComposerSkeleton />
               ) : (isMobile || isCapacitor || courseClasses.length > 0) && (
                 <div style={{
-                  background: 'var(--surface)', borderRadius: '20px', padding: '18px',
+                  background: 'var(--surface)', borderRadius: '14px', padding: '18px',
                   boxShadow: '0 4px 20px rgba(0,0,0,0.02)', border: '1px solid var(--border)',
                   display: 'flex', flexDirection: 'column', gap: '12px'
                 }}>
@@ -2718,7 +2657,7 @@ export default function CommunityPage() {
                       {pendingImage?.type.startsWith('image/') ? (
                         <img src={pendingImagePreview} alt="Upload preview" style={{ maxHeight: '150px', display: 'block' }} />
                       ) : (
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', fontWeight: '800', color: 'var(--text-primary)', paddingRight: '20px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)', paddingRight: '20px' }}>
                           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                             <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
                             <polyline points="14 2 14 8 20 8"/>
@@ -2755,7 +2694,7 @@ export default function CommunityPage() {
                       background: 'rgba(217, 119, 6, 0.08)',
                       color: '#d97706',
                       fontSize: '12px',
-                      fontWeight: 800,
+                      fontWeight: 600,
                     }}>
                       <span>Editing post</span>
                       <button
@@ -2769,7 +2708,7 @@ export default function CommunityPage() {
                           color: '#d97706',
                           cursor: 'pointer',
                           fontSize: '12px',
-                          fontWeight: 900,
+                          fontWeight: 600,
                           fontFamily: 'inherit',
                         }}
                       >
@@ -2861,12 +2800,12 @@ export default function CommunityPage() {
                             />
                             <div style={{
                               position: 'absolute', bottom: '30px', left: 0,
-                              background: 'var(--sidebar-bg)', borderRadius: '16px',
+                              background: 'var(--sidebar-bg)', borderRadius: '12px',
                               border: '1px solid var(--border)',
                               boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
                               padding: '12px', width: '280px', zIndex: 50,
                             }}>
-                              <div style={{ fontSize: '11px', fontWeight: '800', color: 'var(--text-muted)', marginBottom: '8px', letterSpacing: '0.05em', textTransform: 'uppercase' }}>Emojis</div>
+                              <div style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-muted)', marginBottom: '8px', letterSpacing: '0.05em', textTransform: 'uppercase' }}>Emojis</div>
                               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
                                 {['😂','😭','😅','🙂','😎','🤔','❤️','🔥','👏','👍','🙏','🎉','🥳','📚','📝','🎓','💯','✅','❌','⏰','💡','😤','🫡','💪','🤝','😴','🤯','👀','😬','🫠'].map(emoji => (
                                   <button
@@ -2881,7 +2820,7 @@ export default function CommunityPage() {
                                       cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
                                       transition: 'background 0.15s',
                                     }}
-                                    onMouseEnter={e => (e.currentTarget.style.background = 'rgba(54,54,232,0.08)')}
+                                    onMouseEnter={e => (e.currentTarget.style.background = 'color-mix(in srgb, var(--primary) 8%, transparent)')}
                                     onMouseLeave={e => (e.currentTarget.style.background = 'none')}
                                   >
                                     {emoji}
@@ -2982,7 +2921,7 @@ export default function CommunityPage() {
                       disabled={uploadingImage || (!input.trim() && !pendingImage)}
                       style={{
                         padding: '8px 16px', borderRadius: '50px', background: 'var(--primary)',
-                        color: 'white', border: 'none', fontWeight: '800', fontSize: '13px',
+                        color: 'white', border: 'none', fontWeight: 600, fontSize: '13px',
                         cursor: 'pointer', opacity: (uploadingImage || (!input.trim() && !pendingImage)) ? 0.6 : 1,
                         transition: 'opacity 0.2s'
                       }}
@@ -3001,7 +2940,7 @@ export default function CommunityPage() {
                     onClick={() => setGeneralFeedFilter(filter)}
                     style={{
                       padding: '6px 14px', borderRadius: '50px', border: 'none', cursor: 'pointer',
-                      fontSize: '12px', fontWeight: '800', transition: 'all 0.2s',
+                      fontSize: '12px', fontWeight: 600, transition: 'all 0.2s',
                       background: generalFeedFilter === filter ? 'var(--primary-light)' : 'transparent',
                       color: generalFeedFilter === filter ? 'var(--primary)' : 'var(--text-secondary)'
                     }}
@@ -3062,7 +3001,7 @@ export default function CommunityPage() {
                           <path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/>
                         </svg>
                       </div>
-                      <p style={{ fontWeight: '700', marginTop: '12px' }}>No posts match this filter</p>
+                      <p style={{ fontWeight: 600, marginTop: '12px' }}>No posts match this filter</p>
                     </div>
                   );
                 }
@@ -3087,7 +3026,7 @@ export default function CommunityPage() {
                       return (
                         <div key={post.id} style={{
                           background: isHighlighted ? 'linear-gradient(135deg, rgba(245, 158, 11, 0.10), var(--surface) 46%)' : 'var(--surface)',
-                          borderRadius: '20px',
+                          borderRadius: '14px',
                           padding: '18px',
                           border: isHighlighted ? '1.5px solid rgba(245, 158, 11, 0.48)' : '1px solid var(--border)',
                           boxShadow: isHighlighted ? '0 10px 24px rgba(245, 158, 11, 0.10)' : '0 4px 12px rgba(0,0,0,0.01)',
@@ -3109,7 +3048,7 @@ export default function CommunityPage() {
                                       border: 'none',
                                       background: 'transparent',
                                       padding: 0,
-                                      fontWeight: '800',
+                                      fontWeight: 600,
                                       fontSize: '13.5px',
                                       color: 'var(--primary)',
                                       cursor: 'pointer',
@@ -3128,7 +3067,7 @@ export default function CommunityPage() {
                                       border: '1px solid rgba(217, 119, 6, 0.22)',
                                       padding: '2px 8px',
                                       borderRadius: '50px',
-                                      fontWeight: 900,
+                                      fontWeight: 600,
                                       display: 'inline-flex',
                                       alignItems: 'center',
                                       gap: '3px',
@@ -3144,7 +3083,7 @@ export default function CommunityPage() {
                                       border: '1px solid rgba(245, 158, 11, 0.25)',
                                       padding: '2px 8px',
                                       borderRadius: '50px',
-                                      fontWeight: 900,
+                                      fontWeight: 600,
                                       display: 'inline-flex',
                                       alignItems: 'center',
                                       gap: '3px',
@@ -3153,7 +3092,7 @@ export default function CommunityPage() {
                                     </span>
                                   )}
                                   {post.isEdited && (
-                                    <span style={{ fontSize: '10px', color: 'var(--text-muted)', fontWeight: 700 }}>(edited)</span>
+                                    <span style={{ fontSize: '10px', color: 'var(--text-muted)', fontWeight: 600 }}>(edited)</span>
                                   )}
                                 </div>
                                 <div style={{ fontSize: '10.5px', color: 'var(--text-muted)', fontWeight: '600' }}>
@@ -3319,7 +3258,7 @@ export default function CommunityPage() {
                                 } catch (e){}
                               }}
                               style={{
-                                background: 'none', border: 'none', cursor: 'pointer', fontSize: '13px', fontWeight: '800',
+                                background: 'none', border: 'none', cursor: 'pointer', fontSize: '13px', fontWeight: 600,
                                 color: userHasLiked ? 'var(--primary)' : 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '6px'
                               }}
                             >
@@ -3338,7 +3277,7 @@ export default function CommunityPage() {
                             <button
                               onClick={() => setExpandedCommentsMessageId(commentsOpen ? null : post.id)}
                               style={{
-                                background: 'none', border: 'none', cursor: 'pointer', fontSize: '13px', fontWeight: '800',
+                                background: 'none', border: 'none', cursor: 'pointer', fontSize: '13px', fontWeight: 600,
                                 color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '6px'
                               }}
                             >
@@ -3383,7 +3322,7 @@ export default function CommunityPage() {
                                                 border: 'none',
                                                 background: 'transparent',
                                                 padding: 0,
-                                                fontWeight: '800',
+                                                fontWeight: 600,
                                                 fontSize: '12px',
                                                 color: 'var(--primary)',
                                                 cursor: 'pointer',
@@ -3395,7 +3334,7 @@ export default function CommunityPage() {
                                             </button>
                                             <StaffRoleBadge role={comment.sender.role} />
                                             {comment.isEdited && (
-                                              <span style={{ fontSize: '10px', color: 'var(--text-muted)', fontWeight: 700 }}>(edited)</span>
+                                              <span style={{ fontSize: '10px', color: 'var(--text-muted)', fontWeight: 600 }}>(edited)</span>
                                             )}
                                           </div>
                                           <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
@@ -3523,7 +3462,7 @@ export default function CommunityPage() {
                                     }}
                                     style={{
                                       padding: '8px 14px', borderRadius: '50px', background: 'var(--primary)',
-                                      color: '#white', border: 'none', fontSize: '12px', fontWeight: '800', cursor: 'pointer'
+                                      color: '#white', border: 'none', fontSize: '12px', fontWeight: 600, cursor: 'pointer'
                                     }}
                                   >
                                     Reply
@@ -3545,7 +3484,7 @@ export default function CommunityPage() {
                 <button
                   onClick={() => loadGeneralDiscussionPosts(true)}
                   disabled={loadingGeneralFeed}
-                  style={{ alignSelf: 'center', flexShrink: 0, padding: '12px 24px', borderRadius: '50px', background: 'var(--surface-3)', border: '1.5px solid var(--border)', color: 'var(--text-primary)', fontWeight: '800', cursor: loadingGeneralFeed ? 'wait' : 'pointer' }}
+                  style={{ alignSelf: 'center', flexShrink: 0, padding: '12px 24px', borderRadius: '50px', background: 'var(--surface-3)', border: '1.5px solid var(--border)', color: 'var(--text-primary)', fontWeight: 600, cursor: loadingGeneralFeed ? 'wait' : 'pointer' }}
                 >
                   {loadingGeneralFeed ? 'Loading…' : 'Load More Posts'}
                 </button>
@@ -3563,7 +3502,7 @@ export default function CommunityPage() {
                 </svg>
               </div>
               <div style={{ minWidth: 0 }}>
-                <div style={{ fontWeight: '800', fontSize: '16px', color: 'var(--text-primary)' }}>Announcements</div>
+                <div style={{ fontWeight: 600, fontSize: '16px', color: 'var(--text-primary)' }}>Announcements</div>
                 <div style={{ fontSize: '11px', color: 'var(--text-muted)', overflowWrap: 'anywhere' }}>Official notifications and course announcements</div>
               </div>
             </div>
@@ -3573,14 +3512,14 @@ export default function CommunityPage() {
               {loadingAnnouncements ? (
                 <PostFeedSkeleton count={2} />
               ) : announcements.length === 0 ? (
-                <div style={{ padding: '24px', borderRadius: '20px', background: 'var(--surface)', border: '1px solid var(--border)', textAlign: 'center' }}>
+                <div style={{ padding: '24px', borderRadius: '14px', background: 'var(--surface)', border: '1px solid var(--border)', textAlign: 'center' }}>
                   <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '12px' }}>
                     <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{ color: 'var(--text-muted)' }}>
                       <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
                       <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
                     </svg>
                   </div>
-                  <h4 style={{ margin: '12px 0 6px 0', fontWeight: '800', color: 'var(--text-primary)' }}>Official Announcements</h4>
+                  <h4 style={{ margin: '12px 0 6px 0', fontWeight: 600, color: 'var(--text-primary)' }}>Official Announcements</h4>
                   <p style={{ margin: 0, fontSize: '12.5px', color: 'var(--text-secondary)', lineHeight: '1.5' }}>
                     There are no global announcements at this moment. Course-specific announcements can be viewed inside individual course forums.
                   </p>
@@ -3589,17 +3528,17 @@ export default function CommunityPage() {
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', minWidth: 0 }}>
                   {announcements.map((ann) => (
                     <div key={ann.id} style={{
-                      background: 'var(--surface)', borderRadius: '20px', padding: '20px',
+                      background: 'var(--surface)', borderRadius: '14px', padding: '20px',
                       border: '1px solid var(--border)', boxShadow: '0 4px 12px rgba(0,0,0,0.01)',
                       display: 'flex', flexDirection: 'column', gap: '12px', minWidth: 0, overflow: 'hidden'
                     }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', minWidth: 0 }}>
                         <div style={{ minWidth: 0 }}>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', minWidth: 0 }}>
-                            <h4 style={{ margin: 0, fontSize: '15px', fontWeight: '900', color: 'var(--text-primary)', overflowWrap: 'anywhere' }}>{ann.title}</h4>
+                            <h4 style={{ margin: 0, fontSize: '15px', fontWeight: 600, color: 'var(--text-primary)', overflowWrap: 'anywhere' }}>{ann.title}</h4>
                             {ann.course && (
                               <span style={{
-                                fontSize: '9px', fontWeight: '800', padding: '2px 8px', borderRadius: '50px',
+                                fontSize: '9px', fontWeight: 600, padding: '2px 8px', borderRadius: '50px',
                                 background: ann.course.color + '15', color: ann.course.color, maxWidth: '100%', overflowWrap: 'anywhere'
                               }}>
                                 {ann.course.name}
@@ -3627,7 +3566,7 @@ export default function CommunityPage() {
                               📄
                             </div>
                             <div style={{ minWidth: 0 }}>
-                              <div style={{ fontSize: '12.5px', fontWeight: '800', color: 'var(--text-primary)', overflowWrap: 'anywhere' }}>{ann.attachmentName || 'Attachment'}</div>
+                              <div style={{ fontSize: '12.5px', fontWeight: 600, color: 'var(--text-primary)', overflowWrap: 'anywhere' }}>{ann.attachmentName || 'Attachment'}</div>
                               {ann.attachmentSize && (
                                 <div style={{ fontSize: '10px', color: 'var(--text-muted)' }}>{Math.round(ann.attachmentSize / 1024)} KB</div>
                               )}
@@ -3640,7 +3579,7 @@ export default function CommunityPage() {
                             style={{
                               padding: '6px 14px', borderRadius: '50px', background: 'var(--surface)',
                               color: 'var(--text-primary)', border: '1.5px solid var(--border)', fontSize: '12px',
-                              fontWeight: '800', textDecoration: 'none'
+                              fontWeight: 600, textDecoration: 'none'
                             }}
                           >
                             Download
@@ -3655,7 +3594,7 @@ export default function CommunityPage() {
                           rel="noopener noreferrer"
                           style={{
                             marginTop: '8px', width: 'fit-content', padding: '8px 18px', borderRadius: '50px',
-                            background: 'var(--primary)', color: 'white', fontWeight: '800', fontSize: '12.5px',
+                            background: 'var(--primary)', color: 'white', fontWeight: 600, fontSize: '12.5px',
                             textDecoration: 'none', textAlign: 'center'
                           }}
                         >
@@ -3671,7 +3610,7 @@ export default function CommunityPage() {
         ) : !selectedClass ? (
           <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: '16px', color: 'var(--text-muted)', padding: '40px' }}>
             <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" style={{ opacity: 0.5 }}><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-            <p style={{ fontWeight: '700', fontSize: '15px', margin: 0 }}>Tap on a community to start chatting</p>
+            <p style={{ fontWeight: 600, fontSize: '15px', margin: 0 }}>Tap on a community to start chatting</p>
             <p style={{ fontSize: '12px', margin: 0, opacity: 0.7, textAlign: 'center', lineHeight: 1.5 }}>Select any course community from the left panel to view messages and chat with your coursemates.</p>
           </div>
         ) : loadingMessages && messages.length === 0 ? (
@@ -3894,12 +3833,12 @@ export default function CommunityPage() {
                 )}
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', minWidth: 0 }}>
-                    <div style={{ fontWeight: '800', fontSize: isMobile ? '15px' : '16px', color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: 0 }}>
+                    <div style={{ fontWeight: 600, fontSize: isMobile ? '15px' : '16px', color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: 0 }}>
                       {isDM(selectedClass) ? selectedClass.name.replace('Chat with ', '') : selectedClass.name}
                     </div>
                     {isDM(selectedClass) && <StaffRoleBadge role={selectedClass.role} />}
                     {!isDM(selectedClass) && isCommunityModerator && selectedClass.isExpired && (
-                      <span style={{ padding: '3px 8px', borderRadius: '999px', background: 'color-mix(in srgb, #64748b 16%, var(--surface-2) 84%)', border: '1px solid color-mix(in srgb, #64748b 36%, var(--border) 64%)', color: '#64748b', fontSize: '10px', fontWeight: 900, letterSpacing: '0.06em' }}>
+                      <span style={{ padding: '3px 8px', borderRadius: '999px', background: 'color-mix(in srgb, #64748b 16%, var(--surface-2) 84%)', border: '1px solid color-mix(in srgb, #64748b 36%, var(--border) 64%)', color: '#64748b', fontSize: '10px', fontWeight: 600, letterSpacing: '0.06em' }}>
                         EXPIRED
                       </span>
                     )}
@@ -3912,12 +3851,12 @@ export default function CommunityPage() {
                 </div>
                 <div style={{ marginLeft: 'auto', display: 'flex', gap: '6px', alignItems: 'center', flexShrink: 0, flexWrap: 'wrap' }}>
                   {!isDM(selectedClass) && selectedClass.isCommunityActive === false && (
-                    <span style={{ padding: '4px 10px', borderRadius: '50px', background: 'var(--danger-light)', color: 'var(--danger)', fontSize: '11px', fontWeight: '700' }}>
+                    <span style={{ padding: '4px 10px', borderRadius: '50px', background: 'var(--danger-light)', color: 'var(--danger)', fontSize: '11px', fontWeight: 600 }}>
                       Off
                     </span>
                   )}
                   {isDM(selectedClass) && selectedClass.isDmDisabled && (
-                    <span style={{ padding: '4px 10px', borderRadius: '50px', background: 'var(--danger-light)', color: 'var(--danger)', fontSize: '11px', fontWeight: '700' }}>
+                    <span style={{ padding: '4px 10px', borderRadius: '50px', background: 'var(--danger-light)', color: 'var(--danger)', fontSize: '11px', fontWeight: 600 }}>
                       Hidden
                     </span>
                   )}
@@ -3930,7 +3869,7 @@ export default function CommunityPage() {
                         display: 'flex', alignItems: 'center', gap: '6px',
                         padding: '6px 14px', borderRadius: '50px',
                         background: 'var(--surface-2)', border: '1.5px solid var(--border)',
-                        color: 'var(--text-primary)', fontSize: '12px', fontWeight: '800',
+                        color: 'var(--text-primary)', fontSize: '12px', fontWeight: 600,
                         cursor: 'pointer', transition: 'all 0.2s',
                       }}
                       onMouseEnter={e => { e.currentTarget.style.background = 'var(--surface-3)'; e.currentTarget.style.borderColor = 'var(--primary)'; }}
@@ -3980,7 +3919,7 @@ export default function CommunityPage() {
                           top: '40px',
                           right: '0px',
                           background: 'var(--surface)',
-                          borderRadius: '16px',
+                          borderRadius: '12px',
                           boxShadow: '0 10px 28px rgba(0,0,0,0.15)',
                           border: '1px solid rgba(0,0,0,0.06)',
                           padding: '8px',
@@ -4231,7 +4170,7 @@ export default function CommunityPage() {
                   <path d="M5 17h14v-1.76a2 2 0 0 0-.44-1.24l-2.78-3.5A2 2 0 0 1 15 9.26V5a2 2 0 0 0-2-2h-2a2 2 0 0 0-2 2v4.26a2 2 0 0 1-.78 1.24l-2.78 3.5a2 2 0 0 0-.44 1.24z"/>
                 </svg>
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: '11px', fontWeight: '800', color: 'var(--primary)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                  <div style={{ fontSize: '11px', fontWeight: 600, color: 'var(--primary)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
                     Pinned Message
                   </div>
                   <div style={{ fontSize: '13px', color: 'var(--text-secondary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontWeight: '500' }}>
@@ -4283,7 +4222,7 @@ export default function CommunityPage() {
                   <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" style={{ opacity: 0.4 }}>
                     <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>
                   </svg>
-                  <p style={{ marginTop: '12px', fontWeight: '700' }}>No messages yet</p>
+                  <p style={{ marginTop: '12px', fontWeight: 600 }}>No messages yet</p>
                   <p style={{ fontSize: '13px', marginTop: '4px' }}>Be the first to say something!</p>
                 </div>
               )}
@@ -4291,6 +4230,7 @@ export default function CommunityPage() {
               {messages.map((msg, idx) => {
                 const isMe = msg.sender.id === userId
                 const isAdmin = msg.sender.role !== 'STUDENT'
+                const isBot = msg.sender.role === 'BOT'
                 const isDirectMessageThread = isDM(selectedClass)
                 
                 const currentDate = new Date(msg.createdAt).toDateString()
@@ -4311,7 +4251,7 @@ export default function CommunityPage() {
                         <span style={{
                           padding: '4px 14px', borderRadius: '50px',
                           background: 'rgba(0,0,0,0.04)', color: 'var(--text-secondary)',
-                          fontSize: '11px', fontWeight: '700', textTransform: 'uppercase',
+                          fontSize: '11px', fontWeight: 600, textTransform: 'uppercase',
                         }}>
                           {formatMessageDate(msg.createdAt)}
                         </span>
@@ -4343,26 +4283,23 @@ export default function CommunityPage() {
                           >
                             <div className="chat-msg-bubble" style={{
                               padding: msg.imageUrl ? '5px' : '7px 12px 6px 12px',
-                              borderRadius: isMe ? '16px 16px 4px 16px' : '16px 16px 16px 4px',
-                              background: selectedMessage?.id === msg.id
-                                ? '#d0e1fd'
-                                : isMe ? '#dcf8c6' : isAdmin ? '#e0e7ff' : '#ffffff',
-                              color: '#1e1e3a',
+                              borderRadius: isMe ? '14px 14px 4px 14px' : '14px 14px 14px 4px',
+                              // Theme tokens: own = ink, others = panel; staff / GenZie get a faint tint.
+                              background: isMe ? 'var(--gz-ink)'
+                                : isBot ? 'color-mix(in srgb, #f59e0b 9%, var(--gz-panel))'
+                                : isAdmin ? 'color-mix(in srgb, var(--gz-ink) 5%, var(--gz-panel))' : 'var(--gz-panel)',
+                              color: isMe ? 'var(--gz-panel)' : 'var(--gz-ink)',
                               fontSize: '14px', lineHeight: '1.5',
-                              boxShadow: selectedMessage?.id === msg.id
-                                ? '0 0 0 2.5px #3636e8, 0 4px 12px rgba(54,54,232,0.2)'
-                                : '0 2px 4px rgba(0,0,0,0.05)',
+                              boxShadow: selectedMessage?.id === msg.id ? '0 0 0 2px var(--gz-ink-3)' : 'none',
                               minWidth: '80px',
                               maxWidth: '100%',
-                              border: selectedMessage?.id === msg.id
-                                ? 'none'
-                                : isMe ? 'none' : '1px solid #e8eaf0',
+                              border: isMe ? '1px solid transparent' : isBot ? '1px solid color-mix(in srgb, #f59e0b 30%, var(--gz-line))' : '1px solid var(--gz-line)',
                               position: 'relative',
                               transition: 'all 0.2s',
                             }}>
                               {/* Pinned indicator inside bubble */}
                               {msg.isPinned && (
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginBottom: '4px', fontSize: '11px', color: 'var(--primary)', fontWeight: '700' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginBottom: '4px', fontSize: '11px', color: 'var(--primary)', fontWeight: 600 }}>
                                   <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" style={{ transform: 'rotate(45deg)', flexShrink: 0 }}>
                                     <line x1="12" y1="17" x2="12" y2="22"/>
                                     <path d="M5 17h14v-1.76a2 2 0 0 0-.44-1.24l-2.78-3.5A2 2 0 0 1 15 9.26V5a2 2 0 0 0-2-2h-2a2 2 0 0 0-2 2v4.26a2 2 0 0 1-.78 1.24l-2.78 3.5a2 2 0 0 0-.44 1.24z"/>
@@ -4378,7 +4315,7 @@ export default function CommunityPage() {
                                     if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' })
                                   }}
                                   style={{
-                                    background: isMe ? 'rgba(0,0,0,0.06)' : 'rgba(54,54,232,0.04)',
+                                    background: 'color-mix(in srgb, currentColor 10%, transparent)', // works on ink and panel bubbles
                                     padding: '8px 12px',
                                     borderRadius: '10px',
                                     borderLeft: `4px solid ${isAdmin ? 'var(--primary)' : 'var(--text-secondary)'}`,
@@ -4395,16 +4332,16 @@ export default function CommunityPage() {
                                     maxWidth: '100%',
                                     minWidth: 0,
                                   }}
-                                  onMouseEnter={e => e.currentTarget.style.background = isMe ? 'rgba(0,0,0,0.1)' : 'rgba(54,54,232,0.08)'}
-                                  onMouseLeave={e => e.currentTarget.style.background = isMe ? 'rgba(0,0,0,0.06)' : 'rgba(54,54,232,0.04)'}
+                                  onMouseEnter={e => e.currentTarget.style.background = isMe ? 'rgba(0,0,0,0.1)' : 'color-mix(in srgb, var(--primary) 8%, transparent)'}
+                                  onMouseLeave={e => e.currentTarget.style.background = isMe ? 'rgba(0,0,0,0.06)' : 'color-mix(in srgb, var(--primary) 4%, transparent)'}
                                 >
                                   {!isDirectMessageThread && (
-                                    <div style={{ fontWeight: '800', color: isAdmin ? 'var(--primary)' : '#555', fontSize: '11px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                                    <div style={{ fontWeight: 600, color: 'inherit', opacity: 0.85, fontSize: '11px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
                                       <span style={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis' }}>{msg.replyTo.sender.name}</span>
                                       <StaffRoleBadge role={msg.replyTo.sender.role} />
                                     </div>
                                   )}
-                                  <div style={{ color: '#666', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '100%', fontSize: '11.5px', lineHeight: '1.4' }}>
+                                  <div style={{ color: 'inherit', opacity: 0.7, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '100%', fontSize: '11.5px', lineHeight: '1.4' }}>
                                     {hasLectureLink(msg.replyTo.content) ? `💬 Comment: ${cleanContent(msg.replyTo.content)}` : msg.replyTo.content || (msg.replyTo.imageUrl ? (describeCommunityAttachment(msg.replyTo.imageUrl)?.isImage ? '📷 Image' : '📎 Document') : 'Message')}
                                   </div>
                                 </div>
@@ -4415,8 +4352,8 @@ export default function CommunityPage() {
                                   <span 
                                     onClick={() => openUserIdentity(msg.sender)}
                                     style={{ 
-                                      fontSize: '11px', fontWeight: '800', 
-                                      color: isAdmin ? 'var(--primary)' : '#888',
+                                      fontSize: '11px', fontWeight: 600, 
+                                      color: 'inherit', opacity: 0.75,
                                       cursor: 'pointer',
                                       textTransform: 'uppercase',
                                     }}
@@ -4436,17 +4373,17 @@ export default function CommunityPage() {
                                     const cleanedText = cleanContent(msg.content)
                                     return (
                                       <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', paddingBottom: '8px' }}>
-                                        <div style={{ fontSize: '12px', color: 'rgba(30, 30, 58, 0.7)', fontWeight: '600' }}>
+                                        <div style={{ fontSize: '12px', color: 'inherit', opacity: 0.7, fontWeight: '600' }}>
                                           Commented on <strong>{parsed.lectureTitle}</strong>:
                                         </div>
                                         <div style={{
-                                          background: 'rgba(54, 54, 232, 0.05)',
-                                          borderLeft: '3px solid #3636e8',
+                                          background: 'color-mix(in srgb, var(--primary) 5%, transparent)',
+                                          borderLeft: '3px solid var(--primary)',
                                           padding: '8px 12px',
                                           borderRadius: '6px',
                                           fontSize: '13px',
                                           lineHeight: '1.4',
-                                          color: '#1e1e3a',
+                                          color: 'inherit',
                                           fontStyle: 'italic',
                                           wordBreak: 'break-word',
                                           whiteSpace: 'pre-wrap',
@@ -4465,22 +4402,22 @@ export default function CommunityPage() {
                                             marginTop: '2px',
                                             padding: '6px 12px',
                                             borderRadius: '6px',
-                                            background: 'linear-gradient(135deg, #3636e8, #6366f1)',
+                                            background: 'var(--primary)',
                                             color: '#ffffff',
                                             border: 'none',
                                             fontSize: '11px',
-                                            fontWeight: '700',
+                                            fontWeight: 600,
                                             cursor: 'pointer',
-                                            boxShadow: '0 3px 8px rgba(54,54,232,0.2)',
+                                            boxShadow: '0 3px 8px color-mix(in srgb, var(--primary) 20%, transparent)',
                                             transition: 'all 0.2s',
                                           }}
                                           onMouseEnter={(e) => {
                                             e.currentTarget.style.transform = 'translateY(-1px)'
-                                            e.currentTarget.style.boxShadow = '0 5px 12px rgba(54,54,232,0.3)'
+                                            e.currentTarget.style.boxShadow = '0 5px 12px color-mix(in srgb, var(--primary) 30%, transparent)'
                                           }}
                                           onMouseLeave={(e) => {
                                             e.currentTarget.style.transform = 'translateY(0)'
-                                            e.currentTarget.style.boxShadow = '0 3px 8px rgba(54,54,232,0.2)'
+                                            e.currentTarget.style.boxShadow = '0 3px 8px color-mix(in srgb, var(--primary) 20%, transparent)'
                                           }}
                                         >
                                           <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
@@ -4498,6 +4435,12 @@ export default function CommunityPage() {
                                 </div>
                               )}
 
+                              {isBot && (
+                                <div style={{ marginTop: '6px', fontSize: '11px', fontStyle: 'italic', color: '#92400e' }}>
+                                  GenZie · auto-reply, I might be wrong
+                                </div>
+                              )}
+
                               {/* Message metadata */}
                               <div style={{ 
                                 display: 'flex',
@@ -4507,7 +4450,7 @@ export default function CommunityPage() {
                                 marginTop: msg.content || msg.imageUrl ? '4px' : 0,
                                 paddingLeft: '18px',
                                 fontSize: '10px',
-                                color: isMe ? '#4a7c44' : 'var(--text-muted)',
+                                color: 'inherit', opacity: 0.6,
                                 fontWeight: '600',
                                 lineHeight: 1,
                                 whiteSpace: 'nowrap',
@@ -4522,7 +4465,7 @@ export default function CommunityPage() {
                                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" style={{ display: 'block', flexShrink: 0 }}><polyline points="20 6 9 17 4 12"/></svg>
                                 )}
                                 {msg.isDeleted && (
-                                  <span style={{ fontSize: '9px', background: '#fee2e2', color: '#ef4444', padding: '2px 8px', borderRadius: '50px', fontWeight: '800' }}>
+                                  <span style={{ fontSize: '9px', background: '#fee2e2', color: '#ef4444', padding: '2px 8px', borderRadius: '50px', fontWeight: 600 }}>
                                     Deleted
                                   </span>
                                 )}
@@ -4591,7 +4534,7 @@ export default function CommunityPage() {
                                   cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
                                   color: '#64748b', transition: 'background 0.16s ease, transform 0.16s ease',
                                 }}
-                                onMouseEnter={e => e.currentTarget.style.background = 'rgba(54,54,232,0.10)'}
+                                onMouseEnter={e => e.currentTarget.style.background = 'color-mix(in srgb, var(--primary) 10%, transparent)'}
                                 onMouseLeave={e => e.currentTarget.style.background = 'rgba(100,116,139,0.10)'}
                               >
                                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4Z"/></svg>
@@ -4613,7 +4556,7 @@ export default function CommunityPage() {
                                   cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
                                   color: 'var(--primary)', transition: 'background 0.16s ease, transform 0.16s ease',
                                 }}
-                                onMouseEnter={e => e.currentTarget.style.background = 'rgba(54,54,232,0.16)'}
+                                onMouseEnter={e => e.currentTarget.style.background = 'color-mix(in srgb, var(--primary) 16%, transparent)'}
                                 onMouseLeave={e => e.currentTarget.style.background = 'var(--primary-light)'}
                               >
                                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 17 4 12 9 7"/><path d="M20 18v-2a4 4 0 0 0-4-4H4"/></svg>
@@ -4643,12 +4586,12 @@ export default function CommunityPage() {
                 <div style={{ 
                   marginBottom: '8px', padding: '10px 14px', 
                   background: 'var(--primary-light)', borderRadius: '12px',
-                  borderLeft: '4px solid #3636e8',
+                  borderLeft: '4px solid var(--primary)',
                   display: 'flex', justifyContent: 'space-between', alignItems: 'center',
                   fontSize: '12px'
                 }}>
                   <div style={{ minWidth: 0 }}>
-                    <div style={{ fontWeight: '800', color: 'var(--primary)', marginBottom: '2px', display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                    <div style={{ fontWeight: 600, color: 'var(--primary)', marginBottom: '2px', display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
                       <span>Replying to {replyingTo.sender.name}</span>
                       <StaffRoleBadge role={replyingTo.sender.role} />
                     </div>
@@ -4672,7 +4615,7 @@ export default function CommunityPage() {
                   fontSize: '12px'
                 }}>
                   <div style={{ minWidth: 0 }}>
-                    <div style={{ fontWeight: '800', color: '#d97706', marginBottom: '2px' }}>Editing message</div>
+                    <div style={{ fontWeight: 600, color: '#d97706', marginBottom: '2px' }}>Editing message</div>
                     <div style={{ color: 'var(--text-secondary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                       {editingMessage.content}
                     </div>
@@ -4688,14 +4631,14 @@ export default function CommunityPage() {
                 <div style={{ 
                   marginBottom: '10px', position: 'relative', display: 'inline-flex', 
                   alignItems: 'center', gap: '8px', padding: '10px 14px', 
-                  borderRadius: '16px', background: 'var(--surface-2)', 
+                  borderRadius: '12px', background: 'var(--surface-2)', 
                   border: '1.5px solid var(--border)',
                   boxShadow: '0 4px 12px rgba(0,0,0,0.05)',
                 }}>
                   {pendingImagePreview.startsWith('blob:') ? (
                     <img src={pendingImagePreview} alt="Preview" style={{ maxHeight: '100px', maxWidth: '200px', borderRadius: '10px', objectFit: 'cover' }} />
                   ) : (
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', fontWeight: '800', color: 'var(--text-primary)', paddingRight: '20px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)', paddingRight: '20px' }}>
                       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                         <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
                         <polyline points="14 2 14 8 20 8"/>
@@ -4710,7 +4653,7 @@ export default function CommunityPage() {
                       width: '24px', height: '24px', borderRadius: '50%',
                       background: 'var(--danger)', color: '#fff', border: '2px solid var(--border)',
                       cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      fontSize: '12px', fontWeight: '800', boxShadow: '0 2px 8px rgba(239,68,68,0.3)',
+                      fontSize: '12px', fontWeight: 600, boxShadow: '0 2px 8px rgba(239,68,68,0.3)',
                       zIndex: 10
                     }}
                   >✕</button>
@@ -4752,12 +4695,12 @@ export default function CommunityPage() {
                         style={{
                           padding: '8px 18px',
                           borderRadius: '50px',
-                          background: 'linear-gradient(135deg, #6366f1, #4f46e5)',
+                          background: 'var(--primary)',
                           color: '#ffffff',
-                          fontWeight: '800',
+                          fontWeight: 600,
                           fontSize: '12px',
                           border: 'none',
-                          boxShadow: '0 4px 10px rgba(99, 102, 241, 0.25)',
+                          boxShadow: '0 4px 10px color-mix(in srgb, var(--primary) 25%, transparent)',
                           cursor: 'pointer',
                           whiteSpace: 'nowrap',
                           flexShrink: 0,
@@ -4769,7 +4712,7 @@ export default function CommunityPage() {
                   );
                 }
                 return (
-                   <div style={{ display: 'flex', gap: '10px', alignItems: 'center', width: '100%' }}>
+                   <div className="cm-composer" style={{ display: 'flex', gap: '2px', alignItems: 'flex-end', width: '100%', padding: '5px', borderRadius: '14px', border: '1px solid var(--gz-line)', background: 'var(--gz-panel)' }}>
                     <input
                       type="file"
                       accept="image/jpeg,image/png,image/webp"
@@ -4789,12 +4732,12 @@ export default function CommunityPage() {
                       disabled={uploadingImage || !!editingMessage}
                       title="Attach image"
                       style={{
-                        width: '40px', height: '40px', borderRadius: '50%', border: 'none',
+                        width: '36px', height: '36px', borderRadius: '10px', border: 'none',
                         cursor: editingMessage ? 'default' : 'pointer', flexShrink: 0,
-                        background: (pendingImage && !editingMessage && pendingImagePreview?.startsWith('blob:')) ? 'var(--primary-light)' : 'var(--surface-2)',
-                        boxShadow: '4px 4px 8px var(--neu-dark), -4px -4px 8px var(--neu-light)',
+                        background: (pendingImage && !editingMessage && pendingImagePreview?.startsWith('blob:')) ? 'color-mix(in srgb, var(--gz-ink) 8%, transparent)' : 'transparent',
+                        boxShadow: 'none',
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        color: (pendingImage && !editingMessage && pendingImagePreview?.startsWith('blob:')) ? 'var(--primary)' : 'var(--text-muted)',
+                        color: (pendingImage && !editingMessage && pendingImagePreview?.startsWith('blob:')) ? 'var(--gz-ink)' : 'var(--gz-ink-3)',
                         transition: 'all 0.2s',
                         opacity: editingMessage ? 0.5 : 1,
                       }}
@@ -4821,12 +4764,12 @@ export default function CommunityPage() {
                       disabled={uploadingImage || !!editingMessage}
                       title="Attach document"
                       style={{
-                        width: '40px', height: '40px', borderRadius: '50%', border: 'none',
+                        width: '36px', height: '36px', borderRadius: '10px', border: 'none',
                         cursor: editingMessage ? 'default' : 'pointer', flexShrink: 0,
-                        background: (pendingImage && !editingMessage && !pendingImagePreview?.startsWith('blob:')) ? 'var(--primary-light)' : 'var(--surface-2)',
-                        boxShadow: '4px 4px 8px var(--neu-dark), -4px -4px 8px var(--neu-light)',
+                        background: (pendingImage && !editingMessage && !pendingImagePreview?.startsWith('blob:')) ? 'color-mix(in srgb, var(--gz-ink) 8%, transparent)' : 'transparent',
+                        boxShadow: 'none',
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        color: (pendingImage && !editingMessage && !pendingImagePreview?.startsWith('blob:')) ? 'var(--primary)' : 'var(--text-muted)',
+                        color: (pendingImage && !editingMessage && !pendingImagePreview?.startsWith('blob:')) ? 'var(--gz-ink)' : 'var(--gz-ink-3)',
                         transition: 'all 0.2s',
                         opacity: editingMessage ? 0.5 : 1,
                       }}
@@ -4844,7 +4787,7 @@ export default function CommunityPage() {
                           marginBottom: '8px',
                           background: 'var(--community-item-bg)',
                           border: '1.5px solid rgba(0,0,0,0.08)',
-                          borderRadius: '16px',
+                          borderRadius: '12px',
                           boxShadow: '0 10px 25px rgba(0,0,0,0.15)',
                           maxHeight: '200px',
                           overflowY: 'auto',
@@ -4874,12 +4817,12 @@ export default function CommunityPage() {
                                 borderBottom: '1px solid rgba(0,0,0,0.02)',
                                 transition: 'background 0.2s',
                               }}
-                              onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(54,54,232,0.08)'}
+                              onMouseEnter={(e) => e.currentTarget.style.background = 'color-mix(in srgb, var(--primary) 8%, transparent)'}
                               onMouseLeave={(e) => e.currentTarget.style.background = 'none'}
                             >
                               <UserAvatar user={user} size={28} />
                               <div style={{ flex: 1, minWidth: 0 }}>
-                                <div style={{ fontSize: '13px', fontWeight: '700', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                <div style={{ fontSize: '13px', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                                   {user.name}
                                 </div>
                                 <div style={{ fontSize: '10px', color: '#9999b0', textTransform: 'capitalize' }}>
@@ -4925,14 +4868,14 @@ export default function CommunityPage() {
                             }
                           }
                         }}
-                        placeholder="Write Here....."
+                        placeholder="Write a message…"
                         disabled={(!editingMessage && !isDM(selectedClass) && selectedClass.isCommunityActive === false && userRole !== 'MANAGER') || uploadingImage}
                         rows={1}
                         style={{
-                          width: '100%', padding: '11px 16px', borderRadius: '22px',
+                          width: '100%', padding: '8px 8px', borderRadius: '8px',
                           border: 'none', outline: 'none', resize: 'none',
                           fontFamily: 'inherit', fontSize: '14px',
-                          ...neuInset, color: 'var(--text-primary)',
+                          background: 'transparent', color: 'var(--gz-ink)',
                           opacity: (!editingMessage && !isDM(selectedClass) && selectedClass.isCommunityActive === false && userRole !== 'MANAGER') ? 0.6 : 1,
                           lineHeight: '1.4',
                           maxHeight: '120px',
@@ -4946,16 +4889,17 @@ export default function CommunityPage() {
                         onClick={() => setShowEmojiPicker(v => !v)}
                         title="Emoji"
                         style={{
-                          width: '40px', height: '40px', borderRadius: '50%', border: 'none',
+                          width: '36px', height: '36px', borderRadius: '10px', border: 'none',
                           cursor: 'pointer', flexShrink: 0,
-                          background: showEmojiPicker ? 'var(--primary-light)' : 'var(--surface-2)',
-                          boxShadow: '4px 4px 8px var(--neu-dark), -4px -4px 8px var(--neu-light)',
+                          background: showEmojiPicker ? 'color-mix(in srgb, var(--gz-ink) 8%, transparent)' : 'transparent',
+                          boxShadow: 'none',
                           display: 'flex', alignItems: 'center', justifyContent: 'center',
                           fontSize: '18px',
                           transition: 'all 0.2s',
                         }}
+                        aria-label="Emoji"
                       >
-                        😊
+                        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10" /><path d="M8 14s1.5 2 4 2 4-2 4-2" /><line x1="9" y1="9" x2="9.01" y2="9" /><line x1="15" y1="9" x2="15.01" y2="9" /></svg>
                       </button>
                       {showEmojiPicker && (
                         <>
@@ -4966,12 +4910,12 @@ export default function CommunityPage() {
                           />
                           <div style={{
                             position: 'absolute', bottom: '50px', right: 0,
-                            background: 'var(--sidebar-bg)', borderRadius: '16px',
+                            background: 'var(--sidebar-bg)', borderRadius: '12px',
                             border: '1px solid var(--border)',
                             boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
                             padding: '12px', width: '280px', zIndex: 50,
                           }}>
-                            <div style={{ fontSize: '11px', fontWeight: '800', color: 'var(--text-muted)', marginBottom: '8px', letterSpacing: '0.05em', textTransform: 'uppercase' }}>Reactions</div>
+                            <div style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-muted)', marginBottom: '8px', letterSpacing: '0.05em', textTransform: 'uppercase' }}>Reactions</div>
                             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
                               {['😂','😭','😅','🙂','😎','🤔','❤️','🔥','👏','👍','🙏','🎉','🥳','📚','📝','🎓','💯','✅','❌','⏰','💡','😤','🫡','💪','🤝','😴','🤯','👀','😬','🫠'].map(emoji => (
                                 <button
@@ -5001,7 +4945,7 @@ export default function CommunityPage() {
                                     cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
                                     transition: 'background 0.15s',
                                   }}
-                                  onMouseEnter={e => (e.currentTarget.style.background = 'rgba(54,54,232,0.08)')}
+                                  onMouseEnter={e => (e.currentTarget.style.background = 'color-mix(in srgb, var(--primary) 8%, transparent)')}
                                   onMouseLeave={e => (e.currentTarget.style.background = 'none')}
                                 >
                                   {emoji}
@@ -5020,15 +4964,15 @@ export default function CommunityPage() {
                           : ((!input.trim() && !pendingImage) || uploadingImage || (!isDM(selectedClass) && selectedClass.isCommunityActive === false && userRole !== 'MANAGER'))
                       }
                       style={{
-                        height: '44px', borderRadius: (pendingImage && !editingMessage) ? '50px' : '50%', border: 'none',
-                        width: (pendingImage && !editingMessage) ? 'auto' : '44px',
-                        padding: (pendingImage && !editingMessage) ? '0 20px' : '0',
+                        height: '36px', borderRadius: '10px', border: 'none',
+                        width: (pendingImage && !editingMessage) ? 'auto' : '36px',
+                        padding: (pendingImage && !editingMessage) ? '0 14px' : '0',
                         cursor: (editingMessage ? editContent.trim() : (input.trim() || pendingImage)) ? 'pointer' : 'default',
-                        background: (editingMessage ? editContent.trim() : (input.trim() || pendingImage)) ? selectedClass.color : 'var(--surface-2)',
-                        color: (editingMessage ? editContent.trim() : (input.trim() || pendingImage)) ? '#fff' : 'var(--text-muted)',
+                        background: (editingMessage ? editContent.trim() : (input.trim() || pendingImage)) ? 'var(--gz-ink)' : 'transparent',
+                        color: (editingMessage ? editContent.trim() : (input.trim() || pendingImage)) ? 'var(--gz-panel)' : 'var(--gz-ink-4)',
                         display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, gap: '6px',
-                        boxShadow: (editingMessage ? editContent.trim() : (input.trim() || pendingImage)) ? `4px 4px 10px ${selectedClass.color}55` : '4px 4px 8px var(--neu-dark), -4px -4px 8px var(--neu-light)',
-                        transition: 'all 0.2s', fontWeight: '700', fontSize: '13px', fontFamily: 'inherit',
+                        boxShadow: 'none',
+                        transition: 'all 0.2s', fontWeight: 600, fontSize: '13px', fontFamily: 'inherit',
                       }}
                       title={editingMessage ? 'Save changes' : 'Send message'}
                     >
@@ -5055,11 +4999,11 @@ export default function CommunityPage() {
 
       {guidelinesOpen && (
         <div className="modal-overlay" onClick={() => setGuidelinesOpen(false)} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'fixed', inset: 0, zIndex: 1000, background: 'rgba(0, 0, 0, 0.6)', backdropFilter: 'blur(4px)' }}>
-          <div className="modal" onClick={e => e.stopPropagation()} style={{ maxWidth: '680px', width: '90%', maxHeight: '85vh', overflowY: 'auto', borderRadius: '24px', padding: '24px', background: 'var(--sidebar-bg)', border: '1px solid var(--border)', boxShadow: '0 20px 40px rgba(0,0,0,0.3)' }}>
+          <div className="modal" onClick={e => e.stopPropagation()} style={{ maxWidth: '680px', width: '90%', maxHeight: '85vh', overflowY: 'auto', borderRadius: '14px', padding: '24px', background: 'var(--sidebar-bg)', border: '1px solid var(--border)', boxShadow: '0 20px 40px rgba(0,0,0,0.3)' }}>
             <div className="modal-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', borderBottom: '1px solid var(--border)', paddingBottom: '12px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <span style={{ fontSize: '20px' }}>📜</span>
-                <h3 style={{ fontSize: '18px', fontWeight: '800', margin: 0, color: 'var(--text-primary)' }}>Community Guidelines</h3>
+                <h3 style={{ fontSize: '18px', fontWeight: 600, margin: 0, color: 'var(--text-primary)' }}>Community Guidelines</h3>
               </div>
               <button onClick={() => setGuidelinesOpen(false)} style={{ color: 'var(--text-muted)', cursor: 'pointer', background: 'none', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '4px' }}>
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
@@ -5072,70 +5016,70 @@ export default function CommunityPage() {
               
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                 <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
-                  <span style={{ fontWeight: '800', color: 'var(--primary)' }}>1.</span>
+                  <span style={{ fontWeight: 600, color: 'var(--primary)' }}>1.</span>
                   <div>
                     <strong style={{ color: 'var(--text-primary)' }}>Be respectful:</strong> Treat classmates, teachers, mentors, and staff with respect. No personal attacks, insults, harassment, or bullying.
                   </div>
                 </div>
 
                 <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
-                  <span style={{ fontWeight: '800', color: 'var(--primary)' }}>2.</span>
+                  <span style={{ fontWeight: 600, color: 'var(--primary)' }}>2.</span>
                   <div>
                     <strong style={{ color: 'var(--text-primary)' }}>Keep discussions relevant:</strong> Use the appropriate course/category for questions and discussions. Avoid unnecessary spam or repeated posts.
                   </div>
                 </div>
 
                 <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
-                  <span style={{ fontWeight: '800', color: 'var(--primary)' }}>3.</span>
+                  <span style={{ fontWeight: 600, color: 'var(--primary)' }}>3.</span>
                   <div>
                     <strong style={{ color: 'var(--text-primary)' }}>No abusive or offensive content:</strong> Do not post hateful, discriminatory, sexually explicit, violent, or otherwise inappropriate content.
                   </div>
                 </div>
 
                 <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
-                  <span style={{ fontWeight: '800', color: 'var(--primary)' }}>4.</span>
+                  <span style={{ fontWeight: 600, color: 'var(--primary)' }}>4.</span>
                   <div>
                     <strong style={{ color: 'var(--text-primary)' }}>No spam or self-promotion:</strong> Don't flood the community with advertisements, referral links, promotions, or unrelated content.
                   </div>
                 </div>
 
                 <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
-                  <span style={{ fontWeight: '800', color: 'var(--primary)' }}>5.</span>
+                  <span style={{ fontWeight: 600, color: 'var(--primary)' }}>5.</span>
                   <div>
                     <strong style={{ color: 'var(--text-primary)' }}>Don't share personal information:</strong> Never post phone numbers, passwords, addresses, private conversations, or other people's personal information without permission.
                   </div>
                 </div>
 
                 <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
-                  <span style={{ fontWeight: '800', color: 'var(--primary)' }}>6.</span>
+                  <span style={{ fontWeight: 600, color: 'var(--primary)' }}>6.</span>
                   <div>
                     <strong style={{ color: 'var(--text-primary)' }}>Academic integrity:</strong> Help others learn, but don't encourage cheating, exam misconduct, plagiarism, or sharing restricted exam material.
                   </div>
                 </div>
 
                 <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
-                  <span style={{ fontWeight: '800', color: 'var(--primary)' }}>7.</span>
+                  <span style={{ fontWeight: 600, color: 'var(--primary)' }}>7.</span>
                   <div>
                     <strong style={{ color: 'var(--text-primary)' }}>Share useful content:</strong> Notes, resources, explanations, study tips, questions, and useful opportunities are welcome when they are relevant to the community.
                   </div>
                 </div>
 
                 <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
-                  <span style={{ fontWeight: '800', color: 'var(--primary)' }}>8.</span>
+                  <span style={{ fontWeight: 600, color: 'var(--primary)' }}>8.</span>
                   <div>
                     <strong style={{ color: 'var(--text-primary)' }}>Don't impersonate others:</strong> Do not pretend to be another student, teacher, mentor, or GenZ IITIAN staff member.
                   </div>
                 </div>
 
                 <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
-                  <span style={{ fontWeight: '800', color: 'var(--primary)' }}>9.</span>
+                  <span style={{ fontWeight: 600, color: 'var(--primary)' }}>9.</span>
                   <div>
                     <strong style={{ color: 'var(--text-primary)' }}>Report problems:</strong> If you see inappropriate content or behavior, report it instead of engaging in an argument.
                   </div>
                 </div>
 
                 <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
-                  <span style={{ fontWeight: '800', color: 'var(--primary)' }}>10.</span>
+                  <span style={{ fontWeight: 600, color: 'var(--primary)' }}>10.</span>
                   <div>
                     <strong style={{ color: 'var(--text-primary)' }}>Use common sense:</strong> The community is meant for learning, collaboration, and connecting with classmates. If something clearly doesn't belong here, don't post it.
                   </div>
@@ -5143,7 +5087,7 @@ export default function CommunityPage() {
               </div>
 
               <div style={{ borderTop: '1px solid var(--border)', paddingTop: '16px', marginTop: '8px' }}>
-                <h4 style={{ fontSize: '15px', fontWeight: '800', margin: '0 0 12px 0', color: 'var(--text-primary)' }}>Actions Taken for Violations</h4>
+                <h4 style={{ fontSize: '15px', fontWeight: 600, margin: '0 0 12px 0', color: 'var(--text-primary)' }}>Actions Taken for Violations</h4>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '13.5px' }}>
                   <div><strong style={{ color: 'var(--text-primary)' }}>1. Content removal:</strong> Posts or comments that violate the guidelines may be removed.</div>
                   <div><strong style={{ color: 'var(--text-primary)' }}>2. Warning:</strong> For minor or first-time violations, the user may receive a warning.</div>
@@ -5172,14 +5116,14 @@ export default function CommunityPage() {
           justifyContent: 'center', zIndex: 9999, padding: '20px'
         }}>
           <div style={{
-            background: 'var(--surface)', borderRadius: '24px',
+            background: 'var(--surface)', borderRadius: '14px',
             border: '1px solid var(--border)', width: '100%', maxWidth: '400px',
             boxShadow: '0 20px 50px rgba(0,0,0,0.4)', padding: '28px',
             display: 'flex', flexDirection: 'column', gap: '20px',
             alignItems: 'center', textAlign: 'center'
           }}>
             <div style={{
-              width: '56px', height: '56px', borderRadius: '50%', background: 'rgba(54,54,232,0.08)',
+              width: '56px', height: '56px', borderRadius: '50%', background: 'color-mix(in srgb, var(--primary) 8%, transparent)',
               display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--primary)',
               marginBottom: '4px'
             }}>
@@ -5202,7 +5146,7 @@ export default function CommunityPage() {
             </div>
             
             <div>
-              <h3 style={{ fontSize: '17px', fontWeight: '800', margin: '0 0 6px 0', color: 'var(--text-primary)' }}>Uploading Attachment</h3>
+              <h3 style={{ fontSize: '17px', fontWeight: 600, margin: '0 0 6px 0', color: 'var(--text-primary)' }}>Uploading Attachment</h3>
               <p style={{ fontSize: '12px', color: 'var(--text-muted)', wordBreak: 'break-all', margin: 0 }}>{uploadFileName || 'file'}</p>
             </div>
 
@@ -5232,7 +5176,7 @@ export default function CommunityPage() {
               }}
               style={{
                 width: '100%', padding: '12px 0', borderRadius: '12px', border: 'none',
-                background: 'var(--danger-light)', color: 'var(--danger)', fontWeight: '800',
+                background: 'var(--danger-light)', color: 'var(--danger)', fontWeight: 600,
                 fontSize: '13px', cursor: 'pointer', transition: 'all 0.15s', fontFamily: 'inherit'
               }}
               onMouseEnter={e => e.currentTarget.style.background = 'rgba(239,68,68,0.15)'}
@@ -5256,7 +5200,7 @@ export default function CommunityPage() {
           <div
             onClick={e => e.stopPropagation()}
             style={{
-              background: 'var(--surface)', borderRadius: '24px',
+              background: 'var(--surface)', borderRadius: '14px',
               border: '1px solid var(--border)', width: '100%', maxWidth: '500px',
               boxShadow: '0 20px 50px rgba(0,0,0,0.3)', padding: '24px',
               display: 'flex', flexDirection: 'column', gap: '20px',
@@ -5264,7 +5208,7 @@ export default function CommunityPage() {
             }}
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <h3 style={{ fontSize: '18px', fontWeight: '800', margin: 0 }}>System Rules & Limits</h3>
+              <h3 style={{ fontSize: '18px', fontWeight: 600, margin: 0 }}>System Rules & Limits</h3>
               <button
                 onClick={() => setRulesOpen(false)}
                 style={{ background: 'none', border: 'none', fontSize: '20px', color: 'var(--text-muted)', cursor: 'pointer' }}
@@ -5280,42 +5224,42 @@ export default function CommunityPage() {
               
               <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 12px', background: 'var(--surface-2)', borderRadius: '10px' }}>
-                  <span style={{ fontWeight: '700' }}>Post Daily Limit</span>
-                  <span style={{ color: 'var(--primary)', fontWeight: '800' }}>15 posts/day</span>
+                  <span style={{ fontWeight: 600 }}>Post Daily Limit</span>
+                  <span style={{ color: 'var(--primary)', fontWeight: 600 }}>15 posts/day</span>
                 </div>
                 
                 <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 12px', background: 'var(--surface-2)', borderRadius: '10px' }}>
-                  <span style={{ fontWeight: '700' }}>Upload Size Limit</span>
-                  <span style={{ color: 'var(--primary)', fontWeight: '800' }}>20 MB max</span>
+                  <span style={{ fontWeight: 600 }}>Upload Size Limit</span>
+                  <span style={{ color: 'var(--primary)', fontWeight: 600 }}>20 MB max</span>
                 </div>
 
                 <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 12px', background: 'var(--surface-2)', borderRadius: '10px' }}>
-                  <span style={{ fontWeight: '700' }}>File Limit per Message</span>
-                  <span style={{ color: 'var(--primary)', fontWeight: '800' }}>1 file/message</span>
+                  <span style={{ fontWeight: 600 }}>File Limit per Message</span>
+                  <span style={{ color: 'var(--primary)', fontWeight: 600 }}>1 file/message</span>
                 </div>
 
                 <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 12px', background: 'var(--surface-2)', borderRadius: '10px' }}>
-                  <span style={{ fontWeight: '700' }}>Daily File Limit</span>
-                  <span style={{ color: 'var(--primary)', fontWeight: '800' }}>10 files/day</span>
+                  <span style={{ fontWeight: 600 }}>Daily File Limit</span>
+                  <span style={{ color: 'var(--primary)', fontWeight: 600 }}>10 files/day</span>
                 </div>
                 
                 <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 12px', background: 'var(--surface-2)', borderRadius: '10px' }}>
-                  <span style={{ fontWeight: '700' }}>General Post Length</span>
-                  <span style={{ color: 'var(--primary)', fontWeight: '800' }}>500 chars max</span>
+                  <span style={{ fontWeight: 600 }}>General Post Length</span>
+                  <span style={{ color: 'var(--primary)', fontWeight: 600 }}>500 chars max</span>
                 </div>
 
                 <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 12px', background: 'var(--surface-2)', borderRadius: '10px' }}>
-                  <span style={{ fontWeight: '700' }}>Comment Reply Length</span>
-                  <span style={{ color: 'var(--primary)', fontWeight: '800' }}>300 chars max</span>
+                  <span style={{ fontWeight: 600 }}>Comment Reply Length</span>
+                  <span style={{ color: 'var(--primary)', fontWeight: 600 }}>300 chars max</span>
                 </div>
 
                 <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 12px', background: 'var(--surface-2)', borderRadius: '10px' }}>
-                  <span style={{ fontWeight: '700' }}>Course Chat Length</span>
-                  <span style={{ color: 'var(--primary)', fontWeight: '800' }}>1000 chars max</span>
+                  <span style={{ fontWeight: 600 }}>Course Chat Length</span>
+                  <span style={{ color: 'var(--primary)', fontWeight: 600 }}>1000 chars max</span>
                 </div>
               </div>
 
-              <div style={{ background: 'rgba(54,54,232,0.06)', borderLeft: '3px solid var(--primary)', padding: '10px 14px', borderRadius: '6px', fontSize: '12px', color: 'var(--text-secondary)', marginTop: '6px' }}>
+              <div style={{ background: 'color-mix(in srgb, var(--primary) 6%, transparent)', borderLeft: '3px solid var(--primary)', padding: '10px 14px', borderRadius: '6px', fontSize: '12px', color: 'var(--text-secondary)', marginTop: '6px' }}>
                 <strong>Manager Override:</strong> Manager and Admin roles have completely unrestricted posting frequencies, unlimited file transmissions, and full message editing/deletion capabilities.
               </div>
             </div>
@@ -5369,7 +5313,7 @@ export default function CommunityPage() {
                           <span 
                             onClick={() => openUserIdentity(msg.sender)}
                             style={{ 
-                              fontSize: '12px', fontWeight: '700', color: 'var(--primary)',
+                              fontSize: '12px', fontWeight: 600, color: 'var(--primary)',
                               cursor: 'pointer',
                               textDecoration: 'underline',
                               textUnderlineOffset: '2px'
@@ -5382,11 +5326,11 @@ export default function CommunityPage() {
                           ) : (
                             <span style={{
                               fontSize: '10px',
-                              background: 'linear-gradient(135deg, #3636e8, #6366f1)',
+                              background: 'var(--primary)',
                               color: '#fff',
                               padding: '1px 8px',
                               borderRadius: '50px',
-                              fontWeight: '800',
+                              fontWeight: 600,
                               display: 'inline-flex',
                               alignItems: 'center',
                               gap: '3px',
@@ -5399,12 +5343,12 @@ export default function CommunityPage() {
                             </span>
                           )}
                           {msg.sender.securityNumber && (
-                            <span style={{ fontSize: '10px', background: 'var(--warning-light)', color: 'var(--warning)', padding: '1px 6px', borderRadius: '50px', fontWeight: '700' }}>
+                            <span style={{ fontSize: '10px', background: 'var(--warning-light)', color: 'var(--warning)', padding: '1px 6px', borderRadius: '50px', fontWeight: 600 }}>
                               {msg.sender.securityNumber}
                             </span>
                           )}
                           {msg.isDeleted && (
-                            <span style={{ fontSize: '10px', background: 'var(--danger-light)', color: 'var(--danger)', padding: '1px 6px', borderRadius: '50px', fontWeight: '700' }}>
+                            <span style={{ fontSize: '10px', background: 'var(--danger-light)', color: 'var(--danger)', padding: '1px 6px', borderRadius: '50px', fontWeight: 600 }}>
                               Deleted
                             </span>
                           )}
@@ -5451,12 +5395,12 @@ export default function CommunityPage() {
 
       {managerProfileChoice && (
         <div className="modal-overlay" onClick={() => setManagerProfileChoice(null)} style={{ zIndex: 1190 }}>
-          <div className="modal" onClick={e => e.stopPropagation()} style={{ width: '92%', maxWidth: '390px', padding: '18px', borderRadius: '22px' }}>
+          <div className="modal" onClick={e => e.stopPropagation()} style={{ width: '92%', maxWidth: '390px', padding: '18px', borderRadius: '14px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '2px 2px 15px' }}>
               <UserAvatar user={managerProfileChoice} size={46} style={{ border: '2px solid var(--border)', boxShadow: '0 8px 18px rgba(15,23,42,0.10)' }} />
               <div style={{ minWidth: 0 }}>
-                <div style={{ fontSize: '16px', fontWeight: 900, color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', lineHeight: 1.2 }}>{managerProfileChoice.name}</div>
-                <div style={{ fontSize: '12px', color: 'var(--text-muted)', fontWeight: 800, textTransform: 'capitalize', marginTop: '2px' }}>{managerProfileChoice.role.toLowerCase()}</div>
+                <div style={{ fontSize: '16px', fontWeight: 600, color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', lineHeight: 1.2 }}>{managerProfileChoice.name}</div>
+                <div style={{ fontSize: '12px', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'capitalize', marginTop: '2px' }}>{managerProfileChoice.role.toLowerCase()}</div>
               </div>
             </div>
             <div style={{ height: '1px', background: 'var(--border)', marginBottom: '10px' }} />
@@ -5490,7 +5434,7 @@ export default function CommunityPage() {
                   <UserRound size={17} strokeWidth={2.4} />
                 </span>
                 <span style={{ minWidth: 0 }}>
-                  <span style={{ display: 'block', fontSize: '13.5px', fontWeight: 900, marginBottom: '2px' }}>View Profile</span>
+                  <span style={{ display: 'block', fontSize: '13.5px', fontWeight: 600, marginBottom: '2px' }}>View Profile</span>
                   <span style={{ display: 'block', fontSize: '12px', color: 'var(--text-muted)', fontWeight: 600, lineHeight: 1.35 }}>Manage account and internal user information</span>
                 </span>
               </button>
@@ -5523,7 +5467,7 @@ export default function CommunityPage() {
                   <Sparkles size={17} strokeWidth={2.4} />
                 </span>
                 <span style={{ minWidth: 0 }}>
-                  <span style={{ display: 'block', fontSize: '13.5px', fontWeight: 900, marginBottom: '2px' }}>View Social Card</span>
+                  <span style={{ display: 'block', fontSize: '13.5px', fontWeight: 600, marginBottom: '2px' }}>View Social Card</span>
                   <span style={{ display: 'block', fontSize: '12px', color: 'var(--text-muted)', fontWeight: 600, lineHeight: 1.35 }}>View public profile, medals and shared information</span>
                 </span>
               </button>
@@ -5550,7 +5494,7 @@ export default function CommunityPage() {
             }}
           >
             <div className="modal-header" style={{ padding: '0 4px 12px 4px', borderBottom: '1px solid var(--border)' }}>
-              <h3 style={{ fontSize: '15px', fontWeight: '800', margin: 0, color: 'var(--text-primary)' }}>Message Options</h3>
+              <h3 style={{ fontSize: '15px', fontWeight: 600, margin: 0, color: 'var(--text-primary)' }}>Message Options</h3>
               <button onClick={() => setManagerActionMessage(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-secondary)' }}>
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
               </button>
@@ -5570,7 +5514,7 @@ export default function CommunityPage() {
                     cursor: 'pointer', textAlign: 'left',
                     borderRadius: '12px',
                     background: 'transparent', fontFamily: 'inherit',
-                    fontSize: '14px', fontWeight: '700',
+                    fontSize: '14px', fontWeight: 600,
                     color: 'var(--text-primary)',
                     transition: 'all 0.2s'
                   }}
@@ -5604,7 +5548,7 @@ export default function CommunityPage() {
                     cursor: 'pointer', textAlign: 'left',
                     borderRadius: '12px',
                     background: 'transparent', fontFamily: 'inherit',
-                    fontSize: '14px', fontWeight: '700',
+                    fontSize: '14px', fontWeight: 600,
                     color: '#d97706',
                     transition: 'all 0.2s'
                   }}
@@ -5637,7 +5581,7 @@ export default function CommunityPage() {
                     cursor: 'pointer', textAlign: 'left',
                     borderRadius: '12px',
                     background: 'transparent', fontFamily: 'inherit',
-                    fontSize: '14px', fontWeight: '700',
+                    fontSize: '14px', fontWeight: 600,
                     color: managerActionMessage.isPinned ? '#d97706' : 'var(--primary)',
                     transition: 'all 0.2s'
                   }}
@@ -5670,7 +5614,7 @@ export default function CommunityPage() {
                     cursor: 'pointer', textAlign: 'left',
                     borderRadius: '12px',
                     background: 'transparent', fontFamily: 'inherit',
-                    fontSize: '14px', fontWeight: '700',
+                    fontSize: '14px', fontWeight: 600,
                     color: 'var(--danger)',
                     transition: 'all 0.2s'
                   }}
@@ -5700,7 +5644,7 @@ export default function CommunityPage() {
         <div className="modal-overlay" onClick={() => { setShowNewDMModal(false); setDmSearch(''); setDmResults([]) }}>
           <div className="modal" onClick={e => e.stopPropagation()} style={{ maxWidth: '440px' }}>
             <div className="modal-header">
-              <h3 style={{ fontSize: '16px', fontWeight: '700' }}>Start Direct Chat</h3>
+              <h3 style={{ fontSize: '16px', fontWeight: 600 }}>Start Direct Chat</h3>
               <button onClick={() => { setShowNewDMModal(false); setDmSearch(''); setDmResults([]) }} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-secondary)' }}>
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
               </button>
@@ -5740,7 +5684,7 @@ export default function CommunityPage() {
                     >
                       <UserAvatar user={u} size={36} />
                       <div>
-                        <div style={{ fontSize: '14px', fontWeight: '700', color: 'inherit' }}>{u.name}</div>
+                        <div style={{ fontSize: '14px', fontWeight: 600, color: 'inherit' }}>{u.name}</div>
                         <div style={{ fontSize: '11px', opacity: 0.6 }}>{u.email} · {u.role.charAt(0) + u.role.slice(1).toLowerCase()}</div>
                       </div>
                     </button>
@@ -5772,7 +5716,7 @@ export default function CommunityPage() {
             onClick={e => e.stopPropagation()}
             style={{
               maxWidth: '90vw', maxHeight: '90vh',
-              borderRadius: '16px',
+              borderRadius: '12px',
               boxShadow: '0 20px 60px rgba(0,0,0,0.5)',
               cursor: 'default',
             }}
@@ -5843,10 +5787,10 @@ export default function CommunityPage() {
                 size={56}
                 iconSize={26}
                 radius={18}
-                style={{ boxShadow: '0 8px 20px rgba(79, 70, 229, 0.18)' }}
+                style={{ boxShadow: '0 8px 20px color-mix(in srgb, var(--primary) 18%, transparent)' }}
               />
               <div style={{ minWidth: 0, flex: 1 }}>
-                <h4 style={{ margin: 0, fontSize: '18px', fontWeight: 900, color: 'var(--text-primary)' }}>{longPressedClass.name}</h4>
+                <h4 style={{ margin: 0, fontSize: '18px', fontWeight: 600, color: 'var(--text-primary)' }}>{longPressedClass.name}</h4>
                 {longPressedClass.subject && <p style={{ margin: '2px 0 0', fontSize: '13px', color: 'var(--text-secondary)', fontWeight: 600 }}>{longPressedClass.subject}</p>}
               </div>
             </div>
@@ -5861,9 +5805,9 @@ export default function CommunityPage() {
                 }}
                 style={{
                   display: 'flex', alignItems: 'center', gap: '14px',
-                  padding: '16px', borderRadius: '20px', border: 'none',
+                  padding: '16px', borderRadius: '14px', border: 'none',
                   background: 'var(--surface-2)', color: 'var(--text-primary)',
-                  fontWeight: 700, fontSize: '14.5px', cursor: 'pointer',
+                  fontWeight: 600, fontSize: '14.5px', cursor: 'pointer',
                   textAlign: 'left', width: '100%',
                 }}
               >
@@ -5898,9 +5842,9 @@ export default function CommunityPage() {
                 }}
                 style={{
                   display: 'flex', alignItems: 'center', gap: '14px',
-                  padding: '16px', borderRadius: '20px', border: 'none',
+                  padding: '16px', borderRadius: '14px', border: 'none',
                   background: 'var(--surface-2)', color: 'var(--text-primary)',
-                  fontWeight: 700, fontSize: '14.5px', cursor: 'pointer',
+                  fontWeight: 600, fontSize: '14.5px', cursor: 'pointer',
                   textAlign: 'left', width: '100%',
                 }}
               >
@@ -5921,9 +5865,9 @@ export default function CommunityPage() {
                 }}
                 style={{
                   display: 'flex', alignItems: 'center', gap: '14px',
-                  padding: '16px', borderRadius: '20px', border: 'none',
+                  padding: '16px', borderRadius: '14px', border: 'none',
                   background: 'var(--surface-2)', color: 'var(--text-primary)',
-                  fontWeight: 700, fontSize: '14.5px', cursor: 'pointer',
+                  fontWeight: 600, fontSize: '14.5px', cursor: 'pointer',
                   textAlign: 'left', width: '100%',
                 }}
               >
@@ -5941,9 +5885,9 @@ export default function CommunityPage() {
               onClick={() => setLongPressedClass(null)}
               style={{
                 marginTop: '8px',
-                padding: '16px', borderRadius: '20px', border: '1px solid var(--border)',
+                padding: '16px', borderRadius: '14px', border: '1px solid var(--border)',
                 background: 'var(--surface)', color: 'var(--text-secondary)',
-                fontWeight: 700, fontSize: '14.5px', cursor: 'pointer',
+                fontWeight: 600, fontSize: '14.5px', cursor: 'pointer',
                 textAlign: 'center', width: '100%',
               }}
             >
@@ -5961,17 +5905,17 @@ export default function CommunityPage() {
           display: 'flex', alignItems: 'center', justifyContent: 'center'
         }}>
           <div style={{
-            background: 'var(--surface)', padding: '40px', borderRadius: '32px',
+            background: 'var(--surface)', padding: '40px', borderRadius: '14px',
             textAlign: 'center', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5)',
             width: '320px'
           }}>
             <div className="spinner" style={{
               width: '40px', height: '40px', border: '4px solid #f3f3f3',
-              borderTop: '4px solid #6366f1', borderRadius: '50%',
+              borderTop: '4px solid var(--primary)', borderRadius: '50%',
               margin: '0 auto 20px',
               animation: 'spin 1s linear infinite'
             }} />
-            <h3 style={{ fontSize: '18px', fontWeight: '800', color: 'var(--text-primary)', marginBottom: '8px' }}>Processing...</h3>
+            <h3 style={{ fontSize: '18px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '8px' }}>Processing...</h3>
             <p style={{ fontSize: '14px', color: 'var(--text-secondary)', fontWeight: '500' }}>Please wait while we set up your course access.</p>
           </div>
         </div>
@@ -5986,7 +5930,7 @@ export default function CommunityPage() {
           padding: '20px', overflow: 'auto'
         }} onClick={() => setShowPurchaseModal(false)}>
           <div style={{
-            background: 'var(--surface)', borderRadius: '32px', width: '100%', maxWidth: '480px',
+            background: 'var(--surface)', borderRadius: '14px', width: '100%', maxWidth: '480px',
             boxShadow: '0 0 100px var(--neu-glow), 0 25px 50px -12px rgba(0, 0, 0, 0.5)',
             padding: '30px',
             animation: 'modalSlideUp 0.3s ease-out',
@@ -6015,7 +5959,7 @@ export default function CommunityPage() {
                   if (tooltip) tooltip.style.opacity = '0'
                 }}
               >
-                <span style={{ fontSize: '15px', fontWeight: '800', fontFamily: 'serif' }}>i</span>
+                <span style={{ fontSize: '15px', fontWeight: 600, fontFamily: 'serif' }}>i</span>
               </button>
 
               {/* Tooltip style bubble */}
@@ -6026,12 +5970,12 @@ export default function CommunityPage() {
                   top: '40px',
                   right: '50%',
                   transform: 'translateX(50%)',
-                  background: '#6366f1',
+                  background: 'var(--primary)',
                   color: 'white',
                   padding: '10px 16px',
                   borderRadius: '12px',
                   fontSize: '11px',
-                  fontWeight: '700',
+                  fontWeight: 600,
                   whiteSpace: 'nowrap',
                   boxShadow: '0 4px 15px rgba(0,0,0,0.2)',
                   opacity: 0,
@@ -6049,7 +5993,7 @@ export default function CommunityPage() {
                   marginLeft: '-5px',
                   borderWidth: '5px',
                   borderStyle: 'solid',
-                  borderColor: 'transparent transparent #6366f1 transparent'
+                  borderColor: 'transparent transparent var(--primary) transparent'
                 }} />
               </div>
             </div>
@@ -6063,7 +6007,7 @@ export default function CommunityPage() {
 
             {/* Course Header Color Band */}
             <div style={{
-              background: `linear-gradient(135deg, ${offering.course?.color || '#6366f1'}, ${colorWithOpacity(offering.course?.color || '#6366f1', 'cc')})`,
+              background: `linear-gradient(135deg, ${offering.course?.color || 'var(--primary)'}, ${colorWithOpacity(offering.course?.color || 'var(--primary)', 'cc')})`,
               margin: '-30px -30px 24px -30px',
               padding: '40px 30px 30px 30px',
               borderTopLeftRadius: '32px',
@@ -6081,7 +6025,7 @@ export default function CommunityPage() {
               }}>
                 <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20M4 19.5A2.5 2.5 0 0 0 6.5 22H20M4 19.5V5A2.5 2.5 0 0 1 6.5 2.5H20v20H6.5a2.5 2.5 0 0 1-2-2.5z"/></svg>
               </div>
-              <h2 style={{ fontSize: '24px', fontWeight: '900', color: '#fff', marginBottom: '4px', textShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
+              <h2 style={{ fontSize: '24px', fontWeight: 600, color: '#fff', marginBottom: '4px', textShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
                 {offering.course?.name}
               </h2>
               <p style={{ fontSize: '13px', color: 'rgba(255, 255, 255, 0.7)', fontWeight: '600', marginBottom: '0' }}>
@@ -6095,8 +6039,8 @@ export default function CommunityPage() {
                 style={{
                   display: 'inline-flex', alignItems: 'center', gap: '4px',
                   background: 'rgba(255,255,255,0.2)', border: '1px solid rgba(255,255,255,0.4)',
-                  padding: '6px 14px', borderRadius: '20px', color: '#fff',
-                  fontSize: '11px', fontWeight: '800', cursor: 'pointer',
+                  padding: '6px 14px', borderRadius: '14px', color: '#fff',
+                  fontSize: '11px', fontWeight: 600, cursor: 'pointer',
                   marginTop: '12px', transition: 'all 0.2s',
                 }}
                 onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.3)'}
@@ -6110,18 +6054,18 @@ export default function CommunityPage() {
               {/* Recorded Batch Option */}
               {offering.hasRecorded && (
                 <div style={{
-                  padding: '16px', borderRadius: '20px',
-                  background: 'var(--surface-2, rgba(99, 102, 241, 0.02))',
+                  padding: '16px', borderRadius: '14px',
+                  background: 'var(--surface-2, color-mix(in srgb, var(--primary) 2%, transparent))',
                   border: '1.5px solid var(--border)',
                   boxShadow: '0 4px 12px rgba(0,0,0,0.02)'
                 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
                     <div>
-                      <div style={{ fontSize: '11px', fontWeight: '800', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '4px' }}>
+                      <div style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '4px' }}>
                         📹 Recorded Batch - PLUS
                       </div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <span style={{ fontSize: '22px', fontWeight: '900', color: 'var(--text-primary)' }}>
+                        <span style={{ fontSize: '22px', fontWeight: 600, color: 'var(--text-primary)' }}>
                           ₹{Math.max(Number(offering.recordedDiscountPrice || 0), 1)}
                         </span>
                         {Number(offering.recordedOriginalPrice || 0) > Math.max(Number(offering.recordedDiscountPrice || 0), 1) && (
@@ -6138,7 +6082,7 @@ export default function CommunityPage() {
                     style={{
                       width: '100%', padding: '12px', borderRadius: '50px',
                       border: '2.5px solid var(--accent)', background: 'transparent',
-                      color: 'var(--accent)', fontSize: '14px', fontWeight: '800',
+                      color: 'var(--accent)', fontSize: '14px', fontWeight: 600,
                       cursor: purchasing ? 'not-allowed' : 'pointer',
                       transition: 'all 0.2s',
                     }}
@@ -6151,27 +6095,27 @@ export default function CommunityPage() {
               {/* Live Batch Option */}
               {offering.hasLive && (
                 <div style={{
-                  padding: '16px', borderRadius: '20px',
-                  background: 'var(--surface-2, rgba(99, 102, 241, 0.02))',
+                  padding: '16px', borderRadius: '14px',
+                  background: 'var(--surface-2, color-mix(in srgb, var(--primary) 2%, transparent))',
                   border: '1.5px solid var(--accent)',
                   position: 'relative',
-                  boxShadow: '0 8px 24px rgba(99,102,241,0.08)'
+                  boxShadow: '0 8px 24px color-mix(in srgb, var(--primary) 8%, transparent)'
                 }}>
                   <div style={{
                     position: 'absolute', top: '12px', right: '16px',
-                    padding: '3px 10px', borderRadius: '20px',
+                    padding: '3px 10px', borderRadius: '14px',
                     background: 'var(--accent)', color: '#fff',
-                    fontSize: '9px', fontWeight: '900', letterSpacing: '0.08em',
+                    fontSize: '9px', fontWeight: 600, letterSpacing: '0.08em',
                   }}>
                     PRO
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
                     <div>
-                      <div style={{ fontSize: '11px', fontWeight: '800', color: 'var(--accent)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '4px' }}>
+                      <div style={{ fontSize: '11px', fontWeight: 600, color: 'var(--accent)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '4px' }}>
                         🔴 Live + Recorded Batch - PRO
                       </div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <span style={{ fontSize: '22px', fontWeight: '900', color: 'var(--text-primary)' }}>
+                        <span style={{ fontSize: '22px', fontWeight: 600, color: 'var(--text-primary)' }}>
                           ₹{Math.max(Number(offering.liveDiscountPrice || 0), 1)}
                         </span>
                         {Number(offering.liveOriginalPrice || 0) > Math.max(Number(offering.liveDiscountPrice || 0), 1) && (
@@ -6188,7 +6132,7 @@ export default function CommunityPage() {
                     style={{
                       width: '100%', padding: '12px', borderRadius: '50px',
                       border: 'none', background: 'var(--accent)',
-                      color: '#fff', fontSize: '14px', fontWeight: '800',
+                      color: '#fff', fontSize: '14px', fontWeight: 600,
                       cursor: purchasing ? 'not-allowed' : 'pointer',
                       transition: 'all 0.2s',
                     }}
@@ -6201,26 +6145,26 @@ export default function CommunityPage() {
               {/* Champion Option */}
               {offering.championDiscountPrice > 0 && (
                 <div style={{
-                  padding: '16px', borderRadius: '20px',
+                  padding: '16px', borderRadius: '14px',
                   background: 'linear-gradient(135deg, #fef2f2, #fee2e2)',
                   border: '1.5px solid #fca5a5',
                   position: 'relative',
                 }}>
                   <div style={{
                     position: 'absolute', top: '12px', right: '16px',
-                    padding: '3px 10px', borderRadius: '20px',
+                    padding: '3px 10px', borderRadius: '14px',
                     background: 'var(--danger)', color: '#fff',
-                    fontSize: '9px', fontWeight: '900', letterSpacing: '0.08em',
+                    fontSize: '9px', fontWeight: 600, letterSpacing: '0.08em',
                   }}>
                     CHAMPION
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
                     <div>
-                      <div style={{ fontSize: '11px', fontWeight: '800', color: 'var(--danger)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '4px' }}>
+                      <div style={{ fontSize: '11px', fontWeight: 600, color: 'var(--danger)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '4px' }}>
                         🏆 Champion - {offering.championSubtitle || 'Premium Wrapper'}
                       </div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <span style={{ fontSize: '22px', fontWeight: '900', color: 'var(--text-primary)' }}>
+                        <span style={{ fontSize: '22px', fontWeight: 600, color: 'var(--text-primary)' }}>
                           ₹{offering.championDiscountPrice}
                         </span>
                         {offering.championOriginalPrice > offering.championDiscountPrice && (
@@ -6237,7 +6181,7 @@ export default function CommunityPage() {
                     style={{
                       width: '100%', padding: '12px', borderRadius: '50px',
                       border: 'none', background: 'var(--danger)',
-                      color: '#fff', fontSize: '14px', fontWeight: '800',
+                      color: '#fff', fontSize: '14px', fontWeight: 600,
                       cursor: purchasing ? 'not-allowed' : 'pointer',
                       transition: 'all 0.2s',
                     }}
@@ -6270,7 +6214,7 @@ export default function CommunityPage() {
                   border: 'none',
                   color: 'var(--accent)',
                   fontSize: '11.5px',
-                  fontWeight: '800',
+                  fontWeight: 600,
                   cursor: 'pointer',
                   textDecoration: 'underline',
                   padding: '4px 8px',
@@ -6292,23 +6236,23 @@ export default function CommunityPage() {
           padding: '20px'
         }} onClick={() => { setSuccessOrderId(null); window.location.reload() }}>
           <div style={{
-            background: 'var(--surface)', borderRadius: '32px', width: '100%', maxWidth: '440px',
+            background: 'var(--surface)', borderRadius: '14px', width: '100%', maxWidth: '440px',
             boxShadow: '0 0 100px var(--neu-glow), 0 25px 50px -12px rgba(0, 0, 0, 0.5)',
             padding: '40px', textAlign: 'center',
             animation: 'modalSlideUp 0.3s ease-out'
           }} onClick={e => e.stopPropagation()}>
             <div style={{ fontSize: '64px', marginBottom: '16px' }}>🎉</div>
-            <h2 style={{ fontSize: '22px', fontWeight: '800', color: 'var(--text-primary)', marginBottom: '8px' }}>Course Unlocked!</h2>
+            <h2 style={{ fontSize: '22px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '8px' }}>Course Unlocked!</h2>
             <p style={{ fontSize: '15px', color: 'var(--text-secondary)', lineHeight: '1.6', marginBottom: '24px' }}>
               Your payment was verified successfully. You now have full access to all lectures, class materials, and student benefits.
             </p>
             <button
               onClick={() => { setSuccessOrderId(null); window.location.reload() }}
               style={{
-                width: '100%', padding: '16px', borderRadius: '18px', border: 'none',
-                background: 'linear-gradient(135deg, var(--accent) 0%, var(--primary) 100%)',
-                color: 'white', fontWeight: '700', fontSize: '15px', cursor: 'pointer',
-                boxShadow: '0 4px 12px rgba(99, 102, 241, 0.3)',
+                width: '100%', padding: '16px', borderRadius: '12px', border: 'none',
+                background: 'var(--primary)',
+                color: 'white', fontWeight: 600, fontSize: '15px', cursor: 'pointer',
+                boxShadow: '0 4px 12px color-mix(in srgb, var(--primary) 30%, transparent)',
               }}
             >
               Got it, let&apos;s go! 🚀
@@ -6328,7 +6272,7 @@ export default function CommunityPage() {
           setShowPurchaseModal(true)
         }}>
           <div style={{
-            background: '#1e2230', borderRadius: '24px', width: '100%', maxWidth: '520px',
+            background: '#1e2230', borderRadius: '14px', width: '100%', maxWidth: '520px',
             boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
             padding: '30px',
             animation: 'modalSlideUp 0.3s ease-out',
@@ -6347,22 +6291,22 @@ export default function CommunityPage() {
               ✕
             </button>
 
-            <h2 style={{ fontSize: '22px', fontWeight: '800', marginBottom: '4px', color: '#ffffff' }}>Batch Comparison</h2>
+            <h2 style={{ fontSize: '22px', fontWeight: 600, marginBottom: '4px', color: '#ffffff' }}>Batch Comparison</h2>
             <p style={{ fontSize: '13px', color: '#a0aec0', marginBottom: '24px', fontWeight: '500' }}>
               Choose the experience that fits your learning style
             </p>
 
             {/* Comparison Table */}
             <div style={{
-              borderRadius: '16px', overflow: 'hidden', border: '1px solid #2d3748',
+              borderRadius: '12px', overflow: 'hidden', border: '1px solid #2d3748',
               background: '#1a1d28', marginBottom: '24px'
             }}>
               <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '13px' }}>
                 <thead>
                   <tr style={{ borderBottom: '1px solid #2d3748', background: '#171923' }}>
-                    <th style={{ padding: '14px 16px', fontWeight: '700', color: '#a0aec0', width: '40%' }}>FEATURES</th>
-                    <th style={{ padding: '14px 16px', fontWeight: '800', color: '#d69e2e', textAlign: 'center', width: '30%', background: 'rgba(214, 158, 46, 0.05)' }}>PLUS</th>
-                    <th style={{ padding: '14px 16px', fontWeight: '800', color: '#6366f1', textAlign: 'center', width: '30%', background: 'rgba(99, 102, 241, 0.05)' }}>PRO</th>
+                    <th style={{ padding: '14px 16px', fontWeight: 600, color: '#a0aec0', width: '40%' }}>FEATURES</th>
+                    <th style={{ padding: '14px 16px', fontWeight: 600, color: '#d69e2e', textAlign: 'center', width: '30%', background: 'rgba(214, 158, 46, 0.05)' }}>PLUS</th>
+                    <th style={{ padding: '14px 16px', fontWeight: 600, color: 'var(--primary)', textAlign: 'center', width: '30%', background: 'color-mix(in srgb, var(--primary) 5%, transparent)' }}>PRO</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -6377,16 +6321,16 @@ export default function CommunityPage() {
                     <tr key={row.name} style={{ borderBottom: index < 5 ? '1px solid #2d3748' : 'none' }}>
                       <td style={{ padding: '12px 16px', fontWeight: '600', color: '#e2e8f0' }}>{row.name}</td>
                       <td style={{
-                        padding: '12px 16px', textAlign: 'center', fontWeight: '700',
+                        padding: '12px 16px', textAlign: 'center', fontWeight: 600,
                         color: row.plus.includes('✅') ? '#48bb78' : '#e53e3e',
                         background: 'rgba(214, 158, 46, 0.02)'
                       }}>
                         {row.plus}
                       </td>
                       <td style={{
-                        padding: '12px 16px', textAlign: 'center', fontWeight: '700',
+                        padding: '12px 16px', textAlign: 'center', fontWeight: 600,
                         color: row.pro.includes('✅') ? '#48bb78' : '#e53e3e',
-                        background: 'rgba(99, 102, 241, 0.02)'
+                        background: 'color-mix(in srgb, var(--primary) 2%, transparent)'
                       }}>
                         {row.pro}
                       </td>
@@ -6405,9 +6349,9 @@ export default function CommunityPage() {
                 }}
                 style={{
                   padding: '12px 32px', borderRadius: '50px', border: 'none',
-                  background: 'linear-gradient(135deg, #6366f1, #4f46e5)', color: '#ffffff',
-                  fontSize: '14px', fontWeight: '800', cursor: 'pointer',
-                  boxShadow: '0 4px 15px rgba(99, 102, 241, 0.3)', transition: 'all 0.2s'
+                  background: 'var(--primary)', color: '#ffffff',
+                  fontSize: '14px', fontWeight: 600, cursor: 'pointer',
+                  boxShadow: '0 4px 15px color-mix(in srgb, var(--primary) 30%, transparent)', transition: 'all 0.2s'
                 }}
                 onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-1px)'}
                 onMouseLeave={e => e.currentTarget.style.transform = 'translateY(0)'}

@@ -119,11 +119,11 @@ export default function DynamicPromptBlocker() {
     }}>
       <div className="fade-in" style={{
         background: 'var(--surface)', width: '100%', maxWidth: '650px',
-        padding: '40px', borderRadius: '24px',
+        padding: '40px', borderRadius: '14px',
         boxShadow: '0 20px 40px rgba(0,0,0,0.15)'
       }}>
         <div style={{ textAlign: 'center', marginBottom: '30px' }}>
-          <h1 style={{ fontSize: '24px', fontWeight: 900, color: 'var(--text-primary)', marginBottom: '8px' }}>
+          <h1 style={{ fontSize: '24px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '8px' }}>
             {prompt.title}
           </h1>
           {prompt.description && (
@@ -146,7 +146,7 @@ export default function DynamicPromptBlocker() {
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
           {questions.map((q: any) => (
             <div key={q.id}>
-              <label style={{ display: 'block', fontWeight: 700, marginBottom: '12px', color: 'var(--text-primary)', fontSize: '15px' }}>
+              <label style={{ display: 'block', fontWeight: 600, marginBottom: '12px', color: 'var(--text-primary)', fontSize: '15px' }}>
                 {q.text}
               </label>
 
@@ -155,8 +155,8 @@ export default function DynamicPromptBlocker() {
                   {['Yes', 'No'].map(opt => (
                     <div key={opt} onClick={() => handleAnswerChange(q.id, opt)} style={{
                       flex: 1, padding: '12px', borderRadius: '12px', textAlign: 'center', cursor: 'pointer',
-                      fontSize: '14px', fontWeight: 700,
-                      border: answers[q.id] === opt ? '2px solid #6366f1' : '2px solid #e0e3ea',
+                      fontSize: '14px', fontWeight: 600,
+                      border: answers[q.id] === opt ? '2px solid var(--primary)' : '2px solid #e0e3ea',
                       background: answers[q.id] === opt ? '#eff0fe' : 'var(--surface)',
                       color: answers[q.id] === opt ? 'var(--accent)' : 'var(--text-secondary)',
                       transition: 'all 0.2s'
@@ -173,7 +173,7 @@ export default function DynamicPromptBlocker() {
                     <div key={opt} onClick={() => handleAnswerChange(q.id, opt)} style={{
                       padding: '12px 16px', borderRadius: '12px', cursor: 'pointer',
                       fontSize: '14px', fontWeight: 600,
-                      border: answers[q.id] === opt ? '2px solid #6366f1' : '2px solid #e0e3ea',
+                      border: answers[q.id] === opt ? '2px solid var(--primary)' : '2px solid #e0e3ea',
                       background: answers[q.id] === opt ? '#eff0fe' : 'var(--surface)',
                       color: answers[q.id] === opt ? 'var(--accent)' : 'var(--text-primary)',
                       transition: 'all 0.2s'
@@ -187,7 +187,7 @@ export default function DynamicPromptBlocker() {
               {q.type === 'CTA_ONLY' && q.link && (
                 <a href={q.link} target="_blank" rel="noopener noreferrer" onClick={() => handleCTAClick(q.id)} style={{
                   display: 'block', textAlign: 'center', padding: '12px', borderRadius: '12px',
-                  background: 'var(--text-primary)', color: '#fff', fontSize: '15px', fontWeight: 700, textDecoration: 'none'
+                  background: 'var(--text-primary)', color: '#fff', fontSize: '15px', fontWeight: 600, textDecoration: 'none'
                 }}>
                   {q.linkText || 'Click Here'}
                 </a>
@@ -201,8 +201,8 @@ export default function DynamicPromptBlocker() {
             className="btn btn-primary"
             style={{
               marginTop: '10px', width: '100%', padding: '12px',
-              fontSize: '15px', fontWeight: 800,
-              boxShadow: '0 8px 20px rgba(99,102,241,0.3)',
+              fontSize: '15px', fontWeight: 600,
+              boxShadow: '0 8px 20px color-mix(in srgb, var(--primary) 30%, transparent)',
               display: 'flex', justifyContent: 'center', alignItems: 'center',
               opacity: submitting ? 0.7 : 1
             }}

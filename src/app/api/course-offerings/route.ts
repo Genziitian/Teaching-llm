@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { getSession } from '@/lib/auth'
+import { applyCourseExtras, cleanWebsite } from '@/lib/site/offering-extra'
 import { logCourseDataDiagnostics } from '@/lib/course-data-diagnostics'
 
 export async function GET(request: NextRequest) {
@@ -24,6 +25,9 @@ export async function GET(request: NextRequest) {
             teacherName: true,
             isDisabled: true,
             isDemo: true,
+            description: true,
+            startDate: true,
+            endDate: true,
           }
         }
       },
@@ -105,8 +109,11 @@ export async function POST(request: NextRequest) {
         championDiscountPrice: championDiscountPrice ? Number(championDiscountPrice) : null,
         championSubtitle: championSubtitle || null,
         category: category || "General",
+        highlights: typeof data.highlights === 'string' ? data.highlights.split('\n').map((x: string) => x.trim()).filter(Boolean).slice(0, 30).join('\n') || null : undefined,
+        website: cleanWebsite({ ...data.website, tags: data.website?.tags ?? data.tags }),
       }
     })
+    await applyCourseExtras(resolvedCourseId, data)
 
     return NextResponse.json(offering, { status: 201 })
   } catch (error) {

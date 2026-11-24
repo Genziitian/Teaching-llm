@@ -589,7 +589,7 @@ export default function CustomVideoPlayer({ source, aspect = '16 / 9', onReady, 
             display: 'inline-flex', alignItems: 'center', gap: '6px',
             padding: '5px 10px', borderRadius: '50px',
             background: 'rgba(220, 38, 38, 0.95)', color: '#ffffff',
-            fontSize: '11px', fontWeight: 900, letterSpacing: '0.08em',
+            fontSize: '11px', fontWeight: 600, letterSpacing: '0.08em',
             boxShadow: '0 4px 12px rgba(220, 38, 38, 0.4)',
             pointerEvents: 'none',
           }}
@@ -693,7 +693,7 @@ export default function CustomVideoPlayer({ source, aspect = '16 / 9', onReady, 
             <line x1="12" y1="8" x2="12" y2="12"/>
             <line x1="12" y1="16" x2="12.01" y2="16"/>
           </svg>
-          <div style={{ fontSize: '14px', fontWeight: 800, marginBottom: '6px' }}>Can't play this video</div>
+          <div style={{ fontSize: '14px', fontWeight: 600, marginBottom: '6px' }}>Can't play this video</div>
           <div style={{ fontSize: '12px', color: '#cbd5e1', fontWeight: 500, maxWidth: '420px', lineHeight: 1.5 }}>
             {/cannotDownloadFile|download by the user/i.test(errorMsg)
               ? 'The Drive file has download disabled. In Drive: right-click the file → File information → "Disable options to download, print, and copy" → turn OFF, then reload this page.'
@@ -707,8 +707,8 @@ export default function CustomVideoPlayer({ source, aspect = '16 / 9', onReady, 
             onClick={() => { setErrorMsg(null); setReady(false); videoElRef.current?.load() }}
             style={{
               marginTop: '14px', padding: '8px 18px', borderRadius: '50px',
-              background: '#3636e8', color: '#fff', border: 'none', cursor: 'pointer',
-              fontSize: '12px', fontWeight: 700, fontFamily: 'inherit',
+              background: 'var(--primary)', color: '#fff', border: 'none', cursor: 'pointer',
+              fontSize: '12px', fontWeight: 600, fontFamily: 'inherit',
             }}
           >
             Retry
@@ -744,7 +744,7 @@ export default function CustomVideoPlayer({ source, aspect = '16 / 9', onReady, 
           >
             <div style={{
               width: `${pctPlayed}%`, height: '100%',
-              background: 'linear-gradient(90deg, #6366f1, #8b5cf6)',
+              background: 'var(--primary)',
               borderRadius: '50px',
               pointerEvents: 'none',
             }} />
@@ -753,7 +753,7 @@ export default function CustomVideoPlayer({ source, aspect = '16 / 9', onReady, 
               transform: 'translate(-50%, -50%)',
               width: '13px', height: '13px', borderRadius: '50%',
               background: '#ffffff',
-              boxShadow: '0 2px 6px rgba(99, 102, 241, 0.6)',
+              boxShadow: '0 2px 6px rgba(128, 128, 128, 0.6)',
               pointerEvents: 'none',
             }} />
             <input
@@ -819,7 +819,7 @@ export default function CustomVideoPlayer({ source, aspect = '16 / 9', onReady, 
                 aria-label="Volume"
                 style={{
                   width: '80px', height: '3px',
-                  accentColor: '#6366f1',
+                  accentColor: 'var(--primary)',
                   cursor: 'pointer',
                   display: 'block',
                 }}
@@ -830,11 +830,11 @@ export default function CustomVideoPlayer({ source, aspect = '16 / 9', onReady, 
 
           {/* Time / LIVE */}
           {isLive ? (
-            <span style={{ fontSize: '11.5px', fontWeight: 800, letterSpacing: '0.08em', userSelect: 'none', color: '#fca5a5' }}>
+            <span style={{ fontSize: '11.5px', fontWeight: 600, letterSpacing: '0.08em', userSelect: 'none', color: '#fca5a5' }}>
               ● LIVE
             </span>
           ) : (
-            <span style={{ fontSize: '12.5px', fontWeight: 700, fontVariantNumeric: 'tabular-nums', letterSpacing: '0.02em', userSelect: 'none' }}>
+            <span style={{ fontSize: '12.5px', fontWeight: 600, fontVariantNumeric: 'tabular-nums', letterSpacing: '0.02em', userSelect: 'none' }}>
               {fmtTime(currentTime)} / {fmtTime(duration)}
             </span>
           )}
@@ -845,7 +845,7 @@ export default function CustomVideoPlayer({ source, aspect = '16 / 9', onReady, 
           {!isLive && (
             <div ref={speedMenuRef} style={{ position: 'relative' }}>
               <ControlBtn label={`${speed}x`} onClick={() => setShowSpeedMenu(v => !v)}>
-                <span style={{ fontSize: '12px', fontWeight: 800, letterSpacing: '0.04em' }}>{speed}×</span>
+                <span style={{ fontSize: '12px', fontWeight: 600, letterSpacing: '0.04em' }}>{speed}×</span>
               </ControlBtn>
               {showSpeedMenu && (
                 <div style={{
@@ -861,10 +861,10 @@ export default function CustomVideoPlayer({ source, aspect = '16 / 9', onReady, 
                       key={r}
                       onClick={() => setPlaybackRate(r)}
                       style={{
-                        background: r === speed ? '#3636e8' : 'transparent',
+                        background: r === speed ? 'var(--primary)' : 'transparent',
                         color: r === speed ? '#ffffff' : 'rgba(255,255,255,0.85)',
                         border: 'none', cursor: 'pointer', fontFamily: 'inherit',
-                        fontSize: '12px', fontWeight: 700,
+                        fontSize: '12px', fontWeight: 600,
                         padding: '7px 12px', borderRadius: '8px',
                         textAlign: 'center', letterSpacing: '0.02em',
                       }}
@@ -931,7 +931,7 @@ const centerIconBtn: React.CSSProperties = {
 }
 const centerIconLabel: React.CSSProperties = {
   position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -45%)',
-  color: '#ffffff', fontSize: '9px', fontWeight: 800, letterSpacing: '0.04em',
+  color: '#ffffff', fontSize: '9px', fontWeight: 600, letterSpacing: '0.04em',
   pointerEvents: 'none',
 }
 

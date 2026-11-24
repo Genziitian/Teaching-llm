@@ -1022,7 +1022,7 @@ export class SnowEngine {
     }
 
     // sidebars (desktop rail + expanded panel + logo plate)
-    document.querySelectorAll('.sidebar-nav, .sidebar-desktop-logo-fixed-container, aside').forEach(el => {
+    document.querySelectorAll('.gz-side, .sidebar-nav, .sidebar-desktop-logo-fixed-container, aside').forEach(el => {
       const cs = getComputedStyle(el)
       if (cs.display !== 'none' && cs.visibility !== 'hidden') addBlocker(el)
     })

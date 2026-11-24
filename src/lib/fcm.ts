@@ -1,5 +1,6 @@
 import { prisma } from '@/lib/db'
 import { firebaseAdmin } from '@/lib/firebase-admin'
+import { sseEmitter } from '@/lib/sse'
 
 interface FcmPayload {
   title: string
@@ -336,4 +337,31 @@ export async function syncAllExistingTopics() {
   } catch (err) {
     console.error('[FCM-Topics] Error during syncAllExistingTopics migration:', err)
   }
+}
+
+/**
+ * Data-only, high-priority FCM for in-app calls: no `notification` block, so the
+ * Flutter background handler runs even when the app is killed and shows the
+ * native full-screen incoming-call screen itself.
+ * kind 'ring' starts ringing; 'cancel' stops it (caller hung up / someone else answered).
+ */
+export async function sendFcmCallSignal(userIds: string[], kind: 'ring' | 'cancel', callId: string, callerName = '') {
+  // Open web tabs (any page) hear it over /api/user/stream right away.
+  userIds.forEach(id => sseEmitter.emit(`user:${id}:call`))
+  if (!firebaseAdmin || userIds.length === 0) return
+  const tokens = await prisma.fcmDeviceToken.findMany({ where: { userId: { in: userIds } } })
+  const staleIds: string[] = []
+  await Promise.allSettled(tokens.map(async (t) => {
+    try {
+      await firebaseAdmin!.messaging().send({
+        token: t.token,
+        data: { type: kind === 'ring' ? 'support_call' : 'support_call_cancel', callId, callerName },
+        android: { priority: 'high', ttl: 60_000 },
+      })
+    } catch (err: any) {
+      if (isStaleFcmTokenError(err)) staleIds.push(t.id)
+      else console.error('FCM call signal error:', err.message || err.code)
+    }
+  }))
+  await deleteStaleFcmTokens(staleIds)
 }

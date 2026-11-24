@@ -113,7 +113,7 @@ export default function ChatTranscriptsPage() {
 
       {/* Left: Class list */}
       <div className="master-detail-list" style={{ width: '260px', flexShrink: 0, display: 'flex', flexDirection: 'column', gap: '8px', overflowY: 'auto' }}>
-        <div style={{ fontSize: '12px', fontWeight: '800', color: 'var(--text-muted)', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '4px', padding: '0 4px' }}>
+        <div style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-muted)', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '4px', padding: '0 4px' }}>
           Community Transcripts
         </div>
 
@@ -127,7 +127,7 @@ export default function ChatTranscriptsPage() {
             onClick={() => selectClass(cls)}
             style={{
               display: 'flex', alignItems: 'center', gap: '12px',
-              padding: '12px 16px', borderRadius: '18px', border: 'none',
+              padding: '12px 16px', borderRadius: '12px', border: 'none',
               cursor: 'pointer', textAlign: 'left', fontFamily: 'inherit',
               transition: 'all 0.2s',
               background: selectedClass?.id === cls.id ? cls.color : 'var(--surface-2)',
@@ -141,13 +141,13 @@ export default function ChatTranscriptsPage() {
               width: '34px', height: '34px', borderRadius: '10px', flexShrink: 0,
               background: selectedClass?.id === cls.id ? 'rgba(255,255,255,0.25)' : cls.color + '22',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontSize: '12px', fontWeight: '800',
+              fontSize: '12px', fontWeight: 600,
               color: selectedClass?.id === cls.id ? '#fff' : cls.color,
             }}>
               {cls.name.substring(0, 2).toUpperCase()}
             </div>
             <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontSize: '13px', fontWeight: '700', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              <div style={{ fontSize: '13px', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                 {cls.name}
               </div>
               <div style={{ fontSize: '11px', opacity: selectedClass?.id === cls.id ? 0.8 : 0.6, display: 'flex', gap: '8px' }}>
@@ -170,7 +170,7 @@ export default function ChatTranscriptsPage() {
       </div>
 
       {/* Right: Transcript viewer */}
-      <div className="master-detail-pane" style={{ flex: 1, borderRadius: '24px', ...neu, display: 'flex', flexDirection: 'column', overflow: 'hidden', minWidth: 0 }}>
+      <div className="master-detail-pane" style={{ flex: 1, borderRadius: '14px', ...neu, display: 'flex', flexDirection: 'column', overflow: 'hidden', minWidth: 0 }}>
         {!selectedClass ? (
           <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: '12px', color: 'var(--text-muted)' }}>
             <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
@@ -179,7 +179,7 @@ export default function ChatTranscriptsPage() {
               <line x1="16" y1="13" x2="8" y2="13"/>
               <line x1="16" y1="17" x2="8" y2="17"/>
             </svg>
-            <p style={{ fontWeight: '700' }}>Select a community to view transcript</p>
+            <p style={{ fontWeight: 600 }}>Select a community to view transcript</p>
             <p style={{ fontSize: '13px' }}>Full chat history including deleted messages</p>
           </div>
         ) : (
@@ -205,12 +205,12 @@ export default function ChatTranscriptsPage() {
                 width: '40px', height: '40px', borderRadius: '12px',
                 background: selectedClass.color + '22',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: '14px', fontWeight: '800', color: selectedClass.color,
+                fontSize: '14px', fontWeight: 600, color: selectedClass.color,
               }}>
                 {selectedClass.name.substring(0, 2).toUpperCase()}
               </div>
               <div style={{ flex: 1, minWidth: '150px' }}>
-                <div style={{ fontWeight: '800', fontSize: '16px', color: 'var(--text-primary)' }}>{selectedClass.name}</div>
+                <div style={{ fontWeight: 600, fontSize: '16px', color: 'var(--text-primary)' }}>{selectedClass.name}</div>
                 <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
                   {selectedClass.subject ? `${selectedClass.subject} · ` : ''}Full Transcript · {messages.length} messages
                   {messages.filter(m => m.isDeleted).length > 0 && (
@@ -229,7 +229,7 @@ export default function ChatTranscriptsPage() {
                     style={{
                       padding: '6px 14px', borderRadius: '50px', border: 'none',
                       cursor: exporting ? 'default' : 'pointer',
-                      fontFamily: 'inherit', fontSize: '12px', fontWeight: '700',
+                      fontFamily: 'inherit', fontSize: '12px', fontWeight: 600,
                       ...neuSmall,
                       color: exporting ? 'var(--text-muted)' : 'var(--primary)',
                       transition: 'all 0.2s',
@@ -260,11 +260,11 @@ export default function ChatTranscriptsPage() {
                     onClick={() => setFilter(f)}
                     style={{
                       padding: '6px 14px', borderRadius: '50px', border: 'none',
-                      cursor: 'pointer', fontFamily: 'inherit', fontSize: '12px', fontWeight: '700',
+                      cursor: 'pointer', fontFamily: 'inherit', fontSize: '12px', fontWeight: 600,
                       background: filter === f ? 'var(--primary)' : 'var(--surface-2)',
                       color: filter === f ? '#fff' : 'var(--text-secondary)',
                       boxShadow: filter === f
-                        ? '4px 4px 10px rgba(54,54,232,0.25)'
+                        ? '4px 4px 10px rgba(128, 128, 128,0.25)'
                         : '3px 3px 6px var(--neu-dark), -3px -3px 6px var(--neu-light)',
                       transition: 'all 0.2s',
                     }}
@@ -281,7 +281,7 @@ export default function ChatTranscriptsPage() {
                 <div style={{ textAlign: 'center', padding: '40px', color: 'var(--text-muted)', fontWeight: '600' }}>Loading transcript...</div>
               ) : filteredMessages.length === 0 ? (
                 <div style={{ textAlign: 'center', padding: '40px', color: 'var(--text-muted)' }}>
-                  <p style={{ fontWeight: '700' }}>No messages found</p>
+                  <p style={{ fontWeight: 600 }}>No messages found</p>
                   <p style={{ fontSize: '13px', marginTop: '4px' }}>
                     {filter === 'deleted' ? 'No deleted messages in this community' : search ? 'Try a different search term' : 'This community has no messages yet'}
                   </p>
@@ -291,12 +291,12 @@ export default function ChatTranscriptsPage() {
                 <table style={{ width: '100%', minWidth: '720px', borderCollapse: 'collapse', fontSize: '13px' }}>
                   <thead>
                     <tr style={{ position: 'sticky', top: 0, background: 'var(--surface-2)', zIndex: 1 }}>
-                      <th style={{ textAlign: 'left', padding: '10px 14px', fontWeight: '700', color: 'var(--text-secondary)', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.04em', borderBottom: '2px solid rgba(0,0,0,0.08)' }}>User</th>
-                      <th style={{ textAlign: 'left', padding: '10px 14px', fontWeight: '700', color: 'var(--text-secondary)', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.04em', borderBottom: '2px solid rgba(0,0,0,0.08)' }}>Security #</th>
-                      <th style={{ textAlign: 'left', padding: '10px 14px', fontWeight: '700', color: 'var(--text-secondary)', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.04em', borderBottom: '2px solid rgba(0,0,0,0.08)' }}>Time</th>
-                      <th style={{ textAlign: 'left', padding: '10px 14px', fontWeight: '700', color: 'var(--text-secondary)', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.04em', borderBottom: '2px solid rgba(0,0,0,0.08)' }}>Message</th>
-                      <th style={{ textAlign: 'center', padding: '10px 14px', fontWeight: '700', color: 'var(--text-secondary)', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.04em', borderBottom: '2px solid rgba(0,0,0,0.08)' }}>Status</th>
-                      <th style={{ textAlign: 'left', padding: '10px 14px', fontWeight: '700', color: 'var(--text-secondary)', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.04em', borderBottom: '2px solid rgba(0,0,0,0.08)' }}>Deleted At</th>
+                      <th style={{ textAlign: 'left', padding: '10px 14px', fontWeight: 600, color: 'var(--text-secondary)', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.04em', borderBottom: '2px solid rgba(0,0,0,0.08)' }}>User</th>
+                      <th style={{ textAlign: 'left', padding: '10px 14px', fontWeight: 600, color: 'var(--text-secondary)', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.04em', borderBottom: '2px solid rgba(0,0,0,0.08)' }}>Security #</th>
+                      <th style={{ textAlign: 'left', padding: '10px 14px', fontWeight: 600, color: 'var(--text-secondary)', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.04em', borderBottom: '2px solid rgba(0,0,0,0.08)' }}>Time</th>
+                      <th style={{ textAlign: 'left', padding: '10px 14px', fontWeight: 600, color: 'var(--text-secondary)', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.04em', borderBottom: '2px solid rgba(0,0,0,0.08)' }}>Message</th>
+                      <th style={{ textAlign: 'center', padding: '10px 14px', fontWeight: 600, color: 'var(--text-secondary)', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.04em', borderBottom: '2px solid rgba(0,0,0,0.08)' }}>Status</th>
+                      <th style={{ textAlign: 'left', padding: '10px 14px', fontWeight: 600, color: 'var(--text-secondary)', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.04em', borderBottom: '2px solid rgba(0,0,0,0.08)' }}>Deleted At</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -314,7 +314,7 @@ export default function ChatTranscriptsPage() {
                           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                             <UserAvatar user={msg.sender} size={28} />
                             <div>
-                              <div style={{ fontWeight: '700', fontSize: '13px' }}>{msg.sender.name}</div>
+                              <div style={{ fontWeight: 600, fontSize: '13px' }}>{msg.sender.name}</div>
                               <div style={{ fontSize: '10px', color: 'var(--text-muted)' }}>{msg.sender.role}</div>
                             </div>
                           </div>
@@ -331,7 +331,7 @@ export default function ChatTranscriptsPage() {
                           </span>
                           {msg.isDeleted && (
                             <span style={{
-                              marginLeft: '8px', fontSize: '10px', fontWeight: '700',
+                              marginLeft: '8px', fontSize: '10px', fontWeight: 600,
                               background: 'var(--danger-light)', color: 'var(--danger)',
                               padding: '1px 8px', borderRadius: '50px',
                             }}>
@@ -342,12 +342,12 @@ export default function ChatTranscriptsPage() {
                         <td style={{ padding: '10px 14px', borderBottom: '1px solid rgba(0,0,0,0.05)', textAlign: 'center' }}>
                           {msg.isDeleted ? (
                             <span style={{
-                              padding: '3px 10px', borderRadius: '50px', fontSize: '11px', fontWeight: '700',
+                              padding: '3px 10px', borderRadius: '50px', fontSize: '11px', fontWeight: 600,
                               background: 'var(--danger-light)', color: 'var(--danger)',
                             }}>Deleted</span>
                           ) : (
                             <span style={{
-                              padding: '3px 10px', borderRadius: '50px', fontSize: '11px', fontWeight: '700',
+                              padding: '3px 10px', borderRadius: '50px', fontSize: '11px', fontWeight: 600,
                               background: 'var(--success-light)', color: 'var(--success)',
                             }}>Active</span>
                           )}

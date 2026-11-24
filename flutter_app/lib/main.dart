@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'app.dart';
 import 'config/api_config.dart';
+import 'core/api/device_info.dart';
 import 'core/notifications/push_notification_service.dart';
 import 'core/router/nav_history_observer.dart';
 import 'features/auth/welcome_page.dart';
@@ -12,6 +13,7 @@ import 'features/launch/play_store_launch_overlay.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await DeviceInfo.load();
   try {
     await PushNotificationService.instance.initialize();
   } catch (e) {

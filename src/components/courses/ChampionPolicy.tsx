@@ -25,9 +25,9 @@ export default function ChampionPolicy({ championPrice, livePrice }: { championP
   return (
     <div style={{ padding: 0 }}>
       <div style={{ fontSize: 13, color: 'var(--text-secondary)', margin: '6px 0 10px' }}>Everything in Live Pro, plus a full refund or free reattempt support when all the conditions below are fulfilled.</div>
-      <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: '0.05em', textTransform: 'uppercase', color: 'var(--text-secondary)' }}>Eligibility criteria</div>
+      <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: '0.05em', textTransform: 'uppercase', color: 'var(--text-secondary)' }}>Eligibility criteria</div>
       <ul style={ul}>{[...CHAMPION_ELIGIBILITY, refundText].map(li)}</ul>
-      <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: '0.05em', textTransform: 'uppercase', color: 'var(--text-secondary)' }}>What we provide</div>
+      <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: '0.05em', textTransform: 'uppercase', color: 'var(--text-secondary)' }}>What we provide</div>
       <ul style={ul}>{CHAMPION_PROVIDES.map(li)}</ul>
       <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)' }}>We provide everything from our side. In return we expect dedication, discipline and focus: 80% attendance, weekly test qualification and active participation.</div>
     </div>

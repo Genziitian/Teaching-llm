@@ -6,6 +6,7 @@ import { validateLength, sanitizeInput } from '@/lib/validation'
 import { sseEmitter } from '@/lib/sse'
 import { sendCommunityNotification, sendDMNotification, sendTagNotification, sendReplyNotification } from '@/lib/community-notifications'
 import { ensureCourseColumns } from '@/lib/course-schema-sync'
+import { genzieAutoReply, collectCandidate } from '@/lib/genie/community'
 
 // ─── DM helpers ─────────────────────────────────────────────────────────────
 
@@ -420,6 +421,20 @@ export async function POST(
 
     // Parse tag notifications and reply notifications
     const courseName = course?.name || 'Community'
+
+    // GenZie: answer students' top-level questions in course chats; learn from staff replies (non-blocking).
+    if (params.courseId !== 'general-discussion' && sanitizedContent) {
+      if (session.role === 'STUDENT' && !replyToId) {
+        genzieAutoReply({ courseId: params.courseId, courseName, messageId: message.id, content: sanitizedContent, studentId: session.userId })
+          .catch(e => console.error('genzie auto-reply', e))
+      } else if (session.role !== 'STUDENT' && message.replyTo?.sender.role === 'STUDENT') {
+        collectCandidate({
+          courseId: params.courseId,
+          question: { id: message.replyTo.id, content: message.replyTo.content, senderId: message.replyTo.sender.id },
+          answer: { id: message.id, content: sanitizedContent, senderId: session.userId },
+        }).catch(e => console.error('genzie collect', e))
+      }
+    }
     let taggedUserIds: string[] = []
 
     if (sanitizedContent) {

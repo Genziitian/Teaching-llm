@@ -213,8 +213,8 @@ export default function AppUpdater() {
           maxWidth: '430px',
           background: 'linear-gradient(135deg, rgba(30, 41, 59, 0.96) 0%, rgba(15, 23, 42, 0.98) 100%)',
           border: '1px solid rgba(255, 255, 255, 0.08)',
-          boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 40px rgba(54, 54, 232, 0.18)',
-          borderRadius: '24px',
+          boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 40px color-mix(in srgb, var(--primary) 18%, transparent)',
+          borderRadius: '14px',
           padding: '32px',
           color: '#ffffff',
           fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
@@ -230,12 +230,12 @@ export default function AppUpdater() {
           style={{
             width: '76px',
             height: '76px',
-            borderRadius: '22px',
-            background: 'linear-gradient(135deg, #4f46e5 0%, #3b82f6 100%)',
+            borderRadius: '14px',
+            background: 'var(--primary)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            boxShadow: '0 8px 24px rgba(79, 70, 229, 0.4), 0 0 30px rgba(59, 130, 246, 0.2)',
+            boxShadow: '0 8px 24px color-mix(in srgb, var(--primary) 40%, transparent), 0 0 30px rgba(59, 130, 246, 0.2)',
             marginBottom: '24px',
             position: 'relative',
           }}
@@ -261,7 +261,7 @@ export default function AppUpdater() {
         <h3
           style={{
             fontSize: '22px',
-            fontWeight: '800',
+            fontWeight: 600,
             letterSpacing: '-0.025em',
             margin: '0 0 8px 0',
             background: 'linear-gradient(to right, #ffffff, #f1f5f9)',
@@ -290,7 +290,7 @@ export default function AppUpdater() {
           <span
             style={{
               color: '#38bdf8',
-              fontWeight: '700',
+              fontWeight: 600,
               background: 'rgba(56, 189, 248, 0.12)',
               padding: '2px 10px',
               borderRadius: '8px',
@@ -308,7 +308,7 @@ export default function AppUpdater() {
               width: '100%',
               background: 'rgba(15, 23, 42, 0.4)',
               border: '1px solid rgba(255, 255, 255, 0.04)',
-              borderRadius: '16px',
+              borderRadius: '12px',
               padding: '16px',
               textAlign: 'left',
               fontSize: '14px',
@@ -345,10 +345,10 @@ export default function AppUpdater() {
                 style={{
                   width: `${downloadProgress}%`,
                   height: '100%',
-                  background: 'linear-gradient(to right, #4f46e5, #3b82f6)',
+                  background: 'var(--primary)',
                   borderRadius: '999px',
                   transition: 'width 0.2s ease-out',
-                  boxShadow: '0 0 8px rgba(79, 70, 229, 0.5)',
+                  boxShadow: '0 0 8px color-mix(in srgb, var(--primary) 50%, transparent)',
                 }}
               />
             </div>
@@ -380,13 +380,13 @@ export default function AppUpdater() {
                 width: '100%',
                 padding: '14px',
                 borderRadius: '14px',
-                background: 'linear-gradient(135deg, #4f46e5 0%, #4338ca 100%)',
+                background: 'var(--primary)',
                 color: '#ffffff',
                 border: 'none',
-                fontWeight: '700',
+                fontWeight: 600,
                 fontSize: '15px',
                 cursor: 'pointer',
-                boxShadow: '0 4px 18px rgba(79, 70, 229, 0.35), 0 0 0 2px rgba(255, 255, 255, 0.05)',
+                boxShadow: '0 4px 18px color-mix(in srgb, var(--primary) 35%, transparent), 0 0 0 2px rgba(255, 255, 255, 0.05)',
                 transition: 'all 0.2s',
               }}
               className="update-action-btn"
@@ -430,7 +430,7 @@ export default function AppUpdater() {
         }
         .update-action-btn:hover {
           transform: translateY(-2px);
-          box-shadow: 0 6px 22px rgba(79, 70, 229, 0.45), 0 0 0 2px rgba(255, 255, 255, 0.1) !important;
+          box-shadow: 0 6px 22px rgba(128, 128, 128, 0.45), 0 0 0 2px rgba(255, 255, 255, 0.1) !important;
         }
         .update-action-btn:active {
           transform: translateY(0);
@@ -449,9 +449,9 @@ export default function AppUpdater() {
           animation: updater-pulse 2s infinite;
         }
         @keyframes updater-pulse {
-          0% { transform: scale(1); box-shadow: 0 8px 24px rgba(79, 70, 229, 0.4); }
-          50% { transform: scale(1.05); box-shadow: 0 8px 30px rgba(79, 70, 229, 0.6), 0 0 20px rgba(59, 130, 246, 0.3); }
-          100% { transform: scale(1); box-shadow: 0 8px 24px rgba(79, 70, 229, 0.4); }
+          0% { transform: scale(1); box-shadow: 0 8px 24px rgba(128, 128, 128, 0.4); }
+          50% { transform: scale(1.05); box-shadow: 0 8px 30px rgba(128, 128, 128, 0.6), 0 0 20px rgba(59, 130, 246, 0.3); }
+          100% { transform: scale(1); box-shadow: 0 8px 24px rgba(128, 128, 128, 0.4); }
         }
       `}</style>
     </div>

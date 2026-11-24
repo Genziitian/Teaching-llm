@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
+import { NAME_DIGIT_ERROR, nameHasDigit } from '@/lib/name-validation'
 import { getSession } from '@/lib/auth'
 import { logActivity, ACTION, MODULE } from '@/lib/activity-log'
 import { ABOUT_ME_MAX_WORDS, countWords } from '@/lib/profile-limits'
@@ -130,6 +131,9 @@ export async function PUT(request: NextRequest) {
     } = await request.json()
 
     const data: any = {}
+    if (nameHasDigit(name, firstName, lastName)) {
+      return NextResponse.json({ error: NAME_DIGIT_ERROR }, { status: 400 })
+    }
     if (name !== undefined) data.name = name
     if (firstName !== undefined) data.firstName = firstName
     if (lastName !== undefined) data.lastName = lastName
